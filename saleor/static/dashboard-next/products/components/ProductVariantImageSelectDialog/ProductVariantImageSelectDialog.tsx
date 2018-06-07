@@ -1,16 +1,14 @@
+import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import GridListTile from "@material-ui/core/GridListTile";
+import GridListTileBar from "@material-ui/core/GridListTileBar";
+import IconButton from "@material-ui/core/IconButton";
+import { withStyles, WithStyles } from "@material-ui/core/styles";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
-import Button from "material-ui/Button";
-import Dialog, {
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogProps,
-  DialogTitle
-} from "material-ui/Dialog";
-import GridList, { GridListTile, GridListTileBar } from "material-ui/GridList";
-import IconButton from "material-ui/IconButton";
-import Subheader from "material-ui/List/ListSubheader";
-import { withStyles, WithStyles } from "material-ui/styles";
 import * as React from "react";
 
 import i18n from "../../../i18n";

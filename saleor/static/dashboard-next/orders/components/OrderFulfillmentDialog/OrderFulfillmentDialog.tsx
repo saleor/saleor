@@ -1,21 +1,15 @@
-import Avatar from "material-ui/Avatar";
-import Button from "material-ui/Button";
-import Dialog, {
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogProps,
-  DialogTitle
-} from "material-ui/Dialog";
-import Input from "material-ui/Input";
-import { withStyles } from "material-ui/styles";
-import Table, {
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow
-} from "material-ui/Table";
-import TextField from "material-ui/TextField";
+import Avatar from "@material-ui/core/Avatar";
+import Button from "@material-ui/core/Button";
+import Dialog, { DialogProps } from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import Input from "@material-ui/core/Input";
+import { withStyles } from "@material-ui/core/styles";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableHead from "@material-ui/core/TableHead";
+import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
 import i18n from "../../../i18n";
@@ -35,20 +29,23 @@ interface OrderFulfillmentDialogProps {
   onConfirm?(event: React.FormEvent<any>);
 }
 
-const decorate = withStyles(theme => ({
-  avatarCell: {
-    paddingLeft: theme.spacing.unit * 2,
-    paddingRight: theme.spacing.unit * 3,
-    width: theme.spacing.unit * 5
-  },
-  textRight: {
-    textAlign: "right" as "right"
-  },
-  quantityInput: {
-    width: "4rem"
-  },
-  root: {}
-}));
+const decorate = withStyles(
+  theme => ({
+    avatarCell: {
+      paddingLeft: theme.spacing.unit * 2,
+      paddingRight: theme.spacing.unit * 3,
+      width: theme.spacing.unit * 5
+    },
+    textRight: {
+      textAlign: "right" as "right"
+    },
+    quantityInput: {
+      width: "4rem"
+    },
+    root: {}
+  }),
+  { name: "OrderFulfillmentDialog" }
+);
 const OrderFulfillmentDialog = decorate<OrderFulfillmentDialogProps>(
   ({ classes, open, products, data, onChange, onClose, onConfirm }) => (
     <Dialog open={open}>

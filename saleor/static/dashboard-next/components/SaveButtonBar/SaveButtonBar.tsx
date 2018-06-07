@@ -1,6 +1,6 @@
-import Button from "material-ui/Button";
-import gray from "material-ui/colors/grey";
-import { withStyles } from "material-ui/styles";
+import Button from "@material-ui/core/Button";
+import gray from "@material-ui/core/colors/grey";
+import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 import i18n from "../../i18n";
 

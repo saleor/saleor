@@ -1,16 +1,17 @@
+import Avatar from "@material-ui/core/Avatar";
+import Button from "@material-ui/core/Button";
+import Card from "@material-ui/core/Card";
+import CardActions from "@material-ui/core/CardActions";
+import CardContent from "@material-ui/core/CardContent";
+import IconButton from "@material-ui/core/IconButton";
+import { withStyles } from "@material-ui/core/styles";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableHead from "@material-ui/core/TableHead";
+import TableRow from "@material-ui/core/TableRow";
 import Cached from "@material-ui/icons/Cached";
 import PrintIcon from "@material-ui/icons/Print";
-import Avatar from "material-ui/Avatar";
-import Button from "material-ui/Button";
-import Card, { CardActions, CardContent } from "material-ui/Card";
-import IconButton from "material-ui/IconButton";
-import { withStyles } from "material-ui/styles";
-import Table, {
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow
-} from "material-ui/Table";
 import * as React from "react";
 
 import { transformFulfillmentStatus } from "../..";
@@ -36,25 +37,28 @@ interface OrderFulfillmentProps {
   onPackingSlipClick?();
 }
 
-const decorate = withStyles(theme => ({
-  avatarCell: {
-    paddingLeft: theme.spacing.unit * 2,
-    paddingRight: theme.spacing.unit * 3,
-    width: theme.spacing.unit * 5
-  },
-  root: {
-    marginTop: theme.spacing.unit * 2,
-    [theme.breakpoints.down("sm")]: {
-      marginTop: theme.spacing.unit
+const decorate = withStyles(
+  theme => ({
+    avatarCell: {
+      paddingLeft: theme.spacing.unit * 2,
+      paddingRight: theme.spacing.unit * 3,
+      width: theme.spacing.unit * 5
+    },
+    root: {
+      marginTop: theme.spacing.unit * 2,
+      [theme.breakpoints.down("sm")]: {
+        marginTop: theme.spacing.unit
+      }
+    },
+    statusBar: {
+      paddingTop: 0
+    },
+    textRight: {
+      textAlign: "right" as "right"
     }
-  },
-  statusBar: {
-    paddingTop: 0
-  },
-  textRight: {
-    textAlign: "right" as "right"
-  }
-}));
+  }),
+  { name: "OrderFulfillment" }
+);
 const OrderFulfillment = decorate<OrderFulfillmentProps>(
   ({
     classes,

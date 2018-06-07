@@ -1,19 +1,15 @@
+import Avatar from "@material-ui/core/Avatar";
+import blue from "@material-ui/core/colors/blue";
+import IconButton from "@material-ui/core/IconButton";
+import { withStyles } from "@material-ui/core/styles";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableHead from "@material-ui/core/TableHead";
+import TableRow from "@material-ui/core/TableRow";
+import Typography from "@material-ui/core/Typography";
 import Cached from "@material-ui/icons/Cached";
 import CloseIcon from "@material-ui/icons/Close";
-import Avatar from "material-ui/Avatar";
-import Button from "material-ui/Button";
-import Card, { CardActions, CardContent } from "material-ui/Card";
-import blue from "material-ui/colors/blue";
-import IconButton from "material-ui/IconButton";
-import { withStyles } from "material-ui/styles";
-import Table, {
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableRow
-} from "material-ui/Table";
-import Typography from "material-ui/Typography";
 import * as React from "react";
 
 import EditableTableCell from "../../../components/EditableTableCell";
@@ -57,38 +53,41 @@ export interface OrderProductsProps {
   onShippingMethodClick?();
 }
 
-const decorate = withStyles(theme => ({
-  avatarCell: {
-    paddingLeft: theme.spacing.unit * 2,
-    paddingRight: theme.spacing.unit * 3,
-    width: theme.spacing.unit * 5
-  },
-  cardActions: {
-    direction: "rtl" as "rtl"
-  },
-  deleteIcon: {
-    height: 40,
-    width: 40
-  },
-  denseTable: {
-    "& td, & th": {
-      paddingRight: theme.spacing.unit * 3
+const decorate = withStyles(
+  theme => ({
+    avatarCell: {
+      paddingLeft: theme.spacing.unit * 2,
+      paddingRight: theme.spacing.unit * 3,
+      width: theme.spacing.unit * 5
+    },
+    cardActions: {
+      direction: "rtl" as "rtl"
+    },
+    deleteIcon: {
+      height: 40,
+      width: 40
+    },
+    denseTable: {
+      "& td, & th": {
+        paddingRight: theme.spacing.unit * 3
+      }
+    },
+    link: {
+      color: blue[500],
+      cursor: "pointer"
+    },
+    textRight: {
+      textAlign: "right" as "right"
+    },
+    flexBox: {
+      display: "flex",
+      flexDirection: "column" as "column",
+      height: theme.spacing.unit * 12,
+      justifyContent: "space-evenly"
     }
-  },
-  link: {
-    color: blue[500],
-    cursor: "pointer"
-  },
-  textRight: {
-    textAlign: "right" as "right"
-  },
-  flexBox: {
-    display: "flex",
-    flexDirection: "column" as "column",
-    height: theme.spacing.unit * 12,
-    justifyContent: "space-evenly"
-  }
-}));
+  }),
+  { name: "OrderProducts" }
+);
 const OrderProducts = decorate<OrderProductsProps>(
   ({
     classes,

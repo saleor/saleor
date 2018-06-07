@@ -1,11 +1,8 @@
+import MenuItem from "@material-ui/core/MenuItem";
+import Paper from "@material-ui/core/Paper";
+import { withStyles } from "@material-ui/core/styles";
+import TextField from "@material-ui/core/TextField";
 import Downshift from "downshift";
-import * as keycode from "keycode";
-import Chip from "material-ui/Chip";
-import { MenuItem } from "material-ui/Menu";
-import Paper from "material-ui/Paper";
-import { CircularProgress } from "material-ui/Progress";
-import { withStyles } from "material-ui/styles";
-import TextField from "material-ui/TextField";
 import * as React from "react";
 
 import i18n from "../../i18n";
@@ -30,9 +27,6 @@ interface SingleAutocompleteSelectFieldProps {
 }
 
 const decorate = withStyles(theme => ({
-  chip: {
-    margin: `${theme.spacing.unit / 2}px ${theme.spacing.unit / 4}px`
-  },
   container: {
     flexGrow: 1,
     position: "relative" as "relative"

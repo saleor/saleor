@@ -1,17 +1,14 @@
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import GridListTile from "@material-ui/core/GridListTile";
+import GridListTileBar from "@material-ui/core/GridListTileBar";
+import IconButton from "@material-ui/core/IconButton";
+import { withStyles } from "@material-ui/core/styles";
+import Typography from "@material-ui/core/Typography";
 import AddIcon from "@material-ui/icons/Add";
 import ModeEditIcon from "@material-ui/icons/ModeEdit";
-import Card, { CardContent } from "material-ui/Card";
-import GridList, { GridListTile, GridListTileBar } from "material-ui/GridList";
-import IconButton from "material-ui/IconButton";
-import Subheader from "material-ui/List/ListSubheader";
-import { withStyles } from "material-ui/styles";
-import Typography from "material-ui/Typography";
 import * as React from "react";
-import {
-  arrayMove,
-  SortableContainer,
-  SortableElement
-} from "react-sortable-hoc";
+import { SortableContainer, SortableElement } from "react-sortable-hoc";
 
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";

@@ -1,7 +1,7 @@
+import Card from "@material-ui/core/Card";
+import Hidden from "@material-ui/core/Hidden";
+import IconButton from "@material-ui/core/IconButton";
 import FilterListIcon from "@material-ui/icons/FilterList";
-import Card from "material-ui/Card";
-import Hidden from "material-ui/Hidden";
-import IconButton from "material-ui/IconButton";
 import * as React from "react";
 
 import Container from "../../../components/Container";
