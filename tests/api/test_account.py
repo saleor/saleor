@@ -1,6 +1,7 @@
 import json
 
 import graphene
+from django.contrib.auth import get_user_model
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 
@@ -132,3 +133,51 @@ def test_query_user(admin_api_client, customer_user):
     assert address['country'] == user_address.country.code
     assert address['countryArea'] == user_address.country_area
     assert address['phone'] == user_address.phone.raw_input
+
+
+def test_who_can_see_user(
+        staff_user, customer_user, staff_api_client, user_api_client,
+        staff_group, permission_view_user):
+    user = customer_user
+    query = """
+    query User($id: ID!) {
+        user(id: $id) {
+            email
+        }
+    }
+    """
+    # User can see himself
+    ID = graphene.Node.to_global_id('User', customer_user.id)
+    variables = json.dumps({'id': ID})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+
+    # Random person (even staff) can't see users data without permissions
+    ID = graphene.Node.to_global_id('User', customer_user.id)
+    variables = json.dumps({'id': ID})
+    response = staff_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert content['data']['user'] is None
+
+    staff_group.permissions.add(permission_view_user)
+    staff_user.groups.add(staff_group)
+    response = staff_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert content['data']['user']['email'] == customer_user.email
+
+    # staf user with permissions can also see list of all users
+    query = """
+    query Users {
+        users {
+            totalCount
+        }
+    }
+    """
+    response = staff_api_client.post(reverse('api'), {'query': query})
+    content = get_graphql_content(response)
+    model = get_user_model()
+    assert content['data']['users']['totalCount'] == model.objects.count()
