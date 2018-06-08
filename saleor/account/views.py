@@ -2,17 +2,20 @@ from django.conf import settings
 from django.contrib import auth, messages
 from django.contrib.auth import views as django_views
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
 from django.utils.translation import pgettext, ugettext_lazy as _
+from django.views.decorators.http import require_POST
 
-from ..cart.utils import find_and_assign_anonymous_cart
+from ..checkout.utils import find_and_assign_anonymous_cart
 from ..core.utils import get_paginator_items
+from .emails import send_account_delete_confirmation_email
 from .forms import (
     ChangePasswordForm, LoginForm, PasswordResetForm, SignupForm,
     get_address_form, logout_on_password_change)
+from .models import User
 
 
 @find_and_assign_anonymous_cart()
@@ -33,16 +36,8 @@ def logout(request):
 def signup(request):
     form = SignupForm(request.POST or None)
     if form.is_valid():
-        form.save()
-        password = form.cleaned_data.get('password')
-        email = form.cleaned_data.get('email')
-        user = auth.authenticate(
-            request=request, email=email, password=password)
-        if user:
-            auth.login(request, user)
-        messages.success(request, _('User has been created'))
-        redirect_url = request.POST.get('next', settings.LOGIN_REDIRECT_URL)
-        return redirect(redirect_url)
+        # DEMO: disable registration
+        messages.error(request, _('Registration is disabled on demo.'))
     ctx = {'form': form}
     return TemplateResponse(request, 'account/signup.html', ctx)
 
@@ -122,3 +117,24 @@ def address_delete(request, pk):
         return HttpResponseRedirect(reverse('account:details') + '#addresses')
     return TemplateResponse(
         request, 'account/address_delete.html', {'address': address})
+
+
+@login_required
+@require_POST
+def account_delete(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    if request.user.pk != user.pk:
+        raise Http404('No such page!')
+    send_account_delete_confirmation_email.delay(str(user.token), user.email)
+    messages.success(
+        request, pgettext(
+            'Storefront message, when user requested his account removed',
+            'Please check your inbox for a confirmation e-mail.'))
+    return HttpResponseRedirect(reverse('account:details') + '#settings')
+
+
+def account_delete_confirm(request, token):
+    user = get_object_or_404(User, token=token)
+    user.delete()
+    return TemplateResponse(
+        request, 'account/account_delete.html')

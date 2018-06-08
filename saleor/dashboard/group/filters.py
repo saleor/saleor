@@ -5,16 +5,21 @@ from django_filters import (
 
 from ...core.filters import SortedFilterSet
 from ...core.permissions import get_permissions
+from ..forms import PermissionMultipleChoiceField
 
 SORT_BY_FIELDS = {
     'name': pgettext_lazy('Group list sorting option', 'name')}
+
+
+class PermissionMultipleChoiceFilter(ModelMultipleChoiceFilter):
+    field_class = PermissionMultipleChoiceField
 
 
 class GroupFilter(SortedFilterSet):
     name = CharFilter(
         label=pgettext_lazy('Group list filter label', 'Name'),
         lookup_expr='icontains')
-    permissions = ModelMultipleChoiceFilter(
+    permissions = PermissionMultipleChoiceFilter(
         label=pgettext_lazy('Group list filter label', 'Permissions'),
         name='permissions',
         queryset=get_permissions())

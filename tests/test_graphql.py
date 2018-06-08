@@ -549,7 +549,6 @@ def test_real_query(admin_client, product):
             id
             name
             slug
-            color
             __typename
         }
         __typename

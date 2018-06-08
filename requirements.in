@@ -26,6 +26,7 @@ django-versatileimagefield>=1.0.1
 django-webpack-loader>=0.3.0
 django-celery-results
 django-elasticsearch-dsl
+django-recaptcha
 elasticsearch>=5.4,<6.0.0
 elasticsearch-dsl>=5.0.0,<6.0.0
 faker>=0.7.7

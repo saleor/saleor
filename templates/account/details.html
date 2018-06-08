@@ -42,6 +42,11 @@
             <h3>{% trans "Addresses book" context "User profile tab" %}</h3>
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" data-toggle="tab" href="#settings" role="tab">
+            <h3>{% trans "Settings" context "User profile tab" %}</h3>
+          </a>
+        </li>
       </ul>
     </div>
     <div class="tab-content col-lg-10 m-auto">
@@ -146,7 +151,23 @@
           {% endif %}
         </div>
       </div>
+      <div class="tab-pane fade" id="settings" role="tabpanel">
+        <div class="row ">
+          <div class="d-block mx-auto text-center">
+            <form action="{% url 'account:delete' pk=request.user.pk %}" method="post">
+              {% csrf_token %}
+              <p>
+                {% blocktrans context "Message informing about the process of account removal" %}
+                  If you'd like to remove your account, please click on the button below and a confirmation email will be sent to you.
+                {% endblocktrans %}
+              </p>
+              <button type="submit" class="btn danger narrow text-center">
+                {% trans "Remove Account" context "Remove account form action" %}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 {% endblock content %}
-

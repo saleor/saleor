@@ -16,6 +16,7 @@ from prices import Money
 
 from ...account.models import Address, User
 from ...account.utils import store_user_address
+from ...checkout import AddressType
 from ...core.utils.taxes import get_tax_rate_by_name, get_taxes_for_country
 from ...core.utils.text import strip_html_and_truncate
 from ...discount import DiscountValueType, VoucherType
@@ -300,8 +301,7 @@ def create_variant(product, **kwargs):
     defaults = {
         'product': product,
         'quantity': fake.random_int(1, 50),
-        'cost_price': fake.money(),
-        'quantity_allocated': fake.random_int(1, 50)}
+        'cost_price': fake.money()}
     defaults.update(kwargs)
     variant = ProductVariant(**defaults)
     if variant.attributes:
@@ -385,7 +385,7 @@ def create_payment(order):
         currency=settings.DEFAULT_CURRENCY,
         total=order.total.gross.amount,
         tax=order.total.tax.amount,
-        delivery=order.shipping_price.gross.amount,
+        delivery=order.shipping_price.net.amount,
         customer_ip_address=fake.ipv4(),
         billing_first_name=order.billing_address.first_name,
         billing_last_name=order.billing_address.last_name,
@@ -556,7 +556,8 @@ def set_featured_products(how_many=8):
 def add_address_to_admin(email):
     address = create_address()
     user = User.objects.get(email=email)
-    store_user_address(user, address, True, True)
+    store_user_address(user, address, AddressType.BILLING)
+    store_user_address(user, address, AddressType.SHIPPING)
 
 
 def create_fake_collection(placeholder_dir, collection_data):

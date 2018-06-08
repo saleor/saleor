@@ -12,7 +12,7 @@ from django.utils.translation import pgettext_lazy
 from django.views.decorators.csrf import csrf_exempt
 from payments import PaymentStatus, RedirectNeeded
 
-from . import FulfillmentStatus, OrderStatus
+from . import FulfillmentStatus
 from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
@@ -94,7 +94,7 @@ def start_payment(request, order, variant):
         'total': total.gross.amount,
         'tax': total.tax.amount,
         'currency': total.currency,
-        'delivery': order.shipping_price.gross.amount,
+        'delivery': order.shipping_price.net.amount,
         'billing_first_name': billing.first_name,
         'billing_last_name': billing.last_name,
         'billing_address_1': billing.street_address_1,

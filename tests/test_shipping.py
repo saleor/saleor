@@ -36,4 +36,4 @@ def test_shipping_get_total_price(monkeypatch, shipping_method, vatlayer):
 def test_shipping_get_ajax_label(shipping_method):
     method = shipping_method.price_per_country.get()
     label = method.get_ajax_label()
-    assert label == 'DHL $10.00'
+    assert label == 'DHL Rest of World $10.00'

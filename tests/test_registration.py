@@ -102,20 +102,20 @@ def test_signup_view_create_user(client, db):
     url = reverse('account:signup')
     data = {'email': 'client@example.com', 'password': 'password'}
     response = client.post(url, data)
-    assert User.objects.count() == 1
-    assert User.objects.filter(email='client@example.com').exists()
-    redirect_location = get_redirect_location(response)
-    assert redirect_location == reverse('home')
+
+    # DEMO: registration is disabled
+    assert response.status_code == 200
 
 
 def test_signup_view_redirect(client, customer_user):
     url = reverse('account:signup')
     data = {
         'email': 'client@example.com', 'password': 'password',
-        'next': reverse('cart:index')}
+        'next': reverse('checkout:index')}
     response = client.post(url, data)
-    redirect_location = get_redirect_location(response)
-    assert redirect_location == reverse('cart:index')
+
+    # DEMO: registration is disabled
+    assert response.status_code == 200
 
 
 def test_signup_view_fail(client, db, customer_user):
