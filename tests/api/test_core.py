@@ -5,7 +5,7 @@ from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 from saleor.core.permissions import MODELS_PERMISSIONS
 
 
-def test_shop_endpoint(settings, admin_api_client, admin_user):
+def test_shop_endpoint(settings, admin_api_client):
     query = """
     query shop {
         shop {
@@ -32,4 +32,6 @@ def test_shop_endpoint(settings, admin_api_client, admin_user):
     assert len(permissions_codes) == len(MODELS_PERMISSIONS)
     for code in permissions_codes:
         assert code in MODELS_PERMISSIONS
+    assert len(data['languages']) == len(languages)
+    assert len(data['phonePrefixes']) == len(COUNTRY_CODE_TO_REGION_CODE)
 
