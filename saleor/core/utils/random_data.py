@@ -303,7 +303,7 @@ def create_variant(product, **kwargs):
     defaults = {
         'product': product,
         'quantity': fake.random_int(1, 50),
-        'quantity_allocated': fake.random_int(1, 50)}
+        'cost_price': fake.money()}
     defaults.update(kwargs)
     variant = ProductVariant(**defaults)
     if 'cost_price' not in kwargs:
