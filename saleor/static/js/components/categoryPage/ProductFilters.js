@@ -57,7 +57,6 @@ class ProductFilters extends Component {
           id
           name
           slug
-          color
         }
       }
     `
