@@ -66,7 +66,11 @@ const OrderHistory = decorate<OrderHistoryProps>(
               }
               if (event.type === "shipped") {
                 return (
-                  <TimelineNode date={event.date} title={event.content}>
+                  <TimelineNode
+                    date={event.date}
+                    title={event.content}
+                    key={event.id}
+                  >
                     <Typography variant="caption" className={classes.user}>
                       {i18n.t("by {{ user }}", { user: event.user })}
                     </Typography>
@@ -79,7 +83,11 @@ const OrderHistory = decorate<OrderHistoryProps>(
                 );
               }
               return (
-                <TimelineNode date={event.date} title={event.content}>
+                <TimelineNode
+                  date={event.date}
+                  title={event.content}
+                  key={event.id}
+                >
                   <Typography variant="caption">
                     {i18n.t("by {{ user }}", { user: event.user })}
                   </Typography>
