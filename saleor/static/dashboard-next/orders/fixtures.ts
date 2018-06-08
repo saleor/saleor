@@ -310,7 +310,7 @@ export const order = (placeholder, args?) => ({
       user: "richard.holder@example.com"
     },
     {
-      id: "n1",
+      id: "n2",
       type: "payment",
       content: "Received payment",
       date: "2018-04-07T11:33:19+00:00",
