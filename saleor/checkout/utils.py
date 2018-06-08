@@ -16,6 +16,7 @@ from ..account.forms import get_address_form
 from ..account.models import Address
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
+from ..core.demo_obfuscators import obfuscate_cart, obfuscate_order
 from ..core.utils import to_local_currency
 from ..core.utils.taxes import ZERO_MONEY, get_taxes_for_country
 from ..discount import VoucherType
@@ -833,4 +834,9 @@ def create_order(cart, tracking_code, discounts, taxes):
     order = Order.objects.create(**order_data)
 
     _fill_order_with_cart_data(order, cart, discounts, taxes)
+
+    # DEMO: anonymize order and cart data
+    obfuscate_cart(cart)
+    obfuscate_order(order)
+
     return order
