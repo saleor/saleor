@@ -146,6 +146,14 @@ def test_who_can_see_user(
         }
     }
     """
+
+    query_2 = """
+    query Users {
+        users {
+            totalCount
+        }
+    }
+    """
     # User can see himself
     ID = graphene.Node.to_global_id('User', customer_user.id)
     variables = json.dumps({'id': ID})
@@ -162,6 +170,12 @@ def test_who_can_see_user(
     content = get_graphql_content(response)
     assert content['data']['user'] is None
 
+    response = staff_api_client.post(
+        reverse('api'), {'query': query_2})
+    content = get_graphql_content(response)
+    assert not content['data']['users']['totalCount']
+
+    # Add permission and ensure staff can see user(s)
     staff_group.permissions.add(permission_view_user)
     staff_user.groups.add(staff_group)
     response = staff_api_client.post(
@@ -169,15 +183,7 @@ def test_who_can_see_user(
     content = get_graphql_content(response)
     assert content['data']['user']['email'] == customer_user.email
 
-    # staf user with permissions can also see list of all users
-    query = """
-    query Users {
-        users {
-            totalCount
-        }
-    }
-    """
-    response = staff_api_client.post(reverse('api'), {'query': query})
+    response = staff_api_client.post(reverse('api'), {'query': query_2})
     content = get_graphql_content(response)
     model = get_user_model()
     assert content['data']['users']['totalCount'] == model.objects.count()
