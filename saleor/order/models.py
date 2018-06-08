@@ -36,7 +36,7 @@ class OrderQueryset(models.QuerySet):
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
         return self.filter(status__in=statuses).annotate(
             amount_paid=Sum('payments__captured_amount')).filter(
-            total_gross__lte=F('amount_paid'))
+                total_gross__lte=F('amount_paid'))
 
 
 class Order(models.Model):
@@ -231,7 +231,7 @@ class Fulfillment(models.Model):
         return iter(self.lines.all())
 
     def save(self, *args, **kwargs):
-        """"Assign an auto incremented value as a fulfillment order."""
+        """Assign an auto incremented value as a fulfillment order."""
         if not self.pk:
             groups = self.order.fulfillments.all()
             existing_max = groups.aggregate(Max('fulfillment_order'))
@@ -281,7 +281,7 @@ class Payment(BasePayment):
             PurchasedItem(
                 name=line.product_name, sku=line.product_sku,
                 quantity=line.quantity,
-                price=line.unit_price_gross.quantize(Decimal('0.01')).amount,
+                price=line.unit_price_net.quantize(Decimal('0.01')).amount,
                 currency=line.unit_price.currency)
             for line in self.order]
 

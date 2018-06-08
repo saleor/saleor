@@ -1,0 +1,25 @@
+<mjml>
+  <mj-head>
+    <mj-include path="./shared/styles.mjml" />
+  </mj-head>
+  <mj-body>
+    <mj-raw>
+      {% load i18n %}
+    </mj-raw>
+    <mj-include path="./shared/header.mjml" />
+    <mj-section>
+      <mj-column>
+        <mj-text font-size="16px">
+          {% trans "Hi!" context "Promote customer to staff member confirmation e-mail text" %}
+        </mj-text>
+        <mj-text>
+          {% blocktrans trimmed context "Promote customer to staff member confirmation e-mail text" %}
+            You're receiving this e-mail because you have been promoted to staff member at {{ domain }}.<br/>
+            To access dashboard please visit: <a href="{{ url }}">{{ url }}</a>
+          {% endblocktrans %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-include path="./shared/footer.mjml" />
+  </mj-body>
+</mjml>

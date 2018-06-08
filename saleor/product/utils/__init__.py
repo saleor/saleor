@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.db.models import F
 
-from ...cart.utils import (
+from ...checkout.utils import (
     get_cart_from_request, get_or_create_cart_from_request)
 from ...core.utils import get_paginator_items
 from ...core.utils.filters import get_now_sorted_by

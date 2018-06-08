@@ -6,11 +6,11 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 
-from ..cart.utils import set_cart_cookie
+from ..checkout.utils import set_cart_cookie
 from ..core.utils import serialize_decimal
 from ..seo.schema.product import product_json_ld
 from .filters import ProductCategoryFilter, ProductCollectionFilter
-from .models import Category, Collection
+from .models import Category
 from .utils import (
     collections_visible_to_user, get_product_images, get_product_list_context,
     handle_cart_form, products_for_cart, products_with_details)

@@ -1,0 +1,30 @@
+<mjml>
+  <mj-head>
+    <mj-include path="./shared/styles.mjml" />
+  </mj-head>
+  <mj-body>
+    <mj-raw>
+      {% load i18n %}
+    </mj-raw>
+    <mj-include path="./shared/header.mjml" />
+    <mj-section>
+      <mj-column>
+        <mj-text font-size="16px">
+          {% trans "Hi!" context "Fulfillment confirmation email text" %}
+        </mj-text>
+        <mj-text>
+          {% blocktrans trimmed context "Fulfillment confirmation email text" %}
+            Thank you for your order. Below is the list of shipped products.
+          {% endblocktrans %}
+          {% if fulfillment.tracking_number %}
+            {% blocktrans trimmed with tracking_number=fulfillment.tracking_number context "Fulfillment confirmation email text" %}
+              You can track your shipment with {{ tracking_number }} code.
+            {% endblocktrans %}
+          {% endif %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-include path="./partials/_fulfillment_lines.mjml" />
+    <mj-include path="./shared/footer.mjml" />
+  </mj-body>
+</mjml>

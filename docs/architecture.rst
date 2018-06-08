@@ -14,3 +14,4 @@ Architecture
    architecture/payments
    architecture/settings
    architecture/page
+   architecture/gdpr

@@ -14,15 +14,13 @@ from django_babel.templatetags.babel import currencyfmt
 from django_countries import countries
 from django_countries.fields import Country
 from django_prices_openexchangerates import exchange_currency
-from django_prices_vatlayer.utils import (
-    get_tax_rates_for_country, get_tax_for_rate)
+
 from geolite2 import geolite2
 from prices import MoneyRange
 from versatileimagefield.image_warmer import VersatileImageFieldWarmer
 
 from ...account.models import User
 from ...core.i18n import COUNTRY_CODE_CHOICES
-from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME
 
 georeader = geolite2.reader()
 logger = logging.getLogger(__name__)

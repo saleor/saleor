@@ -273,24 +273,33 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
 
     class Meta:
         model = ProductVariant
-        exclude = [
-            'attributes', 'product', 'images', 'name', 'quantity_allocated']
+        fields = [
+            'sku', 'price_override',
+            'quantity', 'cost_price', 'track_inventory']
         labels = {
             'sku': pgettext_lazy('SKU', 'SKU'),
             'price_override': pgettext_lazy(
                 'Override price', 'Selling price override'),
             'quantity': pgettext_lazy('Integer number', 'Number in stock'),
-            'cost_price': pgettext_lazy('Currency amount', 'Cost price')}
+            'cost_price': pgettext_lazy('Currency amount', 'Cost price'),
+            'track_inventory': pgettext_lazy(
+                'Track inventory field', 'Track inventory')}
+        help_texts = {
+            'track_inventory': pgettext_lazy(
+                'product variant handle stock field help text',
+                'Automatically track this product\'s inventory')}
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, initial_track_inventory=True, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.initial['track_inventory'] = initial_track_inventory
 
         if self.instance.product.pk:
             self.fields['price_override'].widget.attrs[
                 'placeholder'] = self.instance.product.price.amount
             self.available_attributes = (
                 self.instance.product.product_type.variant_attributes.all()
-                .prefetch_related('values'))
+                    .prefetch_related('values'))
             self.prepare_fields_for_attributes()
 
         if include_taxes_in_prices():
@@ -324,6 +333,7 @@ class CachingModelChoiceField(forms.ModelChoiceField):
         if hasattr(self, '_choices'):
             return self._choices
         return CachingModelChoiceIterator(self)
+
     choices = property(_get_choices, forms.ChoiceField._set_choices)
 
 
@@ -344,7 +354,7 @@ class ProductImageForm(forms.ModelForm):
 
     class Meta:
         model = ProductImage
-        exclude = ('product', 'order')
+        exclude = ('product', 'sort_order')
         labels = {
             'image': pgettext_lazy('Product image', 'Image'),
             'alt': pgettext_lazy(
@@ -395,17 +405,35 @@ class ProductAttributeForm(forms.ModelForm):
 class AttributeChoiceValueForm(forms.ModelForm):
     class Meta:
         model = AttributeChoiceValue
-        fields = ['attribute', 'name', 'color']
+        fields = ['attribute', 'name']
         widgets = {'attribute': forms.widgets.HiddenInput()}
         labels = {
             'name': pgettext_lazy(
-                'Item name', 'Name'),
-            'color': pgettext_lazy(
-                'Color', 'Color')}
+                'Item name', 'Name')}
 
     def save(self, commit=True):
         self.instance.slug = slugify(self.instance.name)
         return super().save(commit=commit)
+
+
+class ReorderAttributeChoiceValuesForm(forms.ModelForm):
+    ordered_values = OrderedModelMultipleChoiceField(
+        queryset=AttributeChoiceValue.objects.none())
+
+    class Meta:
+        model = ProductAttribute
+        fields = ()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            self.fields['ordered_values'].queryset = self.instance.values.all()
+
+    def save(self):
+        for order, value in enumerate(self.cleaned_data['ordered_values']):
+            value.sort_order = order
+            value.save()
+        return self.instance
 
 
 class ReorderProductImagesForm(forms.ModelForm):
@@ -423,7 +451,7 @@ class ReorderProductImagesForm(forms.ModelForm):
 
     def save(self):
         for order, image in enumerate(self.cleaned_data['ordered_images']):
-            image.order = order
+            image.sort_order = order
             image.save()
         return self.instance
 
@@ -431,7 +459,7 @@ class ReorderProductImagesForm(forms.ModelForm):
 class UploadImageForm(forms.ModelForm):
     class Meta:
         model = ProductImage
-        fields = ('image', )
+        fields = ('image',)
         labels = {
             'image': pgettext_lazy('Product image', 'Image')}
 
@@ -447,7 +475,7 @@ class UploadImageForm(forms.ModelForm):
 
 
 class ProductBulkUpdate(forms.Form):
-    """Performs one selected bulk action on all selected products."""
+    """Perform one selected bulk action on all selected products."""
 
     action = forms.ChoiceField(choices=ProductBulkAction.CHOICES)
     products = forms.ModelMultipleChoiceField(queryset=Product.objects.all())

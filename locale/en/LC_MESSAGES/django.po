@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-05-08 07:15-0500\n"
+"POT-Creation-Date: 2018-06-04 04:15-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,22 +18,22 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: saleor/account/forms.py:60
+#: saleor/account/forms.py:58
 msgctxt "Form field"
 msgid "Email"
 msgstr ""
 
-#: saleor/account/forms.py:77
+#: saleor/account/forms.py:75
 msgctxt "Registration error"
 msgid "This email has already been registered."
 msgstr ""
 
-#: saleor/account/forms.py:84
+#: saleor/account/forms.py:82
 msgctxt "Email"
 msgid "Email"
 msgstr ""
 
-#: saleor/account/forms.py:86
+#: saleor/account/forms.py:84
 msgctxt "Password"
 msgid "Password"
 msgstr ""
@@ -193,37 +193,37 @@ msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr ""
 
-#: saleor/account/models.py:112
+#: saleor/account/models.py:115
 msgctxt "Permission description"
 msgid "Can view users"
 msgstr ""
 
-#: saleor/account/models.py:114
+#: saleor/account/models.py:117
 msgctxt "Permission description"
 msgid "Can edit users"
 msgstr ""
 
-#: saleor/account/models.py:116
+#: saleor/account/models.py:119
 msgctxt "Permission description"
 msgid "Can view groups"
 msgstr ""
 
-#: saleor/account/models.py:118
+#: saleor/account/models.py:121
 msgctxt "Permission description"
 msgid "Can edit groups"
 msgstr ""
 
-#: saleor/account/models.py:120
+#: saleor/account/models.py:123
 msgctxt "Permission description"
 msgid "Can view staff"
 msgstr ""
 
-#: saleor/account/models.py:122
+#: saleor/account/models.py:125
 msgctxt "Permission description"
 msgid "Can edit staff"
 msgstr ""
 
-#: saleor/account/models.py:124
+#: saleor/account/models.py:127
 msgctxt "Permission description"
 msgid "Can impersonate users"
 msgstr ""
@@ -269,37 +269,37 @@ msgctxt "Storefront message"
 msgid "Address successfully removed"
 msgstr ""
 
-#: saleor/cart/__init__.py:16
-msgctxt "cart status"
-msgid "Open - currently active"
+#: saleor/checkout/__init__.py:15
+msgctxt "Type of address used to fulfill order"
+msgid "Billing"
 msgstr ""
 
-#: saleor/cart/__init__.py:18
-msgctxt "cart status"
-msgid "Canceled - canceled by user"
+#: saleor/checkout/__init__.py:19
+msgctxt "Type of address used to fulfill order"
+msgid "Shipping"
 msgstr ""
 
-#: saleor/cart/forms.py:30
+#: saleor/checkout/forms.py:39
 msgctxt "Add to cart form field label"
 msgid "Quantity"
 msgstr ""
 
-#: saleor/cart/forms.py:34
+#: saleor/checkout/forms.py:43
 msgctxt "Add to cart form error"
 msgid "Sorry. This product is currently not available."
 msgstr ""
 
-#: saleor/cart/forms.py:37
+#: saleor/checkout/forms.py:46
 msgctxt "Add to cart form error"
 msgid "Sorry. This product is currently out of stock."
 msgstr ""
 
-#: saleor/cart/forms.py:40
+#: saleor/checkout/forms.py:49
 msgctxt "Add to cart form error"
 msgid "Oops. We could not find that product."
 msgstr ""
 
-#: saleor/cart/forms.py:43
+#: saleor/checkout/forms.py:52
 #, python-format
 msgctxt "Add to cart form error"
 msgid "Only %d remaining in stock."
@@ -307,87 +307,102 @@ msgid_plural "Only %d remaining in stock."
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/cart/forms.py:154
+#: saleor/checkout/forms.py:165
 msgctxt "Country form field label"
 msgid "Country"
 msgstr ""
 
-#: saleor/cart/utils.py:92
+#: saleor/checkout/forms.py:183 saleor/checkout/forms.py:195
+msgctxt "Address form field label"
+msgid "Email"
+msgstr ""
+
+#: saleor/checkout/forms.py:208
+msgctxt "Shipping addresses form choice"
+msgid "Enter a new address"
+msgstr ""
+
+#: saleor/checkout/forms.py:211
+msgctxt "Shipping addresses form field label"
+msgid "Address"
+msgstr ""
+
+#: saleor/checkout/forms.py:228
+msgctxt "Billing addresses form choice"
+msgid "Enter a new address"
+msgstr ""
+
+#: saleor/checkout/forms.py:230
+msgctxt "Billing addresses form choice"
+msgid "Same as shipping"
+msgstr ""
+
+#: saleor/checkout/forms.py:233
+msgctxt "Billing addresses form field label"
+msgid "Address"
+msgstr ""
+
+#: saleor/checkout/forms.py:266
+msgctxt "Shipping method form field label"
+msgid "Shipping method"
+msgstr ""
+
+#: saleor/checkout/forms.py:307
+msgctxt "Voucher form error"
+msgid "Discount code incorrect or expired"
+msgstr ""
+
+#: saleor/checkout/forms.py:318
+msgctxt "Checkout discount form label for voucher field"
+msgid "Gift card or discount code"
+msgstr ""
+
+#: saleor/checkout/utils.py:105
 msgctxt "Cart warning message"
 msgid ""
 "Sorry. We don't have that many items in stock. Quantity was set to maximum "
 "available for now."
 msgstr ""
 
-#: saleor/checkout/forms.py:24
-msgctxt "Shipping addresses form choice"
-msgid "Enter a new address"
-msgstr ""
-
-#: saleor/checkout/forms.py:27
-msgctxt "Shipping addresses form field label"
-msgid "Address"
-msgstr ""
-
-#: saleor/checkout/forms.py:46
-msgctxt "Billing addresses form choice"
-msgid "Enter a new address"
-msgstr ""
-
-#: saleor/checkout/forms.py:48
-msgctxt "Billing addresses form choice"
-msgid "Same as shipping"
-msgstr ""
-
-#: saleor/checkout/forms.py:97
-msgctxt "Shipping method form field label"
-msgid "Shipping method"
-msgstr ""
-
-#: saleor/checkout/forms.py:121
-msgctxt "Shipping form field label"
-msgid "Email"
-msgstr ""
-
-#: saleor/checkout/forms.py:130
-msgctxt "Billing form field label"
-msgid "Email"
-msgstr ""
-
-#: saleor/checkout/utils.py:22
+#: saleor/checkout/utils.py:622
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
 msgstr ""
 
-#: saleor/checkout/utils.py:28
+#: saleor/checkout/utils.py:628
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
 msgstr ""
 
-#: saleor/checkout/utils.py:35
+#: saleor/checkout/utils.py:635
 #, python-format
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid in %(country)s."
 msgstr ""
 
-#: saleor/checkout/utils.py:55
+#: saleor/checkout/utils.py:655
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for selected items."
 msgstr ""
 
-#: saleor/checkout/views/discount.py:63
+#: saleor/checkout/utils.py:748
+msgctxt "Voucher not applicable"
+msgid "Voucher expired in meantime. Order placement aborted."
+msgstr ""
+
+#: saleor/checkout/views/discount.py:62
 msgctxt "Checkout warning"
 msgid "This voucher has expired. Please review your checkout."
 msgstr ""
 
-#: saleor/checkout/views/summary.py:28
-msgctxt "Order status history entry"
-msgid "Order was placed"
-msgstr ""
-
-#: saleor/checkout/views/summary.py:44
+#: saleor/checkout/views/summary.py:32
 msgctxt "Checkout warning"
 msgid "Please review your checkout."
+msgstr ""
+
+#: saleor/checkout/views/summary.py:38
+msgctxt "Order status history entry"
+msgid "Order was placed"
 msgstr ""
 
 #: saleor/core/filters.py:27
@@ -568,16 +583,6 @@ msgctxt "Voucher application"
 msgid "Apply to all matching products"
 msgstr ""
 
-#: saleor/discount/forms.py:15
-msgctxt "Voucher form error"
-msgid "Discount code incorrect or expired"
-msgstr ""
-
-#: saleor/discount/forms.py:26
-msgctxt "Checkout discount form label for voucher field"
-msgid "Gift card or discount code"
-msgstr ""
-
 #: saleor/discount/models.py:68
 msgctxt "Permission description"
 msgid "Can view vouchers"
@@ -653,22 +658,22 @@ msgctxt "Permission description"
 msgid "Can edit menus"
 msgstr ""
 
-#: saleor/menu/models.py:75
+#: saleor/menu/models.py:66
 msgctxt "Link object type description"
 msgid "URL: "
 msgstr ""
 
-#: saleor/menu/models.py:80
-msgctxt "Link object type description"
-msgid "Collection: "
-msgstr ""
-
-#: saleor/menu/models.py:83
+#: saleor/menu/models.py:71
 msgctxt "Link object type description"
 msgid "Category: "
 msgstr ""
 
-#: saleor/menu/models.py:86
+#: saleor/menu/models.py:74
+msgctxt "Link object type description"
+msgid "Collection: "
+msgstr ""
+
+#: saleor/menu/models.py:77
 msgctxt "Link object type description"
 msgid "Page: "
 msgstr ""
@@ -840,7 +845,12 @@ msgctxt "Product list sorting form"
 msgid "Sort by"
 msgstr ""
 
-#: saleor/product/filters.py:85
+#: saleor/product/filters.py:23
+msgctxt "Currency amount"
+msgid "Price"
+msgstr ""
+
+#: saleor/product/filters.py:86
 #, python-format
 msgctxt "Validation error for sort_by filter"
 msgid "%(value)s is not a valid sorting option"
@@ -852,32 +862,32 @@ msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr ""
 
-#: saleor/product/models.py:44
+#: saleor/product/models.py:45
 msgctxt "Permission description"
 msgid "Can view categories"
 msgstr ""
 
-#: saleor/product/models.py:46
+#: saleor/product/models.py:47
 msgctxt "Permission description"
 msgid "Can edit categories"
 msgstr ""
 
-#: saleor/product/models.py:121
+#: saleor/product/models.py:122
 msgctxt "Permission description"
 msgid "Can view products"
 msgstr ""
 
-#: saleor/product/models.py:123
+#: saleor/product/models.py:124
 msgctxt "Permission description"
 msgid "Can edit products"
 msgstr ""
 
-#: saleor/product/models.py:126
+#: saleor/product/models.py:127
 msgctxt "Permission description"
 msgid "Can view product properties"
 msgstr ""
 
-#: saleor/product/models.py:129
+#: saleor/product/models.py:130
 msgctxt "Permission description"
 msgid "Can edit product properties"
 msgstr ""
@@ -1023,7 +1033,7 @@ msgid "New address"
 msgstr ""
 
 #: templates/account/address_edit.html:16 templates/account/details.html:16
-#: templates/account/password_change.html:7 templates/cart/index.html:11
+#: templates/account/password_change.html:7 templates/checkout/index.html:11
 #: templates/order/details.html:18 templates/order/payment.html:18
 #: templates/order/payment/details.html:12 templates/page/details.html:27
 #: templates/product/details.html:44
@@ -1376,70 +1386,10 @@ msgctxt "Main navigation item"
 msgid "Style guide"
 msgstr ""
 
-#: templates/cart/_subtotal_table.html:8 templates/cart_dropdown.html:39
+#: templates/cart_dropdown.html:39 templates/checkout/_subtotal_table.html:8
 #: templates/dashboard/order/detail.html:345
 msgctxt "Order subtotal"
 msgid "Subtotal"
-msgstr ""
-
-#: templates/cart/_subtotal_table.html:31
-msgctxt "Cart shipping cost form"
-msgid "Shipping cost for:"
-msgstr ""
-
-#: templates/cart/_subtotal_table.html:55
-msgctxt "Order subtotal"
-msgid "Total"
-msgstr ""
-
-#: templates/cart/_subtotal_table.html:56
-msgctxt "Cart summary text"
-msgid "Shipment and taxes calculated at checkout"
-msgstr ""
-
-#: templates/cart/index.html:7
-msgctxt "Cart page title"
-msgid "Your cart"
-msgstr ""
-
-#: templates/cart/index.html:12
-msgctxt "Cart breadcrumb"
-msgid "Cart"
-msgstr ""
-
-#: templates/cart/index.html:22
-msgctxt "Cart message"
-msgid "Product has been removed from cart"
-msgstr ""
-
-#: templates/cart/index.html:30
-msgctxt "Cart table header"
-msgid "Product"
-msgstr ""
-
-#: templates/cart/index.html:33
-msgctxt "Cart table header"
-msgid "Quantity"
-msgstr ""
-
-#: templates/cart/index.html:36
-msgctxt "Cart table header"
-msgid "Price"
-msgstr ""
-
-#: templates/cart/index.html:81
-msgctxt "Cart primary action"
-msgid "Checkout"
-msgstr ""
-
-#: templates/cart/index.html:88 templates/cart_dropdown.html:62
-msgctxt "Empty cart message"
-msgid "There are no products in your shopping cart."
-msgstr ""
-
-#: templates/cart/index.html:89 templates/cart_dropdown.html:67
-msgctxt "Empty cart link"
-msgid "Check out our sales"
 msgstr ""
 
 #: templates/cart_dropdown.html:40
@@ -1457,9 +1407,34 @@ msgctxt "Cart dropdown primary action"
 msgid "Checkout"
 msgstr ""
 
+#: templates/cart_dropdown.html:62 templates/checkout/index.html:88
+msgctxt "Empty cart message"
+msgid "There are no products in your shopping cart."
+msgstr ""
+
+#: templates/cart_dropdown.html:67 templates/checkout/index.html:89
+msgctxt "Empty cart link"
+msgid "Check out our sales"
+msgstr ""
+
 #: templates/category/index.html:7
 msgctxt "Category breadcrumbs home"
 msgid "Home"
+msgstr ""
+
+#: templates/checkout/_subtotal_table.html:31
+msgctxt "Cart shipping cost form"
+msgid "Shipping cost for:"
+msgstr ""
+
+#: templates/checkout/_subtotal_table.html:55
+msgctxt "Order subtotal"
+msgid "Total"
+msgstr ""
+
+#: templates/checkout/_subtotal_table.html:56
+msgctxt "Cart summary text"
+msgid "Shipment and taxes calculated at checkout"
 msgstr ""
 
 #: templates/checkout/details.html:7
@@ -1467,49 +1442,84 @@ msgctxt "Checkout page title"
 msgid "Checkout"
 msgstr ""
 
-#: templates/checkout/details.html:11
+#: templates/checkout/details.html:12
 msgctxt "Checkout top message"
 msgid "Easy and secure!"
 msgstr ""
 
-#: templates/checkout/details.html:18
+#: templates/checkout/details.html:20
 msgctxt "Checkout title"
 msgid "Checkout"
 msgstr ""
 
-#: templates/checkout/details.html:33
+#: templates/checkout/details.html:35
 msgctxt "Order review title"
 msgid "Order review"
 msgstr ""
 
-#: templates/checkout/details.html:49
+#: templates/checkout/details.html:51
 msgctxt "Order review section"
 msgid "Subtotal"
 msgstr ""
 
-#: templates/checkout/details.html:59
+#: templates/checkout/details.html:61
 msgctxt "Order review section"
 msgid "Shipment"
 msgstr ""
 
-#: templates/checkout/details.html:76
+#: templates/checkout/details.html:77
 msgctxt "Order review section title"
 msgid "Taxes (included)"
 msgstr ""
 
-#: templates/checkout/details.html:78
+#: templates/checkout/details.html:79
 msgctxt "Order review section title"
 msgid "Taxes"
 msgstr ""
 
-#: templates/checkout/details.html:88
+#: templates/checkout/details.html:89
 msgctxt "Order review section title"
 msgid "Promo code"
 msgstr ""
 
-#: templates/checkout/details.html:94
+#: templates/checkout/details.html:95
 msgctxt "Order review section title"
 msgid "Total"
+msgstr ""
+
+#: templates/checkout/index.html:7
+msgctxt "Cart page title"
+msgid "Your cart"
+msgstr ""
+
+#: templates/checkout/index.html:12
+msgctxt "Cart breadcrumb"
+msgid "Cart"
+msgstr ""
+
+#: templates/checkout/index.html:22
+msgctxt "Cart message"
+msgid "Product has been removed from cart"
+msgstr ""
+
+#: templates/checkout/index.html:30
+msgctxt "Cart table header"
+msgid "Product"
+msgstr ""
+
+#: templates/checkout/index.html:33
+msgctxt "Cart table header"
+msgid "Quantity"
+msgstr ""
+
+#: templates/checkout/index.html:36
+msgctxt "Cart table header"
+msgid "Price"
+msgstr ""
+
+#: templates/checkout/index.html:81
+msgctxt "Cart primary action"
+msgid "Checkout"
 msgstr ""
 
 #: templates/checkout/login.html:6
@@ -1613,7 +1623,7 @@ msgstr ""
 
 #: templates/checkout/summary.html:14
 msgctxt "Checkout summary primary action"
-msgid "Order &amp Pay"
+msgid "Order & Pay"
 msgstr ""
 
 #: templates/checkout/summary_without_shipping.html:8
@@ -1838,8 +1848,8 @@ msgstr ""
 #: templates/dashboard/menu/item/form.html:80
 #: templates/dashboard/order/address_form.html:61
 #: templates/dashboard/order/fulfillment.html:133
-#: templates/dashboard/product/form.html:126
-#: templates/dashboard/product/form.html:133
+#: templates/dashboard/product/form.html:129
+#: templates/dashboard/product/form.html:136
 #: templates/dashboard/product/product_attribute/form.html:77
 #: templates/dashboard/product/product_attribute/form.html:84
 #: templates/dashboard/product/product_attribute/values/form.html:78
@@ -1917,7 +1927,7 @@ msgstr ""
 
 #: templates/dashboard/category/detail.html:155
 msgctxt "Empty list of categories"
-msgid "No categories"
+msgid "No subcategories"
 msgstr ""
 
 #: templates/dashboard/category/form.html:9
@@ -1968,7 +1978,7 @@ msgstr ""
 #: templates/dashboard/discount/voucher/form.html:133
 #: templates/dashboard/menu/form.html:66
 #: templates/dashboard/menu/item/form.html:88
-#: templates/dashboard/product/form.html:136
+#: templates/dashboard/product/form.html:139
 #: templates/dashboard/product/product_attribute/form.html:87
 #: templates/dashboard/product/product_attribute/values/form.html:86
 #: templates/dashboard/product/product_image/form.html:87
@@ -2861,7 +2871,7 @@ msgid "Storefront Menus"
 msgstr ""
 
 #: templates/dashboard/menu/list.html:98
-#: templates/dashboard/product/form.html:129
+#: templates/dashboard/product/form.html:132
 #: templates/dashboard/product/product_attribute/form.html:80
 #: templates/dashboard/product/product_attribute/values/form.html:82
 #: templates/dashboard/product/product_image/form.html:83
@@ -4036,13 +4046,31 @@ msgctxt "Product field"
 msgid "Margin"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:243
+#: templates/dashboard/product/detail.html:239
+#: templates/dashboard/product/product_variant/detail.html:148
+msgctxt "Product variant inventory card header"
+msgid "Inventory"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:248
+#: templates/dashboard/product/product_variant/detail.html:157
+msgctxt "Dashboard variant details view"
+msgid "Number in stock"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:256
+#: templates/dashboard/product/product_variant/detail.html:165
+msgctxt "Dashboard variant details view"
+msgid "Allocated"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:269
 #: templates/dashboard/product/product_image/list.html:7
 #: templates/dashboard/product/product_image/list.html:41
 msgid "Images"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:254
+#: templates/dashboard/product/detail.html:280
 msgid "Edit images"
 msgstr ""
 
@@ -4066,12 +4094,12 @@ msgctxt "Product form breadcrumbs"
 msgid "Edit"
 msgstr ""
 
-#: templates/dashboard/product/form.html:107
+#: templates/dashboard/product/form.html:110
 #: templates/dashboard/product/product_variant/form.html:76
 msgid "Attributes"
 msgstr ""
 
-#: templates/dashboard/product/form.html:110
+#: templates/dashboard/product/form.html:113
 #, python-format
 msgid ""
 "\n"
@@ -4141,23 +4169,24 @@ msgstr ""
 msgid "Attribute values"
 msgstr ""
 
-#: templates/dashboard/product/product_attribute/detail.html:74
+#: templates/dashboard/product/product_attribute/detail.html:78
 msgid "Display name"
 msgstr ""
 
-#: templates/dashboard/product/product_attribute/detail.html:75
-msgid "Color"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/detail.html:97
+#: templates/dashboard/product/product_attribute/detail.html:98
 #: templates/dashboard/shipping/detail.html:100
 msgctxt "Attribute choice value edit action"
 msgid "Edit"
 msgstr ""
 
-#: templates/dashboard/product/product_attribute/detail.html:100
+#: templates/dashboard/product/product_attribute/detail.html:101
 msgctxt "Attribute choice value edit action"
 msgid "Remove"
+msgstr ""
+
+#: templates/dashboard/product/product_attribute/detail.html:108
+msgctxt "Empty list of attribute values"
+msgid "No attribute values"
 msgstr ""
 
 #: templates/dashboard/product/product_attribute/form.html:8
@@ -4380,11 +4409,6 @@ msgctxt "Empty product type list message"
 msgid "No product types found."
 msgstr ""
 
-#: templates/dashboard/product/product_type/list.html:110
-msgctxt "Dashboard create new action"
-msgid "Create new"
-msgstr ""
-
 #: templates/dashboard/product/product_type/modal/confirm_delete.html:13
 #, python-format
 msgctxt "Modal remove product type text"
@@ -4438,21 +4462,6 @@ msgstr ""
 #: templates/dashboard/product/product_variant/detail.html:66
 msgctxt "Dashboard action"
 msgid "Remove variant"
-msgstr ""
-
-#: templates/dashboard/product/product_variant/detail.html:148
-msgctxt "Product variant inventory card header"
-msgid "Inventory"
-msgstr ""
-
-#: templates/dashboard/product/product_variant/detail.html:157
-msgctxt "Dashboard variant details view"
-msgid "Number in stock"
-msgstr ""
-
-#: templates/dashboard/product/product_variant/detail.html:165
-msgctxt "Dashboard variant details view"
-msgid "Allocated"
 msgstr ""
 
 #: templates/dashboard/product/product_variant/detail.html:177
@@ -5169,7 +5178,7 @@ msgstr ""
 
 #: templates/home.html:12
 msgctxt "Homepage title"
-msgid "Promo &amp; Sale"
+msgid "Promo & Sale"
 msgstr ""
 
 #: templates/home.html:13
@@ -5184,7 +5193,7 @@ msgstr ""
 
 #: templates/home.html:29
 msgctxt "Homepage title"
-msgid "Size &amp; Colours"
+msgid "Size & Colours"
 msgstr ""
 
 #: templates/home.html:41
@@ -5537,8 +5546,8 @@ msgctxt "Product price filter"
 msgid "to"
 msgstr ""
 
-#: templates/product/_filters.html:67
-msgctxt "Product price filter"
+#: templates/product/_filters.html:71
+msgctxt "Apply filters button"
 msgid "Update"
 msgstr ""
 
@@ -5626,12 +5635,12 @@ msgstr ""
 msgid "Search:"
 msgstr ""
 
-#: templates/templated_email/source/account/password_reset.email:4
+#: templates/templated_email/account/password_reset.email:4
 msgctxt "Password reset e-mail subject"
 msgid "Password reset e-mail"
 msgstr ""
 
-#: templates/templated_email/source/account/password_reset.email:8
+#: templates/templated_email/account/password_reset.email:8
 #, python-format
 msgctxt "Password reset e-mail text"
 msgid ""
@@ -5644,7 +5653,7 @@ msgid ""
 "link below to reset your password.\n"
 msgstr ""
 
-#: templates/templated_email/source/account/password_reset.email:19
+#: templates/templated_email/account/password_reset.email:19
 #, python-format
 msgctxt "Password reset e-mail text"
 msgid ""
@@ -5653,12 +5662,12 @@ msgid ""
 "%(site_name)s\n"
 msgstr ""
 
-#: templates/templated_email/source/dashboard/staff/promote_customer.email:2
+#: templates/templated_email/dashboard/staff/promote_customer.email:2
 #, python-format
 msgid "Hello from %(site_name)s!"
 msgstr ""
 
-#: templates/templated_email/source/dashboard/staff/promote_customer.email:5
+#: templates/templated_email/dashboard/staff/promote_customer.email:5
 #, python-format
 msgctxt "Promote customer to staff member confirmation e-mail text"
 msgid ""
@@ -5669,20 +5678,20 @@ msgid ""
 "at %(domain)s."
 msgstr ""
 
-#: templates/templated_email/source/dashboard/staff/promote_customer.email:10
+#: templates/templated_email/dashboard/staff/promote_customer.email:10
 msgctxt "Promote customer to staff member confirmation e-mail text"
 msgid ""
 "\n"
 "This is an automatically generated email, please do not reply.\n"
 msgstr ""
 
-#: templates/templated_email/source/dashboard/staff/set_password.email:2
+#: templates/templated_email/dashboard/staff/set_password.email:2
 #, python-format
 msgctxt "Set password for staff member e-mail title"
 msgid "Hello from %(site_name)s!"
 msgstr ""
 
-#: templates/templated_email/source/dashboard/staff/set_password.email:5
+#: templates/templated_email/dashboard/staff/set_password.email:5
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
@@ -5694,20 +5703,20 @@ msgid ""
 "Click the link below to reset your password.\n"
 msgstr ""
 
-#: templates/templated_email/source/dashboard/staff/set_password.email:14
+#: templates/templated_email/dashboard/staff/set_password.email:14
 msgctxt "Set password for staff member e-mail text"
 msgid ""
 "\n"
 "This is an automatically generated email, please do not reply.\n"
 msgstr ""
 
-#: templates/templated_email/source/order/confirm_fulfillment.email:4
+#: templates/templated_email/order/confirm_fulfillment.email:4
 #, python-format
 msgctxt "Fulfillment confirmation email subject"
 msgid "A shipment from order %(order)s is on the way"
 msgstr ""
 
-#: templates/templated_email/source/order/confirm_fulfillment.email:10
+#: templates/templated_email/order/confirm_fulfillment.email:10
 msgctxt "Fulfillment confirmation email text"
 msgid ""
 "\n"
@@ -5716,13 +5725,14 @@ msgid ""
 "Thank you for your order. Below is the list of shipped products.\n"
 msgstr ""
 
-#: templates/templated_email/source/order/confirm_fulfillment.email:16
+#: templates/templated_email/order/confirm_fulfillment.email:16
+#: templates/templated_email/source/confirm_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment confirmation email text"
 msgid "You can track your shipment with %(tracking_number)s code."
 msgstr ""
 
-#: templates/templated_email/source/order/confirm_fulfillment.email:25
+#: templates/templated_email/order/confirm_fulfillment.email:25
 #, python-format
 msgctxt "Fulfillment confirmation email text"
 msgid ""
@@ -5733,12 +5743,12 @@ msgid ""
 "%(site_name)s\n"
 msgstr ""
 
-#: templates/templated_email/source/order/confirm_order.email:6
+#: templates/templated_email/order/confirm_order.email:6
 msgctxt "Order confirmation e-mail subject"
 msgid "Order details"
 msgstr ""
 
-#: templates/templated_email/source/order/confirm_order.email:10
+#: templates/templated_email/order/confirm_order.email:10
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
@@ -5750,57 +5760,60 @@ msgid ""
 "%(url)s"
 msgstr ""
 
-#: templates/templated_email/source/order/confirm_order.email:18
+#: templates/templated_email/order/confirm_order.email:18
 msgctxt "Order confirmation e-mail table header"
 msgid "Order summary"
 msgstr ""
 
-#: templates/templated_email/source/order/confirm_order.email:19
+#: templates/templated_email/order/confirm_order.email:19
 msgctxt "Order confirmation e-mail table header"
 msgid "Subtotal"
 msgstr ""
 
-#: templates/templated_email/source/order/confirm_order.email:20
+#: templates/templated_email/order/confirm_order.email:20
 msgctxt "Order confirmation e-mail table header"
 msgid "Shipping"
 msgstr ""
 
-#: templates/templated_email/source/order/confirm_order.email:21
+#: templates/templated_email/order/confirm_order.email:21
 msgctxt "Order confirmation e-mail table header"
 msgid "Taxes (included)"
 msgstr ""
 
-#: templates/templated_email/source/order/confirm_order.email:21
+#: templates/templated_email/order/confirm_order.email:21
 msgctxt "Order confirmation e-mail table header"
 msgid "Taxes"
 msgstr ""
 
-#: templates/templated_email/source/order/confirm_order.email:22
+#: templates/templated_email/order/confirm_order.email:22
 msgctxt "Order confirmation e-mail table header"
 msgid "Discount:"
 msgstr ""
 
-#: templates/templated_email/source/order/confirm_order.email:23
+#: templates/templated_email/order/confirm_order.email:23
 msgctxt "Order confirmation e-mail table header"
 msgid "Total"
 msgstr ""
 
-#: templates/templated_email/source/order/confirm_order.email:25
+#: templates/templated_email/order/confirm_order.email:25
+#: templates/templated_email/source/confirm_order.mjml:29
 msgctxt "Order confirmation e-mail billing address"
 msgid "Billing address"
 msgstr ""
 
-#: templates/templated_email/source/order/confirm_order.email:28
+#: templates/templated_email/order/confirm_order.email:28
+#: templates/templated_email/source/confirm_order.mjml:30
 msgctxt "Order confirmation e-mail shipping address"
 msgid "Shipping address"
 msgstr ""
 
-#: templates/templated_email/source/order/confirm_order.email:29
+#: templates/templated_email/order/confirm_order.email:29
+#: templates/templated_email/source/confirm_order.mjml:42
 msgctxt "Order confirmation e-mail text"
 msgid "No shipping required"
 msgstr ""
 
-#: templates/templated_email/source/order/confirm_order.email:31
+#: templates/templated_email/order/confirm_order.email:31
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
@@ -5811,12 +5824,12 @@ msgid ""
 "%(site_name)s\n"
 msgstr ""
 
-#: templates/templated_email/source/order/note/confirm_note.email:4
+#: templates/templated_email/order/note/confirm_note.email:4
 msgctxt "Note confirmation email subject"
 msgid "New note has been added to your order"
 msgstr ""
 
-#: templates/templated_email/source/order/note/confirm_note.email:8
+#: templates/templated_email/order/note/confirm_note.email:8
 #, python-format
 msgctxt "Note confirmation email text"
 msgid ""
@@ -5832,12 +5845,12 @@ msgid ""
 "%(site_name)s\n"
 msgstr ""
 
-#: templates/templated_email/source/order/payment/confirm_payment.email:4
+#: templates/templated_email/order/payment/confirm_payment.email:4
 msgctxt "Payment confirmation subject"
 msgid "Payment details"
 msgstr ""
 
-#: templates/templated_email/source/order/payment/confirm_payment.email:8
+#: templates/templated_email/order/payment/confirm_payment.email:8
 #, python-format
 msgctxt "Payment confirmation email text"
 msgid ""
@@ -5853,13 +5866,13 @@ msgid ""
 "%(site_name)s\n"
 msgstr ""
 
-#: templates/templated_email/source/order/update_fulfillment.email:4
+#: templates/templated_email/order/update_fulfillment.email:4
 #, python-format
 msgctxt "Fulfillment update email subject"
 msgid "Shipping update for order %(order)s"
 msgstr ""
 
-#: templates/templated_email/source/order/update_fulfillment.email:10
+#: templates/templated_email/order/update_fulfillment.email:10
 msgctxt "Fulfillment update email text"
 msgid ""
 "\n"
@@ -5869,13 +5882,14 @@ msgid ""
 "that have been updated with new tracking number.\n"
 msgstr ""
 
-#: templates/templated_email/source/order/update_fulfillment.email:16
+#: templates/templated_email/order/update_fulfillment.email:16
+#: templates/templated_email/source/update_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid "You can track your shipment with %(tracking_number)s code."
 msgstr ""
 
-#: templates/templated_email/source/order/update_fulfillment.email:25
+#: templates/templated_email/order/update_fulfillment.email:25
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid ""
@@ -5884,4 +5898,169 @@ msgid ""
 "\n"
 "Sincerely,\n"
 "%(site_name)s\n"
+msgstr ""
+
+#: templates/templated_email/source/confirm_fulfillment.mjml:13
+msgctxt "Fulfillment confirmation email text"
+msgid "Hi!"
+msgstr ""
+
+#: templates/templated_email/source/confirm_fulfillment.mjml:16
+msgctxt "Fulfillment confirmation email text"
+msgid "Thank you for your order. Below is the list of shipped products."
+msgstr ""
+
+#: templates/templated_email/source/confirm_note.mjml:13
+msgctxt "Note confirmation e-mail text"
+msgid "Hi!"
+msgstr ""
+
+#: templates/templated_email/source/confirm_note.mjml:16
+#, python-format
+msgctxt "Note confirmation e-mail text"
+msgid ""
+"A new note has been added to your order. To see details please visit: <a "
+"href=\"%(url)s\">%(url)s</a>"
+msgstr ""
+
+#: templates/templated_email/source/confirm_order.mjml:14
+msgctxt "Order confirmation e-mail text"
+msgid "Hi!"
+msgstr ""
+
+#: templates/templated_email/source/confirm_order.mjml:17
+#, python-format
+msgctxt "Order confirmation e-mail text"
+msgid ""
+"Thank you for your order. Below is the list of ordered products. To see your "
+"payment details please visit: <a href=\"%(url)s\">%(url)s</a>"
+msgstr ""
+
+#: templates/templated_email/source/confirm_payment.mjml:13
+msgctxt "Payment confirmation e-mail text"
+msgid "Hi!"
+msgstr ""
+
+#: templates/templated_email/source/confirm_payment.mjml:16
+#, python-format
+msgctxt "Payment confirmation e-mail text"
+msgid ""
+"Thank you for your payment. To see your payment details please visit: <a "
+"href=\"%(url)s\">%(url)s</a>"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:11
+msgctxt "E-mail order lines summary table"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:19
+msgctxt "E-mail order lines summary table"
+msgid "Shipping"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:28
+msgctxt "E-mail order lines summary table"
+msgid "Taxes (included)"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:30
+msgctxt "E-mail order lines summary table"
+msgid "Taxes"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:40
+msgctxt "E-mail order lines summary table"
+msgid "Discount"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:49
+msgctxt "E-mail order lines summary table"
+msgid "Total"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:58
+msgctxt "Ordered item name"
+msgid "Item"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:59
+msgctxt "Quantity ordered of a product"
+msgid "Quantity"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:60
+msgctxt "Unit price of a product"
+msgid "Per unit"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:61
+msgctxt "Ordered item subtotal (unit price * quantity)"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/templated_email/source/password_reset.mjml:13
+msgctxt "Password reset e-mail text"
+msgid "Hi!"
+msgstr ""
+
+#: templates/templated_email/source/password_reset.mjml:16
+#, python-format
+msgctxt "Password reset e-mail text"
+msgid ""
+"You're receiving this e-mail because you or someone else has requested a "
+"password for your user account at %(domain)s.<br/> It can be safely ignored "
+"if you did not request a password reset. Click the link below to reset your "
+"password."
+msgstr ""
+
+#: templates/templated_email/source/promote_customer.mjml:13
+msgctxt "Promote customer to staff member confirmation e-mail text"
+msgid "Hi!"
+msgstr ""
+
+#: templates/templated_email/source/promote_customer.mjml:16
+#, python-format
+msgctxt "Promote customer to staff member confirmation e-mail text"
+msgid ""
+"You're receiving this e-mail because you have been promoted to staff member "
+"at %(domain)s.<br/> To access dashboard please visit: <a href=\"%(url)s\">"
+"%(url)s</a>"
+msgstr ""
+
+#: templates/templated_email/source/set_password.mjml:13
+msgctxt "Set password for staff member e-mail text"
+msgid "Hi!"
+msgstr ""
+
+#: templates/templated_email/source/set_password.mjml:16
+#, python-format
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"You're receiving this e-mail because you have to set password for your staff "
+"member account at %(domain)s.<br/> Click the link below to set up your "
+"password."
+msgstr ""
+
+#: templates/templated_email/source/shared/footer.mjml:4
+msgctxt "Base email text"
+msgid "This is an automatically generated email, please do not reply."
+msgstr ""
+
+#: templates/templated_email/source/shared/footer.mjml:13
+#, python-format
+msgctxt "Base email footer"
+msgid "Sincerely, %(site_name)s"
+msgstr ""
+
+#: templates/templated_email/source/update_fulfillment.mjml:13
+msgctxt "Fulfillment update email text"
+msgid "Hi!"
+msgstr ""
+
+#: templates/templated_email/source/update_fulfillment.mjml:16
+msgctxt "Fulfillment update email text"
+msgid ""
+"Your shipping status has been updated. Below is the list of ordered products "
+"that have been updated with new tracking number."
 msgstr ""

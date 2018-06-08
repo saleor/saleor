@@ -7,6 +7,7 @@ from payments import PaymentStatus
 from prices import Money
 from tests.utils import get_form_errors, get_redirect_location
 
+from saleor.checkout import AddressType
 from saleor.core.utils.taxes import ZERO_MONEY, ZERO_TAXED_MONEY
 from saleor.dashboard.order.forms import ChangeQuantityForm, OrderNoteForm
 from saleor.dashboard.order.utils import (
@@ -15,9 +16,7 @@ from saleor.dashboard.order.utils import (
 from saleor.discount.utils import increase_voucher_usage
 from saleor.order import OrderStatus
 from saleor.order.models import Order, OrderLine, OrderNote
-from saleor.order.utils import (
-    add_variant_to_existing_lines, add_variant_to_order,
-    change_order_line_quantity)
+from saleor.order.utils import add_variant_to_order, change_order_line_quantity
 from saleor.product.models import ProductVariant
 
 
@@ -379,12 +378,16 @@ def test_view_release_order_invalid_payment_input_status(
 
 
 @pytest.mark.integration
-def test_view_cancel_order_line(admin_client, draft_order):
+@pytest.mark.parametrize('track_inventory', (True, False))
+def test_view_cancel_order_line(admin_client, draft_order, track_inventory):
     lines_before = draft_order.lines.all()
     lines_before_count = lines_before.count()
     line = lines_before.first()
     line_quantity = line.quantity
     quantity_allocated_before = line.variant.quantity_allocated
+
+    line.variant.track_inventory = track_inventory
+    line.variant.save()
 
     url = reverse(
         'dashboard:orderline-cancel', kwargs={
@@ -400,10 +403,16 @@ def test_view_cancel_order_line(admin_client, draft_order):
     # check ordered item removal
     lines_after = Order.objects.get().lines.all()
     assert lines_before_count - 1 == lines_after.count()
+
     # check stock deallocation
     line.variant.refresh_from_db()
-    assert line.variant.quantity_allocated == (
-        quantity_allocated_before - line_quantity)
+
+    if track_inventory:
+        assert line.variant.quantity_allocated == (
+            quantity_allocated_before - line_quantity)
+    else:
+        assert line.variant.quantity_allocated == quantity_allocated_before
+
     url = reverse(
         'dashboard:orderline-cancel', kwargs={
             'order_pk': draft_order.pk,
@@ -416,15 +425,19 @@ def test_view_cancel_order_line(admin_client, draft_order):
 
 
 @pytest.mark.integration
-def test_view_change_order_line_quantity(admin_client, draft_order_with_stock):
-    order = draft_order_with_stock
-    lines_before_quantity_change = order.lines.all()
+@pytest.mark.parametrize('track_inventory', (True, False))
+def test_view_change_order_line_quantity(
+        admin_client, draft_order, track_inventory):
+    lines_before_quantity_change = draft_order.lines.all()
     lines_before_quantity_change_count = lines_before_quantity_change.count()
     line = lines_before_quantity_change.first()
 
+    line.variant.track_inventory = track_inventory
+    line.variant.save()
+
     url = reverse(
         'dashboard:orderline-change-quantity',
-        kwargs={'order_pk': order.pk, 'line_pk': line.pk})
+        kwargs={'order_pk': draft_order.pk, 'line_pk': line.pk})
     response = admin_client.get(url)
     assert response.status_code == 200
     response = admin_client.post(url, {'quantity': 2}, follow=True)
@@ -432,14 +445,20 @@ def test_view_change_order_line_quantity(admin_client, draft_order_with_stock):
     # check redirection
     assert redirect_status_code == 302
     assert redirected_to == reverse(
-        'dashboard:order-details', kwargs={'order_pk': order.id})
+        'dashboard:order-details', kwargs={'order_pk': draft_order.id})
     # success messages should appear after redirect
     assert response.context['messages']
     lines_after = Order.objects.get().lines.all()
     # order should have the same lines
     assert lines_before_quantity_change_count == lines_after.count()
-    # stock allocation should be 2 now
-    assert line.variant.quantity_allocated == 2
+    line.variant.refresh_from_db()
+
+    if track_inventory:
+        # stock allocation should be 2 now
+        assert line.variant.quantity_allocated == 2
+    else:
+        assert line.variant.quantity_allocated == 3
+
     line.refresh_from_db()
     # source line quantity should be decreased to 2
     assert line.quantity == 2
@@ -460,8 +479,7 @@ def test_view_change_order_line_quantity_with_invalid_data(
 
 
 def test_dashboard_change_quantity_form(request_cart_with_item, order):
-    cart = request_cart_with_item
-    for line in cart.lines.all():
+    for line in request_cart_with_item:
         add_variant_to_order(order, line.variant, line.quantity)
     order_line = order.lines.get()
     quantity_before = order_line.variant.quantity_allocated
@@ -565,38 +583,17 @@ def test_view_fulfillment_packing_slips_without_shipping(
     assert response['content-type'] == 'application/pdf'
 
 
-def test_add_variant_to_existing_lines_one_line(
-        order_with_lines_and_stock):
-    order = order_with_lines_and_stock
-    lines = order.lines.filter(product_sku='SKU_A')
-    variant_lines_before = lines.count()
-    line = lines.first()
-    line_quantity_before = line.quantity
-    variant = ProductVariant.objects.get(sku='SKU_A')
-
-    quantity_added = 2
-    quantity_left = add_variant_to_existing_lines(
-        line.order, variant, quantity_added)
-
-    lines_after = order.lines.filter(product_sku='SKU_A').count()
-    line.refresh_from_db()
-    assert quantity_left == 0
-    assert lines_after == variant_lines_before
-    assert line.quantity == line_quantity_before + quantity_added
-
-
-def test_view_add_variant_to_order(
-        admin_client, order_with_lines_and_stock):
-    order = order_with_lines_and_stock
-    order.status = OrderStatus.DRAFT
-    order.save()
+def test_view_add_variant_to_order(admin_client, order_with_lines):
+    order_with_lines.status = OrderStatus.DRAFT
+    order_with_lines.save()
     variant = ProductVariant.objects.get(sku='SKU_A')
     line = OrderLine.objects.get(product_sku='SKU_A')
     line_quantity_before = line.quantity
 
     added_quantity = 2
     url = reverse(
-        'dashboard:add-variant-to-order', kwargs={'order_pk': order.pk})
+        'dashboard:add-variant-to-order',
+        kwargs={'order_pk': order_with_lines.pk})
     data = {'variant': variant.pk, 'quantity': added_quantity}
 
     response = admin_client.post(url, data)
@@ -604,7 +601,7 @@ def test_view_add_variant_to_order(
     line.refresh_from_db()
     assert response.status_code == 302
     assert get_redirect_location(response) == reverse(
-        'dashboard:order-details', kwargs={'order_pk': order.pk})
+        'dashboard:order-details', kwargs={'order_pk': order_with_lines.pk})
     assert line.quantity == line_quantity_before + added_quantity
 
 
@@ -973,7 +970,7 @@ def test_save_address_in_order_shipping_address(order, address):
     address.first_name = 'Jane'
     address.save()
 
-    save_address_in_order(order, address, 'shipping')
+    save_address_in_order(order, address, AddressType.SHIPPING)
 
     assert order.shipping_address == address
     assert order.shipping_address.pk == address.pk
@@ -984,7 +981,7 @@ def test_save_address_in_order_billing_address(order, address):
     address.first_name = 'Jane'
     address.save()
 
-    save_address_in_order(order, address, 'billing')
+    save_address_in_order(order, address, AddressType.BILLING)
 
     assert order.billing_address == address
     assert order.billing_address.pk == address.pk
