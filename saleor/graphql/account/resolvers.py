@@ -11,8 +11,7 @@ def resolve_users(info):
     if user.get_all_permissions() & {'account.view_user', 'account.edit_user'}:
         qs =  models.User.objects.all().prefetch_related('addresses')
         return qs
-    # FIXME: Returning 'None' makes graphene return all users
-    return models.User.objects.none()
+    return []
 
 
 @login_required
