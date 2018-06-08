@@ -1,5 +1,5 @@
-import { DialogContentText } from "material-ui/Dialog";
-import { withStyles } from "material-ui/styles";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 import { AddressType } from "../../";

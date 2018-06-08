@@ -879,6 +879,7 @@ exports[`Storyshots Categories / CategoryProducts without initial data 1`] = `
 </div>
 `;
 
+<<<<<<< HEAD
 exports[`Storyshots Generics / DateFormatter default 1`] = `
 <span>
   2018-04-07T10:44:44
@@ -959,10 +960,116 @@ exports[`Storyshots Generics / ErrorMessageCard default 1`] = `
     </h2>
     <p
       class="MuiTypography-root-75 MuiTypography-body1-84"
-    >
-      Loren ipsum dolor sit amet!
-    </p>
+=======
+exports[`Storyshots Generics / ActionDialog default 1`] = `null`;
+
+exports[`Storyshots Generics / AddressEdit default 1`] = `
+<div
+  class="Component-sm-12"
+>
+  <div
+    class="Component-root-16"
+  >
+    <div>
+      <div
+        class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
+      >
+        <label
+          class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25 MuiInputLabel-shrink-24"
+          data-shrink="true"
+        >
+          First name
+        </label>
+        <div
+          class="MuiInput-root-31 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
+        >
+          <input
+            aria-invalid="false"
+            aria-required="false"
+            class="MuiInput-input-39"
+            name="firstName"
+            type="text"
+            value="Alexander"
+          />
+        </div>
+      </div>
+    </div>
+    <div>
+      <div
+        class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
+      >
+        <label
+          class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25 MuiInputLabel-shrink-24"
+          data-shrink="true"
+        >
+          Last name
+        </label>
+        <div
+          class="MuiInput-root-31 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
+        >
+          <input
+            aria-invalid="false"
+            aria-required="false"
+            class="MuiInput-input-39"
+            name="lastName"
+            type="text"
+            value="Simonis"
+          />
+        </div>
+      </div>
+    </div>
   </div>
+  <div
+    class="Component-spacer-44"
+  />
+  <div
+    class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
+  >
+    <label
+      class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25"
+      data-shrink="false"
+    >
+      Company
+    </label>
+    <div
+      class="MuiInput-root-31 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
+    >
+      <input
+        aria-invalid="false"
+        aria-required="false"
+        class="MuiInput-input-39"
+        name="companyName"
+        type="text"
+      />
+    </div>
+  </div>
+  <div
+    class="Component-spacer-44"
+  />
+  <div
+    class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
+  >
+    <label
+      class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25 MuiInputLabel-shrink-24"
+      data-shrink="true"
+    >
+      Address
+    </label>
+    <div
+      class="MuiInput-root-31 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
+>>>>>>> Update components to match material-ui 1.2 import style
+    >
+      <input
+        aria-invalid="false"
+        aria-required="false"
+        class="MuiInput-input-39"
+        name="streetAddress_1"
+        type="text"
+        value="83772 Savanah Summit"
+      />
+    </div>
+  </div>
+<<<<<<< HEAD
 </div>
 `;
 
@@ -985,8 +1092,22 @@ exports[`Storyshots Generics / MultiSelectField with error hint 1`] = `
 >
   <div
     class="MuiInput-root-112 MuiInput-error-117 MuiInput-fullWidth-119 MuiInput-formControl-113 MuiInput-underline-116"
+=======
+  <div
+    class="Component-spacer-44"
+  />
+  <div
+    class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
+>>>>>>> Update components to match material-ui 1.2 import style
   >
+    <label
+      class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25"
+      data-shrink="false"
+    >
+      Address
+    </label>
     <div
+<<<<<<< HEAD
       class="MuiSelect-root-107"
     >
       <div
@@ -1000,12 +1121,18 @@ exports[`Storyshots Generics / MultiSelectField with error hint 1`] = `
           ​
         </span>
       </div>
+=======
+      class="MuiInput-root-31 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
+    >
+>>>>>>> Update components to match material-ui 1.2 import style
       <input
-        aria-invalid="true"
+        aria-invalid="false"
         aria-required="false"
-        type="hidden"
-        value=""
+        class="MuiInput-input-39"
+        name="streetAddress_2"
+        type="text"
       />
+<<<<<<< HEAD
       <svg
         aria-hidden="true"
         class="MuiSvgIcon-root-125 MuiSelect-icon-111"
@@ -1032,8 +1159,24 @@ exports[`Storyshots Generics / MultiSelectField with hint 1`] = `
 >
   <div
     class="MuiInput-root-112 MuiInput-fullWidth-119 MuiInput-formControl-113 MuiInput-underline-116"
+=======
+    </div>
+  </div>
+  <div
+    class="Component-spacer-44"
+  />
+  <div
+    class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
+>>>>>>> Update components to match material-ui 1.2 import style
   >
+    <label
+      class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25 MuiInputLabel-shrink-24"
+      data-shrink="true"
+    >
+      City
+    </label>
     <div
+<<<<<<< HEAD
       class="MuiSelect-root-107"
     >
       <div
@@ -1047,12 +1190,19 @@ exports[`Storyshots Generics / MultiSelectField with hint 1`] = `
           ​
         </span>
       </div>
+=======
+      class="MuiInput-root-31 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
+    >
+>>>>>>> Update components to match material-ui 1.2 import style
       <input
         aria-invalid="false"
         aria-required="false"
-        type="hidden"
-        value=""
+        class="MuiInput-input-39"
+        name="city"
+        type="text"
+        value="Thompsontown"
       />
+<<<<<<< HEAD
       <svg
         aria-hidden="true"
         class="MuiSvgIcon-root-125 MuiSelect-icon-111"
@@ -1085,8 +1235,24 @@ exports[`Storyshots Generics / MultiSelectField with label 1`] = `
   </label>
   <div
     class="MuiInput-root-112 MuiInput-fullWidth-119 MuiInput-formControl-113 MuiInput-underline-116"
+=======
+    </div>
+  </div>
+  <div
+    class="Component-spacer-44"
+  />
+  <div
+    class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
+>>>>>>> Update components to match material-ui 1.2 import style
   >
+    <label
+      class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25 MuiInputLabel-shrink-24"
+      data-shrink="true"
+    >
+      City area
+    </label>
     <div
+<<<<<<< HEAD
       class="MuiSelect-root-107"
     >
       <div
@@ -1100,12 +1266,19 @@ exports[`Storyshots Generics / MultiSelectField with label 1`] = `
           ​
         </span>
       </div>
+=======
+      class="MuiInput-root-31 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
+    >
+>>>>>>> Update components to match material-ui 1.2 import style
       <input
         aria-invalid="false"
         aria-required="false"
-        type="hidden"
-        value=""
+        class="MuiInput-input-39"
+        name="cityArea"
+        type="text"
+        value="Rhode Island"
       />
+<<<<<<< HEAD
       <svg
         aria-hidden="true"
         class="MuiSvgIcon-root-125 MuiSelect-icon-111"
@@ -1133,8 +1306,24 @@ exports[`Storyshots Generics / MultiSelectField with label and hint 1`] = `
   </label>
   <div
     class="MuiInput-root-112 MuiInput-fullWidth-119 MuiInput-formControl-113 MuiInput-underline-116"
+=======
+    </div>
+  </div>
+  <div
+    class="Component-spacer-44"
+  />
+  <div
+    class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
+>>>>>>> Update components to match material-ui 1.2 import style
   >
+    <label
+      class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25 MuiInputLabel-shrink-24"
+      data-shrink="true"
+    >
+      Postal code
+    </label>
     <div
+<<<<<<< HEAD
       class="MuiSelect-root-107"
     >
       <div
@@ -1148,12 +1337,19 @@ exports[`Storyshots Generics / MultiSelectField with label and hint 1`] = `
           ​
         </span>
       </div>
+=======
+      class="MuiInput-root-31 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
+    >
+>>>>>>> Update components to match material-ui 1.2 import style
       <input
         aria-invalid="false"
         aria-required="false"
-        type="hidden"
-        value=""
+        class="MuiInput-input-39"
+        name="postalCode"
+        type="text"
+        value="47639-5237"
       />
+<<<<<<< HEAD
       <svg
         aria-hidden="true"
         class="MuiSvgIcon-root-125 MuiSelect-icon-111"
@@ -1180,8 +1376,24 @@ exports[`Storyshots Generics / MultiSelectField with no value 1`] = `
 >
   <div
     class="MuiInput-root-112 MuiInput-fullWidth-119 MuiInput-formControl-113 MuiInput-underline-116"
+=======
+    </div>
+  </div>
+  <div
+    class="Component-spacer-44"
+  />
+  <div
+    class="MuiFormControl-root-17 Component-formControl-45"
+>>>>>>> Update components to match material-ui 1.2 import style
   >
+    <label
+      class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25 MuiInputLabel-shrink-24"
+      data-shrink="true"
+    >
+      Country
+    </label>
     <div
+<<<<<<< HEAD
       class="MuiSelect-root-107"
     >
       <div
@@ -1190,17 +1402,68 @@ exports[`Storyshots Generics / MultiSelectField with no value 1`] = `
         class="MuiSelect-select-108 MuiSelect-selectMenu-109 MuiInput-input-120"
         role="button"
         tabindex="0"
+=======
+      class="MuiInput-root-31 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
+    >
+      <div
+        class="MuiSelect-root-46"
+>>>>>>> Update components to match material-ui 1.2 import style
       >
-        <span>
-          ​
-        </span>
+        <div
+          aria-haspopup="true"
+          aria-pressed="false"
+          class="MuiSelect-select-47 MuiSelect-selectMenu-48 MuiInput-input-39"
+          role="button"
+          tabindex="0"
+        >
+          <span>
+            ​
+          </span>
+        </div>
+        <input
+          aria-invalid="false"
+          aria-required="false"
+          name="country"
+          type="hidden"
+          value="Swaziland"
+        />
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root-51 MuiSelect-icon-50"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M7 10l5 5 5-5z"
+          />
+        </svg>
       </div>
+    </div>
+  </div>
+  <div
+    class="Component-spacer-44"
+  />
+  <div
+    class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
+  >
+    <label
+      class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25 MuiInputLabel-shrink-24"
+      data-shrink="true"
+    >
+      Country area
+    </label>
+    <div
+      class="MuiInput-root-31 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
+    >
       <input
         aria-invalid="false"
         aria-required="false"
-        type="hidden"
-        value=""
+        class="MuiInput-input-39"
+        name="countryArea"
+        type="text"
+        value="Buckinghamshire"
       />
+<<<<<<< HEAD
       <svg
         aria-hidden="true"
         class="MuiSvgIcon-root-125 MuiSelect-icon-111"
@@ -1225,8 +1488,27 @@ exports[`Storyshots Generics / MultiSelectField with value 1`] = `
   >
     <div
       class="MuiSelect-root-107"
+=======
+    </div>
+  </div>
+  <div
+    class="Component-spacer-44"
+  />
+  <div
+    class="Component-root-59"
+  >
+    <div
+      class="MuiFormControl-root-17 Component-formControl-45"
+>>>>>>> Update components to match material-ui 1.2 import style
     >
+      <label
+        class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25 MuiInputLabel-shrink-24"
+        data-shrink="true"
+      >
+        Phone
+      </label>
       <div
+<<<<<<< HEAD
         aria-haspopup="true"
         aria-pressed="false"
         class="MuiSelect-select-108 MuiSelect-selectMenu-109 MuiInput-input-120"
@@ -1238,17 +1520,51 @@ exports[`Storyshots Generics / MultiSelectField with value 1`] = `
         >
           <div
             class="MuiChip-root-135 Component-chip-100"
+=======
+        class="MuiInput-root-31 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
+      >
+        <div
+          class="MuiSelect-root-46"
+        >
+          <div
+            aria-haspopup="true"
+            aria-pressed="false"
+            class="MuiSelect-select-47 MuiSelect-selectMenu-48 MuiInput-input-39"
+>>>>>>> Update components to match material-ui 1.2 import style
             role="button"
-            tabindex="-1"
+            tabindex="0"
           >
+<<<<<<< HEAD
             <span
               class="MuiChip-label-140"
             >
               Apparel
+=======
+            <span>
+              ​
+>>>>>>> Update components to match material-ui 1.2 import style
             </span>
           </div>
+          <input
+            aria-invalid="false"
+            aria-required="false"
+            name="phone_prefix"
+            type="hidden"
+            value="17"
+          />
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-51 MuiSelect-icon-50"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M7 10l5 5 5-5z"
+            />
+          </svg>
         </div>
       </div>
+<<<<<<< HEAD
       <input
         aria-invalid="false"
         aria-required="false"
@@ -1260,16 +1576,36 @@ exports[`Storyshots Generics / MultiSelectField with value 1`] = `
         class="MuiSvgIcon-root-125 MuiSelect-icon-111"
         focusable="false"
         viewBox="0 0 24 24"
+=======
+    </div>
+    <div
+      class="MuiFormControl-root-17"
+    >
+      <label
+        class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25 MuiInputLabel-shrink-24"
+        data-shrink="true"
+>>>>>>> Update components to match material-ui 1.2 import style
       >
-        <path
-          d="M7 10l5 5 5-5z"
+         
+      </label>
+      <div
+        class="MuiInput-root-31 MuiInput-formControl-32 MuiInput-underline-35"
+      >
+        <input
+          aria-invalid="false"
+          aria-required="false"
+          class="MuiInput-input-39"
+          name="phone_number"
+          type="text"
+          value="253-928-8945"
         />
-      </svg>
+      </div>
     </div>
   </div>
 </div>
 `;
 
+<<<<<<< HEAD
 exports[`Storyshots Generics / MultiSelectField with value, label and hint 1`] = `
 <div
   class="MuiFormControl-root-103 Component-formControl-102"
@@ -1282,6 +1618,174 @@ exports[`Storyshots Generics / MultiSelectField with value, label and hint 1`] =
   </label>
   <div
     class="MuiInput-root-112 MuiInput-fullWidth-119 MuiInput-formControl-113 MuiInput-underline-116"
+=======
+exports[`Storyshots Generics / AddressFormatter default 1`] = `
+<address>
+  <span
+    class="MuiTypography-root-60 MuiTypography-body1-69"
+  >
+    Alexander Simonis
+  </span>
+  <span
+    class="MuiTypography-root-60 MuiTypography-body1-69"
+  >
+    83772 Savanah Summit
+    <br />
+  </span>
+  <span
+    class="MuiTypography-root-60 MuiTypography-body1-69"
+  >
+     47639-5237 Thompsontown, Rhode Island
+  </span>
+  <span
+    class="MuiTypography-root-60 MuiTypography-body1-69"
+  >
+    Buckinghamshire, Swaziland
+  </span>
+</address>
+`;
+
+exports[`Storyshots Generics / AddressFormatter when loading 1`] = `
+<span
+  class="Skeleton-skeleton-84"
+>
+  ‌
+</span>
+`;
+
+exports[`Storyshots Generics / DateFormatter default 1`] = `
+<p
+  class="MuiTypography-root-2 MuiTypography-body1-11 DateFormatter-root-1"
+>
+  07.04.2018 12:44
+</p>
+`;
+
+exports[`Storyshots Generics / DateFormatter humanized 1`] = `
+<p
+  class="MuiTypography-root-2 MuiTypography-body1-11 DateFormatter-root-1"
+>
+  10 days ago
+</p>
+`;
+
+exports[`Storyshots Generics / DateFormatter humanized without tooltip 1`] = `
+<p
+  class="MuiTypography-root-2 MuiTypography-body1-11 DateFormatter-root-1"
+>
+  10 days ago
+</p>
+`;
+
+exports[`Storyshots Generics / DateFormatter with custom format 1`] = `
+<p
+  class="MuiTypography-root-2 MuiTypography-body1-11 DateFormatter-root-1"
+>
+  04/01/1999
+</p>
+`;
+
+exports[`Storyshots Generics / EditableTableCell default 1`] = `
+<table
+  class="MuiTable-root-34"
+>
+  <thead
+    class="MuiTableHead-root-35"
+  >
+    <tr>
+      <th
+        class="MuiTableCell-root-36 MuiTableCell-head-37"
+        scope="col"
+      >
+        Some header
+      </th>
+      <th
+        class="MuiTableCell-root-36 MuiTableCell-head-37"
+        scope="col"
+      >
+        Some header
+      </th>
+      <th
+        class="MuiTableCell-root-36 MuiTableCell-head-37"
+        scope="col"
+      >
+        Some header
+      </th>
+    </tr>
+  </thead>
+  <tbody
+    class="MuiTableBody-root-44"
+  >
+    <tr
+      class="MuiTableRow-root-45"
+    >
+      <td
+        class="MuiTableCell-root-36 MuiTableCell-body-38"
+      >
+        Some value
+      </td>
+      <td
+        class="MuiTableCell-root-36 MuiTableCell-body-38 Component-container-50 "
+      >
+        <form>
+          <span
+            class="MuiTypography-root-2 MuiTypography-caption-12 Component-text-53"
+          >
+            Some editable text
+          </span>
+        </form>
+      </td>
+      <td
+        class="MuiTableCell-root-36 MuiTableCell-body-38"
+      >
+        Some value
+      </td>
+    </tr>
+  </tbody>
+</table>
+`;
+
+exports[`Storyshots Generics / ErrorMessageCard default 1`] = `
+<div
+  class="MuiPaper-root-55 MuiPaper-elevation2-59 MuiPaper-rounded-56 MuiCard-root-54"
+>
+  <div
+    class="MuiCardContent-root-82"
+  >
+    <h2
+      class="MuiTypography-root-83 MuiTypography-headline-88"
+    >
+      Error
+    </h2>
+    <p
+      class="MuiTypography-root-83 MuiTypography-body1-92"
+    >
+      Loren ipsum dolor sit amet!
+    </p>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Generics / Money default 1`] = `
+<p
+  class="MuiTypography-root-2 MuiTypography-body1-11"
+>
+  14.00 
+  <span
+    class="Component-currency-107"
+  >
+    $
+  </span>
+</p>
+`;
+
+exports[`Storyshots Generics / MultiSelectField with error hint 1`] = `
+<div
+  class="MuiFormControl-root-111 Component-formControl-110"
+>
+  <div
+    class="MuiInput-root-120 MuiInput-error-125 MuiInput-fullWidth-127 MuiInput-formControl-121 MuiInput-underline-124"
+>>>>>>> Update components to match material-ui 1.2 import style
   >
     <div
       class="MuiSelect-root-107"
@@ -1293,6 +1797,7 @@ exports[`Storyshots Generics / MultiSelectField with value, label and hint 1`] =
         role="button"
         tabindex="0"
       >
+<<<<<<< HEAD
         <div
           class="Component-chipContainer-101"
         >
@@ -1308,12 +1813,17 @@ exports[`Storyshots Generics / MultiSelectField with value, label and hint 1`] =
             </span>
           </div>
         </div>
+=======
+        <span>
+          ​
+        </span>
+>>>>>>> Update components to match material-ui 1.2 import style
       </div>
       <input
-        aria-invalid="false"
+        aria-invalid="true"
         aria-required="false"
         type="hidden"
-        value="1"
+        value=""
       />
       <svg
         aria-hidden="true"
@@ -1328,15 +1838,20 @@ exports[`Storyshots Generics / MultiSelectField with value, label and hint 1`] =
     </div>
   </div>
   <p
+<<<<<<< HEAD
     class="MuiFormHelperText-root-152"
+=======
+    class="MuiFormHelperText-root-160 MuiFormHelperText-error-161"
+>>>>>>> Update components to match material-ui 1.2 import style
   >
-    Ipsum
+    Lorem error
   </p>
 </div>
 `;
 
-exports[`Storyshots Generics / PageHeader with title 1`] = `
+exports[`Storyshots Generics / MultiSelectField with hint 1`] = `
 <div
+<<<<<<< HEAD
   class="PageHeader-root-159"
 >
   <h2
@@ -1361,19 +1876,48 @@ exports[`Storyshots Generics / PageHeader with title and back button 1`] = `
   >
     <span
       class="MuiIconButton-label-168"
+=======
+  class="MuiFormControl-root-111 Component-formControl-110"
+>
+  <div
+    class="MuiInput-root-120 MuiInput-fullWidth-127 MuiInput-formControl-121 MuiInput-underline-124"
+  >
+    <div
+      class="MuiSelect-root-115"
+>>>>>>> Update components to match material-ui 1.2 import style
     >
+      <div
+        aria-haspopup="true"
+        aria-pressed="false"
+        class="MuiSelect-select-116 MuiSelect-selectMenu-117 MuiInput-input-128"
+        role="button"
+        tabindex="0"
+      >
+        <span>
+          ​
+        </span>
+      </div>
+      <input
+        aria-invalid="false"
+        aria-required="false"
+        type="hidden"
+        value=""
+      />
       <svg
         aria-hidden="true"
+<<<<<<< HEAD
         class="MuiSvgIcon-root-125"
+=======
+        class="MuiSvgIcon-root-133 MuiSelect-icon-119"
+>>>>>>> Update components to match material-ui 1.2 import style
         focusable="false"
         viewBox="0 0 24 24"
       >
-        <g>
-          <path
-            d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
-          />
-        </g>
+        <path
+          d="M7 10l5 5 5-5z"
+        />
       </svg>
+<<<<<<< HEAD
     </span>
     <span
       class="MuiTouchRipple-root-172"
@@ -1387,19 +1931,37 @@ exports[`Storyshots Generics / PageHeader with title and back button 1`] = `
   <div
     class="PageHeader-action-156"
   />
+=======
+    </div>
+  </div>
+  <p
+    class="MuiFormHelperText-root-160"
+  >
+    Lorem ipsum
+  </p>
+>>>>>>> Update components to match material-ui 1.2 import style
 </div>
 `;
 
-exports[`Storyshots Generics / PageHeader with title icon bar 1`] = `
+exports[`Storyshots Generics / MultiSelectField with label 1`] = `
 <div
+<<<<<<< HEAD
   class="PageHeader-root-159"
 >
   <h2
     class="MuiTypography-root-75 MuiTypography-title-81 PageHeader-title-161"
+=======
+  class="MuiFormControl-root-111 Component-formControl-110"
+>
+  <label
+    class="MuiFormLabel-root-155 MuiInputLabel-root-150 MuiInputLabel-formControl-151 MuiInputLabel-animated-154"
+    data-shrink="false"
+>>>>>>> Update components to match material-ui 1.2 import style
   >
     Lorem ipsum
-  </h2>
+  </label>
   <div
+<<<<<<< HEAD
     class="PageHeader-action-156"
   >
     <button
@@ -1425,14 +1987,48 @@ exports[`Storyshots Generics / PageHeader with title icon bar 1`] = `
       </span>
       <span
         class="MuiTouchRipple-root-172"
+=======
+    class="MuiInput-root-120 MuiInput-fullWidth-127 MuiInput-formControl-121 MuiInput-underline-124"
+  >
+    <div
+      class="MuiSelect-root-115"
+    >
+      <div
+        aria-haspopup="true"
+        aria-pressed="false"
+        class="MuiSelect-select-116 MuiSelect-selectMenu-117 MuiInput-input-128"
+        role="button"
+        tabindex="0"
+      >
+        <span>
+          ​
+        </span>
+      </div>
+      <input
+        aria-invalid="false"
+        aria-required="false"
+        type="hidden"
+        value=""
+>>>>>>> Update components to match material-ui 1.2 import style
       />
-    </button>
+      <svg
+        aria-hidden="true"
+        class="MuiSvgIcon-root-133 MuiSelect-icon-119"
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M7 10l5 5 5-5z"
+        />
+      </svg>
+    </div>
   </div>
 </div>
 `;
 
-exports[`Storyshots Generics / PageHeader with title, back button and icon bar 1`] = `
+exports[`Storyshots Generics / MultiSelectField with label and hint 1`] = `
 <div
+<<<<<<< HEAD
   class="PageHeader-root-159"
 >
   <button
@@ -1442,19 +2038,54 @@ exports[`Storyshots Generics / PageHeader with title, back button and icon bar 1
   >
     <span
       class="MuiIconButton-label-168"
+=======
+  class="MuiFormControl-root-111 Component-formControl-110"
+>
+  <label
+    class="MuiFormLabel-root-155 MuiInputLabel-root-150 MuiInputLabel-formControl-151 MuiInputLabel-animated-154"
+    data-shrink="false"
+  >
+    Lorem
+  </label>
+  <div
+    class="MuiInput-root-120 MuiInput-fullWidth-127 MuiInput-formControl-121 MuiInput-underline-124"
+  >
+    <div
+      class="MuiSelect-root-115"
+>>>>>>> Update components to match material-ui 1.2 import style
     >
+      <div
+        aria-haspopup="true"
+        aria-pressed="false"
+        class="MuiSelect-select-116 MuiSelect-selectMenu-117 MuiInput-input-128"
+        role="button"
+        tabindex="0"
+      >
+        <span>
+          ​
+        </span>
+      </div>
+      <input
+        aria-invalid="false"
+        aria-required="false"
+        type="hidden"
+        value=""
+      />
       <svg
         aria-hidden="true"
+<<<<<<< HEAD
         class="MuiSvgIcon-root-125"
+=======
+        class="MuiSvgIcon-root-133 MuiSelect-icon-119"
+>>>>>>> Update components to match material-ui 1.2 import style
         focusable="false"
         viewBox="0 0 24 24"
       >
-        <g>
-          <path
-            d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
-          />
-        </g>
+        <path
+          d="M7 10l5 5 5-5z"
+        />
       </svg>
+<<<<<<< HEAD
     </span>
     <span
       class="MuiTouchRipple-root-172"
@@ -1514,11 +2145,21 @@ exports[`Storyshots Generics / PageHeader without title 1`] = `
   <div
     class="PageHeader-action-156"
   />
+=======
+    </div>
+  </div>
+  <p
+    class="MuiFormHelperText-root-160"
+  >
+    Ipsum
+  </p>
+>>>>>>> Update components to match material-ui 1.2 import style
 </div>
 `;
 
-exports[`Storyshots Generics / PhoneField default 1`] = `
+exports[`Storyshots Generics / MultiSelectField with no value 1`] = `
 <div
+<<<<<<< HEAD
   class="Component-root-179"
 >
   <div
@@ -1582,14 +2223,51 @@ exports[`Storyshots Generics / PhoneField default 1`] = `
         name="phone_number"
         type="text"
         value="123 987 456"
+=======
+  class="MuiFormControl-root-111 Component-formControl-110"
+>
+  <div
+    class="MuiInput-root-120 MuiInput-fullWidth-127 MuiInput-formControl-121 MuiInput-underline-124"
+  >
+    <div
+      class="MuiSelect-root-115"
+    >
+      <div
+        aria-haspopup="true"
+        aria-pressed="false"
+        class="MuiSelect-select-116 MuiSelect-selectMenu-117 MuiInput-input-128"
+        role="button"
+        tabindex="0"
+      >
+        <span>
+          ​
+        </span>
+      </div>
+      <input
+        aria-invalid="false"
+        aria-required="false"
+        type="hidden"
+        value=""
+>>>>>>> Update components to match material-ui 1.2 import style
       />
+      <svg
+        aria-hidden="true"
+        class="MuiSvgIcon-root-133 MuiSelect-icon-119"
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M7 10l5 5 5-5z"
+        />
+      </svg>
     </div>
   </div>
 </div>
 `;
 
-exports[`Storyshots Generics / PriceField disabled 1`] = `
+exports[`Storyshots Generics / MultiSelectField with value 1`] = `
 <div
+<<<<<<< HEAD
   class="MuiFormControl-root-103 MuiFormControl-fullWidth-106"
 >
   <div
@@ -1629,18 +2307,194 @@ exports[`Storyshots Generics / PriceField with currency symbol 1`] = `
     >
       <p
         class="MuiTypography-root-75 MuiTypography-body1-84 MuiTypography-colorTextSecondary-97"
+=======
+  class="MuiFormControl-root-111 Component-formControl-110"
+>
+  <div
+    class="MuiInput-root-120 MuiInput-fullWidth-127 MuiInput-formControl-121 MuiInput-underline-124"
+  >
+    <div
+      class="MuiSelect-root-115"
+    >
+      <div
+        aria-haspopup="true"
+        aria-pressed="false"
+        class="MuiSelect-select-116 MuiSelect-selectMenu-117 MuiInput-input-128"
+        role="button"
+        tabindex="0"
+>>>>>>> Update components to match material-ui 1.2 import style
       >
-        $
-      </p>
+        <div
+          class="Component-chipContainer-109"
+        >
+          <div
+            class="MuiChip-root-143 Component-chip-108"
+            role="button"
+            tabindex="-1"
+          >
+            <span
+              class="MuiChip-label-148"
+            >
+              Apparel
+            </span>
+          </div>
+        </div>
+      </div>
+      <input
+        aria-invalid="false"
+        aria-required="false"
+        type="hidden"
+        value="1"
+      />
+      <svg
+        aria-hidden="true"
+        class="MuiSvgIcon-root-133 MuiSelect-icon-119"
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M7 10l5 5 5-5z"
+        />
+      </svg>
     </div>
   </div>
 </div>
 `;
 
-exports[`Storyshots Generics / PriceField with hint 1`] = `
+exports[`Storyshots Generics / MultiSelectField with value, label and hint 1`] = `
 <div
+<<<<<<< HEAD
+  class="MuiFormControl-root-103 MuiFormControl-fullWidth-106"
+=======
+  class="MuiFormControl-root-111 Component-formControl-110"
+>>>>>>> Update components to match material-ui 1.2 import style
+>
+  <label
+    class="MuiFormLabel-root-155 MuiInputLabel-root-150 MuiInputLabel-formControl-151 MuiInputLabel-animated-154 MuiInputLabel-shrink-153"
+    data-shrink="true"
+  >
+    Lorem
+  </label>
+  <div
+<<<<<<< HEAD
+    class="MuiInput-root-112 MuiInput-formControl-113 MuiInput-underline-116"
+  >
+    <input
+      aria-invalid="false"
+      aria-required="false"
+      class="MuiInput-input-120 MuiInput-inputType-123"
+      name="price"
+      type="number"
+      value=""
+    />
+    <span />
+=======
+    class="MuiInput-root-120 MuiInput-fullWidth-127 MuiInput-formControl-121 MuiInput-underline-124"
+  >
+    <div
+      class="MuiSelect-root-115"
+    >
+      <div
+        aria-haspopup="true"
+        aria-pressed="false"
+        class="MuiSelect-select-116 MuiSelect-selectMenu-117 MuiInput-input-128"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="Component-chipContainer-109"
+        >
+          <div
+            class="MuiChip-root-143 Component-chip-108"
+            role="button"
+            tabindex="-1"
+          >
+            <span
+              class="MuiChip-label-148"
+            >
+              Apparel
+            </span>
+          </div>
+        </div>
+      </div>
+      <input
+        aria-invalid="false"
+        aria-required="false"
+        type="hidden"
+        value="1"
+      />
+      <svg
+        aria-hidden="true"
+        class="MuiSvgIcon-root-133 MuiSelect-icon-119"
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M7 10l5 5 5-5z"
+        />
+      </svg>
+    </div>
+>>>>>>> Update components to match material-ui 1.2 import style
+  </div>
+  <p
+    class="MuiFormHelperText-root-152"
+  >
+    Ipsum
+  </p>
+</div>
+`;
+
+exports[`Storyshots Generics / PageHeader with title 1`] = `
+<div
+<<<<<<< HEAD
   class="MuiFormControl-root-103 MuiFormControl-fullWidth-106"
 >
+  <label
+    class="MuiFormLabel-root-147 MuiInputLabel-root-142 MuiInputLabel-formControl-143 MuiInputLabel-animated-146"
+    data-shrink="false"
+    for="price"
+=======
+  class="PageHeader-root-167"
+>
+  <h2
+    class="MuiTypography-root-83 MuiTypography-title-89 PageHeader-title-169"
+>>>>>>> Update components to match material-ui 1.2 import style
+  >
+    Lorem ipsum
+  </h2>
+  <div
+<<<<<<< HEAD
+    class="MuiInput-root-112 MuiInput-formControl-113 MuiInput-underline-116"
+  >
+    <input
+      aria-invalid="false"
+      aria-required="false"
+      class="MuiInput-input-120 MuiInput-inputType-123"
+      name="price"
+      type="number"
+      value=""
+    />
+    <span />
+  </div>
+=======
+    class="PageHeader-action-164"
+  />
+>>>>>>> Update components to match material-ui 1.2 import style
+</div>
+`;
+
+exports[`Storyshots Generics / PageHeader with title and back button 1`] = `
+<div
+<<<<<<< HEAD
+  class="MuiFormControl-root-103 MuiFormControl-fullWidth-106"
+>
+  <label
+    class="MuiFormLabel-root-147 MuiInputLabel-root-142 MuiInputLabel-formControl-143 MuiInputLabel-animated-146"
+    data-shrink="false"
+    for="price"
+  >
+    Lorem
+  </label>
   <div
     class="MuiInput-root-112 MuiInput-formControl-113 MuiInput-underline-116"
   >
@@ -1656,6 +2510,354 @@ exports[`Storyshots Generics / PriceField with hint 1`] = `
   </div>
   <p
     class="MuiFormHelperText-root-152"
+=======
+  class="PageHeader-root-167"
+>
+  <button
+    class="MuiButtonBase-root-177 MuiIconButton-root-171 MuiIconButton-colorInherit-172 PageHeader-menuButton-166"
+    tabindex="0"
+    type="button"
+  >
+    <span
+      class="MuiIconButton-label-176"
+    >
+      <svg
+        aria-hidden="true"
+        class="MuiSvgIcon-root-133"
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <g>
+          <path
+            d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+          />
+        </g>
+      </svg>
+    </span>
+    <span
+      class="MuiTouchRipple-root-180"
+    />
+  </button>
+  <h2
+    class="MuiTypography-root-83 MuiTypography-title-89 PageHeader-title-169"
+>>>>>>> Update components to match material-ui 1.2 import style
+  >
+    Lorem ipsum
+  </h2>
+  <div
+    class="PageHeader-action-164"
+  />
+</div>
+`;
+
+exports[`Storyshots Generics / PageHeader with title icon bar 1`] = `
+<div
+<<<<<<< HEAD
+  class="MuiFormControl-root-103 MuiFormControl-fullWidth-106"
+=======
+  class="PageHeader-root-167"
+>>>>>>> Update components to match material-ui 1.2 import style
+>
+  <h2
+    class="MuiTypography-root-83 MuiTypography-title-89 PageHeader-title-169"
+  >
+    Lorem ipsum
+  </h2>
+  <div
+<<<<<<< HEAD
+    class="MuiInput-root-112 MuiInput-formControl-113 MuiInput-underline-116"
+  >
+    <input
+      aria-invalid="false"
+      aria-required="false"
+      class="MuiInput-input-120 MuiInput-inputType-123"
+      name="price"
+      type="number"
+      value=""
+    />
+    <span />
+=======
+    class="PageHeader-action-164"
+  >
+    <button
+      class="MuiButtonBase-root-177 MuiIconButton-root-171"
+      tabindex="0"
+      type="button"
+    >
+      <span
+        class="MuiIconButton-label-176"
+      >
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root-133"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <g>
+            <path
+              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+            />
+          </g>
+        </svg>
+      </span>
+      <span
+        class="MuiTouchRipple-root-180"
+      />
+    </button>
+>>>>>>> Update components to match material-ui 1.2 import style
+  </div>
+</div>
+`;
+
+exports[`Storyshots Generics / PageHeader with title, back button and icon bar 1`] = `
+<div
+  class="PageHeader-root-167"
+>
+  <button
+    class="MuiButtonBase-root-177 MuiIconButton-root-171 MuiIconButton-colorInherit-172 PageHeader-menuButton-166"
+    tabindex="0"
+    type="button"
+  >
+    <span
+      class="MuiIconButton-label-176"
+    >
+      <svg
+        aria-hidden="true"
+        class="MuiSvgIcon-root-133"
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <g>
+          <path
+            d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+          />
+        </g>
+      </svg>
+    </span>
+    <span
+      class="MuiTouchRipple-root-180"
+    />
+  </button>
+  <h2
+    class="MuiTypography-root-83 MuiTypography-title-89 PageHeader-title-169"
+  >
+    Lorem ipsum
+  </h2>
+  <div
+    class="PageHeader-action-164"
+  >
+    <button
+      class="MuiButtonBase-root-177 MuiIconButton-root-171"
+      tabindex="0"
+      type="button"
+    >
+      <span
+        class="MuiIconButton-label-176"
+      >
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root-133"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <g>
+            <path
+              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+            />
+          </g>
+        </svg>
+      </span>
+      <span
+        class="MuiTouchRipple-root-180"
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Generics / PageHeader without title 1`] = `
+<div
+  class="PageHeader-root-167"
+>
+  <h2
+    class="MuiTypography-root-83 MuiTypography-title-89 PageHeader-title-169"
+  >
+    <span
+      class="Skeleton-skeleton-170"
+      style="width:10em"
+    >
+      ‌
+    </span>
+  </h2>
+  <div
+    class="PageHeader-action-164"
+  />
+</div>
+`;
+
+exports[`Storyshots Generics / PhoneField default 1`] = `
+<div
+  class="Component-root-187"
+>
+  <div
+    class="MuiFormControl-root-189 Component-formControl-188"
+  >
+    <label
+      class="MuiFormLabel-root-198 MuiInputLabel-root-193 MuiInputLabel-formControl-194 MuiInputLabel-animated-197 MuiInputLabel-shrink-196"
+      data-shrink="true"
+    />
+    <div
+      class="MuiInput-root-208 MuiInput-fullWidth-215 MuiInput-formControl-209 MuiInput-underline-212"
+    >
+      <div
+        class="MuiSelect-root-203"
+      >
+        <div
+          aria-haspopup="true"
+          aria-pressed="false"
+          class="MuiSelect-select-204 MuiSelect-selectMenu-205 MuiInput-input-216"
+          role="button"
+          tabindex="0"
+        >
+          +41
+        </div>
+        <input
+          aria-invalid="false"
+          aria-required="false"
+          name="phone_prefix"
+          type="hidden"
+          value="41"
+        />
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root-221 MuiSelect-icon-207"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M7 10l5 5 5-5z"
+          />
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div
+    class="MuiFormControl-root-189"
+  >
+    <label
+      class="MuiFormLabel-root-198 MuiInputLabel-root-193 MuiInputLabel-formControl-194 MuiInputLabel-animated-197 MuiInputLabel-shrink-196"
+      data-shrink="true"
+    >
+       
+    </label>
+    <div
+      class="MuiInput-root-208 MuiInput-formControl-209 MuiInput-underline-212"
+    >
+      <input
+        aria-invalid="false"
+        aria-required="false"
+        class="MuiInput-input-216"
+        name="phone_number"
+        type="text"
+        value="123 987 456"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Generics / PriceField disabled 1`] = `
+<div
+  class="MuiFormControl-root-103 MuiFormControl-fullWidth-106"
+>
+  <div
+<<<<<<< HEAD
+    class="MuiInput-root-112 MuiInput-formControl-113 MuiInput-underline-116"
+=======
+    class="MuiInput-root-120 MuiInput-disabled-123 MuiInput-formControl-121 MuiInput-underline-124"
+>>>>>>> Update components to match material-ui 1.2 import style
+  >
+    <input
+      aria-invalid="false"
+      aria-required="false"
+<<<<<<< HEAD
+      class="MuiInput-input-120 MuiInput-inputType-123"
+=======
+      class="MuiInput-input-128 MuiInput-disabled-123 MuiInput-inputType-131"
+      disabled=""
+>>>>>>> Update components to match material-ui 1.2 import style
+      name="price"
+      type="number"
+      value=""
+    />
+    <span />
+  </div>
+</div>
+`;
+
+exports[`Storyshots Generics / PriceField with currency symbol 1`] = `
+<div
+  class="MuiFormControl-root-103 MuiFormControl-fullWidth-106"
+>
+<<<<<<< HEAD
+  <label
+    class="MuiFormLabel-root-147 MuiFormLabel-error-150 MuiInputLabel-root-142 MuiInputLabel-formControl-143 MuiInputLabel-animated-146 MuiInputLabel-shrink-145"
+    data-shrink="true"
+    for="price"
+  >
+    Lorem
+  </label>
+  <div
+    class="MuiInput-root-112 MuiInput-error-117 MuiInput-formControl-113 MuiInput-underline-116"
+=======
+  <div
+    class="MuiInput-root-120 MuiInput-formControl-121 MuiInput-underline-124"
+>>>>>>> Update components to match material-ui 1.2 import style
+  >
+    <input
+      aria-invalid="false"
+      aria-required="false"
+      class="MuiInput-input-120 MuiInput-inputType-123"
+      name="price"
+      type="number"
+      value=""
+    />
+    <div
+      class="MuiInputAdornment-root-227 MuiInputAdornment-positionEnd-229"
+    >
+      <p
+        class="MuiTypography-root-75 MuiTypography-body1-84 MuiTypography-colorTextSecondary-97"
+      >
+        $
+      </p>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Generics / PriceField with hint 1`] = `
+<div
+  class="MuiFormControl-root-111 MuiFormControl-fullWidth-114"
+>
+  <div
+    class="MuiInput-root-120 MuiInput-formControl-121 MuiInput-underline-124"
+  >
+    <input
+      aria-invalid="false"
+      aria-required="false"
+      class="MuiInput-input-128 MuiInput-inputType-131"
+      name="price"
+      type="number"
+      value=""
+    />
+    <span />
+  </div>
+  <p
+<<<<<<< HEAD
+    class="MuiFormHelperText-root-152 MuiFormHelperText-error-153"
+=======
+    class="MuiFormHelperText-root-160"
+>>>>>>> Update components to match material-ui 1.2 import style
   >
     Lorem ipsum
   </p>
@@ -1667,19 +2869,23 @@ exports[`Storyshots Generics / PriceField with label 1`] = `
   class="MuiFormControl-root-103 MuiFormControl-fullWidth-106"
 >
   <label
-    class="MuiFormLabel-root-147 MuiInputLabel-root-142 MuiInputLabel-formControl-143 MuiInputLabel-animated-146"
+<<<<<<< HEAD
+    class="MuiFormLabel-root-147 MuiInputLabel-root-142 MuiInputLabel-formControl-143 MuiInputLabel-animated-146 MuiInputLabel-shrink-145"
+    data-shrink="true"
+=======
+    class="MuiFormLabel-root-155 MuiInputLabel-root-150 MuiInputLabel-formControl-151 MuiInputLabel-animated-154"
     data-shrink="false"
     for="price"
   >
     Lorem ipsum
   </label>
   <div
-    class="MuiInput-root-112 MuiInput-formControl-113 MuiInput-underline-116"
+    class="MuiInput-root-120 MuiInput-formControl-121 MuiInput-underline-124"
   >
     <input
       aria-invalid="false"
       aria-required="false"
-      class="MuiInput-input-120 MuiInput-inputType-123"
+      class="MuiInput-input-128 MuiInput-inputType-131"
       name="price"
       type="number"
       value=""
@@ -1691,11 +2897,12 @@ exports[`Storyshots Generics / PriceField with label 1`] = `
 
 exports[`Storyshots Generics / PriceField with label and hint 1`] = `
 <div
-  class="MuiFormControl-root-103 MuiFormControl-fullWidth-106"
+  class="MuiFormControl-root-111 MuiFormControl-fullWidth-114"
 >
   <label
-    class="MuiFormLabel-root-147 MuiInputLabel-root-142 MuiInputLabel-formControl-143 MuiInputLabel-animated-146"
+    class="MuiFormLabel-root-155 MuiInputLabel-root-150 MuiInputLabel-formControl-151 MuiInputLabel-animated-154"
     data-shrink="false"
+>>>>>>> Update components to match material-ui 1.2 import style
     for="price"
   >
     Lorem
@@ -1711,7 +2918,19 @@ exports[`Storyshots Generics / PriceField with label and hint 1`] = `
       type="number"
       value=""
     />
+<<<<<<< HEAD
+    <div
+      class="MuiInputAdornment-root-227 MuiInputAdornment-positionEnd-229"
+    >
+      <p
+        class="MuiTypography-root-75 MuiTypography-body1-84 MuiTypography-colorTextSecondary-97"
+      >
+        $
+      </p>
+    </div>
+=======
     <span />
+>>>>>>> Update components to match material-ui 1.2 import style
   </div>
   <p
     class="MuiFormHelperText-root-152"
@@ -1723,15 +2942,24 @@ exports[`Storyshots Generics / PriceField with label and hint 1`] = `
 
 exports[`Storyshots Generics / PriceField with no value 1`] = `
 <div
-  class="MuiFormControl-root-103 MuiFormControl-fullWidth-106"
+<<<<<<< HEAD
+  class="Component-widgetContainer-226"
 >
   <div
-    class="MuiInput-root-112 MuiInput-formControl-113 MuiInput-underline-116"
+    class="Component-inputContainer-223"
+  >
+    <div
+      class="MuiFormControl-root-103"
+=======
+  class="MuiFormControl-root-111 MuiFormControl-fullWidth-114"
+>
+  <div
+    class="MuiInput-root-120 MuiInput-formControl-121 MuiInput-underline-124"
   >
     <input
       aria-invalid="false"
       aria-required="false"
-      class="MuiInput-input-120 MuiInput-inputType-123"
+      class="MuiInput-input-128 MuiInput-inputType-131"
       name="price"
       type="number"
       value=""
@@ -1743,15 +2971,15 @@ exports[`Storyshots Generics / PriceField with no value 1`] = `
 
 exports[`Storyshots Generics / PriceField with value 1`] = `
 <div
-  class="MuiFormControl-root-103 MuiFormControl-fullWidth-106"
+  class="MuiFormControl-root-111 MuiFormControl-fullWidth-114"
 >
   <div
-    class="MuiInput-root-112 MuiInput-formControl-113 MuiInput-underline-116"
+    class="MuiInput-root-120 MuiInput-formControl-121 MuiInput-underline-124"
   >
     <input
       aria-invalid="false"
       aria-required="false"
-      class="MuiInput-input-120 MuiInput-inputType-123"
+      class="MuiInput-input-128 MuiInput-inputType-131"
       name="price"
       type="number"
       value="30"
@@ -1763,38 +2991,38 @@ exports[`Storyshots Generics / PriceField with value 1`] = `
 
 exports[`Storyshots Generics / PriceField with value, label, currency symbol and error 1`] = `
 <div
-  class="MuiFormControl-root-103 MuiFormControl-fullWidth-106"
+  class="MuiFormControl-root-111 MuiFormControl-fullWidth-114"
 >
   <label
-    class="MuiFormLabel-root-147 MuiFormLabel-error-150 MuiInputLabel-root-142 MuiInputLabel-formControl-143 MuiInputLabel-animated-146 MuiInputLabel-shrink-145"
+    class="MuiFormLabel-root-155 MuiFormLabel-error-158 MuiInputLabel-root-150 MuiInputLabel-formControl-151 MuiInputLabel-animated-154 MuiInputLabel-shrink-153"
     data-shrink="true"
     for="price"
   >
     Lorem
   </label>
   <div
-    class="MuiInput-root-112 MuiInput-error-117 MuiInput-formControl-113 MuiInput-underline-116"
+    class="MuiInput-root-120 MuiInput-error-125 MuiInput-formControl-121 MuiInput-underline-124"
   >
     <input
       aria-invalid="true"
       aria-required="false"
-      class="MuiInput-input-120 MuiInput-inputType-123"
+      class="MuiInput-input-128 MuiInput-inputType-131"
       name="price"
       type="number"
       value="30"
     />
     <div
-      class="MuiInputAdornment-root-227 MuiInputAdornment-positionEnd-229"
+      class="MuiInputAdornment-root-235 MuiInputAdornment-positionEnd-237"
     >
       <p
-        class="MuiTypography-root-75 MuiTypography-body1-84 MuiTypography-colorTextSecondary-97"
+        class="MuiTypography-root-83 MuiTypography-body1-92 MuiTypography-colorTextSecondary-105"
       >
         $
       </p>
     </div>
   </div>
   <p
-    class="MuiFormHelperText-root-152 MuiFormHelperText-error-153"
+    class="MuiFormHelperText-root-160 MuiFormHelperText-error-161"
   >
     Ipsum
   </p>
@@ -1803,38 +3031,38 @@ exports[`Storyshots Generics / PriceField with value, label, currency symbol and
 
 exports[`Storyshots Generics / PriceField with value, label, currency symbol and hint 1`] = `
 <div
-  class="MuiFormControl-root-103 MuiFormControl-fullWidth-106"
+  class="MuiFormControl-root-111 MuiFormControl-fullWidth-114"
 >
   <label
-    class="MuiFormLabel-root-147 MuiInputLabel-root-142 MuiInputLabel-formControl-143 MuiInputLabel-animated-146 MuiInputLabel-shrink-145"
+    class="MuiFormLabel-root-155 MuiInputLabel-root-150 MuiInputLabel-formControl-151 MuiInputLabel-animated-154 MuiInputLabel-shrink-153"
     data-shrink="true"
     for="price"
   >
     Lorem
   </label>
   <div
-    class="MuiInput-root-112 MuiInput-formControl-113 MuiInput-underline-116"
+    class="MuiInput-root-120 MuiInput-formControl-121 MuiInput-underline-124"
   >
     <input
       aria-invalid="false"
       aria-required="false"
-      class="MuiInput-input-120 MuiInput-inputType-123"
+      class="MuiInput-input-128 MuiInput-inputType-131"
       name="price"
       type="number"
       value="30"
     />
     <div
-      class="MuiInputAdornment-root-227 MuiInputAdornment-positionEnd-229"
+      class="MuiInputAdornment-root-235 MuiInputAdornment-positionEnd-237"
     >
       <p
-        class="MuiTypography-root-75 MuiTypography-body1-84 MuiTypography-colorTextSecondary-97"
+        class="MuiTypography-root-83 MuiTypography-body1-92 MuiTypography-colorTextSecondary-105"
       >
         $
       </p>
     </div>
   </div>
   <p
-    class="MuiFormHelperText-root-152"
+    class="MuiFormHelperText-root-160"
   >
     Ipsum
   </p>
@@ -1843,13 +3071,14 @@ exports[`Storyshots Generics / PriceField with value, label, currency symbol and
 
 exports[`Storyshots Generics / PriceRangeField disabled 1`] = `
 <div
-  class="Component-widgetContainer-226"
+  class="Component-widgetContainer-234"
 >
   <div
-    class="Component-inputContainer-223"
+    class="Component-inputContainer-231"
   >
     <div
-      class="MuiFormControl-root-103"
+      class="MuiFormControl-root-111"
+>>>>>>> Update components to match material-ui 1.2 import style
     >
       <div
         class="MuiInput-root-112 MuiInput-disabled-115 MuiInput-fullWidth-119 MuiInput-formControl-113 MuiInput-underline-116 Component-pullDown-224"
@@ -17578,6 +18807,742 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
 
 exports[`Storyshots Views / Categories / Category details when in root 1`] = `
 <div
+  class="Component-md-392"
+>
+  <div
+    class="PageHeader-root-167"
+  >
+    <h2
+      class="MuiTypography-root-83 MuiTypography-title-89 PageHeader-title-169"
+    >
+      Categories
+    </h2>
+    <div
+      class="PageHeader-action-164"
+    >
+      <button
+        class="MuiButtonBase-root-177 MuiIconButton-root-171"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiIconButton-label-176"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-133"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+            </g>
+          </svg>
+        </span>
+        <span
+          class="MuiTouchRipple-root-180"
+        />
+      </button>
+    </div>
+  </div>
+  <div
+    class="Component-root-389"
+  >
+    <div
+      class="MuiPaper-root-55 MuiPaper-elevation2-59 MuiPaper-rounded-56 MuiCard-root-54"
+    >
+      <ul
+        class="MuiList-root-395 MuiList-padding-396"
+      >
+        <div
+          class="MuiButtonBase-root-177 MuiListItem-root-399 MuiListItem-default-402 MuiListItem-gutters-406 MuiListItem-button-407"
+          role="button"
+          tabindex="0"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-133 MuiListItemIcon-root-409"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+              />
+            </g>
+          </svg>
+          <div
+            class="MuiListItemText-root-410"
+          >
+            <span
+              class="MuiTypography-root-83 MuiTypography-subheading-90 MuiListItemText-primary-413"
+            >
+              Lorem ipsum dolor
+            </span>
+          </div>
+          <span
+            class="MuiTouchRipple-root-180"
+          />
+        </div>
+        <div
+          class="MuiButtonBase-root-177 MuiListItem-root-399 MuiListItem-default-402 MuiListItem-gutters-406 MuiListItem-button-407"
+          role="button"
+          tabindex="0"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-133 MuiListItemIcon-root-409"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+              />
+            </g>
+          </svg>
+          <div
+            class="MuiListItemText-root-410"
+          >
+            <span
+              class="MuiTypography-root-83 MuiTypography-subheading-90 MuiListItemText-primary-413"
+            >
+              Mauris vehicula tortor vulputate
+            </span>
+          </div>
+          <span
+            class="MuiTouchRipple-root-180"
+          />
+        </div>
+      </ul>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Categories / Category details when loading 1`] = `
+<div
+  class="Component-md-392"
+>
+  <div
+    class="PageHeader-root-167"
+  >
+    <h2
+      class="MuiTypography-root-83 MuiTypography-title-89 PageHeader-title-169"
+    >
+      <span
+        class="Skeleton-skeleton-170"
+        style="width:10em"
+      >
+        ‌
+      </span>
+    </h2>
+    <div
+      class="PageHeader-action-164"
+    />
+  </div>
+  <div
+    class="Component-root-389"
+  >
+    <div
+      class="MuiPaper-root-55 MuiPaper-elevation2-59 MuiPaper-rounded-56 MuiCard-root-54"
+    >
+      <div
+        class="PageHeader-root-167"
+      >
+        <h2
+          class="MuiTypography-root-83 MuiTypography-title-89 PageHeader-title-169"
+        >
+          Details
+        </h2>
+        <div
+          class="PageHeader-action-164"
+        >
+          <button
+            class="MuiButtonBase-root-177 MuiIconButton-root-171"
+            tabindex="0"
+            type="button"
+          >
+            <span
+              class="MuiIconButton-label-176"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-133"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <g>
+                  <path
+                    d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                  />
+                </g>
+              </svg>
+            </span>
+            <span
+              class="MuiTouchRipple-root-180"
+            />
+          </button>
+        </div>
+      </div>
+      <div
+        class="MuiCardContent-root-82"
+      >
+        <span
+          class="Skeleton-skeleton-170"
+        >
+          ‌
+        </span>
+      </div>
+    </div>
+    <div
+      class="MuiPaper-root-55 MuiPaper-elevation2-59 MuiPaper-rounded-56 MuiCard-root-54"
+    >
+      <div
+        class="PageHeader-root-167"
+      >
+        <h2
+          class="MuiTypography-root-83 MuiTypography-title-89 PageHeader-title-169"
+        >
+          Categories
+        </h2>
+        <div
+          class="PageHeader-action-164"
+        />
+      </div>
+      <ul
+        class="MuiList-root-395 MuiList-padding-396"
+      >
+        <li
+          class="MuiListItem-root-399 MuiListItem-default-402 MuiListItem-gutters-406"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-133 MuiListItemIcon-root-409"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+              />
+            </g>
+          </svg>
+          <div
+            class="MuiListItemText-root-410"
+          >
+            <span
+              class="MuiTypography-root-83 MuiTypography-subheading-90 MuiListItemText-primary-413"
+            >
+              <span
+                class="Skeleton-skeleton-170"
+              >
+                ‌
+              </span>
+            </span>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div
+      class="MuiPaper-root-55 MuiPaper-elevation2-59 MuiPaper-rounded-56 MuiCard-root-54"
+    >
+      <div
+        class="PageHeader-root-167"
+      >
+        <h2
+          class="MuiTypography-root-83 MuiTypography-title-89 PageHeader-title-169"
+        >
+          Products
+        </h2>
+        <div
+          class="PageHeader-action-164"
+        />
+      </div>
+      <table
+        class="MuiTable-root-253"
+      >
+        <thead
+          class="MuiTableHead-root-418"
+        >
+          <tr
+            class="MuiTableRow-root-419 MuiTableRow-head-422"
+          >
+            <th
+              class="MuiTableCell-root-263 MuiTableCell-head-264 Component-avatarCell-416"
+              scope="col"
+            />
+            <th
+              class="MuiTableCell-root-263 MuiTableCell-head-264"
+              scope="col"
+            >
+              Name
+            </th>
+            <th
+              class="MuiTableCell-root-263 MuiTableCell-head-264"
+              scope="col"
+            >
+              Type
+            </th>
+          </tr>
+        </thead>
+        <tfoot
+          class="MuiTableFooter-root-424"
+        >
+          <tr
+            class="MuiTableRow-root-419 MuiTableRow-footer-423"
+          >
+            <td
+              class="MuiTableCell-root-263 MuiTableCell-footer-266 TablePagination-root-257"
+              colspan="3"
+            >
+              <div
+                class="MuiToolbar-root-271 MuiToolbar-gutters-272 TablePagination-toolbar-262"
+              >
+                <div
+                  class="TablePagination-spacer-261"
+                />
+                <div
+                  class="TablePaginationActions-root-273"
+                >
+                  <button
+                    class="MuiButtonBase-root-177 MuiButtonBase-disabled-178 MuiIconButton-root-171 MuiIconButton-disabled-175"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-176"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-133"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                  <button
+                    class="MuiButtonBase-root-177 MuiButtonBase-disabled-178 MuiIconButton-root-171 MuiIconButton-disabled-175"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-176"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-133"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
+        <tbody
+          class="MuiTableBody-root-425"
+        >
+          <tr
+            class="MuiTableRow-root-419"
+          >
+            <td
+              class="MuiTableCell-root-263 MuiTableCell-body-265 Component-avatarCell-416"
+            >
+              <div
+                class="MuiAvatar-root-426 MuiAvatar-colorDefault-427"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-133"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <g>
+                    <path
+                      d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
+                    />
+                  </g>
+                </svg>
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-263 MuiTableCell-body-265"
+            >
+              <span
+                class="Skeleton-skeleton-170"
+              >
+                ‌
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-263 MuiTableCell-body-265"
+            >
+              <span
+                class="Skeleton-skeleton-170"
+              >
+                ‌
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Categories / Category edit default 1`] = `
+<form>
+  <div
+    class="Component-md-392"
+  >
+    <div
+      class="PageHeader-root-167"
+    >
+      <button
+        class="MuiButtonBase-root-177 MuiIconButton-root-171 MuiIconButton-colorInherit-172 PageHeader-menuButton-166"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiIconButton-label-176"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-133"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+              />
+            </g>
+          </svg>
+        </span>
+        <span
+          class="MuiTouchRipple-root-180"
+        />
+      </button>
+      <h2
+        class="MuiTypography-root-83 MuiTypography-title-89 PageHeader-title-169"
+      >
+        Edit category
+      </h2>
+      <div
+        class="PageHeader-action-164"
+      />
+    </div>
+    <div
+      class="MuiPaper-root-55 MuiPaper-elevation2-59 MuiPaper-rounded-56 MuiCard-root-54"
+    >
+      <div
+        class="MuiCardContent-root-82"
+      >
+        <div
+          class="MuiFormControl-root-111 MuiFormControl-fullWidth-114"
+        >
+          <label
+            class="MuiFormLabel-root-155 MuiInputLabel-root-150 MuiInputLabel-formControl-151 MuiInputLabel-animated-154 MuiInputLabel-shrink-153"
+            data-shrink="true"
+          >
+            Name
+          </label>
+          <div
+            class="MuiInput-root-120 MuiInput-fullWidth-127 MuiInput-formControl-121 MuiInput-underline-124"
+          >
+            <input
+              aria-invalid="false"
+              aria-required="false"
+              autofocus=""
+              class="MuiInput-input-128"
+              name="name"
+              type="text"
+              value="Apparel"
+            />
+          </div>
+        </div>
+        <div
+          class="Component-spacer-429"
+        />
+        <div
+          class="MuiFormControl-root-111 MuiFormControl-fullWidth-114"
+        >
+          <label
+            class="MuiFormLabel-root-155 MuiInputLabel-root-150 MuiInputLabel-formControl-151 MuiInputLabel-animated-154 MuiInputLabel-shrink-153"
+            data-shrink="true"
+          >
+            Description
+          </label>
+          <div
+            class="MuiInput-root-120 MuiInput-fullWidth-127 MuiInput-formControl-121 MuiInput-multiline-126 MuiInput-underline-124"
+          >
+            <div
+              class="Textarea-root-430"
+              style="height:19px"
+            >
+              <textarea
+                aria-hidden="true"
+                class="Textarea-shadow-432 Textarea-textarea-431"
+                readonly=""
+                rows="1"
+                tabindex="-1"
+              />
+              <textarea
+                aria-hidden="true"
+                class="Textarea-shadow-432 Textarea-textarea-431"
+                readonly=""
+                rows="1"
+                tabindex="-1"
+              >
+                Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
+Tell lose part purpose do when. Whatever drug contain particularly defense.
+              </textarea>
+              <textarea
+                aria-invalid="false"
+                aria-required="false"
+                class="Textarea-textarea-431 MuiInput-input-128 MuiInput-inputMultiline-130"
+                name="description"
+                rows="1"
+                type="text"
+              >
+                Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
+Tell lose part purpose do when. Whatever drug contain particularly defense.
+              </textarea>
+            </div>
+          </div>
+          <p
+            class="MuiFormHelperText-root-160"
+          >
+            Optional
+          </p>
+        </div>
+      </div>
+    </div>
+    <div
+      class="Component-root-433"
+    >
+      <div
+        class="Component-spacer-434"
+      />
+      <button
+        class="MuiButtonBase-root-177 MuiButton-root-436 MuiButton-flat-440 Component-button-435"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiButton-label-437"
+        >
+          Cancel
+        </span>
+        <span
+          class="MuiTouchRipple-root-180"
+        />
+      </button>
+      <button
+        class="MuiButtonBase-root-177 MuiButton-root-436 MuiButton-contained-445 MuiButton-containedPrimary-446 MuiButton-raised-448 MuiButton-raisedPrimary-449"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiButton-label-437"
+        >
+          Save
+        </span>
+        <span
+          class="MuiTouchRipple-root-180"
+        />
+      </button>
+    </div>
+  </div>
+</form>
+`;
+
+exports[`Storyshots Views / Categories / Category edit when loading 1`] = `
+<form>
+  <div
+    class="Component-md-392"
+  >
+    <div
+      class="PageHeader-root-167"
+    >
+      <button
+        class="MuiButtonBase-root-177 MuiIconButton-root-171 MuiIconButton-colorInherit-172 PageHeader-menuButton-166"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiIconButton-label-176"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-133"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+              />
+            </g>
+          </svg>
+        </span>
+        <span
+          class="MuiTouchRipple-root-180"
+        />
+      </button>
+      <h2
+        class="MuiTypography-root-83 MuiTypography-title-89 PageHeader-title-169"
+      >
+        Edit category
+      </h2>
+      <div
+        class="PageHeader-action-164"
+      />
+    </div>
+    <div
+      class="MuiPaper-root-55 MuiPaper-elevation2-59 MuiPaper-rounded-56 MuiCard-root-54"
+    >
+      <div
+        class="MuiCardContent-root-82"
+      >
+        <div
+          class="MuiFormControl-root-111 MuiFormControl-fullWidth-114"
+        >
+          <label
+            class="MuiFormLabel-root-155 MuiInputLabel-root-150 MuiInputLabel-formControl-151 MuiInputLabel-animated-154 MuiInputLabel-shrink-153"
+            data-shrink="true"
+          >
+            Name
+          </label>
+          <div
+            class="MuiInput-root-120 MuiInput-disabled-123 MuiInput-fullWidth-127 MuiInput-formControl-121 MuiInput-underline-124"
+          >
+            <input
+              aria-invalid="false"
+              aria-required="false"
+              autofocus=""
+              class="MuiInput-input-128 MuiInput-disabled-123"
+              disabled=""
+              name="name"
+              type="text"
+              value="Apparel"
+            />
+          </div>
+        </div>
+        <div
+          class="Component-spacer-429"
+        />
+        <div
+          class="MuiFormControl-root-111 MuiFormControl-fullWidth-114"
+        >
+          <label
+            class="MuiFormLabel-root-155 MuiInputLabel-root-150 MuiInputLabel-formControl-151 MuiInputLabel-animated-154 MuiInputLabel-shrink-153"
+            data-shrink="true"
+          >
+            Description
+          </label>
+          <div
+            class="MuiInput-root-120 MuiInput-disabled-123 MuiInput-fullWidth-127 MuiInput-formControl-121 MuiInput-multiline-126 MuiInput-underline-124"
+          >
+            <div
+              class="Textarea-root-430"
+              style="height:19px"
+            >
+              <textarea
+                aria-hidden="true"
+                class="Textarea-shadow-432 Textarea-textarea-431"
+                readonly=""
+                rows="1"
+                tabindex="-1"
+              />
+              <textarea
+                aria-hidden="true"
+                class="Textarea-shadow-432 Textarea-textarea-431"
+                readonly=""
+                rows="1"
+                tabindex="-1"
+              >
+                Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
+Tell lose part purpose do when. Whatever drug contain particularly defense.
+              </textarea>
+              <textarea
+                aria-invalid="false"
+                aria-required="false"
+                class="Textarea-textarea-431 MuiInput-input-128 MuiInput-disabled-123 MuiInput-inputMultiline-130"
+                disabled=""
+                name="description"
+                rows="1"
+                type="text"
+              >
+                Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
+Tell lose part purpose do when. Whatever drug contain particularly defense.
+              </textarea>
+            </div>
+          </div>
+          <p
+            class="MuiFormHelperText-root-160"
+          >
+            Optional
+          </p>
+        </div>
+      </div>
+    </div>
+    <div
+      class="Component-root-433"
+    >
+      <div
+        class="Component-spacer-434"
+      />
+      <button
+        class="MuiButtonBase-root-177 MuiButton-root-436 MuiButton-flat-440 Component-button-435"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiButton-label-437"
+        >
+          Cancel
+        </span>
+        <span
+          class="MuiTouchRipple-root-180"
+        />
+      </button>
+      <button
+        class="MuiButtonBase-root-177 MuiButtonBase-disabled-178 MuiButton-root-436 MuiButton-contained-445 MuiButton-containedPrimary-446 MuiButton-raised-448 MuiButton-raisedPrimary-449 MuiButton-disabled-452"
+        disabled=""
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          class="MuiButton-label-437"
+        >
+          Save
+        </span>
+      </button>
+    </div>
+  </div>
+</form>
+`;
+
+<<<<<<< HEAD
+exports[`Storyshots Views / Categories / Category details when in root 1`] = `
+<div
   class="Component-md-384"
 >
   <div
@@ -17593,6 +19558,18 @@ exports[`Storyshots Views / Categories / Category details when in root 1`] = `
     >
       <button
         class="MuiButtonBase-root-169 MuiIconButton-root-163"
+=======
+exports[`Storyshots Views / Categories / Category edit with errors 1`] = `
+<form>
+  <div
+    class="Component-md-392"
+  >
+    <div
+      class="PageHeader-root-167"
+    >
+      <button
+        class="MuiButtonBase-root-177 MuiIconButton-root-171 MuiIconButton-colorInherit-172 PageHeader-menuButton-166"
+>>>>>>> Update components to match material-ui 1.2 import style
         tabindex="0"
         type="button"
       >
@@ -17607,7 +19584,7 @@ exports[`Storyshots Views / Categories / Category details when in root 1`] = `
           >
             <g>
               <path
-                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
               />
             </g>
           </svg>
@@ -17616,14 +19593,26 @@ exports[`Storyshots Views / Categories / Category details when in root 1`] = `
           class="MuiTouchRipple-root-172"
         />
       </button>
+      <h2
+        class="MuiTypography-root-83 MuiTypography-title-89 PageHeader-title-169"
+      >
+        Edit category
+      </h2>
+      <div
+        class="PageHeader-action-164"
+      />
     </div>
+<<<<<<< HEAD
   </div>
   <div
     class="Component-root-381"
   >
+=======
+>>>>>>> Update components to match material-ui 1.2 import style
     <div
       class="MuiPaper-root-47 MuiPaper-elevation2-51 MuiPaper-rounded-48 MuiCard-root-46"
     >
+<<<<<<< HEAD
       <ul
         class="MuiList-root-387 MuiList-padding-388"
       >
@@ -17637,14 +19626,22 @@ exports[`Storyshots Views / Categories / Category details when in root 1`] = `
             class="MuiSvgIcon-root-125 MuiListItemIcon-root-401"
             focusable="false"
             viewBox="0 0 24 24"
+=======
+      <div
+        class="MuiCardContent-root-82"
+      >
+        <div
+          class="MuiFormControl-root-111 MuiFormControl-fullWidth-114"
+        >
+          <label
+            class="MuiFormLabel-root-155 MuiFormLabel-error-158 MuiInputLabel-root-150 MuiInputLabel-formControl-151 MuiInputLabel-animated-154 MuiInputLabel-shrink-153"
+            data-shrink="true"
+>>>>>>> Update components to match material-ui 1.2 import style
           >
-            <g>
-              <path
-                d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
-              />
-            </g>
-          </svg>
+            Name
+          </label>
           <div
+<<<<<<< HEAD
             class="MuiListItemText-root-402"
           >
             <span
@@ -17667,28 +19664,97 @@ exports[`Storyshots Views / Categories / Category details when in root 1`] = `
             class="MuiSvgIcon-root-125 MuiListItemIcon-root-401"
             focusable="false"
             viewBox="0 0 24 24"
+=======
+            class="MuiInput-root-120 MuiInput-error-125 MuiInput-fullWidth-127 MuiInput-formControl-121 MuiInput-underline-124"
           >
-            <g>
-              <path
-                d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
-              />
-            </g>
-          </svg>
+            <input
+              aria-invalid="true"
+              aria-required="false"
+              autofocus=""
+              class="MuiInput-input-128"
+              name="name"
+              type="text"
+              value="Apparel"
+            />
+          </div>
+          <p
+            class="MuiFormHelperText-root-160 MuiFormHelperText-error-161"
+          >
+            To pole jest wymagane.
+          </p>
+        </div>
+        <div
+          class="Component-spacer-429"
+        />
+        <div
+          class="MuiFormControl-root-111 MuiFormControl-fullWidth-114"
+        >
+          <label
+            class="MuiFormLabel-root-155 MuiInputLabel-root-150 MuiInputLabel-formControl-151 MuiInputLabel-animated-154 MuiInputLabel-shrink-153"
+            data-shrink="true"
+>>>>>>> Update components to match material-ui 1.2 import style
+          >
+            Description
+          </label>
           <div
+<<<<<<< HEAD
             class="MuiListItemText-root-402"
           >
             <span
               class="MuiTypography-root-75 MuiTypography-subheading-82 MuiListItemText-primary-405"
+=======
+            class="MuiInput-root-120 MuiInput-fullWidth-127 MuiInput-formControl-121 MuiInput-multiline-126 MuiInput-underline-124"
+          >
+            <div
+              class="Textarea-root-430"
+              style="height:19px"
+>>>>>>> Update components to match material-ui 1.2 import style
             >
-              Mauris vehicula tortor vulputate
-            </span>
+              <textarea
+                aria-hidden="true"
+                class="Textarea-shadow-432 Textarea-textarea-431"
+                readonly=""
+                rows="1"
+                tabindex="-1"
+              />
+              <textarea
+                aria-hidden="true"
+                class="Textarea-shadow-432 Textarea-textarea-431"
+                readonly=""
+                rows="1"
+                tabindex="-1"
+              >
+                Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
+Tell lose part purpose do when. Whatever drug contain particularly defense.
+              </textarea>
+              <textarea
+                aria-invalid="false"
+                aria-required="false"
+                class="Textarea-textarea-431 MuiInput-input-128 MuiInput-inputMultiline-130"
+                name="description"
+                rows="1"
+                type="text"
+              >
+                Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
+Tell lose part purpose do when. Whatever drug contain particularly defense.
+              </textarea>
+            </div>
           </div>
+<<<<<<< HEAD
           <span
             class="MuiTouchRipple-root-172"
           />
+=======
+          <p
+            class="MuiFormHelperText-root-160"
+          >
+            Optional
+          </p>
+>>>>>>> Update components to match material-ui 1.2 import style
         </div>
-      </ul>
+      </div>
     </div>
+<<<<<<< HEAD
   </div>
 </div>
 `;
@@ -17763,12 +19829,54 @@ exports[`Storyshots Views / Categories / Category details when loading 1`] = `
       >
         <span
           class="Skeleton-skeleton-162"
-        >
-          ‌
-        </span>
-      </div>
-    </div>
+=======
     <div
+      class="Component-root-433"
+    >
+      <div
+        class="Component-spacer-434"
+      />
+      <button
+        class="MuiButtonBase-root-177 MuiButton-root-436 MuiButton-flat-440 Component-button-435"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiButton-label-437"
+        >
+          Cancel
+        </span>
+        <span
+          class="MuiTouchRipple-root-180"
+        />
+      </button>
+      <button
+        class="MuiButtonBase-root-177 MuiButton-root-436 MuiButton-contained-445 MuiButton-containedPrimary-446 MuiButton-raised-448 MuiButton-raisedPrimary-449"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiButton-label-437"
+>>>>>>> Update components to match material-ui 1.2 import style
+        >
+          Save
+        </span>
+        <span
+          class="MuiTouchRipple-root-180"
+        />
+      </button>
+    </div>
+  </div>
+</form>
+`;
+
+exports[`Storyshots Views / Customers / Edit customer default 1`] = `
+<form>
+  <div
+    class="Component-md-13"
+  >
+    <div
+<<<<<<< HEAD
       class="MuiPaper-root-47 MuiPaper-elevation2-51 MuiPaper-rounded-48 MuiCard-root-46"
     >
       <div
@@ -17792,15 +19900,31 @@ exports[`Storyshots Views / Categories / Category details when loading 1`] = `
           <svg
             aria-hidden="true"
             class="MuiSvgIcon-root-125 MuiListItemIcon-root-401"
+=======
+      class="Component-root-481"
+    >
+      <button
+        class="MuiButtonBase-root-358 MuiIconButton-root-361 MuiIconButton-colorInherit-362 Component-menuButton-480"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiIconButton-label-366"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-51"
+>>>>>>> Update components to match material-ui 1.2 import style
             focusable="false"
             viewBox="0 0 24 24"
           >
             <g>
               <path
-                d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+                d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
               />
             </g>
           </svg>
+<<<<<<< HEAD
           <div
             class="MuiListItemText-root-402"
           >
@@ -17972,14 +20096,124 @@ exports[`Storyshots Views / Categories / Category details when loading 1`] = `
           </tr>
         </tbody>
       </table>
+=======
+        </span>
+        <span
+          class="MuiTouchRipple-root-367"
+        />
+      </button>
+      <h2
+        class="MuiTypography-root-60 MuiTypography-title-66 PageHeader-title-477"
+      >
+        Edit customer
+      </h2>
+      <div
+        class="Component-action-478"
+      />
+    </div>
+    <div
+      class="MuiPaper-root-325 MuiPaper-elevation2-329 MuiPaper-rounded-326 MuiCard-root-394"
+    >
+      <div
+        class="MuiCardContent-root-395"
+      >
+        <div
+          class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
+        >
+          <label
+            class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25 MuiInputLabel-shrink-24"
+            data-shrink="true"
+          >
+            E-mail
+          </label>
+          <div
+            class="MuiInput-root-31 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
+          >
+            <input
+              aria-invalid="false"
+              aria-required="false"
+              class="MuiInput-input-39"
+              name="email"
+              type="text"
+              value="alexander_simonis@example.com"
+            />
+          </div>
+        </div>
+        <div
+          class="Component-spacer-44"
+        />
+        <div
+          class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
+        >
+          <label
+            class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25"
+            data-shrink="false"
+          >
+            Note
+          </label>
+          <div
+            class="MuiInput-root-31 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
+          >
+            <input
+              aria-invalid="false"
+              aria-required="false"
+              class="MuiInput-input-39"
+              name="note"
+              type="text"
+            />
+          </div>
+          <p
+            class="MuiFormHelperText-root-262"
+          >
+            Optional
+          </p>
+        </div>
+      </div>
+    </div>
+    <div
+      class="Component-root-492"
+    >
+      <div
+        class="Component-spacer-493"
+      />
+      <button
+        class="MuiButtonBase-root-358 MuiButton-root-495 MuiButton-flat-499 Component-button-494"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiButton-label-496"
+        >
+          Cancel
+        </span>
+        <span
+          class="MuiTouchRipple-root-367"
+        />
+      </button>
+      <button
+        class="MuiButtonBase-root-358 MuiButton-root-495 MuiButton-contained-504 MuiButton-containedPrimary-505 MuiButton-raised-507 MuiButton-raisedPrimary-508"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiButton-label-496"
+        >
+          Save
+        </span>
+        <span
+          class="MuiTouchRipple-root-367"
+        />
+      </button>
+>>>>>>> Update components to match material-ui 1.2 import style
     </div>
   </div>
-</div>
+</form>
 `;
 
-exports[`Storyshots Views / Categories / Category edit default 1`] = `
+exports[`Storyshots Views / Customers / Edit customer when adding new customer 1`] = `
 <form>
   <div
+<<<<<<< HEAD
     class="Component-md-384"
   >
     <div
@@ -17987,15 +20221,32 @@ exports[`Storyshots Views / Categories / Category edit default 1`] = `
     >
       <button
         class="MuiButtonBase-root-169 MuiIconButton-root-163 MuiIconButton-colorInherit-164 PageHeader-menuButton-158"
+=======
+    class="Component-md-13"
+  >
+    <div
+      class="Component-root-481"
+    >
+      <button
+        class="MuiButtonBase-root-358 MuiIconButton-root-361 MuiIconButton-colorInherit-362 Component-menuButton-480"
+>>>>>>> Update components to match material-ui 1.2 import style
         tabindex="0"
         type="button"
       >
         <span
+<<<<<<< HEAD
           class="MuiIconButton-label-168"
         >
           <svg
             aria-hidden="true"
             class="MuiSvgIcon-root-125"
+=======
+          class="MuiIconButton-label-366"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-51"
+>>>>>>> Update components to match material-ui 1.2 import style
             focusable="false"
             viewBox="0 0 24 24"
           >
@@ -18007,15 +20258,24 @@ exports[`Storyshots Views / Categories / Category edit default 1`] = `
           </svg>
         </span>
         <span
+<<<<<<< HEAD
           class="MuiTouchRipple-root-172"
         />
       </button>
       <h2
         class="MuiTypography-root-75 MuiTypography-title-81 PageHeader-title-161"
+=======
+          class="MuiTouchRipple-root-367"
+        />
+      </button>
+      <h2
+        class="MuiTypography-root-60 MuiTypography-title-66 PageHeader-title-477"
+>>>>>>> Update components to match material-ui 1.2 import style
       >
-        Edit category
+        Add customer
       </h2>
       <div
+<<<<<<< HEAD
         class="PageHeader-action-156"
       />
     </div>
@@ -18031,24 +20291,51 @@ exports[`Storyshots Views / Categories / Category edit default 1`] = `
           <label
             class="MuiFormLabel-root-147 MuiInputLabel-root-142 MuiInputLabel-formControl-143 MuiInputLabel-animated-146 MuiInputLabel-shrink-145"
             data-shrink="true"
+=======
+        class="Component-action-478"
+      />
+    </div>
+    <div
+      class="MuiPaper-root-325 MuiPaper-elevation2-329 MuiPaper-rounded-326 MuiCard-root-394"
+    >
+      <div
+        class="MuiCardContent-root-395"
+      >
+        <div
+          class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
+        >
+          <label
+            class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25"
+            data-shrink="false"
+>>>>>>> Update components to match material-ui 1.2 import style
           >
-            Name
+            E-mail
           </label>
           <div
+<<<<<<< HEAD
             class="MuiInput-root-112 MuiInput-fullWidth-119 MuiInput-formControl-113 MuiInput-underline-116"
+=======
+            class="MuiInput-root-31 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
+>>>>>>> Update components to match material-ui 1.2 import style
           >
             <input
               aria-invalid="false"
               aria-required="false"
+<<<<<<< HEAD
               autofocus=""
               class="MuiInput-input-120"
               name="name"
+=======
+              class="MuiInput-input-39"
+              name="email"
+>>>>>>> Update components to match material-ui 1.2 import style
               type="text"
-              value="Apparel"
+              value=""
             />
           </div>
         </div>
         <div
+<<<<<<< HEAD
           class="Component-spacer-421"
         />
         <div
@@ -18057,10 +20344,21 @@ exports[`Storyshots Views / Categories / Category edit default 1`] = `
           <label
             class="MuiFormLabel-root-147 MuiInputLabel-root-142 MuiInputLabel-formControl-143 MuiInputLabel-animated-146 MuiInputLabel-shrink-145"
             data-shrink="true"
+=======
+          class="Component-spacer-44"
+        />
+        <div
+          class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
+        >
+          <label
+            class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25"
+            data-shrink="false"
+>>>>>>> Update components to match material-ui 1.2 import style
           >
-            Description
+            Note
           </label>
           <div
+<<<<<<< HEAD
             class="MuiInput-root-112 MuiInput-fullWidth-119 MuiInput-formControl-113 MuiInput-multiline-118 MuiInput-underline-116"
           >
             <div
@@ -18099,6 +20397,21 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
           </div>
           <p
             class="MuiFormHelperText-root-152"
+=======
+            class="MuiInput-root-31 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
+          >
+            <input
+              aria-invalid="false"
+              aria-required="false"
+              class="MuiInput-input-39"
+              name="note"
+              type="text"
+              value=""
+            />
+          </div>
+          <p
+            class="MuiFormHelperText-root-262"
+>>>>>>> Update components to match material-ui 1.2 import style
           >
             Optional
           </p>
@@ -18106,6 +20419,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
       </div>
     </div>
     <div
+<<<<<<< HEAD
       class="Component-root-425"
     >
       <div
@@ -18113,30 +20427,59 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
       />
       <button
         class="MuiButtonBase-root-169 MuiButton-root-428 MuiButton-flat-432 Component-button-427"
+=======
+      class="Component-root-492"
+    >
+      <div
+        class="Component-spacer-493"
+      />
+      <button
+        class="MuiButtonBase-root-358 MuiButton-root-495 MuiButton-flat-499 Component-button-494"
+>>>>>>> Update components to match material-ui 1.2 import style
         tabindex="0"
         type="button"
       >
         <span
+<<<<<<< HEAD
           class="MuiButton-label-429"
+=======
+          class="MuiButton-label-496"
+>>>>>>> Update components to match material-ui 1.2 import style
         >
           Cancel
         </span>
         <span
+<<<<<<< HEAD
           class="MuiTouchRipple-root-172"
         />
       </button>
       <button
         class="MuiButtonBase-root-169 MuiButton-root-428 MuiButton-contained-437 MuiButton-containedPrimary-438 MuiButton-raised-440 MuiButton-raisedPrimary-441"
+=======
+          class="MuiTouchRipple-root-367"
+        />
+      </button>
+      <button
+        class="MuiButtonBase-root-358 MuiButton-root-495 MuiButton-contained-504 MuiButton-containedPrimary-505 MuiButton-raised-507 MuiButton-raisedPrimary-508"
+>>>>>>> Update components to match material-ui 1.2 import style
         tabindex="0"
         type="button"
       >
         <span
+<<<<<<< HEAD
           class="MuiButton-label-429"
+=======
+          class="MuiButton-label-496"
+>>>>>>> Update components to match material-ui 1.2 import style
         >
           Save
         </span>
         <span
+<<<<<<< HEAD
           class="MuiTouchRipple-root-172"
+=======
+          class="MuiTouchRipple-root-367"
+>>>>>>> Update components to match material-ui 1.2 import style
         />
       </button>
     </div>
@@ -18144,9 +20487,10 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
 </form>
 `;
 
-exports[`Storyshots Views / Categories / Category edit when loading 1`] = `
+exports[`Storyshots Views / Customers / Edit customer when loading 1`] = `
 <form>
   <div
+<<<<<<< HEAD
     class="Component-md-384"
   >
     <div
@@ -18154,15 +20498,32 @@ exports[`Storyshots Views / Categories / Category edit when loading 1`] = `
     >
       <button
         class="MuiButtonBase-root-169 MuiIconButton-root-163 MuiIconButton-colorInherit-164 PageHeader-menuButton-158"
+=======
+    class="Component-md-13"
+  >
+    <div
+      class="Component-root-481"
+    >
+      <button
+        class="MuiButtonBase-root-358 MuiIconButton-root-361 MuiIconButton-colorInherit-362 Component-menuButton-480"
+>>>>>>> Update components to match material-ui 1.2 import style
         tabindex="0"
         type="button"
       >
         <span
+<<<<<<< HEAD
           class="MuiIconButton-label-168"
         >
           <svg
             aria-hidden="true"
             class="MuiSvgIcon-root-125"
+=======
+          class="MuiIconButton-label-366"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-51"
+>>>>>>> Update components to match material-ui 1.2 import style
             focusable="false"
             viewBox="0 0 24 24"
           >
@@ -18174,15 +20535,24 @@ exports[`Storyshots Views / Categories / Category edit when loading 1`] = `
           </svg>
         </span>
         <span
+<<<<<<< HEAD
           class="MuiTouchRipple-root-172"
         />
       </button>
       <h2
         class="MuiTypography-root-75 MuiTypography-title-81 PageHeader-title-161"
+=======
+          class="MuiTouchRipple-root-367"
+        />
+      </button>
+      <h2
+        class="MuiTypography-root-60 MuiTypography-title-66 PageHeader-title-477"
+>>>>>>> Update components to match material-ui 1.2 import style
       >
-        Edit category
+        Edit customer
       </h2>
       <div
+<<<<<<< HEAD
         class="PageHeader-action-156"
       />
     </div>
@@ -18198,25 +20568,51 @@ exports[`Storyshots Views / Categories / Category edit when loading 1`] = `
           <label
             class="MuiFormLabel-root-147 MuiInputLabel-root-142 MuiInputLabel-formControl-143 MuiInputLabel-animated-146 MuiInputLabel-shrink-145"
             data-shrink="true"
+=======
+        class="Component-action-478"
+      />
+    </div>
+    <div
+      class="MuiPaper-root-325 MuiPaper-elevation2-329 MuiPaper-rounded-326 MuiCard-root-394"
+    >
+      <div
+        class="MuiCardContent-root-395"
+      >
+        <div
+          class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
+        >
+          <label
+            class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25"
+            data-shrink="false"
+>>>>>>> Update components to match material-ui 1.2 import style
           >
-            Name
+            E-mail
           </label>
           <div
+<<<<<<< HEAD
             class="MuiInput-root-112 MuiInput-disabled-115 MuiInput-fullWidth-119 MuiInput-formControl-113 MuiInput-underline-116"
+=======
+            class="MuiInput-root-31 MuiInput-disabled-34 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
+>>>>>>> Update components to match material-ui 1.2 import style
           >
             <input
               aria-invalid="false"
               aria-required="false"
+<<<<<<< HEAD
               autofocus=""
               class="MuiInput-input-120 MuiInput-disabled-115"
+=======
+              class="MuiInput-input-39 MuiInput-disabled-34"
+>>>>>>> Update components to match material-ui 1.2 import style
               disabled=""
-              name="name"
+              name="email"
               type="text"
-              value="Apparel"
+              value=""
             />
           </div>
         </div>
         <div
+<<<<<<< HEAD
           class="Component-spacer-421"
         />
         <div
@@ -18225,10 +20621,21 @@ exports[`Storyshots Views / Categories / Category edit when loading 1`] = `
           <label
             class="MuiFormLabel-root-147 MuiInputLabel-root-142 MuiInputLabel-formControl-143 MuiInputLabel-animated-146 MuiInputLabel-shrink-145"
             data-shrink="true"
+=======
+          class="Component-spacer-44"
+        />
+        <div
+          class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
+        >
+          <label
+            class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25"
+            data-shrink="false"
+>>>>>>> Update components to match material-ui 1.2 import style
           >
-            Description
+            Note
           </label>
           <div
+<<<<<<< HEAD
             class="MuiInput-root-112 MuiInput-disabled-115 MuiInput-fullWidth-119 MuiInput-formControl-113 MuiInput-multiline-118 MuiInput-underline-116"
           >
             <div
@@ -18268,6 +20675,22 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
           </div>
           <p
             class="MuiFormHelperText-root-152"
+=======
+            class="MuiInput-root-31 MuiInput-disabled-34 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
+          >
+            <input
+              aria-invalid="false"
+              aria-required="false"
+              class="MuiInput-input-39 MuiInput-disabled-34"
+              disabled=""
+              name="note"
+              type="text"
+              value=""
+            />
+          </div>
+          <p
+            class="MuiFormHelperText-root-262"
+>>>>>>> Update components to match material-ui 1.2 import style
           >
             Optional
           </p>
@@ -18275,6 +20698,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
       </div>
     </div>
     <div
+<<<<<<< HEAD
       class="Component-root-425"
     >
       <div
@@ -18282,26 +20706,51 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
       />
       <button
         class="MuiButtonBase-root-169 MuiButton-root-428 MuiButton-flat-432 Component-button-427"
+=======
+      class="Component-root-492"
+    >
+      <div
+        class="Component-spacer-493"
+      />
+      <button
+        class="MuiButtonBase-root-358 MuiButton-root-495 MuiButton-flat-499 Component-button-494"
+>>>>>>> Update components to match material-ui 1.2 import style
         tabindex="0"
         type="button"
       >
         <span
+<<<<<<< HEAD
           class="MuiButton-label-429"
+=======
+          class="MuiButton-label-496"
+>>>>>>> Update components to match material-ui 1.2 import style
         >
           Cancel
         </span>
         <span
+<<<<<<< HEAD
           class="MuiTouchRipple-root-172"
         />
       </button>
       <button
         class="MuiButtonBase-root-169 MuiButtonBase-disabled-170 MuiButton-root-428 MuiButton-contained-437 MuiButton-containedPrimary-438 MuiButton-raised-440 MuiButton-raisedPrimary-441 MuiButton-disabled-444"
+=======
+          class="MuiTouchRipple-root-367"
+        />
+      </button>
+      <button
+        class="MuiButtonBase-root-358 MuiButtonBase-disabled-359 MuiButton-root-495 MuiButton-contained-504 MuiButton-containedPrimary-505 MuiButton-raised-507 MuiButton-raisedPrimary-508 MuiButton-disabled-511"
+>>>>>>> Update components to match material-ui 1.2 import style
         disabled=""
         tabindex="-1"
         type="button"
       >
         <span
+<<<<<<< HEAD
           class="MuiButton-label-429"
+=======
+          class="MuiButton-label-496"
+>>>>>>> Update components to match material-ui 1.2 import style
         >
           Save
         </span>
@@ -18311,9 +20760,10 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
 </form>
 `;
 
-exports[`Storyshots Views / Categories / Category edit with errors 1`] = `
+exports[`Storyshots Views / Customers / Edit customer with errors 1`] = `
 <form>
   <div
+<<<<<<< HEAD
     class="Component-md-384"
   >
     <div
@@ -18321,15 +20771,32 @@ exports[`Storyshots Views / Categories / Category edit with errors 1`] = `
     >
       <button
         class="MuiButtonBase-root-169 MuiIconButton-root-163 MuiIconButton-colorInherit-164 PageHeader-menuButton-158"
+=======
+    class="Component-md-13"
+  >
+    <div
+      class="Component-root-481"
+    >
+      <button
+        class="MuiButtonBase-root-358 MuiIconButton-root-361 MuiIconButton-colorInherit-362 Component-menuButton-480"
+>>>>>>> Update components to match material-ui 1.2 import style
         tabindex="0"
         type="button"
       >
         <span
+<<<<<<< HEAD
           class="MuiIconButton-label-168"
         >
           <svg
             aria-hidden="true"
             class="MuiSvgIcon-root-125"
+=======
+          class="MuiIconButton-label-366"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-51"
+>>>>>>> Update components to match material-ui 1.2 import style
             focusable="false"
             viewBox="0 0 24 24"
           >
@@ -18341,15 +20808,24 @@ exports[`Storyshots Views / Categories / Category edit with errors 1`] = `
           </svg>
         </span>
         <span
+<<<<<<< HEAD
           class="MuiTouchRipple-root-172"
         />
       </button>
       <h2
         class="MuiTypography-root-75 MuiTypography-title-81 PageHeader-title-161"
+=======
+          class="MuiTouchRipple-root-367"
+        />
+      </button>
+      <h2
+        class="MuiTypography-root-60 MuiTypography-title-66 PageHeader-title-477"
+>>>>>>> Update components to match material-ui 1.2 import style
       >
-        Edit category
+        Edit customer
       </h2>
       <div
+<<<<<<< HEAD
         class="PageHeader-action-156"
       />
     </div>
@@ -18364,30 +20840,60 @@ exports[`Storyshots Views / Categories / Category edit with errors 1`] = `
         >
           <label
             class="MuiFormLabel-root-147 MuiFormLabel-error-150 MuiInputLabel-root-142 MuiInputLabel-formControl-143 MuiInputLabel-animated-146 MuiInputLabel-shrink-145"
+=======
+        class="Component-action-478"
+      />
+    </div>
+    <div
+      class="MuiPaper-root-325 MuiPaper-elevation2-329 MuiPaper-rounded-326 MuiCard-root-394"
+    >
+      <div
+        class="MuiCardContent-root-395"
+      >
+        <div
+          class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
+        >
+          <label
+            class="MuiFormLabel-root-26 MuiFormLabel-error-29 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25 MuiInputLabel-shrink-24"
+>>>>>>> Update components to match material-ui 1.2 import style
             data-shrink="true"
           >
-            Name
+            E-mail
           </label>
           <div
+<<<<<<< HEAD
             class="MuiInput-root-112 MuiInput-error-117 MuiInput-fullWidth-119 MuiInput-formControl-113 MuiInput-underline-116"
+=======
+            class="MuiInput-root-31 MuiInput-error-36 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
+>>>>>>> Update components to match material-ui 1.2 import style
           >
             <input
               aria-invalid="true"
               aria-required="false"
+<<<<<<< HEAD
               autofocus=""
               class="MuiInput-input-120"
               name="name"
+=======
+              class="MuiInput-input-39"
+              name="email"
+>>>>>>> Update components to match material-ui 1.2 import style
               type="text"
-              value="Apparel"
+              value="alexander_simonis@example.com"
             />
           </div>
           <p
+<<<<<<< HEAD
             class="MuiFormHelperText-root-152 MuiFormHelperText-error-153"
+=======
+            class="MuiFormHelperText-root-262 MuiFormHelperText-error-263"
+>>>>>>> Update components to match material-ui 1.2 import style
           >
-            To pole jest wymagane.
+            This field cannot be empty
           </p>
         </div>
         <div
+<<<<<<< HEAD
           class="Component-spacer-421"
         />
         <div
@@ -18396,10 +20902,21 @@ exports[`Storyshots Views / Categories / Category edit with errors 1`] = `
           <label
             class="MuiFormLabel-root-147 MuiInputLabel-root-142 MuiInputLabel-formControl-143 MuiInputLabel-animated-146 MuiInputLabel-shrink-145"
             data-shrink="true"
+=======
+          class="Component-spacer-44"
+        />
+        <div
+          class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
+        >
+          <label
+            class="MuiFormLabel-root-26 MuiFormLabel-error-29 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25"
+            data-shrink="false"
+>>>>>>> Update components to match material-ui 1.2 import style
           >
-            Description
+            Note
           </label>
           <div
+<<<<<<< HEAD
             class="MuiInput-root-112 MuiInput-fullWidth-119 MuiInput-formControl-113 MuiInput-multiline-118 MuiInput-underline-116"
           >
             <div
@@ -18438,13 +20955,28 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
           </div>
           <p
             class="MuiFormHelperText-root-152"
+=======
+            class="MuiInput-root-31 MuiInput-error-36 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
           >
-            Optional
+            <input
+              aria-invalid="true"
+              aria-required="false"
+              class="MuiInput-input-39"
+              name="note"
+              type="text"
+            />
+          </div>
+          <p
+            class="MuiFormHelperText-root-262 MuiFormHelperText-error-263"
+>>>>>>> Update components to match material-ui 1.2 import style
+          >
+            this field cannot be empty
           </p>
         </div>
       </div>
     </div>
     <div
+<<<<<<< HEAD
       class="Component-root-425"
     >
       <div
@@ -18452,30 +20984,59 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
       />
       <button
         class="MuiButtonBase-root-169 MuiButton-root-428 MuiButton-flat-432 Component-button-427"
+=======
+      class="Component-root-492"
+    >
+      <div
+        class="Component-spacer-493"
+      />
+      <button
+        class="MuiButtonBase-root-358 MuiButton-root-495 MuiButton-flat-499 Component-button-494"
+>>>>>>> Update components to match material-ui 1.2 import style
         tabindex="0"
         type="button"
       >
         <span
+<<<<<<< HEAD
           class="MuiButton-label-429"
+=======
+          class="MuiButton-label-496"
+>>>>>>> Update components to match material-ui 1.2 import style
         >
           Cancel
         </span>
         <span
+<<<<<<< HEAD
           class="MuiTouchRipple-root-172"
         />
       </button>
       <button
         class="MuiButtonBase-root-169 MuiButton-root-428 MuiButton-contained-437 MuiButton-containedPrimary-438 MuiButton-raised-440 MuiButton-raisedPrimary-441"
+=======
+          class="MuiTouchRipple-root-367"
+        />
+      </button>
+      <button
+        class="MuiButtonBase-root-358 MuiButton-root-495 MuiButton-contained-504 MuiButton-containedPrimary-505 MuiButton-raised-507 MuiButton-raisedPrimary-508"
+>>>>>>> Update components to match material-ui 1.2 import style
         tabindex="0"
         type="button"
       >
         <span
+<<<<<<< HEAD
           class="MuiButton-label-429"
+=======
+          class="MuiButton-label-496"
+>>>>>>> Update components to match material-ui 1.2 import style
         >
           Save
         </span>
         <span
+<<<<<<< HEAD
           class="MuiTouchRipple-root-172"
+=======
+          class="MuiTouchRipple-root-367"
+>>>>>>> Update components to match material-ui 1.2 import style
         />
       </button>
     </div>
