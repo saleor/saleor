@@ -28,6 +28,10 @@ function loadStories() {
   require("./stories/categories/CategoryEditPage");
   require("./stories/categories/CategoryProducts");
 
+  // Collections
+  require("./stories/collections/CollectionDetailsPage");
+  require("./stories/collections/CollectionListPage");
+
   // Customers
   require("./stories/customers/CustomerDetailsPage");
   require("./stories/customers/CustomerEditPage");
