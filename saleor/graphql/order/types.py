@@ -41,25 +41,28 @@ class Order(CountableDjangoObjectType):
         return self.get_status_display()
 
 
-class OrderHistoryEntry(DjangoObjectType):
+class OrderHistoryEntry(CountableDjangoObjectType):
     class Meta:
         description = 'History log of the order.'
         model = models.OrderHistoryEntry
+        interfaces = [relay.Node]
         exclude_fields = ['order']
 
 
-class OrderLine(DjangoObjectType):
+class OrderLine(CountableDjangoObjectType):
     class Meta:
         description = 'Represents order line of particular order.'
         model = models.OrderLine
+        interfaces = [relay.Node]
         exclude_fields = [
             'variant', 'unit_price_gross', 'unit_price_net', 'order']
 
 
-class OrderNote(DjangoObjectType):
+class OrderNote(CountableDjangoObjectType):
     class Meta:
         description = 'Note from customer or staff user.'
         model = models.OrderNote
+        interfaces = [relay.Node]
         exclude_fields = ['order']
 
 

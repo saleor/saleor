@@ -6,6 +6,7 @@ from tests.utils import get_graphql_content
 
 
 def test_order_query(admin_api_client, fulfilled_order):
+    order = fulfilled_order
     query = """
     query OrdersQuery {
         orders(first: 1) {
@@ -24,16 +25,16 @@ def test_order_query(admin_api_client, fulfilled_order):
                         }
                     }
                     lines {
-                        productName
+                        totalCount
                     }
                     notes {
-                        content
+                        totalCount
                     }
                     fulfillments {
                         fulfillmentOrder
                     }
                     history {
-                        content
+                        totalCount
                     }
                 }
             }
@@ -45,24 +46,20 @@ def test_order_query(admin_api_client, fulfilled_order):
     content = get_graphql_content(response)
     assert 'errors' not in content
     order_data = content['data']['orders']['edges'][0]['node']
-    assert order_data['orderId'] == fulfilled_order.pk
-    assert order_data['status'] == fulfilled_order.status.upper()
-    assert order_data['statusDisplay'] == fulfilled_order.get_status_display()
-    assert order_data[
-               'paymentStatus'] == fulfilled_order.get_last_payment_status()
-    payment_status_display = fulfilled_order.get_last_payment_status_display()
+    assert order_data['orderId'] == order.pk
+    assert order_data['status'] == order.status.upper()
+    assert order_data['statusDisplay'] == order.get_status_display()
+    assert order_data['paymentStatus'] == order.get_last_payment_status()
+    payment_status_display = order.get_last_payment_status_display()
     assert order_data['paymentStatusDisplay'] == payment_status_display
-    assert order_data['isPaid'] == fulfilled_order.is_fully_paid()
-    assert order_data['userEmail'] == fulfilled_order.user_email
-    assert order_data[
-               'shippingPrice'][
-               'gross'][
-               'amount'] == fulfilled_order.shipping_price.gross.amount
-    assert len(order_data['lines']) == fulfilled_order.lines.count()
-    assert len(order_data['notes']) == fulfilled_order.notes.count()
-    fulfillment_order = fulfilled_order.fulfillments.first().fulfillment_order
-    assert order_data[
-               'fulfillments'][0]['fulfillmentOrder'] == fulfillment_order
+    assert order_data['isPaid'] == order.is_fully_paid()
+    assert order_data['userEmail'] == order.user_email
+    expected_price = order_data['shippingPrice']['gross']['amount']
+    assert expected_price == order.shipping_price.gross.amount
+    assert order_data['lines']['totalCount'] == order.lines.count()
+    assert order_data['notes']['totalCount'] == order.notes.count()
+    fulfillment = order.fulfillments.first().fulfillment_order
+    assert order_data['fulfillments'][0]['fulfillmentOrder'] == fulfillment
 
 
 def test_non_staff_user_can_only_see_his_order(user_api_client, order):
