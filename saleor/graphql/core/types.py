@@ -106,6 +106,7 @@ class Shop(graphene.ObjectType):
     languages = graphene.List(
         LanguageDisplay,
         description='List of the shops\'s supported languages')
+    phone_prefixes = graphene.List(graphene.String)
 
     class Meta:
         description = 'Represents a shop resources.'
