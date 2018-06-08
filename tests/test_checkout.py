@@ -8,6 +8,7 @@ from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
 from saleor.account.models import Address
+from saleor.core import demo_obfuscators
 from saleor.checkout import views
 from saleor.checkout.forms import CartVoucherForm
 from saleor.checkout.utils import (
@@ -213,7 +214,10 @@ def test_view_checkout_summary(
     response = client.post(url, data, follow=True)
 
     order = response.context['order']
-    assert order.user_email == 'test@example.com'
+
+    # DEMO: check email data obfuscation
+    assert order.user_email == demo_obfuscators.obfuscate_email('test@example.com')
+
     redirect_url = reverse('order:payment', kwargs={'token': order.token})
     assert response.request['PATH_INFO'] == redirect_url
     mock_send_confirmation.delay.assert_called_once_with(order.pk)
@@ -239,7 +243,9 @@ def test_view_checkout_summary_authorized_user(
     response = authorized_client.post(url, data, follow=True)
 
     order = response.context['order']
-    assert order.user_email == customer_user.email
+    # DEMO: check email was anonymized
+    assert order.user_email == demo_obfuscators.obfuscate_email(customer_user.email)
+
     redirect_url = reverse('order:payment', kwargs={'token': order.token})
     assert response.request['PATH_INFO'] == redirect_url
     mock_send_confirmation.delay.assert_called_once_with(order.pk)
@@ -274,7 +280,10 @@ def test_view_checkout_summary_save_language(
         url, data, follow=True, HTTP_ACCEPT_LANGUAGE=user_language)
 
     order = response.context['order']
-    assert order.user_email == customer_user.email
+
+    # DEMO: check email was anonymized
+    assert order.user_email == demo_obfuscators.obfuscate_email(customer_user.email)
+
     assert order.language_code == user_language
     redirect_url = reverse('order:payment', kwargs={'token': order.token})
     assert response.request['PATH_INFO'] == redirect_url

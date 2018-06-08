@@ -1,32 +1,18 @@
 from django.conf import settings
-from django.template import Library
-from faker import Factory
-
-fake = Factory.create()
-register = Library()
 
 
-@register.filter
 def obfuscate_address(address):
-    '''
-    This filter returns fake Address instance that keeps original's names but
-    obfuscates street, city and postal code.
-    '''
-    from ...account.models import Address
-
-    try:
-        return Address(
-            first_name=address.first_name,
-            last_name=obfuscate_string(address.last_name),
-            street_address_1=obfuscate_string(address.street_address_1),
-            city=obfuscate_string(address.city),
-            postal_code=obfuscate_string(address.postal_code),
-            country=address.country)
-    except AttributeError:
-        return address
+    address.first_name = obfuscate_string(address.first_name)
+    address.last_name = obfuscate_string(address.last_name)
+    address.company_name = obfuscate_string(address.company_name)
+    address.street_address_1 = obfuscate_string(address.street_address_1)
+    address.street_address_2 = obfuscate_string(address.street_address_2)
+    address.city = obfuscate_string(address.city)
+    address.postal_code = obfuscate_string(address.postal_code)
+    address.save()
+    return address
 
 
-@register.filter
 def obfuscate_email(value):
     '''
     This filter obfuscates string (or object's __str__() result) with e-mail,
@@ -47,7 +33,6 @@ def obfuscate_email(value):
     return '%s...@example.com' % str(username)[:3]
 
 
-@register.filter
 def obfuscate_phone(value):
     '''
     This filter obfuscates the phonenumber_field.PhoneNumber for printing.
@@ -63,7 +48,6 @@ def obfuscate_phone(value):
         return obfuscate_string(value)
 
 
-@register.filter
 def obfuscate_string(value):
     '''
     This filter obfuscates string (or object's __str__() result), returning
@@ -78,3 +62,21 @@ def obfuscate_string(value):
         slice_tail = min([3, len(string_rep) - 6]) * -1
         return '%s...%s' % (string_rep[:3], string_rep[slice_tail:])
     return '%s...' % string_rep[:3]
+
+
+def obfuscate_cart(cart):
+    cart.email = obfuscate_email(cart.email)
+    if cart.shipping_address:
+        cart.shipping_address = obfuscate_address(cart.shipping_address)
+    if cart.billing_address:
+        cart.billing_address = obfuscate_address(cart.billing_address)
+    cart.save()
+
+
+def obfuscate_order(order):
+    order.user_email = obfuscate_email(order.user_email)
+    if order.shipping_address:
+        order.shipping_address = obfuscate_address(order.shipping_address)
+    if order.billing_address:
+        order.billing_address = obfuscate_address(order.billing_address)
+    order.save()
