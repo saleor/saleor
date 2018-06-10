@@ -22,7 +22,11 @@ from ..core.exceptions import InsufficientStock
 from ..core.models import SortableModel
 from ..core.utils.taxes import DEFAULT_TAX_RATE_NAME, apply_tax_to_price
 from ..discount.utils import calculate_discounted_price
+from ..product.templatetags.product_images import get_thumbnail
 from ..seo.models import SeoModel
+
+
+PRODUCT_LIST_CACHE_KEY = 'products_json'
 
 
 class Category(MPTTModel, SeoModel):
@@ -142,6 +146,23 @@ class Product(SeoModel):
     def __str__(self):
         return self.name
 
+    def as_dict(self):
+        from saleor.product.utils.attributes import (
+            get_product_attributes_data_as_str)
+        data = {
+            'name': self.name,
+            'url': self.get_absolute_url(),
+            'thumbnail_url': get_thumbnail(self.get_first_image(), '255x255'),
+            'price': self.price.amount,
+            'attributes': get_product_attributes_data_as_str(
+                self, self.product_type.product_attributes.all()),
+            'variants': [
+                variant.as_dict() for variant in self.variants.all()
+            ],
+            'category': self.category.name
+        }
+        return data
+
     def get_absolute_url(self):
         return reverse(
             'product:details',
@@ -199,6 +220,16 @@ class ProductVariant(models.Model):
 
     def __str__(self):
         return self.name or self.sku
+
+    def as_dict(self):
+        from saleor.product.utils.attributes import (
+            get_product_attributes_data_as_str)
+        return {
+            'name': self.name,
+            'price': str(self.base_price.amount),
+            'attributes': get_product_attributes_data_as_str(
+                self, self.product.product_type.variant_attributes.all())
+        }
 
     @property
     def quantity_available(self):

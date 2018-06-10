@@ -1,14 +1,22 @@
 import json
 from io import BytesIO
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock, Mock, patch
 
+import pytest
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import HiddenInput
 from django.forms.models import model_to_dict
+from django.http import HttpResponse
+from django.shortcuts import redirect
 from django.urls import reverse
 from PIL import Image
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+
+from saleor.dashboard.product.decorators import \
+    refresh_product_list_on_redirect
+from saleor.product.utils.json_cache_manager import \
+    refresh_json_product_list_cache
 from tests.utils import get_redirect_location
 
 from saleor.dashboard.product import ProductBulkAction
@@ -1112,3 +1120,31 @@ def test_product_form_seo_description_too_long(unavailable_product):
         'fly divided midst, gathering can\'t moveth seed greater subdue. '
         'Lesser meat living fowl called. Dry don\'t wherein. Doesn\'t above '
         'form sixth. Image moving earth without f...')
+
+
+def test_product_list_as_json(admin_client, product_list):
+    # test twice: non-cached and cached
+    for i in range(2):
+        response = admin_client.get(reverse('dashboard:product-list-json'))
+        assert response.status_code == 200
+        assert response['Content-Type'] == 'application/json'
+
+        data = json.loads(response.content.decode())['products']
+
+        object_count = len(data)
+        assert object_count == len(product_list)
+
+
+@patch.object(refresh_json_product_list_cache, 'delay')
+@pytest.mark.parametrize(
+    'response, should_invalidate', (
+        (HttpResponse(), False),
+        (redirect(reverse('home')), True)))
+def test_refresh_product_list_on_redirect(
+        mocked_invalidator, response, should_invalidate):
+
+    def view():
+        return response
+
+    refresh_product_list_on_redirect(view)()
+    assert mocked_invalidator.call_count == int(should_invalidate)
