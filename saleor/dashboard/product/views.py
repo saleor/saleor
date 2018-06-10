@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, reverse
 from django.template.response import TemplateResponse
 from django.utils.translation import npgettext_lazy, pgettext_lazy
@@ -17,7 +17,9 @@ from ...product.models import (
 from ...product.utils.availability import get_availability
 from ...product.utils.costs import (
     get_margin_for_variant, get_product_costs_data)
+from ...product.utils.json_cache_manager import cached_product_list_as_json
 from ..views import staff_member_required
+from .decorators import refresh_product_list_on_redirect
 from .filters import ProductAttributeFilter, ProductFilter, ProductTypeFilter
 
 
@@ -37,6 +39,13 @@ def product_list(request):
         'filter_set': product_filter,
         'is_empty': not product_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
+
+
+@staff_member_required
+@permission_required('product.view_product')
+def product_list_as_json(request):
+    json = cached_product_list_as_json()
+    return HttpResponse(json, content_type='application/json')
 
 
 @staff_member_required
@@ -98,6 +107,7 @@ def product_select_type(request):
 
 
 @staff_member_required
+@refresh_product_list_on_redirect
 @permission_required('product.edit_product')
 def product_create(request, type_pk):
     site_settings = request.site.settings
@@ -133,6 +143,7 @@ def product_create(request, type_pk):
 
 
 @staff_member_required
+@refresh_product_list_on_redirect
 @permission_required('product.edit_product')
 def product_edit(request, pk):
     product = get_object_or_404(
@@ -163,6 +174,7 @@ def product_edit(request, pk):
 
 
 @staff_member_required
+@refresh_product_list_on_redirect
 @permission_required('product.edit_product')
 def product_delete(request, pk):
     product = get_object_or_404(Product, pk=pk)
@@ -180,6 +192,7 @@ def product_delete(request, pk):
 
 @require_POST
 @staff_member_required
+@refresh_product_list_on_redirect
 @permission_required('product.edit_product')
 def product_bulk_update(request):
     form = forms.ProductBulkUpdate(request.POST)

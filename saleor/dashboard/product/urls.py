@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     url(r'^$',
         views.product_list, name='product-list'),
+    url(r'^json/$', views.product_list_as_json, name='product-list-json'),
     url(r'^(?P<pk>[0-9]+)/$',
         views.product_details, name='product-details'),
     url(r'^(?P<pk>[0-9]+)/publish/$',

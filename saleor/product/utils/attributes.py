@@ -1,6 +1,17 @@
 from django.utils.encoding import smart_text
 
 
+def get_product_attributes_data_as_str(product, attributes):
+    attributes_map = {
+        attribute.pk: attribute for attribute in attributes}
+
+    values_map = get_attributes_display_map(product, attributes)
+
+    return {
+        str(attributes_map.get(attr_pk)): str(value_obj)
+        for (attr_pk, value_obj) in values_map.items()}
+
+
 def get_product_attributes_data(product):
     """Returns attributes associated with the product,
     as dict of ProductAttribute: AttributeChoiceValue values.
