@@ -9,7 +9,7 @@ from prices import Money
 from tests.utils import create_image, get_graphql_content
 
 from saleor.product.models import (
-    Category, Product, ProductAttribute, ProductType)
+    Category, Collection, Product, ProductAttribute, ProductType)
 from .utils import get_multipart_request_body
 
 
@@ -349,27 +349,29 @@ def test_create_product(
         admin_api_client, product_type, default_category, size_attribute):
     query = """
         mutation createProduct(
-            $productTypeId: ID!,
-            $categoryId: ID!
-            $name: String!,
-            $description: String!,
-            $isPublished: Boolean!,
-            $isFeatured: Boolean!,
+            $productTypeId: ID,
+            $categoryId: ID
+            $name: String,
+            $description: String,
+            $isPublished: Boolean,
+            $isFeatured: Boolean,
             $chargeTaxes: Boolean!,
             $taxRate: String!,
-            $price: Float!,
+            $price: Float,
             $attributes: [AttributeValueInput]) {
                 productCreate(
-                    categoryId: $categoryId,
-                    productTypeId: $productTypeId,
-                    name: $name,
-                    description: $description,
-                    isPublished: $isPublished,
-                    isFeatured: $isFeatured,
-                    chargeTaxes: $chargeTaxes,
-                    taxRate: $taxRate,
-                    price: $price,
-                    attributes: $attributes) {
+                    input: {
+                        category: $categoryId,
+                        productType: $productTypeId,
+                        name: $name,
+                        description: $description,
+                        isPublished: $isPublished,
+                        isFeatured: $isFeatured,
+                        chargeTaxes: $chargeTaxes,
+                        taxRate: $taxRate,
+                        price: $price,
+                        attributes: $attributes
+                    }) {
                         product {
                             category {
                                 name
@@ -477,16 +479,18 @@ def test_update_product(
             $price: Float!,
             $attributes: [AttributeValueInput]) {
                 productUpdate(
-                    categoryId: $categoryId,
                     id: $productId,
-                    name: $name,
-                    description: $description,
-                    isPublished: $isPublished,
-                    isFeatured: $isFeatured,
-                    chargeTaxes: $chargeTaxes,
-                    taxRate: $taxRate,
-                    price: $price,
-                    attributes: $attributes) {
+                    input: {
+                        category: $categoryId,
+                        name: $name,
+                        description: $description,
+                        isPublished: $isPublished,
+                        isFeatured: $isFeatured,
+                        chargeTaxes: $chargeTaxes,
+                        taxRate: $taxRate,
+                        price: $price,
+                        attributes: $attributes
+                    }) {
                         product {
                             category {
                                 name
@@ -651,33 +655,34 @@ def test_product_type_create_mutation(admin_api_client, product_type):
         $isShippingRequired: Boolean!,
         $productAttributes: [ID],
         $variantAttributes: [ID]) {
-            productTypeCreate(
-            name: $name,
-            hasVariants: $hasVariants,
-            isShippingRequired: $isShippingRequired,
-            productAttributes: $productAttributes,
-            variantAttributes: $variantAttributes) {
-                productType {
+        productTypeCreate(
+            input: {
+                name: $name,
+                hasVariants: $hasVariants,
+                isShippingRequired: $isShippingRequired,
+                productAttributes: $productAttributes,
+                variantAttributes: $variantAttributes}) {
+            productType {
+            name
+            isShippingRequired
+            hasVariants
+            variantAttributes {
+                edges {
+                node {
                     name
-                    isShippingRequired
-                    hasVariants
-                    variantAttributes {
-                        edges {
-                            node {
-                                name
-                            }
-                        }
-                    }
-                    productAttributes {
-                        edges {
-                            node {
-                                name
-                            }
-                        }
-                    }
                 }
-              }
+                }
             }
+            productAttributes {
+                edges {
+                node {
+                    name
+                }
+                }
+            }
+            }
+        }
+    }
     """
     product_type_name = 'test type'
     has_variants = True
@@ -721,10 +726,12 @@ def test_product_type_update_mutation(admin_api_client, product_type):
         ) {
             productTypeUpdate(
             id: $id,
-            name: $name,
-            hasVariants: $hasVariants,
-            isShippingRequired: $isShippingRequired,
-            productAttributes: $productAttributes) {
+            input: {
+                name: $name,
+                hasVariants: $hasVariants,
+                isShippingRequired: $isShippingRequired,
+                productAttributes: $productAttributes
+            }) {
                 productType {
                     name
                     isShippingRequired
@@ -803,8 +810,8 @@ def test_product_type_delete_mutation(admin_api_client, product_type):
 
 def test_product_image_create_mutation(admin_api_client, product):
     query = """
-    mutation createProductImage($file: Upload!, $productId: ID!) {
-        productImageCreate(file: $file, productId: $productId) {
+    mutation createProductImage($image: Upload!, $product: ID!) {
+        productImageCreate(input: {image: $image, product: $product}) {
             productImage {
                 id
                 image
@@ -816,8 +823,8 @@ def test_product_image_create_mutation(admin_api_client, product):
     """
     image_file, image_name = create_image()
     variables = {
-        'productId': graphene.Node.to_global_id('Product', product.id),
-        'file': image_file.name}
+        'product': graphene.Node.to_global_id('Product', product.id),
+        'image': image_name}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = admin_api_client.post_multipart(reverse('api'), body)
     content = get_graphql_content(response)
@@ -825,6 +832,7 @@ def test_product_image_create_mutation(admin_api_client, product):
     data = content['data']['productImageCreate']
     file_name = data['productImage']['image']
     product.refresh_from_db()
+    assert product.images.first().image.file
     assert product.images.first().image.name == file_name
 
 
@@ -856,9 +864,9 @@ def test_collections_query(user_api_client, collection):
 def test_create_collection(admin_api_client, product_list):
     query = """
         mutation createCollection(
-            $name: String!, $slug: String!, $products: [ID], $isPublished: Boolean!) {
+            $name: String!, $slug: String!, $products: [ID], $backgroundImage: Upload!) {
             collectionCreate(
-                name: $name, slug: $slug, products: $products, isPublished: $isPublished) {
+                input: {name: $name, slug: $slug, products: $products, backgroundImage: $backgroundImage}) {
                 collection {
                     name
                     slug
@@ -871,26 +879,30 @@ def test_create_collection(admin_api_client, product_list):
     """
     product_ids = [
         to_global_id('Product', product.pk) for product in product_list]
+    image_file, image_name = create_image()
     name = 'test-name'
     slug = 'test-slug'
-    variables = json.dumps(
-        {'name': name, 'slug': slug, 'products': product_ids, 'isPublished': True})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {
+        'name': name, 'slug': slug, 'products': product_ids,
+        'backgroundImage': image_name}
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = admin_api_client.post_multipart(reverse('api'), body)
     content = get_graphql_content(response)
     assert 'errors' not in content
     data = content['data']['collectionCreate']['collection']
     assert data['name'] == name
     assert data['slug'] == slug
     assert data['products']['totalCount'] == len(product_ids)
+    collection = Collection.objects.get(slug=slug)
+    assert collection.background_image.file
 
 
 def test_update_collection(admin_api_client, collection):
     query = """
-        mutation createCollection(
+        mutation updateCollection(
             $name: String!, $slug: String!, $id: ID!, $isPublished: Boolean!) {
             collectionUpdate(
-                name: $name, slug: $slug, id: $id, isPublished: $isPublished) {
+                id: $id, input: {name: $name, slug: $slug, isPublished: $isPublished}) {
                 collection {
                     name
                     slug
@@ -914,10 +926,8 @@ def test_update_collection(admin_api_client, collection):
 
 def test_delete_collection(admin_api_client, collection):
     query = """
-        mutation deleteCollection(
-            $id: ID!) {
-            collectionDelete(
-                id: $id) {
+        mutation deleteCollection($id: ID!) {
+            collectionDelete(id: $id) {
                 collection {
                     name
                 }

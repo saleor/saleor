@@ -3,6 +3,7 @@ import json
 import graphene
 import pytest
 from django.shortcuts import reverse
+from django.template.defaultfilters import slugify
 from tests.utils import get_graphql_content
 
 from saleor.product.models import Category
@@ -48,11 +49,14 @@ def test_category_query(user_api_client, product):
 
 def test_category_create_mutation(admin_api_client):
     query = """
-        mutation($name: String!, $description: String, $parentId: ID) {
+        mutation($name: String, $slug: String, $description: String, $parentId: ID) {
             categoryCreate(
-                name: $name
-                description: $description
-                parentId: $parentId
+                input: {
+                    name: $name
+                    slug: $slug
+                    description: $description
+                    parent: $parentId
+                }
             ) {
                 category {
                     id
@@ -73,11 +77,13 @@ def test_category_create_mutation(admin_api_client):
     """
 
     category_name = 'Test category'
+    category_slug = slugify(category_name)
     category_description = 'Test description'
 
     # test creating root category
     variables = json.dumps({
-        'name': category_name, 'description': category_description})
+        'name': category_name, 'description': category_description,
+        'slug': category_slug})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
@@ -92,7 +98,7 @@ def test_category_create_mutation(admin_api_client):
     parent_id = data['category']['id']
     variables = json.dumps({
         'name': category_name, 'description': category_description,
-        'parentId': parent_id})
+        'parentId': parent_id, 'slug': category_slug})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
@@ -104,11 +110,14 @@ def test_category_create_mutation(admin_api_client):
 
 def test_category_update_mutation(admin_api_client, default_category):
     query = """
-        mutation($id: ID, $name: String!, $description: String) {
+        mutation($id: ID!, $name: String, $slug: String, $description: String) {
             categoryUpdate(
                 id: $id
-                name: $name
-                description: $description
+                input: {
+                    name: $name
+                    description: $description
+                    slug: $slug
+                }
             ) {
                 category {
                     id
@@ -130,12 +139,13 @@ def test_category_update_mutation(admin_api_client, default_category):
     child_category = default_category.children.create(name='child')
 
     category_name = 'Updated name'
+    category_slug = slugify(category_name)
     category_description = 'Updated description'
 
     category_id = graphene.Node.to_global_id('Category', child_category.pk)
     variables = json.dumps({
         'name': category_name, 'description': category_description,
-        'id': category_id})
+        'id': category_id, 'slug': category_slug})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)

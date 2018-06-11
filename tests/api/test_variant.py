@@ -17,13 +17,15 @@ def test_create_variant(admin_api_client, product, product_type):
             $attributes: [AttributeValueInput],
             $trackInventory: Boolean!) {
                 productVariantCreate(
-                    productId: $productId,
-                    sku: $sku,
-                    priceOverride: $priceOverride,
-                    costPrice: $costPrice,
-                    quantity: $quantity,
-                    attributes: $attributes,
-                    trackInventory: $trackInventory) {
+                    input: {
+                        product: $productId,
+                        sku: $sku,
+                        priceOverride: $priceOverride,
+                        costPrice: $costPrice,
+                        quantity: $quantity,
+                        attributes: $attributes,
+                        trackInventory: $trackInventory
+                    }) {
                     productVariant {
                         name
                         sku
@@ -92,10 +94,12 @@ def test_update_product_variant(admin_api_client, product):
             $trackInventory: Boolean!) {
                 productVariantUpdate(
                     id: $id,
-                    sku: $sku,
-                    costPrice: $costPrice,
-                    quantity: $quantity,
-                    trackInventory: $trackInventory) {
+                    input: {
+                        sku: $sku,
+                        costPrice: $costPrice,
+                        quantity: $quantity,
+                        trackInventory: $trackInventory
+                    }) {
                     productVariant {
                         name
                         sku
