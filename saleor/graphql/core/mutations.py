@@ -31,6 +31,7 @@ def get_output_fields(model, return_field_name):
 
 class ModelMutationOptions(MutationOptions):
     model = None
+    return_field_name = None
 
 
 class BaseMutation(graphene.Mutation):
@@ -53,15 +54,17 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def __init_subclass_with_meta__(
-            cls, arguments=None, model=None, permissions=None, _meta=None,
-            **options):
+            cls, arguments=None, model=None, _meta=None, **options):
         if not model:
             raise ImproperlyConfigured('model is required for ModelMutation')
-        _meta = ModelMutationOptions(cls)
+        if not _meta:
+            _meta = ModelMutationOptions(cls)
+
         return_field_name = get_model_name(model)
         if arguments is None:
             arguments = {}
         fields = get_output_fields(model, return_field_name)
+
         _meta.model = model
         _meta.return_field_name = return_field_name
         super().__init_subclass_with_meta__(_meta=_meta, **options)
@@ -70,8 +73,18 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def add_error(cls, errors, field, message):
+        """Add an error to the errors list.
+
+        `errors` is the list of errors that happend during execution of the
+        mutation. `field` is the name of model field the error is related
+        to. `None` is allowed and it indicates that the error is a general one
+        and not related to any of the model fields. `message` is the actual
+        error message.
+
+        As a result of this method, the `errors` argument is updated with an
+        Error object to be returned in mutation result.
+        """
         errors.append(Error(field=field, message=message))
-        return errors
 
     @classmethod
     def _check_type(cls, field, target_type):
@@ -80,7 +93,18 @@ class ModelMutation(BaseMutation):
         return field.type == target_type
 
     @classmethod
-    def _clean_input(cls, info, instance, input, errors):
+    def clean_input(cls, info, instance, input, errors):
+        """Clean input data received from mutation arguments.
+
+        Fields containing IDs or lists of IDs are automatically resolved into
+        model instances. `instance` argument is the model instance the mutation
+        is operating on (befor setting the input data). `input` is raw input
+        data the mutation receives. `errors` is a list of errors that occurred
+        during mutation's execution.
+
+        Override this method to provide custom transformations of incoming
+        data.
+        """
         InputCls = getattr(cls.Arguments, 'input')
         cleaned_input = {}
         for field_name, field in InputCls._meta.fields.items():
@@ -108,13 +132,16 @@ class ModelMutation(BaseMutation):
                     # handle other fields
                     else:
                         cleaned_input[field_name] = value
-        return cleaned_input, errors
+        return cleaned_input
 
     @classmethod
-    def _construct_instance(cls, instance, cleaned_data):
-        """
-        Construct and return a model instance from ``cleaned_data``, but do
-        not save the returned instance to the database.
+    def construct_instance(cls, instance, cleaned_data):
+        """Fill instance fields with cleaned data.
+
+        The `instance` argument is either an empty instance of a already
+        existing one which was fetched from the database. `cleaned_data` is
+        data to be set in instance fields. Returns `instance` with filled
+        fields, but not saved to the database.
         """
         from django.db import models
         opts = instance._meta
@@ -126,11 +153,16 @@ class ModelMutation(BaseMutation):
                 continue
             else:
                 f.save_form_data(instance, cleaned_data[f.name])
-
         return instance
 
     @classmethod
-    def _clean_instance(cls, instance, errors):
+    def clean_instance(cls, instance, errors):
+        """Clean the instance that was created using the input data.
+
+        Once a instance is created, this method runs `full_clean()` to perform
+        model fields' validation. Returns errors ready to be returned by
+        the GraphQL response (if any occured).
+        """
         try:
             instance.full_clean()
         except ValidationError as validation_errors:
@@ -151,32 +183,48 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
+        """Determine wheter user has rights to perform this mutation.
+
+        Default implementation assumes that user is allowed to perform any
+        mutation. By overriding this method, you can restrict access to it.
+        `user` is the User instance associated with the request and `input` is
+        the input data provided as mutation arguments.
+        """
         return True
 
     @classmethod
     def success_response(cls, instance):
+        """Return a success response."""
         return cls(**{cls._meta.return_field_name: instance}, errors=[])
 
     @classmethod
     def mutate(cls, root, info, **data):
+        """Perform model mutation.
+
+        Depending on the input data, `mutate` either creates a new instance or
+        updates an existing one. If `id` arugment is present, it is assumed
+        that this is an "update" mutation. Otherwise, a new instance is
+        created based on the model associated with this mutation.
+        """
         if not cls.user_is_allowed(info.context.user, data):
             raise PermissionDenied()
 
         id = data.get('id')
         input = data.get('input')
 
+        # Initialize the errors list.
         errors = []
 
-        # initialize model instance
+        # Initialize model instance based on presence of `id` attribute.
         if id:
             model_type = registry.get_type_for_model(cls._meta.model)
             instance = get_node(info, id, only_type=model_type)
         else:
             instance = cls._meta.model()
 
-        cleaned_input, errors = cls._clean_input(info, instance, input, errors)
-        instance = cls._construct_instance(instance, cleaned_input)
-        errors = cls._clean_instance(instance, errors)
+        cleaned_input = cls.clean_input(info, instance, input, errors)
+        instance = cls.construct_instance(instance, cleaned_input)
+        cls.clean_instance(instance, errors)
 
         if errors:
             return cls(errors=errors)
@@ -192,6 +240,7 @@ class ModelDeleteMutation(ModelMutation):
 
     @classmethod
     def mutate(cls, root, info, **data):
+        """Perform a mutation that deletes a model instance."""
         if not cls.user_is_allowed(info.context.user, data):
             raise PermissionDenied()
 
