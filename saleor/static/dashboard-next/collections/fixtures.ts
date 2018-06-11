@@ -1,173 +1,529 @@
 export const collections = (placeholderImage: string) => [
   {
-    id: "col21119",
-    name: "Books",
-    slug: "Books",
+    id: "col14816",
+    name: "Toys",
+    slug: "Toys",
     isPublished: true,
     backgroundImage: placeholderImage,
-    products: { totalCount: 0, edges: [] }
+    products: {
+      totalCount: 1,
+      edges: [
+        {
+          node: {
+            id: "p2065",
+            name: "Small Wooden Gloves",
+            sku: "91937",
+            availability: { available: false }
+          }
+        }
+      ]
+    },
+    seoTitle: "Toys",
+    seoDescription: ""
   },
   {
-    id: "col33709",
+    id: "col94944",
+    name: "Beauty",
+    slug: "Beauty",
+    isPublished: true,
+    backgroundImage: placeholderImage,
+    products: {
+      totalCount: 6,
+      edges: [
+        {
+          node: {
+            id: "p40065",
+            name: "Incredible Steel Towels",
+            sku: "97094",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p58972",
+            name: "Awesome Frozen Pizza",
+            sku: "91079",
+            availability: { available: false }
+          }
+        },
+        {
+          node: {
+            id: "p8006",
+            name: "Licensed Soft Tuna",
+            sku: "22322",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p24798",
+            name: "Awesome Frozen Chips",
+            sku: "16626",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p75419",
+            name: "Awesome Cotton Mouse",
+            sku: "63608",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p35114",
+            name: "Gorgeous Frozen Tuna",
+            sku: "48960",
+            availability: { available: false }
+          }
+        }
+      ]
+    },
+    seoTitle: "Beauty",
+    seoDescription:
+      "Dignissimos voluptatibus voluptatem inventore. Numquam incidunt dignissimos."
+  },
+  {
+    id: "col10385",
+    name: "Electronics",
+    slug: "Electronics",
+    isPublished: true,
+    backgroundImage: placeholderImage,
+    products: {
+      totalCount: 2,
+      edges: [
+        {
+          node: {
+            id: "p1949",
+            name: "Generic Concrete Fish",
+            sku: "33027",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p85501",
+            name: "Refined Concrete Tuna",
+            sku: "42724",
+            availability: { available: false }
+          }
+        }
+      ]
+    },
+    seoTitle: "Electronics",
+    seoDescription:
+      "Aut fuga expedita ut ut debitis sequi repudiandae. Quae quibusdam accusantium sapiente fugit est est repellat aut consequuntur."
+  },
+  {
+    id: "col99728",
+    name: "Games",
+    slug: "Games",
+    isPublished: false,
+    backgroundImage: placeholderImage,
+    products: {
+      totalCount: 6,
+      edges: [
+        {
+          node: {
+            id: "p44262",
+            name: "Rustic Cotton Salad",
+            sku: "35936",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p12821",
+            name: "Fantastic Granite Car",
+            sku: "24533",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p39453",
+            name: "Incredible Rubber Ball",
+            sku: "10049",
+            availability: { available: false }
+          }
+        },
+        {
+          node: {
+            id: "p92256",
+            name: "Practical Cotton Table",
+            sku: "13222",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p89786",
+            name: "Unbranded Rubber Hat",
+            sku: "58081",
+            availability: { available: false }
+          }
+        },
+        {
+          node: {
+            id: "p20968",
+            name: "Ergonomic Plastic Keyboard",
+            sku: "18908",
+            availability: { available: true }
+          }
+        }
+      ]
+    },
+    seoTitle: "Games",
+    seoDescription: ""
+  },
+  {
+    id: "col53544",
+    name: "Music",
+    slug: "Music",
+    isPublished: true,
+    backgroundImage: placeholderImage,
+    products: {
+      totalCount: 6,
+      edges: [
+        {
+          node: {
+            id: "p92868",
+            name: "Awesome Frozen Cheese",
+            sku: "52625",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p88838",
+            name: "Unbranded Metal Gloves",
+            sku: "40446",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p7108",
+            name: "Unbranded Wooden Ball",
+            sku: "54561",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p96833",
+            name: "Generic Wooden Gloves",
+            sku: "74227",
+            availability: { available: false }
+          }
+        },
+        {
+          node: {
+            id: "p11815",
+            name: "Rustic Granite Salad",
+            sku: "3968",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p74308",
+            name: "Licensed Frozen Keyboard",
+            sku: "92125",
+            availability: { available: true }
+          }
+        }
+      ]
+    },
+    seoTitle: "Music",
+    seoDescription:
+      "Voluptas voluptatum aspernatur ut molestias voluptate dolorum earum. Distinctio ipsa et veniam doloribus dicta qui maxime qui."
+  },
+  {
+    id: "col2356",
     name: "Movies",
     slug: "Movies",
-    isPublished: false,
+    isPublished: true,
     backgroundImage: placeholderImage,
     products: {
       totalCount: 9,
       edges: [
         {
           node: {
-            id: "p15347",
-            name: "Generic Steel Soap",
+            id: "p28099",
+            name: "Generic Concrete Salad",
+            sku: "55749",
             availability: { available: true }
           }
         },
         {
           node: {
-            id: "p59471",
-            name: "Rustic Wooden Car",
+            id: "p98627",
+            name: "Handmade Frozen Pants",
+            sku: "59249",
             availability: { available: true }
           }
         },
         {
           node: {
-            id: "p55291",
-            name: "Tasty Steel Chair",
-            availability: { available: false }
-          }
-        },
-        {
-          node: {
-            id: "p32165",
-            name: "Handcrafted Frozen Car",
+            id: "p93723",
+            name: "Fantastic Metal Chair",
+            sku: "80167",
             availability: { available: true }
           }
         },
         {
           node: {
-            id: "p16266",
-            name: "Handcrafted Concrete Chicken",
-            availability: { available: false }
-          }
-        },
-        {
-          node: {
-            id: "p46206",
-            name: "Refined Cotton Keyboard",
-            availability: { available: false }
-          }
-        },
-        {
-          node: {
-            id: "p11787",
-            name: "Awesome Fresh Table",
+            id: "p4869",
+            name: "Ergonomic Steel Computer",
+            sku: "98610",
             availability: { available: true }
           }
         },
         {
           node: {
-            id: "p72477",
-            name: "Gorgeous Cotton Sausages",
-            availability: { available: false }
+            id: "p87865",
+            name: "Generic Metal Tuna",
+            sku: "59513",
+            availability: { available: true }
           }
         },
         {
           node: {
-            id: "p488",
-            name: "Intelligent Steel Chips",
+            id: "p68815",
+            name: "Sleek Plastic Towels",
+            sku: "59009",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p63992",
+            name: "Unbranded Rubber Hat",
+            sku: "53751",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p80138",
+            name: "Rustic Frozen Table",
+            sku: "9375",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p14439",
+            name: "Ergonomic Plastic Bike",
+            sku: "63115",
             availability: { available: true }
           }
         }
       ]
-    }
+    },
+    seoTitle: "Gorgeous Frozen Car",
+    seoDescription:
+      "Nesciunt sint doloremque magni maxime magni eos dolorem reprehenderit. Perspiciatis facilis aliquid reiciendis saepe facilis optio voluptate."
   },
   {
-    id: "col22272",
-    name: "Movies",
-    slug: "Movies",
-    isPublished: false,
+    id: "col74409",
+    name: "Sports",
+    slug: "Sports",
+    isPublished: true,
     backgroundImage: placeholderImage,
     products: {
-      totalCount: 8,
+      totalCount: 9,
       edges: [
         {
           node: {
-            id: "p59918",
-            name: "Tasty Steel Pizza",
-            availability: { available: false }
-          }
-        },
-        {
-          node: {
-            id: "p43869",
-            name: "Sleek Fresh Gloves",
+            id: "p7251",
+            name: "Handmade Concrete Table",
+            sku: "14788",
             availability: { available: true }
           }
         },
         {
           node: {
-            id: "p85377",
-            name: "Intelligent Cotton Soap",
-            availability: { available: false }
-          }
-        },
-        {
-          node: {
-            id: "p87462",
-            name: "Awesome Fresh Salad",
+            id: "p83332",
+            name: "Handmade Fresh Shoes",
+            sku: "79163",
             availability: { available: true }
           }
         },
         {
           node: {
-            id: "p54763",
-            name: "Fantastic Metal Salad",
-            availability: { available: false }
-          }
-        },
-        {
-          node: {
-            id: "p73987",
-            name: "Small Steel Car",
-            availability: { available: false }
-          }
-        },
-        {
-          node: {
-            id: "p77870",
-            name: "Small Fresh Shirt",
+            id: "p55096",
+            name: "Fantastic Cotton Hat",
+            sku: "40491",
             availability: { available: true }
           }
         },
         {
           node: {
-            id: "p20763",
-            name: "Gorgeous Granite Chair",
+            id: "p69181",
+            name: "Sleek Metal Car",
+            sku: "99030",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p44149",
+            name: "Awesome Frozen Car",
+            sku: "17243",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p65649",
+            name: "Practical Steel Car",
+            sku: "65844",
+            availability: { available: false }
+          }
+        },
+        {
+          node: {
+            id: "p60651",
+            name: "Generic Wooden Bike",
+            sku: "48422",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p43804",
+            name: "Handmade Frozen Bacon",
+            sku: "13255",
+            availability: { available: false }
+          }
+        },
+        {
+          node: {
+            id: "p40920",
+            name: "Licensed Wooden Sausages",
+            sku: "63407",
             availability: { available: true }
           }
         }
       ]
-    }
+    },
+    seoTitle: "Sports",
+    seoDescription:
+      "Voluptatem exercitationem quod facere laborum numquam quas. Quos facere veritatis voluptatem repellat quia."
   },
   {
-    id: "col11770",
-    name: "Grocery",
-    slug: "Grocery",
+    id: "col19029",
+    name: "Books",
+    slug: "Books",
     isPublished: true,
     backgroundImage: placeholderImage,
-    products: { totalCount: 0, edges: [] }
+    products: {
+      totalCount: 6,
+      edges: [
+        {
+          node: {
+            id: "p61494",
+            name: "Generic Frozen Chicken",
+            sku: "78926",
+            availability: { available: false }
+          }
+        },
+        {
+          node: {
+            id: "p52881",
+            name: "Awesome Frozen Pants",
+            sku: "93884",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p72858",
+            name: "Incredible Granite Table",
+            sku: "88332",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p34754",
+            name: "Awesome Plastic Hat",
+            sku: "10693",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p70038",
+            name: "Handmade Soft Salad",
+            sku: "81144",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p16623",
+            name: "Intelligent Metal Chicken",
+            sku: "30615",
+            availability: { available: false }
+          }
+        }
+      ]
+    },
+    seoTitle: "Books",
+    seoDescription: ""
   },
   {
-    id: "col39690",
+    id: "col56782",
     name: "Industrial",
     slug: "Industrial",
     isPublished: true,
     backgroundImage: placeholderImage,
-    products: { totalCount: 0, edges: [] }
+    products: {
+      totalCount: 4,
+      edges: [
+        {
+          node: {
+            id: "p82352",
+            name: "Incredible Fresh Car",
+            sku: "25130",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p58916",
+            name: "Intelligent Concrete Chips",
+            sku: "87140",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p6943",
+            name: "Handmade Wooden Mouse",
+            sku: "72413",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p905",
+            name: "Practical Metal Sausages",
+            sku: "5918",
+            availability: { available: false }
+          }
+        }
+      ]
+    },
+    seoTitle: "Industrial",
+    seoDescription: ""
   },
   {
-    id: "col30625",
+    id: "col80369",
     name: "Music",
     slug: "Music",
     isPublished: true,
@@ -177,284 +533,63 @@ export const collections = (placeholderImage: string) => [
       edges: [
         {
           node: {
-            id: "p44959",
-            name: "Handcrafted Concrete Table",
+            id: "p51730",
+            name: "Handcrafted Soft Pants",
+            sku: "67401",
             availability: { available: true }
           }
         },
         {
           node: {
-            id: "p28066",
-            name: "Incredible Fresh Mouse",
+            id: "p41422",
+            name: "Generic Wooden Keyboard",
+            sku: "43282",
             availability: { available: true }
           }
         },
         {
           node: {
-            id: "p86497",
-            name: "Refined Cotton Towels",
+            id: "p56538",
+            name: "Awesome Plastic Keyboard",
+            sku: "52139",
+            availability: { available: true }
+          }
+        },
+        {
+          node: {
+            id: "p79024",
+            name: "Ergonomic Wooden Keyboard",
+            sku: "5616",
             availability: { available: false }
           }
         },
         {
           node: {
-            id: "p21612",
-            name: "Incredible Steel Pants",
+            id: "p99086",
+            name: "Licensed Plastic Cheese",
+            sku: "67667",
             availability: { available: true }
           }
         },
         {
           node: {
-            id: "p21899",
-            name: "Awesome Rubber Shoes",
-            availability: { available: false }
-          }
-        },
-        {
-          node: {
-            id: "p54446",
-            name: "Practical Wooden Hat",
+            id: "p35586",
+            name: "Small Steel Mouse",
+            sku: "48330",
             availability: { available: true }
           }
         },
         {
           node: {
-            id: "p46935",
-            name: "Intelligent Wooden Salad",
+            id: "p73480",
+            name: "Handcrafted Rubber Table",
+            sku: "55475",
             availability: { available: true }
           }
         }
       ]
-    }
-  },
-  {
-    id: "col35591",
-    name: "Garden",
-    slug: "Garden",
-    isPublished: true,
-    backgroundImage: placeholderImage,
-    products: {
-      totalCount: 8,
-      edges: [
-        {
-          node: {
-            id: "p41588",
-            name: "Sleek Frozen Salad",
-            availability: { available: true }
-          }
-        },
-        {
-          node: {
-            id: "p29490",
-            name: "Awesome Frozen Bacon",
-            availability: { available: true }
-          }
-        },
-        {
-          node: {
-            id: "p99283",
-            name: "Refined Metal Chicken",
-            availability: { available: true }
-          }
-        },
-        {
-          node: {
-            id: "p78491",
-            name: "Practical Fresh Shirt",
-            availability: { available: true }
-          }
-        },
-        {
-          node: {
-            id: "p28241",
-            name: "Generic Steel Table",
-            availability: { available: true }
-          }
-        },
-        {
-          node: {
-            id: "p70983",
-            name: "Awesome Frozen Bike",
-            availability: { available: true }
-          }
-        },
-        {
-          node: {
-            id: "p29550",
-            name: "Intelligent Rubber Chicken",
-            availability: { available: true }
-          }
-        },
-        {
-          node: {
-            id: "p39371",
-            name: "Gorgeous Metal Hat",
-            availability: { available: true }
-          }
-        }
-      ]
-    }
-  },
-  {
-    id: "col96745",
-    name: "Music",
-    slug: "Music",
-    isPublished: true,
-    backgroundImage: placeholderImage,
-    products: {
-      totalCount: 4,
-      edges: [
-        {
-          node: {
-            id: "p76456",
-            name: "Unbranded Steel Ball",
-            availability: { available: true }
-          }
-        },
-        {
-          node: {
-            id: "p77652",
-            name: "Licensed Wooden Bike",
-            availability: { available: true }
-          }
-        },
-        {
-          node: {
-            id: "p1298",
-            name: "Gorgeous Soft Hat",
-            availability: { available: true }
-          }
-        },
-        {
-          node: {
-            id: "p39807",
-            name: "Rustic Frozen Tuna",
-            availability: { available: true }
-          }
-        }
-      ]
-    }
-  },
-  {
-    id: "col3875",
-    name: "Sports",
-    slug: "Sports",
-    isPublished: true,
-    backgroundImage: placeholderImage,
-    products: {
-      totalCount: 8,
-      edges: [
-        {
-          node: {
-            id: "p34543",
-            name: "Rustic Steel Tuna",
-            availability: { available: false }
-          }
-        },
-        {
-          node: {
-            id: "p22772",
-            name: "Sleek Fresh Pizza",
-            availability: { available: true }
-          }
-        },
-        {
-          node: {
-            id: "p63168",
-            name: "Fantastic Wooden Ball",
-            availability: { available: true }
-          }
-        },
-        {
-          node: {
-            id: "p48505",
-            name: "Ergonomic Cotton Bike",
-            availability: { available: true }
-          }
-        },
-        {
-          node: {
-            id: "p45744",
-            name: "Sleek Steel Chair",
-            availability: { available: true }
-          }
-        },
-        {
-          node: {
-            id: "p12048",
-            name: "Gorgeous Soft Shoes",
-            availability: { available: true }
-          }
-        },
-        {
-          node: {
-            id: "p11421",
-            name: "Handmade Concrete Computer",
-            availability: { available: true }
-          }
-        },
-        {
-          node: {
-            id: "p18286",
-            name: "Awesome Granite Gloves",
-            availability: { available: false }
-          }
-        }
-      ]
-    }
-  },
-  {
-    id: "col19633",
-    name: "Computers",
-    slug: "Computers",
-    isPublished: true,
-    backgroundImage: placeholderImage,
-    products: {
-      totalCount: 6,
-      edges: [
-        {
-          node: {
-            id: "p56335",
-            name: "Licensed Granite Shoes",
-            availability: { available: false }
-          }
-        },
-        {
-          node: {
-            id: "p58085",
-            name: "Fantastic Steel Salad",
-            availability: { available: true }
-          }
-        },
-        {
-          node: {
-            id: "p74564",
-            name: "Sleek Frozen Towels",
-            availability: { available: false }
-          }
-        },
-        {
-          node: {
-            id: "p3314",
-            name: "Incredible Plastic Chicken",
-            availability: { available: true }
-          }
-        },
-        {
-          node: {
-            id: "p3787",
-            name: "Fantastic Cotton Bacon",
-            availability: { available: true }
-          }
-        },
-        {
-          node: {
-            id: "p85999",
-            name: "Refined Soft Pants",
-            availability: { available: true }
-          }
-        }
-      ]
-    }
+    },
+    seoTitle: "Music",
+    seoDescription: ""
   }
 ];
