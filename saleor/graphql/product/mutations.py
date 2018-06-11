@@ -2,112 +2,137 @@ import graphene
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
 from graphene_file_upload import Upload
-from graphql_jwt.decorators import permission_required
 
-from ...dashboard.category.forms import CategoryForm
-from ...dashboard.product.forms import ProductTypeForm
 from ...product import models
-from ..core.mutations import (
-    BaseMutation, ModelDeleteMutation, ModelFormMutation,
-    ModelFormUpdateMutation, StaffMemberRequiredMixin, Error)
+from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..utils import get_attributes_dict_from_list, get_node, get_nodes
-from .forms import CollectionForm, ProductForm, ProductVariantForm
-from .types import (
-    Category, Collection, Product, ProductAttribute, ProductImage, ProductType)
+from .types import Collection, Product
 
 
-class CategoryCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
-    permissions = 'category.edit_category'
+class CategoryInput(graphene.InputObjectType):
+    description = graphene.String(description='Category description')
+    name = graphene.String(description='Category name')
+    parent = graphene.ID(
+        description='''
+        ID of the parent category. If empty, category will be top level
+        category.''')
+    slug = graphene.String(description='Category slug')
 
+
+class CategoryCreateMutation(ModelMutation):
     class Arguments:
-        parent_id = graphene.ID()
+        input = CategoryInput(
+            required=True, description='Fields required to create a category.')
 
     class Meta:
         description = 'Creates a new category.'
-        form_class = CategoryForm
+        model = models.Category
 
     @classmethod
-    def get_form_kwargs(cls, root, info, **input):
-        parent_id = input.pop('parent_id', None)
-        kwargs = super().get_form_kwargs(root, info, **input)
-        if parent_id:
-            parent = get_node(info, parent_id, only_type=Category)
-        else:
-            parent = None
-        kwargs['parent_pk'] = parent.pk if parent else None
-        return kwargs
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('category.edit_category')
 
 
-class CategoryUpdateMutation(
-        StaffMemberRequiredMixin, ModelFormUpdateMutation):
-    permissions = 'category.edit_category'
+class CategoryUpdateMutation(ModelMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of a category to update.')
+        input = CategoryInput(
+            required=True, description='Fields required to update a category.')
 
     class Meta:
-        description = 'Updates an existing category.'
-        form_class = CategoryForm
+        description = 'Updates a category.'
+        model = models.Category
 
     @classmethod
-    def get_form_kwargs(cls, root, info, **input):
-        kwargs = super().get_form_kwargs(root, info, **input)
-        kwargs['parent_pk'] = kwargs['instance'].parent_id
-        return kwargs
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('category.edit_category')
 
 
-class CategoryDelete(StaffMemberRequiredMixin, ModelDeleteMutation):
-    permissions = 'category.edit_category'
+class CategoryDelete(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of a category to delete.')
 
     class Meta:
         description = 'Deletes a category.'
         model = models.Category
 
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('category.edit_category')
 
-class CollectionCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
-    permissions = 'collection.edit_collection'
+
+class CollectionInput(graphene.InputObjectType):
+    name = graphene.String(description='Name of the collection.')
+    slug = graphene.String(description='Slug of the collection.')
+    products = graphene.List(
+        graphene.ID,
+        description='List of products to be added to the collection.')
+    background_image = Upload(description='Background image file.')
+
+
+class CollectionCreateMutation(ModelMutation):
+    class Arguments:
+        input = CollectionInput(
+            required=True,
+            description='Fields required to create a collection.')
 
     class Meta:
         description = 'Creates a new collection.'
-        form_class = CollectionForm
+        model = models.Collection
 
     @classmethod
-    def get_form_kwargs(cls, root, info, **input):
-        product_ids = input.pop('products', None)
-        kwargs = super().get_form_kwargs(root, info, **input)
-        if product_ids:
-            products = set(get_nodes(product_ids, Product))
-            kwargs['data']['products'] = products
-        return kwargs
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('collection.edit_collection')
 
 
-class CollectionUpdate(StaffMemberRequiredMixin, ModelFormUpdateMutation):
-    permissions = 'collection.edit_collection'
+class CollectionUpdate(ModelMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of a collection to update.')
+        input = CollectionInput(
+            required=True,
+            description='Fields required to update a collection.')
 
     class Meta:
-        description = 'Updates an existing collection.'
-        form_class = CollectionForm
-        exclude = ['products']
+        description = 'Updates a collection.'
+        model = models.Collection
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('collection.edit_collection')
 
 
-class CollectionDelete(StaffMemberRequiredMixin, ModelDeleteMutation):
-    permissions = 'collection.edit_collection'
+class CollectionDelete(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of a collection to delete.')
 
     class Meta:
         description = 'Deletes a collection.'
         model = models.Collection
 
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('collection.edit_collection')
+
 
 class CollectionAddProducts(BaseMutation):
     class Arguments:
         collection_id = graphene.Argument(
-            graphene.ID, required=True, description='ID of a collection.')
+            graphene.ID, required=True,
+            description='ID of a collection.')
         products = graphene.List(
-            graphene.ID, required=True, description='List of product IDs.')
+            graphene.ID, required=True,
+            description='List of product IDs.')
 
     collection = graphene.Field(
         Collection,
         description='Collection to which products will be added.')
 
     class Meta:
-        description = 'Adds products to the collection.'
+        description = 'Adds products to a collection.'
 
     @permission_required('collection.edit_collection')
     def mutate(self, info, collection_id, products):
@@ -129,7 +154,7 @@ class CollectionRemoveProducts(BaseMutation):
         description='Collection from which products will be removed.')
 
     class Meta:
-        description = 'Remove products from the collection.'
+        description = 'Remove products from a collection.'
 
     @permission_required('collection.edit_collection')
     def mutate(self, info, collection_id, products):
@@ -140,245 +165,233 @@ class CollectionRemoveProducts(BaseMutation):
 
 
 class AttributeValueInput(InputObjectType):
-    slug = graphene.String(required=True)
-    value = graphene.String(required=True)
+    slug = graphene.String(
+        required=True, description='Slug of an attribute.')
+    value = graphene.String(
+        required=True, description='Value of an attribute.')
 
 
-class ProductSave(ModelFormMutation):
-    permissions = 'product.edit_product'
-
-    class Meta:
-        form_class = ProductForm
-
-    @classmethod
-    def save(cls, root, info, **kwargs):
-        attributes = kwargs.pop('attributes', None)
-        instance = super().save(root, info, **kwargs)
-        if attributes and instance:
-            attr_slug_id = dict(
-                instance.product_type.product_attributes.values_list(
-                    'slug', 'id'))
-            instance.attributes = get_attributes_dict_from_list(
-                attributes=attributes, attr_slug_id=attr_slug_id)
-            instance.save()
-        return instance
+class ProductInput(graphene.InputObjectType):
+    name = graphene.String()
+    description = graphene.String()
+    product_type = graphene.ID()
+    category = graphene.ID()
+    price = graphene.Float()
+    available_on = graphene.String()
+    is_published = graphene.Boolean()
+    is_featured = graphene.Boolean()
+    attributes = graphene.List(AttributeValueInput)
 
 
-class ProductCreateMutation(
-        StaffMemberRequiredMixin, ProductSave):
-    permissions = 'product.edit_product'
-
+class ProductCreateMutation(ModelMutation):
     class Arguments:
-        product_type_id = graphene.ID()
-        category_id = graphene.ID()
-        attributes = graphene.Argument(graphene.List(AttributeValueInput))
+        input = ProductInput(
+            required=True, description='Fields required to create a product.')
 
     class Meta:
         description = 'Creates a new product.'
-        form_class = ProductForm
-        # Exclude from input form fields
-        # that are being overwritten by arguments
-        exclude = ['product_type', 'category', 'attributes']
+        model = models.Product
 
     @classmethod
-    def get_form_kwargs(cls, root, info, **input):
-        product_type_id = input.pop('product_type_id', None)
-        category_id = input.pop('category_id', None)
-        product_type = get_node(info, product_type_id, only_type=ProductType)
-        category = get_node(info, category_id, only_type=Category)
-        kwargs = super().get_form_kwargs(root, info, **input)
-        kwargs['data']['product_type'] = product_type.id
-        kwargs['data']['category'] = category.id
-        return kwargs
+    def _clean_input(cls, info, instance, input, errors):
+        cleaned_input, errors = super()._clean_input(
+            info, instance, input, errors)
+
+        # Attributes are provided as list of `AttributeValueInput` objects.
+        # We need to transform them into the format they're stored in the
+        # `Product` model, which is HStore field that maps attribute's PK to
+        # the value's PK.
+
+        attributes = cleaned_input.pop('attributes', [])
+        product_type = (
+            instance.product_type
+            if instance.pk else cleaned_input.get('product_type'))
+
+        if attributes and product_type:
+            slug_to_id_map = dict(
+                product_type.product_attributes.values_list('slug', 'id'))
+            attributes = get_attributes_dict_from_list(
+                attributes, slug_to_id_map)
+            cleaned_input['attributes'] = attributes
+
+        return cleaned_input, errors
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.edit_product')
 
 
-class ProductUpdateMutation(
-        StaffMemberRequiredMixin, ProductSave, ModelFormUpdateMutation):
-    permissions = 'product.edit_product'
-
+class ProductUpdateMutation(ProductCreateMutation):
     class Arguments:
-        attributes = graphene.Argument(graphene.List(AttributeValueInput))
-        category_id = graphene.ID()
+        id = graphene.ID(
+            required=True, description='ID of a product to update.')
+        input = ProductInput(
+            required=True, description='Fields required to update a product.')
 
     class Meta:
-        description = 'Update an existing product.'
-        form_class = ProductForm
-        # Exclude from input form fields
-        # that are being overwritten by arguments
-        exclude = ['product_type', 'category', 'attributes']
-
-    @classmethod
-    def get_form_kwargs(cls, root, info, **input):
-        kwargs = super().get_form_kwargs(root, info, **input)
-        instance = kwargs.get('instance')
-        kwargs['data']['product_type'] = instance.product_type.id
-        # Use provided category or existing one
-        category_id = input.pop('category_id', None)
-        if category_id:
-            category = get_node(info, category_id, only_type=Category)
-            kwargs['data']['category'] = category.id
-        else:
-            kwargs['data']['category'] = instance.category.id
-        return kwargs
+        description = 'Updates an existing product.'
+        model = models.Product
 
 
-class ProductDeleteMutation(StaffMemberRequiredMixin, ModelDeleteMutation):
-    permissions = 'product.edit_product'
+class ProductDeleteMutation(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of a product to delete.')
 
     class Meta:
         description = 'Deletes a product.'
         model = models.Product
 
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.edit_product')
 
-class VariantSave(ModelFormMutation):
-    permissions = 'product.edit_product'
+
+class ProductVariantInput(graphene.InputObjectType):
+    attributes = graphene.List(AttributeValueInput)
+    cost_price = graphene.Float()
+    name = graphene.String()
+    price_override = graphene.Float()
+    product = graphene.ID()
+    sku = graphene.String()
+    quantity = graphene.Int()
+
+
+class ProductVariantCreateMutation(ModelMutation):
+    class Arguments:
+        input = ProductVariantInput(
+            required=True,
+            description='Fields required to create a product variant.')
 
     class Meta:
-        form_class = ProductVariantForm
+        description = 'Creates a new variant for a product'
+        model = models.ProductVariant
 
     @classmethod
-    def save(cls, root, info, **kwargs):
-        attributes = kwargs.pop('attributes', None)
-        instance = super().save(root, info, **kwargs)
-        if attributes and instance:
-            attr_slug_id = dict(
-                instance.product.product_type.variant_attributes.values_list(
-                    'slug', 'id'))
-            instance.attributes = get_attributes_dict_from_list(
-                attributes=attributes, attr_slug_id=attr_slug_id)
-            instance.save()
-        return instance
+    def _clean_input(cls, info, instance, input, errors):
+        cleaned_input, errors = super()._clean_input(
+            info, instance, input, errors)
 
+        # Attributes are provided as list of `AttributeValueInput` objects.
+        # We need to transform them into the format they're stored in the
+        # `Product` model, which is HStore field that maps attribute's PK to
+        # the value's PK.
 
-class ProductVariantCreateMutation(
-        StaffMemberRequiredMixin, VariantSave, ModelFormMutation):
-    permissions = 'product.edit_product'
+        attributes = cleaned_input.pop('attributes', [])
+        product = instance.product if instance.pk else cleaned_input.get('product')
+        product_type = product.product_type
 
-    class Arguments:
-        attributes = graphene.Argument(graphene.List(AttributeValueInput))
-        product_id = graphene.ID()
+        if attributes and product_type:
+            slug_to_id_map = dict(
+                product_type.variant_attributes.values_list('slug', 'id'))
+            attributes = get_attributes_dict_from_list(
+                attributes, slug_to_id_map)
+            cleaned_input['attributes'] = attributes
 
-    class Meta:
-        description = 'Creates a new variant for product'
-        form_class = ProductVariantForm
-        exclude = ['attributes']
+        return cleaned_input, errors
 
     @classmethod
-    def get_form_kwargs(cls, root, info, **input):
-        product_id = input.pop('product_id', None)
-        product = get_node(info, product_id, only_type=Product)
-        variant = models.ProductVariant(product=product)
-        kwargs = super().get_form_kwargs(root, info, **input)
-        kwargs['instance'] = variant
-        return kwargs
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.edit_product')
 
 
-class ProductVariantUpdateMutation(
-        StaffMemberRequiredMixin, VariantSave, ModelFormUpdateMutation):
-    permissions = 'product.edit_product'
-
+class ProductVariantUpdateMutation(ProductVariantCreateMutation):
     class Arguments:
-        attributes = graphene.Argument(graphene.List(AttributeValueInput))
+        id = graphene.ID(
+            required=True, description='ID of a product variant to update.')
+        input = ProductVariantInput(
+            required=True,
+            description='Fields required to update a product variant.')
 
     class Meta:
         description = 'Updates an existing variant for product'
-        form_class = ProductVariantForm
-        exclude = ['attributes']
+        model = models.ProductVariant
 
 
-class ProductVariantDeleteMutation(
-        StaffMemberRequiredMixin, ModelDeleteMutation):
-    permissions = 'product.edit_product'
+class ProductVariantDeleteMutation(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of a product variant to delete.')
 
     class Meta:
         description = 'Deletes a product variant.'
         model = models.ProductVariant
 
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.edit_product')
 
-class ProductTypeCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
-    permissions = 'product.edit_properties'
+
+class ProductTypeInput(graphene.InputObjectType):
+    name = graphene.String()
+    has_variants = graphene.Boolean()
+    product_attributes = graphene.List(graphene.ID)
+    variant_attributes = graphene.List(graphene.ID)
+    is_shipping_required = graphene.Boolean()
+
+
+class ProductTypeCreateMutation(ModelMutation):
+    class Arguments:
+        input = ProductTypeInput(
+            required=True,
+            description='Fields required to create a product type.')
 
     class Meta:
         description = 'Creates a new product type.'
-        form_class = ProductTypeForm
+        model = models.ProductType
 
     @classmethod
-    def get_form_kwargs(cls, root, info, **input):
-        product_attributes = input.pop('product_attributes', None)
-        if product_attributes:
-            product_attributes = {
-                get_node(info, pr_att_id, only_type=ProductAttribute)
-                for pr_att_id in product_attributes}
-        variant_attributes = input.pop('variant_attributes', None)
-        if variant_attributes:
-            variant_attributes = {
-                get_node(info, pr_att_id, only_type=ProductAttribute)
-                for pr_att_id in variant_attributes}
-
-        kwargs = super().get_form_kwargs(root, info, **input)
-        kwargs['data']['product_attributes'] = product_attributes
-        kwargs['data']['variant_attributes'] = variant_attributes
-        return kwargs
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.edit_properties')
 
 
-class ProductTypeUpdateMutation(
-        StaffMemberRequiredMixin, ModelFormUpdateMutation):
-    permissions = 'product.edit_properties'
+class ProductTypeUpdateMutation(ModelMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of a product type to update.')
+        input = ProductTypeInput(
+            required=True,
+            description='Fields required to update a product type.')
 
     class Meta:
-        description = 'Update an existing product type.'
-        form_class = ProductTypeForm
+        description = 'Updates an existing product type.'
+        model = models.ProductType
 
     @classmethod
-    def get_form_kwargs(cls, root, info, **input):
-        kwargs = super().get_form_kwargs(root, info, **input)
-        product_attributes = input.pop('product_attributes', None)
-        if product_attributes is not None:
-            product_attributes = {
-                get_node(info, pr_att_id, only_type=ProductAttribute)
-                for pr_att_id in product_attributes}
-        else:
-            product_attributes = kwargs.get(
-                'instance').product_attributes.all()
-        kwargs['data']['product_attributes'] = product_attributes
-
-        variant_attributes = input.pop('variant_attributes', None)
-        if variant_attributes is not None:
-            variant_attributes = {
-                get_node(info, pr_att_id, only_type=ProductAttribute)
-                for pr_att_id in variant_attributes}
-        else:
-            variant_attributes = kwargs.get(
-                'instance').variant_attributes.all()
-        kwargs['data']['variant_attributes'] = variant_attributes
-
-        return kwargs
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.edit_properties')
 
 
-class ProductTypeDeleteMutation(StaffMemberRequiredMixin, ModelDeleteMutation):
-    permissions = 'product.edit_properties'
+class ProductTypeDeleteMutation(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of a product type to delete.')
 
     class Meta:
         description = 'Deletes a product type.'
         model = models.ProductType
 
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.edit_properties')
 
-class ProductImageCreateMutation(BaseMutation):
+
+class ProductImageInput(graphene.InputObjectType):
+    alt = graphene.String(description='Alt text for an image.')
+    image = Upload(required=True, description='Image file.')
+    product = graphene.ID(description='ID of an product.')
+
+
+class ProductImageCreateMutation(ModelMutation):
     class Arguments:
-        file = Upload(required=True)
-        product_id = graphene.Argument(
-            graphene.ID, description='ID of an product.')
+        input = ProductImageInput(
+            required=True,
+            description='Fields required to create a product image.')
 
     class Meta:
         description = 'Creates a product image.'
+        model = models.ProductImage
 
-    product_image = graphene.Field(
-        ProductImage, description='A newly created product image.')
-
-    @permission_required('product.edit_product')
-    def mutate(self, info, product_id, file, **kwargs):
-        image_file = info.context.FILES.get(file)
-        product = get_node(info, product_id, only_type=Product)
-        product_image = models.ProductImage(product=product)
-        product_image.image.save(image_file.name, image_file)
-        return ProductImageCreateMutation(product_image=product_image)
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.edit_product')
