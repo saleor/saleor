@@ -64,6 +64,8 @@ class CategoryDelete(ModelDeleteMutation):
 
 
 class CollectionInput(graphene.InputObjectType):
+    is_published = graphene.Boolean(
+        description='Informs whether a collection is published.')
     name = graphene.String(description='Name of the collection.')
     slug = graphene.String(description='Slug of the collection.')
     products = graphene.List(
@@ -172,15 +174,17 @@ class AttributeValueInput(InputObjectType):
 
 
 class ProductInput(graphene.InputObjectType):
-    name = graphene.String()
-    description = graphene.String()
-    product_type = graphene.ID()
-    category = graphene.ID()
-    price = graphene.Float()
+    attributes = graphene.List(AttributeValueInput)
     available_on = graphene.String()
+    category = graphene.ID()
+    charge_taxes = graphene.Boolean()
+    description = graphene.String()
     is_published = graphene.Boolean()
     is_featured = graphene.Boolean()
-    attributes = graphene.List(AttributeValueInput)
+    name = graphene.String()
+    product_type = graphene.ID()
+    price = graphene.Float()
+    tax_rate = graphene.String()
 
 
 class ProductCreateMutation(ModelMutation):
@@ -255,6 +259,7 @@ class ProductVariantInput(graphene.InputObjectType):
     product = graphene.ID()
     sku = graphene.String()
     quantity = graphene.Int()
+    track_inventory = graphene.Boolean()
 
 
 class ProductVariantCreateMutation(ModelMutation):

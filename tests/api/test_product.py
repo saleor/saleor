@@ -349,16 +349,16 @@ def test_create_product(
         admin_api_client, product_type, default_category, size_attribute):
     query = """
         mutation createProduct(
-            $productTypeId: ID,
-            $categoryId: ID
-            $name: String,
-            $description: String,
-            $isPublished: Boolean,
-            $isFeatured: Boolean,
+            $productTypeId: ID!,
+            $categoryId: ID!
+            $name: String!,
+            $description: String!,
+            $isPublished: Boolean!,
+            $isFeatured: Boolean!,
             $chargeTaxes: Boolean!,
             $taxRate: String!,
-            $price: Float,
-            $attributes: [AttributeValueInput]) {
+            $price: Float!,
+            $attributes: [AttributeValueInput!]) {
                 productCreate(
                     input: {
                         category: $categoryId,
@@ -469,7 +469,7 @@ def test_update_product(
     query = """
         mutation updateProduct(
             $productId: ID!,
-            $categoryId: ID,
+            $categoryId: ID!,
             $name: String!,
             $description: String!,
             $isPublished: Boolean!,
@@ -477,7 +477,7 @@ def test_update_product(
             $chargeTaxes: Boolean!,
             $taxRate: String!,
             $price: Float!,
-            $attributes: [AttributeValueInput]) {
+            $attributes: [AttributeValueInput!]) {
                 productUpdate(
                     id: $productId,
                     input: {
