@@ -4,8 +4,9 @@ import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 interface StatusLabelProps {
+  className?: string;
   label: string;
-  status: string;
+  status: "success" | "neutral" | "error" | string;
 }
 
 const decorate = withStyles(theme => {
@@ -26,6 +27,9 @@ const decorate = withStyles(theme => {
       ...dot,
       backgroundColor: yellow[500]
     },
+    root: {
+      display: "inline-block"
+    },
     span: {
       display: "inline"
     },
@@ -35,20 +39,22 @@ const decorate = withStyles(theme => {
     }
   };
 });
-const StatusLabel = decorate<StatusLabelProps>(({ classes, label, status }) => (
-  <>
-    <span
-      className={
-        status === "success"
-          ? classes.successDot
-          : status === "neutral"
-            ? classes.neutralDot
-            : classes.errorDot
-      }
-    />
-    <Typography component="span" className={classes.span}>
-      {label}
-    </Typography>
-  </>
-));
+const StatusLabel = decorate<StatusLabelProps>(
+  ({ classes, className, label, status }) => (
+    <div className={[classes.root, className].join(" ")}>
+      <span
+        className={
+          status === "success"
+            ? classes.successDot
+            : status === "neutral"
+              ? classes.neutralDot
+              : classes.errorDot
+        }
+      />
+      <Typography component="span" className={classes.span}>
+        {label}
+      </Typography>
+    </div>
+  )
+);
 export default StatusLabel;
