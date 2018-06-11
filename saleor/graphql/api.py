@@ -31,6 +31,8 @@ from .product.resolvers import (
     resolve_products, resolve_product_types)
 from .product.types import (
     Category, Collection, Product, ProductAttribute, ProductType)
+from .shipping.resolvers import resolve_shipping_methods
+from .shipping.types import ShippingMethod
 from .utils import get_node
 
 
@@ -94,6 +96,11 @@ class Query(graphene.ObjectType):
     vouchers = DjangoFilterConnectionField(
         Voucher, query=graphene.String(description=DESCRIPTIONS['product']),
         description="List of the shop\'s vouchers.")
+    shipping_method = graphene.Field(
+        ShippingMethod, id=graphene.Argument(graphene.ID),
+        description='Lookup a shipping method by ID.')
+    shipping_methods = DjangoFilterConnectionField(
+        ShippingMethod, description='List of the shop\'s shipping methods.')
     user = graphene.Field(
         User, id=graphene.Argument(graphene.ID),
         description='Lookup an user type by ID.')
@@ -159,6 +166,12 @@ class Query(graphene.ObjectType):
     @permission_required('discount.view_voucher')
     def resolve_vouchers(self, info, query=None, **kwargs):
         return resolve_vouchers(info, query)
+
+    def resolve_shipping_method(self, info, id):
+        return get_node(info, id, only_type=ShippingMethod)
+
+    def resolve_shipping_methods(self, info, **kwargs):
+        return resolve_shipping_methods(info)
 
     def resolve_user(self, info, id):
         return resolve_user(info, id)
