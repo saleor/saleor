@@ -195,7 +195,7 @@ class ModelMutation(BaseMutation):
     @classmethod
     def success_response(cls, instance):
         """Return a success response."""
-        return cls(**{cls._meta.return_field_name: instance}, errors=[])
+        return cls(**{cls._meta.return_field_name: instance, 'errors': []})
 
     @classmethod
     def mutate(cls, root, info, **data):
