@@ -197,9 +197,8 @@ class ProductCreateMutation(ModelMutation):
         model = models.Product
 
     @classmethod
-    def _clean_input(cls, info, instance, input, errors):
-        cleaned_input, errors = super()._clean_input(
-            info, instance, input, errors)
+    def clean_input(cls, info, instance, input, errors):
+        cleaned_input = super().clean_input(info, instance, input, errors)
 
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
@@ -217,8 +216,7 @@ class ProductCreateMutation(ModelMutation):
             attributes = get_attributes_dict_from_list(
                 attributes, slug_to_id_map)
             cleaned_input['attributes'] = attributes
-
-        return cleaned_input, errors
+        return cleaned_input
 
     @classmethod
     def user_is_allowed(cls, user, input):
@@ -273,9 +271,8 @@ class ProductVariantCreateMutation(ModelMutation):
         model = models.ProductVariant
 
     @classmethod
-    def _clean_input(cls, info, instance, input, errors):
-        cleaned_input, errors = super()._clean_input(
-            info, instance, input, errors)
+    def clean_input(cls, info, instance, input, errors):
+        cleaned_input = super().clean_input(info, instance, input, errors)
 
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
@@ -292,8 +289,7 @@ class ProductVariantCreateMutation(ModelMutation):
             attributes = get_attributes_dict_from_list(
                 attributes, slug_to_id_map)
             cleaned_input['attributes'] = attributes
-
-        return cleaned_input, errors
+        return cleaned_input
 
     @classmethod
     def user_is_allowed(cls, user, input):
