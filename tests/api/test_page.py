@@ -31,28 +31,21 @@ def test_page_query(user_api_client, page):
 
 def test_page_create_mutation(admin_api_client):
     query = """
-        mutation CreatePage(
-            $slug: String!,
-            $title: String!,
-            $content: String!,
-            $isVisible: Boolean!) {
-                pageCreate(slug: $slug,
-                title: $title,
-                content: $content,
-                isVisible: $isVisible) {
-                    page {
-                        id
-                        title
-                        content
-                        slug
-                        isVisible
-                      }
-                      errors {
-                        message
-                        field
-                      }
-                    }
-                  }
+        mutation CreatePage($slug: String!, $title: String!, $content: String!, $isVisible: Boolean!) {
+            pageCreate(input: {slug: $slug, title: $title, content: $content, isVisible: $isVisible}) {
+                page {
+                    id
+                    title
+                    content
+                    slug
+                    isVisible
+                }
+                errors {
+                    field
+                    message
+                }
+            }
+        }
     """
     page_slug = 'test-slug'
     page_content = 'test content'
