@@ -81,7 +81,6 @@ class Query(graphene.ObjectType):
         description='Lookup a product type by ID.')
     product_types = DjangoFilterConnectionField(
         ProductType, filterset_class=DistinctFilterSet,
-        level=graphene.Argument(graphene.Int),
         description='List of the shop\'s product types.')
     sale = graphene.Field(
         Sale, id=graphene.Argument(graphene.ID),
@@ -99,7 +98,9 @@ class Query(graphene.ObjectType):
         User, id=graphene.Argument(graphene.ID),
         description='Lookup an user type by ID.')
     users = DjangoFilterConnectionField(
-        User, description='List of the shop\'s users.')
+        User, description='List of the shop\'s users.',
+        query=graphene.String(
+            description=DESCRIPTIONS['user']))
     node = graphene.Node.Field()
 
     def resolve_attributes(self, info, in_category=None, query=None, **kwargs):
@@ -162,8 +163,8 @@ class Query(graphene.ObjectType):
     def resolve_user(self, info, id):
         return resolve_user(info, id)
 
-    def resolve_users(self, info, **kwargs):
-        return resolve_users(info)
+    def resolve_users(self, info, query=None, **kwargs):
+        return resolve_users(info, query=query)
 
 
 class Mutations(graphene.ObjectType):
