@@ -1,10 +1,14 @@
+import DialogContentText from "@material-ui/core/DialogContentText";
 import { withStyles, WithStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
+import ActionDialog from "../../../components/ActionDialog";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
-import SeoForm from "../../../components/SeoForm/SeoForm";
+import SeoForm from "../../../components/SeoForm";
+import Toggle from "../../../components/Toggle";
+import i18n from "../../../i18n";
 import CollectionDetails from "../CollectionDetails";
 import CollectionProducts from "../CollectionProducts";
 import CollectionProperties from "../CollectionProperties";
@@ -102,55 +106,83 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
         onSubmit
       } = this.props;
       return (
-        <Container width="md">
-          <PageHeader
-            title={collection ? collection.name : undefined}
-            onBack={onBack}
-          />
-          <div className={classes.root}>
-            <div>
-              <CollectionDetails
-                collection={collection}
-                onDelete={onCollectionDelete}
+        <Toggle>
+          {(openedRemoveDialog, { toggle: toggleRemoveDialog }) => (
+            <Container width="md">
+              <PageHeader
+                title={collection ? collection.name : undefined}
+                onBack={onBack}
+              />
+              <div className={classes.root}>
+                <div>
+                  <CollectionDetails
+                    collection={collection}
+                    onDelete={toggleRemoveDialog}
+                    disabled={disabled}
+                    data={this.state}
+                    onChange={this.onChange}
+                  />
+                  <CollectionProducts
+                    products={products}
+                    pageInfo={pageInfo}
+                    disabled={disabled}
+                    onNextPage={onNextPage}
+                    onPreviousPage={onPreviousPage}
+                    onProductAdd={onProductAdd}
+                    onProductClick={onProductClick}
+                    onProductRemove={onProductRemove}
+                  />
+                </div>
+                <div>
+                  <CollectionProperties
+                    collection={collection}
+                    data={this.state}
+                    onChange={this.onChange}
+                    disabled={disabled}
+                  />
+                  <SeoForm
+                    description={this.state.seoDescription}
+                    descriptionPlaceholder={
+                      collection ? collection.seoDescription : ""
+                    }
+                    onChange={this.onChange}
+                    onClick={
+                      !!onSeoClick ? onSeoClick(this.state.seoTitle) : undefined
+                    }
+                    storefrontUrl={storefrontUrl(this.state.slug)}
+                    title={this.state.seoTitle}
+                    titlePlaceholder={this.state.name}
+                  />
+                </div>
+              </div>
+              {collection && (
+                <>
+                  <ActionDialog
+                    onClose={toggleRemoveDialog}
+                    onConfirm={onCollectionDelete}
+                    open={openedRemoveDialog}
+                    title={i18n.t("Remove collection")}
+                    variant="delete"
+                  >
+                    <DialogContentText
+                      dangerouslySetInnerHTML={{
+                        __html: i18n.t(
+                          "Are you sure you want to remove <strong>{{ name }}</strong>?",
+                          { name: collection.name }
+                        )
+                      }}
+                    />
+                  </ActionDialog>
+                </>
+              )}
+              <SaveButtonBar
+                onBack={onBack}
+                onSave={onSubmit}
                 disabled={disabled}
-                data={this.state}
-                onChange={this.onChange}
               />
-              <CollectionProducts
-                products={products}
-                pageInfo={pageInfo}
-                disabled={disabled}
-                onNextPage={onNextPage}
-                onPreviousPage={onPreviousPage}
-                onProductAdd={onProductAdd}
-                onProductClick={onProductClick}
-                onProductRemove={onProductRemove}
-              />
-            </div>
-            <div>
-              <CollectionProperties
-                collection={collection}
-                data={this.state}
-                onChange={this.onChange}
-                disabled={disabled}
-              />
-              <SeoForm
-                description={this.state.seoDescription}
-                descriptionPlaceholder={
-                  collection ? collection.seoDescription : ""
-                }
-                onChange={this.onChange}
-                onClick={
-                  !!onSeoClick ? onSeoClick(this.state.seoTitle) : undefined
-                }
-                storefrontUrl={storefrontUrl(this.state.slug)}
-                title={this.state.seoTitle}
-                titlePlaceholder={this.state.name}
-              />
-            </div>
-          </div>
-          <SaveButtonBar onBack={onBack} onSave={onSubmit} />
-        </Container>
+            </Container>
+          )}
+        </Toggle>
       );
     }
   }
