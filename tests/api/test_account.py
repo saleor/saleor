@@ -1,5 +1,7 @@
 import json
+
 import graphene
+from django.contrib.auth import get_user_model
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 
@@ -74,3 +76,114 @@ def test_token_create_user_data(
     assert token_data['user']['email'] == staff_user.email
     assert token_data['user']['permissions'][0]['name'] == name
     assert token_data['user']['permissions'][0]['code'] == code
+
+
+def test_query_user(admin_api_client, customer_user):
+    user = customer_user
+    query = """
+    query User($id: ID!) {
+        user(id: $id) {
+            email
+            isStaff
+            isActive
+            addresses {
+                totalCount
+            }
+            orders {
+                totalCount
+            }
+            defaultShippingAddress {
+                firstName
+                lastName
+                companyName
+                streetAddress1
+                streetAddress2
+                city
+                cityArea
+                postalCode
+                country
+                countryArea
+                phone
+            }
+        }
+    }
+    """
+    ID = graphene.Node.to_global_id('User', customer_user.id)
+    variables = json.dumps({'id': ID})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['user']
+    assert data['email'] == user.email
+    assert data['isStaff'] == user.is_staff
+    assert data['isActive'] == user.is_active
+    assert data['addresses']['totalCount'] == user.addresses.count()
+    assert data['orders']['totalCount'] == user.orders.count()
+    address = data['defaultShippingAddress']
+    user_address = user.default_shipping_address
+    assert address['firstName'] == user_address.first_name
+    assert address['lastName'] == user_address.last_name
+    assert address['companyName'] == user_address.company_name
+    assert address['streetAddress1'] == user_address.street_address_1
+    assert address['streetAddress2'] == user_address.street_address_2
+    assert address['city'] == user_address.city
+    assert address['cityArea'] == user_address.city_area
+    assert address['postalCode'] == user_address.postal_code
+    assert address['country'] == user_address.country.code
+    assert address['countryArea'] == user_address.country_area
+    assert address['phone'] == user_address.phone.raw_input
+
+
+def test_who_can_see_user(
+        staff_user, customer_user, staff_api_client, user_api_client,
+        staff_group, permission_view_user):
+    user = customer_user
+    query = """
+    query User($id: ID!) {
+        user(id: $id) {
+            email
+        }
+    }
+    """
+
+    query_2 = """
+    query Users {
+        users {
+            totalCount
+        }
+    }
+    """
+    # User can see himself
+    ID = graphene.Node.to_global_id('User', customer_user.id)
+    variables = json.dumps({'id': ID})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+
+    # Random person (even staff) can't see users data without permissions
+    ID = graphene.Node.to_global_id('User', customer_user.id)
+    variables = json.dumps({'id': ID})
+    response = staff_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert content['data']['user'] is None
+
+    response = staff_api_client.post(
+        reverse('api'), {'query': query_2})
+    content = get_graphql_content(response)
+    assert not content['data']['users']['totalCount']
+
+    # Add permission and ensure staff can see user(s)
+    staff_group.permissions.add(permission_view_user)
+    staff_user.groups.add(staff_group)
+    response = staff_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert content['data']['user']['email'] == customer_user.email
+
+    response = staff_api_client.post(reverse('api'), {'query': query_2})
+    content = get_graphql_content(response)
+    model = get_user_model()
+    assert content['data']['users']['totalCount'] == model.objects.count()
