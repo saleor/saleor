@@ -4,9 +4,6 @@
     features:
       left:
         - feature:
-            title: Dashboard 2.0
-            description: New, dynamic UX - a modern and intuitive way of managing your shop.
-        - feature:
             title: Storefront 2.0
             description: Mobile-first storefront with full PWA support.<br /> Support for browser-based payment methods (Google Pay, Apple Pay).
         - feature:
@@ -31,12 +28,25 @@
     features:
       left:
         - feature:
-            title: GDPR
-            description: Set of tools to make you website GDPR compilant
+            title: Dashboard 2.0
+            description: New, dynamic UX - a modern and intuitive way of managing your shop.
       right:
         - feature:
-            title: Abandoned checkouts
-            description: Ability to track abandoned checkouts.
+            title: GraphQL API
+            description: Comprehensive API to access and modify all Saleor's models.
+- release:
+    title: <span>May</span> Release
+    image: /images/done.svg
+    link: https://github.com/mirumee/saleor/releases/tag/v2018.05
+    features:
+      left:
+        - feature:
+            title: ""
+            type: list
+            description:
+              - Ability to remove customers’ data
+              - reCAPTCHA integration
+              - Product overselling
 - release:
     title: <span>April</span> Release
     image: /images/done.svg
