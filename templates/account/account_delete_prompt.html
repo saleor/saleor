@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% load bootstrap_form from bootstrap4 %}
+{% load staticfiles %}
+{% load i18n %}
+{% load placeholder %}
+
+{% block title %}{% trans "Are you sure?" context "Account deletetion confirmation page title" %} — {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row account__deleted">
+  <div class="col-xl-10 m-auto">
+    <img class="lazyload lazypreload"
+        data-src="{% static 'images/login-bg.png' %}"
+        data-srcset="{% static 'images/login-bg.png' %} 1x, {% static 'images/login-bg2x.png' %} 2x">
+    <h1>{% trans "Sorry to see you go!" context "Message displayed to the user requesting for his account deletetion" %}</h1>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      <p>
+        {% blocktrans trimmed context "Message displayed to the user requesting for his account deletetion" %}
+          Are you sure you want to delete your account?
+        {% endblocktrans %}
+      </p>
+
+      <button type="submit" class="btn btn-outline-danger btn-lg">{% trans 'Delete account' context 'Confirm account deletion button' %}</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

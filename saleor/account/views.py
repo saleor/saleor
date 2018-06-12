@@ -143,6 +143,20 @@ def account_delete(request, pk):
 
 def account_delete_confirm(request, token):
     user = get_object_or_404(User, token=token)
-    user.delete()
+
+    if request.method == 'POST':
+        user.delete()
+        msg = pgettext(
+            'Account deleted',
+            'Your account was deleted successfully. '
+            'In case of any trouble or questions feel free to contact us.')
+        messages.success(request, msg)
+        return redirect('home')
+
     return TemplateResponse(
-        request, 'account/account_delete.html')
+        request, 'account/account_delete_prompt.html')
+
+
+def account_deleted_confirm(request):
+    return TemplateResponse(
+        request, 'account/account_deleted_confirmation.html')
