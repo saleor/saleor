@@ -156,8 +156,3 @@ def account_delete_confirm(request, token):
 
     return TemplateResponse(
         request, 'account/account_delete_prompt.html')
-
-
-def account_deleted_confirm(request):
-    return TemplateResponse(
-        request, 'account/account_deleted_confirmation.html')
