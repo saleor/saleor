@@ -290,8 +290,17 @@ def test_view_account_delete_confirm(customer_user, authorized_client):
     response = authorized_client.get(url)
     assert response.status_code == 404
 
-    url = reverse('account:delete-confirm', args=[customer_user.token])
-    response = authorized_client.get(url)
+    deletion_url = reverse(
+        'account:delete-confirm', args=[customer_user.token])
+
+    # getting the page should not delete the user
+    response = authorized_client.get(deletion_url)
     assert response.status_code == 200
+    customer_user = User.objects.filter(pk=customer_user.pk).first()
+    assert customer_user is not None
+
+    # posting onto the page should delete the user
+    response = authorized_client.post(deletion_url, data={'t': 'yes'})
+    assert response.status_code == 302
     customer_user = User.objects.filter(pk=customer_user.pk).first()
     assert customer_user is None
