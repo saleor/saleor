@@ -102,7 +102,7 @@ class User(PermissionsMixin, AbstractBaseUser):
     addresses = models.ManyToManyField(
         Address, blank=True, related_name='user_addresses')
     is_staff = models.BooleanField(default=False)
-    token = models.UUIDField(default=get_token, editable=False)
+    token = models.UUIDField(default=get_token, editable=False, unique=True)
     is_active = models.BooleanField(default=True)
     note = models.TextField(null=True, blank=True)
     date_joined = models.DateTimeField(default=timezone.now, editable=False)
