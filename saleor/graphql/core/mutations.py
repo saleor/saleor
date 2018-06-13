@@ -61,6 +61,9 @@ class ModelMutation(BaseMutation):
         if not _meta:
             _meta = ModelMutationOptions(cls)
 
+        if exclude is None:
+            exclude = []
+
         return_field_name = get_model_name(model)
         if arguments is None:
             arguments = {}
@@ -165,6 +168,7 @@ class ModelMutation(BaseMutation):
         model fields' validation. Returns errors ready to be returned by
         the GraphQL response (if any occured).
         """
+        print(instance.__dict__)
         try:
             instance.full_clean()
         except ValidationError as validation_errors:
@@ -202,6 +206,10 @@ class ModelMutation(BaseMutation):
         return cls(**{cls._meta.return_field_name: instance, 'errors': []})
 
     @classmethod
+    def save(cls, instance, cleaned_input):
+        instance.save()
+
+    @classmethod
     def mutate(cls, root, info, **data):
         """Perform model mutation.
 
@@ -233,7 +241,7 @@ class ModelMutation(BaseMutation):
         if errors:
             return cls(errors=errors)
 
-        instance.save()
+        cls.save(instance, cleaned_input)
         cls._save_m2m(instance, cleaned_input)
         return cls.success_response(instance)
 
