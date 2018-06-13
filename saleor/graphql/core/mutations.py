@@ -30,6 +30,7 @@ def get_output_fields(model, return_field_name):
 
 
 class ModelMutationOptions(MutationOptions):
+    exclude = None
     model = None
     return_field_name = None
 
@@ -54,7 +55,7 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def __init_subclass_with_meta__(
-            cls, arguments=None, model=None, _meta=None, **options):
+            cls, arguments=None, model=None, exclude=None, _meta=None, **options):
         if not model:
             raise ImproperlyConfigured('model is required for ModelMutation')
         if not _meta:
@@ -67,6 +68,7 @@ class ModelMutation(BaseMutation):
 
         _meta.model = model
         _meta.return_field_name = return_field_name
+        _meta.exclude = exclude
         super().__init_subclass_with_meta__(_meta=_meta, **options)
         cls._update_mutation_arguments_and_fields(
             arguments=arguments, fields=fields)
@@ -168,6 +170,8 @@ class ModelMutation(BaseMutation):
         except ValidationError as validation_errors:
             message_dict = validation_errors.message_dict
             for field in message_dict:
+                if field in cls._meta.exclude:
+                    continue
                 for message in message_dict[field]:
                     cls.add_error(errors, field, message)
         return errors
