@@ -295,7 +295,7 @@ def test_view_account_delete_confirm(customer_user, authorized_client):
     assert customer_user is not None
 
     # posting onto the page should delete the user
-    response = authorized_client.post(deletion_url, data={'t': 'yes'})
+    response = authorized_client.post(deletion_url)
     assert response.status_code == 302
     customer_user = User.objects.filter(pk=customer_user.pk).first()
     assert customer_user is None
