@@ -193,6 +193,7 @@ class ModelMutation(BaseMutation):
         model fields' validation. Returns errors ready to be returned by
         the GraphQL response (if any occured).
         """
+        print(instance.__dict__)
         try:
             instance.full_clean()
         except ValidationError as validation_errors:

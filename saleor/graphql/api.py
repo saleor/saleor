@@ -1,6 +1,5 @@
 import graphene
 import graphql_jwt
-from graphene_django.fields import DjangoConnectionField
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql_jwt.decorators import permission_required
 
