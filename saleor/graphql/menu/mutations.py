@@ -1,7 +1,7 @@
 import graphene
 
 from ...menu import models
-from ..core.mutations import ModelMutation
+from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types import Error
 
 
@@ -53,7 +53,7 @@ class MenuUpdate(ModelMutation):
         return user.has_perm('menu.edit_menu')
 
 
-class MenuDelete(ModelMutation):
+class MenuDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a menu to delete.')
@@ -136,7 +136,7 @@ class MenuItemUpdate(ModelMutation):
         return super().construct_instance(instance, cleaned_data)
 
 
-class MenuItemDelete(ModelMutation):
+class MenuItemDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a menu item to delete.')
