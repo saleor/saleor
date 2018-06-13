@@ -1,11 +1,13 @@
 import graphene
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Permission
+from django.contrib.auth import models as auth_models
 from graphene import relay
+from graphene_django.fields import DjangoConnectionField
 
 from ...account import models
 from ..core.types import CountableDjangoObjectType, PermissionDisplay
 from ..utils import format_permissions_for_display
+
 
 class Address(CountableDjangoObjectType):
     class Meta:
@@ -15,7 +17,22 @@ class Address(CountableDjangoObjectType):
         model = models.Address
 
 
+class Group(CountableDjangoObjectType):
+    permissions = graphene.List(PermissionDisplay)
+
+    class Meta:
+        description = 'Represents a group of permissions.'
+        exclude_fields = ['user_set']
+        interfaces = [relay.Node]
+        model = auth_models.Group
+
+    def resolve_permissions(self, info, **kwargs):
+        qs = self.permissions.select_related('content_type')
+        return format_permissions_for_display(qs)
+
+
 class User(CountableDjangoObjectType):
+    groups = DjangoConnectionField(Group)
     permissions = graphene.List(PermissionDisplay)
 
     class Meta:
@@ -32,10 +49,10 @@ class User(CountableDjangoObjectType):
 
     def resolve_permissions(self, info, **kwargs):
         if self.is_superuser:
-            permissions = Permission.objects.all()
+            permissions = auth_models.Permission.objects.all()
         else:
             permissions = (
                 self.user_permissions.all() |
-                Permission.objects.filter(group__user=self))
+                auth_models.Permission.objects.filter(group__user=self))
         permissions = permissions.select_related('content_type')
         return format_permissions_for_display(permissions)
