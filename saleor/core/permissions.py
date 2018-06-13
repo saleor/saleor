@@ -31,7 +31,9 @@ MODELS_PERMISSIONS = [
 ]
 
 
-def get_permissions():
-    codenames = [permission.split('.')[1] for permission in MODELS_PERMISSIONS]
+def get_permissions(permissions=None):
+    if permissions is None:
+        permissions = MODELS_PERMISSIONS
+    codenames = [permission.split('.')[1] for permission in permissions]
     return Permission.objects.filter(codename__in=codenames).prefetch_related(
         'content_type').order_by('codename')

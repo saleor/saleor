@@ -1,14 +1,16 @@
 import graphene
 import graphql_jwt
+from graphene_django.fields import DjangoConnectionField
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql_jwt.decorators import permission_required
 
-from .account.resolvers import resolve_user, resolve_users
-from .account.types import User
+from .account.mutations import (
+    CustomerCreate, CustomerUpdate, StaffCreate, StaffUpdate)
+from .account.resolvers import resolve_groups, resolve_user, resolve_users
+from .account.types import Group, User
 from .descriptions import DESCRIPTIONS
 from .discount.resolvers import resolve_sales, resolve_vouchers
 from .discount.types import Sale, Voucher
-from ..page import models as page_models
 from .core.filters import DistinctFilterSet
 from .core.mutations import CreateToken, VerifyToken
 from .core.resolvers import resolve_shop
@@ -16,7 +18,7 @@ from .core.types import Shop
 from .order.filters import OrderFilter
 from .order.resolvers import resolve_order, resolve_orders
 from .order.types import Order
-from .page.resolvers import resolve_pages
+from .page.resolvers import resolve_pages, resolve_page
 from .page.types import Page
 from .page.mutations import PageCreate, PageDelete, PageUpdate
 from .product.filters import ProductFilterSet
@@ -59,6 +61,9 @@ class Query(graphene.ObjectType):
         Collection, query=graphene.String(
             description=DESCRIPTIONS['collection']),
         description='List of the shop\'s collections.')
+    groups = DjangoConnectionField(
+        Group, query=graphene.String(description=DESCRIPTIONS['group']),
+        description='List of shop\'s permission groups.')
     order = graphene.Field(
         Order, description='Lookup an order by ID.',
         id=graphene.Argument(graphene.ID))
@@ -130,10 +135,11 @@ class Query(graphene.ObjectType):
     def resolve_collections(self, info, query=None, **kwargs):
         resolve_collections(info, query)
 
+    def resolve_groups(self, info, query=None, **kwargs):
+        return resolve_groups(info, query)
+
     def resolve_page(self, info, id=None, slug=None):
-        if slug is not None:
-            return page_models.Page.objects.get(slug=slug)
-        return get_node(info, id, only_type=Page)
+        return resolve_page(info, id, slug)
 
     def resolve_pages(self, info, query=None, **kwargs):
         return resolve_pages(user=info.context.user, query=query)
@@ -193,6 +199,12 @@ class Mutations(graphene.ObjectType):
     category_create = CategoryCreateMutation.Field()
     category_delete = CategoryDelete.Field()
     category_update = CategoryUpdateMutation.Field()
+
+    customer_create = CustomerCreate.Field()
+    customer_update = CustomerUpdate.Field()
+
+    staff_create = StaffCreate.Field()
+    staff_update = StaffUpdate.Field()
 
     collection_create = CollectionCreateMutation.Field()
     collection_update = CollectionUpdate.Field()
