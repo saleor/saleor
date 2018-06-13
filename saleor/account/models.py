@@ -97,6 +97,9 @@ class UserManager(BaseUserManager):
         return self.get_queryset().filter(
             Q(is_staff=False) | (Q(is_staff=True) & Q(orders__isnull=False)))
 
+    def staff(self):
+        return self.get_queryset().filter(is_staff=True)
+
 
 def get_token():
     return str(uuid.uuid4())

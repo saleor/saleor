@@ -1,4 +1,5 @@
 import graphene
+from django.contrib.auth.tokens import default_token_generator
 
 from ...account import models
 from ...core.permissions import get_permissions, MODELS_PERMISSIONS
@@ -23,7 +24,8 @@ class StaffInput(UserInput):
 
 class CustomerCreate(ModelMutation):
     class Arguments:
-        input = UserInput()
+        input = UserInput(
+            description='Fields required to create a customer.', required=True)
 
     class Meta:
         description = 'Creates a new customer.'
@@ -37,8 +39,10 @@ class CustomerCreate(ModelMutation):
 
 class CustomerUpdate(CustomerCreate):
     class Arguments:
-        id = graphene.ID()
-        input = UserInput()
+        id = graphene.ID(
+            description='ID of a customer to update.', required=True)
+        input = UserInput(
+            description='Fields required to update a customer.', required=True)
 
     class Meta:
         description = 'Updates an existing customer.'
@@ -48,7 +52,9 @@ class CustomerUpdate(CustomerCreate):
 
 class StaffCreate(ModelMutation):
     class Arguments:
-        input = StaffInput()
+        input = StaffInput(
+            description='Fields required to create a staff user.',
+            required=True)
 
     class Meta:
         description = 'Creates a new staff user.'
@@ -63,6 +69,10 @@ class StaffCreate(ModelMutation):
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
 
+        # set is_staff to True to create a staff user
+        cleaned_input['is_staff'] = True
+
+        # clean and prepare permissions
         if 'permissions' in cleaned_input:
             permissions = cleaned_input['permissions']
             cleaned_permissions = []
@@ -80,8 +90,11 @@ class StaffCreate(ModelMutation):
 
 class StaffUpdate(StaffCreate):
     class Arguments:
-        id = graphene.ID()
-        input = StaffInput()
+        id = graphene.ID(
+            description='ID of a staff user to update.', required=True)
+        input = StaffInput(
+            description='Fields required to update a staff user.',
+            required=True)
 
     class Meta:
         description = 'Updates an existing staff user.'
@@ -91,14 +104,17 @@ class StaffUpdate(StaffCreate):
 
 class SetPasswordInput(graphene.InputObjectType):
     token = graphene.String(
-        description='A one-time token required to set the password.')
-    password = graphene.String(description='Password')
+        description='A one-time token required to set the password.',
+        required=True)
+    password = graphene.String(description='Password', required=True)
 
 
 class SetPassword(ModelMutation):
     class Arguments:
-        id = graphene.ID()
-        input = SetPasswordInput()
+        id = graphene.ID(
+            description='ID of a user to set password whom.', required=True)
+        input = SetPasswordInput(
+            description='Fields required to set password.', required=True)
 
     class Meta:
         description = 'Sets user password.'
@@ -107,8 +123,12 @@ class SetPassword(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
-        cleaned_input.pop('token')
+        token = cleaned_input.pop('token')
+        if not default_token_generator.check_token(instance, token):
+            cls.add_error(errors, 'token', 'Invalid or expired token.')
         return cleaned_input
 
-    # FIXME: make sure about the permissions. At the moment any user with
-    # valid token can set the password.
+    @classmethod
+    def save(cls, instance, cleaned_input):
+        instance.set_password(cleaned_input['password'])
+        instance.save()
