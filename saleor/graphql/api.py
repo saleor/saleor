@@ -5,8 +5,10 @@ from graphene_django.filter import DjangoFilterConnectionField
 from graphql_jwt.decorators import permission_required
 
 from .account.mutations import (
-    CustomerCreate, CustomerUpdate, StaffCreate, StaffUpdate)
-from .account.resolvers import resolve_groups, resolve_user, resolve_users
+    CustomerCreate, CustomerUpdate, SetPassword, StaffCreate, StaffUpdate)
+from .account.resolvers import (
+    resolve_customer, resolve_customers, resolve_groups, resolve_staff_user,
+    resolve_staff_users)
 from .account.types import Group, User
 from .descriptions import DESCRIPTIONS
 from .discount.resolvers import resolve_sales, resolve_vouchers
@@ -61,6 +63,13 @@ class Query(graphene.ObjectType):
         Collection, query=graphene.String(
             description=DESCRIPTIONS['collection']),
         description='List of the shop\'s collections.')
+    customer = graphene.Field(
+        User, id=graphene.Argument(graphene.ID),
+        description='Lookup a customer by ID.')
+    customers = DjangoFilterConnectionField(
+        User, description='List of the shop\'s customers.',
+        query=graphene.String(
+            description=DESCRIPTIONS['customer']))
     groups = DjangoConnectionField(
         Group, query=graphene.String(description=DESCRIPTIONS['group']),
         description='List of shop\'s permission groups.')
@@ -100,6 +109,13 @@ class Query(graphene.ObjectType):
     shop = graphene.Field(
         Shop, description='Represents a shop resources.',
         resolver=resolve_shop)
+    staff_user = graphene.Field(
+        User, id=graphene.Argument(graphene.ID),
+        description='Lookup a staff user by ID.')
+    staff_users = DjangoFilterConnectionField(
+        User, description='List of the shop\'s staff users.',
+        query=graphene.String(
+            description=DESCRIPTIONS['staff']))
     voucher = graphene.Field(
         Voucher, id=graphene.Argument(graphene.ID),
         description='Lookup a voucher by ID.')
@@ -111,13 +127,6 @@ class Query(graphene.ObjectType):
         description='Lookup a shipping method by ID.')
     shipping_methods = DjangoFilterConnectionField(
         ShippingMethod, description='List of the shop\'s shipping methods.')
-    user = graphene.Field(
-        User, id=graphene.Argument(graphene.ID),
-        description='Lookup an user type by ID.')
-    users = DjangoFilterConnectionField(
-        User, description='List of the shop\'s users.',
-        query=graphene.String(
-            description=DESCRIPTIONS['user']))
     node = graphene.Node.Field()
 
     def resolve_attributes(self, info, in_category=None, query=None, **kwargs):
@@ -134,6 +143,12 @@ class Query(graphene.ObjectType):
 
     def resolve_collections(self, info, query=None, **kwargs):
         resolve_collections(info, query)
+
+    def resolve_customer(self, info, id):
+        return resolve_customer(info, id)
+
+    def resolve_customers(self, info, query=None, **kwargs):
+        return resolve_customers(info, query=query)
 
     def resolve_groups(self, info, query=None, **kwargs):
         return resolve_groups(info, query)
@@ -184,17 +199,19 @@ class Query(graphene.ObjectType):
     def resolve_shipping_methods(self, info, **kwargs):
         return resolve_shipping_methods(info)
 
-    def resolve_user(self, info, id):
-        return resolve_user(info, id)
+    def resolve_staff_user(self, info, id):
+        return resolve_staff_user(info, id)
 
-    def resolve_users(self, info, query=None, **kwargs):
-        return resolve_users(info, query=query)
+    def resolve_staff_users(self, info, query=None, **kwargs):
+        return resolve_staff_users(info, query=query)
 
 
 class Mutations(graphene.ObjectType):
     token_create = CreateToken.Field()
     token_refresh = graphql_jwt.Refresh.Field()
     token_verify = VerifyToken.Field()
+
+    set_password = SetPassword.Field()
 
     category_create = CategoryCreateMutation.Field()
     category_delete = CategoryDelete.Field()
