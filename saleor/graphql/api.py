@@ -137,6 +137,13 @@ class Query(graphene.ObjectType):
     shop = graphene.Field(
         Shop, description='Represents a shop resources.',
         resolver=resolve_shop)
+    staff_user = graphene.Field(
+        User, id=graphene.Argument(graphene.ID),
+        description='Lookup a staff user by ID.')
+    staff_users = DjangoFilterConnectionField(
+        User, description='List of the shop\'s staff users.',
+        query=graphene.String(
+            description=DESCRIPTIONS['staff']))
     voucher = graphene.Field(
         Voucher, id=graphene.Argument(graphene.ID),
         description='Lookup a voucher by ID.')
