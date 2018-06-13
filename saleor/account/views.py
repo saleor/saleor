@@ -139,8 +139,12 @@ def account_delete(request):
     return HttpResponseRedirect(reverse('account:details') + '#settings')
 
 
+@login_required
 def account_delete_confirm(request, token):
-    user = get_object_or_404(User, token=token)
+    user = request.user
+
+    if str(request.user.token) != token:
+        raise Http404('No such page!')
 
     if request.method == 'POST':
         user.delete()
