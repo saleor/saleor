@@ -1,6 +1,33 @@
+import decimal
+
 import graphene
 from django_prices.templatetags import prices_i18n
+from graphene.types import Scalar
 from graphene_django import DjangoObjectType
+from graphql.language import ast
+
+
+# FIXME: not yet merged https://github.com/graphql-python/graphene/pull/726
+class Decimal(Scalar):
+    """
+    The `Decimal` scalar type represents a python Decimal.
+    """
+
+    @staticmethod
+    def serialize(dec):
+        assert isinstance(dec, decimal.Decimal), (
+            'Received not compatible Decimal "{}"'.format(repr(dec))
+        )
+        return str(dec)
+
+    @staticmethod
+    def parse_value(value):
+        return decimal.Decimal(value)
+
+    @classmethod
+    def parse_literal(cls, node):
+        if isinstance(node, ast.StringValue):
+            return cls.parse_value(node.value)
 
 
 class CountableConnection(graphene.relay.Connection):
