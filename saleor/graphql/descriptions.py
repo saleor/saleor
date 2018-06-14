@@ -1,5 +1,4 @@
-from .account.resolvers import (
-    CUSTOMER_SEARCH_FIELDS, GROUP_SEARCH_FIELDS, STAFF_SEARCH_FIELDS)
+from .account.resolvers import USER_SEARCH_FIELDS, GROUP_SEARCH_FIELDS
 from .discount.resolvers import SALE_SEARCH_FIELDS, VOUCHER_SEARCH_FIELDS
 from .order.resolvers import ORDER_SEARCH_FIELDS
 from .page.resolvers import PAGE_SEARCH_FIELDS
@@ -15,11 +14,10 @@ DESCRIPTIONS = {
     'category': generate_query_argument_description(CATEGORY_SEARCH_FIELDS),
     'collection': generate_query_argument_description(
         COLLECTION_SEARCH_FIELDS),
-    'customer': generate_query_argument_description(CUSTOMER_SEARCH_FIELDS),
     'group': generate_query_argument_description(GROUP_SEARCH_FIELDS),
     'order': generate_query_argument_description(ORDER_SEARCH_FIELDS),
     'page': generate_query_argument_description(PAGE_SEARCH_FIELDS),
     'product': generate_query_argument_description(PRODUCT_SEARCH_FIELDS),
     'voucher': generate_query_argument_description(VOUCHER_SEARCH_FIELDS),
     'sale': generate_query_argument_description(SALE_SEARCH_FIELDS),
-    'staff': generate_query_argument_description(STAFF_SEARCH_FIELDS)}
+    'user': generate_query_argument_description(USER_SEARCH_FIELDS)}

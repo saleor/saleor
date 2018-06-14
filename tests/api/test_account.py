@@ -1,9 +1,12 @@
 import json
+from django.contrib.auth.tokens import default_token_generator
 
 import graphene
 from django.contrib.auth import get_user_model
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
+
+from saleor.graphql.account.mutations import SetPassword
 
 
 def test_create_token_mutation(admin_client, staff_user):
@@ -154,13 +157,6 @@ def test_who_can_see_user(
         }
     }
     """
-    # User can see himself
-    ID = graphene.Node.to_global_id('User', customer_user.id)
-    variables = json.dumps({'id': ID})
-    response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
 
     # Random person (even staff) can't see users data without permissions
     ID = graphene.Node.to_global_id('User', customer_user.id)
@@ -172,8 +168,7 @@ def test_who_can_see_user(
 
     response = staff_api_client.post(
         reverse('api'), {'query': query_2})
-    content = get_graphql_content(response)
-    assert not content['data']['users']['totalCount']
+    assert_no_permission(response)
 
     # Add permission and ensure staff can see user(s)
     staff_group.permissions.add(permission_view_user)
@@ -187,3 +182,235 @@ def test_who_can_see_user(
     content = get_graphql_content(response)
     model = get_user_model()
     assert content['data']['users']['totalCount'] == model.objects.count()
+
+
+def assert_no_permission(response):
+    content = get_graphql_content(response)
+    assert 'errors' in content
+    assert content['errors'][0]['message'] == 'You do not have permission to perform this action'
+
+
+def test_customer_create(admin_api_client, user_api_client):
+    query = """
+    mutation CreateCustomer($email: String, $note: String) {
+        customerCreate(input: {email: $email, note: $note}) {
+            errors {
+                field
+                message
+            }
+            user {
+                id
+                email
+                isStaff
+                isActive
+                note
+            }
+        }
+    }
+    """
+    email = 'api_user@example.com'
+    note = 'Test user'
+
+    variables = json.dumps({'email': email, 'note': note})
+
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    assert_no_permission(response)
+
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['customerCreate']
+    assert data['errors'] == []
+    assert data['user']['email'] == email
+    assert data['user']['note'] == note
+    assert data['user']['isStaff'] == False
+    assert data['user']['isActive'] == True
+
+
+def test_customer_update(admin_api_client, customer_user, user_api_client):
+    query = """
+    mutation UpdateCustomer($id: ID!, $email: String, $note: String) {
+        customerUpdate(id: $id, input: {email: $email, note: $note}) {
+            errors {
+                field
+                message
+            }
+            user {
+                id
+                email
+                isStaff
+                isActive
+                note
+            }
+        }
+    }
+    """
+
+    id = graphene.Node.to_global_id('User', customer_user.id)
+    note = 'Test update note'
+    variables = json.dumps({'id': id, 'note': note})
+
+    # check unauthorized access
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    assert_no_permission(response)
+
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['customerUpdate']
+    assert data['errors'] == []
+    assert data['user']['note'] == note
+
+
+def test_staff_create(
+        admin_api_client, user_api_client, staff_group, permission_view_user,
+        permission_view_product):
+    query = """
+    mutation CreateStaff($email: String, $permissions: [String], $groups: [ID]) {
+        staffCreate(input: {email: $email, permissions: $permissions, groups: $groups}) {
+            errors {
+                field
+                message
+            }
+            user {
+                id
+                email
+                isStaff
+                isActive
+                permissions {
+                    code
+                }
+                groups {
+                    edges {
+                        node {
+                            id
+                            name
+                        }
+                    }
+                }
+            }
+        }
+    }
+    """
+
+    permission_view_user_codename = '%s.%s' % (
+        permission_view_user.content_type.app_label,
+        permission_view_user.codename)
+    permission_view_product_codename = '%s.%s' % (
+        permission_view_product.content_type.app_label,
+        permission_view_product.codename)
+
+    email = 'api_user@example.com'
+    staff_group.permissions.add(permission_view_user)
+    group_id = graphene.Node.to_global_id('Group', staff_group.id)
+
+    variables = json.dumps({
+        'email': email, 'groups': [group_id],
+        'permissions': [permission_view_product_codename]})
+
+    # check unauthorized access
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    assert_no_permission(response)
+
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['staffCreate']
+    assert data['errors'] == []
+    assert data['user']['email'] == email
+    assert data['user']['isStaff'] == True
+    assert data['user']['isActive'] == True
+    assert data['user']['isActive'] == True
+    permissions = data['user']['permissions']
+    assert permissions[0]['code'] == permission_view_user_codename
+    assert permissions[1]['code'] == permission_view_product_codename
+    groups = data['user']['groups']['edges']
+    assert len(groups) == 1
+    assert groups[0]['node']['name'] == staff_group.name
+
+
+def test_staff_update(admin_api_client, staff_user, user_api_client):
+    query = """
+    mutation UpdateStaff($id: ID!, $email: String, $permissions: [String], $groups: [ID]) {
+        staffUpdate(id: $id, input: {email: $email, permissions: $permissions, groups: $groups}) {
+            errors {
+                field
+                message
+            }
+            user {
+                permissions {
+                    code
+                }
+                groups {
+                    edges {
+                        node {
+                            id
+                        }
+                    }
+                }
+            }
+        }
+    }
+    """
+    id = graphene.Node.to_global_id('User', staff_user.id)
+    variables = json.dumps({'id': id, 'permissions': [], 'groups': []})
+
+    # check unauthorized access
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    assert_no_permission(response)
+
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['staffUpdate']
+    assert data['errors'] == []
+    assert data['user']['permissions'] == []
+    assert data['user']['groups'] == []
+
+
+def test_set_password(user_api_client, customer_user):
+    query = """
+    mutation SetPassword($id: ID!, $token: String!, $password: String!) {
+        setPassword(id: $id, input: {token: $token, password: $password}) {
+            errors {
+                    field
+                    message
+                }
+                user {
+                    id
+                }
+            }
+        }
+    """
+    id = graphene.Node.to_global_id('User', customer_user.id)
+    token = default_token_generator.make_token(customer_user)
+    password = 'spanish-inquisition'
+
+    variables = {'id': id, 'password': password}
+
+    # check invalid token
+    variables['token'] = 'nope'
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': json.dumps(variables)})
+    content = get_graphql_content(response)
+    errors = content['data']['setPassword']['errors']
+    assert errors[0]['message'] == SetPassword.INVALID_TOKEN
+
+    variables['token'] = token
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': json.dumps(variables)})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['setPassword']
+    assert data['user']['id']
+
+    customer_user.refresh_from_db()
+    assert customer_user.check_password(password)
