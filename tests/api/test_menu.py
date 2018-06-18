@@ -9,7 +9,7 @@ from tests.utils import get_graphql_content
 def test_menu_query(user_api_client, menu, menu_item):
     query = """
     query menus($menu_name: String){
-        menus(name: $menu_name) {
+        menus(name_Icontains: $menu_name) {
             edges {
                 node {
                     name
@@ -53,9 +53,7 @@ def test_menu_items_query(user_api_client, menu_item, collection):
             children {
                 totalCount
             }
-            collection {
-                name
-            }
+            url
         }
     }
     """
@@ -69,7 +67,7 @@ def test_menu_items_query(user_api_client, menu_item, collection):
     assert 'errors' not in content
     data = content['data']['menuItem']
     assert data['name'] == menu_item.name
-    assert data['collection']['name'] == menu_item.collection.name
+    assert data['url'] == menu_item.collection.get_absolute_url()
     assert data['children']['totalCount'] == menu_item.children.count()
 
 
@@ -165,9 +163,6 @@ def test_update_menu_item(admin_api_client, menu, menu_item, page):
         menuItemUpdate(id: $id, input: {menu: $menu_id, page: $page}) {
             menuItem {
                 url
-                page {
-                    title
-                }
             }
         }
     }
@@ -185,8 +180,7 @@ def test_update_menu_item(admin_api_client, menu, menu_item, page):
     content = get_graphql_content(response)
     assert 'errors' not in content
     data = content['data']['menuItemUpdate']['menuItem']
-    assert not data['url']
-    assert data['page']['title'] == page.title
+    assert data['url'] == page.get_absolute_url()
 
 
 def test_delete_menu_item(admin_api_client, menu_item):
@@ -222,9 +216,6 @@ def test_add_more_than_one_item(admin_api_client, menu, menu_item, page):
         }
             menuItem {
                 url
-                page {
-                    title
-                }
             }
         }
     }

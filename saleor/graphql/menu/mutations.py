@@ -86,11 +86,11 @@ class MenuItemCreate(ModelMutation):
         items = [
             cleaned_input.get('page'), cleaned_input.get('collection'),
             cleaned_input.get('url'), cleaned_input.get('category')]
-        items = list(filter(None.__ne__, items))
+        items = [item for item in items if item is not None]
         if len(items) > 1:
-            field = 'items'
-            msg = 'More than one item provided.'
-            cls.add_error(errors=errors, field=field, message=msg)
+            cls.add_error(
+                errors=errors,
+                field='items', message='More than one item provided.')
         return cleaned_input
 
 
