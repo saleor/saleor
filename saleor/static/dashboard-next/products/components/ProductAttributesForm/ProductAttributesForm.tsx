@@ -17,7 +17,9 @@ interface ProductAttributesFormProps {
     };
     value: AttributeType;
   }>;
-  data: any;
+  data?: {
+    [key: string]: any;
+  };
   disabled?: boolean;
   onChange(event: any);
 }

@@ -1,11 +1,13 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import * as placeholder from "../../../../images/placeholder255x255.png";
+import * as placeholderImage from "../../../../images/placeholder255x255.png";
 import ProductImages from "../../../products/components/ProductImages";
-import { images as imagesFixture } from "../../../products/fixtures";
+import { product as productFixture } from "../../../products/fixtures";
 
-const images = imagesFixture.map(image => ({ ...image, url: placeholder }));
+const images = productFixture(placeholderImage).images.edges.map(
+  edge => edge.node
+);
 
 storiesOf("Products / ProductImages", module)
   .add("without data", () => (
@@ -24,7 +26,7 @@ storiesOf("Products / ProductImages", module)
   ))
   .add("when loading data", () => (
     <ProductImages
-      placeholderImage={placeholder}
+      placeholderImage={placeholderImage}
       onImageReorder={() => {}}
       onImageUpload={() => {}}
     />

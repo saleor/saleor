@@ -14,6 +14,7 @@ function loadStories() {
   require("./stories/components/PageHeader");
   require("./stories/components/PhoneField");
   require("./stories/components/PriceField");
+  require("./stories/components/SaveButtonBar");
   require("./stories/components/SingleAutocompleteSelectField");
   require("./stories/components/SingleSelectField");
   require("./stories/components/Skeleton");
@@ -44,14 +45,14 @@ function loadStories() {
   require("./stories/products/ProductAttributesForm");
   require("./stories/products/ProductAvailabilityForm");
   require("./stories/products/ProductCategoryAndCollectionsForm");
-  require("./stories/products/ProductCollections");
-  require("./stories/products/ProductDescription");
+  // require("./stories/products/ProductCollections");
+  // require("./stories/products/ProductDescription");
   require("./stories/products/ProductDetailsForm");
-  require("./stories/products/ProductDetailsPage");
+  // require("./stories/products/ProductDetailsPage");
   require("./stories/products/ProductImagePage");
   require("./stories/products/ProductImages");
   require("./stories/products/ProductListCard");
-  require("./stories/products/ProductPriceAndAvailability");
+  // require("./stories/products/ProductPriceAndAvailability");
   require("./stories/products/ProductUpdatePage");
   require("./stories/products/ProductVariantAttributes");
   require("./stories/products/ProductVariantDeleteDialog");
@@ -84,3 +85,4 @@ function loadStories() {
 }
 
 configure(loadStories, module);
+//
