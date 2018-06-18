@@ -20,7 +20,7 @@ class MenuItem(CountableDjangoObjectType):
         description = """Represents a single item of the related menu.
         Can store categories, collection or pages."""
         interfaces = [relay.Node]
-        only_fields = ['id', 'name', 'url']
+        only_fields = ['children', 'id', 'menu', 'name', 'url']
         filter_fields = {'name': ['icontains']}
         model = models.MenuItem
 
