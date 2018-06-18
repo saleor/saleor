@@ -80,7 +80,7 @@ class ModelMutation(BaseMutation):
     def add_error(cls, errors, field, message):
         """Add an error to the errors list.
 
-        `errors` is the list of errors that happend during execution of the
+        `errors` is the list of errors that happened during execution of the
         mutation. `field` is the name of model field the error is related
         to. `None` is allowed and it indicates that the error is a general one
         and not related to any of the model fields. `message` is the actual
