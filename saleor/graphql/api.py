@@ -201,7 +201,7 @@ class Query(graphene.ObjectType):
     def resolve_product_type(self, info, id):
         return get_node(info, id, only_type=ProductType)
 
-    def resolve_product_types(self, info):
+    def resolve_product_types(self, info, **kwargs):
         return resolve_product_types()
 
     @permission_required('discount.view_sale')

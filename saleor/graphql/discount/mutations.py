@@ -6,20 +6,22 @@ from ..core.types import Decimal
 
 
 class VoucherInput(graphene.InputObjectType):
-    type = graphene.String(description='Voucher type.')
+    type = graphene.String(
+        description='Voucher type: product, category shipping or value.')
     name = graphene.String(description='Voucher name.')
     code = graphene.String(decription='Code to use the voucher.')
     start_date = graphene.types.datetime.DateTime(
         description='Start date of the voucher in ISO 8601 format.')
     end_date = graphene.types.datetime.DateTime(
         description='End date of the voucher in ISO 8601 format.')
-    discount_value_type = graphene.String(description='Fixed or percentage.')
+    discount_value_type = graphene.String(
+        description='Choices: fixed or percentage.')
     discount_value = Decimal(description='Value of the voucher.')
     product = graphene.ID(description='Product related to the discount.')
     category = graphene.ID(description='Category related to the discount.')
     apply_to = graphene.String(
-        description='Single item or all matching products.')
-    limit = graphene.Float(description='Limit value of the discount.')
+        description='Single item (one) or all matching products (all).')
+    limit = Decimal(description='Limit value of the discount.')
 
 
 class VoucherCreate(ModelMutation):

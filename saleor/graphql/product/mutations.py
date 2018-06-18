@@ -1,10 +1,12 @@
 import graphene
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
+
 from graphene_file_upload import Upload
 
 from ...product import models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
+from ..core.types import Decimal, Money
 from ..utils import get_attributes_dict_from_list, get_node, get_nodes
 from .types import Collection, Product
 
@@ -172,7 +174,6 @@ class AttributeValueInput(InputObjectType):
     value = graphene.String(
         required=True, description='Value of an attribute.')
 
-
 class ProductInput(graphene.InputObjectType):
     attributes = graphene.List(AttributeValueInput)
     available_on = graphene.String()
@@ -183,7 +184,7 @@ class ProductInput(graphene.InputObjectType):
     is_featured = graphene.Boolean()
     name = graphene.String()
     product_type = graphene.ID()
-    price = graphene.Float()
+    price = Decimal()
     tax_rate = graphene.String()
 
 
