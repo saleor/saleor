@@ -44,4 +44,16 @@
   h3 {
     font-size: 1rem;
   }
+
+  &__deleted {
+    text-align: center;
+    margin-top: $global-margin * 6;
+    @include media-breakpoint-down(sm) {
+      margin-top: $global-margin * 3;
+    }
+    h1 {
+      font-weight: 300;
+      margin-top: -$global-margin * 0.5;
+    }
+  }
 }

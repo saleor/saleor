@@ -386,7 +386,7 @@ class CancelOrderLineForm(forms.Form):
         super().__init__(*args, **kwargs)
 
     def cancel_line(self):
-        if self.line.variant:
+        if self.line.variant and self.line.variant.track_inventory:
             deallocate_stock(self.line.variant, self.line.quantity)
         order = self.line.order
         self.line.delete()
@@ -427,7 +427,7 @@ class ChangeQuantityForm(forms.ModelForm):
     def save(self):
         quantity = self.cleaned_data['quantity']
         variant = self.instance.variant
-        if variant is not None:
+        if variant and variant.track_inventory:
             # update stock allocation
             delta = quantity - self.initial_quantity
             allocate_stock(variant, delta)

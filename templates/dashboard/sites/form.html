@@ -49,6 +49,9 @@
             <div class="row">
               {{ site_settings_form.description|materializecss }}
             </div>
+            <div class="row">
+              {{ site_settings_form.track_inventory_by_default|materializecss }}
+            </div>
           </div>
           <div class="card-action right-align">
             <a class="btn-flat waves-effect" href="{% url 'dashboard:site-details' pk=site.pk %}" target="_blank">

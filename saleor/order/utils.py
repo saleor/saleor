@@ -4,7 +4,6 @@ from django.shortcuts import get_object_or_404, redirect
 
 from ..account.utils import store_user_address
 from ..checkout import AddressType
-from ..core.exceptions import InsufficientStock
 from ..core.utils.taxes import (
     ZERO_MONEY, get_tax_rate_by_name, get_taxes_for_address)
 from ..dashboard.order.utils import get_voucher_discount_for_order
@@ -150,8 +149,7 @@ def add_variant_to_order(order, variant, quantity, discounts=None, taxes=None):
 
     Raises InsufficientStock exception if quantity could not be fulfilled.
     """
-    if quantity > variant.quantity_available:
-        raise InsufficientStock(variant)
+    variant.check_quantity(quantity)
 
     try:
         line = order.lines.get(variant=variant)
@@ -167,7 +165,8 @@ def add_variant_to_order(order, variant, quantity, discounts=None, taxes=None):
             unit_price=variant.get_price(discounts, taxes),
             tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes))
 
-    allocate_stock(variant, quantity)
+    if variant.track_inventory:
+        allocate_stock(variant, quantity)
 
 
 def change_order_line_quantity(line, new_quantity):
@@ -182,18 +181,20 @@ def change_order_line_quantity(line, new_quantity):
 def restock_order_lines(order):
     """Return ordered products to corresponding stocks."""
     for line in order:
-        if line.variant:
+        if line.variant and line.variant.track_inventory:
             if line.quantity_unfulfilled > 0:
                 deallocate_stock(line.variant, line.quantity_unfulfilled)
             if line.quantity_fulfilled > 0:
                 increase_stock(line.variant, line.quantity_fulfilled)
-                line.quantity_fulfilled = 0
-                line.save(update_fields=['quantity_fulfilled'])
+
+        if line.quantity_fulfilled > 0:
+            line.quantity_fulfilled = 0
+            line.save(update_fields=['quantity_fulfilled'])
 
 
 def restock_fulfillment_lines(fulfillment):
     """Return fulfilled products to corresponding stocks."""
     for line in fulfillment:
-        if line.order_line.variant:
+        if line.order_line.variant and line.order_line.variant.track_inventory:
             increase_stock(
                 line.order_line.variant, line.quantity, allocate=True)

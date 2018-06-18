@@ -12,7 +12,7 @@ from django.utils.translation import pgettext_lazy
 from django.views.decorators.csrf import csrf_exempt
 from payments import PaymentStatus, RedirectNeeded
 
-from . import FulfillmentStatus, OrderStatus
+from . import FulfillmentStatus
 from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
