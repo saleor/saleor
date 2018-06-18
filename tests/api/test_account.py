@@ -373,7 +373,7 @@ def test_staff_update(admin_api_client, staff_user, user_api_client):
     data = content['data']['staffUpdate']
     assert data['errors'] == []
     assert data['user']['permissions'] == []
-    assert data['user']['groups'] == []
+    assert data['user']['groups']['edges'] == []
 
 
 def test_set_password(user_api_client, customer_user):
