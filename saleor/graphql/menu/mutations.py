@@ -90,13 +90,12 @@ class MenuItemCreate(ModelMutation):
         items = list(filter(None.__ne__, items))
         if len(items) > 1:
             field = 'items'
-            msg = 'More than one item provided'
-            errors.append(
-                Error(field=field, message=msg))
+            msg = 'More than one item provided.'
+            cls.add_error(field=field, message=msg)
         return cleaned_input
 
 
-class MenuItemUpdate(ModelMutation):
+class MenuItemUpdate(MenuItemCreate):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a menu item to update.')
@@ -111,20 +110,6 @@ class MenuItemUpdate(ModelMutation):
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('menu.edit_menu')
-
-    @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
-        items = [
-            cleaned_input.get('page'), cleaned_input.get('collection'),
-            cleaned_input.get('url'), cleaned_input.get('category')]
-        items = list(filter(None.__ne__, items))
-        if len(items) > 1:
-            field = 'items'
-            msg = 'More than one item provided'
-            errors.append(
-                Error(field=field, message=msg))
-        return cleaned_input
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):
