@@ -10,7 +10,6 @@ class UserInput(graphene.InputObjectType):
     email = graphene.String(
         description='The unique email address of the user.')
     note = graphene.String(description='A note about the user.')
-    # FIXME: decide what to do with is_active field.
 
 
 class StaffInput(UserInput):
