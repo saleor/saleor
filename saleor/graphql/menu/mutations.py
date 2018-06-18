@@ -2,7 +2,6 @@ import graphene
 
 from ...menu import models
 from ..core.mutations import ModelDeleteMutation, ModelMutation
-from ..core.types import Error
 
 
 class MenuInput(graphene.InputObjectType):
@@ -91,7 +90,7 @@ class MenuItemCreate(ModelMutation):
         if len(items) > 1:
             field = 'items'
             msg = 'More than one item provided.'
-            cls.add_error(field=field, message=msg)
+            cls.add_error(errors=errors, field=field, message=msg)
         return cleaned_input
 
 
