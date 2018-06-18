@@ -326,7 +326,6 @@ def test_staff_create(
     assert data['user']['email'] == email
     assert data['user']['isStaff'] == True
     assert data['user']['isActive'] == True
-    assert data['user']['isActive'] == True
     permissions = data['user']['permissions']
     assert permissions[0]['code'] == permission_view_user_codename
     assert permissions[1]['code'] == permission_view_product_codename
