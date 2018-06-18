@@ -209,3 +209,35 @@ def test_delete_menu_item(admin_api_client, menu_item):
     assert data['name'] == menu_item.name
     with pytest.raises(menu_item._meta.model.DoesNotExist):
         menu_item.refresh_from_db()
+
+
+def test_add_more_than_one_item(admin_api_client, menu, menu_item, page):
+    query = """
+    mutation updateMenuItem($id: ID!, $menu_id: ID!, $page: ID, $url: String) {
+        menuItemUpdate(id: $id,
+        input: {menu: $menu_id, page: $page, url: $url}) {
+        errors {
+            field
+            message
+        }
+            menuItem {
+                url
+                page {
+                    title
+                }
+            }
+        }
+    }
+    """
+    url = 'http://www.example.com'
+    menu_item_id = graphene.Node.to_global_id('MenuItem', menu_item.pk)
+    page_id = graphene.Node.to_global_id('Page', page.pk)
+    menu_id = graphene.Node.to_global_id('Menu', menu.pk)
+    variables = json.dumps(
+        {'id': menu_item_id, 'page': page_id, 'menu_id': menu_id, 'url': url})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['menuItemUpdate']['errors'][0]
+    assert data['field'] == 'items'
+    assert data['message'] == 'More than one item provided.'
