@@ -42,10 +42,7 @@ class User(CountableDjangoObjectType):
         description = 'Represents user data.'
         interfaces = [relay.Node]
         model = get_user_model()
-        filter_fields = {
-            'email': ['exact', 'icontains'],
-            'default_shipping_address': ['exact'],
-            'is_active': ['exact']}
+        filter_fields = ['is_staff']
 
     def resolve_permissions(self, info, **kwargs):
         if self.is_superuser:
