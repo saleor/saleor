@@ -138,6 +138,41 @@ def test_query_user(admin_api_client, customer_user):
     assert address['phone'] == user_address.phone.raw_input
 
 
+def test_query_users(admin_api_client, user_api_client):
+    query = """
+    query Users($isStaff: Boolean) {
+        users(isStaff: $isStaff) {
+            totalCount
+            edges {
+                node {
+                    isStaff
+                }
+            }
+        }
+    }
+    """
+    variables = json.dumps({'isStaff': True})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    users = content['data']['users']['edges']
+    assert users
+    assert all([user['node']['isStaff'] for user in users])
+
+    variables = json.dumps({'isStaff': False})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    users = content['data']['users']['edges']
+    assert users
+    assert all([not user['node']['isStaff'] for user in users])
+
+    # check permissions
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    assert_no_permission(response)
+
+
 def test_who_can_see_user(
         staff_user, customer_user, staff_api_client, user_api_client,
         staff_group, permission_view_user):
