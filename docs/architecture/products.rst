@@ -104,11 +104,11 @@ Your shop sells Coffee from around the world. Customer can order 1kg, 500g and 2
 
 .. table:: Product
 
-   ============  ================  =================  =================================
-   Product type  Name              Country of origin  Description
-   ============  ================  =================  =================================
-   Coffee        Best Java Coffee  Indonesia          Best coffee found on Java island!
-   ============  ================  =================  =================================
+   ============  ================  =================  =================  =================================
+   Product type  Name              Country of origin  Package Size        Description
+   ============  ================  =================  =================  =================================
+   Coffee        Best Java Coffee  Indonesia          1kg                Best coffee found on Java island!
+   ============  ================  =================  =================  =================================
 
 .. table:: Variants
 
