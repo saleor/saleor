@@ -47,12 +47,16 @@ const ProductImagePage = decorate<ProductImagePageProps>(
                   label={i18n.t("Description")}
                   helperText={i18n.t("Optional")}
                   disabled={loading}
+                  rows={5}
                   multiline
                   fullWidth
                 />
               </CardContent>
             </Card>
-            <SaveButtonBar onBack={onBack} onSave={submit} />
+            <SaveButtonBar
+              state={loading ? "disabled" : "default"}
+              onSave={submit}
+            />
           </>
         )}
       </Form>

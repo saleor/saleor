@@ -3,32 +3,39 @@ import blue from "@material-ui/core/colors/blue";
 import green from "@material-ui/core/colors/green";
 import red from "@material-ui/core/colors/red";
 import Hidden from "@material-ui/core/Hidden";
+import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
+import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
+import Money from "../../../components/Money";
 import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 
+interface MoneyType {
+  amount: number;
+  currency: string;
+}
 interface ProductVariantsProps {
+  disabled?: boolean;
   variants?: Array<{
     id: string;
     sku: string;
     name: string;
-    priceOverride: {
-      localized: string;
-    };
-    stockQuantity: number;
+    priceOverride: number;
+    quantity: number;
     margin: number;
   }>;
-  fallbackPrice?: string;
+  fallbackPrice?: MoneyType;
   fallbackGross?: string;
   onRowClick?(id: string);
+  onVariantAdd?();
 }
 
 const decorate = withStyles(theme => {
@@ -42,6 +49,11 @@ const decorate = withStyles(theme => {
   return {
     alignRightText: {
       textAlign: "right" as "right"
+    },
+    denseTable: {
+      "& td, & th": {
+        paddingRight: theme.spacing.unit * 3
+      }
     },
     greenDot: {
       ...dot,
@@ -58,10 +70,24 @@ const decorate = withStyles(theme => {
   };
 });
 export const ProductVariants = decorate<ProductVariantsProps>(
-  ({ classes, variants, fallbackPrice, fallbackGross, onRowClick }) => (
+  ({
+    classes,
+    disabled,
+    variants,
+    fallbackPrice,
+    fallbackGross,
+    onRowClick,
+    onVariantAdd
+  }) => (
     <Card>
-      <PageHeader title={i18n.t("Variants")} />
-      <Table>
+      <PageHeader title={i18n.t("Variants")}>
+        {!!onVariantAdd && (
+          <IconButton disabled={disabled} onClick={onVariantAdd}>
+            <AddIcon />
+          </IconButton>
+        )}
+      </PageHeader>
+      <Table className={classes.denseTable}>
         <TableHead>
           <TableRow>
             <Hidden smDown>
@@ -72,9 +98,6 @@ export const ProductVariants = decorate<ProductVariantsProps>(
             <Hidden smDown>
               <TableCell className={classes.alignRightText}>
                 {i18n.t("Price")}
-              </TableCell>
-              <TableCell className={classes.alignRightText}>
-                {i18n.t("Gross margin")}
               </TableCell>
             </Hidden>
           </TableRow>
@@ -97,9 +120,6 @@ export const ProductVariants = decorate<ProductVariantsProps>(
                 <TableCell className={classes.alignRightText}>
                   <Skeleton />
                 </TableCell>
-                <TableCell className={classes.alignRightText}>
-                  <Skeleton />
-                </TableCell>
               </Hidden>
             </TableRow>
           ) : variants.length > 0 ? (
@@ -117,23 +137,23 @@ export const ProductVariants = decorate<ProductVariantsProps>(
                 <TableCell>
                   <span
                     className={
-                      variant.stockQuantity > 0
-                        ? classes.greenDot
-                        : classes.redDot
+                      variant.quantity > 0 ? classes.greenDot : classes.redDot
                     }
                   />
-                  {variant.stockQuantity > 0
+                  {variant.quantity > 0
                     ? i18n.t("Available")
                     : i18n.t("Unavailable")}
                 </TableCell>
                 <Hidden smDown>
                   <TableCell className={classes.alignRightText}>
-                    {variant.priceOverride
-                      ? variant.priceOverride.localized
-                      : fallbackPrice}
-                  </TableCell>
-                  <TableCell className={classes.alignRightText}>
-                    {variant.margin.toFixed(2)}%
+                    {variant && variant.priceOverride !== undefined ? (
+                      <Money
+                        amount={variant.priceOverride || fallbackPrice.amount}
+                        currency={fallbackPrice.currency}
+                      />
+                    ) : (
+                      <Skeleton />
+                    )}
                   </TableCell>
                 </Hidden>
               </TableRow>

@@ -88,7 +88,10 @@ const CategoryEditPage: React.StatelessComponent<CategoryEditPageProps> = ({
               />
             </CardContent>
           </Card>
-          <SaveButtonBar disabled={disabled} onBack={onBack} onSave={submit} />
+          <SaveButtonBar
+            state={disabled ? "disabled" : "default"}
+            onSave={submit}
+          />
         </Container>
       )}
     </Form>

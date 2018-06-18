@@ -4,7 +4,7 @@ import * as React from "react";
 import { productEditUrl, productImageEditUrl, productShowUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
-import ProductDetailsPage from "../components/ProductDetailsPage";
+// import ProductDetailsPage from "../components/ProductDetailsPage";
 import {
   productImageCreateMutation,
   TypedProductImageCreateMutation
@@ -54,22 +54,25 @@ export const ProductDetails = decorate<ProductDetailsProps>(
                     });
                   };
                   return (
-                    <ProductDetailsPage
-                      onBack={() => window.history.back()}
-                      onCollectionShow={() => () => navigate("#")}
-                      onDelete={() => {}}
-                      onEdit={id => () => navigate(productEditUrl(id))}
-                      onImageEdit={id => () =>
-                        navigate(productImageEditUrl(id))}
-                      onImageUpload={handleImageUpload}
-                      onImageReorder={() => {}}
-                      onProductPublish={() => {}}
-                      onProductShow={id => () => navigate(productShowUrl(id))}
-                      onVariantShow={() => {}}
-                      // TODO: replace with something nicers
-                      placeholderImage={"/static/images/placeholder255x255.png"}
-                      product={data && data.product ? data.product : undefined}
-                    />
+                    // <ProductDetailsPage
+                    //   onBack={() => window.history.back()}
+                    //   onCollectionShow={() => () => navigate("#")}
+                    //   onDelete={() => {}}
+                    //   onEdit={id => () => navigate(productEditUrl(id))}
+                    //   onImageEdit={id => () =>
+                    //     navigate(productImageEditUrl(id))}
+                    //   onImageUpload={handleImageUpload}
+                    //   onImageReorder={() => {}}
+                    //   onProductPublish={() => {}}
+                    //   onProductShow={id => () => navigate(productShowUrl(id))}
+                    //   onVariantShow={() => {}}
+                    //   // TODO: replace with something nicers
+                    //   placeholderImage={"/static/images/placeholder255x255.png"}
+                    //   // TODO: replace it ffs
+                    //   product={
+                    //     data && data.product ? (data.product as any) : undefined
+                    //   }
+                    // />
                   );
                 }}
               </TypedProductImageCreateMutation>

@@ -82,9 +82,8 @@ const CustomerEditPage = decorate<CustomerEditPageProps>(
               </CardContent>
             </Card>
             <SaveButtonBar
-              onBack={onBack}
+              state={disabled ? "disabled" : "default"}
               onSave={onSubmit}
-              disabled={disabled}
             />
           </Container>
         )}
