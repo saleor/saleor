@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-05-08 07:15-0500\n"
+"POT-Creation-Date: 2018-06-04 04:15-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Delia Cosma <deliacosma79@gmail.com>, 2018\n"
 "Language-Team: Romanian (https://www.transifex.com/mirumee/teams/34782/ro/)\n"
@@ -21,9 +21,9 @@ msgstr ""
 #: saleor/static/dashboard/js/components/bulk-actions.js:89
 msgid "item selected"
 msgid_plural "items selected"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "articol selectat"
+msgstr[1] "articole selectate"
+msgstr[2] "articole selectate"
 
 #: saleor/static/dashboard/js/components/datepicker.js:4
 msgctxt "Datepicker option"
@@ -288,7 +288,7 @@ msgstr "Închide"
 #: saleor/static/dashboard/js/components/editor.js:24
 msgctxt "Rich text editor option"
 msgid "Bold text"
-msgstr ""
+msgstr "Text îngroșat"
 
 #: saleor/static/dashboard/js/components/editor.js:28
 msgctxt "Rich text editor option"
@@ -318,7 +318,7 @@ msgstr "Link"
 #: saleor/static/dashboard/js/components/editor.js:58
 msgctxt "Rich text editor option"
 msgid "Image (converts selected text to an image tag)"
-msgstr ""
+msgstr "Imagine (convertește textul selectat într-o etichetă de imagine)"
 
 #: saleor/static/dashboard/js/components/editor.js:63
 msgctxt "Rich text editor option"
@@ -328,31 +328,33 @@ msgstr "Aliniat la stânga"
 #: saleor/static/dashboard/js/components/editor.js:68
 msgctxt "Rich text editor option"
 msgid "Center align"
-msgstr ""
+msgstr "Aliniere centru"
 
 #: saleor/static/dashboard/js/components/editor.js:73
 msgctxt "Rich text editor option"
 msgid "Right align"
-msgstr ""
+msgstr "Aliniați dreapta"
 
 #: saleor/static/dashboard/js/components/editor.js:78
 msgctxt "Rich text editor option"
 msgid "Justify"
-msgstr ""
+msgstr "Centrează"
 
 #: saleor/static/dashboard/js/components/editor.js:83
 msgctxt "Rich text editor option"
 msgid "Remove formatting"
-msgstr ""
+msgstr "Eliminați formatarea"
 
 #: saleor/static/dashboard/js/components/google-preview.js:46
 msgid ""
 "Your input might be a little too short, think of something more descriptive"
 msgstr ""
+"Ce ai introdus ar putea fi puțin prea scurt, gândește-te la ceva mai "
+"descriptiv"
 
 #: saleor/static/dashboard/js/components/google-preview.js:50
 msgid "Your input fits between the recommended lengths"
-msgstr ""
+msgstr "Ce ai introdus se potrivește între lungimile recomandate"
 
 #: saleor/static/js/components/variantPicker/QuantityInput.js:21
 msgctxt "Add to cart form field label"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-05-10 08:29-0500\n"
+"POT-Creation-Date: 2018-06-04 04:15-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Stefano Mancini <stefano.mancini@devinterface.com>, 2018\n"
 "Language-Team: Italian (https://www.transifex.com/mirumee/teams/34782/it/)\n"
@@ -48,7 +48,7 @@ msgstr[1] ""
 
 #: saleor/dashboard/category/forms.py:24
 #: saleor/dashboard/collection/forms.py:21
-#: saleor/dashboard/discount/forms.py:77 saleor/dashboard/group/forms.py:13
+#: saleor/dashboard/discount/forms.py:77 saleor/dashboard/group/forms.py:14
 #: saleor/dashboard/product/forms.py:76 saleor/dashboard/product/forms.py:204
 #: saleor/dashboard/product/forms.py:401 saleor/dashboard/shipping/forms.py:14
 #: saleor/dashboard/sites/forms.py:40
@@ -232,13 +232,13 @@ msgstr ""
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added customer %s"
-msgstr ""
+msgstr "Aggiunto cliente %s"
 
 #: saleor/dashboard/customer/views.py:79
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated customer %s"
-msgstr ""
+msgstr "Aggiornato cliente %s"
 
 #: saleor/dashboard/customer/views.py:112
 msgctxt "Dashboard message related to an customer"
@@ -330,8 +330,8 @@ msgstr "Ordina per"
 msgctxt "Number of matching records in the dashboard sales list"
 msgid "Found %(counter)d matching sale"
 msgid_plural "Found %(counter)d matching sales"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Trovata %(counter)d vendita corrispondente"
+msgstr[1] "Trovate %(counter)d vendite corrispondenti"
 
 #: saleor/dashboard/discount/filters.py:67
 msgctxt "Voucher list name filter label"
@@ -374,7 +374,7 @@ msgstr[1] ""
 #: saleor/dashboard/discount/forms.py:29
 msgctxt "Sale name"
 msgid "Name"
-msgstr ""
+msgstr "Nome"
 
 #: saleor/dashboard/discount/forms.py:32
 msgctxt "Discount type"
@@ -384,7 +384,7 @@ msgstr ""
 #: saleor/dashboard/discount/forms.py:35
 msgctxt "Percentage or fixed amount value"
 msgid "Value"
-msgstr ""
+msgstr "Valore"
 
 #: saleor/dashboard/discount/forms.py:38
 msgctxt "Discounted products"
@@ -409,27 +409,27 @@ msgstr ""
 #: saleor/dashboard/discount/forms.py:74
 msgctxt "Discount type"
 msgid "Discount type"
-msgstr ""
+msgstr "Tipologia di sconto"
 
 #: saleor/dashboard/discount/forms.py:80
 msgctxt "Coupon code"
 msgid "Code"
-msgstr ""
+msgstr "Codice"
 
 #: saleor/dashboard/discount/forms.py:83
 msgctxt "Usage limit"
 msgid "Usage limit"
-msgstr ""
+msgstr "Limite di utilizzo"
 
 #: saleor/dashboard/discount/forms.py:86
 msgctxt "Voucher date restrictions"
 msgid "Start date"
-msgstr ""
+msgstr "Data di inizio"
 
 #: saleor/dashboard/discount/forms.py:89
 msgctxt "Voucher date restrictions"
 msgid "End date"
-msgstr ""
+msgstr "Data di fine"
 
 #: saleor/dashboard/discount/forms.py:131
 #: saleor/dashboard/discount/forms.py:193
@@ -441,23 +441,23 @@ msgstr "Nazione"
 #: saleor/dashboard/discount/forms.py:134
 msgctxt "Lowest value for order to be able to use the voucher"
 msgid "Only if order is over or equal to"
-msgstr ""
+msgstr "Solo se l'ordine è maggiore o uguale a"
 
 #: saleor/dashboard/discount/forms.py:154
 msgctxt "Lowest value for order to be able to use the voucher"
 msgid "Only if purchase value is greater than or equal to"
-msgstr ""
+msgstr "Solo se l'acquisto è maggiore o uguale a"
 
 #: saleor/dashboard/discount/forms.py:196
 msgctxt "Product"
 msgid "Product"
-msgstr ""
+msgstr "Prodotto"
 
 #: saleor/dashboard/discount/forms.py:215
 #: saleor/dashboard/product/forms.py:208
 msgctxt "Category"
 msgid "Category"
-msgstr ""
+msgstr "Categoria"
 
 #: saleor/dashboard/discount/views.py:54
 msgctxt "Sale (discount) message"
@@ -491,28 +491,28 @@ msgctxt "Voucher message"
 msgid "Removed voucher %s"
 msgstr "Rimosso voucher %s"
 
-#: saleor/dashboard/group/filters.py:10
+#: saleor/dashboard/group/filters.py:11
 #: saleor/dashboard/shipping/filters.py:10
 msgctxt "Group list sorting option"
 msgid "name"
 msgstr "nome"
 
-#: saleor/dashboard/group/filters.py:15
+#: saleor/dashboard/group/filters.py:20
 msgctxt "Group list filter label"
 msgid "Name"
 msgstr "Nome"
 
-#: saleor/dashboard/group/filters.py:18
+#: saleor/dashboard/group/filters.py:23
 msgctxt "Group list filter label"
 msgid "Permissions"
 msgstr "Permessi"
 
-#: saleor/dashboard/group/filters.py:22
+#: saleor/dashboard/group/filters.py:27
 msgctxt "Group list filter label"
 msgid "Sort by"
 msgstr "Ordina per"
 
-#: saleor/dashboard/group/filters.py:34
+#: saleor/dashboard/group/filters.py:39
 #, python-format
 msgctxt "Number of matching records in the dashboard groups list"
 msgid "Found %(counter)d matching group"
@@ -520,10 +520,10 @@ msgid_plural "Found %(counter)d matching groups"
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/dashboard/group/forms.py:14
+#: saleor/dashboard/group/forms.py:15
 msgctxt "Permissions"
 msgid "Permissions"
-msgstr ""
+msgstr "Permessi"
 
 #: saleor/dashboard/group/views.py:38
 msgctxt "Dashboard message"
@@ -555,7 +555,7 @@ msgstr "Nome"
 #: saleor/dashboard/menu/filters.py:17
 msgctxt "Menu list filter label"
 msgid "Menu name"
-msgstr ""
+msgstr "Nome menu"
 
 #: saleor/dashboard/menu/filters.py:20
 msgctxt "Menu list filter label"
@@ -593,37 +593,37 @@ msgid_plural "Found %(counter)d matching menu items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/dashboard/menu/forms.py:33
+#: saleor/dashboard/menu/forms.py:34
 msgctxt "Menu name"
 msgid "Menu name"
-msgstr ""
+msgstr "Nome menu"
 
-#: saleor/dashboard/menu/forms.py:58
+#: saleor/dashboard/menu/forms.py:59
 msgctxt "Menu item name"
 msgid "Name"
 msgstr "Nome"
 
-#: saleor/dashboard/menu/forms.py:59
+#: saleor/dashboard/menu/forms.py:60
 msgctxt "Menu item url"
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
-#: saleor/dashboard/menu/forms.py:60
+#: saleor/dashboard/menu/forms.py:61
 msgctxt "Menu item object to link"
 msgid "Link"
-msgstr ""
+msgstr "Collegamento"
 
-#: saleor/dashboard/menu/forms.py:76
+#: saleor/dashboard/menu/forms.py:77
 msgctxt "Menu item form error"
 msgid "Maximum nesting level for menu items equals to 2."
 msgstr ""
 
-#: saleor/dashboard/menu/forms.py:84
+#: saleor/dashboard/menu/forms.py:85
 msgctxt "Menu item form error"
 msgid "A single menu item can't point to both an internal link and URL."
 msgstr ""
 
-#: saleor/dashboard/menu/forms.py:91
+#: saleor/dashboard/menu/forms.py:92
 msgctxt "Menu item form error"
 msgid "A single menu item must point to an internal link or URL."
 msgstr ""
@@ -677,12 +677,12 @@ msgstr ""
 #: saleor/dashboard/menu/views.py:251
 msgctxt "Link object type group description"
 msgid "Category"
-msgstr ""
+msgstr "Categoria"
 
 #: saleor/dashboard/menu/views.py:256
 msgctxt "Link object type group description"
 msgid "Page"
-msgstr ""
+msgstr "Pagina"
 
 #: saleor/dashboard/order/filters.py:22
 msgctxt "Order list sorting option"
@@ -750,12 +750,12 @@ msgstr[1] ""
 #: saleor/dashboard/order/forms.py:39
 msgctxt "Send email to customer about order created by staff users"
 msgid "Send email with order confirmation to the customer"
-msgstr ""
+msgstr "Invia email con la conferma d'ordine al cliente"
 
 #: saleor/dashboard/order/forms.py:57
 msgctxt "Create draft order form error"
 msgid "Could not create order without any products"
-msgstr ""
+msgstr "Non è possibile creare un ordine senza prodotti"
 
 #: saleor/dashboard/order/forms.py:68
 msgctxt "Create draft order form error"
@@ -791,7 +791,7 @@ msgstr "Metodo di spedizione"
 #: saleor/dashboard/order/forms.py:212
 msgctxt "Order discount amount fixed value"
 msgid "Discount amount"
-msgstr ""
+msgstr "Importo sconto"
 
 #: saleor/dashboard/order/forms.py:229
 msgctxt "Order voucher"
@@ -801,7 +801,7 @@ msgstr "Voucher"
 #: saleor/dashboard/order/forms.py:255
 msgctxt "Order note"
 msgid "Note"
-msgstr ""
+msgstr "Nota"
 
 #: saleor/dashboard/order/forms.py:268
 msgctxt "Payment management form (capture, refund, release)"
@@ -827,7 +827,7 @@ msgstr "Solo i pagamenti confermati possono essere rimborsati"
 #: saleor/dashboard/order/forms.py:318
 msgctxt "Payment form error"
 msgid "Manual payments can not be refunded"
-msgstr ""
+msgstr "I pagamenti manuali non possono essere rimborsati"
 
 #: saleor/dashboard/order/forms.py:335
 msgctxt "Payment form error"
@@ -848,7 +848,7 @@ msgstr "Ordine %(order)s"
 #: saleor/dashboard/order/forms.py:405
 msgctxt "Integer number"
 msgid "Quantity"
-msgstr ""
+msgstr "Quantità"
 
 #: saleor/dashboard/order/forms.py:420
 #, python-format
@@ -868,7 +868,7 @@ msgstr[1] ""
 
 #: saleor/dashboard/order/forms.py:462
 msgctxt "Cancel order form error"
-msgid "This order can't be cancelled"
+msgid "This order can't be canceled"
 msgstr "Questo ordine non può essere annullato"
 
 #: saleor/dashboard/order/forms.py:482
@@ -892,7 +892,7 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:512
 msgctxt "Fulfillment record"
 msgid "Tracking number"
-msgstr ""
+msgstr "Numero di tracking"
 
 #: saleor/dashboard/order/forms.py:533
 msgctxt "Remove voucher form error"
@@ -925,7 +925,7 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:620
 msgctxt "Order tracking number"
 msgid "Tracking number"
-msgstr ""
+msgstr "Numero di tracking"
 
 #: saleor/dashboard/order/forms.py:650
 #, python-format
@@ -989,8 +989,8 @@ msgstr ""
 #: saleor/dashboard/order/views.py:283
 #, python-format
 msgctxt "Dashboard message related to an order line"
-msgid "Cancelled item %s"
-msgstr "Articolo %s eliminato"
+msgid "Canceled item %s"
+msgstr ""
 
 #: saleor/dashboard/order/views.py:315
 #, python-format
@@ -1127,7 +1127,7 @@ msgstr ""
 #: saleor/dashboard/page/filters.py:8
 msgctxt "Page list sorting option"
 msgid "title"
-msgstr ""
+msgstr "titolo"
 
 #: saleor/dashboard/page/filters.py:9
 msgctxt "Page list sorting option"
@@ -1142,7 +1142,7 @@ msgstr ""
 #: saleor/dashboard/page/filters.py:17
 msgctxt "Page list url filter label"
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: saleor/dashboard/page/filters.py:20
 msgctxt "Page list sorting filter label"
@@ -1226,7 +1226,7 @@ msgstr "Nome"
 #: saleor/dashboard/product/filters.py:35
 msgctxt "Product list filter label"
 msgid "Category"
-msgstr ""
+msgstr "Categoria"
 
 #: saleor/dashboard/product/filters.py:39
 msgctxt "Product list filter label"
@@ -1330,7 +1330,7 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:90
 msgctxt "Product type tax rate type"
 msgid "Tax rate"
-msgstr ""
+msgstr "Aliquota fiscale"
 
 #: saleor/dashboard/product/forms.py:104
 msgctxt "Product type form error"
@@ -1385,7 +1385,7 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:222
 msgctxt "Product tax rate type"
 msgid "Tax rate"
-msgstr ""
+msgstr "Aliquota fiscale"
 
 #: saleor/dashboard/product/forms.py:249
 msgctxt "Currency gross amount"
@@ -1653,7 +1653,7 @@ msgstr ""
 #: saleor/dashboard/sites/forms.py:38
 msgctxt "Password"
 msgid "Password"
-msgstr ""
+msgstr "Password"
 
 #: saleor/dashboard/sites/views.py:35
 msgctxt "Dashboard message"
@@ -1699,7 +1699,7 @@ msgstr[1] ""
 #: saleor/dashboard/staff/forms.py:20
 msgctxt "Email"
 msgid "Email"
-msgstr ""
+msgstr "Email"
 
 #: saleor/dashboard/staff/forms.py:22
 msgctxt "Groups"
