@@ -234,10 +234,8 @@ class ModelMutation(BaseMutation):
             instance = cls._meta.model()
 
         cleaned_input = cls.clean_input(info, instance, input, errors)
-        import ipdb; ipdb.set_trace()
         instance = cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(instance, errors)
-        import ipdb; ipdb.set_trace()
         if errors:
             return cls(errors=errors)
 
