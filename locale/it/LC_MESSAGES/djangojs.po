@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-03-30 10:19-0500\n"
+"POT-Creation-Date: 2018-06-04 04:15-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: primax79 <alfredo.oliviero@netfarm.it>, 2017\n"
 "Language-Team: Italian (https://www.transifex.com/mirumee/teams/34782/it/)\n"
@@ -287,71 +287,73 @@ msgstr "Chiudi"
 #: saleor/static/dashboard/js/components/editor.js:24
 msgctxt "Rich text editor option"
 msgid "Bold text"
-msgstr ""
+msgstr "Testo in grassetto"
 
 #: saleor/static/dashboard/js/components/editor.js:28
 msgctxt "Rich text editor option"
 msgid "Italic text"
-msgstr ""
+msgstr "Testo in corsivo"
 
 #: saleor/static/dashboard/js/components/editor.js:32
 msgctxt "Rich text editor option"
 msgid "Header"
-msgstr ""
+msgstr "Intestazione"
 
 #: saleor/static/dashboard/js/components/editor.js:39
 msgctxt "Rich text editor option"
 msgid "Subheader"
-msgstr ""
+msgstr "Sottotitolo"
 
 #: saleor/static/dashboard/js/components/editor.js:46
 msgctxt "Rich text editor option"
 msgid "Quote"
-msgstr ""
+msgstr "Citazione"
 
 #: saleor/static/dashboard/js/components/editor.js:51
 msgctxt "Rich text editor option"
 msgid "Link"
-msgstr ""
+msgstr "Collegamento"
 
 #: saleor/static/dashboard/js/components/editor.js:58
 msgctxt "Rich text editor option"
 msgid "Image (converts selected text to an image tag)"
-msgstr ""
+msgstr "Immagine (converte il testo selezionato in una tag immagine)"
 
 #: saleor/static/dashboard/js/components/editor.js:63
 msgctxt "Rich text editor option"
 msgid "Left align"
-msgstr ""
+msgstr "Allinea a sinistra"
 
 #: saleor/static/dashboard/js/components/editor.js:68
 msgctxt "Rich text editor option"
 msgid "Center align"
-msgstr ""
+msgstr "Allinea al centro"
 
 #: saleor/static/dashboard/js/components/editor.js:73
 msgctxt "Rich text editor option"
 msgid "Right align"
-msgstr ""
+msgstr "Allinea a destra"
 
 #: saleor/static/dashboard/js/components/editor.js:78
 msgctxt "Rich text editor option"
 msgid "Justify"
-msgstr ""
+msgstr "Giustifica"
 
 #: saleor/static/dashboard/js/components/editor.js:83
 msgctxt "Rich text editor option"
 msgid "Remove formatting"
-msgstr ""
+msgstr "Rimuovi formattazione"
 
 #: saleor/static/dashboard/js/components/google-preview.js:46
 msgid ""
 "Your input might be a little too short, think of something more descriptive"
 msgstr ""
+"Il tuo contenuto potrebbe essere un po' troppo breve, pensa a qualcosa di "
+"più descrittivo"
 
 #: saleor/static/dashboard/js/components/google-preview.js:50
 msgid "Your input fits between the recommended lengths"
-msgstr ""
+msgstr "Il tuo contenuto è all'interno della lunghezza raccomandata"
 
 #: saleor/static/js/components/variantPicker/QuantityInput.js:21
 msgctxt "Add to cart form field label"
