@@ -8,6 +8,8 @@ from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _
 from django_prices.templatetags.prices_i18n import get_currency_fraction
 
+from . import __version__
+
 
 def get_list(text):
     return [item.strip() for item in text.split(',')]
@@ -227,7 +229,8 @@ INSTALLED_APPS = [
     'django_celery_results',
     'impersonate',
     'phonenumber_field',
-    'captcha']
+    'captcha',
+    'raven.contrib.django.raven_compat']
 
 if DEBUG:
     MIDDLEWARE.append(
@@ -494,3 +497,11 @@ NOCAPTCHA = True
 # Set Google's reCaptcha keys
 RECAPTCHA_PUBLIC_KEY = os.environ.get('RECAPTCHA_PUBLIC_KEY')
 RECAPTCHA_PRIVATE_KEY = os.environ.get('RECAPTCHA_PRIVATE_KEY')
+
+
+#  Sentry
+SENTRY_DSN = os.environ.get('SENTRY_DSN')
+if SENTRY_DSN:
+    RAVEN_CONFIG = {
+        'dsn': SENTRY_DSN,
+        'release': __version__}

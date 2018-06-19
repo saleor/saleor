@@ -47,6 +47,7 @@ pytest-django
 pytest-vcr
 pytest-mock
 vcrpy
+raven==6.9.0
 requests>=1.2.0
 social-auth-app-django>=2.0.0
 text-unidecode
