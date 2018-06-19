@@ -78,6 +78,8 @@ const CustomerEditPage = decorate<CustomerEditPageProps>(
                   name="note"
                   onChange={change}
                   value={data.note}
+                  multiline
+                  rows={10}
                 />
               </CardContent>
             </Card>

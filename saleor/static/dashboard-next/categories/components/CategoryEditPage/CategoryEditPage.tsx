@@ -75,6 +75,7 @@ const CategoryEditPage: React.StatelessComponent<CategoryEditPageProps> = ({
               <TextField
                 fullWidth
                 multiline
+                rows={10}
                 disabled={disabled}
                 value={data && data.description}
                 error={!!errorList.description}

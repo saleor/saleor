@@ -47,7 +47,7 @@ const ProductImagePage = decorate<ProductImagePageProps>(
                   label={i18n.t("Description")}
                   helperText={i18n.t("Optional")}
                   disabled={loading}
-                  rows={5}
+                  rows={10}
                   multiline
                   fullWidth
                 />

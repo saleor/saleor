@@ -135,6 +135,7 @@ const SeoForm = decorate<SeoFormProps>(
               disabled={loading}
               fullWidth
               multiline
+              rows={10}
             />
           </div>
         </ExpansionPanelDetails>
