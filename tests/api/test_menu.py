@@ -9,7 +9,7 @@ from tests.utils import get_graphql_content
 def test_menu_query(user_api_client, menu, menu_item):
     query = """
     query menus($menu_name: String){
-        menus(name_Icontains: $menu_name) {
+        menus(query: $menu_name) {
             edges {
                 node {
                     name
