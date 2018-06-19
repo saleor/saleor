@@ -5,6 +5,7 @@ import graphene
 from django.contrib.auth import get_user_model
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
+from .utils import assert_no_permission
 
 from saleor.graphql.account.mutations import SetPassword
 
@@ -217,12 +218,6 @@ def test_who_can_see_user(
     content = get_graphql_content(response)
     model = get_user_model()
     assert content['data']['users']['totalCount'] == model.objects.count()
-
-
-def assert_no_permission(response):
-    content = get_graphql_content(response)
-    assert 'errors' in content
-    assert content['errors'][0]['message'] == 'You do not have permission to perform this action'
 
 
 def test_customer_create(admin_api_client, user_api_client):

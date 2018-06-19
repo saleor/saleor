@@ -4,6 +4,7 @@ import graphene
 import pytest
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
+from .utils import assert_no_permission
 
 from saleor.discount import (
     DiscountValueType, VoucherApplyToProduct, VoucherType)
@@ -135,6 +136,10 @@ def test_create_voucher(user_api_client, admin_api_client):
             'limit': "1.12"
         }
     )
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    assert_no_permission(response)
+
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
@@ -174,6 +179,11 @@ def test_update_voucher(user_api_client, admin_api_client, voucher):
             'id': graphene.Node.to_global_id('Voucher', voucher.id),
             'code': 'testcode123',
             'discountValueType': DiscountValueType.PERCENTAGE})
+
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    assert_no_permission(response)
+
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
@@ -183,7 +193,7 @@ def test_update_voucher(user_api_client, admin_api_client, voucher):
     assert data['discountValueType'] == DiscountValueType.PERCENTAGE.upper()
 
 
-def test_voucher_delete_mutation(admin_api_client, voucher):
+def test_voucher_delete_mutation(user_api_client, admin_api_client, voucher):
     query = """
         mutation DeleteVoucher($id: ID!) {
             voucherDelete(id: $id) {
@@ -200,6 +210,11 @@ def test_voucher_delete_mutation(admin_api_client, voucher):
     """
     variables = json.dumps({
         'id': graphene.Node.to_global_id('Voucher', voucher.id)})
+
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    assert_no_permission(response)
+
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)

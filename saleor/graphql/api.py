@@ -22,7 +22,6 @@ from .discount.types import Sale, Voucher
 from .discount.mutations import (
     SaleCreate, SaleDelete, SaleUpdate, VoucherCreate, VoucherDelete,
     VoucherUpdate)
-from ..page import models as page_models
 from .core.filters import DistinctFilterSet
 from .core.mutations import CreateToken, VerifyToken
 from .core.resolvers import resolve_shop
