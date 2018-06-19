@@ -1,5 +1,10 @@
+import json
+
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
+
+from saleor.discount import (
+    DiscountValueType, VoucherApplyToProduct, VoucherType)
 
 
 def test_voucher_permissions(
@@ -89,3 +94,53 @@ def test_sale_query(
     assert data['type'] == sale.type.upper()
     assert data['name'] == sale.name
     assert data['value'] == sale.value
+
+
+def test_create_voucher(user_api_client, admin_api_client):
+    query = """
+    mutation  voucherCreate(
+        $type: String, $name: String, $code: String, $applyTo: String
+        $discountValueType: String, $discountValue: Decimal, $limit: Decimal) {
+            voucherCreate(input: {
+            name: $name, type: $type, code: $code, applyTo: $applyTo, 
+            discountValueType: $discountValueType, discountValue: $discountValue,
+            limit: $limit}) {
+                errors {
+                    field
+                    message
+                }
+                voucher {
+                    type
+                    limit {
+                        amount
+                    }
+                    applyTo
+                    name
+                    code
+                    discountValueType
+                }
+            }
+        }
+    """
+    variables = json.dumps(
+        {
+            'name': 'test voucher',
+            'type': VoucherType.VALUE,
+            'code': 'testcode123',
+            'applyTo': VoucherApplyToProduct.ALL_PRODUCTS,
+            'discountValueType': DiscountValueType.FIXED,
+            'discountValue': "10.12",
+            'limit': "1.12"
+        }
+    )
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['voucherCreate']['voucher']
+    assert data['type'] == VoucherType.VALUE.upper()
+    assert data['limit']['amount'] == float("1.12")
+    assert data['applyTo'] == VoucherApplyToProduct.ALL_PRODUCTS
+    assert data['name'] == 'test voucher'
+    assert data['code'] == 'testcode123'
+    assert data['discountValueType'] == DiscountValueType.FIXED.upper()
