@@ -12,6 +12,7 @@ import Decorator from "../../Decorator";
 const collection = collectionsFixture(placeholderImage)[0];
 const callbacks = {
   onBack: () => {},
+  onImageRemove: () => {},
   storefrontUrl
 };
 

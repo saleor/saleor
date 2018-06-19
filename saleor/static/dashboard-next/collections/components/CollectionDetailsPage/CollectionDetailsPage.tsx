@@ -39,7 +39,7 @@ interface CollectionDetailsPageProps {
   storefrontUrl?(slug: string): string;
   onBack?();
   onCollectionDelete?();
-  onCollectionShow?();
+  onImageRemove?();
   onNextPage?();
   onPreviousPage?();
   onProductAdd?();
@@ -102,7 +102,7 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
         storefrontUrl,
         onBack,
         onCollectionDelete,
-        onCollectionShow,
+        onImageRemove,
         onNextPage,
         onPreviousPage,
         onProductAdd,
@@ -114,80 +114,103 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
       return (
         <Toggle>
           {(openedRemoveDialog, { toggle: toggleRemoveDialog }) => (
-            <Container width="md">
-              <PageHeader
-                title={collection ? collection.name : undefined}
-                onBack={onBack}
-              />
-              <div className={classes.root}>
-                <div>
-                  <CollectionDetails
-                    collection={collection}
-                    onDelete={toggleRemoveDialog}
+            <Toggle>
+              {(
+                openedImageRemoveDialog,
+                { toggle: toggleImageRemoveDialog }
+              ) => (
+                <Container width="md">
+                  <PageHeader
+                    title={collection ? collection.name : undefined}
+                    onBack={onBack}
+                  />
+                  <div className={classes.root}>
+                    <div>
+                      <CollectionDetails
+                        collection={collection}
+                        onDelete={toggleRemoveDialog}
+                        disabled={disabled}
+                        data={this.state}
+                        onChange={this.onChange}
+                        onImageRemove={toggleImageRemoveDialog}
+                      />
+                      <CollectionProducts
+                        products={products}
+                        pageInfo={pageInfo}
+                        disabled={disabled}
+                        onNextPage={onNextPage}
+                        onPreviousPage={onPreviousPage}
+                        onProductAdd={onProductAdd}
+                        onProductClick={onProductClick}
+                        onProductRemove={onProductRemove}
+                      />
+                      <div className={classes.cardSpacer} />
+                      <SeoForm
+                        description={this.state.seoDescription}
+                        descriptionPlaceholder={
+                          collection ? collection.seoDescription : ""
+                        }
+                        onChange={this.onChange}
+                        onClick={
+                          !!onSeoClick
+                            ? onSeoClick(this.state.seoTitle)
+                            : undefined
+                        }
+                        storefrontUrl={storefrontUrl(this.state.slug)}
+                        title={this.state.seoTitle}
+                        titlePlaceholder={this.state.name}
+                      />
+                    </div>
+                    <div>
+                      <CollectionProperties
+                        collection={collection}
+                        data={this.state}
+                        onChange={this.onChange}
+                        disabled={disabled}
+                      />
+                    </div>
+                  </div>
+                  {collection && (
+                    <>
+                      <ActionDialog
+                        onClose={toggleRemoveDialog}
+                        onConfirm={onCollectionDelete}
+                        open={openedRemoveDialog}
+                        title={i18n.t("Remove collection")}
+                        variant="delete"
+                      >
+                        <DialogContentText
+                          dangerouslySetInnerHTML={{
+                            __html: i18n.t(
+                              "Are you sure you want to remove <strong>{{ name }}</strong>?",
+                              { name: collection.name }
+                            )
+                          }}
+                        />
+                      </ActionDialog>
+                      <ActionDialog
+                        onClose={toggleImageRemoveDialog}
+                        onConfirm={onImageRemove}
+                        open={openedImageRemoveDialog}
+                        title={i18n.t("Remove image")}
+                        variant="delete"
+                      >
+                        <DialogContentText>
+                          {i18n.t(
+                            "Are you sure you want to remove collection's image?"
+                          )}
+                        </DialogContentText>
+                      </ActionDialog>
+                    </>
+                  )}
+                  <SaveButtonBar
+                    onBack={onBack}
+                    onSave={onSubmit}
                     disabled={disabled}
-                    data={this.state}
-                    onChange={this.onChange}
                   />
-                  <CollectionProducts
-                    products={products}
-                    pageInfo={pageInfo}
-                    disabled={disabled}
-                    onNextPage={onNextPage}
-                    onPreviousPage={onPreviousPage}
-                    onProductAdd={onProductAdd}
-                    onProductClick={onProductClick}
-                    onProductRemove={onProductRemove}
-                  />
-                  <div className={classes.cardSpacer} />
-                  <SeoForm
-                    description={this.state.seoDescription}
-                    descriptionPlaceholder={
-                      collection ? collection.seoDescription : ""
-                    }
-                    onChange={this.onChange}
-                    onClick={
-                      !!onSeoClick ? onSeoClick(this.state.seoTitle) : undefined
-                    }
-                    storefrontUrl={storefrontUrl(this.state.slug)}
-                    title={this.state.seoTitle}
-                    titlePlaceholder={this.state.name}
-                  />
-                </div>
-                <div>
-                  <CollectionProperties
-                    collection={collection}
-                    data={this.state}
-                    onChange={this.onChange}
-                    disabled={disabled}
-                  />
-                </div>
-              </div>
-              {collection && (
-                <>
-                  <ActionDialog
-                    onClose={toggleRemoveDialog}
-                    onConfirm={onCollectionDelete}
-                    open={openedRemoveDialog}
-                    title={i18n.t("Remove collection")}
-                    variant="delete"
-                  >
-                    <DialogContentText
-                      dangerouslySetInnerHTML={{
-                        __html: i18n.t(
-                          "Are you sure you want to remove <strong>{{ name }}</strong>?",
-                          { name: collection.name }
-                        )
-                      }}
-                    />
-                  </ActionDialog>
-                </>
+                </Container>
               )}
-              <SaveButtonBar
-                onBack={onBack}
-                onSave={onSubmit}
-                disabled={disabled}
-              />
-            </Container>
+            </Toggle>
           )}
         </Toggle>
       );

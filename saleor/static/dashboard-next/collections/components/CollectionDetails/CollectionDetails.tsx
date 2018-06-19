@@ -3,6 +3,7 @@ import CardContent from "@material-ui/core/CardContent";
 import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
@@ -25,16 +26,28 @@ interface CollectionDetailsProps {
   disabled?: boolean;
   onChange?(event: React.ChangeEvent<any>);
   onDelete?();
+  onImageRemove?();
 }
 
 const decorate = withStyles(theme => ({
   image: {
     width: "100%"
   },
-  root: {}
+  link: {
+    color: theme.palette.secondary.main,
+    cursor: "pointer" as "pointer"
+  }
 }));
 const CollectionDetails = decorate<CollectionDetailsProps>(
-  ({ classes, collection, data, disabled, onChange, onDelete }) => (
+  ({
+    classes,
+    collection,
+    data,
+    disabled,
+    onChange,
+    onDelete,
+    onImageRemove
+  }) => (
     <Card>
       <PageHeader title={i18n.t("Details")}>
         <IconButton disabled={disabled} onClick={onDelete}>
@@ -51,7 +64,16 @@ const CollectionDetails = decorate<CollectionDetailsProps>(
         />
         <FormSpacer />
         {collection ? (
-          <img src={collection.backgroundImage} className={classes.image} />
+          <>
+            <img src={collection.backgroundImage} className={classes.image} />
+            <Typography
+              variant="caption"
+              className={!!onImageRemove ? classes.link : ""}
+              onClick={onImageRemove}
+            >
+              {i18n.t("Remove")}
+            </Typography>
+          </>
         ) : (
           <Skeleton />
         )}
