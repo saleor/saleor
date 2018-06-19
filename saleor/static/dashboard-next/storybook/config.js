@@ -45,14 +45,10 @@ function loadStories() {
   require("./stories/products/ProductAttributesForm");
   require("./stories/products/ProductAvailabilityForm");
   require("./stories/products/ProductCategoryAndCollectionsForm");
-  // require("./stories/products/ProductCollections");
-  // require("./stories/products/ProductDescription");
   require("./stories/products/ProductDetailsForm");
-  // require("./stories/products/ProductDetailsPage");
   require("./stories/products/ProductImagePage");
   require("./stories/products/ProductImages");
   require("./stories/products/ProductListCard");
-  // require("./stories/products/ProductPriceAndAvailability");
   require("./stories/products/ProductUpdatePage");
   require("./stories/products/ProductVariantAttributes");
   require("./stories/products/ProductVariantDeleteDialog");
