@@ -500,8 +500,8 @@ RECAPTCHA_PRIVATE_KEY = os.environ.get('RECAPTCHA_PRIVATE_KEY')
 
 
 #  Sentry
-RAVEN_DSN = os.environ.get('RAVEN_DSN')
-if RAVEN_DSN:
+SENTRY_DSN = os.environ.get('SENTRY_DSN')
+if SENTRY_DSN:
     RAVEN_CONFIG = {
-        'dsn': RAVEN_DSN,
+        'dsn': SENTRY_DSN,
         'release': __version__}
