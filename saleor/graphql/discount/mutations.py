@@ -73,7 +73,7 @@ class VoucherDelete(ModelDeleteMutation):
 class SaleInput(graphene.InputObjectType):
     name = graphene.String(description='Voucher name.')
     type = graphene.String(description='Fixed or percentage.')
-    discount_value = graphene.String(description='Value of the voucher.')
+    value = Decimal(description='Value of the voucher.')
     products = graphene.List(
         graphene.ID, description='Products related to the discount.')
     categories = graphene.List(

@@ -125,17 +125,14 @@ def test_create_voucher(user_api_client, admin_api_client):
             }
         }
     """
-    variables = json.dumps(
-        {
+    variables = json.dumps({
             'name': 'test voucher',
             'type': VoucherType.VALUE,
             'code': 'testcode123',
             'applyTo': VoucherApplyToProduct.ALL_PRODUCTS,
             'discountValueType': DiscountValueType.FIXED,
-            'discountValue': "10.12",
-            'limit': "1.12"
-        }
-    )
+            'discountValue': '10.12',
+            'limit': '1.12'})
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     assert_no_permission(response)
@@ -146,7 +143,7 @@ def test_create_voucher(user_api_client, admin_api_client):
     assert 'errors' not in content
     data = content['data']['voucherCreate']['voucher']
     assert data['type'] == VoucherType.VALUE.upper()
-    assert data['limit']['amount'] == float("1.12")
+    assert data['limit']['amount'] == float('1.12')
     assert data['applyTo'] == VoucherApplyToProduct.ALL_PRODUCTS
     assert data['name'] == 'test voucher'
     assert data['code'] == 'testcode123'
@@ -171,11 +168,10 @@ def test_update_voucher(user_api_client, admin_api_client, voucher):
         }
     """
     # Set discount value type to 'fixed' and change it in mutation
-    voucher.dicount_value_type = DiscountValueType.FIXED
+    voucher.discount_value_type = DiscountValueType.FIXED
     voucher.save()
     assert voucher.code != 'testcode123'
-    variables = json.dumps(
-        {
+    variables = json.dumps({
             'id': graphene.Node.to_global_id('Voucher', voucher.id),
             'code': 'testcode123',
             'discountValueType': DiscountValueType.PERCENTAGE})
@@ -223,3 +219,104 @@ def test_voucher_delete_mutation(user_api_client, admin_api_client, voucher):
     assert data['voucher']['name'] == voucher.name
     with pytest.raises(voucher._meta.model.DoesNotExist):
         voucher.refresh_from_db()
+
+
+def test_create_sale(user_api_client, admin_api_client):
+    query = """
+    mutation  saleCreate(
+        $type: String, $name: String, $value: Decimal) {
+            saleCreate(input: {name: $name, type: $type, value: $value}) {
+                errors {
+                    field
+                    message
+                }
+                sale {
+                    type
+                    name
+                    value
+                }
+            }
+        }
+    """
+    variables = json.dumps({
+            'name': 'test sale',
+            'type': DiscountValueType.FIXED,
+            'value': '10.12'})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    assert_no_permission(response)
+
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['saleCreate']['sale']
+    assert data['type'] == DiscountValueType.FIXED.upper()
+    assert data['name'] == 'test sale'
+    assert data['value'] == 10.12
+
+
+def test_update_sale(user_api_client, admin_api_client, sale):
+    query = """
+    mutation  saleUpdate($type: String, $id: ID!) {
+            saleUpdate(id: $id, input: {type: $type}) {
+                errors {
+                    field
+                    message
+                }
+                sale {
+                    type
+                }
+            }
+        }
+    """
+    # Set discount value type to 'fixed' and change it in mutation
+    sale.type = DiscountValueType.FIXED
+    sale.save()
+    variables = json.dumps({
+        'id': graphene.Node.to_global_id('Sale', sale.id),
+        'type': DiscountValueType.PERCENTAGE})
+
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+
+    assert_no_permission(response)
+
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['saleUpdate']['sale']
+    assert data['type'] == DiscountValueType.PERCENTAGE.upper()
+
+
+def test_sale_delete_mutation(user_api_client, admin_api_client, sale):
+    query = """
+        mutation DeleteSale($id: ID!) {
+            saleDelete(id: $id) {
+                sale {
+                    name
+                    id
+                }
+                errors {
+                    field
+                    message
+                }
+              }
+            }
+    """
+    variables = json.dumps({
+        'id': graphene.Node.to_global_id('Sale', sale.id)})
+
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    assert_no_permission(response)
+
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['saleDelete']
+    assert data['sale']['name'] == sale.name
+    with pytest.raises(sale._meta.model.DoesNotExist):
+        sale.refresh_from_db()
