@@ -1,4 +1,11 @@
 import json
+from tests.utils import get_graphql_content
+
+
+def assert_no_permission(response):
+    content = get_graphql_content(response)
+    assert 'errors' in content
+    assert content['errors'][0]['message'] == 'You do not have permission to perform this action'
 
 
 def get_multipart_request_body(query, variables, file, file_name):
