@@ -10,7 +10,7 @@ class Menu(CountableDjangoObjectType):
         description = """Represents a single menu - an object that is used
         to help navigate through the store."""
         interfaces = [relay.Node]
-        filter_fields = {'name': ['icontains']}
+        filter_fields = {}
         model = models.Menu
 
 
@@ -21,7 +21,7 @@ class MenuItem(CountableDjangoObjectType):
         Can store categories, collection or pages."""
         interfaces = [relay.Node]
         only_fields = ['children', 'id', 'menu', 'name', 'url']
-        filter_fields = {'name': ['icontains']}
+        filter_fields = {}
         model = models.MenuItem
 
     def resolve_url(self, info):

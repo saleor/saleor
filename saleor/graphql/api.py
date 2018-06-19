@@ -76,12 +76,13 @@ class Query(graphene.ObjectType):
         Menu, id=graphene.Argument(graphene.ID),
         description='Lookup a menu by ID.')
     menus = DjangoFilterConnectionField(
-        Menu, description="List of the shop\'s menus.")
+        Menu, query=graphene.String(description=DESCRIPTIONS['menu']),
+        description="List of the shop\'s menus.")
     menu_item = graphene.Field(
         MenuItem, id=graphene.Argument(graphene.ID),
         description='Lookup a menu item by ID.')
     menu_items = DjangoFilterConnectionField(
-        MenuItem, query=graphene.String(description=DESCRIPTIONS['menu']),
+        MenuItem, query=graphene.String(description=DESCRIPTIONS['menu_item']),
         description='List of the shop\'s menu items.')
     order = graphene.Field(
         Order, description='Lookup an order by ID.',
@@ -166,8 +167,8 @@ class Query(graphene.ObjectType):
     def resolve_menu(self, info, id):
         return get_node(info, id, only_type=Menu)
 
-    def resolve_menus(self, info, **kwargs):
-        return resolve_menus(info)
+    def resolve_menus(self, info, query=None, **kwargs):
+        return resolve_menus(info, query)
 
     def resolve_menu_item(self, info, id):
         return get_node(info, id, only_type=MenuItem)
