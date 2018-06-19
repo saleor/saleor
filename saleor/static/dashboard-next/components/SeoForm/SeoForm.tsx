@@ -20,7 +20,7 @@ interface SeoFormProps {
   description: string;
   descriptionPlaceholder: string;
   loading?: boolean;
-  storefrontUrl?(text: string): string;
+  storefrontUrl?(slug: string): string;
   onClick();
   onChange(event: any);
 }
