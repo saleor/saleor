@@ -1,5 +1,7 @@
 import json
 
+import graphene
+import pytest
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 
@@ -144,3 +146,65 @@ def test_create_voucher(user_api_client, admin_api_client):
     assert data['name'] == 'test voucher'
     assert data['code'] == 'testcode123'
     assert data['discountValueType'] == DiscountValueType.FIXED.upper()
+
+
+def test_update_voucher(user_api_client, admin_api_client, voucher):
+    query = """
+    mutation  voucherUpdate($code: String, $discountValueType: String,
+        $id: ID!) {
+            voucherUpdate(id: $id, input: {
+                code: $code, discountValueType: $discountValueType}) {
+                errors {
+                    field
+                    message
+                }
+                voucher {
+                    code
+                    discountValueType
+                }
+            }
+        }
+    """
+    # Set discount value type to 'fixed' and change it in mutation
+    voucher.dicount_value_type = DiscountValueType.FIXED
+    voucher.save()
+    assert voucher.code != 'testcode123'
+    variables = json.dumps(
+        {
+            'id': graphene.Node.to_global_id('Voucher', voucher.id),
+            'code': 'testcode123',
+            'discountValueType': DiscountValueType.PERCENTAGE})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['voucherUpdate']['voucher']
+    assert data['code'] == 'testcode123'
+    assert data['discountValueType'] == DiscountValueType.PERCENTAGE.upper()
+
+
+def test_voucher_delete_mutation(admin_api_client, voucher):
+    query = """
+        mutation DeleteVoucher($id: ID!) {
+            voucherDelete(id: $id) {
+                voucher {
+                    name
+                    id
+                }
+                errors {
+                    field
+                    message
+                }
+              }
+            }
+    """
+    variables = json.dumps({
+        'id': graphene.Node.to_global_id('Voucher', voucher.id)})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['voucherDelete']
+    assert data['voucher']['name'] == voucher.name
+    with pytest.raises(voucher._meta.model.DoesNotExist):
+        voucher.refresh_from_db()
