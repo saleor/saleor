@@ -15,7 +15,6 @@ from .emails import send_account_delete_confirmation_email
 from .forms import (
     ChangePasswordForm, LoginForm, PasswordResetForm, SignupForm,
     get_address_form, logout_on_password_change)
-from .models import User
 
 
 @find_and_assign_anonymous_cart()
@@ -129,10 +128,8 @@ def address_delete(request, pk):
 
 @login_required
 @require_POST
-def account_delete(request, pk):
-    user = get_object_or_404(User, pk=pk)
-    if request.user.pk != user.pk:
-        raise Http404('No such page!')
+def account_delete(request):
+    user = request.user
     send_account_delete_confirmation_email.delay(str(user.token), user.email)
     messages.success(
         request, pgettext(
@@ -141,8 +138,21 @@ def account_delete(request, pk):
     return HttpResponseRedirect(reverse('account:details') + '#settings')
 
 
+@login_required
 def account_delete_confirm(request, token):
-    user = get_object_or_404(User, token=token)
-    user.delete()
+    user = request.user
+
+    if str(request.user.token) != token:
+        raise Http404('No such page!')
+
+    if request.method == 'POST':
+        user.delete()
+        msg = pgettext(
+            'Account deleted',
+            'Your account was deleted successfully. '
+            'In case of any trouble or questions feel free to contact us.')
+        messages.success(request, msg)
+        return redirect('home')
+
     return TemplateResponse(
-        request, 'account/account_delete.html')
+        request, 'account/account_delete_prompt.html')

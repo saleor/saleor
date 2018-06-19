@@ -154,7 +154,7 @@
       <div class="tab-pane fade" id="settings" role="tabpanel">
         <div class="row ">
           <div class="d-block mx-auto text-center">
-            <form action="{% url 'account:delete' pk=request.user.pk %}" method="post">
+            <form action="{% url 'account:delete' %}" method="post">
               {% csrf_token %}
               <p>
                 {% blocktrans context "Message informing about the process of account removal" %}

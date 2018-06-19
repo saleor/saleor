@@ -258,13 +258,13 @@ def test_requires_recaptcha(settings):
 
 
 def test_view_account_delete_login_required(customer_user, client):
-    url = reverse('account:delete', args=[444])
+    url = reverse('account:delete')
     response = client.post(url)
     assert response.status_code == 302
 
 
 def test_view_account_post_required(customer_user, authorized_client):
-    url = reverse('account:delete', args=[444])
+    url = reverse('account:delete')
     response = authorized_client.get(url)
     assert response.status_code == 405
 
@@ -272,12 +272,7 @@ def test_view_account_post_required(customer_user, authorized_client):
 @patch('saleor.account.views.send_account_delete_confirmation_email.delay')
 def test_view_account_delete(
         send_confirmation_mock, customer_user, authorized_client, staff_user):
-    # User requests account delete for another user
-    url = reverse('account:delete', args=[staff_user.pk])
-    response = authorized_client.post(url)
-    assert response.status_code == 404
-
-    url = reverse('account:delete', args=[customer_user.pk])
+    url = reverse('account:delete')
     response = authorized_client.post(url)
     assert response.status_code == 302
     send_confirmation_mock.assert_called_once_with(
@@ -290,8 +285,17 @@ def test_view_account_delete_confirm(customer_user, authorized_client):
     response = authorized_client.get(url)
     assert response.status_code == 404
 
-    url = reverse('account:delete-confirm', args=[customer_user.token])
-    response = authorized_client.get(url)
+    deletion_url = reverse(
+        'account:delete-confirm', args=[customer_user.token])
+
+    # getting the page should not delete the user
+    response = authorized_client.get(deletion_url)
     assert response.status_code == 200
+    customer_user = User.objects.filter(pk=customer_user.pk).first()
+    assert customer_user is not None
+
+    # posting onto the page should delete the user
+    response = authorized_client.post(deletion_url)
+    assert response.status_code == 302
     customer_user = User.objects.filter(pk=customer_user.pk).first()
     assert customer_user is None
