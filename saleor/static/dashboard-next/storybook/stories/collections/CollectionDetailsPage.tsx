@@ -1,10 +1,12 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import * as placeholderImage from "../../../../placeholders/products-list/summer.jpg";
+// FIXME: storyshots have problem with .jpg files, figure it out
+// import * as placeholderImage from "../../../../placeholders/products-list/summer.jpg";
+import * as placeholderImage from "../../../../images/placeholder540x540.png";
+import { storefrontUrl } from "../../../collections";
 import CollectionDetailsPage from "../../../collections/components/CollectionDetailsPage";
 import { collections as collectionsFixture } from "../../../collections/fixtures";
-import { storefrontUrl } from "../../../collections";
 import Decorator from "../../Decorator";
 
 const collection = collectionsFixture(placeholderImage)[0];

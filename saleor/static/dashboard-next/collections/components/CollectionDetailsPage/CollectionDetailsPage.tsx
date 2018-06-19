@@ -58,6 +58,12 @@ interface CollectionDetailsPageState {
 }
 
 const decorate = withStyles(theme => ({
+  cardSpacer: {
+    marginTop: theme.spacing.unit * 2,
+    [theme.breakpoints.down("md")]: {
+      marginTop: theme.spacing.unit
+    }
+  },
   root: {
     display: "grid" as "grid",
     gridColumnGap: theme.spacing.unit * 2 + "px",
@@ -66,7 +72,7 @@ const decorate = withStyles(theme => ({
 }));
 const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
   class CollectionDetailsPageComponent extends React.Component<
-    CollectionDetailsPageProps & WithStyles<"root">,
+    CollectionDetailsPageProps & WithStyles<"root" | "cardSpacer">,
     CollectionDetailsPageState
   > {
     constructor(props) {
@@ -132,14 +138,7 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
                     onProductClick={onProductClick}
                     onProductRemove={onProductRemove}
                   />
-                </div>
-                <div>
-                  <CollectionProperties
-                    collection={collection}
-                    data={this.state}
-                    onChange={this.onChange}
-                    disabled={disabled}
-                  />
+                  <div className={classes.cardSpacer} />
                   <SeoForm
                     description={this.state.seoDescription}
                     descriptionPlaceholder={
@@ -152,6 +151,14 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
                     storefrontUrl={storefrontUrl(this.state.slug)}
                     title={this.state.seoTitle}
                     titlePlaceholder={this.state.name}
+                  />
+                </div>
+                <div>
+                  <CollectionProperties
+                    collection={collection}
+                    data={this.state}
+                    onChange={this.onChange}
+                    disabled={disabled}
                   />
                 </div>
               </div>
