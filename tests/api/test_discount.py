@@ -228,7 +228,7 @@ def test_voucher_delete_mutation(user_api_client, admin_api_client, voucher):
 def test_create_sale(user_api_client, admin_api_client):
     query = """
     mutation  saleCreate(
-        $type: String, $name: String, $value: Decimal) {
+        $type: DiscountValueTypeEnum, $name: String, $value: Decimal) {
             saleCreate(input: {name: $name, type: $type, value: $value}) {
                 errors {
                     field
@@ -244,7 +244,7 @@ def test_create_sale(user_api_client, admin_api_client):
     """
     variables = json.dumps({
         'name': 'test sale',
-        'type': DiscountValueType.FIXED,
+        'type': DiscountValueTypeEnum.FIXED.name,
         'value': '10.12'})
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
@@ -262,7 +262,7 @@ def test_create_sale(user_api_client, admin_api_client):
 
 def test_update_sale(user_api_client, admin_api_client, sale):
     query = """
-    mutation  saleUpdate($type: String, $id: ID!) {
+    mutation  saleUpdate($type: DiscountValueTypeEnum, $id: ID!) {
             saleUpdate(id: $id, input: {type: $type}) {
                 errors {
                     field
@@ -279,7 +279,7 @@ def test_update_sale(user_api_client, admin_api_client, sale):
     sale.save()
     variables = json.dumps({
         'id': graphene.Node.to_global_id('Sale', sale.id),
-        'type': DiscountValueType.PERCENTAGE})
+        'type': DiscountValueTypeEnum.PERCENTAGE.name})
 
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
