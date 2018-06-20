@@ -17,9 +17,9 @@ interface ProductImagesProps {
   placeholderImage?: string;
   images?: Array<{
     id: string;
-    url: string;
-    alt: string;
-    order: number;
+    image: string;
+    alt?: string;
+    sortOrder: number;
   }>;
   loading?: boolean;
   onImageEdit?(id: string);
@@ -62,7 +62,7 @@ const decorate = withStyles(theme => ({
 const ImageListElement = SortableElement(
   decorate<{ tile: any; onImageEdit() }>(({ classes, onImageEdit, tile }) => (
     <GridListTile key={tile.id} component="div" className={classes.gridElement}>
-      <img src={tile.url} alt={tile.alt} />
+      <img src={tile.image} alt={tile.alt} />
       <GridListTileBar
         title={tile.alt || i18n.t("No description")}
         actionIcon={

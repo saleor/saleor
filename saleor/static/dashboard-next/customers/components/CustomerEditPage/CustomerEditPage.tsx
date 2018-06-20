@@ -78,13 +78,14 @@ const CustomerEditPage = decorate<CustomerEditPageProps>(
                   name="note"
                   onChange={change}
                   value={data.note}
+                  multiline
+                  rows={10}
                 />
               </CardContent>
             </Card>
             <SaveButtonBar
-              onBack={onBack}
+              state={disabled ? "disabled" : "default"}
               onSave={onSubmit}
-              disabled={disabled}
             />
           </Container>
         )}

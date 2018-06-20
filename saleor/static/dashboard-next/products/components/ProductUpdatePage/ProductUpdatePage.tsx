@@ -1,47 +1,132 @@
+import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
+import DeleteIcon from "@material-ui/icons/Delete";
+import VisibilityIcon from "@material-ui/icons/Visibility";
 import * as React from "react";
 
+import DialogContentText from "@material-ui/core/DialogContentText";
+import { AttributeType } from "../../";
+import ActionDialog from "../../../components/ActionDialog";
+import Container from "../../../components/Container";
 import Form from "../../../components/Form";
+import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
+import Toggle from "../../../components/Toggle";
+import i18n from "../../../i18n";
 import ProductAttributesForm from "../ProductAttributesForm";
 import ProductAvailabilityForm from "../ProductAvailabilityForm";
 import ProductCategoryAndCollectionsForm from "../ProductCategoryAndCollectionsForm";
 import ProductDetailsForm from "../ProductDetailsForm";
+import ProductImages from "../ProductImages";
+import ProductPrice from "../ProductPrice/ProductPrice";
+import ProductVariants from "../ProductVariants";
 
+interface MoneyType {
+  currency: string;
+  amount: number;
+}
 interface ProductUpdateProps {
-  collections?: any[];
-  categories?: any[];
-  loading?: boolean;
-  // TODO: Type it when done
-  product?: any;
-  onBack();
-  onSubmit();
+  placeholderImage: string;
+  collections?: Array<{
+    id: string;
+    name: string;
+  }>;
+  categories?: Array<{
+    id: string;
+    name: string;
+  }>;
+  disabled?: boolean;
+  productCollections?: Array<{
+    id: string;
+    name: string;
+  }>;
+  variants?: Array<{
+    id: string;
+    sku: string;
+    name: string;
+    priceOverride: number;
+    quantity: number;
+    margin: number;
+  }>;
+  images?: Array<{
+    id: string;
+    alt?: string;
+    image: string;
+    sortOrder: number;
+  }>;
+  product?: {
+    id: string;
+    seoTitle: string;
+    seoDescription: string;
+    productType: {
+      id: string;
+    };
+    name: string;
+    description: string;
+    category: {
+      id: string;
+      name: string;
+    };
+    price: MoneyType;
+    availableOn: string;
+    isPublished: boolean;
+    attributes: Array<{
+      attribute: AttributeType & {
+        values: AttributeType[];
+      };
+      value: AttributeType;
+    }>;
+    availability: {
+      available: boolean;
+    };
+    purchaseCost: {
+      start: MoneyType;
+      stop: MoneyType;
+    };
+    margin: {
+      start: number;
+      stop: number;
+    };
+  };
+  storefrontUrl?(value: string): string;
+  onBack?();
+  onDelete?();
+  onImageEdit?(id: string);
+  onImageReorder?();
+  onImageUpload?(event: React.ChangeEvent<any>);
+  onProductShow?();
+  onSeoClick?();
+  onSubmit?();
+  onVariantAdd?();
+  onVariantShow?(id: string);
 }
 
+const shallowCompare = (a, b) => {
+  let ret = true;
+  Object.keys(a).forEach(k => {
+    if (a[k] !== b[k]) {
+      ret = false;
+    }
+  });
+  return ret;
+};
+
 const decorate = withStyles(theme => ({
-  root: {
-    marginBottom: theme.spacing.unit * 2,
-    [theme.breakpoints.up("md")]: {
-      marginLeft: "auto",
-      marginRight: "auto",
-      maxWidth: theme.breakpoints.width("md")
-    }
-  },
-  grid: {
-    gridGap: theme.spacing.unit * 2 + "px",
-    display: "grid",
-    gridTemplateColumns: "3fr 2fr",
-    marginTop: theme.spacing.unit * 2,
-    [theme.breakpoints.down("sm")]: {
-      marginTop: theme.spacing.unit,
-      gridGap: theme.spacing.unit + "px",
-      gridTemplateColumns: "1fr"
-    }
-  },
   cardContainer: {
     marginTop: theme.spacing.unit * 2,
     [theme.breakpoints.down("sm")]: {
+      marginTop: theme.spacing.unit
+    }
+  },
+  root: {
+    display: "grid",
+    gridGap: theme.spacing.unit * 2 + "px",
+    gridTemplateColumns: "3fr 2fr",
+    marginTop: theme.spacing.unit * 2,
+    [theme.breakpoints.down("sm")]: {
+      gridGap: theme.spacing.unit + "px",
+      gridTemplateColumns: "1fr",
       marginTop: theme.spacing.unit
     }
   }
@@ -49,116 +134,205 @@ const decorate = withStyles(theme => ({
 export const ProductUpdate = decorate<ProductUpdateProps>(
   ({
     classes,
-    loading,
+    disabled,
     categories,
     collections,
+    images,
+    placeholderImage,
     product,
+    productCollections,
+    storefrontUrl,
+    variants,
     onBack,
-    onSubmit
+    onDelete,
+    onImageEdit,
+    onImageReorder,
+    onImageUpload,
+    onProductShow,
+    onSeoClick,
+    onSubmit,
+    onVariantAdd,
+    onVariantShow
   }) => {
     const initialData = {
-      attributes: loading ? [] : product.attributes,
-      available: loading ? "" : product.available,
-      availableOn: loading ? "" : product.availableOn,
-      category: loading ? "" : product.category.id,
-      collections: loading
-        ? []
-        : product.collections.edges.map(edge => edge.node).map(node => node.id),
-      description: loading ? "" : product.description,
-      name: loading ? "" : product.name,
-      price: loading ? "" : product.price.net,
-      seoDescription: loading ? "" : product.seo.description,
-      seoTitle: loading ? "" : product.seo.title
+      available:
+        product && product.availability
+          ? product.availability.available
+          : false,
+      availableOn: product ? product.availableOn : "",
+      category: product && product.category ? product.category.id : undefined,
+      collections:
+        product && productCollections
+          ? productCollections.map(node => node.id)
+          : [],
+      description: product ? product.description : "",
+      name: product ? product.name : "",
+      price: product && product.price ? product.price.amount : undefined,
+      seoDescription: product ? product.seoDescription : "",
+      seoTitle: product ? product.seoTitle : ""
     };
+    if (product && product.attributes) {
+      product.attributes.forEach(attr => {
+        initialData[attr.attribute.slug] = attr.value.slug;
+      });
+    }
     return (
-      <div className={classes.root}>
-        <Form onSubmit={onSubmit} initial={initialData}>
-          {({ change, data, submit }) => (
-            <>
-              <div className={classes.grid}>
-                <div>
-                  <ProductDetailsForm
+      <Form
+        onSubmit={onSubmit}
+        initial={initialData}
+        key={product && product.name ? product.name : "loading"}
+      >
+        {({ change, data, submit }) => (
+          <Container width="md">
+            <Toggle>
+              {(openedDeleteDialog, { toggle: toggleDeleteDialog }) => (
+                <>
+                  <PageHeader
+                    title={product ? product.name : undefined}
                     onBack={onBack}
-                    onChange={change}
-                    name={data.name}
-                    description={data.description}
-                    currencySymbol={loading ? "" : product.price.currencySymbol}
-                    price={data.price}
-                    loading={loading}
-                  />
-                  <div className={classes.cardContainer}>
-                    <SeoForm
-                      title={data.seoTitle}
-                      titlePlaceholder={data.name}
-                      description={data.seoDescription}
-                      descriptionPlaceholder={data.description}
-                      storefrontUrl={
-                        loading
-                          ? ""
-                          : `http://demo.getsaleor.com/product/${product.slug}`
-                      }
-                      loading={loading}
-                      onClick={() => {}}
-                      onChange={change}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <ProductAvailabilityForm
-                    available={data.available}
-                    availableOn={data.availableOn}
-                    loading={loading}
-                    onChange={change}
-                  />
-                  <div className={classes.cardContainer}>
-                    <ProductCategoryAndCollectionsForm
-                      category={data.category}
-                      categories={
-                        categories !== undefined && categories !== null
-                          ? categories.map(category => ({
-                              label: category.name,
-                              value: category.id
-                            }))
-                          : []
-                      }
-                      productCollections={data.collections}
-                      collections={
-                        collections !== undefined && collections !== null
-                          ? collections.map(collection => ({
-                              label: collection.name,
-                              value: collection.id
-                            }))
-                          : []
-                      }
-                      loading={loading}
-                      onChange={change}
-                    />
-                  </div>
-                  <div className={classes.cardContainer}>
-                    <ProductAttributesForm
-                      attributes={
-                        loading
-                          ? []
-                          : product.productType.productAttributes.edges.map(
-                              edge => edge.node
+                  >
+                    {!!onProductShow && (
+                      <IconButton onClick={onProductShow} disabled={disabled}>
+                        <VisibilityIcon />
+                      </IconButton>
+                    )}
+                    {!!onDelete && (
+                      <IconButton
+                        onClick={toggleDeleteDialog}
+                        disabled={disabled}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    )}
+                  </PageHeader>
+                  {product &&
+                    product.name && (
+                      <ActionDialog
+                        open={openedDeleteDialog}
+                        onClose={toggleDeleteDialog}
+                        onConfirm={onDelete}
+                        variant="delete"
+                        title={i18n.t("Remove product")}
+                      >
+                        <DialogContentText
+                          dangerouslySetInnerHTML={{
+                            __html: i18n.t(
+                              "Are you sure you want to remove <strong>{{ name }}</strong>?",
+                              { name: product.name }
                             )
-                      }
-                      productAttributes={data.attributes}
-                      loading={loading}
-                      onChange={change}
-                    />
-                  </div>
+                          }}
+                        />
+                      </ActionDialog>
+                    )}
+                </>
+              )}
+            </Toggle>
+            <div className={classes.root}>
+              <div>
+                <ProductDetailsForm
+                  onBack={onBack}
+                  onChange={change}
+                  name={data.name}
+                  description={data.description}
+                  currencySymbol={
+                    product && product.price ? product.price.currency : ""
+                  }
+                  price={data.price}
+                  disabled={disabled}
+                />
+                <div className={classes.cardContainer}>
+                  <ProductImages
+                    images={images}
+                    placeholderImage={placeholderImage}
+                    onImageReorder={onImageReorder}
+                    onImageEdit={onImageEdit}
+                    onImageUpload={onImageUpload}
+                  />
+                </div>
+                <div className={classes.cardContainer}>
+                  <ProductVariants
+                    variants={variants}
+                    fallbackPrice={product ? product.price : undefined}
+                    onRowClick={onVariantShow}
+                    onVariantAdd={onVariantAdd}
+                  />
+                </div>
+                <div className={classes.cardContainer}>
+                  <SeoForm
+                    title={data.seoTitle}
+                    titlePlaceholder={data.name}
+                    description={data.seoDescription}
+                    descriptionPlaceholder={data.description}
+                    storefrontUrl={storefrontUrl}
+                    loading={disabled}
+                    onClick={onSeoClick}
+                    onChange={change}
+                  />
                 </div>
               </div>
-              <SaveButtonBar
-                onSave={submit}
-                onBack={onBack}
-                disabled={loading}
-              />
-            </>
-          )}
-        </Form>
-      </div>
+              <div>
+                <ProductAvailabilityForm
+                  available={data.available}
+                  availableOn={data.availableOn}
+                  loading={disabled}
+                  onChange={change}
+                />
+                <div className={classes.cardContainer}>
+                  <ProductPrice
+                    margin={
+                      product && product.margin ? product.margin : undefined
+                    }
+                    purchaseCost={
+                      product && product.purchaseCost
+                        ? product.purchaseCost
+                        : undefined
+                    }
+                  />
+                </div>
+                <div className={classes.cardContainer}>
+                  <ProductCategoryAndCollectionsForm
+                    category={data.category}
+                    categories={
+                      categories !== undefined && categories !== null
+                        ? categories.map(category => ({
+                            label: category.name,
+                            value: category.id
+                          }))
+                        : []
+                    }
+                    productCollections={data.collections}
+                    collections={
+                      collections !== undefined && collections !== null
+                        ? collections.map(collection => ({
+                            label: collection.name,
+                            value: collection.id
+                          }))
+                        : []
+                    }
+                    loading={disabled}
+                    onChange={change}
+                  />
+                </div>
+                <div className={classes.cardContainer}>
+                  <ProductAttributesForm
+                    attributes={product ? product.attributes : undefined}
+                    data={data}
+                    disabled={disabled}
+                    onChange={change}
+                  />
+                </div>
+              </div>
+            </div>
+            <SaveButtonBar
+              onSave={submit}
+              state={"default"}
+              disabled={
+                disabled || !onSubmit || shallowCompare(initialData, data)
+              }
+            />
+          </Container>
+        )}
+      </Form>
     );
   }
 );
