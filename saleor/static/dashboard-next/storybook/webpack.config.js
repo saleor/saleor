@@ -34,7 +34,7 @@ var config = {
         loader: "ts-loader"
       },
       {
-        test: /\.(svg|png)$/,
+        test: /\.(svg|png|jpe?g)$/,
         loader: "file-loader",
         options: {
           name: "[name].[ext]"
