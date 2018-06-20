@@ -25,4 +25,6 @@ storiesOf("Views / Collections / Collection details", module)
       {...callbacks}
     />
   ))
-  .add("other", () => <CollectionDetailsPage disabled={true} {...callbacks} />);
+  .add("when loading", () => (
+    <CollectionDetailsPage disabled={true} {...callbacks} />
+  ));

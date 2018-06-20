@@ -17,4 +17,4 @@ storiesOf("Views / Collections / Collection list", module)
       onCollectionShow={() => () => {}}
     />
   ))
-  .add("other", () => <CollectionListPage />);
+  .add("when loading", () => <CollectionListPage />);
