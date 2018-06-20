@@ -5,7 +5,6 @@ import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
 import { FormSpacer } from "../../../components/FormSpacer";
-import PageHeader from "../../../components/PageHeader";
 import PriceField from "../../../components/PriceField";
 import { RichTextEditor } from "../../../components/RichTextEditor";
 import i18n from "../../../i18n";
@@ -13,9 +12,9 @@ import i18n from "../../../i18n";
 interface ProductDetailsFormProps {
   currencySymbol?: string;
   description?: string;
-  loading?: boolean;
+  disabled?: boolean;
   name?: string;
-  price?: string;
+  price?: number;
   onBack();
   onChange(event: any);
 }
@@ -23,7 +22,7 @@ interface ProductDetailsFormProps {
 const decorate = withStyles(theme => ({
   root: {
     display: "grid",
-    gridTemplateColumns: `1fr ${theme.spacing.unit}px 6rem`
+    gridTemplateColumns: `1fr ${theme.spacing.unit}px 8rem`
   }
 }));
 
@@ -31,43 +30,43 @@ export const ProductDetailsForm = decorate<ProductDetailsFormProps>(
   ({
     classes,
     currencySymbol,
-    name,
-    price,
     description,
-    loading,
+    disabled,
+    name,
     onBack,
-    onChange
+    onChange,
+    price
   }) => (
     <Card>
-      <PageHeader title={i18n.t("Edit product")} onBack={onBack} />
       <CardContent>
         <div className={classes.root}>
           <TextField
-            disabled={loading}
-            value={name}
+            disabled={disabled}
             fullWidth
             label={i18n.t("Name")}
             name="name"
+            rows={5}
+            value={name}
             onChange={onChange}
           />
           <span />
           <PriceField
-            label={i18n.t("Price")}
-            disabled={loading}
-            value={price}
-            onChange={onChange}
             currencySymbol={currencySymbol}
+            disabled={disabled}
+            label={i18n.t("Price")}
+            onChange={onChange}
+            value={price}
           />
         </div>
         <FormSpacer />
         <RichTextEditor
-          label={i18n.t("Description")}
+          disabled={disabled}
           fullWidth
-          disabled={loading}
-          value={description}
           helperText={i18n.t("Select text to enable text-formatting tools.")}
-          onChange={onChange}
+          label={i18n.t("Description")}
           name="description"
+          value={description}
+          onChange={onChange}
         />
       </CardContent>
     </Card>
