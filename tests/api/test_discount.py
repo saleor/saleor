@@ -7,6 +7,8 @@ from tests.utils import get_graphql_content
 
 from saleor.discount import (
     DiscountValueType, VoucherApplyToProduct, VoucherType)
+from saleor.graphql.discount.types import (
+    ApplyToEnum, DiscountValueTypeEnum, VoucherTypeEnum)
 
 from .utils import assert_no_permission
 
@@ -103,8 +105,9 @@ def test_sale_query(
 def test_create_voucher(user_api_client, admin_api_client):
     query = """
     mutation  voucherCreate(
-        $type: String, $name: String, $code: String, $applyTo: String
-        $discountValueType: String, $discountValue: Decimal, $limit: Decimal) {
+        $type: VoucherTypeEnum, $name: String, $code: String,
+        $applyTo: ApplyToEnum, $discountValueType: DiscountValueTypeEnum,
+        $discountValue: Decimal, $limit: Decimal) {
             voucherCreate(input: {
             name: $name, type: $type, code: $code, applyTo: $applyTo, 
             discountValueType: $discountValueType, discountValue: $discountValue,
@@ -128,10 +131,10 @@ def test_create_voucher(user_api_client, admin_api_client):
     """
     variables = json.dumps({
         'name': 'test voucher',
-        'type': VoucherType.VALUE,
+        'type': VoucherTypeEnum.VALUE.name,
         'code': 'testcode123',
-        'applyTo': VoucherApplyToProduct.ALL_PRODUCTS,
-        'discountValueType': DiscountValueType.FIXED,
+        'applyTo': ApplyToEnum.ALL_PRODUCTS.name,
+        'discountValueType': DiscountValueTypeEnum.FIXED.name,
         'discountValue': '10.12',
         'limit': '1.12'})
     response = user_api_client.post(
@@ -153,8 +156,8 @@ def test_create_voucher(user_api_client, admin_api_client):
 
 def test_update_voucher(user_api_client, admin_api_client, voucher):
     query = """
-    mutation  voucherUpdate($code: String, $discountValueType: String,
-        $id: ID!) {
+    mutation  voucherUpdate($code: String,
+        $discountValueType: DiscountValueTypeEnum, $id: ID!) {
             voucherUpdate(id: $id, input: {
                 code: $code, discountValueType: $discountValueType}) {
                 errors {
@@ -175,7 +178,7 @@ def test_update_voucher(user_api_client, admin_api_client, voucher):
     variables = json.dumps({
         'id': graphene.Node.to_global_id('Voucher', voucher.id),
         'code': 'testcode123',
-        'discountValueType': DiscountValueType.PERCENTAGE})
+        'discountValueType': DiscountValueTypeEnum.PERCENTAGE.name})
 
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
@@ -325,7 +328,8 @@ def test_sale_delete_mutation(user_api_client, admin_api_client, sale):
 
 def test_validate_voucher(voucher, admin_api_client, product):
     query = """
-    mutation  voucherUpdate($product_id: ID, $id: ID!, $type: String) {
+    mutation  voucherUpdate(
+        $product_id: ID, $id: ID!, $type: VoucherTypeEnum) {
             voucherUpdate(
             id: $id, input: {product: $product_id, type: $type}) {
                 errors {
@@ -343,7 +347,7 @@ def test_validate_voucher(voucher, admin_api_client, product):
 
     assert not voucher.product
     variables = json.dumps({
-        'type': VoucherType.PRODUCT,
+        'type': VoucherTypeEnum.PRODUCT.name,
         'id': graphene.Node.to_global_id('Voucher', voucher.id),
         'product': graphene.Node.to_global_id('Product', product.id)})
 

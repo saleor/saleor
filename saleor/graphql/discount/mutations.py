@@ -3,6 +3,7 @@ import graphene
 from ...discount import VoucherType, models
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types import Decimal
+from .types import ApplyToEnum, DiscountValueTypeEnum, VoucherTypeEnum
 
 
 def validate_voucher(voucher_data):
@@ -18,7 +19,7 @@ def validate_voucher(voucher_data):
 
 
 class VoucherInput(graphene.InputObjectType):
-    type = graphene.String(
+    type = VoucherTypeEnum(
         description='Voucher type: product, category shipping or value.')
     name = graphene.String(description='Voucher name.')
     code = graphene.String(decription='Code to use the voucher.')
@@ -26,13 +27,12 @@ class VoucherInput(graphene.InputObjectType):
         description='Start date of the voucher in ISO 8601 format.')
     end_date = graphene.types.datetime.DateTime(
         description='End date of the voucher in ISO 8601 format.')
-    discount_value_type = graphene.String(
+    discount_value_type = DiscountValueTypeEnum(
         description='Choices: fixed or percentage.')
     discount_value = Decimal(description='Value of the voucher.')
     product = graphene.ID(description='Product related to the discount.')
     category = graphene.ID(description='Category related to the discount.')
-    apply_to = graphene.String(
-        description='Single item (one) or all matching products (all).')
+    apply_to = ApplyToEnum(description='Single item or all matching products.')
     limit = Decimal(description='Limit value of the discount.')
 
 
