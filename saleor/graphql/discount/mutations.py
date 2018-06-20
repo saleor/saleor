@@ -1,8 +1,20 @@
 import graphene
 
-from ...discount import models
+from ...discount import VoucherType, models
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types import Decimal
+
+
+def validate_voucher(voucher_data):
+    voucher_type = voucher_data.get('type')
+    errors = []
+    if voucher_type == VoucherType.PRODUCT:
+        if not voucher_data.get('product'):
+            errors.append(('product', 'This field is required.'))
+    elif voucher_type == VoucherType.CATEGORY:
+        if not voucher_data.get('category'):
+            errors.append(('category', 'This field is required.'))
+    return errors
 
 
 class VoucherInput(graphene.InputObjectType):
@@ -38,6 +50,14 @@ class VoucherCreate(ModelMutation):
     def user_is_allowed(cls, user, input):
         return user.has_perm('discount.edit_voucher')
 
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        cleaned_input = super().clean_input(info, instance, input, errors)
+        voucher_errors = validate_voucher(cleaned_input)
+        for err in voucher_errors:
+            cls.add_error(errors=errors, field=err[0], message=err[1])
+        return cleaned_input
+
 
 class VoucherUpdate(ModelMutation):
     class Arguments:
@@ -54,6 +74,14 @@ class VoucherUpdate(ModelMutation):
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('discount.edit_voucher')
+
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        cleaned_input = super().clean_input(info, instance, input, errors)
+        voucher_errors = validate_voucher(cleaned_input)
+        for err in voucher_errors:
+            cls.add_error(errors=errors, field=err[0], message=err[1])
+        return cleaned_input
 
 
 class VoucherDelete(ModelDeleteMutation):
