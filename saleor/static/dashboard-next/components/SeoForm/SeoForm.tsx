@@ -15,33 +15,26 @@ import PageHeader from "../PageHeader";
 import Skeleton from "../Skeleton";
 
 interface SeoFormProps {
-  title: string;
-  titlePlaceholder: string;
   description: string;
   descriptionPlaceholder: string;
+  disabled?: boolean;
   loading?: boolean;
-  storefrontUrl?(slug: string): string;
-  onClick();
+  title: string;
+  titlePlaceholder: string;
+  storefrontUrl?: string;
   onChange(event: any);
+  onClick();
 }
 
 const decorate = withStyles(theme => ({
-  titleBar: {
-    color: "#1a0dab",
-    fontSize: "18px",
-    lineHeight: "21px",
-    textDecoration: "none",
-    wordWrap: "break-word" as "break-word",
-    overflowWrap: "break-word" as "break-word"
-  },
   addressBar: {
     color: "#006621",
     fontSize: "13px",
     lineHeight: "16px",
-    whiteSpace: "nowrap" as "nowrap",
     marginBottom: "2px",
     overflow: "hidden" as "hidden",
-    textOverflow: "ellipsis" as "ellipsis"
+    textOverflow: "ellipsis" as "ellipsis",
+    whiteSpace: "nowrap" as "nowrap"
   },
   container: {
     width: "100%"
@@ -57,19 +50,28 @@ const decorate = withStyles(theme => ({
   },
   title: {
     padding: 0
+  },
+  titleBar: {
+    color: "#1a0dab",
+    fontSize: "18px",
+    lineHeight: "21px",
+    overflowWrap: "break-word" as "break-word",
+    textDecoration: "none",
+    wordWrap: "break-word" as "break-word"
   }
 }));
 const SeoForm = decorate<SeoFormProps>(
   ({
     classes,
-    title,
-    titlePlaceholder,
     description,
     descriptionPlaceholder,
-    storefrontUrl,
+    disabled,
     loading,
-    onClick,
-    onChange
+    storefrontUrl,
+    title,
+    titlePlaceholder,
+    onChange,
+    onClick
   }) => (
     <Card>
       <ExpansionPanel>
@@ -87,8 +89,7 @@ const SeoForm = decorate<SeoFormProps>(
               ) : (
                 <>
                   {!!storefrontUrl &&
-                    (title || titlePlaceholder) &&
-                    (description || descriptionPlaceholder) && (
+                    (title || titlePlaceholder) && (
                       <>
                         <Typography
                           className={classes.titleBar}
@@ -98,7 +99,7 @@ const SeoForm = decorate<SeoFormProps>(
                           {(title || titlePlaceholder).substr(0, 70)}
                         </Typography>
                         <Typography className={classes.addressBar}>
-                          {storefrontUrl(title || titlePlaceholder)}
+                          {storefrontUrl}
                         </Typography>
                         <Typography className={classes.descriptionBar}>
                           {(description || descriptionPlaceholder).substr(
