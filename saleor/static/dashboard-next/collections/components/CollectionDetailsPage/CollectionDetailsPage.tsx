@@ -148,7 +148,9 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
                       <SeoForm
                         description={this.state.seoDescription}
                         descriptionPlaceholder={
-                          collection ? collection.seoDescription : ""
+                          collection && collection.seoDescription
+                            ? collection.seoDescription
+                            : i18n.t("No description provided")
                         }
                         onChange={this.onChange}
                         onClick={
@@ -203,11 +205,7 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
                       </ActionDialog>
                     </>
                   )}
-                  <SaveButtonBar
-                    onBack={onBack}
-                    onSave={onSubmit}
-                    disabled={disabled}
-                  />
+                  <SaveButtonBar onSave={onSubmit} disabled={disabled} />
                 </Container>
               )}
             </Toggle>

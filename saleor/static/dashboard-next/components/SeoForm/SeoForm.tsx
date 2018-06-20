@@ -21,7 +21,7 @@ interface SeoFormProps {
   loading?: boolean;
   title: string;
   titlePlaceholder: string;
-  storefrontUrl?(slug: string): string;
+  storefrontUrl?: string;
   onChange(event: any);
   onClick();
 }
@@ -89,8 +89,7 @@ const SeoForm = decorate<SeoFormProps>(
               ) : (
                 <>
                   {!!storefrontUrl &&
-                    (title || titlePlaceholder) &&
-                    (description || descriptionPlaceholder) && (
+                    (title || titlePlaceholder) && (
                       <>
                         <Typography
                           className={classes.titleBar}
@@ -100,7 +99,7 @@ const SeoForm = decorate<SeoFormProps>(
                           {(title || titlePlaceholder).substr(0, 70)}
                         </Typography>
                         <Typography className={classes.addressBar}>
-                          {storefrontUrl(title || titlePlaceholder)}
+                          {storefrontUrl}
                         </Typography>
                         <Typography className={classes.descriptionBar}>
                           {(description || descriptionPlaceholder).substr(
