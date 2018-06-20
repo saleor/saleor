@@ -28,6 +28,7 @@ export default createMuiTheme({
       main: primary
     },
     secondary: {
+      contrastText: "#ffffff",
       main: secondary
     }
   },
