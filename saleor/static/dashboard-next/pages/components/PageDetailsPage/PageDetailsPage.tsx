@@ -88,7 +88,10 @@ const PageDetailsPage = decorate<PageDetailsPageProps>(
                     />
                   </div>
                 </div>
-                <SaveButtonBar onBack={onBack} onSave={submit} />
+                <SaveButtonBar
+                  state={disabled ? "disabled" : "default"}
+                  onSave={submit}
+                />
                 {!!onDelete &&
                   !disabled && (
                     <PageDeleteDialog

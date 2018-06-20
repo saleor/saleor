@@ -16,9 +16,12 @@ interface ProductAvailabilityFormProps {
 }
 
 const decorate = withStyles(theme => ({
+  date: {
+    marginTop: theme.spacing.unit
+  },
   root: {
     display: "grid",
-    gridTemplateColumns: "1fr 3fr"
+    gridTemplateColumns: "2fr 3fr"
   }
 }));
 export const ProductAvailabilityForm = decorate<ProductAvailabilityFormProps>(
@@ -28,7 +31,7 @@ export const ProductAvailabilityForm = decorate<ProductAvailabilityFormProps>(
       <CardContent className={classes.root}>
         <ControlledCheckbox
           name="available"
-          label={i18n.t("Available")}
+          label={i18n.t("Available on")}
           checked={available}
           onChange={onChange}
           disabled={loading}
@@ -36,10 +39,10 @@ export const ProductAvailabilityForm = decorate<ProductAvailabilityFormProps>(
         <TextField
           disabled={!available || loading}
           name="availableOn"
-          label={i18n.t("Available on", { context: "label" })}
           type="date"
           value={availableOn}
           onChange={onChange}
+          className={classes.date}
           InputLabelProps={{
             shrink: true
           }}
