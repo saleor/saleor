@@ -16,8 +16,7 @@ class Decimal(Scalar):
     @staticmethod
     def serialize(dec):
         assert isinstance(dec, decimal.Decimal), (
-            'Received not compatible Decimal "{}"'.format(repr(dec))
-        )
+            'Received not compatible Decimal "{}"'.format(repr(dec)))
         return str(dec)
 
     @staticmethod
