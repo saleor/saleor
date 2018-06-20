@@ -154,7 +154,7 @@ Installation
 
 #. Compile e-mails:
 
-   .. code-block:: bash
+   .. code-block:: console
 
     $ npm run build-emails
 

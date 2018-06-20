@@ -1,3 +1,5 @@
+.. _settings_configuration:
+
 Configuration
 =============
 
@@ -66,3 +68,9 @@ Environment variables
   .. code-block:: console
 
    $ python manage.py get_vat_rates
+
+``DEFAULT_CURRENCY``
+  Controls all prices entered and stored in the store as this single default currency (for more information, see :ref:`money_architecture`).
+
+``DEFAULT_COUNTRY``
+  Sets the default country for the store. It controls the default VAT to be shown if required, the default shipping country, etc.
