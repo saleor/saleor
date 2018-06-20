@@ -18173,7 +18173,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
 </div>
 `;
 
-exports[`Storyshots Views / Collections / Collection details other 1`] = `
+exports[`Storyshots Views / Collections / Collection details when loading 1`] = `
 <div
   class="Component-md-13"
 >
@@ -19486,7 +19486,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
 </div>
 `;
 
-exports[`Storyshots Views / Collections / Collection list other 1`] = `
+exports[`Storyshots Views / Collections / Collection list when loading 1`] = `
 <div
   class="Component-md-13"
 >
