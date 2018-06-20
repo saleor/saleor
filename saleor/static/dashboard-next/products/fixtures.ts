@@ -1,162 +1,116 @@
-export const product = {
-  id: "UHJvZHVjdDoyOA==",
-  name: "Stewart-Barrera",
+export const product = (placeholderImage: string) => ({
+  id: "p10171",
+  seoTitle: "Ergonomic Plastic Bacon",
+  seoDescription: "Omnis rerum ea. Fugit dignissimos modi est rerum",
+  productType: { id: "pt76406", name: "Versatile" },
+  name: "Ergonomic Plastic Bacon",
   description:
-    "Light light office style present life military. Enough executive coach cause own.\n\nCare season wrong fly. Example age between discuss assume.\n\nTheir third build might strong account. Worry enter room note level air.\n\nWeight director mother. Because find task with now enter tree management.\n\nSoon name recently ground green. There owner sport box them red information.",
+    "Omnis rerum ea. Fugit dignissimos modi est rerum. Qui corrupti expedita et. Dolorem dolorum illo doloremque. Officia perspiciatis facilis ab maxime voluptatem eligendi ipsam. Quisquam impedit repudiandae eos. Id sit dolores adipisci qui omnis dolores qui. Illo deleniti mollitia perspiciatis.",
+  sku: "59661-34207",
+  category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
   collections: {
-    edges: [
-      {
-        node: {
-          id: "collection-1",
-          name: "Winter Collection"
-        }
-      },
-      {
-        node: {
-          id: "collection-2",
-          name: "Summer Collection"
-        }
-      }
-    ]
+    edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
   },
-  price: {
-    localized: "95,47 USD"
-  },
-  grossMargin: [
+  price: { currency: "NZD", amount: 339.39 },
+  availableOn: "2018-08-25T18:45:54.125Z",
+  isPublished: true,
+  attributes: [
     {
-      start: 56,
-      stop: 98
-    }
-  ],
-  purchaseCost: {
-    start: {
-      gross: {
-        localized: "1,88 USD"
+      attribute: {
+        id: "pta18161",
+        sortNumber: 0,
+        name: "Borders",
+        slug: "Borders",
+        values: [
+          { id: "ptav47282", sortNumber: 0, name: "portals", slug: "portals" },
+          { id: "ptav17253", sortNumber: 1, name: "Baht", slug: "Baht" }
+        ]
+      },
+      value: {
+        id: "ptav47282",
+        sortNumber: 0,
+        name: "portals",
+        slug: "portals"
       }
     },
-    stop: {
-      gross: {
-        localized: "48,10 USD"
+    {
+      attribute: {
+        id: "pta22785",
+        sortNumber: 1,
+        name: "Legacy",
+        slug: "Legacy",
+        values: [
+          { id: "ptav31282", sortNumber: 0, name: "payment", slug: "payment" },
+          {
+            id: "ptav14907",
+            sortNumber: 1,
+            name: "Auto Loan Account",
+            slug: "Auto-Loan-Account"
+          },
+          { id: "ptav27366", sortNumber: 2, name: "Garden", slug: "Garden" },
+          { id: "ptav11873", sortNumber: 3, name: "override", slug: "override" }
+        ]
+      },
+      value: {
+        id: "ptav14907",
+        sortNumber: 1,
+        name: "Auto Loan Account",
+        slug: "Auto-Loan-Account"
       }
     }
-  },
-  isPublished: true,
-  availability: {
-    available: true,
-    priceRange: {
-      start: {
-        net: {
-          localized: "55,14 USD"
-        }
-      },
-      stop: {
-        net: {
-          localized: "88,36 USD"
-        }
-      }
-    }
-  },
-  images: {
-    edges: [
-      {
-        node: {
-          id: "UHJvZHVjdEltYWdlOjY2",
-          alt: "",
-          order: 0,
-          url:
-            "/media/products/saleor/static/placeholders/coffee/coffee-02_IS8e8b3.jpg"
-        }
-      },
-      {
-        node: {
-          id: "UHJvZHVjdEltYWdlOjY3",
-          alt: "",
-          order: 1,
-          url:
-            "/media/products/saleor/static/placeholders/coffee/coffee-02_ZIk8H8C.jpg"
-        }
-      },
-      {
-        node: {
-          id: "UHJvZHVjdEltYWdlOjY4",
-          alt: "",
-          order: 2,
-          url:
-            "/media/products/saleor/static/placeholders/coffee/coffee-03_i5b2KpM.jpg"
-        }
-      }
-    ]
-  },
+  ],
+  isFeatured: false,
   variants: {
     edges: [
       {
         node: {
-          id: "UHJvZHVjdFZhcmlhbnQ6Nw==",
-          sku: "2-1337",
-          name: "XXL",
-          priceOverride: null,
-          stockQuantity: 5,
-          margin: 20
+          id: "pv75934",
+          sku: "87192-94370",
+          name: "Cordoba Oro",
+          priceOverride: 678.78,
+          quantity: 48,
+          margin: 2
         }
       },
       {
         node: {
-          id: "UHJvZHVjdFZhcmlhbnQ6OA==",
-          sku: "2-1338",
-          name: "XL",
+          id: "pv68615",
+          sku: "69055-15190",
+          name: "silver",
           priceOverride: null,
-          stockQuantity: 0,
-          margin: 20
-        }
-      },
-      {
-        node: {
-          id: "UHJvZHVjdFZhcmlhbnQ6OQ==",
-          sku: "2-1339",
-          name: "L",
-          priceOverride: null,
-          stockQuantity: 15,
-          margin: 20
-        }
-      },
-      {
-        node: {
-          id: "UHJvZHVjdFZhcmlhbnQ6MTA=",
-          sku: "2-1340",
-          name: "M",
-          priceOverride: null,
-          stockQuantity: 33,
-          margin: 20
-        }
-      },
-      {
-        node: {
-          id: "UHJvZHVjdFZhcmlhbnQ6MTE=",
-          sku: "2-1341",
-          name: "S",
-          priceOverride: null,
-          stockQuantity: 0,
-          margin: 20
-        }
-      },
-      {
-        node: {
-          id: "UHJvZHVjdFZhcmlhbnQ6MTI=",
-          sku: "2-1342",
-          name: "XS",
-          priceOverride: null,
-          stockQuantity: 0,
-          margin: 20
+          quantity: 14,
+          margin: 7
         }
       }
     ]
   },
-  productType: {
-    id: "UHJvZHVjdFR5cGU6Mw==",
-    name: "Coffee"
+  thumbnailUrl: placeholderImage,
+  images: {
+    edges: [
+      {
+        node: {
+          id: "UHJvZHVjdEltYWdlOjE=",
+          sortOrder: 0,
+          image: placeholderImage
+        }
+      },
+      {
+        node: {
+          id: "UHJvZHVjdEltYWdlOjE=",
+          sortOrder: 2,
+          image: placeholderImage,
+          alt: "Id sit dolores adipisci"
+        }
+      }
+    ]
   },
-  url: "/pl/products/stewart-barrera-28/"
-};
+  availability: { available: false },
+  purchaseCost: {
+    start: { currency: "NZD", amount: 339.39 },
+    stop: { currency: "NZD", amount: 678.78 }
+  },
+  margin: { start: 2, stop: 7 }
+});
 export const products = (placeholderImage: string) => [
   {
     id: "UHJvZHVjdDox",
@@ -196,18 +150,18 @@ export const products = (placeholderImage: string) => [
   }
 ];
 
-export const variants = product.variants.edges.map(edge => edge.node);
-export const grossMargin = product.grossMargin[0];
-export const salePrice = {
-  start: product.availability.priceRange.start.net.localized,
-  stop: product.availability.priceRange.stop.net.localized
-};
-export const purchaseCost = {
-  start: product.purchaseCost.start.gross.localized,
-  stop: product.purchaseCost.stop.gross.localized
-};
-export const collections = product.collections.edges.map(edge => edge.node);
-export const images = product.images.edges.map(edge => edge.node);
+// export const variants = product.variants.edges.map(edge => edge.node);
+// export const grossMargin = product.grossMargin[0];
+// export const salePrice = {
+//   start: product('').availability.priceRange.start.net.localized,
+//   stop: product('').availability.priceRange.stop.net.localized
+// };
+// export const purchaseCost = {
+//   start: product('').purchaseCost.start.gross.localized,
+//   stop: product('').purchaseCost.stop.gross.localized
+// };
+// export const collections = product.collections.edges.map(edge => edge.node);
+// export const images = product('').images.edges.map(edge => edge.node);
 
 export const variant = (placeholderImage: string) => ({
   attributes: [

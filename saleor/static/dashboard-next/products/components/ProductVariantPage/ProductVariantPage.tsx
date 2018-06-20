@@ -206,7 +206,7 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                         </div>
                         <SaveButtonBar
                           disabled={loading}
-                          onBack={onBack}
+                          state={loading ? "disabled" : "default"}
                           onSave={submit}
                         />
                       </>

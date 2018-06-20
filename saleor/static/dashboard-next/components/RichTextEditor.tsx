@@ -34,6 +34,7 @@ export const RichTextEditor: React.StatelessComponent<RichTextEditorProps> = ({
     <Input
       disabled={disabled}
       multiline
+      rows={10}
       name={name}
       {...(value ? { value } : {})}
       {...(defaultValue ? { defaultValue } : {})}
