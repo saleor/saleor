@@ -59,7 +59,7 @@ class VoucherCreate(ModelMutation):
         return cleaned_input
 
 
-class VoucherUpdate(ModelMutation):
+class VoucherUpdate(VoucherCreate):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a voucher to update.')
@@ -70,18 +70,6 @@ class VoucherUpdate(ModelMutation):
     class Meta:
         description = 'Updates a voucher.'
         model = models.Voucher
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('discount.edit_voucher')
-
-    @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
-        voucher_errors = validate_voucher(cleaned_input)
-        for err in voucher_errors:
-            cls.add_error(errors=errors, field=err[0], message=err[1])
-        return cleaned_input
 
 
 class VoucherDelete(ModelDeleteMutation):
@@ -100,7 +88,7 @@ class VoucherDelete(ModelDeleteMutation):
 
 class SaleInput(graphene.InputObjectType):
     name = graphene.String(description='Voucher name.')
-    type = graphene.String(description='Fixed or percentage.')
+    type = DiscountValueTypeEnum(description='Fixed or percentage.')
     value = Decimal(description='Value of the voucher.')
     products = graphene.List(
         graphene.ID, description='Products related to the discount.')
