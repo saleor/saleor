@@ -48,6 +48,9 @@ from .product.types import (
     Category, Collection, Product, ProductAttribute, ProductType)
 from .shipping.resolvers import resolve_shipping_methods
 from .shipping.types import ShippingMethod
+from .shipping.mutations import (
+    ShippingMethodCreate, ShippingMethodDelete, ShippingMethodUpdate,
+    ShippingPriceCreate, ShippingPriceDelete, ShippingPriceUpdate)
 from .utils import get_node
 
 
@@ -282,6 +285,14 @@ class Mutations(graphene.ObjectType):
     voucher_create = VoucherCreate.Field()
     voucher_delete = VoucherDelete.Field()
     voucher_update = VoucherUpdate.Field()
+
+    shipping_method_create = ShippingMethodCreate.Field()
+    shipping_method_delete = ShippingMethodDelete.Field()
+    shipping_method_update = ShippingMethodUpdate.Field()
+
+    shipping_price_create = ShippingPriceCreate.Field()
+    shipping_price_delete = ShippingPriceDelete.Field()
+    shipping_price_update = ShippingPriceUpdate.Field()
 
 
 schema = graphene.Schema(Query, Mutations)
