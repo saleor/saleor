@@ -10,7 +10,8 @@ import {
 
 export const TypedProductListQuery = Query as React.ComponentType<
   QueryProps<ProductListQuery, ProductListQueryVariables>
->;
+  >;
+
 export const productListQuery = gql`
   query ProductList($first: Int, $after: String, $last: Int, $before: String) {
     products(before: $before, after: $after, first: $first, last: $last) {
@@ -37,13 +38,25 @@ export const productListQuery = gql`
 
 export const TypedProductDetailsQuery = Query as React.ComponentType<
   QueryProps<ProductDetailsQuery, ProductDetailsQueryVariables>
->;
+  >;
+
 export const productDetailsQuery = gql`
+  fragment Money on Money {
+    amount
+    currency
+    localized
+  }
   query ProductDetails($id: ID!) {
     product(id: $id) {
       id
       name
       description
+      seoTitle
+      seoDescription
+      category {
+        id
+        name
+      }
       collections {
         edges {
           node {
@@ -53,36 +66,47 @@ export const productDetailsQuery = gql`
         }
       }
       price {
-        localized
+        ...Money
       }
-      grossMargin {
+      margin {
         start
         stop
       }
       purchaseCost {
         start {
-          gross {
-            localized
-          }
+          ...Money
         }
         stop {
-          gross {
-            localized
-          }
+          ...Money
         }
       }
       isPublished
+      availableOn
+      attributes {
+        attribute {
+          slug
+          name
+          values {
+            name
+            slug
+          }
+        }
+        value {
+          id
+          name
+        }
+      }
       availability {
         available
         priceRange {
           start {
             net {
-              localized
+              ...Money
             }
           }
           stop {
             net {
-              localized
+              ...Money
             }
           }
         }
@@ -92,7 +116,7 @@ export const productDetailsQuery = gql`
           node {
             id
             alt
-            order
+            sortOrder
             url
           }
         }
@@ -104,7 +128,7 @@ export const productDetailsQuery = gql`
             sku
             name
             priceOverride {
-              localized
+              ...Money
             }
             stockQuantity
             margin
@@ -116,6 +140,22 @@ export const productDetailsQuery = gql`
         name
       }
       url
+    }
+    collections {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+    categories {
+      edges {
+        node {
+          id
+          name
+        }
+      }
     }
   }
 `;
