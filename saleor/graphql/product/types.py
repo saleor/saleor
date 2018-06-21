@@ -142,7 +142,7 @@ class Product(CountableDjangoObjectType):
         SelectedAttribute,
         description='List of product attributes assigned to this product.')
     purchase_cost = graphene.Field(MoneyRange)
-    margin = graphene.List(Margin)
+    margin = graphene.Field(Margin)
 
     class Meta:
         description = """Represents an individual item for sale in the
@@ -178,7 +178,7 @@ class Product(CountableDjangoObjectType):
     @permission_required('product.view_product')
     def resolve_margin(self, info):
         _, margin = get_product_costs_data(self)
-        return [Margin(margin[0], margin[1])]
+        return Margin(margin[0], margin[1])
 
 
 class ProductType(CountableDjangoObjectType):
