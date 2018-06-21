@@ -31,7 +31,7 @@ from saleor.page.models import Page
 from saleor.product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant)
-from saleor.shipping.models import ShippingMethod
+from saleor.shipping.models import ShippingMethod, ShippingMethodCountry
 from saleor.site.models import AuthorizationKey, SiteSettings
 
 
@@ -204,6 +204,14 @@ def shipping_method(db):  # pylint: disable=W0613
     shipping_method = ShippingMethod.objects.create(name='DHL')
     shipping_method.price_per_country.create(price=10)
     return shipping_method
+
+
+@pytest.fixture
+def shipping_price(shipping_method):
+    return ShippingMethodCountry.objects.create(
+        country_code='PL',
+        price=10,
+        shipping_method=shipping_method)
 
 
 @pytest.fixture
