@@ -1,10 +1,12 @@
 import decimal
 
 import graphene
-from django_prices.templatetags import prices_i18n
+from django_countries import countries
 from graphene.types import Scalar
 from graphene_django import DjangoObjectType
 from graphql.language import ast
+
+from django_prices.templatetags import prices_i18n
 
 
 # FIXME: not yet merged https://github.com/graphql-python/graphene/pull/726
@@ -27,6 +29,11 @@ class Decimal(Scalar):
     def parse_literal(cls, node):
         if isinstance(node, ast.StringValue):
             return cls.parse_value(node.value)
+
+
+class CountryDisplay(graphene.ObjectType):
+    code = graphene.String(description='Country code.')
+    country = graphene.String(description='Country.')
 
 
 class CountableConnection(graphene.relay.Connection):
@@ -125,14 +132,16 @@ class TaxedMoneyRange(graphene.ObjectType):
     class Meta:
         description = 'Represents a range of monetary values.'
 
-
 class Shop(graphene.ObjectType):
     permissions = graphene.List(
         PermissionDisplay, description='List of available permissions')
     languages = graphene.List(
         LanguageDisplay,
         description='List of the shops\'s supported languages')
-    phone_prefixes = graphene.List(graphene.String)
+    phone_prefixes = graphene.List(
+        graphene.String, description='List of possible phone prefixes.')
+    countries = graphene.List(
+        CountryDisplay, description='List of countries available in the shop.')
 
     class Meta:
         description = 'Represents a shop resources.'
