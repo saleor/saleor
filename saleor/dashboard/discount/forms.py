@@ -5,6 +5,7 @@ from django.conf import settings
 from django.urls import reverse_lazy
 from django.utils.translation import pgettext_lazy
 from django_prices.forms import MoneyField
+from modeltranslation.forms import TranslationModelForm
 
 from ...core.i18n import COUNTRY_CODE_CHOICES
 from ...core.utils.taxes import ZERO_MONEY
@@ -15,7 +16,7 @@ from ...shipping.models import ShippingMethodCountry
 from ..forms import AjaxSelect2ChoiceField, AjaxSelect2MultipleChoiceField
 
 
-class SaleForm(forms.ModelForm):
+class SaleForm(TranslationModelForm):
     products = AjaxSelect2MultipleChoiceField(
         queryset=Product.objects.all(),
         fetch_data_url=reverse_lazy('dashboard:ajax-products'), required=False)

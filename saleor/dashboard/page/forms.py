@@ -1,5 +1,6 @@
 from django import forms
 from django.utils.translation import pgettext_lazy
+from modeltranslation.forms import TranslationModelForm
 
 from ...page.models import Page
 from ..product.forms import RichTextField
@@ -7,7 +8,7 @@ from ..seo.fields import SeoDescriptionField, SeoTitleField
 from ..seo.utils import prepare_seo_description
 
 
-class PageForm(forms.ModelForm):
+class PageForm(TranslationModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -3,13 +3,14 @@ from django.urls import reverse_lazy
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from text_unidecode import unidecode
+from modeltranslation.forms import TranslationModelForm
 
 from ...product.models import Collection, Product
 from ..forms import AjaxSelect2MultipleChoiceField
 from ..seo.fields import SeoDescriptionField, SeoTitleField
 
 
-class CollectionForm(forms.ModelForm):
+class CollectionForm(TranslationModelForm):
     products = AjaxSelect2MultipleChoiceField(
         queryset=Product.objects.all(),
         fetch_data_url=reverse_lazy('dashboard:ajax-products'), required=False)

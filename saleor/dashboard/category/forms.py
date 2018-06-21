@@ -3,12 +3,13 @@ from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from text_unidecode import unidecode
+from modeltranslation.forms import TranslationModelForm
 
 from ...product.models import Category
 from ..seo.fields import SeoDescriptionField, SeoTitleField
 
 
-class CategoryForm(forms.ModelForm):
+class CategoryForm(TranslationModelForm):
     def __init__(self, *args, **kwargs):
         self.parent_pk = kwargs.pop('parent_pk')
         super().__init__(*args, **kwargs)

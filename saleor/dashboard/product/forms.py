@@ -9,6 +9,7 @@ from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_prices_vatlayer.utils import get_tax_rate_types
 from mptt.forms import TreeNodeChoiceField
+from modeltranslation.forms import TranslationModelForm
 
 from . import ProductBulkAction
 from ...core.i18n import VAT_RATE_TYPE_TRANSLATIONS
@@ -64,7 +65,7 @@ def get_tax_rate_type_choices():
     return sorted(choices, key=lambda x: x[1])
 
 
-class ProductTypeForm(forms.ModelForm):
+class ProductTypeForm(TranslationModelForm):
     tax_rate = forms.ChoiceField(required=False)
 
     class Meta:
@@ -194,7 +195,7 @@ class AttributesMixin(object):
         return attributes
 
 
-class ProductForm(forms.ModelForm, AttributesMixin):
+class ProductForm(TranslationModelForm, AttributesMixin):
     tax_rate = forms.ChoiceField(required=False)
 
     class Meta:
@@ -391,7 +392,7 @@ class VariantImagesSelectForm(forms.Form):
         VariantImage.objects.bulk_create(images)
 
 
-class ProductAttributeForm(forms.ModelForm):
+class ProductAttributeForm(TranslationModelForm):
     class Meta:
         model = ProductAttribute
         exclude = []
@@ -402,7 +403,7 @@ class ProductAttributeForm(forms.ModelForm):
                 'Product internal name', 'Internal name')}
 
 
-class AttributeChoiceValueForm(forms.ModelForm):
+class AttributeChoiceValueForm(TranslationModelForm):
     class Meta:
         model = AttributeChoiceValue
         fields = ['attribute', 'name']

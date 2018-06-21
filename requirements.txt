@@ -118,3 +118,5 @@ webencodings==0.5.1       # via html5lib, tinycss2
 wrapt==1.10.11            # via vcrpy
 xmltodict==0.11.0         # via django-payments
 yarl==0.17.0              # via vcrpy
+# TODO: use pypi when 0.13 is released (older version doesn't work with newer Django)
+-e git://github.com/deschler/django-modeltranslation.git@0.13-beta1#egg=django-modeltranslation

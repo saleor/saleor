@@ -183,6 +183,7 @@ MIDDLEWARE = [
 INSTALLED_APPS = [
     # External apps that need to go before django's
     'storages',
+    'modeltranslation',
 
     # Django modules
     'django.contrib.contenttypes',
@@ -198,6 +199,7 @@ INSTALLED_APPS = [
     # Local apps
     'saleor.account',
     'saleor.discount',
+    'saleor.seo',
     'saleor.product',
     'saleor.checkout',
     'saleor.core',
@@ -205,7 +207,6 @@ INSTALLED_APPS = [
     'saleor.menu',
     'saleor.order.OrderAppConfig',
     'saleor.dashboard',
-    'saleor.seo',
     'saleor.shipping',
     'saleor.search',
     'saleor.site',
