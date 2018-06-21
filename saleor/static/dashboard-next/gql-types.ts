@@ -373,6 +373,15 @@ export interface ProductDetailsQueryVariables {
   id: string,
 };
 
+interface CollectionsConnection {
+  edges:  Array< {
+    node:  {
+      id: string,
+      name: string,
+    } | null,
+  } | null >,
+}
+
 export interface ProductDetailsQuery {
   // Lookup a product by ID.
   product:  {
@@ -380,48 +389,59 @@ export interface ProductDetailsQuery {
     id: string,
     name: string,
     description: string,
-    collections:  {
-      edges:  Array< {
-        // The item at the end of the edge
-        node:  {
-          // The ID of the object.
-          id: string,
-          name: string,
-        } | null,
-      } | null >,
-    } | null,
+    category: {
+      id: string,
+      name: string
+    },
+    collections: CollectionsConnection | null,
     // The product's base price (without any discounts
     // applied).
-    price:  {
+    seoTitle: string | null,
+    seoDescription: string | null,
+    price: {
       // Money formatted according to the current locale.
+      amount: number | null,
+      currency: string | null,
       localized: string | null,
     } | null,
-    grossMargin:  Array< {
+    margin: {
       start: number | null,
       stop: number | null,
-    } | null > | null,
+    } | null,
     purchaseCost:  {
-      // Lower bound of a price range.
       start:  {
-        // Amount of money including taxes.
-        gross:  {
-          // Money formatted according to the current locale.
-          localized: string | null,
-        } | null,
-      } | null,
+        amount: number | null,
+        currency: string | null,
+        localized: string | null,
+      }
       // Upper bound of a price range.
       stop:  {
-        // Amount of money including taxes.
-        gross:  {
-          // Money formatted according to the current locale.
-          localized: string | null,
-        } | null,
+        amount: number | null,
+        currency: string | null,
+        localized: string | null,
       } | null,
     } | null,
     isPublished: boolean,
     // Informs about product's availability in the storefront,
     // current price and discounts.
-    availability:  {
+    availableOn: string | null,
+    attributes: Array <{
+      attribute: {
+        id: string,
+        name: string,
+        slug: string,
+        values: Array<{
+          name: string,
+          slug: string,
+        }> | null;
+      } | null,
+      value: {
+        id: string,
+        name: string,
+        slug: string,
+      } | null,
+    }> | null,
+    availability: {
       available: boolean | null,
       priceRange:  {
         // Lower bound of a price range.
@@ -429,6 +449,8 @@ export interface ProductDetailsQuery {
           // Amount of money without taxes.
           net:  {
             // Money formatted according to the current locale.
+            amount: number | null,
+            currency: string | null,
             localized: string | null,
           } | null,
         } | null,
@@ -437,24 +459,26 @@ export interface ProductDetailsQuery {
           // Amount of money without taxes.
           net:  {
             // Money formatted according to the current locale.
+            amount: number | null,
+            currency: string | null,
             localized: string | null,
           } | null,
         } | null,
       } | null,
     } | null,
-    images:  {
+    images: {
       edges:  Array< {
         // The item at the end of the edge
         node:  {
           // The ID of the object.
           id: string,
           alt: string,
-          order: number,
+          sortOrder: number,
           url: string,
         } | null,
       } | null >,
     } | null,
-    variants:  {
+    variants: {
       edges:  Array< {
         // The item at the end of the edge
         node:  {
@@ -465,7 +489,8 @@ export interface ProductDetailsQuery {
           // Override the base price of a product if necessary.
           // A value of `null` indicates that the default product price is used.
           priceOverride:  {
-            // Money formatted according to the current locale.
+            amount: number | null,
+            currency: string | null,
             localized: string | null,
           } | null,
           // Quantity of a product available for sale.
@@ -483,4 +508,13 @@ export interface ProductDetailsQuery {
     // The storefront URL for the product.
     url: string,
   } | null,
+  categories: {
+    edges: Array <{
+      node: {
+        id: string,
+        name: string,
+      } | null,
+    }> | null,
+  } | null,
+  collections: CollectionsConnection;
 };

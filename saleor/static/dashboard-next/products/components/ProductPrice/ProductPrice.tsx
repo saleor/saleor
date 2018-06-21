@@ -16,6 +16,7 @@ interface MoneyType {
   currency: string;
   amount: number;
 }
+
 interface ProductPriceProps {
   purchaseCost: {
     start: MoneyType;
@@ -37,6 +38,7 @@ const decorate = withStyles(theme => ({
     textAlign: "right" as "right"
   }
 }));
+
 const ProductPrice = decorate<ProductPriceProps>(
   ({ classes, margin, purchaseCost }) => (
     <Card>
@@ -93,5 +95,6 @@ const ProductPrice = decorate<ProductPriceProps>(
     </Card>
   )
 );
+
 ProductPrice.displayName = "ProductPrice";
 export default ProductPrice;

@@ -5,7 +5,7 @@ import VisibilityIcon from "@material-ui/icons/Visibility";
 import * as React from "react";
 
 import DialogContentText from "@material-ui/core/DialogContentText";
-import { AttributeType } from "../../";
+import { AttributeType, AttributeValueType } from "../../";
 import ActionDialog from "../../../components/ActionDialog";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
@@ -25,8 +25,9 @@ import ProductPrice from "../ProductPrice/ProductPrice";
 import ProductVariants from "../ProductVariants";
 
 interface MoneyType {
-  currency: string;
   amount: number;
+  currency: string;
+  localized: string;
 }
 interface ProductUpdateProps {
   placeholderImage: string;
@@ -47,37 +48,36 @@ interface ProductUpdateProps {
     id: string;
     sku: string;
     name: string;
-    priceOverride: number;
-    quantity: number;
+    priceOverride?: MoneyType;
+    stockQuantity: number;
     margin: number;
   }>;
   images?: Array<{
     id: string;
     alt?: string;
-    image: string;
     sortOrder: number;
+    url: string;
   }>;
   product?: {
     id: string;
-    seoTitle: string;
-    seoDescription: string;
-    productType: {
-      id: string;
-    };
     name: string;
     description: string;
+    seoTitle?: string;
+    seoDescription?: string;
+    productType: {
+      id: string;
+      name: string;
+    };
     category: {
       id: string;
       name: string;
     };
     price: MoneyType;
-    availableOn: string;
+    availableOn?: string;
     isPublished: boolean;
     attributes: Array<{
-      attribute: AttributeType & {
-        values: AttributeType[];
-      };
-      value: AttributeType;
+      attribute: AttributeType;
+      value: AttributeValueType;
     }>;
     availability: {
       available: boolean;
@@ -90,9 +90,9 @@ interface ProductUpdateProps {
       start: number;
       stop: number;
     };
+    url: string;
   };
   saveButtonBarState?: SaveButtonBarState;
-  storefrontUrl?(value: string): string;
   onBack?();
   onDelete?();
   onImageEdit?(id: string);
@@ -145,7 +145,6 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
     product,
     productCollections,
     saveButtonBarState,
-    storefrontUrl,
     variants,
     onBack,
     onDelete,
@@ -173,11 +172,11 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
       name: product ? product.name : "",
       price: product && product.price ? product.price.amount : undefined,
       seoDescription: product ? product.seoDescription : "",
-      seoTitle: product ? product.seoTitle : ""
+      seoTitle: product && product.seoTitle ? product.seoTitle : ""
     };
     if (product && product.attributes) {
-      product.attributes.forEach(attr => {
-        initialData[attr.attribute.slug] = attr.value.slug;
+      product.attributes.forEach(item => {
+        initialData[item.attribute.slug] = item.value.slug;
       });
     }
     return (
@@ -267,9 +266,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
                     titlePlaceholder={data.name}
                     description={data.seoDescription}
                     descriptionPlaceholder={data.description}
-                    storefrontUrl={
-                      product ? storefrontUrl(product.seoTitle) : undefined
-                    }
+                    storefrontUrl={ product ? product.url : undefined }
                     loading={disabled}
                     onClick={onSeoClick}
                     onChange={change}
@@ -286,12 +283,10 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
                 <div className={classes.cardContainer}>
                   <ProductPrice
                     margin={
-                      product && product.margin ? product.margin : undefined
+                      product ? product.margin : undefined
                     }
                     purchaseCost={
-                      product && product.purchaseCost
-                        ? product.purchaseCost
-                        : undefined
+                      product ? product.purchaseCost : undefined
                     }
                   />
                 </div>

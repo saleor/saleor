@@ -21,6 +21,7 @@ import i18n from "../../../i18n";
 interface MoneyType {
   amount: number;
   currency: string;
+  localized: string;
 }
 interface ProductVariantsProps {
   disabled?: boolean;
@@ -28,12 +29,11 @@ interface ProductVariantsProps {
     id: string;
     sku: string;
     name: string;
-    priceOverride: number;
-    quantity: number;
+    priceOverride?: MoneyType;
+    stockQuantity: number;
     margin: number;
   }>;
-  fallbackPrice?: MoneyType;
-  fallbackGross?: string;
+  fallbackPrice: MoneyType;
   onRowClick?(id: string);
   onVariantAdd?();
 }
@@ -75,7 +75,6 @@ export const ProductVariants = decorate<ProductVariantsProps>(
     disabled,
     variants,
     fallbackPrice,
-    fallbackGross,
     onRowClick,
     onVariantAdd
   }) => (
@@ -123,41 +122,37 @@ export const ProductVariants = decorate<ProductVariantsProps>(
               </Hidden>
             </TableRow>
           ) : variants.length > 0 ? (
-            variants.map(variant => (
-              <TableRow key={variant.id}>
-                <Hidden smDown>
-                  <TableCell>{variant.sku}</TableCell>
-                </Hidden>
-                <TableCell
-                  className={onRowClick ? classes.link : ""}
-                  onClick={onRowClick ? onRowClick(variant.id) : () => {}}
-                >
-                  {variant.name}
-                </TableCell>
-                <TableCell>
-                  <span
-                    className={
-                      variant.quantity > 0 ? classes.greenDot : classes.redDot
-                    }
-                  />
-                  {variant.quantity > 0
-                    ? i18n.t("Available")
-                    : i18n.t("Unavailable")}
-                </TableCell>
-                <Hidden smDown>
-                  <TableCell className={classes.alignRightText}>
-                    {variant && variant.priceOverride !== undefined ? (
-                      <Money
-                        amount={variant.priceOverride || fallbackPrice.amount}
-                        currency={fallbackPrice.currency}
-                      />
-                    ) : (
-                      <Skeleton />
-                    )}
+            variants.map(variant => {
+              const price = variant.priceOverride || fallbackPrice;
+              return (
+                <TableRow key={variant.id}>
+                  <Hidden smDown>
+                    <TableCell>{variant.sku}</TableCell>
+                  </Hidden>
+                  <TableCell
+                    className={onRowClick ? classes.link : ""}
+                    onClick={onRowClick ? onRowClick(variant.id) : () => {}}
+                  >
+                    {variant.name}
                   </TableCell>
-                </Hidden>
-              </TableRow>
-            ))
+                  <TableCell>
+                    <span
+                      className={
+                        variant.stockQuantity > 0 ? classes.greenDot : classes.redDot
+                      }
+                    />
+                    {variant.stockQuantity > 0
+                      ? i18n.t("Available")
+                      : i18n.t("Unavailable")}
+                  </TableCell>
+                  <Hidden smDown>
+                    <TableCell className={classes.alignRightText}>
+                      <Money amount={price.amount} currency={price.currency} />
+                    </TableCell>
+                  </Hidden>
+                </TableRow>
+              )
+            })
           ) : (
             <TableRow>
               <TableCell colSpan={2}>
