@@ -53,6 +53,8 @@ Environment variables
 ``SECRET_KEY``
   Controls `Django's secret key <https://docs.djangoproject.com/en/1.10/ref/settings/#secret-key>`_ setting.
 
+``SENTRY_DSN``
+  Sentry's `Data Source Name <https://docs.sentry.io/quickstart/#about-the-dsn>`_. Disabled by default, allows to enable integration with Sentry (see :ref:`sentry-integration` for details).
 
 ``MAX_CART_LINE_QUANTITY``
   Controls maximum number of items in one cart line. Defaults to ``50``.
