@@ -2,6 +2,7 @@ import decimal
 
 import graphene
 from django_prices.templatetags import prices_i18n
+from django_countries import countries
 from graphene.types import Scalar
 from graphene_django import DjangoObjectType
 from graphql.language import ast
@@ -126,7 +127,6 @@ class TaxedMoneyRange(graphene.ObjectType):
 
     class Meta:
         description = 'Represents a range of monetary values.'
-
 
 class Shop(graphene.ObjectType):
     permissions = graphene.List(
