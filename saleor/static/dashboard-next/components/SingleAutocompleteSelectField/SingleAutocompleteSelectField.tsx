@@ -77,7 +77,9 @@ export const SingleAutocompleteSelectField = decorate<
           highlightedIndex
         }) => {
           const isCustom =
-            choices.filter(c => c.value === selectedItem.value).length === 0;
+            choices && selectedItem
+              ? choices.filter(c => c.value === selectedItem.value).length === 0
+              : false;
           return (
             <div className={classes.container}>
               <TextField
@@ -104,7 +106,11 @@ export const SingleAutocompleteSelectField = decorate<
                       {choices.map((suggestion, index) => (
                         <MenuItem
                           key={suggestion.value}
-                          selected={suggestion.value === selectedItem.value}
+                          selected={
+                            selectedItem
+                              ? suggestion.value === selectedItem.value
+                              : false
+                          }
                           component="div"
                           {...getItemProps({ item: suggestion })}
                         >

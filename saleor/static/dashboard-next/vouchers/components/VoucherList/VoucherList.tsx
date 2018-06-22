@@ -8,7 +8,7 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import { VoucherType } from "../..";
+import { createVoucherName, VoucherType } from "../..";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
@@ -20,25 +20,17 @@ interface VoucherListProps {
     id: string;
     name: string;
     type: VoucherType;
-    code: string;
-    usageLimit: number | null;
-    used: number | null;
     startDate: string | null;
     endDate: string | null;
     discountValueType: "PERCENTAGE" | "FIXED" | string;
     discountValue: number;
+    limit: { amount: number; currency: string } | null;
     product: {
-      id: string;
       name: string;
-      price: { amount: number; currency: string };
     } | null;
     category: {
-      id: string;
       name: string;
-      products: { totalCount: number };
     } | null;
-    applyTo: string | null;
-    limit: { amount: number; currency: string } | null;
   }>;
   pageInfo?: {
     hasNextPage: boolean;
@@ -119,7 +111,15 @@ const VoucherList = decorate<VoucherListProps>(
                     onClick={onRowClick ? onRowClick(voucher.id) : undefined}
                     className={onRowClick ? classes.link : ""}
                   >
-                    {voucher && voucher.name ? voucher.name : <Skeleton />}
+                    {voucher ? (
+                      voucher.name !== null ? (
+                        voucher.name
+                      ) : (
+                        createVoucherName(voucher, currency)
+                      )
+                    ) : (
+                      <Skeleton />
+                    )}
                   </span>
                 </TableCell>
                 <TableCell>
