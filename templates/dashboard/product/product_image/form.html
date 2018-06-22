@@ -16,19 +16,19 @@
 {% block menu_products_class %}active{% endblock %}
 
 {% block header_menu %}
-  {% url "dashboard:product-detail" pk=product.pk as url %}
+  {% url "dashboard:product-details" pk=product.pk as url %}
   {% include "dashboard/includes/_back_link.html" with url=url %}
 {% endblock %}
 
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
-      <a href="{% url "dashboard:product-detail" pk=product.pk %}" class="breadcrumbs--ellipsed-item">
+      <a href="{% url "dashboard:product-details" pk=product.pk %}" class="breadcrumbs--ellipsed-item">
         {{ product }}
       </a>
     </li>
     <li class="back-mobile">
-      <a href="{% url "dashboard:product-detail" pk=product.pk %}" class="breadcrumb">
+      <a href="{% url "dashboard:product-details" pk=product.pk %}" class="breadcrumb">
         <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
@@ -75,17 +75,14 @@
             </div>
           </div>
           <div class="card-action right-align">
+            <a href="{% url "dashboard:product-image-list" product.pk %}" class="btn-flat waves-effect">
+              {% trans "Cancel" context "Dashboard cancel action" %}
+            </a>
             {% if product_image.pk %}
-              <a href="{% url "dashboard:product-image-list" product.pk %}" class="btn-flat waves-effect">
-                {% trans "Cancel" context "Dashboard cancel action" %}
-              </a>
               <button type="submit" class="btn waves-effect">
                 {% trans "Save" context "Dashboard update action" %}
               </button>
             {% else %}
-              <a href="{% url "dashboard:product-image-list" product.pk %}" class="btn-flat waves-effect">
-                {% trans "Cancel" context "Dashboard cancel action" %}
-              </a>
               <button type="submit" class="btn waves-effect">
                 {% trans "Create" context "Dashboard create action" %}
               </button>

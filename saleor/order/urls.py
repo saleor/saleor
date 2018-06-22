@@ -11,6 +11,8 @@ urlpatterns = [
         views.start_payment, name='payment'),
     url(r'^%s/cancel-payment/$' % (TOKEN_PATTERN,), views.cancel_payment,
         name='cancel-payment'),
+    url(r'^%s/payment-success/$' % (TOKEN_PATTERN,),
+        views.payment_success, name='payment-success'),
     url(r'^%s/checkout-success/$' % (TOKEN_PATTERN,),
         views.checkout_success, name='checkout-success'),
     url(r'^%s/attach/$' % (TOKEN_PATTERN,),

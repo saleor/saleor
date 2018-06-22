@@ -1,0 +1,143 @@
+{% extends "dashboard/base.html" %}
+{% load babel %}
+{% load dashboard %}
+{% load i18n %}
+{% load i18n_address_tags %}
+{% load materializecss %}
+{% load staticfiles %}
+{% load status %}
+
+{% block title %}
+  {% trans "Fulfill" context "Dashboard order fulfillment" %} {{ order }} - {% trans "Orders" context "Dashboard orders list" %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-orders{% endblock %}
+
+{% block menu_orders_class %}active{% endblock %}
+
+{% block header_menu %}
+  {% url "dashboard:orders" as url %}
+  {% include "dashboard/includes/_back_link.html" with url=url %}
+{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url "dashboard:orders" %}">
+        {% trans "Orders" context "Dashboard orders list" %}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url "dashboard:orders" %}">
+        <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'dashboard:order-details' order_pk=order.pk %}" class="breadcrumbs--ellipsed-item">
+        {{ order }}
+      </a>
+    </li>
+    <li>
+      <span>
+        {% trans "Fulfill" context "Dashboard order fulfillment" %}
+      </span>
+    </li>
+  </ul>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col s12 l8">
+    <form role="form" class="card" method="post" novalidate>
+    {% csrf_token %}
+    {{ formset.management_form }}
+      <div class="card shipment-table">
+        <div class="data-table-header">
+          <div class="data-table-title">
+            <h5>
+              {% trans "Fulfill order" context "Fulfill order title" %}
+            </h5>
+          </div>
+        </div>
+        <div class="data-table-container">
+          <table class="bordered highlight responsive data-table">
+            <thead>
+              <tr>
+                <th class="wide">
+                  {% trans "Item" context "Modal remove order line table header" %}
+                </th>
+                <th class="right-align">
+                  {% trans "Quantity" context "Modal remove order line table header" %}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for line in unfulfilled_lines %}
+                <tr>
+                  <td>
+                    {% if line.variant %}
+                      <a href="{% url 'dashboard:variant-details' product_pk=line.variant.product.pk variant_pk=line.variant.pk %}">{{ line.product_name }}</a>
+                    {% else %}
+                      {{ line.product_name }}
+                    {% endif %}
+                    <br>
+                    <span class="grey-text">
+                      {% blocktrans trimmed with sku=line.product_sku context "Order table text" %}
+                        SKU: {{ sku }}
+                      {% endblocktrans %}
+                    </span>
+                  </td>
+                  <td class="right-align fulfillment-quantity">
+                    {% get_formset_form formset forloop.counter0 as line_form %}
+                    <div class="fulfillment-quantity-input">
+                      <input id="{{ line_form.order_line.auto_id }}"
+                             type="hidden"
+                             name="{{ line_form.order_line.html_name }}"
+                             required="{{ line_form.order_line.field.required }}"
+                             value="{{ line_form.order_line.value }}">
+                      <input id="{{ line_form.quantity.auto_id }}"
+                             max="{{ line.quantity_unfulfilled }}"
+                             min="0"
+                             name="{{ line_form.quantity.html_name }}"
+                             required="{{ line_form.quantity.field.required }}"
+                             type="number"
+                             value="{{ line_form.quantity.value }}">
+                      {% blocktrans trimmed with quantity_unfulfilled=line.quantity_unfulfilled context "Fulfill order table quantity unfulfilled" %}
+                        of {{ quantity_unfulfilled }}
+                      {% endblocktrans %}
+                    </div>
+                    <label for="{{ line_form.quantity.auto_id }}">
+                      {% for error in line_form.quantity.errors %}
+                        <p class="help-block materialize-red-text">{{ error }}</p>
+                      {% endfor %}
+                      {% if line_form.quantity.help_text %}
+                        <p class="help-block">
+                          {{ line_form.quantity.field.help_text|safe }}
+                        </p>
+                      {% endif %}
+                    </label>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="data-table-content">
+          {{ form.tracking_number|materializecss }}
+          {% if form.send_mail %}
+            {{ form.send_mail|materializecss }}
+          {% endif %}
+        </div>
+        <div class="data-table-action right-align">
+          <a href="{% url 'dashboard:order-details' order.pk %}" class="btn-flat waves-effect">
+            {% trans "Cancel" context "Dashboard cancel action" %}
+          </a>
+          <button type="submit" class="btn waves-effect">
+            {% trans "Fulfill" context "Dashboard update action" %}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

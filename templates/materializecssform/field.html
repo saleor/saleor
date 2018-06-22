@@ -151,7 +151,8 @@
   <div class="input input-field col {{ classes.label }}">
     <textarea id="{{ field.auto_id }}"
               class="materialize-textarea {{ field.field.widget.attrs.class }}"
-              name="{{ field.name }}">{% if field.value %}{{ field.value }}{% endif %}</textarea>
+              name="{{ field.name }}"
+              {% if field.field.disabled %} disabled {% endif %}>{% if field.value %}{{ field.value }}{% endif %}</textarea>
     {% if field.auto_id %}
       <label class="{{ classes.label }}" for="{{ field.auto_id }}">
         {{ field.label }}
@@ -333,6 +334,32 @@
         <div class="col s2 center-align separator">-</div>
       {% endif %}
     {% endfor %}
+  </div>
+{% elif field|is_chars_left %}
+  <div class="input input-field col {{ classes.label }}">
+    <div class="chars-left">
+      <label class="active chars-left__label" for="{{ field.auto_id }}">
+        {{ field.label }}
+        {% if not field.field.required %}
+          {% trans "(optional)" context "Dashboard form labels" %}
+        {% endif %}
+      </label>
+      <span class="chars-left__count">
+        <span class="chars-left__count__current" data-bind="{{ field.auto_id }}">
+        {% blocktrans with current_chars_count=field.value|length max_chars_count=field.field.max_length context "Message showing how many chars were used out of maximum field's length" %}
+          {{ current_chars_count }}</span> of {{ max_chars_count }} characters used
+        {% endblocktrans %}
+      </span>
+    </div>
+    {{ field }}
+    {% for error in field.errors %}
+      <p class="help-block materialize-red-text">{{ error }}</p>
+    {% endfor %}
+    {% if field.help_text %}
+      <p class="help-block">
+        {{ field.help_text|safe }}
+      </p>
+    {% endif %}
   </div>
 {% else %}
   <div class="input input-field col {{ classes.label }}">

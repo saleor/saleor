@@ -2,15 +2,16 @@
 {% load i18n %}
 {% load staticfiles %}
 {% load render_bundle from webpack_loader %}
+{% load shop %}
 {% load placeholder %}
+{% load translate_url from urls %}
 
-<html lang="{{ LANGUAGE_CODE }}" class="no-js" data-shipping-options-url="{% url 'cart:shipping-options' %}" data-cart-summary-url="{% url 'cart:cart-summary' %}">
+<html lang="{{ LANGUAGE_CODE }}" class="no-js" data-shipping-options-url="{% url 'cart:shipping-options' %}" data-cart-summary-url="{% url 'cart:summary' %}">
 <head>
   <title>{% block title %}{{ site.name }}{% endblock %}</title>
   {% block meta %}
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="{% block meta_description %}{% endblock %}">
     <meta name="generator" content="Saleor">
     <meta name="theme-color" content="#333333">
     <meta name="msapplication-TileColor" content="#2b5797">
@@ -18,6 +19,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="{{ site.name }}">
     <meta name="og:type" content="website">
+    {% get_available_languages as LANGUAGES %}
+    {% for lang_code, language_name in LANGUAGES %}
+      <link rel="alternate" hreflang="{{ lang_code }}" href="{% translate_url url=request.path lang_code=lang_code %}" />
+    {% endfor %}
   {% endblock meta %}
 
   {% include 'favicon.html' %}
@@ -50,6 +55,7 @@
         </div>
         <div class="col-6">
           <ul class="float-right">
+            {% include "_language_picker.html" %}
             {% if user.is_authenticated %}
               {% if user.is_staff or request.impersonator.is_staff %}
                 <li>
@@ -148,21 +154,13 @@
     </div>
     <div class="navbar__menu container d-block">
       <nav class="navigation">
-        {% url 'home' as home_url %}
-        <ul class="nav navbar-nav mb-4 mb-md-0{% if request.get_full_path == home_url %} no-border{% endif %}">
-          {% for category in categories %}
-            <li class="nav-item">
-              <a class="nav-link" href="{{ category.get_absolute_url }}">
-                {{ category }}
-              </a>
-            </li>
-          {% endfor %}
-        </ul>
+        {% menu site_menu=site.settings.top_menu horizontal=True %}
       </nav>
     </div>
   </header>
 {% endblock %}
 <div class="container maincontent">
+  {% block topcontent %}{% endblock topcontent %}
   {% if messages %}
     {% for message in messages %}
       <div class="alert{% if message.tags %} alert-{{ message.tags }}{% endif %}">
@@ -186,15 +184,7 @@
           </a>
         </div>
         <div class="col-md-3 col-sm-6">
-          <ul>
-            {% for category in categories %}
-              <li>
-                <a href="{{ category.get_absolute_url }}">
-                  {{ category|capfirst }}
-                </a>
-              </li>
-            {% endfor %}
-          </ul>
+          {% menu site_menu=site.settings.bottom_menu %}
         </div>
         <div class="col-md-3 col-sm-6">
           <ul>

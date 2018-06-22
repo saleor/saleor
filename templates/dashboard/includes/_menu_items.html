@@ -1,0 +1,69 @@
+{% load i18n %}
+{% load utils %}
+{% load staticfiles %}
+
+<div class="card">
+  <div class="card-content">
+    <span class="card-title">
+       {% trans "Menu items" context "Title of the menu items list" %}
+    </span>
+  </div>
+  <div class="data-table-header-action">
+    <a href="{% if root_item %}{% url "dashboard:menu-item-add" menu_pk=menu.pk root_pk=root_item.pk %}{% else %}{% url "dashboard:menu-item-add" menu_pk=menu.pk %}{% endif %}" class="btn-data-table btn-flat waves-effect">
+      {% trans "Add" %}
+    </a>
+  </div>
+  <div class="data-table-container">
+    <table class="bordered highlight responsive data-table data-table-description">
+      <thead>
+        <tr>
+          {% if perms.menu.edit_menu %}
+            <th class="data-table-icon"></th>
+          {% endif %}
+
+          {% trans "Name" context "Menu items list table header name" as label %}
+          {% sorting_header 'name' label is_wide=True %}
+
+          {% trans "Points to" context "Menu items list table header points to" as label %}
+          <th>{{ label }}</th>
+
+          {% if perms.menu.edit_menu %}
+            <th></th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody class="sortable-items" data-post-url="{% if menu_item %}{% url 'dashboard:menu-items-reorder' menu_pk=menu.pk root_pk=menu_item.pk %}{% else %}{% url 'dashboard:menu-items-reorder' menu_pk=menu.pk %}{% endif %}" data-post-name="ordered_menu_items">
+        {% for item in menu_items %}
+          <tr data-action-go="{% url 'dashboard:menu-item-details' menu_pk=menu.pk item_pk=item.pk %}" class="sortable-item" data-id="{{ item.pk }}">
+            {% if perms.menu.edit_menu %}
+              <td class="data-table-icon ignore-link sortable__drag-area">
+                <svg data-src="{% static "dashboard/images/reorder.svg" %}" height="20" width="20" fill="#000" />
+              </td>
+            {% endif %}
+            <td>
+              {{ item.name }}
+            </td>
+            <td>
+              {{ item.destination_display }}
+            </td>
+            {% if perms.menu.edit_menu %}
+              <td class="right-align ignore-link">
+                <a href="{% url 'dashboard:menu-item-edit' menu_pk=menu.pk item_pk=item.pk %}" class="btn-flat waves-effect">
+                  {% trans 'Edit' context 'Menu item edit action' %}
+                </a>
+                <a href="#base-modal" class="btn-flat waves-effect modal-trigger-custom" data-href="{% url 'dashboard:menu-item-delete' menu_pk=menu.pk item_pk=item.pk %}">
+                  {% trans "Remove" context "Menu item list action link" %}
+                </a>
+              </td>
+            {% endif %}
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="{% if perms.menu.edit_menu %}4{% else %}2{% endif %}">{% trans "No menu items" context "Empty list of menu items" %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% paginate menu_items %}

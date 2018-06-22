@@ -2,14 +2,16 @@ from django.conf import settings
 from django.contrib import auth, messages
 from django.contrib.auth import views as django_views
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
 from django.utils.translation import pgettext, ugettext_lazy as _
+from django.views.decorators.http import require_POST
 
-from ..cart.utils import find_and_assign_anonymous_cart
+from ..checkout.utils import find_and_assign_anonymous_cart
 from ..core.utils import get_paginator_items
+from .emails import send_account_delete_confirmation_email
 from .forms import (
     ChangePasswordForm, LoginForm, PasswordResetForm, SignupForm,
     get_address_form, logout_on_password_change)
@@ -74,7 +76,7 @@ def password_reset_confirm(request, uidb64=None, token=None):
 @login_required
 def details(request):
     password_form = get_or_process_password_form(request)
-    orders = request.user.orders.prefetch_related('groups__lines')
+    orders = request.user.orders.confirmed().prefetch_related('lines')
     orders_paginated = get_paginator_items(
         orders, settings.PAGINATE_BY, request.GET.get('page'))
     ctx = {'addresses': request.user.addresses.all(),
@@ -122,3 +124,35 @@ def address_delete(request, pk):
         return HttpResponseRedirect(reverse('account:details') + '#addresses')
     return TemplateResponse(
         request, 'account/address_delete.html', {'address': address})
+
+
+@login_required
+@require_POST
+def account_delete(request):
+    user = request.user
+    send_account_delete_confirmation_email.delay(str(user.token), user.email)
+    messages.success(
+        request, pgettext(
+            'Storefront message, when user requested his account removed',
+            'Please check your inbox for a confirmation e-mail.'))
+    return HttpResponseRedirect(reverse('account:details') + '#settings')
+
+
+@login_required
+def account_delete_confirm(request, token):
+    user = request.user
+
+    if str(request.user.token) != token:
+        raise Http404('No such page!')
+
+    if request.method == 'POST':
+        user.delete()
+        msg = pgettext(
+            'Account deleted',
+            'Your account was deleted successfully. '
+            'In case of any trouble or questions feel free to contact us.')
+        messages.success(request, msg)
+        return redirect('home')
+
+    return TemplateResponse(
+        request, 'account/account_delete_prompt.html')

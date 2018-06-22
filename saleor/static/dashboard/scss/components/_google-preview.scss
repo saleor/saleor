@@ -1,0 +1,40 @@
+.google-preview {
+  text-align: left;
+  letter-spacing: initial;
+  &__container {
+    background-color: #fff;
+    max-width: 600px;
+  }
+  &__title {
+    display: block;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+    a {
+      color: #1A0DAB;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 21px;
+      text-decoration: none solid #1A0DAB;
+      &:hover {
+        text-decoration: underline;
+      }
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+  }
+  &__description {
+    color: #545454;
+    font-size: 13px;
+    line-height: 18px;
+    overflow-wrap: break-word;
+  }
+  &__url {
+    color: #006621;
+    font-size: 13px;
+    line-height: 16px;
+    white-space: nowrap;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

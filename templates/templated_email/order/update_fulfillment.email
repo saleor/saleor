@@ -1,0 +1,35 @@
+{% load i18n %}
+
+{% block subject %}
+  {% blocktrans trimmed with order=fulfillment.order context "Fulfillment update email subject" %}
+    Shipping update for order {{ order }}
+  {% endblocktrans %}
+{% endblock %}
+
+{% block plain %}
+{% blocktrans context "Fulfillment update email text" %}
+Hi!
+
+Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.
+{% endblocktrans %}
+{% if fulfillment.tracking_number %}
+{% blocktrans trimmed with tracking_number=fulfillment.tracking_number context "Fulfillment update email text" %}
+You can track your shipment with {{ tracking_number }} code.
+{% endblocktrans %}
+{% endif %}
+
+{% for line in fulfillment %}
+{{ line.quantity }} x {{ line.order_line.product_name }}
+{% endfor %}
+
+{% blocktrans context "Fulfillment update email text" %}
+This is an automatically generated email, please do not reply.
+
+Sincerely,
+{{ site_name }}
+{% endblocktrans %}
+{% endblock %}
+
+{% block html %}
+{% include 'templated_email/compiled/update_fulfillment.html' %}
+{% endblock %}

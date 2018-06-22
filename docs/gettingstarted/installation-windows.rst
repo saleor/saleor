@@ -128,7 +128,7 @@ All commands need to be performed in either PowerShell or a Command Shell.
 
    .. code-block:: powershell
 
-    $ npm run build-emails
+    npm run build-emails
 
 #. Start the development server:
 

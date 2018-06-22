@@ -1,7 +1,6 @@
 {% load i18n static %}
-{% load prices_i18n %}
-{% load shop %}
 {% load render_bundle from webpack_loader %}
+{% load shop %}
 
 <html>
 <head>
@@ -14,7 +13,7 @@
     <img src="{% static '/images/logo-document.svg' %}">
   </div>
   <div
-      style="float:right">{{ group.order.created }}<br>{% trans "Order ID:" context "Packing slip header" %} {{ group.order.id }}
+      style="float:right">{{ order.created }}<br>{% trans "Order ID:" context "Packing slip header" %} {{ order.id }}
   </div>
 </header>
 
@@ -22,21 +21,21 @@
 <table width="100%" border="1" cellspacing="0">
   <thead>
     <tr>
-      {% if group.order.shipping_address %}
+      {% if order.shipping_address %}
         <th align="left" width="50%">
           {% trans "Shipping Details" context "Packing slip shipping details" %}
         </th>
       {% endif %}
-      <th align="left"{% if group.order.shipping_address %} width="50%"{% endif %}>
+      <th align="left"{% if order.shipping_address %} width="50%"{% endif %}>
         {% trans "Billing Details" context "Packing slip shipping details" %}
       </th>
     </tr>
     </thead>
   <tbody>
   <tr>
-    {% if group.order.shipping_address %}
+    {% if order.shipping_address %}
       <td valign="top">
-        {% with group.order.shipping_address as address %}
+        {% with order.shipping_address as address %}
           <h2>
             {% trans "Shipping address" context "Packing slip shipping address" %}
           </h2>
@@ -45,7 +44,7 @@
       </td>
     {% endif %}
     <td valign="top">
-      {% with group.order.billing_address as address %}
+      {% with order.billing_address as address %}
         <h2>
           {% trans "Billing address" context "Packing slip billing address" %}
         </h2>
@@ -57,29 +56,29 @@
 </table>
 
 <h2>{% trans "Items Ordered" context "Order invoice" %}</h2>
-{% if group %}
+{% if order %}
   <table class="bordered data-table">
     <thead>
       <tr>
         <th class="wide">
-          {% trans "Item" context "Shipment group table header" %}
+          {% trans "Item" context "Order table header" %}
         </th>
         <th>
-          {% trans "SKU" context "Shipment group table header" %}
+          {% trans "SKU" context "Order table header" %}
         </th>
         <th class="right-align">
-          {% trans "Quantity" context "Shipment group table header" %}
+          {% trans "Quantity" context "Order table header" %}
         </th>
       </tr>
     </thead>
     <tbody>
-      {% for line in group.lines.all %}
+      {% for line in fulfillment %}
         <tr>
           <td>
-            {{ line.product_name }}<br>
+            {{ line.order_line.product_name }}<br>
           </td>
           <td>
-            {{ line.product_sku }}
+            {{ line.order_line.product_sku }}
           </td>
           <td class="right-align">
             {{ line.quantity }}

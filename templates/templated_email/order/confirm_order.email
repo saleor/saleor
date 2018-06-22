@@ -1,0 +1,41 @@
+{% load i18n %}
+{% load price from taxed_prices %}
+{% load voucher %}
+
+{% block subject %}
+  {% trans "Order details" context "Order confirmation e-mail subject" %}
+{% endblock %}
+
+{% block plain %}
+{% blocktrans context "Order confirmation e-mail text" %}
+Hi!
+
+Thank you for your order. Below is the list of ordered products. To see your payment details please visit:
+{{ url }}{% endblocktrans %}
+{% for line in order %}
+{{ line.quantity }} x {{ line.product_name }}, {% price line.get_total display_gross=order.display_gross_prices html=False %}
+{% endfor %}
+{% trans "Order summary" context "Order confirmation e-mail table header" %}:
+{% trans "Subtotal" context "Order confirmation e-mail table header" %}:           {% price order.get_subtotal display_gross=order.display_gross_prices html=False %}
+{% trans "Shipping" context "Order confirmation e-mail table header" %}:           {% price order.shipping_price display_gross=order.display_gross_prices html=False %}
+{% if order.display_gross_prices %}{% trans "Taxes (included)" context "Order confirmation e-mail table header" %}{% else %}{% trans "Taxes" context "Order confirmation e-mail table header" %}{% endif %}:              {% price order.total.tax html=False %}
+{% if order.discount_amount %}{% trans "Discount:" context "Order confirmation e-mail table header" %}           {% discount_as_negative order.discount_amount %}{% endif %}
+{% trans "Total" context "Order confirmation e-mail table header" %}:              {% price order.total.gross html=False %}
+
+{% trans "Billing address" context "Order confirmation e-mail billing address" %}
+{{ order.billing_address }}
+
+{% trans "Shipping address" context "Order confirmation e-mail shipping address" %}
+{% if order.shipping_address %}{{ order.shipping_address }}{% else %}{% trans "No shipping required" context "Order confirmation e-mail text" %}{% endif %}
+
+{% blocktrans context "Order confirmation e-mail text" %}
+This is an automatically generated e-mail, please do not reply.
+
+Sincerely,
+{{ site_name }}
+{% endblocktrans %}
+{% endblock %}
+
+{% block html %}
+{% include 'templated_email/compiled/confirm_order.html' %}
+{% endblock %}

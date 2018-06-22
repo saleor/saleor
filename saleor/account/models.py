@@ -1,3 +1,6 @@
+import uuid
+
+from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager, PermissionsMixin)
 from django.db import models
@@ -7,6 +10,7 @@ from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumberField
 
+from ..core.models import BaseNote
 from .validators import validate_possible_number
 
 
@@ -73,6 +77,9 @@ class UserManager(BaseUserManager):
             **extra_fields):
         """Create a user instance with the given email and password."""
         email = UserManager.normalize_email(email)
+        # Google OAuth2 backend send unnecessary username field
+        extra_fields.pop('username', None)
+
         user = self.model(
             email=email, is_active=is_active, is_staff=is_staff,
             **extra_fields)
@@ -86,11 +93,18 @@ class UserManager(BaseUserManager):
             email, password, is_staff=True, is_superuser=True, **extra_fields)
 
 
+def get_token():
+    return str(uuid.uuid4())
+
+
 class User(PermissionsMixin, AbstractBaseUser):
     email = models.EmailField(unique=True)
-    addresses = models.ManyToManyField(Address, blank=True)
+    addresses = models.ManyToManyField(
+        Address, blank=True, related_name='user_addresses')
     is_staff = models.BooleanField(default=False)
+    token = models.UUIDField(default=get_token, editable=False, unique=True)
     is_active = models.BooleanField(default=True)
+    note = models.TextField(null=True, blank=True)
     date_joined = models.DateTimeField(default=timezone.now, editable=False)
     default_shipping_address = models.ForeignKey(
         Address, related_name='+', null=True, blank=True,
@@ -125,3 +139,19 @@ class User(PermissionsMixin, AbstractBaseUser):
 
     def get_short_name(self):
         return self.email
+
+    def get_ajax_label(self):
+        address = self.default_billing_address
+        if address:
+            return '%s %s (%s)' % (
+                address.first_name, address.last_name, self.email)
+        return self.email
+
+
+class CustomerNote(BaseNote):
+    customer = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name='notes',
+        on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ('date', )

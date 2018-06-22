@@ -1,20 +1,28 @@
 {% extends "base.html" %}
 {% load bootstrap_pagination from bootstrap4 %}
+{% load build_absolute_uri from urls %}
+{% load get_object_properties from attributes %}
 {% load i18n %}
 {% load shop %}
 {% load staticfiles %}
-{% load prices_i18n %}
-{% load build_absolute_uri from urls %}
 
 {% block footer_scripts %}
   {{ block.super }}
 {% endblock footer_scripts %}
 
-{% block title %}{{ object }} — {{ block.super }}{% endblock %}
+{% block title %}
+  {% if object.seo_title %}
+    {{ object.seo_title }}
+  {% else %}
+    {{ object.name }} - {{ block.super }}
+  {% endif %}
+{% endblock %}
 
 {% block meta_tags %}
-  <meta property="og:title" content="{{ object }}">
-  <meta property="og:description" content="{{ object.description }}">
+  <meta property="og:title" content="{{ object.seo_title|default:object.name }}">
+  {% get_object_properties object=object properties="seo_description,description" as seo_description %}
+  <meta property="og:description" content="{{ seo_description }}">
+  <meta name="description" content="{{ seo_description }}">
   <meta property="og:image" content="{% static "images/block1.png" %}">
 
   {% build_absolute_uri request=request location=object.get_absolute_url as object_url %}
@@ -38,6 +46,9 @@
       </ul>
     </div>
     <div class="col-md-5">
+      <h3 class="d-md-none float-left filters-toggle">
+        {% trans 'Filters' context 'Filter heading title' %}
+      </h3>
       <div class="sort-by">
         <div class="click-area d-none"></div>
         <button class="btn btn-link">
@@ -95,7 +106,16 @@
   </div>
 {% endblock %}
 
+{% block topcontent %}
+  {% if object.background_image %}
+    <div class="row" id="product-list-image" style="background-image: url('{{ object.background_image.url }}')"></div>
+  {% endif %}
+{% endblock topcontent %}
+
 {% block content %}
+
+  {% block collection_published_warning %}{% endblock %}
+
   <div id="product-list-page">
     <div class="row">
       <div class="col-md-4 col-lg-3">
@@ -106,7 +126,7 @@
           <div>
             {% if products %}
               <div class="row">
-                {% include "_items.html" with products=products %}
+                {% include "product/_items.html" with products=products %}
               </div>
               <div class="row">
                 <div class="m-auto">

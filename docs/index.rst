@@ -14,6 +14,7 @@ Contents:
    architecture
    integrations
    deployment
+   guides
 
 
 Indices and tables
