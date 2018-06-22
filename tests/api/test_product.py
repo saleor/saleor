@@ -10,6 +10,7 @@ from tests.utils import create_image, get_graphql_content
 
 from saleor.product.models import (
     Category, Collection, Product, ProductAttribute, ProductType)
+
 from .utils import get_multipart_request_body
 
 
@@ -834,6 +835,32 @@ def test_product_image_create_mutation(admin_api_client, product):
     product.refresh_from_db()
     assert product.images.first().image.file
     assert product.images.first().image.name == file_name
+
+
+def test_product_image_update_mutation(admin_api_client, product_with_image):
+    product = product_with_image
+    query = """
+    mutation updateProductImage($image: Upload!, $alt: String, $product: ID!) {
+        productImageCreate(input: {image: $image, alt: $alt, product: $product}) {
+            productImage {
+                alt
+            }
+        }
+    }
+    """
+    image_obj = product_with_image.images.first()
+    image = image_obj.image
+    assert not image_obj.alt
+    alt = 'damage alt'
+    variables = {
+        'product': graphene.Node.to_global_id('Product', product.id),
+        'image': image.name, 'alt': alt}
+    body = get_multipart_request_body(query, variables, image.file, image.name)
+    response = admin_api_client.post_multipart(reverse('api'), body)
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productImageCreate']
+    assert data['productImage']['alt'] == alt
 
 
 def test_collections_query(user_api_client, collection):
