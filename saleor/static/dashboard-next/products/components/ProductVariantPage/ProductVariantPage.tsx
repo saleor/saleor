@@ -11,6 +11,7 @@ import SaveButtonBar, {
   SaveButtonBarState
 } from "../../../components/SaveButtonBar";
 import Toggle from "../../../components/Toggle";
+import { AttributeType, AttributeValueType, MoneyType, ProductImageType } from "../../";
 import ProductVariantAttributes from "../ProductVariantAttributes";
 import ProductVariantDeleteDialog from "../ProductVariantDeleteDialog";
 import ProductVariantImages from "../ProductVariantImages";
@@ -24,13 +25,10 @@ interface ProductVariantPageProps {
   variant?: {
     id: string;
     attributes: Array<{
-      attribute: {
-        name: string;
-        slug: string;
-        values: string[];
-      };
-      value: string;
+      attribute: AttributeType;
+      value: AttributeValueType;
     }>;
+    costPrice?: MoneyType;
     images: {
       edges: Array<{
         node: {
@@ -39,37 +37,29 @@ interface ProductVariantPageProps {
       }>;
     };
     name: string;
-    priceOverride: {
-      currency: string;
-      amount: number;
-    };
+    priceOverride?: MoneyType;
     product: {
       id: string;
+      images: {
+        edges: Array<{
+          node: ProductImageType;
+        }>;
+      };
       name: string;
       thumbnailUrl: string;
       variants: {
-        totalCount: number;
         edges: Array<{
           node: {
             id: string;
             name: string;
           };
         }>;
-      };
-      images: {
-        edges: Array<{
-          node: {
-            id: string;
-            url: string;
-            alt: string;
-            order: number;
-          };
-        }>;
-      };
+        totalCount: number;
+      }
     };
     sku: string;
-    stock: number;
-    stockAllocated: number;
+    quantity: number;
+    quantityAllocated: number;
   };
   saveButtonBarState?: SaveButtonBarState;
   loading?: boolean;
@@ -78,6 +68,7 @@ interface ProductVariantPageProps {
   onDelete();
   onSubmit(data: any);
   onImageSelect(images: string[]);
+  onVariantClick(variantId: string);
 }
 
 const decorate = withStyles(theme => ({
@@ -94,6 +85,7 @@ const decorate = withStyles(theme => ({
     }
   }
 }));
+
 const ProductVariantPage = decorate<ProductVariantPageProps>(
   ({
     classes,
@@ -104,28 +96,25 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
     onDelete,
     saveButtonBarState,
     onSubmit,
-    onImageSelect
+    onImageSelect,
+    onVariantClick
   }) => {
-    const attributes = loading
-      ? {}
-      : variant.attributes.reduce((prev, curr) => {
-          prev[curr.attribute.slug] = curr.value;
-          return prev;
-        }, {});
-    const variantImages = loading
-      ? undefined
-      : variant.images.edges.map(edge => edge.node.id);
-    const productImages = loading
-      ? undefined
-      : variant.product.images.edges
-          .map(edge => edge.node)
-          .sort((prev, next) => (prev.order > next.order ? 1 : -1));
-    const images = loading
-      ? undefined
-      : productImages
-          .filter(image => variantImages.indexOf(image.id) !== -1)
-          .sort((prev, next) => (prev.order > next.order ? 1 : -1));
-    const handleImageSelect = (images: string[]) => {};
+    const attributes = variant ? variant.attributes.reduce((prev, curr) => {
+      prev[curr.attribute.slug] = curr.value;
+      return prev;
+    }, {}) : {};
+    const variantImages = variant ? variant.images.edges.map(edge => edge.node.id) : [];
+    const productImages = variant
+      ? variant.product.images.edges
+        .map(edge => edge.node)
+        .sort((prev, next) => (prev.sortOrder > next.sortOrder ? 1 : -1))
+      : undefined;
+    const images = productImages
+      ? productImages
+        .filter(image => variantImages.indexOf(image.id) !== -1)
+        .sort((prev, next) => (prev.sortOrder > next.sortOrder ? 1 : -1))
+      : undefined;
+    const handleImageSelect = (images: string[]) => { };
     return (
       <Toggle>
         {(isModalActive, { toggle: toggleDeleteModal }) => (
@@ -133,10 +122,7 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
             {(isImageSelectModalActive, { toggle: toggleImageSelectModal }) => (
               <>
                 <Container width="md">
-                  <PageHeader
-                    title={loading ? undefined : variant.name}
-                    onBack={onBack}
-                  >
+                  <PageHeader title={variant ? variant.name : undefined} onBack={onBack}>
                     <IconButton onClick={toggleDeleteModal} disabled={loading}>
                       <DeleteIcon />
                     </IconButton>
@@ -151,7 +137,7 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                         variant && variant.priceOverride
                           ? variant.priceOverride.amount
                           : null,
-                      stock: variant && variant.stock ? variant.stock : null,
+                      stock: variant && variant.quantity ? variant.quantity : null,
                       sku: variant && variant.sku ? variant.sku : null,
                       ...attributes
                     }}
@@ -163,47 +149,44 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                         <div className={classes.root}>
                           <div>
                             <ProductVariantProduct
-                              product={loading ? undefined : variant.product}
+                              product={variant ? variant.product : undefined}
                               loading={loading}
                               placeholderImage={placeholderImage}
                             />
                             <ProductVariantNavigation
-                              variants={
-                                loading
-                                  ? undefined
-                                  : variant.product.variants.edges.map(
-                                      edge => edge.node
-                                    )
-                              }
-                              current={loading ? undefined : variant.id}
+                              current={variant ? variant.id : undefined}
                               loading={loading}
-                              onRowClick={(id: string) => () => {}}
+                              productId={variant ? variant.product.id : undefined}
+                              variants={
+                                variant
+                                  ? variant.product.variants.edges.map(edge => edge.node)
+                                  : undefined
+                              }
+                              onRowClick={(variantId: string) => {
+                                if (variant) {
+                                  return onVariantClick(variantId);
+                                }
+                              }}
                             />
                           </div>
                           <div>
                             <ProductVariantAttributes
-                              attributes={
-                                loading ? undefined : variant.attributes
-                              }
+                              attributes={variant ? variant.attributes : undefined}
                               formData={data}
                               onChange={change}
                               loading={loading}
                             />
                             <ProductVariantPrice
                               priceOverride={data.priceOverride}
-                              currencySymbol={
-                                loading ? "" : variant.priceOverride.currency
-                              }
-                              costPrice={data.costPrice}
+                              currencySymbol={variant && variant.priceOverride ? variant.priceOverride.currency : ""}
+                              costPrice={variant && variant.costPrice ? variant.costPrice.amount : undefined}
                               loading={loading}
                               onChange={change}
                             />
                             <ProductVariantStock
                               sku={data.sku}
                               stock={data.stock}
-                              stockAllocated={
-                                loading ? undefined : variant.stockAllocated
-                              }
+                              stockAllocated={variant ? variant.quantityAllocated : undefined}
                               loading={loading}
                               onChange={change}
                             />
@@ -224,23 +207,22 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                     )}
                   </Form>
                 </Container>
-                {variant &&
-                  variant.name && (
-                    <>
-                      <ProductVariantDeleteDialog
-                        onClose={toggleDeleteModal}
-                        onConfirm={onDelete}
-                        open={isModalActive}
-                        name={variant.name}
-                      />
-                      <ProductVariantImageSelectDialog
-                        onClose={toggleImageSelectModal}
-                        onConfirm={handleImageSelect}
-                        open={isImageSelectModalActive}
-                        images={productImages}
-                      />
-                    </>
-                  )}
+                {variant && (
+                  <>
+                    <ProductVariantDeleteDialog
+                      onClose={toggleDeleteModal}
+                      onConfirm={onDelete}
+                      open={isModalActive}
+                      name={variant.name}
+                    />
+                    <ProductVariantImageSelectDialog
+                      onClose={toggleImageSelectModal}
+                      onConfirm={handleImageSelect}
+                      open={isImageSelectModalActive}
+                      images={productImages}
+                    />
+                  </>
+                )}
               </>
             )}
           </Toggle>

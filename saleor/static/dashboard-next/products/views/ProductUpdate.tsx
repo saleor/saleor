@@ -1,10 +1,11 @@
 import * as React from "react";
 
+import * as placeholderImg from "../../../images/placeholder255x255.png";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import ProductUpdatePage from "../components/ProductUpdatePage";
 import { productDetailsQuery, TypedProductDetailsQuery } from "../queries";
-import { productListUrl } from "../index";
+import { productVariantEditUrl } from "../index";
 
 interface ProductUpdateProps {
   id: string;
@@ -41,28 +42,34 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                 categories={allCategories}
                 collections={allCollections}
                 images={
-                  product ? product.images.edges.map(edge => edge.node) : []
+                  product ? product.images.edges.map(edge => edge.node) : undefined
                 }
-                placeholderImage={undefined}
+                placeholderImage={placeholderImg}
                 product={product}
                 productCollections={
                   product
                   ? product.collections.edges.map(edge => edge.node)
-                  : []
+                  : undefined
                 }
                 variants={
-                  product ? product.variants.edges.map(edge => edge.node) : []
+                  product ? product.variants.edges.map(edge => edge.node) : undefined
                 }
                 onBack={() => { window.history.back() }}
                 onDelete={() => {}}
                 onProductShow={() => {
                   if (product) {
-                    window.location.href = product.url;
+                    window.open(product.url);
                   }
                 }}
                 onSubmit={() => {}}
                 onVariantAdd={() => {}}
-                onVariantShow={() => {}}
+                onVariantShow={
+                  (variantId) => {
+                    if (product) {
+                      navigate(productVariantEditUrl(product.id, variantId))
+                    }
+                  }
+                }
               />
             );
           }}
