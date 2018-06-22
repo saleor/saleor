@@ -7,15 +7,13 @@ import PageHeader from "../../../components/PageHeader";
 import SingleSelectField from "../../../components/SingleSelectField";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
+import { AttributeType, AttributeValueType } from "../..";
+import { debug } from "util";
 
 interface ProductVariantAttributesProps {
   attributes?: Array<{
-    value: string;
-    attribute: {
-      slug: string;
-      name: string;
-      values: string[];
-    };
+    attribute: AttributeType;
+    value: AttributeValueType;
   }>;
   formData?: any;
   loading?: boolean;
@@ -32,27 +30,31 @@ const decorate = withStyles(theme => ({
     }
   }
 }));
+
 const ProductVariantAttributes = decorate<ProductVariantAttributesProps>(
   ({ attributes, classes, formData, loading, onChange }) => (
     <Card>
       <PageHeader title={i18n.t("Attributes")} />
       <CardContent className={classes.grid}>
-        {loading ? (
-          <Skeleton />
+        {attributes ? (
+          attributes.map(item => {
+            const { attribute } = item;
+            return (
+              <SingleSelectField
+                choices={attribute.values ? attribute.values.map(value => ({
+                  label: value.name,
+                  value: value.slug
+                })) : []}
+                onChange={onChange}
+                value={formData ? formData[attribute.slug].slug : ""}
+                label={attribute.name}
+                name={attribute.slug}
+                key={attribute.slug}
+              />
+            )
+          })
         ) : (
-          attributes.map(attribute => (
-            <SingleSelectField
-              choices={attribute.attribute.values.map(attr => ({
-                label: attr,
-                value: attr
-              }))}
-              onChange={onChange}
-              value={formData ? formData[attribute.attribute.slug] : ""}
-              label={attribute.attribute.name}
-              name={attribute.attribute.slug}
-              key={attribute.attribute.slug}
-            />
-          ))
+          <Skeleton />
         )}
       </CardContent>
     </Card>

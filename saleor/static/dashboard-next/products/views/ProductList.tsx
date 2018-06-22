@@ -1,7 +1,7 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { productShowUrl, productAddUrl } from "..";
+import { productAddUrl, productUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import Toggle from "../../components/Toggle";
@@ -24,6 +24,7 @@ const decorate = withStyles(theme => ({
     }
   }
 }));
+
 export const ProductList = decorate<ProductListProps>(
   ({ classes, filters }) => (
     <div className={classes.root}>
@@ -117,7 +118,7 @@ export const ProductList = decorate<ProductListProps>(
                                 : undefined
                             }
                             onRowClick={id => () =>
-                              navigate(productShowUrl(id))}
+                              navigate(productUrl(id))}
                           />
                         </div>
                       </>

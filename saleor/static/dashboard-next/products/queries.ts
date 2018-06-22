@@ -10,7 +10,7 @@ import {
 
 export const TypedProductListQuery = Query as React.ComponentType<
   QueryProps<ProductListQuery, ProductListQueryVariables>
-  >;
+>;
 
 export const productListQuery = gql`
   query ProductList($first: Int, $after: String, $last: Int, $before: String) {
@@ -38,7 +38,7 @@ export const productListQuery = gql`
 
 export const TypedProductDetailsQuery = Query as React.ComponentType<
   QueryProps<ProductDetailsQuery, ProductDetailsQueryVariables>
-  >;
+>;
 
 export const productDetailsQuery = gql`
   fragment Money on Money {
@@ -94,6 +94,7 @@ export const productDetailsQuery = gql`
         value {
           id
           name
+          slug
         }
       }
       availability {
@@ -156,6 +157,81 @@ export const productDetailsQuery = gql`
           name
         }
       }
+    }
+  }
+`;
+
+export const TypedProductVariantQuery = Query as React.ComponentType<
+  QueryProps<any, { id: string }>
+>;
+
+export const productVariantQuery = gql`
+  fragment Money on Money {
+    amount
+    currency
+    localized
+  }
+  query ProductVariantDetails($id: ID!) {
+    variant(id: $id) {
+      id
+      attributes {
+        attribute {
+          id
+          name
+          slug
+          values {
+            id
+            name
+            slug
+          }
+        }
+        value {
+          id
+          name
+          slug
+        }
+      }
+      costPrice {
+        ...Money
+      }
+      images {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+      name
+      priceOverride {
+        ...Money
+      }
+      product {
+        id
+        images {
+          edges {
+            node {
+              id
+              alt
+              sortOrder
+              url
+            }
+          }
+        }
+        name
+        thumbnailUrl
+        variants {
+          totalCount
+          edges {
+            node {
+              id
+              name
+            }
+          }
+        }
+      }
+      sku
+      quantity
+      quantityAllocated
     }
   }
 `;
