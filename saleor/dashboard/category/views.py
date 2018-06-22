@@ -36,7 +36,8 @@ def category_create(request, root_pk=None):
     if root_pk:
         root = get_object_or_404(Category, pk=root_pk)
         path = root.get_ancestors(include_self=True) if root else []
-    form = CategoryForm(request.POST or None, parent_pk=root_pk)
+    form = CategoryForm(
+        request.POST or None, request.FILES or None, parent_pk=root_pk)
     if form.is_valid():
         category = form.save()
         messages.success(
@@ -44,7 +45,7 @@ def category_create(request, root_pk=None):
             pgettext_lazy(
                 'Dashboard message', 'Added category %s') % category)
         if root_pk:
-            return redirect('dashboard:category-detail', pk=root_pk)
+            return redirect('dashboard:category-details', pk=root_pk)
         return redirect('dashboard:category-list')
     ctx = {'category': category, 'form': form, 'path': path}
     return TemplateResponse(request, 'dashboard/category/form.html', ctx)
@@ -58,8 +59,9 @@ def category_edit(request, root_pk=None):
     if root_pk:
         root = get_object_or_404(Category, pk=root_pk)
         path = root.get_ancestors(include_self=True) if root else []
-    form = CategoryForm(request.POST or None, instance=category,
-                        parent_pk=category.parent_id)
+    form = CategoryForm(
+        request.POST or None, request.FILES or None, instance=category,
+        parent_pk=category.parent_id)
     status = 200
     if form.is_valid():
         category = form.save()
@@ -68,7 +70,7 @@ def category_edit(request, root_pk=None):
             pgettext_lazy(
                 'Dashboard message', 'Updated category %s') % category)
         if root_pk:
-            return redirect('dashboard:category-detail', pk=root_pk)
+            return redirect('dashboard:category-details', pk=root_pk)
         return redirect('dashboard:category-list')
     elif form.errors:
         status = 400
@@ -79,7 +81,7 @@ def category_edit(request, root_pk=None):
 
 @staff_member_required
 @permission_required('product.view_category')
-def category_detail(request, pk):
+def category_details(request, pk):
     root = get_object_or_404(Category, pk=pk)
     path = root.get_ancestors(include_self=True) if root else []
     categories = root.get_children().order_by('name')
@@ -109,9 +111,9 @@ def category_delete(request, pk):
         if root_pk:
             if request.is_ajax():
                 response = {'redirectUrl': reverse(
-                    'dashboard:category-detail', kwargs={'pk': root_pk})}
+                    'dashboard:category-details', kwargs={'pk': root_pk})}
                 return JsonResponse(response)
-            return redirect('dashboard:category-detail', pk=root_pk)
+            return redirect('dashboard:category-details', pk=root_pk)
         else:
             if request.is_ajax():
                 response = {'redirectUrl': reverse('dashboard:category-list')}

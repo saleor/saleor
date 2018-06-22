@@ -1,9 +1,9 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
-{% load prices_i18n %}
-{% load status %}
-{% load utils %}
 {% load static %}
+{% load status %}
+{% load taxed_prices %}
+{% load utils %}
 
 {% block title %}
   {% trans "Shipping methods" context "Dashboard shipping methods list" %} - {{ block.super }}
@@ -53,17 +53,15 @@
               </thead>
               <tbody>
                 {% for method in shipping_methods %}
-                  <tr data-action-go="{% if perms.shipping.edit_shipping %}{% url 'dashboard:shipping-method-detail' pk=method.pk %}{% endif %}">
+                  <tr data-action-go="{% if perms.shipping.edit_shipping %}{% url 'dashboard:shipping-method-details' pk=method.pk %}{% endif %}">
                     <td>
                       {{ method }}
                     </td>
                     <td>
                       {% if not method.price_range %}
                         -
-                      {% elif method.price_range.start == method.price_range.stop %}
-                        {{ method.price_range.start.gross|amount:'html' }}
                       {% else %}
-                        {{ method.price_range.start.gross|amount:'html' }}&ndash;{{ method.price_range.stop.gross|amount:'html' }}
+                        {% price method.price_range %}
                       {% endif %}
                     </td>
                     <td>

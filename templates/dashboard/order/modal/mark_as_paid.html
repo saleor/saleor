@@ -1,0 +1,28 @@
+{% extends "dashboard/base_modal.html" %}
+
+{% load i18n %}
+{% load materializecss %}
+{% load price from taxed_prices %}
+
+{% block action_url %}
+{% url 'dashboard:order-mark-as-paid' order_pk=order.pk %}
+{% endblock %}
+
+{% block title %}
+{% trans "Mark order as paid" context "Modal mark order as paid title" %}
+{% endblock %}
+
+{% block content %}
+  <div class="col s12">
+    {% trans "Are you sure you want mark order as paid?" context "Modal mark order as paid text" %}
+    </br>{% trans "Total received:" context "Modal mark order as paid text" %} {% price order.total.gross %}
+  </div>
+{% endblock %}
+
+{% block cancel_action %}
+{% trans "Abort" context "Modal mark order as paid cancel action" %}
+{% endblock %}
+
+{% block primary_action %}
+{% trans "Mark as paid" context "Modal mark order as paid primary action" %}
+{% endblock %}

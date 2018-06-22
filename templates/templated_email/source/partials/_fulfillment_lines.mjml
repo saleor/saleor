@@ -1,0 +1,20 @@
+<mj-section>
+  <mj-column>
+    <mj-table>
+      <thead class="table-header-row">
+        <tr>
+          <th style="text-align: left;">Item</th>
+          <th style="text-align: right;">Quantity</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in fulfillment %}
+          <tr class="table-item-row">
+            <td>{{ line.order_line.product_name }}</td>
+            <td style="text-align: right;">{{ line.quantity }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </mj-table>
+  </mj-column>
+</mj-section>

@@ -14,8 +14,9 @@
   {% if perms.page.edit_page %}
     <div class="btn-fab-fixed">
       <a class="btn-fab-default waves-effect waves-light"
-       href="{% url 'dashboard:page-add' %}"
-       title="{% trans "Add page page" %}"><svg data-src="{% static "dashboard/images/add.svg" %}" />
+        href="{% url 'dashboard:page-add' %}"
+        title="{% trans "Add page" context "Page list add button text" %}">
+        <svg data-src="{% static "dashboard/images/add.svg" %}" />
       </a>
     </div>
   {% endif %}
@@ -26,6 +27,8 @@
     <li>{% trans "Pages" %}</li>
   </ul>
 {% endblock %}
+
+{% block menu_pages_class %}active{% endblock %}
 
 {% block content %}
   <div class="row">
@@ -48,7 +51,7 @@
               </thead>
               <tbody>
                 {% for page in pages %}
-                  <tr data-action-go="{% url 'dashboard:page-detail' pk=page.pk %}">
+                  <tr data-action-go="{% url 'dashboard:page-details' pk=page.pk %}">
                     <td>
                       {{ page.title }}
                     </td>

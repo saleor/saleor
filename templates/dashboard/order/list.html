@@ -1,14 +1,30 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
+{% load price from taxed_prices %}
 {% load prices_i18n %}
 {% load status %}
 {% load utils %}
+{% load staticfiles %}
 
 {% block title %}{% trans "Orders" context "Dashboard orders list" %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-orders{% endblock %}
 
 {% block menu_orders_class %}active{% endblock %}
+
+{% block header_extra %}
+  {% if perms.order.edit_order %}
+    <div class="btn-fab-fixed">
+      <form method="POST" action="{% url "dashboard:order-create" %}">
+      {% csrf_token %}
+        <label class="btn-fab-default waves-effect waves-light svg-submit-btn" title="{% trans "Add order" context "Order list add button text" %}">
+          <input type="submit" />
+          <svg data-src="{% static "dashboard/images/add.svg" %}" />
+        </label>
+      </form>
+    </div>
+  {% endif %}
+{% endblock %}
 
 {% block breadcrumbs %}
   <ul class="breadcrumbs">
@@ -49,7 +65,7 @@
                       #{{ order.id }}
                     </td>
                     <td>
-                      {% render_status order.status order.get_status_display %}
+                      {% render_order_status order.status order.get_status_display %}
                     </td>
                     {% trans "Guest" context "Anonymous user account value" as guest %}
                     <td>
@@ -62,7 +78,7 @@
                       {% render_status order.get_last_payment_status order.get_last_payment_status_display %}
                     </td>
                     <td class="right-align">
-                      {{ order.total.gross|amount:'html' }}
+                      {% price order.total.gross %}
                     </td>
                   </tr>
                 {% endfor %}

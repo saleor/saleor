@@ -7,7 +7,8 @@ class CountableConnection(graphene.relay.Connection):
     class Meta:
         abstract = True
 
-    total_count = graphene.Int()
+    total_count = graphene.Int(
+        description='A total count of items in the collection')
 
     @staticmethod
     def resolve_total_count(root, info, *args, **kwargs):
@@ -29,25 +30,56 @@ class CountableDjangoObjectType(DjangoObjectType):
 
 
 class Error(graphene.ObjectType):
-    field = graphene.String()
-    message = graphene.String()
+    field = graphene.String(
+        description="""Name of a field that caused the error. A value of
+        `null` indicates that the error isn't associated with a particular
+        field.""", required=False)
+    message = graphene.String(description='The error message.')
+
+    class Meta:
+        description = 'Represents an error in the input of a mutation.'
 
 
 class Money(graphene.ObjectType):
-    currency = graphene.String()
-    amount = graphene.Float()
-    localized = graphene.String()
+    currency = graphene.String(description='Currency code.')
+    amount = graphene.Float(description='Amount of money.')
+    localized = graphene.String(
+        description='Money formatted according to the current locale.')
+
+    class Meta:
+        description = 'Represents amount of money in specific currency.'
 
     def resolve_localized(self, info):
         return prices_i18n.amount(self)
 
 
+class MoneyRange(graphene.ObjectType):
+    start = graphene.Field(
+        Money, description='Lower bound of a price range.')
+    stop = graphene.Field(
+        Money, description='Upper bound of a price range.')
+
+    class Meta:
+        description = 'Represents a range of amounts of money.'
+
+
 class TaxedMoney(graphene.ObjectType):
-    currency = graphene.String()
-    gross = graphene.Field(Money)
-    net = graphene.Field(Money)
+    currency = graphene.String(description='Currency code.')
+    gross = graphene.Field(
+        Money, description='Amount of money including taxes.')
+    net = graphene.Field(Money, description='Amount of money without taxes.')
+
+    class Meta:
+        description = """Represents a monetary value with taxes. In
+        case when taxes were not applied, net and gross values will be equal.
+        """
 
 
 class TaxedMoneyRange(graphene.ObjectType):
-    start = graphene.Field(TaxedMoney)
-    stop = graphene.Field(TaxedMoney)
+    start = graphene.Field(
+        TaxedMoney, description='Lower bound of a price range.')
+    stop = graphene.Field(
+        TaxedMoney, description='Upper bound of a price range.')
+
+    class Meta:
+        description = 'Represents a range of monetary values.'

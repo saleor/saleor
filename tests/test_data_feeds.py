@@ -2,7 +2,6 @@ import csv
 from io import StringIO
 from unittest.mock import Mock, patch
 
-from django.contrib.sites.models import Site
 from django.utils.encoding import smart_text
 
 from saleor.data_feeds.google_merchant import (
@@ -10,15 +9,15 @@ from saleor.data_feeds.google_merchant import (
 from saleor.product.models import AttributeChoiceValue, Category
 
 
-def test_saleor_feed_items(product_in_stock):
-    valid_variant = product_in_stock.variants.first()
+def test_saleor_feed_items(product, site_settings):
+    valid_variant = product.variants.first()
     items = get_feed_items()
     assert len(items) == 1
     categories = Category.objects.all()
     discounts = []
     category_paths = {}
     attributes_dict = {}
-    current_site = Site.objects.get_current()
+    current_site = site_settings.site
     attribute_values_dict = {smart_text(a.pk): smart_text(a) for a
                              in AttributeChoiceValue.objects.all()}
     attributes = item_attributes(items[0], categories, category_paths,
@@ -39,7 +38,7 @@ def test_category_formatter(db):
     assert item_google_product_category(sub_category_item, {}) == 'Main > Sub'
 
 
-def test_write_feed(product_in_stock, monkeypatch):
+def test_write_feed(product, monkeypatch):
     buffer = StringIO()
     write_feed(buffer)
     buffer.seek(0)
@@ -59,7 +58,7 @@ def test_write_feed(product_in_stock, monkeypatch):
 
 @patch('saleor.data_feeds.google_merchant.item_link')
 def test_feed_contains_site_settings_domain(
-        mocked_item_link, product_in_stock):
+        mocked_item_link, product, site_settings):
     write_feed(StringIO())
     mocked_item_link.assert_called_once_with(
-        product_in_stock.variants.first(), Site.objects.get_current())
+        product.variants.first(), site_settings.site)

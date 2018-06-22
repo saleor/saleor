@@ -1,0 +1,97 @@
+{% extends "dashboard/base.html" %}
+{% load materializecss %}
+{% load i18n %}
+{% load staticfiles %}
+
+{% block title %}
+  {% if menu_item.pk %}
+    {% trans "Edit menu item" context "Menu item page title" %} {{ menu }}
+  {% else %}
+    {% trans "Add new menu item" context "Menu item page title" %}
+  {% endif %}
+  - {% trans "Menu items" context "Dashboard menu items list" %} - {{ block.super }}
+{% endblock %}
+
+{% block menu_menus_class %}active{% endblock %}
+
+{% block page_title %}
+  {% if menu_item.pk %}
+    {{ menu_item }}
+  {% else %}
+    {% trans "Add new menu item" context "Menu item page title" %}
+  {% endif %}
+{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url 'dashboard:menu-list' %}" class="breadcrumbs--ellipsed-item">
+        {% trans "Navigation" context "Dashboard menus list" %}
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'dashboard:menu-details' pk=menu.pk %}" class="breadcrumbs--ellipsed-item">
+        {{ menu }}
+      </a>
+    </li>
+    {% if path %}
+      <li class="back-mobile">
+        <a href="{% url 'dashboard:menu-list' %}" class="breadcrumbs--ellipsed-item">
+          <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
+        </a>
+      </li>
+      {% for node in path %}
+        <li class="hide-on-med-and-down">
+          <a href="{% url 'dashboard:menu-item-details' menu_pk=menu.pk item_pk=node.pk %}" title="{{ node.name }}" class="breadcrumbs--ellipsed-item">
+            {{ node.name }}
+          </a>
+        </li>
+      {% endfor %}
+    {% endif %}
+    {% if menu_item.pk %}
+      <li>
+        <span class="breadcrumbs--ellipsed-item">
+          {% trans "Edit" context "Menu form page title" %}
+        </span>
+      </li>
+    {% else %}
+      <li>
+        <span class="breadcrumbs--ellipsed-item">
+          {% trans "Add new menu item" context "Menu form page title" %}
+        </span>
+      </li>
+    {% endif %}
+  </ul>
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col m12 l9">
+      <div class="card">
+        <form method="post" enctype="multipart/form-data" novalidate>
+          <div class="card-content">
+            {% csrf_token %}
+            <div class="row">
+              {{ form|materializecss }}
+            </div>
+          </div>
+          <div class="card-action right-align">
+            <a href="{% if menu_item.pk %}{% url 'dashboard:menu-item-details' menu_pk=menu.pk item_pk=menu_item.pk %}{% elif menu_item.parent %}{% url 'dashboard:menu-item-details' menu_pk=menu.pk item_pk=menu_item.parent.pk %}{% else %}{% url 'dashboard:menu-details' pk=menu.pk %}{% endif %}" class="btn btn-flat">
+              {% trans "Cancel" context "Dashboard cancel action" %}
+            </a>
+            {% if menu_item.pk %}
+              <button type="submit" class="btn waves-effect">
+                {% trans "Update" context "Dashboard update action" %}
+              </button>
+            {% else %}
+              <button type="submit" class="btn waves-effect">
+                {% trans "Create" context "Dashboard create action" %}
+              </button>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="col m12 l3 help-box"></div>
+  </div>
+{% endblock %}

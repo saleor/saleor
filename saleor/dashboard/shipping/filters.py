@@ -3,7 +3,8 @@ from django_filters import (
     CharFilter, ChoiceFilter, OrderingFilter, RangeFilter)
 
 from ...core.filters import SortedFilterSet
-from ...shipping.models import COUNTRY_CODE_CHOICES, ShippingMethod
+from ...core.i18n import COUNTRY_CODE_CHOICES
+from ...shipping.models import ShippingMethod
 
 SORT_BY_FIELDS = {
     'name': pgettext_lazy('Group list sorting option', 'name')}

@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% load i18n %}
-{% load i18n_address_tags %}
-{% load prices_i18n %}
-{% load staticfiles %}
-{% load status %}
 {% load bootstrap_form from bootstrap4 %}
 {% load bootstrap_pagination from bootstrap4 %}
+{% load i18n %}
+{% load i18n_address_tags %}
+{% load price from taxed_prices %}
+{% load staticfiles %}
+{% load status %}
 
 {% block title %}{% trans "Your profile" context "User profile page title" %} — {{ block.super }}{% endblock %}
 
@@ -42,6 +42,11 @@
             <h3>{% trans "Addresses book" context "User profile tab" %}</h3>
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" data-toggle="tab" href="#settings" role="tab">
+            <h3>{% trans "Settings" context "User profile tab" %}</h3>
+          </a>
+        </li>
       </ul>
     </div>
     <div class="tab-content col-lg-10 m-auto">
@@ -75,10 +80,12 @@
                     {{ order.created }}
                   </div>
                   <div class="col-md-2 col-4">
-                    <span class="float-right">{{ order.total.gross|amount:'html' }}</span>
+                    <span class="float-right">
+                      {% price order.total.gross %}
+                    </span>
                   </div>
                   <div class="col-md-4 d-none d-md-block">
-                    {% render_status order.status order.get_status_display %}
+                    {% render_order_status order.status order.get_status_display %}
                   </div>
                   <div class="col-md-1 col-5">
                     <a href="{{ order.get_absolute_url }}" class="float-right link--styled">
@@ -144,7 +151,23 @@
           {% endif %}
         </div>
       </div>
+      <div class="tab-pane fade" id="settings" role="tabpanel">
+        <div class="row ">
+          <div class="d-block mx-auto text-center">
+            <form action="{% url 'account:delete' %}" method="post">
+              {% csrf_token %}
+              <p>
+                {% blocktrans context "Message informing about the process of account removal" %}
+                  If you'd like to remove your account, please click on the button below and a confirmation email will be sent to you.
+                {% endblocktrans %}
+              </p>
+              <button type="submit" class="btn danger narrow text-center">
+                {% trans "Remove Account" context "Remove account form action" %}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 {% endblock content %}
-

@@ -36,7 +36,7 @@
     </li>
     {% if attribute.pk %}
     <li>
-      <a href="{% url 'dashboard:product-attribute-detail' attribute.pk %}" class="breadcrumbs--ellipsed-item">
+      <a href="{% url 'dashboard:product-attribute-details' attribute.pk %}" class="breadcrumbs--ellipsed-item">
         {{ attribute }}
       </a>
     </li>
@@ -74,17 +74,14 @@
             </div>
           </div>
           <div class="card-action right-align">
+            <a href="{% url 'dashboard:product-attribute-details' pk=attribute.pk %}" class="btn-flat waves-effect">
+              {% trans "Cancel" context "Dashboard cancel action" %}
+            </a>
             {% if value.pk %}
-              <a href="{% url 'dashboard:product-attribute-detail' pk=attribute.pk %}" class="btn-flat waves-effect">
-                {% trans "Cancel" context "Dashboard cancel action" %}
-              </a>
               <button type="submit" class="btn waves-effect">
                 {% trans "Save" context "Dashboard update action" %}
               </button>
             {% else %}
-              <a href="{% url 'dashboard:product-attribute-detail' pk=attribute.pk%}" class="btn-flat waves-effect">
-                {% trans "Cancel" context "Dashboard cancel action" %}
-              </a>
               <button type="submit" class="btn waves-effect">
                 {% trans "Create" context "Dashboard create action" %}
               </button>

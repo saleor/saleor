@@ -1,0 +1,28 @@
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_language_info for LANGUAGE_CODE as current_lang %}
+{% get_available_languages as LANGUAGES %}
+{% get_language_info_list for LANGUAGES as languages %}
+
+{# We display language picker only if there're languages to pick from #}
+{% if languages|length > 1 %}
+  <li>
+    <div class="language-picker dropdown show">
+      <a class="dropdown-toggle dropdown-link" href="" id="dropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        {{ current_lang.name }}
+      </a>
+      <div class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="dropdownMenuLink">
+        <form id="language-picker" action="{% url 'set_language' %}" method="post">
+          {% csrf_token %}
+          <input name="next" type="hidden" value="/">
+          {# Language code will be dynamically appended to the form via JS due to select-box styling nature #}
+          {% for language in languages %}
+            <a data-lang="{{ language.code }}" class="dropdown-item language-pick dropdown-link{% if language.code == LANGUAGE_CODE %} active{% endif %}">
+              {{ language.name_local }}
+            </a>
+          {% endfor %}
+        </form>
+      </div>
+    </div>
+  </li>
+{% endif %}

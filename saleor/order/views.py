@@ -7,10 +7,12 @@ from django.db import transaction
 from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
+from django.urls import reverse
 from django.utils.translation import pgettext_lazy
+from django.views.decorators.csrf import csrf_exempt
 from payments import PaymentStatus, RedirectNeeded
 
-from . import OrderStatus
+from . import FulfillmentStatus
 from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
@@ -23,14 +25,15 @@ logger = logging.getLogger(__name__)
 
 
 def details(request, token):
-    orders = Order.objects.prefetch_related('groups__lines__product')
+    orders = Order.objects.confirmed().prefetch_related(
+        'lines__variant', 'fulfillments', 'fulfillments__lines',
+        'fulfillments__lines__order_line')
     orders = orders.select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)
-    groups = order.groups.all()
     notes = order.notes.filter(is_public=True)
-    ctx = {'order': order, 'groups': groups, 'notes': notes}
-    if order.status == OrderStatus.OPEN:
+    ctx = {'order': order, 'notes': notes}
+    if order.is_open():
         user = request.user if request.user.is_authenticated else None
         note = OrderNote(order=order, user=user)
         note_form = OrderNoteForm(request.POST or None, instance=note)
@@ -39,15 +42,18 @@ def details(request, token):
             if note_form.is_valid():
                 note_form.save()
                 return redirect('order:details', token=order.token)
+    fulfillments = order.fulfillments.filter(
+        status=FulfillmentStatus.FULFILLED)
+    ctx.update({'fulfillments': fulfillments})
     return TemplateResponse(request, 'order/details.html', ctx)
 
 
 def payment(request, token):
-    orders = Order.objects.prefetch_related('groups__lines__product')
+    orders = Order.objects.confirmed().filter(billing_address__isnull=False)
+    orders = orders.prefetch_related('lines__variant')
     orders = orders.select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)
-    groups = order.groups.all()
     payments = order.payments.all()
     form_data = request.POST or None
     try:
@@ -59,7 +65,7 @@ def payment(request, token):
         form_data = None
         waiting_payment_form = PaymentDeleteForm(
             None, order=order, initial={'payment_id': waiting_payment.id})
-    if order.is_fully_paid():
+    if order.is_fully_paid() or not order.billing_address:
         form_data = None
     payment_form = None
     if not order.is_pre_authorized():
@@ -70,8 +76,8 @@ def payment(request, token):
             return redirect(
                 'order:payment', token=order.token, variant=payment_method)
     ctx = {
-        'order': order, 'groups': groups, 'payment_form': payment_form,
-        'payments': payments, 'waiting_payment': waiting_payment,
+        'order': order, 'payment_form': payment_form, 'payments': payments,
+        'waiting_payment': waiting_payment,
         'waiting_payment_form': waiting_payment_form}
     return TemplateResponse(request, 'order/payment.html', ctx)
 
@@ -88,7 +94,7 @@ def start_payment(request, order, variant):
         'total': total.gross.amount,
         'tax': total.tax.amount,
         'currency': total.currency,
-        'delivery': order.shipping_price.gross.amount,
+        'delivery': order.shipping_price.net.amount,
         'billing_first_name': billing.first_name,
         'billing_last_name': billing.last_name,
         'billing_address_1': billing.street_address_1,
@@ -136,6 +142,17 @@ def cancel_payment(request, order):
             form.save()
         return redirect('order:payment', token=order.token)
     return HttpResponseForbidden()
+
+
+@csrf_exempt
+def payment_success(request, token):
+    """Receive request from payment gateway after paying for an order.
+
+    Redirects user to payment success.
+    All post data and query strings are dropped.
+    """
+    url = reverse('order:checkout-success', kwargs={'token': token})
+    return redirect(url)
 
 
 def checkout_success(request, token):

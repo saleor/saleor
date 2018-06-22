@@ -5,7 +5,12 @@ SECRET_KEY = 'NOTREALLY'
 
 DEFAULT_CURRENCY = 'USD'
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
+
+RECAPTCHA_PUBLIC_KEY = None
+RECAPTCHA_PRIVATE_KEY = None
+
+VATLAYER_ACCESS_KEY = ''
 
 if 'sqlite' in DATABASES['default']['ENGINE']:  # noqa
     DATABASES['default']['TEST'] = {  # noqa

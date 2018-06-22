@@ -69,6 +69,13 @@
         <form method="post" enctype="multipart/form-data" id="form-sales" novalidate>
           <div class="card-content card-content-form">
             {% csrf_token %}
+            {% if form.non_field_errors %}
+              <blockquote>
+                {% for non_field_error in form.non_field_errors %}
+                  {{ non_field_error }}
+                {% endfor %}
+              </blockquote>
+            {% endif %}
             <div class="row">
               {{ form.name|materializecss }}
             </div>
@@ -91,17 +98,14 @@
           </div>
 
           <div class="card-action right-align">
+            <a href="{% url 'dashboard:sale-list' %}" class="btn-flat waves-effect">
+              {% trans "Cancel" context "Dashboard cancel action" %}
+            </a>
             {% if sale.pk %}
-              <a href="{% url 'dashboard:sale-list' %}" class="btn-flat waves-effect">
-                {% trans "Cancel" context "Dashboard cancel action" %}
-              </a>
               <button type="submit" class="btn waves-effect">
                 {% trans "Update" context "Dashboard update action" %}
               </button>
             {% else %}
-              <a href="{% url 'dashboard:sale-list' %}" class="btn-flat waves-effect">
-                {% trans "Cancel" context "Dashboard cancel action" %}
-              </a>
               <button type="submit" class="btn waves-effect">
                 {% trans "Create" context "Dashboard create action" %}
               </button>

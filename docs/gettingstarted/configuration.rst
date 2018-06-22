@@ -1,3 +1,5 @@
+.. _settings_configuration:
+
 Configuration
 =============
 
@@ -51,9 +53,26 @@ Environment variables
 ``SECRET_KEY``
   Controls `Django's secret key <https://docs.djangoproject.com/en/1.10/ref/settings/#secret-key>`_ setting.
 
+``SENTRY_DSN``
+  Sentry's `Data Source Name <https://docs.sentry.io/quickstart/#about-the-dsn>`_. Disabled by default, allows to enable integration with Sentry (see :ref:`sentry-integration` for details).
 
 ``MAX_CART_LINE_QUANTITY``
   Controls maximum number of items in one cart line. Defaults to ``50``.
 
 ``STATIC_URL``
   Controls production assets' mount path. Defaults to ``/static/assets/``.
+
+``VATLAYER_ACCESS_KEY``
+  Access key to `vatlayer API <https://vatlayer.com/>`_. Enables VAT support within European Union.
+
+  To update the tax rates run the following command at least once per day:
+
+  .. code-block:: console
+
+   $ python manage.py get_vat_rates
+
+``DEFAULT_CURRENCY``
+  Controls all prices entered and stored in the store as this single default currency (for more information, see :ref:`money_architecture`).
+
+``DEFAULT_COUNTRY``
+  Sets the default country for the store. It controls the default VAT to be shown if required, the default shipping country, etc.

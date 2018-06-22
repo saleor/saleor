@@ -1,5 +1,5 @@
 {% load i18n static %}
-{% load prices_i18n %}
+{% load price from taxed_prices %}
 {% load discount_as_negative from voucher %}
 {% load render_bundle from webpack_loader %}
 
@@ -24,34 +24,28 @@
   <tr>
     {% if order.shipping_address %}
       <th align="left" width="50%">
-        {% trans "Shipping Details" context "Invoice table header" %}
+        {% trans "Shipping address" context "Invoice shipping address" %}
       </th>
     {% endif %}
-    <th align="left" {% if order.shipping_address %} width="50%"{% endif %}>
-      {% trans "Billing Details" context "Invoice table header" %}
-    </th>
+    {% if order.billing_address %}
+      <th align="left" {% if order.shipping_address %} width="50%"{% endif %}>
+        {% trans "Billing address" context "Invoice billing address" %}
+      </th>
+    {% endif %}
   </tr>
   </thead>
   <tbody>
   <tr>
     {% if order.shipping_address %}
-      <td valign="top">
-        {% with order.shipping_address as address %}
-          <h2>
-            {% trans "Shipping address" context "Invoice shipping address" %}
-          </h2>
-          {% include 'dashboard/includes/_address.html' with address=address only %}
-        {% endwith %}
+      <td>
+        {% include 'dashboard/includes/_address.html' with address=order.shipping_address only %}
       </td>
     {% endif %}
-    <td valign="top">
-      {% with order.billing_address as address %}
-        <h2>
-          {% trans "Billing address" context "Invoice billing address" %}
-        </h2>
-        {% include 'dashboard/includes/_address.html' with address=address only %}
-      {% endwith %}
-    </td>
+    {% if order.billing_address %}
+      <td>
+        {% include 'dashboard/includes/_address.html' with address=order.billing_address only %}
+      </td>
+    {% endif %}
   </tr>
   </tbody>
 </table>
@@ -70,7 +64,10 @@
         {% trans "SKU" context "Shipment order table header" %}
       </th>
       <th class="right-align">
-        {% trans "Price" context "Shipment order table header" %}
+        {% trans "Tax rate" context "Shipment order table header" %}
+      </th>
+      <th class="right-align">
+        {% trans "Gross price" context "Shipment order table header" %}
       </th>
       <th class="right-align">
         {% trans "Quantity" context "Shipment order table header" %}
@@ -81,37 +78,30 @@
     </tr>
     </thead>
     <tbody>
-      {% for item in order.get_lines.all %}
+      {% for line in order %}
         <tr>
           <td>
-            {{ item.product_name|truncatechars:30 }}<br>
+            {{ line.product_name|truncatechars:30 }}<br>
           </td>
           <td>
-            {{ item.product_sku }}
+            {{ line.product_sku }}
           </td>
           <td class="right-align">
-            {{ item.unit_price.gross|amount:'html' }}
+            {% blocktrans with tax_rate=line.tax_rate context "Order line tax rate value" %}
+              {{ tax_rate }} %
+            {% endblocktrans %}
           </td>
           <td class="right-align">
-            {{ item.quantity }}
+            {% price line.unit_price.gross %}
           </td>
           <td class="right-align">
-            {{ item.get_total.gross|amount:'html' }}
+            {{ line.quantity }}
+          </td>
+          <td class="right-align">
+            {% price line.get_total.gross %}
           </td>
         </tr>
       {% endfor %}
-      {% if order.shipping_price.gross or order.is_shipping_required %}
-        {% for shipping in shipping_methods %}
-          <tr>
-            <td>
-              {% trans "Shipping" context "Shipment order table item column data" %}
-            </td>
-            <td colspan="3">
-              {{ shipping.name }}
-            </td>
-          </tr>
-        {% endfor %}
-      {% endif %}
     </tbody>
   </table>
 {% endif %}
@@ -120,24 +110,32 @@
   <tbody>
     <tr>
       <td class="wide">
-        {% trans "Subtotal" context "Order subtotal price" %}
+        {% trans "Subtotal" context "Order subtotal net price" %}
       </td>
       <td class="right-align">
-        {{ order.get_subtotal.gross|amount:'html' }}
+        {% price order.get_subtotal.gross %}
       </td>
     </tr>
     <tr>
       <td>
-        {% trans "Shipping total" context "Order total shipping price header" %}
+        {% trans "Shipping" context "Order total shipping price header" %} {% if order.shipping_method_name %}({{ order.shipping_method_name }}){% endif %}
       </td>
       <td class="right-align">
-        {{ order.shipping_price.gross|amount:'html' }}
+        {% price order.shipping_price.gross %}
+      </td>
+    </tr>
+    <tr>
+      <td>
+        {% trans "Total taxes (included)" context "Order total taxes header" %}
+      </td>
+      <td class="right-align">
+        {% price order.total.tax %}
       </td>
     </tr>
     {% if order.discount_amount %}
       <tr>
         <td>
-          {% trans "Voucher" context "Order voucher header" %} {{ order.discount_name }}
+          {% trans "Discount" context "Order voucher header" %} {% if order.discount_name %}({{ order.discount_name }}){% endif %}
         </td>
         <td class="right-align">
           {% discount_as_negative order.discount_amount html=True %}
@@ -151,7 +149,7 @@
         {% trans "Grand total" context "Order total price header" %}
       </td>
       <td class="right-align">
-        {{ order.total.gross|amount:'html' }}
+        {% price order.total.gross %}
       </td>
     </tr>
   </tfoot>

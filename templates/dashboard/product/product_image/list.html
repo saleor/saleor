@@ -35,7 +35,7 @@
       </a>
     </li>
     <li>
-      <a href="{% url "dashboard:product-detail" product.pk %}">{{ product }}</a>
+      <a href="{% url "dashboard:product-details" product.pk %}">{{ product }}</a>
     </li>
     <li>
       <span class="breadcrumbs--ellipsed-item">{% trans "Images" %}</span>
@@ -52,10 +52,10 @@
         <div class="dz-message"></div>
         {% csrf_token %}
         <div class="row">
-          <ul class="product-gallery" id="product-gallery" data-post-url="{% url 'dashboard:product-images-reorder' product_pk=product.pk %}">
+          <ul class="product-gallery sortable-items" data-post-url="{% url 'dashboard:product-images-reorder' product_pk=product.pk %}" data-post-name="ordered_images">
             {% if images %}
               {% for image in images %}
-                <li class="col s12 m6 l4 product-gallery-item"
+                <li class="col s12 m6 l4 sortable-item"
                     data-id="{{ image.pk }}">
                   <div class="card">
                     <div class="card-image product-gallery-item-image">

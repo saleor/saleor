@@ -1,12 +1,12 @@
 var BundleTracker = require('webpack-bundle-tracker');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var MiniCssExtractPlugin = require('mini-css-extract-plugin');
 var path = require('path');
 var webpack = require('webpack');
 var autoprefixer = require('autoprefixer');
 
 var resolve = path.resolve.bind(path, __dirname);
 
-var extractTextPlugin;
+var extractCssPlugin;
 var fileLoaderPath;
 var output;
 
@@ -18,7 +18,10 @@ if (process.env.NODE_ENV === 'production') {
     publicPath: process.env.STATIC_URL || '/static/assets/'
   };
   fileLoaderPath = 'file-loader?name=[name].[hash].[ext]';
-  extractTextPlugin = new ExtractTextPlugin('[name].[contenthash].css');
+  extractCssPlugin = new MiniCssExtractPlugin({
+    filename: '[name].[chunkhash].css',
+    chunkFilename: '[id].[chunkhash].css'
+  });
 } else {
   output = {
     path: resolve('saleor/static/assets/'),
@@ -27,7 +30,10 @@ if (process.env.NODE_ENV === 'production') {
     publicPath: '/static/assets/'
   };
   fileLoaderPath = 'file-loader?name=[name].[ext]';
-  extractTextPlugin = new ExtractTextPlugin('[name].css');
+  extractCssPlugin = new MiniCssExtractPlugin({
+    filename: '[name].css',
+    chunkFilename: '[name].css'
+  });
 }
 
 var bundleTrackerPlugin = new BundleTracker({
@@ -58,31 +64,30 @@ var config = {
       },
       {
         test: /\.scss$/,
-        loader: ExtractTextPlugin.extract({
-          use: [
-            {
-              loader: 'css-loader',
-              options: {
-                'sourceMap': true
-              }
-            },
-            {
-              loader: 'postcss-loader',
-              options: {
-                'sourceMap': true,
-                'plugins': function () {
-                  return [autoprefixer];
-                }
-              }
-            },
-            {
-              loader: 'sass-loader',
-              options: {
-                'sourceMap': true
+        use: [
+          MiniCssExtractPlugin.loader,
+          {
+            loader: 'css-loader',
+            options: {
+              'sourceMap': true
+            }
+          },
+          {
+            loader: 'postcss-loader',
+            options: {
+              'sourceMap': true,
+              'plugins': function () {
+                return [autoprefixer];
               }
             }
-          ]
-        })
+          },
+          {
+            loader: 'sass-loader',
+            options: {
+              'sourceMap': true
+            }
+          }
+        ]
       },
       {
         test: /\.(eot|otf|png|svg|jpg|ttf|woff|woff2)(\?v=[0-9.]+)?$/,
@@ -98,7 +103,7 @@ var config = {
   },
   plugins: [
     bundleTrackerPlugin,
-    extractTextPlugin,
+    extractCssPlugin,
     providePlugin
   ],
   resolve: {

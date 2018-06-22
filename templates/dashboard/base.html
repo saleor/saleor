@@ -8,7 +8,9 @@
   <head>
     <title>
       {% block title %}
-        {% trans "Dashboard - Saleor" context "Dashboard default page title" %}
+        {% blocktrans trimmed context "Dashboard default page title" with site_name=site.name %}
+          Dashboard - {{ site_name }}
+        {% endblocktrans %}
       {% endblock %}
     </title>
     {% block meta %}
@@ -94,7 +96,7 @@
                 {% trans "Home" context "Dashboard homepage" %}
               </a>
             </li>
-            {% if perms.product.view_product or perms.product.view_category or perms.product.view_stock_location %}
+            {% if perms.product.view_product or perms.product.view_category %}
             <li class="side-nav-section" id="first">
               <p>
                 {% trans "Catalogue" context "Dashboard catalogue" %}
@@ -111,13 +113,6 @@
                   <li class="{% block menu_categories_class %}{% endblock %}">
                     <a href="{% url 'dashboard:category-list' %}">
                       {% trans "Categories" context "Dashboard categories list" %}
-                    </a>
-                  </li>
-                {% endif %}
-                {% if perms.product.view_stock_location %}
-                  <li class="{% block menu_location_class %}{% endblock %}">
-                    <a href="{% url 'dashboard:product-stock-location-list' %}">
-                    {% trans "Stock locations" context "Dashboard stock loactions list" %}
                     </a>
                   </li>
                 {% endif %}
@@ -227,6 +222,13 @@
                       </a>
                     </li>
                   {% endif %}
+                  {% if perms.menu.view_menus %}
+                    <li class="{% block menu_menus_class %}{% endblock %}">
+                      <a href="{% url 'dashboard:menu-list' %}">
+                        {% trans "Navigation" context "Dashboard menus list" %}
+                      </a>
+                    </li>
+                  {% endif %}
                   {% if perms.site.edit_settings %}
                     <li class="{% block menu_settings_class %}{% endblock %}">
                       <a href="{% url 'dashboard:site-index' %}">
@@ -234,6 +236,11 @@
                       </a>
                     </li>
                   {% endif %}
+                  <li class="{% block menu_taxes_class %}{% endblock %}">
+                    <a href="{% url 'dashboard:taxes' %}">
+                      {% trans "Taxes" context "Dashboard taxes" %}
+                    </a>
+                  </li>
                   {% if perms.page.view_page %}
                     <li class="{% block menu_pages_class %}{% endblock %}">
                       <a href="{% url 'dashboard:page-list' %}">
