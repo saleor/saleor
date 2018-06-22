@@ -6,6 +6,32 @@ Prerequisites
 
 Before you are ready to run Saleor you will need additional software installed on your computer.
 
+
+Node.js
+~~~~~~~
+
+Version 8 or later is required. Download the macOS installer from the `Node.js downloads page <https://nodejs.org/en/download/>`_.
+
+
+PostgreSQL
+~~~~~~~~~~
+
+Saleor needs PostgreSQL version 9.4 or above to work. Get the macOS installer from the `PostgreSQL download page <https://www.postgresql.org/download/macosx/>`_.
+
+Then, create a new database and user. Make sure you keep track of the password you set for the administration account during installation. 
+
+.. code-block:: console
+
+ $ psql postgres
+
+and from the Postgres prompt:
+
+.. code-block:: psql
+
+ # CREATE ROLE saleor WITH LOGIN PASSWORD 'saleor' SUPERUSER;
+ # CREATE DATABASE saleor;
+
+
 Command Line Tools for Xcode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -27,37 +53,6 @@ Run the following command:
 
  $ /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
-Node.js
-~~~~~~~
-
-Use Homebrew to install the latest version of Node.js:
-
-.. code-block:: console
-
- $ brew install node
-
-
-PostgreSQL
-~~~~~~~~~~
-
-Use Homebrew to install the latest version of PostgreSQL:
-
-.. code-block:: console
-
- $ brew install postgresql
-
-Make sure to follow the instructions at the end of Homebrew's output to start your database. Then,
-
-.. code-block:: console
-
- $ psql postgres
-
-and from the Postgres prompt:
-
-.. code-block:: psql
-
- # CREATE ROLE saleor WITH LOGIN PASSWORD 'saleor' SUPERUSER;
- # CREATE DATABASE saleor;
 
 Python 3
 ~~~~~~~~
