@@ -6,7 +6,7 @@ import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import { CategoryPropertiesQuery } from "../../gql-types";
 import i18n from "../../i18n";
-import { productAddUrl, productShowUrl } from "../../products";
+import { productAddUrl, productUrl } from "../../products";
 import { categoryAddUrl, categoryEditUrl, categoryShowUrl } from "../index";
 import {
   categoryDeleteMutation,
@@ -188,7 +188,7 @@ const CategoryDetails: React.StatelessComponent<CategoryDetailsProps> = ({
                         onDelete={deleteCategory}
                         onEdit={() => navigate(categoryEditUrl(id))}
                         onProductClick={(id: string) => () =>
-                          navigate(productShowUrl(id))}
+                          navigate(productUrl(id))}
                         pageInfo={
                           data && data.category && data.category.products
                             ? data.category.products.pageInfo
@@ -232,7 +232,7 @@ const CategoryDetails: React.StatelessComponent<CategoryDetailsProps> = ({
                 onCategoryClick={(id: string) => () =>
                   navigate(categoryShowUrl(id))}
                 onProductClick={(id: string) => () =>
-                  navigate(productShowUrl(id))}
+                  navigate(productUrl(id))}
               />
             )}
           </Navigator>

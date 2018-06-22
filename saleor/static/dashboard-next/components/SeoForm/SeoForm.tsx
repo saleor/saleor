@@ -60,6 +60,7 @@ const decorate = withStyles(theme => ({
     wordWrap: "break-word" as "break-word"
   }
 }));
+
 const SeoForm = decorate<SeoFormProps>(
   ({
     classes,

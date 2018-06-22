@@ -32,6 +32,7 @@ const decorate = withStyles(theme => ({
     }
   }
 }));
+
 const ProductVariantStock = decorate<ProductVariantStockProps>(
   ({ classes, sku, stock, stockAllocated, loading, onChange }) => (
     <Card className={classes.root}>

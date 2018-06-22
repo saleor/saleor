@@ -10,14 +10,10 @@ import * as React from "react";
 
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
+import { ProductImageType } from "../..";
 
 interface ProductVariantImagesProps {
-  images?: Array<{
-    id: string;
-    alt: string;
-    url: string;
-    order: number;
-  }>;
+  images?: Array<ProductImageType>;
   placeholderImage?: string;
   loading?: boolean;
   onImageAdd();
@@ -54,7 +50,7 @@ export const ProductVariantImages = decorate<ProductVariantImagesProps>(
     <Card className={classes.card}>
       <PageHeader title={i18n.t("Images")}>
         <IconButton
-          onClick={loading ? () => {} : onImageAdd}
+          onClick={loading ? () => { } : onImageAdd}
           disabled={loading}
         >
           <AddIcon />
@@ -69,7 +65,7 @@ export const ProductVariantImages = decorate<ProductVariantImagesProps>(
             </GridListTile>
           ) : images.length > 0 ? (
             images
-              .sort((prev, next) => (prev.order > next.order ? 1 : -1))
+              .sort((prev, next) => (prev.sortOrder > next.sortOrder ? 1 : -1))
               .map(tile => (
                 <GridListTile
                   key={tile.id}
@@ -83,8 +79,8 @@ export const ProductVariantImages = decorate<ProductVariantImagesProps>(
                 </GridListTile>
               ))
           ) : (
-            <Typography>{i18n.t("No images available")}</Typography>
-          )}
+                <Typography>{i18n.t("No images available")}</Typography>
+              )}
         </div>
       </CardContent>
     </Card>
