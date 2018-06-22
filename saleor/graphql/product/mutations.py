@@ -8,7 +8,7 @@ from ...product import models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import Decimal, Money
 from ..utils import get_attributes_dict_from_list, get_node, get_nodes
-from .types import Collection, Product
+from .types import Collection, Product, ProductImage
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -384,7 +384,7 @@ class ProductImageInput(graphene.InputObjectType):
     product = graphene.ID(description='ID of an product.')
 
 
-class ProductImageCreateMutation(ModelMutation):
+class ProductImageCreate(ModelMutation):
     class Arguments:
         input = ProductImageInput(
             required=True,
@@ -392,6 +392,42 @@ class ProductImageCreateMutation(ModelMutation):
 
     class Meta:
         description = 'Creates a product image.'
+        model = models.ProductImage
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.edit_product')
+
+
+class ProductImageReorder(BaseMutation):
+    class Arguments:
+        images_ids = graphene.List(
+            graphene.ID, required=True,
+            description='IDs of a product images in the desired order.')
+
+    class Meta:
+        description = 'Changes ordering of the product image.'
+
+    product_images = graphene.List(
+        ProductImage, description='Product image which sort order will be altered.')
+
+    @permission_required('product.edit_product')
+    def mutate(self, info, images_ids):
+        product_images = get_nodes(images_ids, ProductImage)
+        for order, image_id in enumerate(images_ids):
+            image = get_node(info, image_id, only_type=ProductImage)
+            image.sort_order = order
+            image.save()
+        return ProductImageReorder(product_images=product_images)
+
+
+class ProductImageDelete(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of a product image to delete.')
+
+    class Meta:
+        description = 'Deletes a product image.'
         model = models.ProductImage
 
     @classmethod
