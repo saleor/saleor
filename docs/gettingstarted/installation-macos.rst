@@ -18,20 +18,6 @@ PostgreSQL
 
 Saleor needs PostgreSQL version 9.4 or above to work. Get the macOS installer from the `PostgreSQL download page <https://www.postgresql.org/download/macosx/>`_.
 
-Then, create a new database and user. Make sure you keep track of the password you set for the administration account during installation. 
-
-.. code-block:: console
-
- $ psql postgres
-
-and from the Postgres prompt:
-
-.. code-block:: psql
-
- # CREATE ROLE saleor WITH LOGIN PASSWORD 'saleor' SUPERUSER;
- # CREATE DATABASE saleor;
-
-
 Command Line Tools for Xcode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -132,6 +118,7 @@ Installation
 
    .. code-block:: console
 
+    $ createdb saleor
     $ createuser --superuser --pwprompt saleor
 
    Enter ``saleor`` when prompted for password.
