@@ -398,6 +398,21 @@ class ProductImageCreate(ModelMutation):
         return user.has_perm('product.edit_product')
 
 
+class ProductImageUpdate(ModelMutation):
+    class Arguments:
+        input = ProductImageInput(
+            required=True,
+            description='Fields required to update a product image.')
+
+    class Meta:
+        description = 'Updates a product image.'
+        model = models.ProductImage
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.edit_product')
+
+
 class ProductImageReorder(BaseMutation):
     class Arguments:
         product_id = graphene.ID(
