@@ -1,5 +1,6 @@
-from modeltranslation.translator import register, TranslationOptions
 import saleor.page.models as models
+from modeltranslation.translator import TranslationOptions, register
+
 
 @register(models.Page)
 class SeoModelTranslationOptions(TranslationOptions):

@@ -8,8 +8,8 @@ from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_prices_vatlayer.utils import get_tax_rate_types
-from mptt.forms import TreeNodeChoiceField
 from modeltranslation.forms import TranslationModelForm
+from mptt.forms import TreeNodeChoiceField
 
 from . import ProductBulkAction
 from ...core.i18n import VAT_RATE_TYPE_TRANSLATIONS
