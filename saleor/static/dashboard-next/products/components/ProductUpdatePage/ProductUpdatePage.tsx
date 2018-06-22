@@ -1,11 +1,11 @@
 import IconButton from "@material-ui/core/IconButton";
+import DialogContentText from "@material-ui/core/DialogContentText";
 import { withStyles } from "@material-ui/core/styles";
 import DeleteIcon from "@material-ui/icons/Delete";
 import VisibilityIcon from "@material-ui/icons/Visibility";
+import * as CRC from 'crc-32'
 import * as React from "react";
 
-import DialogContentText from "@material-ui/core/DialogContentText";
-import { AttributeType, AttributeValueType } from "../../";
 import ActionDialog from "../../../components/ActionDialog";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
@@ -16,6 +16,7 @@ import SaveButtonBar, {
 import SeoForm from "../../../components/SeoForm";
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
+import { AttributeType, AttributeValueType, MoneyType } from "../../";
 import ProductAttributesForm from "../ProductAttributesForm";
 import ProductAvailabilityForm from "../ProductAvailabilityForm";
 import ProductCategoryAndCollectionsForm from "../ProductCategoryAndCollectionsForm";
@@ -24,11 +25,6 @@ import ProductImages from "../ProductImages";
 import ProductPrice from "../ProductPrice/ProductPrice";
 import ProductVariants from "../ProductVariants";
 
-interface MoneyType {
-  amount: number;
-  currency: string;
-  localized: string;
-}
 interface ProductUpdateProps {
   placeholderImage: string;
   collections?: Array<{
@@ -134,6 +130,7 @@ const decorate = withStyles(theme => ({
     }
   }
 }));
+
 export const ProductUpdate = decorate<ProductUpdateProps>(
   ({
     classes,
@@ -183,7 +180,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
       <Form
         onSubmit={onSubmit}
         initial={initialData}
-        key={product && product.name ? product.name : "loading"}
+        key={product ? CRC.str(JSON.stringify(product)) : 'loading'}
       >
         {({ change, data, submit }) => (
           <Container width="md">
@@ -282,12 +279,8 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
                 />
                 <div className={classes.cardContainer}>
                   <ProductPrice
-                    margin={
-                      product ? product.margin : undefined
-                    }
-                    purchaseCost={
-                      product ? product.purchaseCost : undefined
-                    }
+                    margin={ product ? product.margin : undefined }
+                    purchaseCost={ product ? product.purchaseCost : undefined }
                   />
                 </div>
                 <div className={classes.cardContainer}>
