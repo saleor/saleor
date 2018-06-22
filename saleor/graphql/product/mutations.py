@@ -1,12 +1,11 @@
 import graphene
 from graphene.types import InputObjectType
-from graphql_jwt.decorators import permission_required
-
 from graphene_file_upload import Upload
+from graphql_jwt.decorators import permission_required
 
 from ...product import models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types import Decimal, Money
+from ..core.types import Error, Decimal, Money
 from ..utils import get_attributes_dict_from_list, get_node, get_nodes
 from .types import Collection, Product, ProductImage
 
@@ -401,6 +400,9 @@ class ProductImageCreate(ModelMutation):
 
 class ProductImageReorder(BaseMutation):
     class Arguments:
+        product_id = graphene.ID(
+            required=True,
+            description='Id of product that images order will be altered.')
         images_ids = graphene.List(
             graphene.ID, required=True,
             description='IDs of a product images in the desired order.')
@@ -409,15 +411,24 @@ class ProductImageReorder(BaseMutation):
         description = 'Changes ordering of the product image.'
 
     product_images = graphene.List(
-        ProductImage, description='Product image which sort order will be altered.')
+        ProductImage,
+        description='Product image which sort order will be altered.')
 
+    @classmethod
     @permission_required('product.edit_product')
-    def mutate(self, info, images_ids):
-        product_images = get_nodes(images_ids, ProductImage)
+    def mutate(cls, root, info, product_id, images_ids):
+        product = get_node(info, product_id, Product)
+        if len(images_ids) != product.images.count():
+            import ipdb; ipdb.set_trace()
+            return cls(
+                errors=[
+                    Error(field='order',
+                          message='Incorrect number of image IDs provided.')])
         for order, image_id in enumerate(images_ids):
             image = get_node(info, image_id, only_type=ProductImage)
             image.sort_order = order
             image.save()
+        product_images = get_nodes(images_ids, ProductImage)
         return ProductImageReorder(product_images=product_images)
 
 
