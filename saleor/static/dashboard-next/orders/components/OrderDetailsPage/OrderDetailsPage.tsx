@@ -283,7 +283,7 @@ class OrderDetailsPageComponent extends React.Component<
             <DateFormatter
               date={order.created}
               dateNow={dateNow}
-              typography="caption"
+              typographyProps={{ variant: "caption" }}
             />
           </div>
         ) : (
