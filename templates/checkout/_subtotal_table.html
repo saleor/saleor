@@ -1,0 +1,74 @@
+{% load i18n %}
+{% load taxed_prices %}
+
+{% if shipping_required %}
+  <div class="table__row">
+    <div class="row">
+      <div class="col-8 cart__total__subtotal">
+        <h3>{% trans "Subtotal" context "Order subtotal" %}</h3>
+      </div>
+      <div class="col-4">
+        <h3 class="text-right cart-subtotal" data-value="{% price cart_total.gross html=False %}" {% if local_cart_total is not None %}data-value-local="{% price local_cart_total.gross html=False %}"{% endif %}>
+          {% spaceless %}
+            {% price cart_total %}
+            {% if local_cart_total is not None and local_cart_total.gross %}
+              <br>
+              <small>
+                &asymp;
+                {% price local_cart_total %}
+              </small>
+            {% endif %}
+          {% endspaceless %}
+        </h3>
+      </div>
+    </div>
+  </div>
+  <div class="last table__row cart__delivery-info">
+    <div class="row">
+      <div class="col-7 cart__total__subtotal deliveryform" data-csrf="{{ csrf_token }}">
+        <div class="row">
+          <div class="col-12 col-md-4">
+            <p>{% trans "Shipping cost for:" context "Cart shipping cost form" %}</p>
+          </div>
+          <div class="col-12 col-md-8">
+            {{ country_form.country }}
+          </div>
+        </div>
+      </div>
+      <div class="col-5">
+        <div class="row">
+          <div class="col-md-12 col-12 text-right">
+            <p class="cart__delivery-info__price">
+              {% if default_country_options %}
+                {% price_range default_country_options %}
+              {% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+<div class="cart__total">
+  <div class="row">
+    <div class="col-8 cart__total__subtotal">
+      <h3>{% trans "Total" context "Order subtotal" %}</h3>
+      <small>{% trans "Shipment and taxes calculated at checkout" context "Cart summary text" %}</small>
+    </div>
+    <div class="col-4">
+      {% spaceless %}
+        {% if total_with_shipping %}
+          <h3 class="text-right cart-total"><span>{% price_range total_with_shipping %}</span>
+            {% if local_total_with_shipping %}
+              <br>
+              <small>
+                &asymp;
+                {% price_range local_total_with_shipping %}
+              </small>
+            {% endif %}
+          </h3>
+        {% endif %}
+      {% endspaceless %}
+    </div>
+  </div>
+</div>

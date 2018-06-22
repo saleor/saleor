@@ -6,14 +6,17 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 
-from ..cart.utils import set_cart_cookie
+from ..checkout.utils import set_cart_cookie
 from ..core.utils import serialize_decimal
+from ..seo.schema.product import product_json_ld
 from .filters import ProductCategoryFilter, ProductCollectionFilter
-from .models import Category, Collection
+from .models import Category
 from .utils import (
-    get_availability, get_product_attributes_data, get_product_images,
-    get_product_list_context, get_variant_picker_data, handle_cart_form,
-    product_json_ld, products_for_cart, products_with_details)
+    collections_visible_to_user, get_product_images, get_product_list_context,
+    handle_cart_form, products_for_cart, products_with_details)
+from .utils.attributes import get_product_attributes_data
+from .utils.availability import get_availability
+from .utils.variants_picker import get_variant_picker_data
 
 
 def product_details(request, slug, product_id, form=None):
@@ -55,28 +58,29 @@ def product_details(request, slug, product_id, form=None):
         product.available_on is None or product.available_on <= today)
     if form is None:
         form = handle_cart_form(request, product, create_cart=False)[0]
-    availability = get_availability(product, discounts=request.discounts,
-                                    local_currency=request.currency)
+    availability = get_availability(
+        product, discounts=request.discounts, taxes=request.taxes,
+        local_currency=request.currency)
     product_images = get_product_images(product)
     variant_picker_data = get_variant_picker_data(
-        product, request.discounts, request.currency)
+        product, request.discounts, request.taxes, request.currency)
     product_attributes = get_product_attributes_data(product)
     # show_variant_picker determines if variant picker is used or select input
     show_variant_picker = all([v.attributes for v in product.variants.all()])
     json_ld_data = product_json_ld(product, product_attributes)
-    return TemplateResponse(
-        request, 'product/details.html', {
-            'is_visible': is_visible,
-            'form': form,
-            'availability': availability,
-            'product': product,
-            'product_attributes': product_attributes,
-            'product_images': product_images,
-            'show_variant_picker': show_variant_picker,
-            'variant_picker_data': json.dumps(
-                variant_picker_data, default=serialize_decimal),
-            'json_ld_product_data': json.dumps(
-                json_ld_data, default=serialize_decimal)})
+    ctx = {
+        'is_visible': is_visible,
+        'form': form,
+        'availability': availability,
+        'product': product,
+        'product_attributes': product_attributes,
+        'product_images': product_images,
+        'show_variant_picker': show_variant_picker,
+        'variant_picker_data': json.dumps(
+            variant_picker_data, default=serialize_decimal),
+        'json_ld_product_data': json.dumps(
+            json_ld_data, default=serialize_decimal)}
+    return TemplateResponse(request, 'product/details.html', ctx)
 
 
 def product_add_to_cart(request, slug, product_id):
@@ -125,7 +129,10 @@ def category_index(request, path, category_id):
 
 
 def collection_index(request, slug, pk):
-    collection = get_object_or_404(Collection, id=pk)
+    collections = collections_visible_to_user(request.user)
+    collection = get_object_or_404(collections, id=pk)
+    if collection.slug != slug:
+        return HttpResponsePermanentRedirect(collection.get_absolute_url())
     products = products_with_details(user=request.user).filter(
         collections__id=collection.id).order_by('name')
     product_filter = ProductCollectionFilter(

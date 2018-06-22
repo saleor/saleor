@@ -1,3 +1,4 @@
+from captcha.fields import ReCaptchaField
 from django import forms
 from django.conf import settings
 from django.contrib.auth import forms as django_forms, update_session_auth_hash
@@ -7,6 +8,16 @@ from phonenumbers.phonenumberutil import country_code_for_region
 from . import emails
 from ..account.models import User
 from .i18n import AddressMetaForm, get_address_form_class
+
+
+class FormWithReCaptcha(forms.BaseForm):
+    def __new__(cls, *args, **kwargs):
+        if settings.RECAPTCHA_PUBLIC_KEY and settings.RECAPTCHA_PRIVATE_KEY:
+            # insert a Google reCaptcha field inside the form
+            # note: label is empty, the reCaptcha is self-explanatory making
+            #       the form simpler for the user.
+            cls.base_fields['_captcha'] = ReCaptchaField(label='')
+        return super(FormWithReCaptcha, cls).__new__(cls)
 
 
 def get_address_form(
@@ -25,10 +36,8 @@ def get_address_form(
     address_form_class = get_address_form_class(country_code)
 
     if not preview and instance is not None:
-        address_form_class = get_address_form_class(
-            instance.country.code)
-        address_form = address_form_class(
-            data, instance=instance, **kwargs)
+        address_form_class = get_address_form_class(instance.country.code)
+        address_form = address_form_class(data, instance=instance, **kwargs)
     else:
         initial_address = (
             initial if not preview
@@ -55,7 +64,7 @@ def logout_on_password_change(request, user):
         update_session_auth_hash(request, user)
 
 
-class LoginForm(django_forms.AuthenticationForm):
+class LoginForm(django_forms.AuthenticationForm, FormWithReCaptcha):
     username = forms.EmailField(
         label=pgettext('Form field', 'Email'), max_length=75)
 
@@ -67,7 +76,7 @@ class LoginForm(django_forms.AuthenticationForm):
                 self.fields['username'].initial = email
 
 
-class SignupForm(forms.ModelForm):
+class SignupForm(forms.ModelForm, FormWithReCaptcha):
     password = forms.CharField(
         widget=forms.PasswordInput)
     email = forms.EmailField(
@@ -100,7 +109,7 @@ class SignupForm(forms.ModelForm):
         return user
 
 
-class PasswordResetForm(django_forms.PasswordResetForm):
+class PasswordResetForm(django_forms.PasswordResetForm, FormWithReCaptcha):
     """Allow resetting passwords.
 
     This subclass overrides sending emails to use templated email.

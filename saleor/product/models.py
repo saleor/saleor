@@ -5,30 +5,35 @@ from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
-from django.db.models import F, Max, Q
+from django.db.models import Q
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_prices.models import MoneyField
+from django_prices.templatetags import prices_i18n
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
-from prices import Money, TaxedMoney, TaxedMoneyRange
+from prices import TaxedMoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..core.exceptions import InsufficientStock
+from ..core.models import SortableModel
+from ..core.utils.taxes import DEFAULT_TAX_RATE_NAME, apply_tax_to_price
 from ..discount.utils import calculate_discounted_price
-from .utils import get_attributes_display_map
+from ..seo.models import SeoModel
 
 
-class Category(MPTTModel):
+class Category(MPTTModel, SeoModel):
     name = models.CharField(max_length=128)
     slug = models.SlugField(max_length=128)
     description = models.TextField(blank=True)
     parent = models.ForeignKey(
         'self', null=True, blank=True, related_name='children',
         on_delete=models.CASCADE)
+    background_image = VersatileImageField(
+        upload_to='category-backgrounds', blank=True, null=True)
 
     objects = models.Manager()
     tree = TreeManager()
@@ -66,6 +71,8 @@ class ProductType(models.Model):
     variant_attributes = models.ManyToManyField(
         'ProductAttribute', related_name='product_variant_types', blank=True)
     is_shipping_required = models.BooleanField(default=False)
+    tax_rate = models.CharField(
+        max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True)
 
     class Meta:
         app_label = 'product'
@@ -87,7 +94,7 @@ class ProductQuerySet(models.QuerySet):
             Q(is_published=True))
 
 
-class Product(models.Model):
+class Product(SeoModel):
     product_type = models.ForeignKey(
         ProductType, related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
@@ -95,12 +102,16 @@ class Product(models.Model):
     category = models.ForeignKey(
         Category, related_name='products', on_delete=models.CASCADE)
     price = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES)
     available_on = models.DateField(blank=True, null=True)
     is_published = models.BooleanField(default=True)
-    attributes = HStoreField(default={})
+    attributes = HStoreField(default={}, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
     is_featured = models.BooleanField(default=False)
+    charge_taxes = models.BooleanField(default=True)
+    tax_rate = models.CharField(
+        max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True)
 
     objects = ProductQuerySet.as_manager()
 
@@ -150,66 +161,68 @@ class Product(models.Model):
         first_image = self.images.first()
         return first_image.image if first_image else None
 
-    def get_attribute(self, pk):
-        return self.attributes.get(smart_text(pk))
-
-    def set_attribute(self, pk, value_pk):
-        self.attributes[smart_text(pk)] = smart_text(value_pk)
-
-    def get_price_per_item(self, item, discounts=None):
-        return item.get_price_per_item(discounts)
-
-    def get_price_range(self, discounts=None):
+    def get_price_range(self, discounts=None, taxes=None):
         if self.variants.exists():
             prices = [
-                self.get_price_per_item(variant, discounts=discounts)
+                variant.get_price(discounts=discounts, taxes=taxes)
                 for variant in self]
             return TaxedMoneyRange(min(prices), max(prices))
-        price = TaxedMoney(net=self.price, gross=self.price)
-        discounted_price = calculate_discounted_price(
-            self, price, discounts)
-        return TaxedMoneyRange(start=discounted_price, stop=discounted_price)
-
-    def get_gross_price_range(self, discounts=None):
-        grosses = [
-            self.get_price_per_item(variant, discounts=discounts)
-            for variant in self]
-        if not grosses:
-            return None
-        grosses = sorted(grosses, key=lambda x: x.tax)
-        return TaxedMoneyRange(min(grosses), max(grosses))
+        price = calculate_discounted_price(self, self.price, discounts)
+        if not self.charge_taxes:
+            taxes = None
+        tax_rate = self.tax_rate or self.product_type.tax_rate
+        price = apply_tax_to_price(taxes, tax_rate, price)
+        return TaxedMoneyRange(start=price, stop=price)
 
 
 class ProductVariant(models.Model):
     sku = models.CharField(max_length=32, unique=True)
-    name = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=255, blank=True)
     price_override = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
-        blank=True, null=True)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES, blank=True, null=True)
     product = models.ForeignKey(
         Product, related_name='variants', on_delete=models.CASCADE)
-    attributes = HStoreField(default={})
+    attributes = HStoreField(default={}, blank=True)
     images = models.ManyToManyField('ProductImage', through='VariantImage')
+    track_inventory = models.BooleanField(default=True)
+    quantity = models.IntegerField(
+        validators=[MinValueValidator(0)], default=Decimal(1))
+    quantity_allocated = models.IntegerField(
+        validators=[MinValueValidator(0)], default=Decimal(0))
+    cost_price = MoneyField(
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES, blank=True, null=True)
 
     class Meta:
         app_label = 'product'
 
     def __str__(self):
-        return self.name or self.display_variant_attributes()
+        return self.name or self.sku
+
+    @property
+    def quantity_available(self):
+        return max(self.quantity - self.quantity_allocated, 0)
 
     def check_quantity(self, quantity):
-        total_available_quantity = self.get_stock_quantity()
-        if quantity > total_available_quantity:
+        """ Check if there is at least the given quantity in stock
+        if stock handling is enabled.
+        """
+        if self.track_inventory and quantity > self.quantity_available:
             raise InsufficientStock(self)
 
-    def get_stock_quantity(self):
-        return sum([stock.quantity_available for stock in self.stock.all()])
+    @property
+    def base_price(self):
+        return self.price_override or self.product.price
 
-    def get_price_per_item(self, discounts=None):
-        price = self.price_override or self.product.price
-        price = TaxedMoney(net=price, gross=price)
-        price = calculate_discounted_price(self.product, price, discounts)
-        return price
+    def get_price(self, discounts=None, taxes=None):
+        price = calculate_discounted_price(
+            self.product, self.base_price, discounts)
+        if not self.product.charge_taxes:
+            taxes = None
+        tax_rate = (
+            self.product.tax_rate or self.product.product_type.tax_rate)
+        return apply_tax_to_price(taxes, tax_rate, price)
 
     def get_absolute_url(self):
         slug = self.product.get_slug()
@@ -217,36 +230,11 @@ class ProductVariant(models.Model):
         return reverse('product:details',
                        kwargs={'slug': slug, 'product_id': product_id})
 
-    def as_data(self):
-        return {
-            'product_name': str(self),
-            'product_id': self.product.pk,
-            'variant_id': self.pk,
-            'unit_price': str(self.get_price_per_item().gross)}
-
     def is_shipping_required(self):
         return self.product.product_type.is_shipping_required
 
     def is_in_stock(self):
-        return any(
-            [stock.quantity_available > 0 for stock in self.stock.all()])
-
-    def get_attribute(self, pk):
-        return self.attributes.get(smart_text(pk))
-
-    def set_attribute(self, pk, value_pk):
-        self.attributes[smart_text(pk)] = smart_text(value_pk)
-
-    def display_variant_attributes(self, attributes=None):
-        if attributes is None:
-            attributes = self.product.product_type.variant_attributes.all()
-        values = get_attributes_display_map(self, attributes)
-        if values:
-            return ', '.join(
-                ['%s: %s' % (smart_text(attributes.get(id=int(key))),
-                             smart_text(value))
-                 for (key, value) in values.items()])
-        return ''
+        return self.quantity_available > 0
 
     def display_product(self):
         variant_display = str(self)
@@ -258,69 +246,10 @@ class ProductVariant(models.Model):
     def get_first_image(self):
         return self.product.get_first_image()
 
-    def select_stockrecord(self, quantity=1):
-        # By default selects stock with lowest cost price. If stock cost price
-        # is None we assume price equal to zero to allow sorting.
-        stock = [
-            stock_item for stock_item in self.stock.all()
-            if stock_item.quantity_available >= quantity]
-        zero_price = Money(0, currency=settings.DEFAULT_CURRENCY)
-        stock = sorted(
-            stock, key=(lambda s: s.cost_price or zero_price), reverse=False)
-        if stock:
-            return stock[0]
-        return None
-
-    def get_cost_price(self):
-        stock = self.select_stockrecord()
-        if stock:
-            return stock.cost_price
-        return None
-
-
-class StockLocation(models.Model):
-    name = models.CharField(max_length=100)
-
-    class Meta:
-        permissions = (
-            ('view_stock_location',
-             pgettext_lazy('Permission description',
-                           'Can view stock location')),
-            ('edit_stock_location',
-             pgettext_lazy('Permission description',
-                           'Can edit stock location')))
-
-    def __str__(self):
-        return self.name
-
-
-class Stock(models.Model):
-    variant = models.ForeignKey(
-        ProductVariant, related_name='stock', on_delete=models.CASCADE)
-    location = models.ForeignKey(
-        StockLocation, null=True, on_delete=models.CASCADE)
-    quantity = models.IntegerField(
-        validators=[MinValueValidator(0)], default=Decimal(1))
-    quantity_allocated = models.IntegerField(
-        validators=[MinValueValidator(0)], default=Decimal(0))
-    cost_price = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
-        blank=True, null=True)
-
-    class Meta:
-        app_label = 'product'
-        unique_together = ('variant', 'location')
-
-    def __str__(self):
-        return '%s - %s' % (self.variant.name, self.location)
-
-    @property
-    def quantity_available(self):
-        return max(self.quantity - self.quantity_allocated, 0)
-
-    def get_total(self):
-        if self.cost_price:
-            return TaxedMoney(net=self.cost_price, gross=self.cost_price)
+    def get_ajax_label(self, discounts=None):
+        price = self.get_price(discounts).gross
+        return '%s, %s, %s' % (
+            self.sku, self.display_product(), prices_i18n.amount(price))
 
 
 class ProductAttribute(models.Model):
@@ -340,50 +269,37 @@ class ProductAttribute(models.Model):
         return self.values.exists()
 
 
-class AttributeChoiceValue(models.Model):
+class AttributeChoiceValue(SortableModel):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100)
-    color = models.CharField(
-        max_length=7, blank=True,
-        validators=[RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')])
     attribute = models.ForeignKey(
         ProductAttribute, related_name='values', on_delete=models.CASCADE)
 
     class Meta:
+        ordering = ('sort_order',)
         unique_together = ('name', 'attribute')
 
     def __str__(self):
         return self.name
 
+    def get_ordering_queryset(self):
+        return self.attribute.values.all()
 
-class ProductImage(models.Model):
+
+class ProductImage(SortableModel):
     product = models.ForeignKey(
         Product, related_name='images', on_delete=models.CASCADE)
     image = VersatileImageField(
         upload_to='products', ppoi_field='ppoi', blank=False)
     ppoi = PPOIField()
     alt = models.CharField(max_length=128, blank=True)
-    order = models.PositiveIntegerField(editable=False)
 
     class Meta:
-        ordering = ('order', )
+        ordering = ('sort_order', )
         app_label = 'product'
 
     def get_ordering_queryset(self):
         return self.product.images.all()
-
-    def save(self, *args, **kwargs):
-        if self.order is None:
-            qs = self.get_ordering_queryset()
-            existing_max = qs.aggregate(Max('order'))
-            existing_max = existing_max.get('order__max')
-            self.order = 0 if existing_max is None else existing_max + 1
-        super().save(*args, **kwargs)
-
-    def delete(self, *args, **kwargs):
-        qs = self.get_ordering_queryset()
-        qs.filter(order__gt=self.order).update(order=F('order') - 1)
-        super().delete(*args, **kwargs)
 
 
 class VariantImage(models.Model):
@@ -394,11 +310,21 @@ class VariantImage(models.Model):
         ProductImage, related_name='variant_images', on_delete=models.CASCADE)
 
 
-class Collection(models.Model):
+class CollectionQuerySet(models.QuerySet):
+    def public(self):
+        return self.filter(is_published=True)
+
+
+class Collection(SeoModel):
     name = models.CharField(max_length=128, unique=True)
     slug = models.SlugField(max_length=128)
     products = models.ManyToManyField(
         Product, blank=True, related_name='collections')
+    background_image = VersatileImageField(
+        upload_to='collection-backgrounds', blank=True, null=True)
+    is_published = models.BooleanField(default=False)
+
+    objects = CollectionQuerySet.as_manager()
 
     class Meta:
         ordering = ['pk']

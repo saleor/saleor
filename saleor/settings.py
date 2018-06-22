@@ -5,13 +5,28 @@ import dj_database_url
 import dj_email_url
 import django_cache_url
 from django.contrib.messages import constants as messages
+from django.utils.translation import gettext_lazy as _
+from django_prices.templatetags.prices_i18n import get_currency_fraction
+
+from . import __version__
 
 
 def get_list(text):
     return [item.strip() for item in text.split(',')]
 
 
-DEBUG = ast.literal_eval(os.environ.get('DEBUG', 'True'))
+def get_bool_from_env(name, default_value):
+    if name in os.environ:
+        value = os.environ[name]
+        try:
+            return ast.literal_eval(value)
+        except ValueError as e:
+            raise ValueError(
+                '{} is an invalid value for {}'.format(value, name)) from e
+    return default_value
+
+
+DEBUG = get_bool_from_env('DEBUG', True)
 
 SITE_ID = 1
 
@@ -28,12 +43,11 @@ MANAGERS = ADMINS
 
 INTERNAL_IPS = get_list(os.environ.get('INTERNAL_IPS', '127.0.0.1'))
 
+# Some cloud providers like Heroku export REDIS_URL variable instead of CACHE_URL
+REDIS_URL = os.environ.get('REDIS_URL')
+if REDIS_URL:
+    CACHE_URL = os.environ.setdefault('CACHE_URL', REDIS_URL)
 CACHES = {'default': django_cache_url.config()}
-
-if os.environ.get('REDIS_URL'):
-    CACHES['default'] = {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': os.environ.get('REDIS_URL')}
 
 DATABASES = {
     'default': dj_database_url.config(
@@ -42,7 +56,29 @@ DATABASES = {
 
 
 TIME_ZONE = 'America/Chicago'
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
+LANGUAGES = [
+    ('bg', _('Bulgarian')),
+    ('de', _('German')),
+    ('en', _('English')),
+    ('es', _('Spanish')),
+    ('fa-ir', _('Persian (Iran)')),
+    ('fr', _('French')),
+    ('hu', _('Hungarian')),
+    ('it', _('Italian')),
+    ('ja', _('Japanese')),
+    ('ko', _('Korean')),
+    ('nb', _('Norwegian')),
+    ('nl', _('Dutch')),
+    ('pl', _('Polish')),
+    ('pt-br', _('Portuguese (Brazil)')),
+    ('ro', _('Romanian')),
+    ('ru', _('Russian')),
+    ('sk', _('Slovak')),
+    ('tr', _('Turkish')),
+    ('uk', _('Ukrainian')),
+    ('vi', _('Vietnamese')),
+    ('zh-hans', _('Chinese'))]
 LOCALE_PATHS = [os.path.join(PROJECT_ROOT, 'locale')]
 USE_I18N = True
 USE_L10N = True
@@ -67,8 +103,10 @@ EMAIL_BACKEND = email_config['EMAIL_BACKEND']
 EMAIL_USE_TLS = email_config['EMAIL_USE_TLS']
 EMAIL_USE_SSL = email_config['EMAIL_USE_SSL']
 
-ENABLE_SSL = ast.literal_eval(
-    os.environ.get('ENABLE_SSL', 'False'))
+ENABLE_SSL = get_bool_from_env('ENABLE_SSL', False)
+
+if ENABLE_SSL:
+    SECURE_SSL_REDIRECT = not DEBUG
 
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 ORDER_FROM_EMAIL = os.getenv('ORDER_FROM_EMAIL', DEFAULT_FROM_EMAIL)
@@ -97,8 +135,8 @@ context_processors = [
     'django.contrib.messages.context_processors.messages',
     'django.template.context_processors.request',
     'saleor.core.context_processors.default_currency',
-    'saleor.core.context_processors.categories',
-    'saleor.cart.context_processors.cart_counter',
+    'saleor.checkout.context_processors.cart_counter',
+    'saleor.core.context_processors.navigation',
     'saleor.core.context_processors.search_enabled',
     'saleor.site.context_processors.site',
     'social_django.context_processors.backends',
@@ -125,17 +163,20 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 
 MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django_babel.middleware.LocaleMiddleware',
+    'graphql_jwt.middleware.JSONWebTokenMiddleware',
     'saleor.core.middleware.discounts',
     'saleor.core.middleware.google_analytics',
     'saleor.core.middleware.country',
     'saleor.core.middleware.currency',
     'saleor.core.middleware.site',
+    'saleor.core.middleware.taxes',
     'social_django.middleware.SocialAuthExceptionMiddleware',
     'impersonate.middleware.ImpersonateMiddleware']
 
@@ -158,12 +199,13 @@ INSTALLED_APPS = [
     'saleor.account',
     'saleor.discount',
     'saleor.product',
-    'saleor.cart',
     'saleor.checkout',
     'saleor.core',
     'saleor.graphql',
+    'saleor.menu',
     'saleor.order.OrderAppConfig',
     'saleor.dashboard',
+    'saleor.seo',
     'saleor.shipping',
     'saleor.search',
     'saleor.site',
@@ -174,9 +216,9 @@ INSTALLED_APPS = [
     'versatileimagefield',
     'django_babel',
     'bootstrap4',
-    'django_fsm',
     'django_prices',
     'django_prices_openexchangerates',
+    'django_prices_vatlayer',
     'graphene_django',
     'mptt',
     'payments',
@@ -186,7 +228,19 @@ INSTALLED_APPS = [
     'django_filters',
     'django_celery_results',
     'impersonate',
-    'phonenumber_field']
+    'phonenumber_field',
+    'captcha',
+    'raven.contrib.django.raven_compat']
+
+if DEBUG:
+    MIDDLEWARE.append(
+        'debug_toolbar.middleware.DebugToolbarMiddleware')
+    INSTALLED_APPS.append('debug_toolbar')
+
+ENABLE_SILK = get_bool_from_env('ENABLE_SILK', False)
+if ENABLE_SILK:
+    MIDDLEWARE.insert(0, 'silk.middleware.SilkyMiddleware')
+    INSTALLED_APPS.append('silk')
 
 LOGGING = {
     'version': 1,
@@ -233,9 +287,14 @@ LOGIN_URL = '/account/login/'
 
 DEFAULT_COUNTRY = 'US'
 DEFAULT_CURRENCY = 'USD'
+DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 
 OPENEXCHANGERATES_API_KEY = os.environ.get('OPENEXCHANGERATES_API_KEY')
+
+# VAT configuration
+# Enabling vat requires valid vatlayer access key.
+VATLAYER_ACCESS_KEY = os.environ.get('VATLAYER_ACCESS_KEY')
 
 ACCOUNT_ACTIVATION_DAYS = 3
 
@@ -287,12 +346,13 @@ ALLOWED_HOSTS = get_list(os.environ.get('ALLOWED_HOSTS',
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Amazon S3 configuration
+AWS_S3_CUSTOM_DOMAIN = os.environ.get('AWS_STATIC_CUSTOM_DOMAIN')
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
 AWS_MEDIA_BUCKET_NAME = os.environ.get('AWS_MEDIA_BUCKET_NAME')
-AWS_QUERYSTRING_AUTH = ast.literal_eval(
-    os.environ.get('AWS_QUERYSTRING_AUTH', 'False'))
+AWS_MEDIA_CUSTOM_DOMAIN = os.environ.get('AWS_MEDIA_CUSTOM_DOMAIN')
+AWS_QUERYSTRING_AUTH = get_bool_from_env('AWS_QUERYSTRING_AUTH', False)
 
 if AWS_STORAGE_BUCKET_NAME:
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
@@ -304,7 +364,7 @@ if AWS_MEDIA_BUCKET_NAME:
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
-    'defaults': [
+    'products': [
         ('product_gallery', 'crop__540x540'),
         ('product_gallery_2x', 'crop__1080x1080'),
         ('product_small', 'crop__60x60'),
@@ -314,8 +374,8 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
 
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment
-    'create_images_on_demand': ast.literal_eval(
-        os.environ.get('CREATE_IMAGES_ON_DEMAND', 'True')),
+    'create_images_on_demand': get_bool_from_env(
+        'CREATE_IMAGES_ON_DEMAND', DEBUG),
 }
 
 PLACEHOLDER_IMAGES = {
@@ -364,6 +424,7 @@ GRAPHENE = {'MIDDLEWARE': ['graphene_django.debug.DjangoDebugMiddleware']}
 AUTHENTICATION_BACKENDS = [
     'saleor.account.backends.facebook.CustomFacebookOAuth2',
     'saleor.account.backends.google.CustomGoogleOAuth2',
+    'graphql_jwt.backends.JSONWebTokenBackend',
     'django.contrib.auth.backends.ModelBackend']
 
 SOCIAL_AUTH_PIPELINE = [
@@ -382,9 +443,11 @@ SOCIAL_AUTH_USER_MODEL = AUTH_USER_MODEL
 SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
 SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
     'fields': 'id, email'}
+# As per March 2018, Facebook requires all traffic to go through HTTPS only
+SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
 
 # CELERY SETTINGS
-CELERY_BROKER_URL = os.environ.get('REDIS_BROKER_URL') or ''
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL') or ''
 CELERY_TASK_ALWAYS_EAGER = False if CELERY_BROKER_URL else True
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
@@ -397,3 +460,49 @@ IMPERSONATE = {
     'CUSTOM_USER_QUERYSET': 'saleor.account.impersonate.get_impersonatable_users',  # noqa
     'USE_HTTP_REFERER': True,
     'CUSTOM_ALLOW': 'saleor.account.impersonate.can_impersonate'}
+
+
+# Rich-text editor
+ALLOWED_TAGS = [
+    'a',
+    'b',
+    'blockquote',
+    'br',
+    'em',
+    'h2',
+    'h3',
+    'i',
+    'img',
+    'li',
+    'ol',
+    'p',
+    'strong',
+    'ul']
+ALLOWED_ATTRIBUTES = {
+    '*': ['align', 'style'],
+    'a': ['href', 'title'],
+    'img': ['src']}
+ALLOWED_STYLES = ['text-align']
+
+
+# Slugs for menus precreated in Django migrations
+DEFAULT_MENUS = {
+    'top_menu_name': 'navbar',
+    'bottom_menu_name': 'footer'}
+
+# This enable the new 'No Captcha reCaptcha' version (the simple checkbox)
+# instead of the old (deprecated) one. For more information see:
+#   https://github.com/praekelt/django-recaptcha/blob/34af16ba1e/README.rst
+NOCAPTCHA = True
+
+# Set Google's reCaptcha keys
+RECAPTCHA_PUBLIC_KEY = os.environ.get('RECAPTCHA_PUBLIC_KEY')
+RECAPTCHA_PRIVATE_KEY = os.environ.get('RECAPTCHA_PRIVATE_KEY')
+
+
+#  Sentry
+SENTRY_DSN = os.environ.get('SENTRY_DSN')
+if SENTRY_DSN:
+    RAVEN_CONFIG = {
+        'dsn': SENTRY_DSN,
+        'release': __version__}

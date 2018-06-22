@@ -1,4 +1,5 @@
 import decimal
+import logging
 from json import JSONEncoder
 from urllib.parse import urljoin
 
@@ -13,16 +14,16 @@ from django_babel.templatetags.babel import currencyfmt
 from django_countries import countries
 from django_countries.fields import Country
 from django_prices_openexchangerates import exchange_currency
+
 from geolite2 import geolite2
-from prices import Money, TaxedMoney, MoneyRange
+from prices import MoneyRange
+from versatileimagefield.image_warmer import VersatileImageFieldWarmer
 
 from ...account.models import User
-
-ZERO_TAXED_MONEY = TaxedMoney(
-    net=Money(0, currency=settings.DEFAULT_CURRENCY),
-    gross=Money(0, currency=settings.DEFAULT_CURRENCY))
+from ...core.i18n import COUNTRY_CODE_CHOICES
 
 georeader = geolite2.reader()
+logger = logging.getLogger(__name__)
 
 
 class CategoryChoiceField(forms.ModelChoiceField):
@@ -136,3 +137,30 @@ def create_superuser(credentials):
     else:
         msg = 'Superuser already exists - %(email)s' % credentials
     return msg
+
+
+def create_thumbnails(pk, model, size_set, image_attr=None):
+    instance = model.objects.get(pk=pk)
+    if not image_attr:
+        image_attr = 'image'
+    image_instance = getattr(instance, image_attr)
+    if image_instance.name == '':
+        # There is no file, skip processing
+        return
+    warmer = VersatileImageFieldWarmer(
+        instance_or_queryset=instance,
+        rendition_key_set=size_set, image_attr=image_attr)
+    logger.info('Creating thumbnails for  %s', pk)
+    num_created, failed_to_create = warmer.warm()
+    if num_created:
+        logger.info('Created %d thumbnails', num_created)
+    if failed_to_create:
+        logger.error('Failed to generate thumbnails',
+                     extra={'paths': failed_to_create})
+
+
+def get_country_name_by_code(country_code):
+    country_name = next(
+        (name for code, name in COUNTRY_CODE_CHOICES if code == country_code),
+        country_code)
+    return country_name

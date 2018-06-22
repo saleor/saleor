@@ -5,19 +5,20 @@ from django.conf import settings
 from django.urls import reverse_lazy
 from django.utils.translation import pgettext_lazy
 from django_prices.forms import MoneyField
-from prices import Money
 
+from ...core.i18n import COUNTRY_CODE_CHOICES
+from ...core.utils.taxes import ZERO_MONEY
 from ...discount import DiscountValueType, VoucherApplyToProduct
 from ...discount.models import Sale, Voucher
 from ...product.models import Product
-from ...shipping.models import COUNTRY_CODE_CHOICES, ShippingMethodCountry
+from ...shipping.models import ShippingMethodCountry
 from ..forms import AjaxSelect2ChoiceField, AjaxSelect2MultipleChoiceField
 
 
 class SaleForm(forms.ModelForm):
     products = AjaxSelect2MultipleChoiceField(
         queryset=Product.objects.all(),
-        fetch_data_url=reverse_lazy('dashboard:ajax-products'), required=True)
+        fetch_data_url=reverse_lazy('dashboard:ajax-products'), required=False)
 
     class Meta:
         model = Sale
@@ -52,6 +53,13 @@ class SaleForm(forms.ModelForm):
             self.add_error('value', pgettext_lazy(
                 'Sale (discount) error',
                 'Sale cannot exceed 100%'))
+        products = cleaned_data.get('products')
+        categories = cleaned_data.get('categories')
+        if not products and not categories:
+            raise forms.ValidationError(pgettext_lazy(
+                'Sale (discount) error',
+                'A single sale must point to at least one product and/or '
+                'category.'))
         return cleaned_data
 
 
@@ -108,8 +116,8 @@ def country_choices():
 class ShippingVoucherForm(forms.ModelForm):
 
     limit = MoneyField(
-        min_value=Money(0, currency=settings.DEFAULT_CURRENCY),
-        required=False, currency=settings.DEFAULT_CURRENCY)
+        min_value=ZERO_MONEY, required=False,
+        currency=settings.DEFAULT_CURRENCY)
     apply_to = forms.ChoiceField(
         choices=country_choices,
         required=False)
@@ -134,8 +142,8 @@ class ShippingVoucherForm(forms.ModelForm):
 class ValueVoucherForm(forms.ModelForm):
 
     limit = MoneyField(
-        min_value=Money(0, currency=settings.DEFAULT_CURRENCY),
-        required=False, currency=settings.DEFAULT_CURRENCY)
+        min_value=ZERO_MONEY, required=False,
+        currency=settings.DEFAULT_CURRENCY)
 
     class Meta:
         model = Voucher
@@ -157,9 +165,6 @@ class CommonVoucherForm(forms.ModelForm):
     use_required_attribute = False
     apply_to = forms.ChoiceField(
         choices=VoucherApplyToProduct.CHOICES, required=False)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
     def save(self, commit=True):
         self.instance.limit = None

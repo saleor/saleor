@@ -5,7 +5,6 @@ from functools import partial
 from django.conf import settings
 from django.db import models
 from django.db.models import F, Q
-from django.utils.encoding import smart_text
 from django.utils.translation import pgettext, pgettext_lazy
 from django_countries import countries
 from django_prices.models import MoneyField
@@ -48,7 +47,8 @@ class Voucher(models.Model):
     discount_value_type = models.CharField(
         max_length=10, choices=DiscountValueType.CHOICES,
         default=DiscountValueType.FIXED)
-    discount_value = models.DecimalField(max_digits=12, decimal_places=2)
+    discount_value = models.DecimalField(
+        max_digits=12, decimal_places=settings.DEFAULT_DECIMAL_PLACES)
 
     # not mandatory fields, usage depends on type
     product = models.ForeignKey(
@@ -57,8 +57,8 @@ class Voucher(models.Model):
         'product.Category', blank=True, null=True, on_delete=models.CASCADE)
     apply_to = models.CharField(max_length=20, blank=True, null=True)
     limit = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
-        null=True, blank=True)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES, null=True, blank=True)
 
     objects = VoucherQueryset.as_manager()
 
@@ -113,7 +113,7 @@ class Voucher(models.Model):
     def get_discount(self):
         if self.discount_value_type == DiscountValueType.FIXED:
             discount_amount = Money(
-                self.discount_value, currency=settings.DEFAULT_CURRENCY)
+                self.discount_value, settings.DEFAULT_CURRENCY)
             return partial(fixed_discount, discount=discount_amount)
         if self.discount_value_type == DiscountValueType.PERCENTAGE:
             return partial(percentage_discount, percentage=self.discount_value)
@@ -141,7 +141,9 @@ class Sale(models.Model):
     type = models.CharField(
         max_length=10, choices=DiscountValueType.CHOICES,
         default=DiscountValueType.FIXED)
-    value = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    value = models.DecimalField(
+        max_digits=12, decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0)
     products = models.ManyToManyField('product.Product', blank=True)
     categories = models.ManyToManyField('product.Category', blank=True)
 
@@ -162,8 +164,7 @@ class Sale(models.Model):
 
     def get_discount(self):
         if self.type == DiscountValueType.FIXED:
-            discount_amount = Money(
-                self.value, currency=settings.DEFAULT_CURRENCY)
+            discount_amount = Money(self.value, settings.DEFAULT_CURRENCY)
             return partial(fixed_discount, discount=discount_amount)
         if self.type == DiscountValueType.PERCENTAGE:
             return partial(percentage_discount, percentage=self.value)

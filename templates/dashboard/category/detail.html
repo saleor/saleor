@@ -15,7 +15,7 @@
 {% block header_menu %}
   {% if root %}
     {% if root.parent %}
-      {% url 'dashboard:category-detail' pk=root.parent.pk as url %}
+      {% url 'dashboard:category-details' pk=root.parent.pk as url %}
     {% else %}
       {% url 'dashboard:category-list' as url %}
     {% endif %}
@@ -55,7 +55,7 @@
           </li>
         {% else %}
           <li class="hide-on-med-and-down">
-            <a href="{% url 'dashboard:category-detail' pk=node.pk %}" title="{{ node.name }}" class="breadcrumbs--ellipsed-item">
+            <a href="{% url 'dashboard:category-details' pk=node.pk %}" title="{{ node.name }}" class="breadcrumbs--ellipsed-item">
               {{ node.name }}
             </a>
           </li>
@@ -128,7 +128,7 @@
               </thead>
               <tbody>
                 {% for node in categories %}
-                  <tr data-action-go="{% url 'dashboard:category-detail' pk=node.pk %}">
+                  <tr data-action-go="{% url 'dashboard:category-details' pk=node.pk %}">
                     <td>
                       {{ node.name }}
                     </td>
@@ -152,7 +152,7 @@
                   </tr>
                 {% empty %}
                   <tr>
-                    <td colspan="2">{% trans "No categories" context "Empty list of categories" %}</td>
+                    <td colspan="2">{% trans "No subcategories" context "Empty list of categories" %}</td>
                   </tr>
                 {% endfor %}
               </tbody>

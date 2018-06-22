@@ -16,6 +16,7 @@
     {% blocktrans trimmed with order=order context "Modal cancel order text" %}
       Are you sure you want cancel order {{ order }}?
     {% endblocktrans %}
+    {{ form.restock|materializecss }}
   </div>
 {% endblock %}
 

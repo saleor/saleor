@@ -1,22 +1,27 @@
 {% extends "base.html" %}
 
 {% load bootstrap_field from bootstrap4 %}
+{% load build_absolute_uri from urls %}
+{% load get_object_properties from attributes %}
+{% load get_thumbnail product_first_image from product_images %}
 {% load i18n %}
 {% load markdown from markdown %}
-{% load prices_i18n %}
-{% load price_range from price_ranges %}
-{% load staticfiles %}
-{% load get_thumbnail product_first_image from product_images %}
-{% load build_absolute_uri from urls %}
 {% load placeholder %}
+{% load staticfiles %}
+{% load taxed_prices %}
 
-{% block title %}{{ product }} — {{ block.super }}{% endblock %}
-
-{% block meta_description %}{{ product.description }}{% endblock %}
+{% block title %}
+  {% if product.seo_title %}
+    {{ product.seo_title }}
+  {% else %}
+    {{ product.name }} - {{ block.super }}
+  {% endif %}
+{% endblock %}
 
 {% block meta_tags %}
-  <meta property="og:title" content="{{ product }}">
-  <meta property="og:description" content="{{ product.description }}">
+  <meta property="og:title" content="{{ product.seo_title|default:product.name }}">
+  <meta property="og:description" content="{{ product.seo_description|default:"" }}">
+  <meta name="description" content="{{ product.seo_description|default:"" }}">
 
   {% build_absolute_uri request=request location=product.get_absolute_url as product_url %}
   <meta property="og:url" content="{{ product_url }}">
@@ -112,7 +117,7 @@
       </h1>
       {% if user.is_staff %}
         <p>
-          <a href="{% url "dashboard:product-detail" pk=product.pk %}">
+          <a href="{% url "dashboard:product-details" pk=product.pk %}">
             {% trans "Edit in dashboard" context "Product details link text" %}
           </a>
         </p>
@@ -124,13 +129,29 @@
           <h2 class="product__info__price">
             <span>{% price_range availability.price_range %}</span>
             {% if availability.discount %}
-              <small class="product__info__price__undiscounted">{{ availability.price_range_undiscounted.start.gross|amount:'html' }}</small>
+              <small class="product__info__price__undiscounted">
+                {% price availability.price_range_undiscounted %}
+              </small>
             {% endif %}
             {% if availability.price_range_local_currency %}
               <br>
               <small class="text-info">
                 &asymp;
-                {{ availability.price_range_local_currency.start.gross|amount:'html' }}
+                {% price availability.price_range_local_currency %}
+              </small>
+            {% endif %}
+            {% if request.taxes %}
+              <small>
+                {% tax_rate request.taxes product.tax_rate as tax_rate %}
+                {% if site.settings.display_gross_prices %}
+                  {% blocktrans trimmed with tax_rate=tax_rate context "Product details page vat rate value" %}
+                    including {{ tax_rate }}% VAT
+                  {% endblocktrans %}
+                {% else %}
+                  {% blocktrans trimmed with tax_rate=tax_rate context "Product details page vat rate value" %}
+                    excluding {{ tax_rate }}% VAT
+                  {% endblocktrans %}
+                {% endif %}
               </small>
             {% endif %}
           </h2>

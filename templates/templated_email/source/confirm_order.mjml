@@ -1,0 +1,52 @@
+<mjml>
+  <mj-head>
+    <mj-include path="./shared/styles.mjml" />
+  </mj-head>
+  <mj-body>
+    <mj-raw>
+      {% load i18n %}
+      {% load i18n_address_tags %}
+    </mj-raw>
+    <mj-include path="./shared/header.mjml" />
+    <mj-section>
+      <mj-column>
+        <mj-text font-size="16px">
+          {% trans "Hi!" context "Order confirmation e-mail text" %}
+        </mj-text>
+        <mj-text>
+          {% blocktrans trimmed context "Order confirmation e-mail text" %}
+            Thank you for your order. Below is the list of ordered products. To see your payment details please visit: <a href="{{ url }}">{{ url }}</a>
+          {% endblocktrans %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-include path="./partials/_order_lines.mjml" />
+    <mj-section>
+      <mj-column>
+        <mj-table>
+          <thead class="table-header-row">
+            <tr>
+              <th>{% trans "Billing address" context "Order confirmation e-mail billing address" %}</th>
+              <th>{% trans "Shipping address" context "Order confirmation e-mail shipping address" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="address">
+                {% format_address order.billing_address %}
+              </td>
+              <td css-class="address">
+                {% if order.shipping_address %}
+                  {% format_address order.shipping_address %}
+                {% else %}
+                  {% trans "No shipping required" context "Order confirmation e-mail text" %}
+                {% endif %}
+              </td>
+            </tr>
+          </tbody>
+        </mj-table>
+      </mj-column>
+    </mj-section>
+    <mj-include path="./shared/footer.mjml" />
+  </mj-body>
+</mjml>

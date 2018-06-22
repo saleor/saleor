@@ -33,7 +33,7 @@
     </li>
     <li>
       {% if page.pk %}
-        <a href="{% url 'dashboard:page-detail' pk=page.pk %}" class="breadcrumbs--ellipsed-item">
+        <a href="{% url 'dashboard:page-details' pk=page.pk %}" class="breadcrumbs--ellipsed-item">
           {{ page }}
         </a>
       {% else %}
@@ -60,8 +60,13 @@
     <div class="row">
       <div class="card-content">
         <div class="col s12 l8">
-          {{ form.title|materializecss }}
-          {{ form.content|materializecss }}
+          <div class="row">
+            {{ form.title|materializecss }}
+          </div>
+          <div class="row">
+            {{ form.content|materializecss }}
+          </div>
+          {% include "dashboard/includes/_google_preview.html" with object=page form=form %}
         </div>
         <div class="col s12 l4">
           {{ form.slug|materializecss }}

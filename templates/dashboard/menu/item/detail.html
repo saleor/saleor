@@ -1,0 +1,102 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load materializecss %}
+{% load staticfiles %}
+{% load utils %}
+
+{% block title %}{% trans "Menu items" context "Menu item list page title" %} -
+  {{ block.super }}{% endblock %}
+
+{% block menu_menus_class %}active{% endblock %}
+
+{% block header_menu %}
+  {% url 'dashboard:menu-list' as url %}
+  {% include "dashboard/includes/_back_link.html" with url=url %}
+{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    {% if path %}
+      <li>
+        <a href="{% url 'dashboard:menu-list' %}">
+          {% trans "Navigation" context "Dashboard menus list" %}
+        </a>
+      </li>
+    {% else %}
+      <li class="visible-s">
+        <span>
+          {% trans "Navigation" context "Dashboard menus list" %}
+        </span>
+      </li>
+    {% endif %}
+    <li title="{{ menu.name }}" class="breadcrumbs--ellipsed-item">
+      <a href="{% url 'dashboard:menu-details' pk=menu.pk %}">
+        {{ menu.name }}
+      </a>
+    </li>
+    {% if path %}
+      <li class="back-mobile">
+        <a href="{% url 'dashboard:menu-list' %}">
+          <svg data-src="{% static 'dashboard/images/arrow-left.svg' %}" fill="#fff" width="20px" height="20px"/>
+        </a>
+      </li>
+      {% for node in path %}
+        {% if forloop.last %}
+          <li title="{{ node.name }}">
+            <span class="breadcrumbs--ellipsed-item">
+              {{ node.name }}
+            </span>
+          </li>
+        {% else %}
+          <li class="hide-on-med-and-down">
+            <a href="{% url 'dashboard:menu-item-details' menu_pk=menu.pk item_pk=node.pk %}" title="{{ node.name }}" class="breadcrumbs--ellipsed-item">
+              {{ node.name }}
+            </a>
+          </li>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  </ul>
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col m12 l9">
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">
+            {{ menu_item.name }}
+          </span>
+          <div class="row">
+            <div class="col s12">
+              <h4>
+                {% trans "Points to" context "Menu item field" %}
+              </h4>
+              <p>
+                <a href="{{ menu_item.get_url }}" target="_blank">
+                  {{ menu_item.destination_display }}
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+        {% if perms.product.edit_menu %}
+        <div class="card-action">
+          <a class="btn-flat waves-effect" href="{% url "dashboard:menu-item-edit" menu_pk=menu.pk item_pk=menu_item.pk %}">
+            {% trans "Edit menu item" context "Menu item detail view action" %}
+          </a>
+          <a href="#base-modal" class="btn-flat waves-effect modal-trigger-custom" data-href="{% url 'dashboard:menu-item-delete' menu_pk=menu.pk item_pk=menu_item.pk %}">
+            {% trans "Remove menu item" context "Menu item detail view action" %}
+          </a>
+        </div>
+        {% endif %}
+      </div>
+      {% if menu_item.level < 2 %}
+        {% include 'dashboard/includes/_menu_items.html' with menu=menu menu_items=menu_items root_item=menu_item %}
+      {% endif %}
+    </div>
+    <div class="col s12 l3" id="filters">
+      {% if not is_empty %}{% filters filter_set %}{% endif %}
+    </div>
+  </div>
+{% endblock %}

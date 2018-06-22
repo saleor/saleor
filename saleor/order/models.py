@@ -1,45 +1,50 @@
 from decimal import Decimal
+from operator import attrgetter
 from uuid import uuid4
 
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Q
+from django.db.models import F, Max, Sum
 from django.urls import reverse
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
-from django_fsm import FSMField, transition
 from django_prices.models import MoneyField, TaxedMoneyField
 from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
 from prices import Money, TaxedMoney
 
-from . import GroupStatus, OrderStatus
+from . import FulfillmentStatus, OrderStatus
 from ..account.models import Address
-from ..core.utils import ZERO_TAXED_MONEY, build_absolute_uri
+from ..core.models import BaseNote
+from ..core.utils import build_absolute_uri
+from ..core.utils.taxes import ZERO_TAXED_MONEY
 from ..discount.models import Voucher
-from ..product.models import Product
-from .transitions import (
-    cancel_delivery_group, process_delivery_group, ship_delivery_group)
+from ..product.models import ProductVariant
+from ..shipping.models import ShippingMethodCountry
 
 
-class OrderQuerySet(models.QuerySet):
-    """Filters orders by status deduced from shipment groups."""
+class OrderQueryset(models.QuerySet):
+    def confirmed(self):
+        return self.exclude(status=OrderStatus.DRAFT)
 
-    def open(self):
-        """Orders having at least one shipment group with status NEW."""
-        return self.filter(Q(groups__status=GroupStatus.NEW))
+    def drafts(self):
+        return self.filter(status=OrderStatus.DRAFT)
 
-    def closed(self):
-        """Orders having no shipment groups with status NEW."""
-        return self.filter(~Q(groups__status=GroupStatus.NEW))
+    def to_ship(self):
+        """Fully paid but unfulfilled (or partially fulfilled) orders."""
+        statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
+        return self.filter(status__in=statuses).annotate(
+            amount_paid=Sum('payments__captured_amount')).filter(
+                total_gross__lte=F('amount_paid'))
 
 
 class Order(models.Model):
     created = models.DateTimeField(
         default=now, editable=False)
-    last_status_change = models.DateTimeField(
-        default=now, editable=False)
+    status = models.CharField(
+        max_length=32, default=OrderStatus.UNFULFILLED,
+        choices=OrderStatus.CHOICES)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='orders',
         on_delete=models.SET_NULL)
@@ -48,40 +53,47 @@ class Order(models.Model):
     tracking_client_id = models.CharField(
         max_length=36, blank=True, editable=False)
     billing_address = models.ForeignKey(
-        Address, related_name='+', editable=False,
-        on_delete=models.PROTECT)
+        Address, related_name='+', editable=False, null=True,
+        on_delete=models.SET_NULL)
     shipping_address = models.ForeignKey(
         Address, related_name='+', editable=False, null=True,
-        on_delete=models.PROTECT)
-    user_email = models.EmailField(
-        blank=True, default='', editable=False)
+        on_delete=models.SET_NULL)
+    user_email = models.EmailField(blank=True, default='')
+    shipping_method = models.ForeignKey(
+        ShippingMethodCountry, blank=True, null=True, related_name='orders',
+        on_delete=models.SET_NULL)
     shipping_price_net = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=0, editable=False)
     shipping_price_gross = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=0, editable=False)
     shipping_price = TaxedMoneyField(
         net_field='shipping_price_net', gross_field='shipping_price_gross')
+    shipping_method_name = models.CharField(
+        max_length=255, null=True, default=None, blank=True, editable=False)
     token = models.CharField(max_length=36, unique=True)
     total_net = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
-        blank=True, null=True)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
     total_gross = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
-        blank=True, null=True)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
     total = TaxedMoneyField(net_field='total_net', gross_field='total_gross')
     voucher = models.ForeignKey(
         Voucher, null=True, related_name='+', on_delete=models.SET_NULL)
     discount_amount = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
-        blank=True, null=True)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
     discount_name = models.CharField(max_length=255, default='', blank=True)
+    display_gross_prices = models.BooleanField(default=True)
 
-    objects = OrderQuerySet.as_manager()
+    objects = OrderQueryset.as_manager()
 
     class Meta:
-        ordering = ('-last_status_change',)
+        ordering = ('-pk',)
         permissions = (
             ('view_order',
              pgettext_lazy('Permission description', 'Can view orders')),
@@ -93,17 +105,12 @@ class Order(models.Model):
             self.token = str(uuid4())
         return super().save(*args, **kwargs)
 
-    def get_lines(self):
-        return OrderLine.objects.filter(delivery_group__order=self)
-
     def is_fully_paid(self):
         total_paid = sum(
             [
                 payment.get_total_price() for payment in
                 self.payments.filter(status=PaymentStatus.CONFIRMED)],
-            TaxedMoney(
-                net=Money(0, currency=settings.DEFAULT_CURRENCY),
-                gross=Money(0, currency=settings.DEFAULT_CURRENCY)))
+            ZERO_TAXED_MONEY)
         return total_paid.gross >= self.total.gross
 
     def get_user_current_email(self):
@@ -116,7 +123,7 @@ class Order(models.Model):
         return self.shipping_address.phone
 
     def __iter__(self):
-        return iter(self.groups.all())
+        return iter(self.lines.all())
 
     def __repr__(self):
         return '<Order #%r>' % (self.id,)
@@ -128,13 +135,15 @@ class Order(models.Model):
         return reverse('order:details', kwargs={'token': self.token})
 
     def get_last_payment_status(self):
-        last_payment = self.payments.last()
+        last_payment = max(
+            self.payments.all(), default=None, key=attrgetter('pk'))
         if last_payment:
             return last_payment.status
         return None
 
     def get_last_payment_status_display(self):
-        last_payment = self.payments.last()
+        last_payment = max(
+            self.payments.all(), default=None, key=attrgetter('pk'))
         if last_payment:
             return last_payment.get_status_display()
         return None
@@ -142,120 +151,55 @@ class Order(models.Model):
     def is_pre_authorized(self):
         return self.payments.filter(status=PaymentStatus.PREAUTH).exists()
 
+    @property
+    def quantity_fulfilled(self):
+        return sum([line.quantity_fulfilled for line in self])
+
     def is_shipping_required(self):
-        return any(group.is_shipping_required() for group in self.groups.all())
-
-    @property
-    def status(self):
-        """Order status deduced from shipment groups."""
-        statuses = set([group.status for group in self.groups.all()])
-        return (
-            OrderStatus.OPEN if GroupStatus.NEW in statuses
-            else OrderStatus.CLOSED)
-
-    @property
-    def is_open(self):
-        return self.status == OrderStatus.OPEN
-
-    def get_status_display(self):
-        """Order status display text."""
-        return dict(OrderStatus.CHOICES)[self.status]
+        return any(line.is_shipping_required for line in self)
 
     def get_subtotal(self):
-        subtotal_iterator = (line.get_total() for line in self.get_lines())
+        subtotal_iterator = (line.get_total() for line in self)
         return sum(subtotal_iterator, ZERO_TAXED_MONEY)
-
-    def can_cancel(self):
-        return self.status == OrderStatus.OPEN
-
-
-class DeliveryGroup(models.Model):
-    """Represents a single shipment.
-
-    A single order can consist of multiple shipment groups.
-    """
-
-    status = FSMField(
-        max_length=32, default=GroupStatus.NEW, choices=GroupStatus.CHOICES,
-        protected=True)
-    order = models.ForeignKey(
-        Order, related_name='groups', editable=False, on_delete=models.CASCADE)
-    shipping_method_name = models.CharField(
-        max_length=255, null=True, default=None, blank=True, editable=False)
-    tracking_number = models.CharField(max_length=255, default='', blank=True)
-    last_updated = models.DateTimeField(null=True, auto_now=True)
-
-    def __str__(self):
-        return pgettext_lazy(
-            'Shipment group str', 'Shipment #%s') % self.pk
-
-    def __repr__(self):
-        return '%s(%r)' % (self.__class__.__name__, list(self))
-
-    def __iter__(self):
-        return iter(self.lines.all())
-
-    @transition(
-        field=status, source=GroupStatus.NEW, target=GroupStatus.NEW)
-    def process(self, cart_lines, discounts=None):
-        process_delivery_group(self, cart_lines, discounts)
-
-    @transition(
-        field=status, source=GroupStatus.NEW, target=GroupStatus.SHIPPED)
-    def ship(self, tracking_number=''):
-        ship_delivery_group(self, tracking_number)
-
-    @transition(
-        field=status,
-        source=[GroupStatus.NEW, GroupStatus.SHIPPED],
-        target=GroupStatus.CANCELLED)
-    def cancel(self):
-        cancel_delivery_group(self)
 
     def get_total_quantity(self):
         return sum([line.quantity for line in self])
 
-    def is_shipping_required(self):
-        return any([line.is_shipping_required for line in self.lines.all()])
+    def is_draft(self):
+        return self.status == OrderStatus.DRAFT
 
-    def can_ship(self):
-        return self.is_shipping_required() and self.status == GroupStatus.NEW
+    def is_open(self):
+        statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
+        return self.status in statuses
 
     def can_cancel(self):
-        return self.status != GroupStatus.CANCELLED
-
-    def can_edit_lines(self):
-        return self.status not in {GroupStatus.CANCELLED, GroupStatus.SHIPPED}
-
-    def get_total(self):
-        subtotals = [line.get_total() for line in self]
-        if not subtotals:
-            raise AttributeError(
-                'Calling get_total() on an empty shipment group')
-        return sum(subtotals[1:], subtotals[0])
+        return self.status not in {OrderStatus.CANCELED, OrderStatus.DRAFT}
 
 
 class OrderLine(models.Model):
-    delivery_group = models.ForeignKey(
-        DeliveryGroup, related_name='lines', editable=False,
-        on_delete=models.CASCADE)
-    product = models.ForeignKey(
-        Product, blank=True, null=True, related_name='+',
-        on_delete=models.SET_NULL)
-    product_name = models.CharField(max_length=128)
+    order = models.ForeignKey(
+        Order, related_name='lines', editable=False, on_delete=models.CASCADE)
+    variant = models.ForeignKey(
+        ProductVariant, related_name='+', on_delete=models.SET_NULL,
+        blank=True, null=True)
+    # max_length is as produced by ProductVariant's display_product method
+    product_name = models.CharField(max_length=386)
     product_sku = models.CharField(max_length=32)
     is_shipping_required = models.BooleanField()
-    stock_location = models.CharField(max_length=100, default='')
-    stock = models.ForeignKey(
-        'product.Stock', on_delete=models.SET_NULL, null=True)
     quantity = models.IntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(999)])
+    quantity_fulfilled = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(999)], default=0)
     unit_price_net = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES)
     unit_price_gross = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES)
     unit_price = TaxedMoneyField(
         net_field='unit_price_net', gross_field='unit_price_gross')
+    tax_rate = models.DecimalField(
+        max_digits=5, decimal_places=2, default='0.0')
 
     def __str__(self):
         return self.product_name
@@ -263,21 +207,62 @@ class OrderLine(models.Model):
     def get_total(self):
         return self.unit_price * self.quantity
 
+    @property
+    def quantity_unfulfilled(self):
+        return self.quantity - self.quantity_fulfilled
 
-class PaymentQuerySet(models.QuerySet):
-    def last(self):
-        # using .all() here reuses data fetched by prefetch_related
-        objects = list(self.all()[:1])
-        if objects:
-            return objects[0]
-        return None
+
+class Fulfillment(models.Model):
+    fulfillment_order = models.PositiveIntegerField(editable=False)
+    order = models.ForeignKey(
+        Order, related_name='fulfillments', editable=False,
+        on_delete=models.CASCADE)
+    status = models.CharField(
+        max_length=32, default=FulfillmentStatus.FULFILLED,
+        choices=FulfillmentStatus.CHOICES)
+    tracking_number = models.CharField(max_length=255, default='', blank=True)
+    shipping_date = models.DateTimeField(default=now, editable=False)
+
+    def __str__(self):
+        return pgettext_lazy(
+            'Fulfillment str', 'Fulfillment #%s') % (self.composed_id,)
+
+    def __iter__(self):
+        return iter(self.lines.all())
+
+    def save(self, *args, **kwargs):
+        """Assign an auto incremented value as a fulfillment order."""
+        if not self.pk:
+            groups = self.order.fulfillments.all()
+            existing_max = groups.aggregate(Max('fulfillment_order'))
+            existing_max = existing_max.get('fulfillment_order__max')
+            self.fulfillment_order = (
+                existing_max + 1 if existing_max is not None else 1)
+        return super().save(*args, **kwargs)
+
+    @property
+    def composed_id(self):
+        return '%s-%s' % (self.order.id, self.fulfillment_order)
+
+    def can_edit(self):
+        return self.status != FulfillmentStatus.CANCELED
+
+    def get_total_quantity(self):
+        return sum([line.quantity for line in self])
+
+
+class FulfillmentLine(models.Model):
+    order_line = models.ForeignKey(
+        OrderLine, related_name='+', on_delete=models.CASCADE)
+    fulfillment = models.ForeignKey(
+        Fulfillment, related_name='lines', on_delete=models.CASCADE)
+    quantity = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(999)])
 
 
 class Payment(BasePayment):
     order = models.ForeignKey(
         Order, related_name='payments', on_delete=models.PROTECT)
-
-    objects = PaymentQuerySet.as_manager()
 
     class Meta:
         ordering = ('-pk',)
@@ -289,16 +274,16 @@ class Payment(BasePayment):
     def get_success_url(self):
         return build_absolute_uri(
             reverse(
-                'order:checkout-success', kwargs={'token': self.order.token}))
+                'order:payment-success', kwargs={'token': self.order.token}))
 
     def get_purchased_items(self):
         lines = [
             PurchasedItem(
                 name=line.product_name, sku=line.product_sku,
                 quantity=line.quantity,
-                price=line.unit_price_gross.quantize(Decimal('0.01')).amount,
+                price=line.unit_price_net.quantize(Decimal('0.01')).amount,
                 currency=line.unit_price.currency)
-            for line in self.order.get_lines()]
+            for line in self.order]
 
         voucher = self.order.voucher
         if voucher is not None:
@@ -313,13 +298,11 @@ class Payment(BasePayment):
 
     def get_total_price(self):
         return TaxedMoney(
-            net=Money(self.total - self.tax, currency=self.currency),
-            gross=Money(self.total, currency=self.currency))
+            net=Money(self.total - self.tax, self.currency),
+            gross=Money(self.total, self.currency))
 
     def get_captured_price(self):
-        return TaxedMoney(
-            net=Money(self.captured_amount, currency=self.currency),
-            gross=Money(self.captured_amount, currency=self.currency))
+        return Money(self.captured_amount, self.currency)
 
 
 class OrderHistoryEntry(models.Model):
@@ -335,15 +318,9 @@ class OrderHistoryEntry(models.Model):
         ordering = ('date', )
 
 
-class OrderNote(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, blank=True, null=True,
-        on_delete=models.SET_NULL)
-    date = models.DateTimeField(db_index=True, auto_now_add=True)
+class OrderNote(BaseNote):
     order = models.ForeignKey(
         Order, related_name='notes', on_delete=models.CASCADE)
-    content = models.TextField()
-    is_public = models.BooleanField(default=True)
 
     class Meta:
         ordering = ('date', )

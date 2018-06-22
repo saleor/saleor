@@ -65,16 +65,6 @@
     #id_sku {
       @extend %input-lg;
     }
-
-    #id_price_override {
-      @extend %input-lg;
-    }
-  }
-
-  &#form-stock {
-    #id_quantity {
-      @extend %input-lg;
-    }
   }
 
   &#form-attributes {
@@ -122,6 +112,10 @@
 
   .datepicker {
     cursor: pointer;
+  }
+
+  .checkbox-helptext {
+    padding-left: 66px;
   }
 }
 
@@ -242,6 +236,17 @@
   }
 }
 
+label.svg-submit-btn input[type="submit"] {
+  display: none;
+}
+
 .main form, .modal form {
   @include form;
+}
+
+.is_featured_checkbox {
+  .input.input-field {
+    padding-top: 0!important;
+    padding-bottom: 10px;
+  }
 }

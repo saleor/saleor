@@ -7,14 +7,16 @@ from impersonate.views import impersonate as orig_impersonate
 
 from ..account.models import User
 from ..dashboard.views import staff_member_required
-from ..product.utils import products_for_homepage, products_with_availability
-from .utils.schema import get_webpage_schema
+from ..product.utils import products_for_homepage
+from ..product.utils.availability import products_with_availability
+from ..seo.schema.webpage import get_webpage_schema
 
 
 def home(request):
     products = products_for_homepage()[:8]
     products = products_with_availability(
-        products, discounts=request.discounts, local_currency=request.currency)
+        products, discounts=request.discounts, taxes=request.taxes,
+        local_currency=request.currency)
     webpage_schema = get_webpage_schema(request)
     return TemplateResponse(
         request, 'home.html', {
@@ -43,10 +45,5 @@ def handle_404(request, exception=None):
 
 
 def manifest(request):
-    site = request.site
-    ctx = {
-        'description': site.settings.description,
-        'name': site.name,
-        'short_name': site.name}
     return TemplateResponse(
-        request, 'manifest.json', ctx, content_type='application/json')
+        request, 'manifest.json', content_type='application/json')

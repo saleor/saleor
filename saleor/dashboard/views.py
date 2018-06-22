@@ -33,10 +33,8 @@ def superuser_required(
 @staff_member_required
 def index(request):
     paginate_by = 10
-    orders_to_ship = Order.objects.open().select_related(
-        'user').prefetch_related('groups', 'groups__lines', 'payments')
-    orders_to_ship = [
-        order for order in orders_to_ship if order.is_fully_paid()]
+    orders_to_ship = Order.objects.to_ship().select_related(
+        'user').prefetch_related('lines', 'payments')
     payments = Payment.objects.filter(
         status=PaymentStatus.PREAUTH).order_by('-created')
     payments = payments.select_related('order', 'order__user')
@@ -55,5 +53,5 @@ def styleguide(request):
 def get_low_stock_products():
     threshold = getattr(settings, 'LOW_STOCK_THRESHOLD', 10)
     products = Product.objects.annotate(
-        total_stock=Sum('variants__stock__quantity'))
+        total_stock=Sum('variants__quantity'))
     return products.filter(Q(total_stock__lte=threshold)).distinct()

@@ -25,3 +25,17 @@ def filter_products_by_attribute(queryset, attribute_id, value):
 
 def get_graphql_content(response):
     return json.loads(response.content.decode('utf8'))
+
+
+def get_form_errors(response, form_name='form'):
+    errors = response.context.get(form_name).errors
+    return errors.get('__all__') if errors else []
+
+
+def compare_taxes(taxes_1, taxes_2):
+    assert len(taxes_1) == len(taxes_2)
+
+    for rate_name, tax in taxes_1.items():
+        value_1 = tax['value']
+        value_2 = taxes_2.get(rate_name)['value']
+        assert value_1 == value_2

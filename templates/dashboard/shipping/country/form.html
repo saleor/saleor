@@ -38,7 +38,7 @@
     </li>
     {% if shipping_method.pk %}
     <li>
-      <a href="{% url 'dashboard:shipping-method-detail' shipping_method.pk %}" class="breadcrumbs--ellipsed-item">
+      <a href="{% url 'dashboard:shipping-method-details' shipping_method.pk %}" class="breadcrumbs--ellipsed-item">
         {{ shipping_method }}
       </a>
     </li>
@@ -76,17 +76,14 @@
             </div>
           </div>
           <div class="card-action right-align">
+            <a href="{% url 'dashboard:shipping-method-details' pk=shipping_method.pk %}" class="btn-flat waves-effect">
+              {% trans "Cancel" context "Dashboard cancel action" %}
+            </a>
             {% if country.pk %}
-              <a href="{% url 'dashboard:shipping-method-detail' pk=shipping_method.pk %}" class="btn-flat waves-effect">
-                {% trans "Cancel" context "Dashboard cancel action" %}
-              </a>
               <button type="submit" class="btn waves-effect">
                 {% trans "Save" context "Dashboard update action" %}
               </button>
             {% else %}
-              <a href="{% url 'dashboard:shipping-method-detail' pk=shipping_method.pk %}" class="btn-flat waves-effect">
-                {% trans "Cancel" context "Dashboard cancel action" %}
-              </a>
               <button type="submit" class="btn waves-effect">
                 {% trans "Create" context "Dashboard create action" %}
               </button>

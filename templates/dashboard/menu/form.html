@@ -1,0 +1,75 @@
+{% extends "dashboard/base.html" %}
+{% load materializecss %}
+{% load i18n %}
+{% load staticfiles %}
+
+{% block title %}
+  {% if menu.pk %}
+    {% trans "Edit menu" context "Menu form page title" %} {{ menu }}
+  {% else %}
+    {% trans "Add new menu" context "Menu form page title" %}
+  {% endif %}
+  - {% trans "Navigation" context "Dashboard menus list" %} - {{ block.super }}
+{% endblock %}
+
+{% block menu_menus_class %}active{% endblock %}
+
+{% block page_title %}
+  {% if menu.pk %}
+    {{ menu }}
+  {% else %}
+    {% trans "Add new menu" context "Menu form page title" %}
+  {% endif %}
+{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url 'dashboard:menu-list' %}" class="breadcrumbs--ellipsed-item">
+        {% trans "Navigation" context "Dashboard menus list" %}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url 'dashboard:menu-list' %}" class="breadcrumbs--ellipsed-item">
+        <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
+      </a>
+    </li>
+    <li>
+      <span class="breadcrumbs--ellipsed-item">
+        {% trans "Add new menu" context "Menu detail breadcrumbs" %}
+      </span>
+    </li>
+  </ul>
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col m12 l9">
+      <div class="card">
+        <form method="post" enctype="multipart/form-data" novalidate>
+          <div class="card-content">
+            {% csrf_token %}
+            <div class="row">
+              {{ form.name|materializecss }}
+            </div>
+          </div>
+          <div class="card-action right-align">
+            <a href="{% url 'dashboard:menu-list' %}" class="btn btn-flat">
+              {% trans "Cancel" context "Dashboard cancel action" %}
+            </a>
+            {% if menu.pk %}
+              <button type="submit" class="btn waves-effect">
+                {% trans "Update" context "Dashboard update action" %}
+              </button>
+            {% else %}
+              <button type="submit" class="btn waves-effect">
+                {% trans "Create" context "Dashboard create action" %}
+              </button>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="col m12 l3 help-box"></div>
+  </div>
+{% endblock %}

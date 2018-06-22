@@ -122,3 +122,9 @@
     }
   }
 }
+
+.rich-text-editor {
+  // add bottom margin to make the field's help-text not clashing with the
+  // bottom border
+  margin-bottom: 1rem;
+}
