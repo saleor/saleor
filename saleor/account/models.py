@@ -16,6 +16,21 @@ class PossiblePhoneNumberField(PhoneNumberField):
     default_validators = [validate_possible_number]
 
 
+class Company(models.Model):
+    name = models.CharField(max_length=256)
+    addresses = models.ManyToManyField(Address, blank=True)
+    default_billing_address = models.ForeignKey(
+        Address, null=True, blank=True, on_delete=models.SET_NULL)
+    contacts = models.ManyToManyField(User, blank=True, through=CompanyContact)
+    is_active = models.BooleanField(default=True)
+
+
+class CompanyContact(models.Model):
+    company = models.ForeignKey(Contact, on_delete=models.DELETE)
+    user = models.ForeignKey(User, on_delete=models.DELETE)
+    label = models.CharField(max_length=256)
+
+
 class Address(models.Model):
     first_name = models.CharField(max_length=256, blank=True)
     last_name = models.CharField(max_length=256, blank=True)
@@ -88,7 +103,9 @@ class UserManager(BaseUserManager):
 
 class User(PermissionsMixin, AbstractBaseUser):
     email = models.EmailField(unique=True)
-    addresses = models.ManyToManyField(Address, blank=True)
+    company = models.ForeignKey(
+        Company, null=True, blank=True, on_delete=models.PREVENT)
+    user_addresses = models.ManyToManyField(Address, blank=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(default=timezone.now, editable=False)
@@ -102,6 +119,12 @@ class User(PermissionsMixin, AbstractBaseUser):
     USERNAME_FIELD = 'email'
 
     objects = UserManager()
+
+    @property
+    def addresses(self):
+        if(self.company_pk):
+            return Address(company__pk=self.company_pk)
+        return self.user_addresses
 
     class Meta:
         permissions = (

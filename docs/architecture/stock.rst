@@ -23,7 +23,7 @@ The highest quantity that can be ordered is the sum of all available quantities 
 Allocating Stock for New Orders
 -------------------------------
 
-Once an order is placed, a stock records are selected to fulfil each order line. Default logic will select the stock records with the *lowest cost price* that holds enough stock. Quantity needed to fulfil the order line is immediately marked as *allocated*.
+Once an order is placed, stock records are selected to fulfil each order line. Default logic will select the stock records with the *lowest cost price* that holds enough stock. Quantity needed to fulfil the order line is immediately marked as *allocated*.
 
 **Example:** A customer places an order for another box of shoes and warehouse A is selected to fulfil the order. The stock records **quantity** is **5**, **quantity allocated** is now **4** and **quantity available** becomes **1**.
 
