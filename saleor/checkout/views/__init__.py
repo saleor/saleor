@@ -160,7 +160,7 @@ def cart_shipping_options(request, cart):
 def update_cart_line(request, cart, variant_id):
     """Update the line quantities."""
     if not request.is_ajax():
-        return redirect('checkout:index')
+        return redirect('cart:index')
     variant = get_object_or_404(ProductVariant, pk=variant_id)
     discounts = request.discounts
     taxes = request.taxes

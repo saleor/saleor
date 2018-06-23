@@ -25,8 +25,8 @@ from .utils import compare_taxes, get_redirect_location
 
 
 @pytest.mark.parametrize('cart_length, is_shipping_required, redirect_url', [
-    (0, True, reverse('checkout:index')),
-    (0, False, reverse('checkout:index')),
+    (0, True, reverse('cart:index')),
+    (0, False, reverse('cart:index')),
     (1, True, reverse('checkout:shipping-address')),
     (1, False, reverse('checkout:summary'))])
 def test_view_checkout_index(

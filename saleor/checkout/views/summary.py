@@ -26,7 +26,7 @@ def handle_order_placement(request, cart):
             discounts=request.discounts,
             taxes=get_taxes_for_cart(cart, request.taxes))
     except InsufficientStock:
-        return redirect('checkout:index')
+        return redirect('cart:index')
 
     if not order:
         msg = pgettext('Checkout warning', 'Please review your checkout.')
