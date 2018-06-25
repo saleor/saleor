@@ -16,7 +16,17 @@ const decorate = withStyles(theme => ({
 const Money = decorate<MoneyProps>(
   ({ classes, amount, currency, typographyProps }) => (
     <Typography {...typographyProps}>
-      {amount.toFixed(2)} <span className={classes.currency}>{currency}</span>
+      {amount.toFixed(2)}{" "}
+      <span
+        className={[
+          classes.currency,
+          typographyProps && typographyProps.className
+            ? typographyProps.className
+            : ""
+        ].join(" ")}
+      >
+        {currency}
+      </span>
     </Typography>
   )
 );

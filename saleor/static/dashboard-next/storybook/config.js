@@ -84,5 +84,8 @@ function loadStories() {
   require("./stories/orders/OrderSummary");
 }
 
+// Vouchers
+require("./stories/vouchers/VoucherDetailsPage");
+require("./stories/vouchers/VoucherListPage");
+
 configure(loadStories, module);
-//
