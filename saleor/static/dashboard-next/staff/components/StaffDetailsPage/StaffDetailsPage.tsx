@@ -91,7 +91,7 @@ const StaffDetailsPage = decorate<StaffDetailsPageProps>(
                 key={member ? CRC.str(JSON.stringify(member)) : "loading"}
                 onSubmit={onSubmit}
               >
-                {({ change, data, submit }) => (
+                {({ change, data, hasChanged, submit }) => (
                   <>
                     <div className={classes.root}>
                       <div>
@@ -112,7 +112,7 @@ const StaffDetailsPage = decorate<StaffDetailsPageProps>(
                     <SaveButtonBar
                       onSave={submit}
                       state={saveButtonBarState}
-                      disabled={disabled}
+                      disabled={disabled || !hasChanged}
                     />
                   </>
                 )}

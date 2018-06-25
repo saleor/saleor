@@ -14,6 +14,9 @@ storiesOf("Views / Staff / Member details ", module)
       searchGroupResults={staff[0].groups.edges.map(edge => edge.node)}
       onBack={() => {}}
       onStaffDelete={() => {}}
+      onGroupAdd={() => {}}
+      onGroupDelete={() => () => {}}
+      onGroupSearch={() => {}}
     />
   ))
   .add("other", () => <StaffDetailsPage disabled />);

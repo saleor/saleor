@@ -26,6 +26,11 @@ interface StaffGroupsProps {
 }
 
 const decorate = withStyles(theme => ({
+  avatarCell: {
+    paddingLeft: theme.spacing.unit * 2,
+    paddingRight: theme.spacing.unit * 2,
+    width: theme.spacing.unit * 5
+  },
   link: {
     color: theme.palette.secondary.main,
     cursor: "pointer" as "pointer"
@@ -42,14 +47,14 @@ const StaffGroups = decorate<StaffGroupsProps>(
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell />
+            <TableCell className={classes.avatarCell} />
             <TableCell>{i18n.t("Name", { context: "object" })}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {groups === undefined || groups === null ? (
             <TableRow>
-              <TableCell>
+              <TableCell className={classes.avatarCell}>
                 <IconButton disabled>
                   <CloseIcon />
                 </IconButton>
@@ -61,7 +66,7 @@ const StaffGroups = decorate<StaffGroupsProps>(
           ) : groups.length > 0 ? (
             groups.map(group => (
               <TableRow key={group.id}>
-                <TableCell>
+                <TableCell className={classes.avatarCell}>
                   <IconButton
                     disabled={disabled || !onGroupDelete}
                     onClick={
