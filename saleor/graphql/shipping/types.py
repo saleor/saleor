@@ -34,4 +34,5 @@ class ShippingMethodCountry(DjangoObjectType):
     class Meta:
         description = 'Country to which shipping applies.'
         model = models.ShippingMethodCountry
+        interfaces = [relay.Node]
         exclude_fields = ['shipping_method', 'orders']
