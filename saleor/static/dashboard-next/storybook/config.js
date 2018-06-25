@@ -82,6 +82,9 @@ function loadStories() {
   require("./stories/orders/OrderProductAddDialog");
   require("./stories/orders/OrderShippingMethodEditDialog");
   require("./stories/orders/OrderSummary");
+
+  // Staff
+  require("./stories/staff/StaffListPage");
 }
 
 // Vouchers
