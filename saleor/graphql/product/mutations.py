@@ -1,14 +1,13 @@
 import graphene
 from graphene.types import InputObjectType
-from graphql_jwt.decorators import permission_required
-
 from graphene_file_upload import Upload
+from graphql_jwt.decorators import permission_required
 
 from ...product import models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types import Decimal, Money
+from ..core.types import Error, Decimal, Money
 from ..utils import get_attributes_dict_from_list, get_node, get_nodes
-from .types import Collection, Product
+from .types import Collection, Product, ProductImage
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -384,7 +383,7 @@ class ProductImageInput(graphene.InputObjectType):
     product = graphene.ID(description='ID of an product.')
 
 
-class ProductImageCreateMutation(ModelMutation):
+class ProductImageCreate(ModelMutation):
     class Arguments:
         input = ProductImageInput(
             required=True,
@@ -392,6 +391,70 @@ class ProductImageCreateMutation(ModelMutation):
 
     class Meta:
         description = 'Creates a product image.'
+        model = models.ProductImage
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.edit_product')
+
+
+class ProductImageUpdate(ModelMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of a product image to update.')
+        input = ProductImageInput(
+            required=True,
+            description='Fields required to update a product image.')
+
+    class Meta:
+        description = 'Updates a product image.'
+        model = models.ProductImage
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.edit_product')
+
+
+class ProductImageReorder(BaseMutation):
+    class Arguments:
+        product_id = graphene.ID(
+            required=True,
+            description='Id of product that images order will be altered.')
+        images_ids = graphene.List(
+            graphene.ID, required=True,
+            description='IDs of a product images in the desired order.')
+
+    class Meta:
+        description = 'Changes ordering of the product image.'
+
+    product_images = graphene.List(
+        ProductImage,
+        description='Product image which sort order will be altered.')
+
+    @classmethod
+    @permission_required('product.edit_product')
+    def mutate(cls, root, info, product_id, images_ids):
+        product = get_node(info, product_id, Product)
+        if len(images_ids) != product.images.count():
+            return cls(
+                errors=[
+                    Error(field='order',
+                          message='Incorrect number of image IDs provided.')])
+        for order, image_id in enumerate(images_ids):
+            image = get_node(info, image_id, only_type=ProductImage)
+            image.sort_order = order
+            image.save()
+        product_images = get_nodes(images_ids, ProductImage)
+        return ProductImageReorder(product_images=product_images)
+
+
+class ProductImageDelete(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of a product image to delete.')
+
+    class Meta:
+        description = 'Deletes a product image.'
         model = models.ProductImage
 
     @classmethod
