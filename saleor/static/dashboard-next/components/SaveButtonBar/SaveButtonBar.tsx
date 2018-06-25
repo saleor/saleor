@@ -7,9 +7,15 @@ import CloseIcon from "@material-ui/icons/Close";
 import * as React from "react";
 import i18n from "../../i18n";
 
+export type SaveButtonBarState =
+  | "loading"
+  | "success"
+  | "error"
+  | "default"
+  | string;
 interface SaveButtonBarProps {
   disabled?: boolean;
-  state?: "loading" | "success" | "error" | "default" | string;
+  state?: SaveButtonBarState;
   onSave(event: any);
 }
 
