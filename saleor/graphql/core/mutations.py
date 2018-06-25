@@ -236,7 +236,6 @@ class ModelMutation(BaseMutation):
         cleaned_input = cls.clean_input(info, instance, input, errors)
         instance = cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(instance, errors)
-
         if errors:
             return cls(errors=errors)
 

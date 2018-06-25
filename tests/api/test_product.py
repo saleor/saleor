@@ -357,7 +357,7 @@ def test_create_product(
             $isFeatured: Boolean!,
             $chargeTaxes: Boolean!,
             $taxRate: String!,
-            $price: Float!,
+            $price: Decimal!,
             $attributes: [AttributeValueInput!]) {
                 productCreate(
                     input: {
@@ -415,7 +415,7 @@ def test_create_product(
     product_isFeatured = False
     product_chargeTaxes = True
     product_taxRate = 'standard'
-    product_price = 22
+    product_price = "22.33"
 
     # Default attribute defined in product_type fixture
     color_attr = product_type.product_attributes.get(name='Color')
@@ -476,7 +476,7 @@ def test_update_product(
             $isFeatured: Boolean!,
             $chargeTaxes: Boolean!,
             $taxRate: String!,
-            $price: Float!,
+            $price: Decimal!,
             $attributes: [AttributeValueInput!]) {
                 productUpdate(
                     id: $productId,
@@ -532,7 +532,7 @@ def test_update_product(
     product_isFeatured = False
     product_chargeTaxes = True
     product_taxRate = 'standard'
-    product_price = 33
+    product_price = "33.12"
 
     variables = json.dumps({
         'productId': product_id,

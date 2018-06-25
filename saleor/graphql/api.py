@@ -19,6 +19,9 @@ from .account.types import User
 from .descriptions import DESCRIPTIONS
 from .discount.resolvers import resolve_sales, resolve_vouchers
 from .discount.types import Sale, Voucher
+from .discount.mutations import (
+    SaleCreate, SaleDelete, SaleUpdate, VoucherCreate, VoucherDelete,
+    VoucherUpdate)
 from .core.filters import DistinctFilterSet
 from .core.mutations import CreateToken, VerifyToken
 from .core.resolvers import resolve_shop
@@ -197,7 +200,7 @@ class Query(graphene.ObjectType):
     def resolve_product_type(self, info, id):
         return get_node(info, id, only_type=ProductType)
 
-    def resolve_product_types(self, info):
+    def resolve_product_types(self, info, **kwargs):
         return resolve_product_types()
 
     @permission_required('discount.view_sale')
@@ -271,6 +274,14 @@ class Mutations(graphene.ObjectType):
     product_variant_create = ProductVariantCreateMutation.Field()
     product_variant_delete = ProductVariantDeleteMutation.Field()
     product_variant_update = ProductVariantUpdateMutation.Field()
+
+    sale_create = SaleCreate.Field()
+    sale_delete = SaleDelete.Field()
+    sale_update = SaleUpdate.Field()
+
+    voucher_create = VoucherCreate.Field()
+    voucher_delete = VoucherDelete.Field()
+    voucher_update = VoucherUpdate.Field()
 
 
 schema = graphene.Schema(Query, Mutations)
