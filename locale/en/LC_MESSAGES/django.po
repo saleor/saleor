@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-15 08:35-0500\n"
+"POT-Creation-Date: 2018-06-25 05:21-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -246,32 +246,39 @@ msgstr ""
 msgid "The phone number entered is not valid."
 msgstr ""
 
-#: saleor/account/views.py:32
+#: saleor/account/views.py:31
 msgid "You have been successfully logged out."
 msgstr ""
 
-#: saleor/account/views.py:46
+#: saleor/account/views.py:45
 msgid "User has been created"
 msgstr ""
 
-#: saleor/account/views.py:96
+#: saleor/account/views.py:95
 msgctxt "Storefront message"
 msgid "Password successfully changed."
 msgstr ""
 
-#: saleor/account/views.py:109
+#: saleor/account/views.py:108
 msgctxt "Storefront message"
 msgid "Address successfully updated."
 msgstr ""
 
-#: saleor/account/views.py:124
+#: saleor/account/views.py:123
 msgctxt "Storefront message"
 msgid "Address successfully removed"
 msgstr ""
 
-#: saleor/account/views.py:140
+#: saleor/account/views.py:137
 msgctxt "Storefront message, when user requested his account removed"
 msgid "Please check your inbox for a confirmation e-mail."
+msgstr ""
+
+#: saleor/account/views.py:152
+msgctxt "Account deleted"
+msgid ""
+"Your account was deleted successfully. In case of any trouble or questions "
+"feel free to contact us."
 msgstr ""
 
 #: saleor/checkout/__init__.py:15
@@ -902,87 +909,91 @@ msgctxt "Search form label"
 msgid "Query"
 msgstr ""
 
-#: saleor/settings.py:59
+#: saleor/settings.py:61
 msgid "Bulgarian"
 msgstr ""
 
-#: saleor/settings.py:60
-msgid "German"
-msgstr ""
-
-#: saleor/settings.py:61
-msgid "English"
-msgstr ""
-
 #: saleor/settings.py:62
-msgid "Spanish"
+msgid "Czech"
 msgstr ""
 
 #: saleor/settings.py:63
-msgid "Persian (Iran)"
+msgid "German"
 msgstr ""
 
 #: saleor/settings.py:64
-msgid "French"
+msgid "English"
 msgstr ""
 
 #: saleor/settings.py:65
-msgid "Hungarian"
+msgid "Spanish"
 msgstr ""
 
 #: saleor/settings.py:66
-msgid "Italian"
+msgid "Persian (Iran)"
 msgstr ""
 
 #: saleor/settings.py:67
-msgid "Japanese"
+msgid "French"
 msgstr ""
 
 #: saleor/settings.py:68
-msgid "Korean"
+msgid "Hungarian"
 msgstr ""
 
 #: saleor/settings.py:69
-msgid "Norwegian"
+msgid "Italian"
 msgstr ""
 
 #: saleor/settings.py:70
-msgid "Dutch"
+msgid "Japanese"
 msgstr ""
 
 #: saleor/settings.py:71
-msgid "Polish"
+msgid "Korean"
 msgstr ""
 
 #: saleor/settings.py:72
-msgid "Portuguese (Brazil)"
+msgid "Norwegian"
 msgstr ""
 
 #: saleor/settings.py:73
-msgid "Romanian"
+msgid "Dutch"
 msgstr ""
 
 #: saleor/settings.py:74
-msgid "Russian"
+msgid "Polish"
 msgstr ""
 
 #: saleor/settings.py:75
-msgid "Slovak"
+msgid "Portuguese (Brazil)"
 msgstr ""
 
 #: saleor/settings.py:76
-msgid "Turkish"
+msgid "Romanian"
 msgstr ""
 
 #: saleor/settings.py:77
-msgid "Ukrainian"
+msgid "Russian"
 msgstr ""
 
 #: saleor/settings.py:78
-msgid "Vietnamese"
+msgid "Slovak"
 msgstr ""
 
 #: saleor/settings.py:79
+msgid "Turkish"
+msgstr ""
+
+#: saleor/settings.py:80
+msgid "Ukrainian"
+msgstr ""
+
+#: saleor/settings.py:81
+msgid "Vietnamese"
+msgstr ""
+
+#: saleor/settings.py:82
 msgid "Chinese"
 msgstr ""
 
@@ -1011,21 +1022,24 @@ msgctxt "Eror page not found"
 msgid "Page not found"
 msgstr ""
 
-#: templates/account/account_delete.html:8
-msgctxt "Account deleted page title"
-msgid "Account deleted"
+#: templates/account/account_delete_prompt.html:8
+msgctxt "Account deletetion confirmation page title"
+msgid "Are you sure?"
 msgstr ""
 
-#: templates/account/account_delete.html:16
-msgctxt "Message displayed to the user after his account was deleted"
+#: templates/account/account_delete_prompt.html:16
+msgctxt "Message displayed to the user requesting for his account deletetion"
 msgid "Sorry to see you go!"
 msgstr ""
 
-#: templates/account/account_delete.html:18
-msgctxt "Message displayed to the user after his account was deleted"
-msgid ""
-"Your account was deleted successfully. In case of any problems or questions "
-"please contact us."
+#: templates/account/account_delete_prompt.html:22
+msgctxt "Message displayed to the user requesting for his account deletetion"
+msgid "Are you sure you want to delete your account?"
+msgstr ""
+
+#: templates/account/account_delete_prompt.html:27
+msgctxt "Confirm account deletion button"
+msgid "Delete account"
 msgstr ""
 
 #: templates/account/address_delete.html:6
@@ -5817,7 +5831,6 @@ msgid ""
 msgstr ""
 
 #: templates/templated_email/order/confirm_fulfillment.email:16
-#: templates/templated_email/source/confirm_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment confirmation email text"
 msgid "You can track your shipment with %(tracking_number)s code."
@@ -5887,19 +5900,16 @@ msgid "Total"
 msgstr ""
 
 #: templates/templated_email/order/confirm_order.email:25
-#: templates/templated_email/source/confirm_order.mjml:29
 msgctxt "Order confirmation e-mail billing address"
 msgid "Billing address"
 msgstr ""
 
 #: templates/templated_email/order/confirm_order.email:28
-#: templates/templated_email/source/confirm_order.mjml:30
 msgctxt "Order confirmation e-mail shipping address"
 msgid "Shipping address"
 msgstr ""
 
 #: templates/templated_email/order/confirm_order.email:29
-#: templates/templated_email/source/confirm_order.mjml:42
 msgctxt "Order confirmation e-mail text"
 msgid "No shipping required"
 msgstr ""
@@ -5974,7 +5984,6 @@ msgid ""
 msgstr ""
 
 #: templates/templated_email/order/update_fulfillment.email:16
-#: templates/templated_email/source/update_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid "You can track your shipment with %(tracking_number)s code."
@@ -5989,184 +5998,4 @@ msgid ""
 "\n"
 "Sincerely,\n"
 "%(site_name)s\n"
-msgstr ""
-
-#: templates/templated_email/source/account_delete.mjml:13
-msgctxt "Account delete e-mail text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/source/account_delete.mjml:16
-#, python-format
-msgctxt "Account delete e-mail text"
-msgid ""
-"You're receiving this e-mail because you or someone else has requested a "
-"deletion of your user account at %(domain)s.<br/> Click the link below to "
-"delete your account. Please note that this action is permanent and cannot be "
-"reversed."
-msgstr ""
-
-#: templates/templated_email/source/confirm_fulfillment.mjml:13
-msgctxt "Fulfillment confirmation email text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/source/confirm_fulfillment.mjml:16
-msgctxt "Fulfillment confirmation email text"
-msgid "Thank you for your order. Below is the list of shipped products."
-msgstr ""
-
-#: templates/templated_email/source/confirm_note.mjml:13
-msgctxt "Note confirmation e-mail text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/source/confirm_note.mjml:16
-#, python-format
-msgctxt "Note confirmation e-mail text"
-msgid ""
-"A new note has been added to your order. To see details please visit: <a "
-"href=\"%(url)s\">%(url)s</a>"
-msgstr ""
-
-#: templates/templated_email/source/confirm_order.mjml:14
-msgctxt "Order confirmation e-mail text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/source/confirm_order.mjml:17
-#, python-format
-msgctxt "Order confirmation e-mail text"
-msgid ""
-"Thank you for your order. Below is the list of ordered products. To see your "
-"payment details please visit: <a href=\"%(url)s\">%(url)s</a>"
-msgstr ""
-
-#: templates/templated_email/source/confirm_payment.mjml:13
-msgctxt "Payment confirmation e-mail text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/source/confirm_payment.mjml:16
-#, python-format
-msgctxt "Payment confirmation e-mail text"
-msgid ""
-"Thank you for your payment. To see your payment details please visit: <a "
-"href=\"%(url)s\">%(url)s</a>"
-msgstr ""
-
-#: templates/templated_email/source/partials/_order_lines.mjml:11
-msgctxt "E-mail order lines summary table"
-msgid "Subtotal"
-msgstr ""
-
-#: templates/templated_email/source/partials/_order_lines.mjml:19
-msgctxt "E-mail order lines summary table"
-msgid "Shipping"
-msgstr ""
-
-#: templates/templated_email/source/partials/_order_lines.mjml:28
-msgctxt "E-mail order lines summary table"
-msgid "Taxes (included)"
-msgstr ""
-
-#: templates/templated_email/source/partials/_order_lines.mjml:30
-msgctxt "E-mail order lines summary table"
-msgid "Taxes"
-msgstr ""
-
-#: templates/templated_email/source/partials/_order_lines.mjml:40
-msgctxt "E-mail order lines summary table"
-msgid "Discount"
-msgstr ""
-
-#: templates/templated_email/source/partials/_order_lines.mjml:49
-msgctxt "E-mail order lines summary table"
-msgid "Total"
-msgstr ""
-
-#: templates/templated_email/source/partials/_order_lines.mjml:58
-msgctxt "Ordered item name"
-msgid "Item"
-msgstr ""
-
-#: templates/templated_email/source/partials/_order_lines.mjml:59
-msgctxt "Quantity ordered of a product"
-msgid "Quantity"
-msgstr ""
-
-#: templates/templated_email/source/partials/_order_lines.mjml:60
-msgctxt "Unit price of a product"
-msgid "Per unit"
-msgstr ""
-
-#: templates/templated_email/source/partials/_order_lines.mjml:61
-msgctxt "Ordered item subtotal (unit price * quantity)"
-msgid "Subtotal"
-msgstr ""
-
-#: templates/templated_email/source/password_reset.mjml:13
-msgctxt "Password reset e-mail text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/source/password_reset.mjml:16
-#, python-format
-msgctxt "Password reset e-mail text"
-msgid ""
-"You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.<br/> It can be safely ignored "
-"if you did not request a password reset. Click the link below to reset your "
-"password."
-msgstr ""
-
-#: templates/templated_email/source/promote_customer.mjml:13
-msgctxt "Promote customer to staff member confirmation e-mail text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/source/promote_customer.mjml:16
-#, python-format
-msgctxt "Promote customer to staff member confirmation e-mail text"
-msgid ""
-"You're receiving this e-mail because you have been promoted to staff member "
-"at %(domain)s.<br/> To access dashboard please visit: <a href=\"%(url)s\">"
-"%(url)s</a>"
-msgstr ""
-
-#: templates/templated_email/source/set_password.mjml:13
-msgctxt "Set password for staff member e-mail text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/source/set_password.mjml:16
-#, python-format
-msgctxt "Set password for staff member e-mail text"
-msgid ""
-"You're receiving this e-mail because you have to set password for your staff "
-"member account at %(domain)s.<br/> Click the link below to set up your "
-"password."
-msgstr ""
-
-#: templates/templated_email/source/shared/footer.mjml:4
-msgctxt "Base email text"
-msgid "This is an automatically generated email, please do not reply."
-msgstr ""
-
-#: templates/templated_email/source/shared/footer.mjml:13
-#, python-format
-msgctxt "Base email footer"
-msgid "Sincerely, %(site_name)s"
-msgstr ""
-
-#: templates/templated_email/source/update_fulfillment.mjml:13
-msgctxt "Fulfillment update email text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/source/update_fulfillment.mjml:16
-msgctxt "Fulfillment update email text"
-msgid ""
-"Your shipping status has been updated. Below is the list of ordered products "
-"that have been updated with new tracking number."
 msgstr ""

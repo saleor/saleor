@@ -1,7 +1,7 @@
-.. _sentry:
+.. _sentry-integration:
 
-Sentry
-======
+Error tracking with Sentry
+==========================
 
 Saleor provides integration with `Sentry <https://sentry.io/>`_ - a comprehensive error tracking and reporting tool.
 
