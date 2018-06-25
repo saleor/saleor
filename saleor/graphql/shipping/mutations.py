@@ -6,25 +6,26 @@ from ..core.types import Decimal
 
 
 class ShippingPriceInput(graphene.InputObjectType):
-    country_code = graphene.String(description='Shipping specific country.')
+    country_code = graphene.String(
+        description='Shipping specific country code.')
     price = Decimal(description='Shipping price to a specified country.')
-    shipping_method = graphene.ID(description='Related shipping method.')
+    shipping_method = graphene.ID(description='Related shipping method name.')
 
 
 class ShippingMethodInput(graphene.InputObjectType):
     name = graphene.String(description='Shipping method\'s name.')
     description = graphene.String(
-        description='Optional short description of the method')
+        description='Optional short description of the method.')
 
 
 class ShippingMethodCreate(ModelMutation):
     class Arguments:
         input = ShippingMethodInput(
-            description='Fields required to create a shipping method',
+            description='Fields required to create a shipping method.',
             required=True)
 
     class Meta:
-        description = 'Creates a new shipping method'
+        description = 'Creates a new shipping method.'
         model = models.ShippingMethod
 
     @classmethod
@@ -37,11 +38,11 @@ class ShippingMethodUpdate(ModelMutation):
         id = graphene.ID(
             description='ID of a shipping method to update.', required=True)
         input = ShippingMethodInput(
-            description='Fields required to update a shipping method',
+            description='Fields required to update a shipping method.',
             required=True)
 
     class Meta:
-        description = 'Updates a new shipping method'
+        description = 'Updates a new shipping method.'
         model = models.ShippingMethod
 
     @classmethod
@@ -70,7 +71,7 @@ class ShippingPriceCreate(ModelMutation):
             required=True)
 
     class Meta:
-        description = 'Creates a new shipping price'
+        description = 'Creates a new shipping price.'
         model = models.ShippingMethodCountry
 
     @classmethod
@@ -87,7 +88,7 @@ class ShippingPriceUpdate(ModelMutation):
             required=True)
 
     class Meta:
-        description = 'Updates a new shipping price'
+        description = 'Updates a new shipping price.'
         model = models.ShippingMethodCountry
 
     @classmethod
