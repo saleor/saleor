@@ -33537,6 +33537,1481 @@ exports[`Storyshots Views / Products / Product variant details when loading data
 </div>
 `;
 
+exports[`Storyshots Views / Staff / Member details  default 1`] = `
+<div
+  class="Component-md-5"
+>
+  <div
+    class="Component-root-12"
+  >
+    <button
+      class="MuiButtonBase-root-45 MuiIconButton-root-39 MuiIconButton-colorInherit-40 Component-menuButton-11"
+      tabindex="0"
+      type="button"
+    >
+      <span
+        class="MuiIconButton-label-44"
+      >
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root-48"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <g>
+            <path
+              d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+            />
+          </g>
+        </svg>
+      </span>
+      <span
+        class="MuiTouchRipple-root-54"
+      />
+    </button>
+    <h2
+      class="MuiTypography-root-15 MuiTypography-title-21 PageHeader-title-8"
+    >
+      rebekah_carroll@example.com
+    </h2>
+    <div
+      class="Component-action-9"
+    >
+      <button
+        class="MuiButtonBase-root-45 MuiIconButton-root-39"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiIconButton-label-44"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-48"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+              />
+            </g>
+          </svg>
+        </span>
+        <span
+          class="MuiTouchRipple-root-54"
+        />
+      </button>
+    </div>
+  </div>
+  <form>
+    <div
+      class="Component-root-801"
+    >
+      <div>
+        <div
+          class="MuiPaper-root-63 MuiPaper-elevation2-67 MuiPaper-rounded-64 MuiCard-root-62"
+        >
+          <div
+            class="Component-root-12"
+          >
+            <h2
+              class="MuiTypography-root-15 MuiTypography-title-21 PageHeader-title-8"
+            >
+              Staff member details
+            </h2>
+            <div
+              class="Component-action-9"
+            />
+          </div>
+          <div
+            class="MuiCardContent-root-90"
+          >
+            <div
+              class="MuiFormControl-root-91 MuiFormControl-fullWidth-94"
+            >
+              <label
+                class="MuiFormLabel-root-100 MuiInputLabel-root-95 MuiInputLabel-formControl-96 MuiInputLabel-animated-99 MuiInputLabel-shrink-98"
+                data-shrink="true"
+              >
+                E-mail
+              </label>
+              <div
+                class="MuiInput-root-105 MuiInput-fullWidth-112 MuiInput-formControl-106 MuiInput-underline-109"
+              >
+                <input
+                  aria-invalid="false"
+                  aria-required="false"
+                  class="MuiInput-input-113 MuiInput-inputType-116"
+                  name="email"
+                  type="email"
+                  value="rebekah_carroll@example.com"
+                />
+              </div>
+            </div>
+            <div
+              class="Component-spacer-118"
+            />
+            <label
+              class="MuiFormControlLabel-root-137"
+            >
+              <span
+                class="MuiButtonBase-root-45 MuiIconButton-root-39 MuiSwitchBase-root-145 MuiCheckbox-root-569 MuiCheckbox-colorSecondary-573 MuiSwitchBase-checked-146 MuiCheckbox-checked-570"
+              >
+                <span
+                  class="MuiIconButton-label-44"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-48"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                    />
+                  </svg>
+                  <input
+                    checked=""
+                    class="MuiSwitchBase-input-148"
+                    name="isActive"
+                    type="checkbox"
+                  />
+                </span>
+                <span
+                  class="MuiTouchRipple-root-54"
+                />
+              </span>
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 MuiFormControlLabel-label-139"
+              >
+                User is active
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div
+          class="MuiPaper-root-63 MuiPaper-elevation2-67 MuiPaper-rounded-64 MuiCard-root-62"
+        >
+          <div
+            class="Component-root-12"
+          >
+            <h2
+              class="MuiTypography-root-15 MuiTypography-title-21 PageHeader-title-8"
+            >
+              Groups
+            </h2>
+            <div
+              class="Component-action-9"
+            >
+              <button
+                class="MuiButtonBase-root-45 MuiIconButton-root-39"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiIconButton-label-44"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-48"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <g>
+                      <path
+                        d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                      />
+                    </g>
+                  </svg>
+                </span>
+                <span
+                  class="MuiTouchRipple-root-54"
+                />
+              </button>
+            </div>
+          </div>
+          <table
+            class="MuiTable-root-195"
+          >
+            <thead
+              class="MuiTableHead-root-196"
+            >
+              <tr
+                class="MuiTableRow-root-197 MuiTableRow-head-200"
+              >
+                <th
+                  class="MuiTableCell-root-202 MuiTableCell-head-203 Component-avatarCell-802"
+                  scope="col"
+                />
+                <th
+                  class="MuiTableCell-root-202 MuiTableCell-head-203"
+                  scope="col"
+                >
+                  Name
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              class="MuiTableBody-root-223"
+            >
+              <tr
+                class="MuiTableRow-root-197"
+              >
+                <td
+                  class="MuiTableCell-root-202 MuiTableCell-body-204 Component-avatarCell-802"
+                >
+                  <button
+                    class="MuiButtonBase-root-45 MuiIconButton-root-39"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-44"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-48"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <g>
+                          <path
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                          />
+                        </g>
+                      </svg>
+                    </span>
+                    <span
+                      class="MuiTouchRipple-root-54"
+                    />
+                  </button>
+                </td>
+                <td
+                  class="MuiTableCell-root-202 MuiTableCell-body-204 Component-link-803"
+                >
+                  Architect
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-197"
+              >
+                <td
+                  class="MuiTableCell-root-202 MuiTableCell-body-204 Component-avatarCell-802"
+                >
+                  <button
+                    class="MuiButtonBase-root-45 MuiIconButton-root-39"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-44"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-48"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <g>
+                          <path
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                          />
+                        </g>
+                      </svg>
+                    </span>
+                    <span
+                      class="MuiTouchRipple-root-54"
+                    />
+                  </button>
+                </td>
+                <td
+                  class="MuiTableCell-root-202 MuiTableCell-body-204 Component-link-803"
+                >
+                  Manager
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-197"
+              >
+                <td
+                  class="MuiTableCell-root-202 MuiTableCell-body-204 Component-avatarCell-802"
+                >
+                  <button
+                    class="MuiButtonBase-root-45 MuiIconButton-root-39"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-44"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-48"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <g>
+                          <path
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                          />
+                        </g>
+                      </svg>
+                    </span>
+                    <span
+                      class="MuiTouchRipple-root-54"
+                    />
+                  </button>
+                </td>
+                <td
+                  class="MuiTableCell-root-202 MuiTableCell-body-204 Component-link-803"
+                >
+                  Strategist
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-197"
+              >
+                <td
+                  class="MuiTableCell-root-202 MuiTableCell-body-204 Component-avatarCell-802"
+                >
+                  <button
+                    class="MuiButtonBase-root-45 MuiIconButton-root-39"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-44"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-48"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <g>
+                          <path
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                          />
+                        </g>
+                      </svg>
+                    </span>
+                    <span
+                      class="MuiTouchRipple-root-54"
+                    />
+                  </button>
+                </td>
+                <td
+                  class="MuiTableCell-root-202 MuiTableCell-body-204 Component-link-803"
+                >
+                  Planner
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div
+      class="Component-root-154"
+    >
+      <div
+        class="Component-spacer-155"
+      />
+      <button
+        class="MuiButtonBase-root-45 MuiButtonBase-disabled-46 MuiButton-root-161 MuiButton-contained-170 MuiButton-containedSecondary-172 MuiButton-raised-173 MuiButton-raisedSecondary-175 MuiButton-disabled-177"
+        disabled=""
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          class="MuiButton-label-162"
+        >
+          Save
+        </span>
+      </button>
+    </div>
+  </form>
+  <form />
+</div>
+`;
+
+exports[`Storyshots Views / Staff / Member details  other 1`] = `
+<div
+  class="Component-md-5"
+>
+  <div
+    class="Component-root-12"
+  >
+    <h2
+      class="MuiTypography-root-15 MuiTypography-title-21 PageHeader-title-8"
+    >
+      <span
+        class="Skeleton-skeleton-191"
+        style="width:10em"
+      >
+        ‌
+      </span>
+    </h2>
+    <div
+      class="Component-action-9"
+    >
+      <button
+        class="MuiButtonBase-root-45 MuiButtonBase-disabled-46 MuiIconButton-root-39 MuiIconButton-disabled-43"
+        disabled=""
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          class="MuiIconButton-label-44"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-48"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+              />
+            </g>
+          </svg>
+        </span>
+      </button>
+    </div>
+  </div>
+  <form>
+    <div
+      class="Component-root-801"
+    >
+      <div>
+        <div
+          class="MuiPaper-root-63 MuiPaper-elevation2-67 MuiPaper-rounded-64 MuiCard-root-62"
+        >
+          <div
+            class="Component-root-12"
+          >
+            <h2
+              class="MuiTypography-root-15 MuiTypography-title-21 PageHeader-title-8"
+            >
+              Staff member details
+            </h2>
+            <div
+              class="Component-action-9"
+            />
+          </div>
+          <div
+            class="MuiCardContent-root-90"
+          >
+            <div
+              class="MuiFormControl-root-91 MuiFormControl-fullWidth-94"
+            >
+              <label
+                class="MuiFormLabel-root-100 MuiInputLabel-root-95 MuiInputLabel-formControl-96 MuiInputLabel-animated-99"
+                data-shrink="false"
+              >
+                E-mail
+              </label>
+              <div
+                class="MuiInput-root-105 MuiInput-disabled-108 MuiInput-fullWidth-112 MuiInput-formControl-106 MuiInput-underline-109"
+              >
+                <input
+                  aria-invalid="false"
+                  aria-required="false"
+                  class="MuiInput-input-113 MuiInput-disabled-108 MuiInput-inputType-116"
+                  disabled=""
+                  name="email"
+                  type="email"
+                  value=""
+                />
+              </div>
+            </div>
+            <div
+              class="Component-spacer-118"
+            />
+            <label
+              class="MuiFormControlLabel-root-137 MuiFormControlLabel-disabled-138"
+            >
+              <span
+                class="MuiButtonBase-root-45 MuiButtonBase-disabled-46 MuiIconButton-root-39 MuiIconButton-disabled-43 MuiSwitchBase-root-145 MuiCheckbox-root-569 MuiCheckbox-colorSecondary-573 MuiSwitchBase-disabled-147 MuiCheckbox-disabled-571"
+                tabindex="-1"
+              >
+                <span
+                  class="MuiIconButton-label-44"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-48"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                    />
+                  </svg>
+                  <input
+                    class="MuiSwitchBase-input-148"
+                    disabled=""
+                    name="isActive"
+                    type="checkbox"
+                  />
+                </span>
+              </span>
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 MuiFormControlLabel-label-139 MuiFormControlLabel-disabled-138"
+              >
+                User is active
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div
+          class="MuiPaper-root-63 MuiPaper-elevation2-67 MuiPaper-rounded-64 MuiCard-root-62"
+        >
+          <div
+            class="Component-root-12"
+          >
+            <h2
+              class="MuiTypography-root-15 MuiTypography-title-21 PageHeader-title-8"
+            >
+              Groups
+            </h2>
+            <div
+              class="Component-action-9"
+            >
+              <button
+                class="MuiButtonBase-root-45 MuiIconButton-root-39"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiIconButton-label-44"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-48"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <g>
+                      <path
+                        d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                      />
+                    </g>
+                  </svg>
+                </span>
+                <span
+                  class="MuiTouchRipple-root-54"
+                />
+              </button>
+            </div>
+          </div>
+          <table
+            class="MuiTable-root-195"
+          >
+            <thead
+              class="MuiTableHead-root-196"
+            >
+              <tr
+                class="MuiTableRow-root-197 MuiTableRow-head-200"
+              >
+                <th
+                  class="MuiTableCell-root-202 MuiTableCell-head-203 Component-avatarCell-802"
+                  scope="col"
+                />
+                <th
+                  class="MuiTableCell-root-202 MuiTableCell-head-203"
+                  scope="col"
+                >
+                  Name
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              class="MuiTableBody-root-223"
+            >
+              <tr
+                class="MuiTableRow-root-197"
+              >
+                <td
+                  class="MuiTableCell-root-202 MuiTableCell-body-204 Component-avatarCell-802"
+                >
+                  <button
+                    class="MuiButtonBase-root-45 MuiButtonBase-disabled-46 MuiIconButton-root-39 MuiIconButton-disabled-43"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-44"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-48"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <g>
+                          <path
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                          />
+                        </g>
+                      </svg>
+                    </span>
+                  </button>
+                </td>
+                <td
+                  class="MuiTableCell-root-202 MuiTableCell-body-204"
+                >
+                  <span
+                    class="Skeleton-skeleton-191"
+                  >
+                    ‌
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div
+      class="Component-root-154"
+    >
+      <div
+        class="Component-spacer-155"
+      />
+      <button
+        class="MuiButtonBase-root-45 MuiButtonBase-disabled-46 MuiButton-root-161 MuiButton-contained-170 MuiButton-containedSecondary-172 MuiButton-raised-173 MuiButton-raisedSecondary-175 MuiButton-disabled-177"
+        disabled=""
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          class="MuiButton-label-162"
+        >
+          Save
+        </span>
+      </button>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Staff / Staff list default 1`] = `
+<div
+  class="Component-md-5"
+>
+  <div
+    class="Component-root-12"
+  >
+    <h2
+      class="MuiTypography-root-15 MuiTypography-title-21 PageHeader-title-8"
+    >
+      Staff members
+    </h2>
+    <div
+      class="Component-action-9"
+    >
+      <button
+        class="MuiButtonBase-root-45 MuiIconButton-root-39"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiIconButton-label-44"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-48"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+            </g>
+          </svg>
+        </span>
+        <span
+          class="MuiTouchRipple-root-54"
+        />
+      </button>
+    </div>
+  </div>
+  <div
+    class="MuiPaper-root-63 MuiPaper-elevation2-67 MuiPaper-rounded-64 MuiCard-root-62"
+  >
+    <table
+      class="MuiTable-root-195"
+    >
+      <thead
+        class="MuiTableHead-root-196"
+      >
+        <tr
+          class="MuiTableRow-root-197 MuiTableRow-head-200"
+        >
+          <th
+            class="MuiTableCell-root-202 MuiTableCell-head-203"
+            scope="col"
+          >
+            E-mail
+          </th>
+          <th
+            class="MuiTableCell-root-202 MuiTableCell-head-203"
+            scope="col"
+          >
+            Status
+          </th>
+          <th
+            class="MuiTableCell-root-202 MuiTableCell-head-203 Component-textRight-800"
+            scope="col"
+          >
+            Groups
+          </th>
+        </tr>
+      </thead>
+      <tfoot
+        class="MuiTableFooter-root-210"
+      >
+        <tr
+          class="MuiTableRow-root-197 MuiTableRow-footer-201"
+        >
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-footer-205 TablePagination-root-214"
+            colspan="3"
+          >
+            <div
+              class="MuiToolbar-root-220 MuiToolbar-gutters-221 TablePagination-toolbar-219"
+            >
+              <div
+                class="TablePagination-spacer-218"
+              />
+              <div
+                class="TablePaginationActions-root-222"
+              >
+                <button
+                  class="MuiButtonBase-root-45 MuiButtonBase-disabled-46 MuiIconButton-root-39 MuiIconButton-disabled-43"
+                  disabled=""
+                  tabindex="-1"
+                  type="button"
+                >
+                  <span
+                    class="MuiIconButton-label-44"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-48"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                      />
+                    </svg>
+                  </span>
+                </button>
+                <button
+                  class="MuiButtonBase-root-45 MuiIconButton-root-39"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiIconButton-label-44"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-48"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                      />
+                    </svg>
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-54"
+                  />
+                </button>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tfoot>
+      <tbody
+        class="MuiTableBody-root-223"
+      >
+        <tr
+          class="MuiTableRow-root-197"
+        >
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-link-799"
+          >
+            rebekah_carroll@example.com
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204"
+          >
+            <div
+              class="Component-root-390 "
+            >
+              <span
+                class="Component-successDot-392"
+              />
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 Component-span-391"
+              >
+                Active
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-textRight-800"
+          >
+            4
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root-197"
+        >
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-link-799"
+          >
+            kory_tremblay@example.com
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204"
+          >
+            <div
+              class="Component-root-390 "
+            >
+              <span
+                class="Component-successDot-392"
+              />
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 Component-span-391"
+              >
+                Active
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-textRight-800"
+          >
+            4
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root-197"
+        >
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-link-799"
+          >
+            seth_cassin@example.com
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204"
+          >
+            <div
+              class="Component-root-390 "
+            >
+              <span
+                class="Component-successDot-392"
+              />
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 Component-span-391"
+              >
+                Active
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-textRight-800"
+          >
+            2
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root-197"
+        >
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-link-799"
+          >
+            destini_legros@example.com
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204"
+          >
+            <div
+              class="Component-root-390 "
+            >
+              <span
+                class="Component-successDot-392"
+              />
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 Component-span-391"
+              >
+                Active
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-textRight-800"
+          >
+            2
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root-197"
+        >
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-link-799"
+          >
+            mertie_towne@example.com
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204"
+          >
+            <div
+              class="Component-root-390 "
+            >
+              <span
+                class="Component-successDot-392"
+              />
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 Component-span-391"
+              >
+                Active
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-textRight-800"
+          >
+            1
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root-197"
+        >
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-link-799"
+          >
+            rita_schuster@example.com
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204"
+          >
+            <div
+              class="Component-root-390 "
+            >
+              <span
+                class="Component-successDot-392"
+              />
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 Component-span-391"
+              >
+                Active
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-textRight-800"
+          >
+            2
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root-197"
+        >
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-link-799"
+          >
+            bo_zboncak@example.com
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204"
+          >
+            <div
+              class="Component-root-390 "
+            >
+              <span
+                class="Component-successDot-392"
+              />
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 Component-span-391"
+              >
+                Active
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-textRight-800"
+          >
+            3
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root-197"
+        >
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-link-799"
+          >
+            jayde_runte@example.com
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204"
+          >
+            <div
+              class="Component-root-390 "
+            >
+              <span
+                class="Component-neutralDot-389"
+              />
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 Component-span-391"
+              >
+                Inactive
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-textRight-800"
+          >
+            2
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root-197"
+        >
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-link-799"
+          >
+            amaya_schuppe@example.com
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204"
+          >
+            <div
+              class="Component-root-390 "
+            >
+              <span
+                class="Component-successDot-392"
+              />
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 Component-span-391"
+              >
+                Active
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-textRight-800"
+          >
+            3
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root-197"
+        >
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-link-799"
+          >
+            kristopher_mayer@example.com
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204"
+          >
+            <div
+              class="Component-root-390 "
+            >
+              <span
+                class="Component-successDot-392"
+              />
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 Component-span-391"
+              >
+                Active
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-textRight-800"
+          >
+            1
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root-197"
+        >
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-link-799"
+          >
+            mikayla_lakin@example.com
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204"
+          >
+            <div
+              class="Component-root-390 "
+            >
+              <span
+                class="Component-successDot-392"
+              />
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 Component-span-391"
+              >
+                Active
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-textRight-800"
+          >
+            3
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root-197"
+        >
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-link-799"
+          >
+            joesph_maggio@example.com
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204"
+          >
+            <div
+              class="Component-root-390 "
+            >
+              <span
+                class="Component-successDot-392"
+              />
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 Component-span-391"
+              >
+                Active
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-textRight-800"
+          >
+            4
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root-197"
+        >
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-link-799"
+          >
+            alycia_oberbrunner@example.com
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204"
+          >
+            <div
+              class="Component-root-390 "
+            >
+              <span
+                class="Component-successDot-392"
+              />
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 Component-span-391"
+              >
+                Active
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-textRight-800"
+          >
+            1
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root-197"
+        >
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-link-799"
+          >
+            murphy_langosh@example.com
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204"
+          >
+            <div
+              class="Component-root-390 "
+            >
+              <span
+                class="Component-successDot-392"
+              />
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 Component-span-391"
+              >
+                Active
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-textRight-800"
+          >
+            2
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root-197"
+        >
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-link-799"
+          >
+            ova_macejkovic@example.com
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204"
+          >
+            <div
+              class="Component-root-390 "
+            >
+              <span
+                class="Component-successDot-392"
+              />
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 Component-span-391"
+              >
+                Active
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-textRight-800"
+          >
+            3
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root-197"
+        >
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-link-799"
+          >
+            dandre_lockman@example.com
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204"
+          >
+            <div
+              class="Component-root-390 "
+            >
+              <span
+                class="Component-successDot-392"
+              />
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 Component-span-391"
+              >
+                Active
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-textRight-800"
+          >
+            4
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Staff / Staff list other 1`] = `
+<div
+  class="Component-md-5"
+>
+  <div
+    class="Component-root-12"
+  >
+    <h2
+      class="MuiTypography-root-15 MuiTypography-title-21 PageHeader-title-8"
+    >
+      Staff members
+    </h2>
+    <div
+      class="Component-action-9"
+    >
+      <button
+        class="MuiButtonBase-root-45 MuiButtonBase-disabled-46 MuiIconButton-root-39 MuiIconButton-disabled-43"
+        disabled=""
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          class="MuiIconButton-label-44"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-48"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+            </g>
+          </svg>
+        </span>
+      </button>
+    </div>
+  </div>
+  <div
+    class="MuiPaper-root-63 MuiPaper-elevation2-67 MuiPaper-rounded-64 MuiCard-root-62"
+  >
+    <table
+      class="MuiTable-root-195"
+    >
+      <thead
+        class="MuiTableHead-root-196"
+      >
+        <tr
+          class="MuiTableRow-root-197 MuiTableRow-head-200"
+        >
+          <th
+            class="MuiTableCell-root-202 MuiTableCell-head-203"
+            scope="col"
+          >
+            E-mail
+          </th>
+          <th
+            class="MuiTableCell-root-202 MuiTableCell-head-203"
+            scope="col"
+          >
+            Status
+          </th>
+          <th
+            class="MuiTableCell-root-202 MuiTableCell-head-203 Component-textRight-800"
+            scope="col"
+          >
+            Groups
+          </th>
+        </tr>
+      </thead>
+      <tfoot
+        class="MuiTableFooter-root-210"
+      >
+        <tr
+          class="MuiTableRow-root-197 MuiTableRow-footer-201"
+        >
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-footer-205 TablePagination-root-214"
+            colspan="3"
+          >
+            <div
+              class="MuiToolbar-root-220 MuiToolbar-gutters-221 TablePagination-toolbar-219"
+            >
+              <div
+                class="TablePagination-spacer-218"
+              />
+              <div
+                class="TablePaginationActions-root-222"
+              >
+                <button
+                  class="MuiButtonBase-root-45 MuiButtonBase-disabled-46 MuiIconButton-root-39 MuiIconButton-disabled-43"
+                  disabled=""
+                  tabindex="-1"
+                  type="button"
+                >
+                  <span
+                    class="MuiIconButton-label-44"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-48"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                      />
+                    </svg>
+                  </span>
+                </button>
+                <button
+                  class="MuiButtonBase-root-45 MuiButtonBase-disabled-46 MuiIconButton-root-39 MuiIconButton-disabled-43"
+                  disabled=""
+                  tabindex="-1"
+                  type="button"
+                >
+                  <span
+                    class="MuiIconButton-label-44"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-48"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                      />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tfoot>
+      <tbody
+        class="MuiTableBody-root-223"
+      >
+        <tr
+          class="MuiTableRow-root-197"
+        >
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204"
+          >
+            <span
+              class="Skeleton-skeleton-191"
+            >
+              ‌
+            </span>
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204"
+          >
+            <span
+              class="Skeleton-skeleton-191"
+            >
+              ‌
+            </span>
+          </td>
+          <td
+            class="MuiTableCell-root-202 MuiTableCell-body-204 Component-textRight-800"
+          >
+            <span
+              class="Skeleton-skeleton-191"
+            >
+              ‌
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
 <form>
   <div
