@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-04 04:15-0500\n"
+"POT-Creation-Date: 2018-06-15 08:35-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Patryk Zawadzki <patrys@room-303.com>, 2018\n"
 "Language-Team: German (https://www.transifex.com/mirumee/teams/34782/de/)\n"
@@ -18,22 +18,22 @@ msgstr ""
 "Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: saleor/account/forms.py:58
+#: saleor/account/forms.py:69
 msgctxt "Form field"
 msgid "Email"
 msgstr "Email"
 
-#: saleor/account/forms.py:75
+#: saleor/account/forms.py:86
 msgctxt "Registration error"
 msgid "This email has already been registered."
 msgstr ""
 
-#: saleor/account/forms.py:82
+#: saleor/account/forms.py:93
 msgctxt "Email"
 msgid "Email"
 msgstr "E-Mail"
 
-#: saleor/account/forms.py:84
+#: saleor/account/forms.py:95
 msgctxt "Password"
 msgid "Password"
 msgstr "Passwort"
@@ -193,37 +193,37 @@ msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr "Der Wert ist für das gewählte Land ungütlig"
 
-#: saleor/account/models.py:115
+#: saleor/account/models.py:123
 msgctxt "Permission description"
 msgid "Can view users"
 msgstr "Kann Benutzer betrachten"
 
-#: saleor/account/models.py:117
+#: saleor/account/models.py:125
 msgctxt "Permission description"
 msgid "Can edit users"
 msgstr "Kann Benutzer bearbeiten"
 
-#: saleor/account/models.py:119
+#: saleor/account/models.py:127
 msgctxt "Permission description"
 msgid "Can view groups"
 msgstr "Kann Gruppen betrachten"
 
-#: saleor/account/models.py:121
+#: saleor/account/models.py:129
 msgctxt "Permission description"
 msgid "Can edit groups"
 msgstr "Kann Gruppen bearbeiten"
 
-#: saleor/account/models.py:123
+#: saleor/account/models.py:131
 msgctxt "Permission description"
 msgid "Can view staff"
 msgstr "Kann Personal betrachten"
 
-#: saleor/account/models.py:125
+#: saleor/account/models.py:133
 msgctxt "Permission description"
 msgid "Can edit staff"
 msgstr "Kann Personal bearbeiten"
 
-#: saleor/account/models.py:127
+#: saleor/account/models.py:135
 msgctxt "Permission description"
 msgid "Can impersonate users"
 msgstr "Kann als anderer Benutzer auftreten"
@@ -248,28 +248,33 @@ msgstr ""
 msgid "The phone number entered is not valid."
 msgstr "Die eingegebene Telefonnummer ist ungültig."
 
-#: saleor/account/views.py:29
+#: saleor/account/views.py:32
 msgid "You have been successfully logged out."
 msgstr "Sie wurden abgemeldet."
 
-#: saleor/account/views.py:43
+#: saleor/account/views.py:46
 msgid "User has been created"
 msgstr "Nutzer wurde angelegt"
 
-#: saleor/account/views.py:93
+#: saleor/account/views.py:96
 msgctxt "Storefront message"
 msgid "Password successfully changed."
 msgstr "Adresse wurde aktualisiert."
 
-#: saleor/account/views.py:106
+#: saleor/account/views.py:109
 msgctxt "Storefront message"
 msgid "Address successfully updated."
 msgstr "Adresse wurde aktualisiert."
 
-#: saleor/account/views.py:121
+#: saleor/account/views.py:124
 msgctxt "Storefront message"
 msgid "Address successfully removed"
 msgstr "Adresse entfernt"
+
+#: saleor/account/views.py:140
+msgctxt "Storefront message, when user requested his account removed"
+msgid "Please check your inbox for a confirmation e-mail."
+msgstr ""
 
 #: saleor/checkout/__init__.py:15
 msgctxt "Type of address used to fulfill order"
@@ -904,87 +909,87 @@ msgctxt "Search form label"
 msgid "Query"
 msgstr "Suche"
 
-#: saleor/settings.py:48
+#: saleor/settings.py:59
 msgid "Bulgarian"
 msgstr ""
 
-#: saleor/settings.py:49
+#: saleor/settings.py:60
 msgid "German"
 msgstr ""
 
-#: saleor/settings.py:50
+#: saleor/settings.py:61
 msgid "English"
 msgstr ""
 
-#: saleor/settings.py:51
+#: saleor/settings.py:62
 msgid "Spanish"
 msgstr ""
 
-#: saleor/settings.py:52
+#: saleor/settings.py:63
 msgid "Persian (Iran)"
 msgstr ""
 
-#: saleor/settings.py:53
+#: saleor/settings.py:64
 msgid "French"
 msgstr ""
 
-#: saleor/settings.py:54
+#: saleor/settings.py:65
 msgid "Hungarian"
 msgstr ""
 
-#: saleor/settings.py:55
+#: saleor/settings.py:66
 msgid "Italian"
 msgstr ""
 
-#: saleor/settings.py:56
+#: saleor/settings.py:67
 msgid "Japanese"
 msgstr ""
 
-#: saleor/settings.py:57
+#: saleor/settings.py:68
 msgid "Korean"
 msgstr ""
 
-#: saleor/settings.py:58
+#: saleor/settings.py:69
 msgid "Norwegian"
 msgstr ""
 
-#: saleor/settings.py:59
+#: saleor/settings.py:70
 msgid "Dutch"
 msgstr ""
 
-#: saleor/settings.py:60
+#: saleor/settings.py:71
 msgid "Polish"
 msgstr ""
 
-#: saleor/settings.py:61
+#: saleor/settings.py:72
 msgid "Portuguese (Brazil)"
 msgstr ""
 
-#: saleor/settings.py:62
+#: saleor/settings.py:73
 msgid "Romanian"
 msgstr ""
 
-#: saleor/settings.py:63
+#: saleor/settings.py:74
 msgid "Russian"
 msgstr ""
 
-#: saleor/settings.py:64
+#: saleor/settings.py:75
 msgid "Slovak"
 msgstr ""
 
-#: saleor/settings.py:65
+#: saleor/settings.py:76
 msgid "Turkish"
 msgstr ""
 
-#: saleor/settings.py:66
+#: saleor/settings.py:77
 msgid "Ukrainian"
 msgstr ""
 
-#: saleor/settings.py:67
+#: saleor/settings.py:78
 msgid "Vietnamese"
 msgstr ""
 
-#: saleor/settings.py:68
+#: saleor/settings.py:79
 msgid "Chinese"
 msgstr ""
 
@@ -998,12 +1003,12 @@ msgctxt "Permission description"
 msgid "Can edit shipping method"
 msgstr ""
 
-#: saleor/site/models.py:30
+#: saleor/site/models.py:31
 msgctxt "Permission description"
 msgid "Can edit site settings"
 msgstr ""
 
-#: saleor/site/models.py:33
+#: saleor/site/models.py:34
 msgctxt "Permission description"
 msgid "Can view site settings"
 msgstr ""
@@ -1013,11 +1018,22 @@ msgctxt "Eror page not found"
 msgid "Page not found"
 msgstr ""
 
-#. Translators: Layout may break if character length is different than four.
-#: templates/_items.html:27 templates/product/_items.html:29
-msgctxt "Sale (discount) label for item in product list"
-msgid "Sale"
-msgstr "Angebot"
+#: templates/account/account_delete.html:8
+msgctxt "Account deleted page title"
+msgid "Account deleted"
+msgstr ""
+
+#: templates/account/account_delete.html:16
+msgctxt "Message displayed to the user after his account was deleted"
+msgid "Sorry to see you go!"
+msgstr ""
+
+#: templates/account/account_delete.html:18
+msgctxt "Message displayed to the user after his account was deleted"
+msgid ""
+"Your account was deleted successfully. In case of any problems or questions "
+"please contact us."
+msgstr ""
 
 #: templates/account/address_delete.html:6
 msgctxt "Remove address form action"
@@ -1110,50 +1126,68 @@ msgctxt "User profile tab"
 msgid "Addresses book"
 msgstr "Adressen"
 
-#: templates/account/details.html:54
+#: templates/account/details.html:47
+msgctxt "User profile tab"
+msgid "Settings"
+msgstr ""
+
+#: templates/account/details.html:59
 msgctxt "Recent orders column title"
 msgid "Order"
 msgstr "Bestellung"
 
-#: templates/account/details.html:57
+#: templates/account/details.html:62
 msgctxt "Recent orders column title"
 msgid "Date"
 msgstr "Datum"
 
-#: templates/account/details.html:60
+#: templates/account/details.html:65
 msgctxt "Recent orders column title"
 msgid "Summary"
 msgstr "Zusammenfassung"
 
-#: templates/account/details.html:63
+#: templates/account/details.html:68
 msgctxt "Recent orders column title"
 msgid "Status"
 msgstr "Status"
 
-#: templates/account/details.html:87
+#: templates/account/details.html:92
 msgctxt "Recent orders link text"
 msgid "Details"
 msgstr "Details"
 
-#: templates/account/details.html:102
+#: templates/account/details.html:107
 msgctxt "No recent orders text"
 msgid "There are not any completed orders yet."
 msgstr "Es liegen noch keine erledigten Bestellungen vor."
 
-#: templates/account/details.html:113
+#: templates/account/details.html:118
 msgctxt "User profile action"
 msgid "Change password"
 msgstr "Passwort ändern"
 
-#: templates/account/details.html:128
+#: templates/account/details.html:133
 msgctxt "User address action"
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: templates/account/details.html:144
+#: templates/account/details.html:149
 msgctxt "No addresses text"
 msgid "You will see new addresses here after first successful checkout."
 msgstr "Nach dem ersten Kauf sehen Sie neue Adressen."
+
+#: templates/account/details.html:160
+msgctxt "Message informing about the process of account removal"
+msgid ""
+"\n"
+"                  If you'd like to remove your account, please click on the button below and a confirmation email will be sent to you.\n"
+"                "
+msgstr ""
+
+#: templates/account/details.html:165
+msgctxt "Remove account form action"
+msgid "Remove Account"
+msgstr ""
 
 #: templates/account/login.html:5
 msgctxt "Login page title"
@@ -1866,20 +1900,20 @@ msgstr "Freigeben:"
 #: templates/dashboard/menu/item/form.html:80
 #: templates/dashboard/order/address_form.html:61
 #: templates/dashboard/order/fulfillment.html:133
-#: templates/dashboard/product/form.html:129
-#: templates/dashboard/product/form.html:136
+#: templates/dashboard/product/form.html:132
+#: templates/dashboard/product/form.html:139
 #: templates/dashboard/product/product_attribute/form.html:77
 #: templates/dashboard/product/product_attribute/form.html:84
 #: templates/dashboard/product/product_attribute/values/form.html:78
 #: templates/dashboard/product/product_image/form.html:79
 #: templates/dashboard/product/product_type/form.html:105
-#: templates/dashboard/product/product_variant/form.html:104
-#: templates/dashboard/product/product_variant/form.html:111
+#: templates/dashboard/product/product_variant/form.html:107
+#: templates/dashboard/product/product_variant/form.html:114
 #: templates/dashboard/shipping/country/form.html:80
 #: templates/dashboard/shipping/form.html:78
 #: templates/dashboard/shipping/form.html:85
 #: templates/dashboard/sites/authorization_keys/form.html:71
-#: templates/dashboard/sites/form.html:55
+#: templates/dashboard/sites/form.html:58
 #: templates/dashboard/staff/detail.html:76
 #: templates/dashboard/taxes/form.html:100
 msgctxt "Dashboard cancel action"
@@ -1984,7 +2018,7 @@ msgstr "Neue Kategorie hinzufügen"
 #: templates/dashboard/order/address_form.html:64
 #: templates/dashboard/order/modal/change_quantity.html:19
 #: templates/dashboard/product/product_type/form.html:109
-#: templates/dashboard/sites/form.html:58
+#: templates/dashboard/sites/form.html:61
 #: templates/dashboard/staff/detail.html:80
 #: templates/dashboard/taxes/form.html:103
 msgctxt "Dashboard update action"
@@ -1996,12 +2030,12 @@ msgstr "Ändern"
 #: templates/dashboard/discount/voucher/form.html:133
 #: templates/dashboard/menu/form.html:66
 #: templates/dashboard/menu/item/form.html:88
-#: templates/dashboard/product/form.html:139
+#: templates/dashboard/product/form.html:142
 #: templates/dashboard/product/product_attribute/form.html:87
 #: templates/dashboard/product/product_attribute/values/form.html:86
 #: templates/dashboard/product/product_image/form.html:87
 #: templates/dashboard/product/product_type/form.html:113
-#: templates/dashboard/product/product_variant/form.html:114
+#: templates/dashboard/product/product_variant/form.html:117
 #: templates/dashboard/shipping/country/form.html:88
 #: templates/dashboard/shipping/form.html:88
 #: templates/dashboard/sites/authorization_keys/form.html:79
@@ -2048,6 +2082,7 @@ msgstr[1] ""
 
 #: templates/dashboard/category/modal/confirm_delete.html:49
 #: templates/dashboard/collection/confirm_delete.html:26
+#: templates/dashboard/customer/modal/confirm_delete.html:28
 #: templates/dashboard/discount/sale/modal/confirm_delete.html:24
 #: templates/dashboard/discount/voucher/modal/confirm_delete.html:26
 #: templates/dashboard/group/modal/confirm_delete.html:27
@@ -2204,72 +2239,77 @@ msgctxt "Customer action"
 msgid "Edit customer"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:80
+#: templates/dashboard/customer/detail.html:78
+msgctxt "Customer action"
+msgid "Remove customer"
+msgstr ""
+
+#: templates/dashboard/customer/detail.html:83
 msgctxt "Customer impersonate action"
 msgid "Impersonate customer"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:89
+#: templates/dashboard/customer/detail.html:92
 msgctxt "Customer recent orders table title"
 msgid "Recent orders"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:98
+#: templates/dashboard/customer/detail.html:101
 msgctxt "Customer orders table header"
 msgid "Number"
 msgstr "Nummer"
 
-#: templates/dashboard/customer/detail.html:101
+#: templates/dashboard/customer/detail.html:104
 msgctxt "Customer orders table header"
 msgid "Placed on"
 msgstr "plaziert am"
 
-#: templates/dashboard/customer/detail.html:104
+#: templates/dashboard/customer/detail.html:107
 msgctxt "Customer orders table header"
 msgid "Order status"
 msgstr "Bestellungsstatus"
 
-#: templates/dashboard/customer/detail.html:107
+#: templates/dashboard/customer/detail.html:110
 msgctxt "Customer orders table header"
 msgid "Total"
 msgstr "Gesamtsumme"
 
-#: templates/dashboard/customer/detail.html:134
+#: templates/dashboard/customer/detail.html:137
 msgctxt "Empty customer orders table message"
 msgid "No orders found."
 msgstr "Keine Bestellungen gefunden"
 
-#: templates/dashboard/customer/detail.html:143
+#: templates/dashboard/customer/detail.html:146
 msgctxt "Customer notes card title"
 msgid "Customer notes"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:156
+#: templates/dashboard/customer/detail.html:159
 msgctxt "Customer without notes message"
 msgid "There are no notes associated with this customer"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:163
+#: templates/dashboard/customer/detail.html:166
 msgctxt "Customer notes card action"
 msgid "Add note"
 msgstr "Notiz hinzufügen"
 
-#: templates/dashboard/customer/detail.html:177
+#: templates/dashboard/customer/detail.html:180
 msgctxt "Customer default shipping address card title"
 msgid "Default shipping address"
 msgstr "Standard-Versandadresse"
 
-#: templates/dashboard/customer/detail.html:184
+#: templates/dashboard/customer/detail.html:187
 msgctxt "Customer without default shipping address message"
 msgid "No default shipping address."
 msgstr "Keine Standard-Versandadresse"
 
-#: templates/dashboard/customer/detail.html:197
+#: templates/dashboard/customer/detail.html:200
 msgctxt "Customer default billing address card title"
 msgid "Default billing address"
 msgstr "Standard-Rechnungsadresse"
 
-#: templates/dashboard/customer/detail.html:205
+#: templates/dashboard/customer/detail.html:208
 msgctxt "Customer without default billing address message"
 msgid "No default billing address."
 msgstr "Keine Standard-Rechnungsadresse"
@@ -2338,6 +2378,22 @@ msgstr "Notiz hinzufügen"
 msgctxt "Modal add note primary action"
 msgid "Save note"
 msgstr "Notiz speichern"
+
+#: templates/dashboard/customer/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Header of modal used for removing customer's account "
+msgid "Remove customer %(customer)s"
+msgstr ""
+
+#: templates/dashboard/customer/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Modal remove collection text"
+msgid ""
+"Are you sure you want to remove customer <strong>%(customer)s</strong>? "
+"Please note that this procedure will remove customer's account, but "
+"customer's orders and addresses associated with them will persist for the "
+"financial records."
+msgstr ""
 
 #: templates/dashboard/customer/modal/confirm_promote.html:12
 msgctxt "Dashboard confirmation modal"
@@ -2882,11 +2938,11 @@ msgid "Storefront Menus"
 msgstr ""
 
 #: templates/dashboard/menu/list.html:98
-#: templates/dashboard/product/form.html:132
+#: templates/dashboard/product/form.html:135
 #: templates/dashboard/product/product_attribute/form.html:80
 #: templates/dashboard/product/product_attribute/values/form.html:82
 #: templates/dashboard/product/product_image/form.html:83
-#: templates/dashboard/product/product_variant/form.html:107
+#: templates/dashboard/product/product_variant/form.html:110
 #: templates/dashboard/shipping/country/form.html:84
 #: templates/dashboard/shipping/form.html:81
 #: templates/dashboard/sites/authorization_keys/form.html:75
@@ -4101,12 +4157,12 @@ msgctxt "Product form breadcrumbs"
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: templates/dashboard/product/form.html:110
+#: templates/dashboard/product/form.html:113
 #: templates/dashboard/product/product_variant/form.html:76
 msgid "Attributes"
 msgstr "Attribute"
 
-#: templates/dashboard/product/form.html:113
+#: templates/dashboard/product/form.html:116
 #, python-format
 msgid ""
 "\n"
@@ -5313,10 +5369,8 @@ msgstr "Vielen Dank für Ihre <a href=\"%(order_url)s\">Bestellung</a>!"
 msgctxt "Checkout text"
 msgid ""
 "We've sent a confirmation email with details to <span>%(email)s</span>.<br> "
-"If any problems or questions contact us."
+"In case of any problems or questions please contact us."
 msgstr ""
-"wir haben Ihnen ein Bestätigungsmail an <span>%(email)s</span> gesendet.<br>"
-" Wenn Sie Schwierigkeiten oder Fragen haben, kontaktieren Sie uns gerne."
 
 #: templates/order/checkout_success.html:29
 #: templates/order/checkout_success_anonymous.html:58
@@ -5555,6 +5609,12 @@ msgctxt "Apply filters button"
 msgid "Update"
 msgstr "Ändern"
 
+#. Translators: Layout may break if character length is different than four.
+#: templates/product/_items.html:29
+msgctxt "Sale (discount) label for item in product list"
+msgid "Sale"
+msgstr "Angebot"
+
 #: templates/product/_price_range.html:6
 msgctxt "product price range"
 msgid "from"
@@ -5640,6 +5700,33 @@ msgstr "Versuchen Sie es erneut oder schauen Sie sich unsere Angebote an."
 #: templates/search/results.html:32
 msgid "Search:"
 msgstr "Suche:"
+
+#: templates/templated_email/account/account_delete.email:4
+msgctxt "Account delete reset e-mail subject"
+msgid "Delete your account"
+msgstr ""
+
+#: templates/templated_email/account/account_delete.email:8
+#, python-format
+msgctxt "Account delete reset e-mail text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
+"Click the link below to delete your account.\n"
+"\n"
+"Please note that this action is permanent and cannot be reversed.\n"
+msgstr ""
+
+#: templates/templated_email/account/account_delete.email:21
+#, python-format
+msgctxt "Account delete reset e-mail text"
+msgid ""
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
+msgstr ""
 
 #: templates/templated_email/account/password_reset.email:4
 msgctxt "Password reset e-mail subject"
@@ -5898,6 +5985,21 @@ msgid ""
 "\n"
 "Sincerely,\n"
 "%(site_name)s\n"
+msgstr ""
+
+#: templates/templated_email/source/account_delete.mjml:13
+msgctxt "Account delete e-mail text"
+msgid "Hi!"
+msgstr ""
+
+#: templates/templated_email/source/account_delete.mjml:16
+#, python-format
+msgctxt "Account delete e-mail text"
+msgid ""
+"You're receiving this e-mail because you or someone else has requested a "
+"deletion of your user account at %(domain)s.<br/> Click the link below to "
+"delete your account. Please note that this action is permanent and cannot be"
+" reversed."
 msgstr ""
 
 #: templates/templated_email/source/confirm_fulfillment.mjml:13
