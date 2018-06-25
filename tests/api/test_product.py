@@ -863,6 +863,30 @@ def test_product_image_update_mutation(admin_api_client, product_with_image):
     assert data['productImage']['alt'] == alt
 
 
+def test_product_image_delete(admin_api_client, product_with_image):
+    product = product_with_image
+    query = """
+            mutation deleteProductImage($id: ID!) {
+                productImageDelete(id: $id) {
+                    productImage {
+                        url
+                    }
+                }
+            }
+        """
+    image_obj = product.images.first()
+    variables = {
+        'id': graphene.Node.to_global_id('ProductImage', image_obj.id)}
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productImageDelete']
+    assert data['productImage']['url'] == image_obj.image.url
+    with pytest.raises(image_obj._meta.model.DoesNotExist):
+        image_obj.refresh_from_db()
+
+
 def test_collections_query(user_api_client, collection):
     query = """
         query Collections {
