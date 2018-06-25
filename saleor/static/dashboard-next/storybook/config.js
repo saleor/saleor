@@ -85,6 +85,7 @@ function loadStories() {
 
   // Staff
   require("./stories/staff/StaffListPage");
+  require("./stories/staff/StaffDetailsPage");
 }
 
 // Vouchers

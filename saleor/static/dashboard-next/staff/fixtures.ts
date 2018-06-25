@@ -1,176 +1,197 @@
 export const staff = [
   {
-    id: "u2874",
-    email: "kasey_willms@example.com",
-    groups: { totalCount: 1, edges: [{ id: "gr1482", name: "Specialist" }] },
-    isActive: true
-  },
-  {
-    id: "u14850",
-    email: "deontae_aufderhar@example.com",
+    id: "u91223",
+    email: "rebekah_carroll@example.com",
     groups: {
       totalCount: 4,
       edges: [
-        { id: "gr34679", name: "Executive" },
-        { id: "gr43462", name: "Architect" },
-        { id: "gr75010", name: "Architect" },
-        { id: "gr95926", name: "Liaison" }
+        { node: { id: "gr33347", name: "Architect" } },
+        { node: { id: "gr66116", name: "Manager" } },
+        { node: { id: "gr49471", name: "Strategist" } },
+        { node: { id: "gr94588", name: "Planner" } }
       ]
     },
     isActive: true
   },
   {
-    id: "u71368",
-    email: "esmeralda_mohr@example.com",
+    id: "u43930",
+    email: "kory_tremblay@example.com",
     groups: {
       totalCount: 4,
       edges: [
-        { id: "gr85785", name: "Strategist" },
-        { id: "gr67275", name: "Manager" },
-        { id: "gr58254", name: "Planner" },
-        { id: "gr83721", name: "Developer" }
+        { node: { id: "gr57453", name: "Associate" } },
+        { node: { id: "gr30005", name: "Consultant" } },
+        { node: { id: "gr6297", name: "Facilitator" } },
+        { node: { id: "gr99007", name: "Producer" } }
       ]
     },
     isActive: true
   },
   {
-    id: "u15188",
-    email: "ocie_collier@example.com",
+    id: "u65133",
+    email: "seth_cassin@example.com",
+    groups: {
+      totalCount: 2,
+      edges: [
+        { node: { id: "gr81038", name: "Coordinator" } },
+        { node: { id: "gr73307", name: "Director" } }
+      ]
+    },
+    isActive: true
+  },
+  {
+    id: "u31242",
+    email: "destini_legros@example.com",
+    groups: {
+      totalCount: 2,
+      edges: [
+        { node: { id: "gr10139", name: "Officer" } },
+        { node: { id: "gr37279", name: "Manager" } }
+      ]
+    },
+    isActive: true
+  },
+  {
+    id: "u26420",
+    email: "mertie_towne@example.com",
     groups: {
       totalCount: 1,
-      edges: [{ id: "gr74159", name: "Representative" }]
+      edges: [{ node: { id: "gr2891", name: "Executive" } }]
     },
     isActive: true
   },
   {
-    id: "u62640",
-    email: "candace_rolfson@example.com",
+    id: "u84121",
+    email: "rita_schuster@example.com",
     groups: {
-      totalCount: 4,
+      totalCount: 2,
       edges: [
-        { id: "gr44569", name: "Officer" },
-        { id: "gr48989", name: "Manager" },
-        { id: "gr65817", name: "Analyst" },
-        { id: "gr35476", name: "Developer" }
+        { node: { id: "gr68664", name: "Engineer" } },
+        { node: { id: "gr61597", name: "Specialist" } }
       ]
     },
     isActive: true
   },
   {
-    id: "u18504",
-    email: "tyrese_torp@example.com",
-    groups: { totalCount: 1, edges: [{ id: "gr96325", name: "Consultant" }] },
-    isActive: true
-  },
-  {
-    id: "u76131",
-    email: "oscar_quigley@example.com",
+    id: "u15520",
+    email: "bo_zboncak@example.com",
     groups: {
       totalCount: 3,
       edges: [
-        { id: "gr78620", name: "Engineer" },
-        { id: "gr69173", name: "Executive" },
-        { id: "gr54043", name: "Planner" }
+        { node: { id: "gr3682", name: "Strategist" } },
+        { node: { id: "gr58536", name: "Analyst" } },
+        { node: { id: "gr66108", name: "Architect" } }
       ]
     },
-    isActive: false
+    isActive: true
   },
   {
-    id: "u48575",
-    email: "jakob_deckow@example.com",
-    groups: { totalCount: 1, edges: [{ id: "gr1252", name: "Facilitator" }] },
-    isActive: false
-  },
-  {
-    id: "u52368",
-    email: "elissa_boyer@example.com",
+    id: "u28153",
+    email: "jayde_runte@example.com",
     groups: {
       totalCount: 2,
       edges: [
-        { id: "gr72932", name: "Associate" },
-        { id: "gr92256", name: "Analyst" }
+        { node: { id: "gr32696", name: "Supervisor" } },
+        { node: { id: "gr69037", name: "Architect" } }
       ]
     },
     isActive: false
   },
   {
-    id: "u73447",
-    email: "roel_boehm@example.com",
+    id: "u47784",
+    email: "amaya_schuppe@example.com",
+    groups: {
+      totalCount: 3,
+      edges: [
+        { node: { id: "gr59902", name: "Orchestrator" } },
+        { node: { id: "gr55066", name: "Strategist" } },
+        { node: { id: "gr23754", name: "Manager" } }
+      ]
+    },
+    isActive: true
+  },
+  {
+    id: "u12114",
+    email: "kristopher_mayer@example.com",
+    groups: {
+      totalCount: 1,
+      edges: [{ node: { id: "gr39732", name: "Analyst" } }]
+    },
+    isActive: true
+  },
+  {
+    id: "u66645",
+    email: "mikayla_lakin@example.com",
+    groups: {
+      totalCount: 3,
+      edges: [
+        { node: { id: "gr95819", name: "Agent" } },
+        { node: { id: "gr86533", name: "Strategist" } },
+        { node: { id: "gr90909", name: "Liaison" } }
+      ]
+    },
+    isActive: true
+  },
+  {
+    id: "u10865",
+    email: "joesph_maggio@example.com",
     groups: {
       totalCount: 4,
       edges: [
-        { id: "gr84267", name: "Designer" },
-        { id: "gr79464", name: "Specialist" },
-        { id: "gr25534", name: "Director" },
-        { id: "gr57108", name: "Orchestrator" }
+        { node: { id: "gr61684", name: "Associate" } },
+        { node: { id: "gr75099", name: "Representative" } },
+        { node: { id: "gr42403", name: "Administrator" } },
+        { node: { id: "gr97245", name: "Assistant" } }
       ]
     },
     isActive: true
   },
   {
-    id: "u69925",
-    email: "deshaun_kulas@example.com",
-    groups: {
-      totalCount: 2,
-      edges: [
-        { id: "gr68442", name: "Consultant" },
-        { id: "gr26938", name: "Planner" }
-      ]
-    },
-    isActive: true
-  },
-  {
-    id: "u73548",
-    email: "trever_morissette@example.com",
-    groups: {
-      totalCount: 5,
-      edges: [
-        { id: "gr25490", name: "Technician" },
-        { id: "gr33425", name: "Analyst" },
-        { id: "gr83592", name: "Architect" },
-        { id: "gr24796", name: "Supervisor" },
-        { id: "gr31649", name: "Representative" }
-      ]
-    },
-    isActive: true
-  },
-  {
-    id: "u42704",
-    email: "audrey_hettinger@example.com",
-    groups: {
-      totalCount: 2,
-      edges: [
-        { id: "gr41249", name: "Supervisor" },
-        { id: "gr68991", name: "Strategist" }
-      ]
-    },
-    isActive: true
-  },
-  {
-    id: "u21581",
-    email: "mitchell_gusikowski@example.com",
-    groups: { totalCount: 1, edges: [{ id: "gr9347", name: "Supervisor" }] },
-    isActive: false
-  },
-  {
-    id: "u69642",
-    email: "malvina_farrell@example.com",
+    id: "u56024",
+    email: "alycia_oberbrunner@example.com",
     groups: {
       totalCount: 1,
-      edges: [{ id: "gr10051", name: "Representative" }]
+      edges: [{ node: { id: "gr88049", name: "Analyst" } }]
     },
-    isActive: false
+    isActive: true
   },
   {
-    id: "u67582",
-    email: "geovanni_feil@example.com",
+    id: "u41576",
+    email: "murphy_langosh@example.com",
     groups: {
       totalCount: 2,
       edges: [
-        { id: "gr99383", name: "Producer" },
-        { id: "gr1072", name: "Architect" }
+        { node: { id: "gr84567", name: "Assistant" } },
+        { node: { id: "gr70417", name: "Producer" } }
       ]
     },
-    isActive: false
+    isActive: true
+  },
+  {
+    id: "u29560",
+    email: "ova_macejkovic@example.com",
+    groups: {
+      totalCount: 3,
+      edges: [
+        { node: { id: "gr22264", name: "Manager" } },
+        { node: { id: "gr51893", name: "Consultant" } },
+        { node: { id: "gr91395", name: "Executive" } }
+      ]
+    },
+    isActive: true
+  },
+  {
+    id: "u74000",
+    email: "dandre_lockman@example.com",
+    groups: {
+      totalCount: 4,
+      edges: [
+        { node: { id: "gr81808", name: "Developer" } },
+        { node: { id: "gr67164", name: "Associate" } },
+        { node: { id: "gr116", name: "Coordinator" } },
+        { node: { id: "gr38344", name: "Administrator" } }
+      ]
+    },
+    isActive: true
   }
 ];
