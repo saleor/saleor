@@ -400,6 +400,8 @@ class ProductImageCreate(ModelMutation):
 
 class ProductImageUpdate(ModelMutation):
     class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of a product image to update.')
         input = ProductImageInput(
             required=True,
             description='Fields required to update a product image.')
@@ -434,7 +436,6 @@ class ProductImageReorder(BaseMutation):
     def mutate(cls, root, info, product_id, images_ids):
         product = get_node(info, product_id, Product)
         if len(images_ids) != product.images.count():
-            import ipdb; ipdb.set_trace()
             return cls(
                 errors=[
                     Error(field='order',
@@ -455,6 +456,57 @@ class ProductImageDelete(ModelDeleteMutation):
     class Meta:
         description = 'Deletes a product image.'
         model = models.ProductImage
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.edit_product')
+
+
+class VariantImageInput(graphene.InputObjectType):
+    image = Upload(required=True, description='Image file.')
+    variant = graphene.ID(description='ID of an variant.')
+
+
+class VariantImageCreate(ModelMutation):
+    class Arguments:
+        input = VariantImageInput(
+            required=True,
+            description='Fields required to create a variant image.')
+
+    class Meta:
+        description = 'Creates a variant image.'
+        model = models.VariantImage
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.edit_product')
+
+
+class VariantImageUpdate(ModelMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of a variant image to update.')
+        input = VariantImageInput(
+            required=True,
+            description='Fields required to update a variant image.')
+
+    class Meta:
+        description = 'Updates a variant image.'
+        model = models.VariantImage
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.edit_product')
+
+
+class VariantImageDelete(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of a variant image to delete.')
+
+    class Meta:
+        description = 'Deletes a variant image.'
+        model = models.VariantImage
 
     @classmethod
     def user_is_allowed(cls, user, input):
