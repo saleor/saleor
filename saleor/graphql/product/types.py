@@ -276,4 +276,3 @@ class ProductImage(CountableDjangoObjectType):
         if size:
             return self.image.crop[size].url
         return self.image.url
-
