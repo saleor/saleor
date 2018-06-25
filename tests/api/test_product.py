@@ -738,18 +738,10 @@ def test_product_type_update_mutation(admin_api_client, product_type):
                     isShippingRequired
                     hasVariants
                     variantAttributes {
-                        edges {
-                            node {
-                                name
-                            }
-                        }
+                        totalCount
                     }
                     productAttributes {
-                        edges {
-                            node {
-                                name
-                            }
-                        }
+                        totalCount
                     }
                 }
               }
@@ -782,9 +774,9 @@ def test_product_type_update_mutation(admin_api_client, product_type):
     assert data['productType']['name'] == product_type_name
     assert data['productType']['hasVariants'] == has_variants
     assert data['productType']['isShippingRequired'] == require_shipping
-    assert len(data['productType']['productAttributes']['edges']) == 0
+    assert data['productType']['productAttributes']['totalCount'] == 0
     no_va = variant_attributes.count()
-    assert len(data['productType']['variantAttributes']['edges']) == no_va
+    assert data['productType']['variantAttributes']['totalCount'] == no_va
 
 
 def test_product_type_delete_mutation(admin_api_client, product_type):
@@ -885,6 +877,40 @@ def test_product_image_delete(admin_api_client, product_with_image):
     assert data['productImage']['url'] == image_obj.image.url
     with pytest.raises(image_obj._meta.model.DoesNotExist):
         image_obj.refresh_from_db()
+
+
+def test_reorder_images(admin_api_client, product_with_images):
+    query = """
+    mutation reorderImages($product_id: ID!, $images_ids: [ID]!) {
+        productImageReorder(productId: $product_id, imagesIds: $images_ids) {
+            productImages {
+                id
+            }
+        }
+    }
+    """
+    product = product_with_images
+    images = product.images.all()
+    image_0 = images[0]
+    image_1 = images[1]
+    image_0_id = graphene.Node.to_global_id('ProductImage', image_0.id)
+    image_1_id = graphene.Node.to_global_id('ProductImage', image_1.id)
+    product_id = graphene.Node.to_global_id('Product', product.id)
+
+    variables = {
+        'product_id': product_id, 'images_ids': [image_1_id, image_0_id]}
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+
+    # Check if order has been changed
+    product.refresh_from_db()
+    reordered_images = product.images.all()
+    reordered_image_0 = reordered_images[0]
+    reordered_image_1 = reordered_images[1]
+    assert image_0.id == reordered_image_1.id
+    assert image_1.id == reordered_image_0.id
 
 
 def test_collections_query(user_api_client, collection):
