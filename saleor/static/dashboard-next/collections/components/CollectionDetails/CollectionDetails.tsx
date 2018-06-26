@@ -15,7 +15,6 @@ import i18n from "../../../i18n";
 
 interface CollectionDetailsProps {
   collection?: {
-    id: string;
     name: string;
     backgroundImage: string;
   };
