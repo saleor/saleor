@@ -10,7 +10,9 @@ import ActionDialog from "../../../components/ActionDialog";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
+import SaveButtonBar, {
+  SaveButtonBarState
+} from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
@@ -89,6 +91,7 @@ interface ProductUpdateProps {
       stop: number;
     };
   };
+  saveButtonBarState?: SaveButtonBarState;
   storefrontUrl?(value: string): string;
   onBack?();
   onDelete?();
@@ -141,6 +144,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
     placeholderImage,
     product,
     productCollections,
+    saveButtonBarState,
     storefrontUrl,
     variants,
     onBack,
@@ -327,7 +331,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
             </div>
             <SaveButtonBar
               onSave={submit}
-              state={"default"}
+              state={saveButtonBarState}
               disabled={
                 disabled || !onSubmit || shallowCompare(initialData, data)
               }

@@ -17,6 +17,7 @@ storiesOf("Views / Products / Product variant details", module)
       placeholderImage={placeholderImage}
       onDelete={() => {}}
       onImageSelect={() => {}}
+      onSubmit={() => {}}
     />
   ))
   .add("when loaded data", () => (
@@ -25,5 +26,6 @@ storiesOf("Views / Products / Product variant details", module)
       onBack={() => () => {}}
       onDelete={() => {}}
       onImageSelect={() => {}}
+      onSubmit={() => {}}
     />
   ));
