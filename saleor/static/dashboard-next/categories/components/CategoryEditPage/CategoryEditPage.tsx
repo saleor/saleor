@@ -3,26 +3,30 @@ import CardContent from "@material-ui/core/CardContent";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import { Container } from "../../../components/Container";
+import Container from "../../../components/Container";
 import Form from "../../../components/Form";
-import { FormSpacer } from "../../../components/FormSpacer";
+import FormSpacer from "../../../components/FormSpacer";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar";
+import SaveButtonBar, {
+  SaveButtonBarState
+} from "../../../components/SaveButtonBar";
 import i18n from "../../../i18n";
 
+interface CategoryForm {
+  description: string;
+  name: string;
+}
 interface CategoryEditPageProps {
-  category?: {
-    description: string;
-    name: string;
-  };
+  category?: CategoryForm;
   errors?: Array<{
     field: string;
     message: string;
   }>;
   disabled?: boolean;
   variant?: "add" | "edit";
-  onBack?();
-  onSubmit(data: any);
+  saveButtonBarState?: SaveButtonBarState;
+  onBack?: () => void;
+  onSubmit?: (data: CategoryForm) => void;
 }
 
 const CategoryEditPage: React.StatelessComponent<CategoryEditPageProps> = ({
@@ -30,6 +34,7 @@ const CategoryEditPage: React.StatelessComponent<CategoryEditPageProps> = ({
   errors,
   disabled,
   variant,
+  saveButtonBarState,
   onBack,
   onSubmit
 }) => {
@@ -48,7 +53,7 @@ const CategoryEditPage: React.StatelessComponent<CategoryEditPageProps> = ({
       onSubmit={onSubmit}
       key={category === undefined ? "loading" : "ready"}
     >
-      {({ change, data, submit }) => (
+      {({ change, data, hasChanged, submit }) => (
         <Container width="md">
           <PageHeader
             onBack={onBack}
@@ -90,7 +95,8 @@ const CategoryEditPage: React.StatelessComponent<CategoryEditPageProps> = ({
             </CardContent>
           </Card>
           <SaveButtonBar
-            state={disabled ? "disabled" : "default"}
+            disabled={disabled || !onSubmit || !hasChanged}
+            state={saveButtonBarState}
             onSave={submit}
           />
         </Container>

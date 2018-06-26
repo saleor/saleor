@@ -7,7 +7,9 @@ import * as React from "react";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar";
+import SaveButtonBar, {
+  SaveButtonBarState
+} from "../../../components/SaveButtonBar";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 
@@ -15,7 +17,8 @@ interface ProductImagePageProps {
   image?: string;
   description?: string;
   loading?: boolean;
-  onSubmit();
+  saveButtonBarState?: SaveButtonBarState;
+  onSubmit(data: { description: string });
   onBack();
 }
 
@@ -29,10 +32,22 @@ const decorate = withStyles(theme => ({
   }
 }));
 const ProductImagePage = decorate<ProductImagePageProps>(
-  ({ classes, image, description, loading, onSubmit, onBack }) => (
+  ({
+    classes,
+    image,
+    description,
+    loading,
+    saveButtonBarState,
+    onSubmit,
+    onBack
+  }) => (
     <Container width="sm">
-      <Form initial={{ description }} onSubmit={onSubmit}>
-        {({ change, data, submit }) => (
+      <Form
+        initial={{ description: description || "" }}
+        onSubmit={onSubmit}
+        key={description}
+      >
+        {({ change, data, hasChanged, submit }) => (
           <>
             <PageHeader title={i18n.t("Edit image")} onBack={onBack} />
             <Card>
@@ -47,6 +62,7 @@ const ProductImagePage = decorate<ProductImagePageProps>(
                   label={i18n.t("Description")}
                   helperText={i18n.t("Optional")}
                   disabled={loading}
+                  onChange={change}
                   rows={10}
                   multiline
                   fullWidth
@@ -54,7 +70,8 @@ const ProductImagePage = decorate<ProductImagePageProps>(
               </CardContent>
             </Card>
             <SaveButtonBar
-              state={loading ? "disabled" : "default"}
+              disabled={loading || !onSubmit || !hasChanged}
+              state={saveButtonBarState}
               onSave={submit}
             />
           </>
