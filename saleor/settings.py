@@ -8,6 +8,8 @@ from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _
 from django_prices.templatetags.prices_i18n import get_currency_fraction
 
+from . import __version__
+
 
 def get_list(text):
     return [item.strip() for item in text.split(',')]
@@ -57,6 +59,7 @@ TIME_ZONE = 'America/Chicago'
 LANGUAGE_CODE = 'en'
 LANGUAGES = [
     ('bg', _('Bulgarian')),
+    ('cs', _('Czech')),
     ('de', _('German')),
     ('en', _('English')),
     ('es', _('Spanish')),
@@ -227,7 +230,8 @@ INSTALLED_APPS = [
     'django_celery_results',
     'impersonate',
     'phonenumber_field',
-    'captcha']
+    'captcha',
+    'raven.contrib.django.raven_compat']
 
 if DEBUG:
     MIDDLEWARE.append(
@@ -497,3 +501,10 @@ RECAPTCHA_PRIVATE_KEY = os.environ.get('RECAPTCHA_PRIVATE_KEY')
 # Demo-specific settings
 # We obfucate emails if they are different than demo's admin email
 DEMO_ADMIN_EMAIL = 'admin@example.com'
+
+#  Sentry
+SENTRY_DSN = os.environ.get('SENTRY_DSN')
+if SENTRY_DSN:
+    RAVEN_CONFIG = {
+        'dsn': SENTRY_DSN,
+        'release': __version__}

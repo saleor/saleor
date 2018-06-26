@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-05-10 08:29-0500\n"
+"POT-Creation-Date: 2018-06-15 08:35-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Szymon Jasiński <szymon@szymi.com>, 2018\n"
 "Language-Team: Polish (https://www.transifex.com/mirumee/teams/34782/pl/)\n"
@@ -50,16 +50,16 @@ msgstr[3] "Znaleziono %(counter)d pasujących kategorii"
 
 #: saleor/dashboard/category/forms.py:24
 #: saleor/dashboard/collection/forms.py:21
-#: saleor/dashboard/discount/forms.py:77 saleor/dashboard/group/forms.py:13
+#: saleor/dashboard/discount/forms.py:77 saleor/dashboard/group/forms.py:14
 #: saleor/dashboard/product/forms.py:76 saleor/dashboard/product/forms.py:204
-#: saleor/dashboard/product/forms.py:401 saleor/dashboard/shipping/forms.py:14
-#: saleor/dashboard/sites/forms.py:40
+#: saleor/dashboard/product/forms.py:412 saleor/dashboard/shipping/forms.py:14
+#: saleor/dashboard/sites/forms.py:48
 msgctxt "Item name"
 msgid "Name"
 msgstr "Nazwa"
 
 #: saleor/dashboard/category/forms.py:25 saleor/dashboard/product/forms.py:205
-#: saleor/dashboard/product/forms.py:350 saleor/dashboard/shipping/forms.py:16
+#: saleor/dashboard/product/forms.py:361 saleor/dashboard/shipping/forms.py:16
 #: saleor/dashboard/sites/forms.py:27
 msgctxt "Description"
 msgid "Description"
@@ -224,12 +224,29 @@ msgstr[1] "Znaleziono %(counter)d pasujących klientów"
 msgstr[2] "Znaleziono %(counter)d pasujących klientów"
 msgstr[3] "Znaleziono %(counter)d pasujących klientów"
 
-#: saleor/dashboard/customer/forms.py:28
+#: saleor/dashboard/customer/forms.py:22
+msgctxt "Edit customer details in order form error"
+msgid ""
+"You can't delete your own account via dashboard, please try from the "
+"storefront."
+msgstr ""
+
+#: saleor/dashboard/customer/forms.py:27
+msgctxt "Edit customer details in order form error"
+msgid "Only superuser can delete his own account."
+msgstr ""
+
+#: saleor/dashboard/customer/forms.py:32
+msgctxt "Edit customer details in order form error"
+msgid "You have insufficient permissions, to edit staff users."
+msgstr ""
+
+#: saleor/dashboard/customer/forms.py:57
 msgctxt "Customer note"
 msgid "Note"
 msgstr "Notatka"
 
-#: saleor/dashboard/customer/forms.py:31 saleor/dashboard/order/forms.py:258
+#: saleor/dashboard/customer/forms.py:60 saleor/dashboard/order/forms.py:258
 msgctxt "Allow customers to see note toggle"
 msgid "Customer can see this note"
 msgstr "Klient może zobaczyć tę notatkę"
@@ -250,6 +267,12 @@ msgstr "Zaktualizowano %s klientów"
 msgctxt "Dashboard message related to an customer"
 msgid "Added note"
 msgstr "Dodana notatka"
+
+#: saleor/dashboard/customer/views.py:133
+#, python-format
+msgctxt "Dashboard message"
+msgid "%(customer_name)s successfully removed"
+msgstr ""
 
 #: saleor/dashboard/discount/filters.py:14
 msgctxt "Sale list sorting option"
@@ -503,28 +526,28 @@ msgctxt "Voucher message"
 msgid "Removed voucher %s"
 msgstr "Usunięto kuponów: %s"
 
-#: saleor/dashboard/group/filters.py:10
+#: saleor/dashboard/group/filters.py:11
 #: saleor/dashboard/shipping/filters.py:10
 msgctxt "Group list sorting option"
 msgid "name"
 msgstr "nazwy"
 
-#: saleor/dashboard/group/filters.py:15
+#: saleor/dashboard/group/filters.py:20
 msgctxt "Group list filter label"
 msgid "Name"
 msgstr "Nazwa"
 
-#: saleor/dashboard/group/filters.py:18
+#: saleor/dashboard/group/filters.py:23
 msgctxt "Group list filter label"
 msgid "Permissions"
 msgstr "Uprawnienia"
 
-#: saleor/dashboard/group/filters.py:22
+#: saleor/dashboard/group/filters.py:27
 msgctxt "Group list filter label"
 msgid "Sort by"
 msgstr "Sortuj według"
 
-#: saleor/dashboard/group/filters.py:34
+#: saleor/dashboard/group/filters.py:39
 #, python-format
 msgctxt "Number of matching records in the dashboard groups list"
 msgid "Found %(counter)d matching group"
@@ -534,7 +557,7 @@ msgstr[1] "Znaleziono %(counter)d pasujące grupy"
 msgstr[2] "Znaleziono %(counter)d pasujących grup"
 msgstr[3] "Znaleziono %(counter)d pasujących grup"
 
-#: saleor/dashboard/group/forms.py:14
+#: saleor/dashboard/group/forms.py:15
 msgctxt "Permissions"
 msgid "Permissions"
 msgstr "Uprawnienia"
@@ -611,39 +634,39 @@ msgstr[1] "Znaleziono %(counter)d pasujące wpisy w menu"
 msgstr[2] "Znaleziono %(counter)d pasujących wpisów w menu"
 msgstr[3] "Znaleziono %(counter)d pasujących wpisów w menu"
 
-#: saleor/dashboard/menu/forms.py:33
+#: saleor/dashboard/menu/forms.py:34
 msgctxt "Menu name"
 msgid "Menu name"
 msgstr ""
 
-#: saleor/dashboard/menu/forms.py:58
+#: saleor/dashboard/menu/forms.py:59
 msgctxt "Menu item name"
 msgid "Name"
 msgstr "Nazwa"
 
-#: saleor/dashboard/menu/forms.py:59
+#: saleor/dashboard/menu/forms.py:60
 msgctxt "Menu item url"
 msgid "URL"
 msgstr "URL"
 
-#: saleor/dashboard/menu/forms.py:60
+#: saleor/dashboard/menu/forms.py:61
 msgctxt "Menu item object to link"
 msgid "Link"
 msgstr "Odnośnik"
 
-#: saleor/dashboard/menu/forms.py:76
+#: saleor/dashboard/menu/forms.py:77
 msgctxt "Menu item form error"
 msgid "Maximum nesting level for menu items equals to 2."
 msgstr "Maksymalny poziom zagnieżdżenia dla wpisów w menu wynosi 2."
 
-#: saleor/dashboard/menu/forms.py:84
+#: saleor/dashboard/menu/forms.py:85
 msgctxt "Menu item form error"
 msgid "A single menu item can't point to both an internal link and URL."
 msgstr ""
 "Pojedynczy wpis w menu nie może wskazywać jednocześnie na zewnętrzny link "
 "oraz URL."
 
-#: saleor/dashboard/menu/forms.py:91
+#: saleor/dashboard/menu/forms.py:92
 msgctxt "Menu item form error"
 msgid "A single menu item must point to an internal link or URL."
 msgstr "Pojedynczy wpis w menu musi wskazywać na zewnętrzny link lub URL."
@@ -894,8 +917,8 @@ msgstr[3] "Zwiększ stan magazynowy %(quantity)d przedmiotów"
 
 #: saleor/dashboard/order/forms.py:462
 msgctxt "Cancel order form error"
-msgid "This order can't be cancelled"
-msgstr "Nie można anulować tego zamówienia"
+msgid "This order can't be canceled"
+msgstr ""
 
 #: saleor/dashboard/order/forms.py:482
 #, python-format
@@ -1018,8 +1041,8 @@ msgstr ""
 #: saleor/dashboard/order/views.py:283
 #, python-format
 msgctxt "Dashboard message related to an order line"
-msgid "Cancelled item %s"
-msgstr "Anulowano pozycję %s"
+msgid "Canceled item %s"
+msgstr ""
 
 #: saleor/dashboard/order/views.py:315
 #, python-format
@@ -1444,80 +1467,90 @@ msgctxt "Currency net amount"
 msgid "Net price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:278
+#: saleor/dashboard/product/forms.py:280
 msgctxt "SKU"
 msgid "SKU"
 msgstr "SKU"
 
-#: saleor/dashboard/product/forms.py:280
+#: saleor/dashboard/product/forms.py:282
 msgctxt "Override price"
 msgid "Selling price override"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:281
+#: saleor/dashboard/product/forms.py:283
 msgctxt "Integer number"
 msgid "Number in stock"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:282
+#: saleor/dashboard/product/forms.py:284
 msgctxt "Currency amount"
 msgid "Cost price"
 msgstr "Cena"
 
-#: saleor/dashboard/product/forms.py:297
+#: saleor/dashboard/product/forms.py:286
+msgctxt "Track inventory field"
+msgid "Track inventory"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:290
+msgctxt "product variant handle stock field help text"
+msgid "Automatically track this product's inventory"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:307
 msgctxt "Override price"
 msgid "Selling gross price override"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:299
+#: saleor/dashboard/product/forms.py:309
 msgctxt "Currency amount"
 msgid "Cost gross price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:302
+#: saleor/dashboard/product/forms.py:312
 msgctxt "Override price"
 msgid "Selling net price override"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:304
+#: saleor/dashboard/product/forms.py:314
 msgctxt "Currency amount"
 msgid "Cost net price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:348 saleor/dashboard/product/forms.py:453
+#: saleor/dashboard/product/forms.py:359 saleor/dashboard/product/forms.py:464
 msgctxt "Product image"
 msgid "Image"
 msgstr "Grafika"
 
-#: saleor/dashboard/product/forms.py:389
+#: saleor/dashboard/product/forms.py:400
 msgctxt "Product display name"
 msgid "Display name"
 msgstr "Publiczna nazwa"
 
-#: saleor/dashboard/product/forms.py:391
+#: saleor/dashboard/product/forms.py:402
 msgctxt "Product internal name"
 msgid "Internal name"
 msgstr "Wewnętrzna nazwa"
 
-#: saleor/dashboard/product/views.py:123
+#: saleor/dashboard/product/views.py:126
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added product %s"
 msgstr "Dodano produkt %s"
 
-#: saleor/dashboard/product/views.py:154
+#: saleor/dashboard/product/views.py:157
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated product %s"
 msgstr "Zaktualizowano produkt %s"
 
-#: saleor/dashboard/product/views.py:169
+#: saleor/dashboard/product/views.py:172
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed product %s"
 msgstr "Usuń produkt %s"
 
-#: saleor/dashboard/product/views.py:188
+#: saleor/dashboard/product/views.py:191
 #, python-format
 msgctxt "Dashboard message"
 msgid "%(count)d product has been updated"
@@ -1527,81 +1560,81 @@ msgstr[1] "%(count)d produkty zostały zaktualizowane"
 msgstr[2] "%(count)d produktów zostało zaktualizowanych"
 msgstr[3] "%(count)d produktów zostało zaktualizowanych"
 
-#: saleor/dashboard/product/views.py:241
+#: saleor/dashboard/product/views.py:244
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added product type %s"
 msgstr "Dodano typ produktu %s"
 
-#: saleor/dashboard/product/views.py:260
+#: saleor/dashboard/product/views.py:263
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated product type %s"
 msgstr "Zaktualizowano typ produktu %s"
 
-#: saleor/dashboard/product/views.py:277
+#: saleor/dashboard/product/views.py:280
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed product type %s"
 msgstr "Usuń typ produktu %s"
 
-#: saleor/dashboard/product/views.py:321 saleor/dashboard/product/views.py:342
+#: saleor/dashboard/product/views.py:328 saleor/dashboard/product/views.py:349
 #, python-format
 msgctxt "Dashboard message"
 msgid "Saved variant %s"
 msgstr "Zapisano wariant %s"
 
-#: saleor/dashboard/product/views.py:362
+#: saleor/dashboard/product/views.py:369
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed variant %s"
 msgstr "Usunięto wariant %s"
 
-#: saleor/dashboard/product/views.py:443
+#: saleor/dashboard/product/views.py:450
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added image %s"
 msgstr "Dodano obrazek %s"
 
-#: saleor/dashboard/product/views.py:464
+#: saleor/dashboard/product/views.py:471
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated image %s"
 msgstr "Zaktualizowano obrazek %s"
 
-#: saleor/dashboard/product/views.py:482
+#: saleor/dashboard/product/views.py:489
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed image %s"
 msgstr "Usunięto obraz %s"
 
-#: saleor/dashboard/product/views.py:559
+#: saleor/dashboard/product/views.py:566
 msgctxt "Dashboard message"
 msgid "Added attribute"
 msgstr "Dodano atrybut"
 
-#: saleor/dashboard/product/views.py:576
+#: saleor/dashboard/product/views.py:583
 msgctxt "Dashboard message"
 msgid "Updated attribute"
 msgstr "Zaktualizowano atrybut"
 
-#: saleor/dashboard/product/views.py:593
+#: saleor/dashboard/product/views.py:600
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed attribute %s"
 msgstr "Usunięto atrybut %s"
 
-#: saleor/dashboard/product/views.py:612
+#: saleor/dashboard/product/views.py:619
 msgctxt "Dashboard message"
 msgid "Added attribute's value"
 msgstr "Dodano wartość atrybutu"
 
-#: saleor/dashboard/product/views.py:631
+#: saleor/dashboard/product/views.py:638
 msgctxt "Dashboard message"
 msgid "Updated attribute's value"
 msgstr "Zaktualizowano wartość atrybutu"
 
-#: saleor/dashboard/product/views.py:649
+#: saleor/dashboard/product/views.py:656
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed attribute's value %s"
@@ -1698,12 +1731,24 @@ msgctxt "Header text"
 msgid "Header text"
 msgstr "Tekst nagłówka"
 
-#: saleor/dashboard/sites/forms.py:36
+#: saleor/dashboard/sites/forms.py:30
+msgctxt "Inventory tracking by default settings toggle label"
+msgid "Enable inventory tracking for newly created products"
+msgstr ""
+
+#: saleor/dashboard/sites/forms.py:34
+msgctxt "handle stock by default settings field help text"
+msgid ""
+"This will set the default value of stock handling on product and variant "
+"creation"
+msgstr ""
+
+#: saleor/dashboard/sites/forms.py:44
 msgctxt "Key for chosen authorization method"
 msgid "Key"
 msgstr "Klucz"
 
-#: saleor/dashboard/sites/forms.py:38
+#: saleor/dashboard/sites/forms.py:46
 msgctxt "Password"
 msgid "Password"
 msgstr "Hasło"
