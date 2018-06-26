@@ -4,7 +4,8 @@ ENV PYTHONUNBUFFERED 1
 
 RUN \
   apt-get -y update && \
-  apt-get install -y gettext python3-virtualenv virtualenv && \
+  apt-get install -y gettext virtualenv && \
+  # Cleanup apt cache
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
