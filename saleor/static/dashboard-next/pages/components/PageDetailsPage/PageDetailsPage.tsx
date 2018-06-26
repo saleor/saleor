@@ -6,7 +6,9 @@ import * as React from "react";
 import { Container } from "../../../components/Container";
 import Form, { FormProps } from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar";
+import SaveButtonBar, {
+  SaveButtonBarState
+} from "../../../components/SaveButtonBar";
 import Toggle from "../../../components/Toggle";
 import PageContent from "../PageContent";
 import PageDeleteDialog from "../PageDeleteDialog";
@@ -29,6 +31,7 @@ interface PageDetailsPageProps {
   }>;
   disabled?: boolean;
   title?: string;
+  saveButtonBarState?: SaveButtonBarState;
   onBack?();
   onDelete?();
   onSubmit(data: PageInput);
@@ -50,13 +53,23 @@ const decorate = withStyles(theme => ({
   }
 }));
 const PageDetailsPage = decorate<PageDetailsPageProps>(
-  ({ classes, errors, disabled, page, title, onBack, onDelete, onSubmit }) => (
+  ({
+    classes,
+    errors,
+    disabled,
+    page,
+    title,
+    saveButtonBarState,
+    onBack,
+    onDelete,
+    onSubmit
+  }) => (
     <PageForm
       key={page ? "ready" : "loading"}
       initial={page ? page : defaultPage}
       onSubmit={onSubmit}
     >
-      {({ change, data, submit }) => (
+      {({ change, data, hasChanged, submit }) => (
         <Toggle>
           {(opened, { toggle: togglePageDeleteDialog }) => (
             <Container width="md">
@@ -89,7 +102,8 @@ const PageDetailsPage = decorate<PageDetailsPageProps>(
                   </div>
                 </div>
                 <SaveButtonBar
-                  state={disabled ? "disabled" : "default"}
+                  disabled={disabled || !onSubmit || !hasChanged}
+                  state={saveButtonBarState}
                   onSave={submit}
                 />
                 {!!onDelete &&

@@ -13,6 +13,7 @@ const collection = collectionsFixture(placeholderImage)[0];
 const callbacks = {
   onBack: () => {},
   onImageRemove: () => {},
+  onSubmit: () => {},
   storefrontUrl
 };
 

@@ -44,6 +44,7 @@ const ProductVariantPrice = decorate<ProductVariantPriceProps>(
         <div className={classes.grid}>
           <div>
             <PriceField
+              name="priceOverride"
               label={i18n.t("Selling price override")}
               hint={i18n.t("Optional")}
               value={priceOverride}
@@ -54,6 +55,7 @@ const ProductVariantPrice = decorate<ProductVariantPriceProps>(
           </div>
           <div>
             <PriceField
+              name="costPrice"
               label={i18n.t("Cost price override")}
               hint={i18n.t("Optional")}
               value={costPrice}

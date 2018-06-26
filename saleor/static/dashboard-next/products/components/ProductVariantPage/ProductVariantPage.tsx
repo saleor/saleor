@@ -1,12 +1,15 @@
 import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
 import DeleteIcon from "@material-ui/icons/Delete";
+import * as CRC from "crc-32";
 import * as React from "react";
 
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
-import SaveButtonBar from "../../../components/SaveButtonBar";
+import SaveButtonBar, {
+  SaveButtonBarState
+} from "../../../components/SaveButtonBar";
 import Toggle from "../../../components/Toggle";
 import ProductVariantAttributes from "../ProductVariantAttributes";
 import ProductVariantDeleteDialog from "../ProductVariantDeleteDialog";
@@ -68,10 +71,12 @@ interface ProductVariantPageProps {
     stock: number;
     stockAllocated: number;
   };
+  saveButtonBarState?: SaveButtonBarState;
   loading?: boolean;
   placeholderImage?: string;
   onBack();
   onDelete();
+  onSubmit(data: any);
   onImageSelect(images: string[]);
 }
 
@@ -97,6 +102,8 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
     placeholderImage,
     onBack,
     onDelete,
+    saveButtonBarState,
+    onSubmit,
     onImageSelect
   }) => {
     const attributes = loading
@@ -136,18 +143,22 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                   </PageHeader>
                   <Form
                     initial={{
-                      costPrice: loading
-                        ? undefined
-                        : variant.priceOverride.amount,
-                      priceOverride: loading
-                        ? undefined
-                        : variant.priceOverride.amount,
-                      stock: loading ? undefined : variant.stock,
-                      sku: loading ? undefined : variant.sku,
+                      costPrice:
+                        variant && variant.priceOverride
+                          ? variant.priceOverride.amount
+                          : null,
+                      priceOverride:
+                        variant && variant.priceOverride
+                          ? variant.priceOverride.amount
+                          : null,
+                      stock: variant && variant.stock ? variant.stock : null,
+                      sku: variant && variant.sku ? variant.sku : null,
                       ...attributes
                     }}
+                    onSubmit={onSubmit}
+                    key={variant ? CRC.str(JSON.stringify(variant)) : "loading"}
                   >
-                    {({ change, data, submit }) => (
+                    {({ change, data, hasChanged, submit }) => (
                       <>
                         <div className={classes.root}>
                           <div>
@@ -205,30 +216,31 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                           </div>
                         </div>
                         <SaveButtonBar
-                          disabled={loading}
-                          state={loading ? "disabled" : "default"}
+                          disabled={loading || !onSubmit || !hasChanged}
+                          state={saveButtonBarState}
                           onSave={submit}
                         />
                       </>
                     )}
                   </Form>
                 </Container>
-                {!loading && (
-                  <>
-                    <ProductVariantDeleteDialog
-                      onClose={toggleDeleteModal}
-                      onConfirm={onDelete}
-                      open={isModalActive}
-                      name={variant.name}
-                    />
-                    <ProductVariantImageSelectDialog
-                      onClose={toggleImageSelectModal}
-                      onConfirm={handleImageSelect}
-                      open={isImageSelectModalActive}
-                      images={productImages}
-                    />
-                  </>
-                )}
+                {variant &&
+                  variant.name && (
+                    <>
+                      <ProductVariantDeleteDialog
+                        onClose={toggleDeleteModal}
+                        onConfirm={onDelete}
+                        open={isModalActive}
+                        name={variant.name}
+                      />
+                      <ProductVariantImageSelectDialog
+                        onClose={toggleImageSelectModal}
+                        onConfirm={handleImageSelect}
+                        open={isImageSelectModalActive}
+                        images={productImages}
+                      />
+                    </>
+                  )}
               </>
             )}
           </Toggle>
