@@ -118,11 +118,17 @@ Installation
 
    .. code-block:: console
 
-    $ createdb saleor
     $ createuser --superuser --pwprompt saleor
 
    Enter ``saleor`` when prompted for password.
 
+#. Create a PostgreSQL database:
+
+   Unless configured otherwise the store will use ``saleor`` as the database name.
+
+   .. code-block:: console
+
+    $ createdb saleor
 
 #. Prepare the database:
 
