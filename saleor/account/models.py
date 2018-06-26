@@ -20,21 +20,6 @@ class PossiblePhoneNumberField(PhoneNumberField):
     default_validators = [validate_possible_number]
 
 
-class Company(models.Model):
-    name = models.CharField(max_length=256)
-    addresses = models.ManyToManyField(Address, blank=True)
-    default_billing_address = models.ForeignKey(
-        Address, null=True, blank=True, on_delete=models.SET_NULL)
-    contacts = models.ManyToManyField(User, blank=True, through=CompanyContact)
-    is_active = models.BooleanField(default=True)
-
-
-class CompanyContact(models.Model):
-    company = models.ForeignKey(Contact, on_delete=models.DELETE)
-    user = models.ForeignKey(User, on_delete=models.DELETE)
-    label = models.CharField(max_length=256)
-
-
 class Address(models.Model):
     first_name = models.CharField(max_length=256, blank=True)
     last_name = models.CharField(max_length=256, blank=True)
@@ -85,6 +70,22 @@ class Address(models.Model):
         return Address.objects.create(**self.as_data())
 
 
+class Company(models.Model):
+    name = models.CharField(max_length=256)
+    addresses = models.ManyToManyField(Address, blank=True)
+    default_billing_address = models.ForeignKey(
+        Address, null=True, blank=True, on_delete=models.SET_NULL)
+    contacts = models.ManyToManyField(
+        'User', blank=True, through='CompanyContact')
+    is_active = models.BooleanField(default=True)
+
+
+class CompanyContact(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    user = models.ForeignKey('User', on_delete=models.CASCADE)
+    label = models.CharField(max_length=256)
+
+
 class UserManager(BaseUserManager):
 
     def create_user(
@@ -115,7 +116,7 @@ def get_token():
 class User(PermissionsMixin, AbstractBaseUser):
     email = models.EmailField(unique=True)
     company = models.ForeignKey(
-        Company, null=True, blank=True, on_delete=models.PREVENT)
+        Company, null=True, blank=True, on_delete=models.PROTECT)
     user_addresses = models.ManyToManyField(Address, blank=True)
     is_staff = models.BooleanField(default=False)
     token = models.UUIDField(default=get_token, editable=False, unique=True)
