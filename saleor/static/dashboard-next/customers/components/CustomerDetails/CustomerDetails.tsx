@@ -98,7 +98,10 @@ const CustomerDetails = decorate<CustomerDetailsProps>(
               >
                 {i18n.t("Joined")}
               </Typography>{" "}
-              <DateFormatter date={customer.dateJoined} typography="caption" />
+              <DateFormatter
+                date={customer.dateJoined}
+                typographyProps={{ variant: "caption" }}
+              />
             </div>
             {customer.note ? (
               <Typography>{customer.note}</Typography>
