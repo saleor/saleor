@@ -57,7 +57,7 @@
     "react-apollo": "^2.1.3",
     "react-dom": "^16.4.0",
     "react-jss": "^8.4.0",
-    "react-moment": "^0.7.4",
+    "react-moment": "^0.7.7",
     "react-redux": "^5.0.6",
     "react-router": "^4.2.0",
     "react-router-dom": "^4.2.2",
@@ -167,6 +167,6 @@
     "build-emails": "mjml --config.beautify false -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled",
     "storybook": "start-storybook -p 3000 -c saleor/static/dashboard-next/storybook/",
     "build-storybook": "build-storybook -c saleor/static/dashboard-next/storybook/ -o build",
-    "test": "jest saleor/static/dashboard-next/"
+    "test": "TZ=UTC jest saleor/static/dashboard-next/"
   }
 }
