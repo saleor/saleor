@@ -1272,8 +1272,10 @@ exports[`Storyshots Generics / AddressFormatter when loading 1`] = `
 `;
 
 exports[`Storyshots Generics / DateFormatter default 1`] = `
-<span>
-  2018-04-07T10:44:44
+<span
+  class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+>
+  2018-4-7 10:44:44
 </span>
 `;
 
@@ -3781,8 +3783,10 @@ exports[`Storyshots Generics / Timeline default 1`] = `
     <div
       class="Component-noExpanderNodeDate-443"
     >
-      <span>
-        2018-05-07T16:58:02+00:00
+      <span
+        class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+      >
+        2018-5-7 16:58:02
       </span>
     </div>
   </div>
@@ -3800,8 +3804,10 @@ exports[`Storyshots Generics / Timeline default 1`] = `
     <div
       class="Component-noExpanderNodeDate-443"
     >
-      <span>
-        2018-05-07T16:48:02+00:00
+      <span
+        class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+      >
+        2018-5-7 16:48:02
       </span>
     </div>
   </div>
@@ -3819,8 +3825,10 @@ exports[`Storyshots Generics / Timeline default 1`] = `
     <div
       class="Component-noExpanderNodeDate-443"
     >
-      <span>
-        2018-05-06T16:58:02+00:00
+      <span
+        class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+      >
+        2018-5-6 16:58:02
       </span>
     </div>
   </div>
@@ -3857,8 +3865,10 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
           <div
             class="Component-nodeDate-435"
           >
-            <span>
-              2018-05-07T16:58:02+00:00
+            <span
+              class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+            >
+              2018-5-7 16:58:02
             </span>
           </div>
         </div>
@@ -3940,8 +3950,10 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
           <div
             class="Component-nodeDate-435"
           >
-            <span>
-              2018-05-07T16:48:02+00:00
+            <span
+              class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+            >
+              2018-5-7 16:48:02
             </span>
           </div>
         </div>
@@ -4023,8 +4035,10 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
           <div
             class="Component-nodeDate-435"
           >
-            <span>
-              2018-05-06T16:58:02+00:00
+            <span
+              class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+            >
+              2018-5-6 16:58:02
             </span>
           </div>
         </div>
@@ -4113,8 +4127,10 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
           <div
             class="Component-nodeDate-435"
           >
-            <span>
-              2018-05-07T16:58:02+00:00
+            <span
+              class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+            >
+              2018-5-7 16:58:02
             </span>
           </div>
         </div>
@@ -4201,8 +4217,10 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
       <div
         class="Component-noteDate-468"
       >
-        <span>
-          2018-05-07T16:58:02+00:00
+        <span
+          class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+        >
+          2018-5-7 16:58:02
         </span>
       </div>
     </div>
@@ -4248,8 +4266,10 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
       <div
         class="Component-noteDate-468"
       >
-        <span>
-          2018-05-07T16:58:02+00:00
+        <span
+          class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+        >
+          2018-5-7 16:58:02
         </span>
       </div>
     </div>
@@ -4290,8 +4310,10 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
           <div
             class="Component-nodeDate-435"
           >
-            <span>
-              2018-05-06T16:58:02+00:00
+            <span
+              class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+            >
+              2018-5-6 16:58:02
             </span>
           </div>
         </div>
@@ -4946,8 +4968,10 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
         <div
           class="Component-noteDate-468"
         >
-          <span>
-            2018-04-08T11:18:19+00:00
+          <span
+            class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+          >
+            2018-4-8 11:18:19
           </span>
         </div>
       </div>
@@ -4987,8 +5011,10 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
             <div
               class="Component-nodeDate-435"
             >
-              <span>
-                2018-04-07T13:31:19+00:00
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+              >
+                2018-4-7 13:31:19
               </span>
             </div>
           </div>
@@ -5086,8 +5112,10 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
             <div
               class="Component-nodeDate-435"
             >
-              <span>
-                2018-04-07T11:33:19+00:00
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+              >
+                2018-4-7 11:33:19
               </span>
             </div>
           </div>
@@ -5173,8 +5201,10 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
             <div
               class="Component-nodeDate-435"
             >
-              <span>
-                2018-04-07T11:18:19+00:00
+              <span
+                class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+              >
+                2018-4-7 11:18:19
               </span>
             </div>
           </div>
@@ -5390,8 +5420,10 @@ exports[`Storyshots Orders / OrderList when loaded data 1`] = `
         <td
           class="MuiTableCell-root-202 MuiTableCell-body-204"
         >
-          <span>
-            2018-04-07T11:18:19+00:00
+          <span
+            class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+          >
+            2018-4-7 11:18:19
           </span>
         </td>
         <td
@@ -5453,8 +5485,10 @@ exports[`Storyshots Orders / OrderList when loaded data 1`] = `
         <td
           class="MuiTableCell-root-202 MuiTableCell-body-204"
         >
-          <span>
-            2018-04-07T11:11:19+00:00
+          <span
+            class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+          >
+            2018-4-7 11:11:19
           </span>
         </td>
         <td
@@ -5516,8 +5550,10 @@ exports[`Storyshots Orders / OrderList when loaded data 1`] = `
         <td
           class="MuiTableCell-root-202 MuiTableCell-body-204"
         >
-          <span>
-            2018-04-07T10:44:44+00:00
+          <span
+            class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+          >
+            2018-4-7 10:44:44
           </span>
         </td>
         <td
@@ -5579,8 +5615,10 @@ exports[`Storyshots Orders / OrderList when loaded data 1`] = `
         <td
           class="MuiTableCell-root-202 MuiTableCell-body-204"
         >
-          <span>
-            2018-04-07T10:33:19+00:00
+          <span
+            class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+          >
+            2018-4-7 10:33:19
           </span>
         </td>
         <td
@@ -5642,8 +5680,10 @@ exports[`Storyshots Orders / OrderList when loaded data 1`] = `
         <td
           class="MuiTableCell-root-202 MuiTableCell-body-204"
         >
-          <span>
-            2018-04-07T07:39:19+00:00
+          <span
+            class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+          >
+            2018-4-7 07:39:19
           </span>
         </td>
         <td
@@ -5705,8 +5745,10 @@ exports[`Storyshots Orders / OrderList when loaded data 1`] = `
         <td
           class="MuiTableCell-root-202 MuiTableCell-body-204"
         >
-          <span>
-            2018-04-06T19:18:19+00:00
+          <span
+            class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+          >
+            2018-4-6 19:18:19
           </span>
         </td>
         <td
@@ -6211,8 +6253,10 @@ exports[`Storyshots Orders / OrderList with clickable rows 1`] = `
         <td
           class="MuiTableCell-root-202 MuiTableCell-body-204"
         >
-          <span>
-            2018-04-07T11:18:19+00:00
+          <span
+            class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+          >
+            2018-4-7 11:18:19
           </span>
         </td>
         <td
@@ -6274,8 +6318,10 @@ exports[`Storyshots Orders / OrderList with clickable rows 1`] = `
         <td
           class="MuiTableCell-root-202 MuiTableCell-body-204"
         >
-          <span>
-            2018-04-07T11:11:19+00:00
+          <span
+            class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+          >
+            2018-4-7 11:11:19
           </span>
         </td>
         <td
@@ -6337,8 +6383,10 @@ exports[`Storyshots Orders / OrderList with clickable rows 1`] = `
         <td
           class="MuiTableCell-root-202 MuiTableCell-body-204"
         >
-          <span>
-            2018-04-07T10:44:44+00:00
+          <span
+            class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+          >
+            2018-4-7 10:44:44
           </span>
         </td>
         <td
@@ -6400,8 +6448,10 @@ exports[`Storyshots Orders / OrderList with clickable rows 1`] = `
         <td
           class="MuiTableCell-root-202 MuiTableCell-body-204"
         >
-          <span>
-            2018-04-07T10:33:19+00:00
+          <span
+            class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+          >
+            2018-4-7 10:33:19
           </span>
         </td>
         <td
@@ -6463,8 +6513,10 @@ exports[`Storyshots Orders / OrderList with clickable rows 1`] = `
         <td
           class="MuiTableCell-root-202 MuiTableCell-body-204"
         >
-          <span>
-            2018-04-07T07:39:19+00:00
+          <span
+            class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+          >
+            2018-4-7 07:39:19
           </span>
         </td>
         <td
@@ -6526,8 +6578,10 @@ exports[`Storyshots Orders / OrderList with clickable rows 1`] = `
         <td
           class="MuiTableCell-root-202 MuiTableCell-body-204"
         >
-          <span>
-            2018-04-06T19:18:19+00:00
+          <span
+            class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+          >
+            2018-4-6 19:18:19
           </span>
         </td>
         <td
@@ -19813,8 +19867,10 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
               Joined
             </span>
              
-            <span>
-              2017-10-11T13:22:30.831Z
+            <span
+              class="MuiTypography-root-15 MuiTypography-caption-25 DateFormatter-root-227"
+            >
+              2017-10-11 13:22:30
             </span>
           </div>
           <p
@@ -19942,8 +19998,10 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
               <td
                 class="MuiTableCell-root-202 MuiTableCell-body-204"
               >
-                <span>
-                  2018-04-07T11:18:19+00:00
+                <span
+                  class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+                >
+                  2018-4-7 11:18:19
                 </span>
               </td>
               <td
@@ -19988,8 +20046,10 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
               <td
                 class="MuiTableCell-root-202 MuiTableCell-body-204"
               >
-                <span>
-                  2018-04-07T11:11:19+00:00
+                <span
+                  class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+                >
+                  2018-4-7 11:11:19
                 </span>
               </td>
               <td
@@ -20034,8 +20094,10 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
               <td
                 class="MuiTableCell-root-202 MuiTableCell-body-204"
               >
-                <span>
-                  2018-04-07T10:44:44+00:00
+                <span
+                  class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+                >
+                  2018-4-7 10:44:44
                 </span>
               </td>
               <td
@@ -20080,8 +20142,10 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
               <td
                 class="MuiTableCell-root-202 MuiTableCell-body-204"
               >
-                <span>
-                  2018-04-07T10:33:19+00:00
+                <span
+                  class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+                >
+                  2018-4-7 10:33:19
                 </span>
               </td>
               <td
@@ -20126,8 +20190,10 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
               <td
                 class="MuiTableCell-root-202 MuiTableCell-body-204"
               >
-                <span>
-                  2018-04-07T07:39:19+00:00
+                <span
+                  class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+                >
+                  2018-4-7 07:39:19
                 </span>
               </td>
               <td
@@ -20172,8 +20238,10 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
               <td
                 class="MuiTableCell-root-202 MuiTableCell-body-204"
               >
-                <span>
-                  2018-04-06T19:18:19+00:00
+                <span
+                  class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+                >
+                  2018-4-6 19:18:19
                 </span>
               </td>
               <td
@@ -22847,8 +22915,10 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
   <div
     class="OrderDetailsPageComponent-orderDate-744"
   >
-    <span>
-      2018-04-07T11:18:19+00:00
+    <span
+      class="MuiTypography-root-15 MuiTypography-caption-25 DateFormatter-root-227"
+    >
+      2018-4-7 11:18:19
     </span>
   </div>
   <div
@@ -23534,8 +23604,10 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
               <div
                 class="Component-noteDate-468"
               >
-                <span>
-                  2018-04-08T11:18:19+00:00
+                <span
+                  class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+                >
+                  2018-4-8 11:18:19
                 </span>
               </div>
             </div>
@@ -23575,8 +23647,10 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                   <div
                     class="Component-nodeDate-435"
                   >
-                    <span>
-                      2018-04-07T13:31:19+00:00
+                    <span
+                      class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+                    >
+                      2018-4-7 13:31:19
                     </span>
                   </div>
                 </div>
@@ -23674,8 +23748,10 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                   <div
                     class="Component-nodeDate-435"
                   >
-                    <span>
-                      2018-04-07T11:33:19+00:00
+                    <span
+                      class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+                    >
+                      2018-4-7 11:33:19
                     </span>
                   </div>
                 </div>
@@ -23761,8 +23837,10 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                   <div
                     class="Component-nodeDate-435"
                   >
-                    <span>
-                      2018-04-07T11:18:19+00:00
+                    <span
+                      class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+                    >
+                      2018-4-7 11:18:19
                     </span>
                   </div>
                 </div>
@@ -24050,8 +24128,10 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
   <div
     class="OrderDetailsPageComponent-orderDate-744"
   >
-    <span>
-      2018-04-07T11:18:19+00:00
+    <span
+      class="MuiTypography-root-15 MuiTypography-caption-25 DateFormatter-root-227"
+    >
+      2018-4-7 11:18:19
     </span>
   </div>
   <div
@@ -24968,8 +25048,10 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
               <div
                 class="Component-noteDate-468"
               >
-                <span>
-                  2018-04-08T11:18:19+00:00
+                <span
+                  class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+                >
+                  2018-4-8 11:18:19
                 </span>
               </div>
             </div>
@@ -25009,8 +25091,10 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                   <div
                     class="Component-nodeDate-435"
                   >
-                    <span>
-                      2018-04-07T13:31:19+00:00
+                    <span
+                      class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+                    >
+                      2018-4-7 13:31:19
                     </span>
                   </div>
                 </div>
@@ -25108,8 +25192,10 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                   <div
                     class="Component-nodeDate-435"
                   >
-                    <span>
-                      2018-04-07T11:33:19+00:00
+                    <span
+                      class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+                    >
+                      2018-4-7 11:33:19
                     </span>
                   </div>
                 </div>
@@ -25195,8 +25281,10 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                   <div
                     class="Component-nodeDate-435"
                   >
-                    <span>
-                      2018-04-07T11:18:19+00:00
+                    <span
+                      class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+                    >
+                      2018-4-7 11:18:19
                     </span>
                   </div>
                 </div>
@@ -25458,8 +25546,10 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
   <div
     class="OrderDetailsPageComponent-orderDate-744"
   >
-    <span>
-      2018-04-07T11:18:19+00:00
+    <span
+      class="MuiTypography-root-15 MuiTypography-caption-25 DateFormatter-root-227"
+    >
+      2018-4-7 11:18:19
     </span>
   </div>
   <div
@@ -26376,8 +26466,10 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
               <div
                 class="Component-noteDate-468"
               >
-                <span>
-                  2018-04-08T11:18:19+00:00
+                <span
+                  class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+                >
+                  2018-4-8 11:18:19
                 </span>
               </div>
             </div>
@@ -26417,8 +26509,10 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                   <div
                     class="Component-nodeDate-435"
                   >
-                    <span>
-                      2018-04-07T13:31:19+00:00
+                    <span
+                      class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+                    >
+                      2018-4-7 13:31:19
                     </span>
                   </div>
                 </div>
@@ -26516,8 +26610,10 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                   <div
                     class="Component-nodeDate-435"
                   >
-                    <span>
-                      2018-04-07T11:33:19+00:00
+                    <span
+                      class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+                    >
+                      2018-4-7 11:33:19
                     </span>
                   </div>
                 </div>
@@ -26603,8 +26699,10 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                   <div
                     class="Component-nodeDate-435"
                   >
-                    <span>
-                      2018-04-07T11:18:19+00:00
+                    <span
+                      class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+                    >
+                      2018-4-7 11:18:19
                     </span>
                   </div>
                 </div>
@@ -27824,8 +27922,10 @@ exports[`Storyshots Views / Orders / Order list when loading data 1`] = `
           <td
             class="MuiTableCell-root-202 MuiTableCell-body-204"
           >
-            <span>
-              2018-04-07T11:18:19+00:00
+            <span
+              class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+            >
+              2018-4-7 11:18:19
             </span>
           </td>
           <td
@@ -27887,8 +27987,10 @@ exports[`Storyshots Views / Orders / Order list when loading data 1`] = `
           <td
             class="MuiTableCell-root-202 MuiTableCell-body-204"
           >
-            <span>
-              2018-04-07T11:11:19+00:00
+            <span
+              class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+            >
+              2018-4-7 11:11:19
             </span>
           </td>
           <td
@@ -27950,8 +28052,10 @@ exports[`Storyshots Views / Orders / Order list when loading data 1`] = `
           <td
             class="MuiTableCell-root-202 MuiTableCell-body-204"
           >
-            <span>
-              2018-04-07T10:44:44+00:00
+            <span
+              class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+            >
+              2018-4-7 10:44:44
             </span>
           </td>
           <td
@@ -28013,8 +28117,10 @@ exports[`Storyshots Views / Orders / Order list when loading data 1`] = `
           <td
             class="MuiTableCell-root-202 MuiTableCell-body-204"
           >
-            <span>
-              2018-04-07T10:33:19+00:00
+            <span
+              class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+            >
+              2018-4-7 10:33:19
             </span>
           </td>
           <td
@@ -28076,8 +28182,10 @@ exports[`Storyshots Views / Orders / Order list when loading data 1`] = `
           <td
             class="MuiTableCell-root-202 MuiTableCell-body-204"
           >
-            <span>
-              2018-04-07T07:39:19+00:00
+            <span
+              class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+            >
+              2018-4-7 07:39:19
             </span>
           </td>
           <td
@@ -28139,8 +28247,10 @@ exports[`Storyshots Views / Orders / Order list when loading data 1`] = `
           <td
             class="MuiTableCell-root-202 MuiTableCell-body-204"
           >
-            <span>
-              2018-04-06T19:18:19+00:00
+            <span
+              class="MuiTypography-root-15 MuiTypography-body1-24 DateFormatter-root-227"
+            >
+              2018-4-6 19:18:19
             </span>
           </td>
           <td
