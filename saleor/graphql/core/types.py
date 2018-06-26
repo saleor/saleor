@@ -35,17 +35,7 @@ class CountryDisplay(graphene.ObjectType):
     code = graphene.String(description='Country code.')
     country = graphene.String(description='Country.')
 
-
-class CountableConnection(graphene.relay.Connection):
-    class Meta:
-        abstract = True
-
-    total_count = graphene.Int(
-        description='A total count of items in the collection')
-
-    @staticmethod
-    def resolve_total_count(root, info, *args, **kwargs):
-        return root.length
+from .connection import CountableConnection
 
 
 class CountableDjangoObjectType(DjangoObjectType):
