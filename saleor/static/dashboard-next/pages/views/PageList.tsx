@@ -95,6 +95,7 @@ export class PageList extends React.Component<PageListProps, PageListState> {
                   window.open(pageStorefrontUrl(slug));
                 return (
                   <PageListPage
+                    disabled={loading}
                     pages={
                       data && data.pages
                         ? data.pages.edges.map(edge => edge.node)
@@ -105,11 +106,10 @@ export class PageList extends React.Component<PageListProps, PageListState> {
                         ? data.pages.pageInfo
                         : undefined
                     }
-                    onAddPage={() => navigate(pageAddUrl)}
-                    onEditPage={handleEditClick}
+                    onAdd={() => navigate(pageAddUrl)}
+                    onRowClick={handleEditClick}
                     onNextPage={loadNextPage}
                     onPreviousPage={loadPreviousPage}
-                    onShowPage={handleShowPageClick}
                   />
                 );
               }}

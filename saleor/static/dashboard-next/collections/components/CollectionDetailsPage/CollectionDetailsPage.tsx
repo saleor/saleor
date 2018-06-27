@@ -1,5 +1,8 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
-import { withStyles, WithStyles } from "@material-ui/core/styles";
+import IconButton from "@material-ui/core/IconButton";
+import { withStyles } from "@material-ui/core/styles";
+import DeleteIcon from "@material-ui/icons/Delete";
+import VisibilityIcon from "@material-ui/icons/Visibility";
 import * as React from "react";
 
 import ActionDialog from "../../../components/ActionDialog";
@@ -40,25 +43,18 @@ interface CollectionDetailsPageProps {
     hasPreviousPage: boolean;
   };
   saveButtonBarState?: SaveButtonBarState;
-  storefrontUrl?: (slug: string) => string;
-  onBack?: () => void;
-  onCollectionDelete?: () => void;
-  onImageRemove?: () => void;
-  onNextPage?: () => void;
-  onPreviousPage?: () => void;
-  onProductAdd?: () => void;
-  onProductClick?: (id: string) => () => void;
-  onProductRemove?: (id: string) => () => void;
+  storefrontUrl: (slug: string) => string;
+  onBack: () => void;
+  onDelete: () => void;
+  onImageRemove: () => void;
+  onNextPage: () => void;
+  onPreviousPage: () => void;
+  onProductAdd: () => void;
+  onProductClick: (id: string) => () => void;
+  onProductRemove: (id: string) => () => void;
   onSeoClick?: (slug: string) => () => void;
-  onSubmit?: (data: CollectionForm) => void;
-}
-interface CollectionDetailsPageState {
-  backgroundImage: any;
-  isPublished: boolean;
-  name: string;
-  slug: string;
-  seoTitle: string;
-  seoDescription: string;
+  onShow: () => void;
+  onSubmit: (data: CollectionForm) => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -84,7 +80,7 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
     saveButtonBarState,
     storefrontUrl,
     onBack,
-    onCollectionDelete,
+    onDelete,
     onImageRemove,
     onNextPage,
     onPreviousPage,
@@ -92,6 +88,7 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
     onProductClick,
     onProductRemove,
     onSeoClick,
+    onShow,
     onSubmit
   }) => (
     <Toggle>
@@ -115,12 +112,21 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
                     <PageHeader
                       title={collection ? collection.name : undefined}
                       onBack={onBack}
-                    />
+                    >
+                      <IconButton disabled={disabled} onClick={onShow}>
+                        <VisibilityIcon />
+                      </IconButton>
+                      <IconButton
+                        disabled={disabled}
+                        onClick={toggleRemoveDialog}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </PageHeader>
                     <div className={classes.root}>
                       <div>
                         <CollectionDetails
                           collection={collection}
-                          onDelete={toggleRemoveDialog}
                           disabled={disabled}
                           data={data}
                           onChange={change}
@@ -174,7 +180,7 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
                 <>
                   <ActionDialog
                     onClose={toggleRemoveDialog}
-                    onConfirm={onCollectionDelete}
+                    onConfirm={onDelete}
                     open={openedRemoveDialog}
                     title={i18n.t("Remove collection")}
                     variant="delete"

@@ -51,3 +51,17 @@ render(
   </Provider>,
   document.querySelector("#dashboard-app")
 );
+
+export interface ListProps {
+  disabled: boolean;
+  pageInfo?: {
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+  onNextPage: () => void;
+  onPreviousPage: () => void;
+  onRowClick: (id: string) => () => void;
+}
+export interface PageListProps extends ListProps {
+  onAdd: () => void;
+}

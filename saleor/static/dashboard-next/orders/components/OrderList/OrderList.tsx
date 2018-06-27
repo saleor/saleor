@@ -1,5 +1,4 @@
 import Card from "@material-ui/core/Card";
-import blue from "@material-ui/core/colors/blue";
 import { withStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
@@ -9,13 +8,14 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
+import { ListProps } from "../../..";
 import DateFormatter from "../../../components/DateFormatter";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 
-interface OrderListProps {
+interface OrderListProps extends ListProps {
   orders?: Array<{
     id: string;
     number: number;
@@ -38,11 +38,6 @@ interface OrderListProps {
     };
   }>;
   dateNow?: number;
-  hasPreviousPage?: boolean;
-  hasNextPage?: boolean;
-  onPreviousPage?();
-  onNextPage?();
-  onRowClick?(id: string);
 }
 
 const decorate = withStyles(
@@ -51,7 +46,7 @@ const decorate = withStyles(
       color: theme.palette.grey[400]
     },
     link: {
-      color: blue[500],
+      color: theme.palette.secondary.main,
       cursor: "pointer",
       textDecoration: "none"
     },
@@ -65,10 +60,10 @@ export const OrderList = decorate<OrderListProps>(
   ({
     classes,
     dateNow,
+    disabled,
     orders,
-    hasPreviousPage,
+    pageInfo,
     onPreviousPage,
-    hasNextPage,
     onNextPage,
     onRowClick
   }) => (
@@ -94,9 +89,11 @@ export const OrderList = decorate<OrderListProps>(
           <TableRow>
             <TablePagination
               colSpan={6}
-              hasNextPage={hasNextPage || false}
+              hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
-              hasPreviousPage={hasPreviousPage || false}
+              hasPreviousPage={
+                pageInfo && !disabled ? pageInfo.hasPreviousPage : false
+              }
               onPreviousPage={onPreviousPage}
             />
           </TableRow>
