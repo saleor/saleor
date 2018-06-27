@@ -74,7 +74,7 @@ class Order(models.Model):
         net_field='shipping_price_net', gross_field='shipping_price_gross')
     shipping_method_name = models.CharField(
         max_length=255, null=True, default=None, blank=True, editable=False)
-    token = models.CharField(max_length=36, unique=True)
+    token = models.CharField(max_length=36, unique=True, blank=True)
     total_net = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
@@ -83,7 +83,8 @@ class Order(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
     total = TaxedMoneyField(net_field='total_net', gross_field='total_gross')
     voucher = models.ForeignKey(
-        Voucher, null=True, related_name='+', on_delete=models.SET_NULL)
+        Voucher, blank=True, null=True, related_name='+',
+        on_delete=models.SET_NULL)
     discount_amount = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
