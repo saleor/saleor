@@ -81,10 +81,13 @@ function loadStories() {
   require("./stories/orders/OrderProductAddDialog");
   require("./stories/orders/OrderShippingMethodEditDialog");
   require("./stories/orders/OrderSummary");
-}
 
-// Vouchers
-require("./stories/vouchers/VoucherDetailsPage");
-require("./stories/vouchers/VoucherListPage");
+  // Vouchers
+  require("./stories/vouchers/VoucherDetailsPage");
+  require("./stories/vouchers/VoucherListPage");
+
+  // Product types
+  require("./stories/productTypes/ProductTypeListPage");
+}
 
 configure(loadStories, module);
