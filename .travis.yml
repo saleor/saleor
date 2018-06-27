@@ -4,6 +4,7 @@ python:
   - "3.4"
   - "3.5"
   - "3.6"
+  - "3.7-dev"
 cache:
   pip: true
   directories:
@@ -36,11 +37,15 @@ matrix:
       env: DJANGO="2.1"
     - python: "3.6"
       env: DJANGO="master"
+    - python: "3.7-dev"
+      env: DJANGO="master"
   exclude:
     - python: "3.4"
       env: DJANGO="2.1"
     - python: "3.4"
       env: DJANGO="master"
+    - python: "3.7-dev"
+      env: DJANGO="1.11"
 after_success:
   - codecov
 services:
