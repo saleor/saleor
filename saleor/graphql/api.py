@@ -29,7 +29,8 @@ from .core.types import Shop
 from .order.filters import OrderFilter
 from .order.resolvers import resolve_order, resolve_orders
 from .order.types import Order
-from .order.mutations import DraftOrderCreate
+from .order.mutations import (
+    DraftOrderCreate, DraftOrderDelete, DraftOrderUpdate)
 from .page.resolvers import resolve_pages, resolve_page
 from .page.types import Page
 from .page.mutations import PageCreate, PageDelete, PageUpdate
@@ -278,6 +279,8 @@ class Mutations(graphene.ObjectType):
     menu_item_update = MenuItemUpdate.Field()
 
     draft_order_create = DraftOrderCreate.Field()
+    draft_order_delete = DraftOrderDelete.Field()
+    draft_order_update = DraftOrderUpdate.Field()
 
     page_create = PageCreate.Field()
     page_delete = PageDelete.Field()
