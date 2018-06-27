@@ -37,14 +37,14 @@ class CustomerForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        # disable 'is_active' checkbox if user edits his own account
+        # disable 'is_active' checkbox if user edits their own account
         if self.user == self.instance:
             self.fields['is_active'].disabled = True
             self.fields['note'].disabled = True
 
     class Meta:
         model = User
-        fields = ['email', 'is_active', 'note']
+        fields = ['email', 'company', 'is_active', 'note']
 
 
 class CustomerNoteForm(forms.ModelForm):

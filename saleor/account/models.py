@@ -74,16 +74,12 @@ class Company(models.Model):
     name = models.CharField(max_length=256)
     addresses = models.ManyToManyField(Address, blank=True)
     default_billing_address = models.ForeignKey(
-        Address, null=True, blank=True, on_delete=models.SET_NULL)
-    contacts = models.ManyToManyField(
-        'User', blank=True, through='CompanyContact')
+        Address, related_name='+', null=True, blank=True,
+        on_delete=models.SET_NULL)
     is_active = models.BooleanField(default=True)
 
-
-class CompanyContact(models.Model):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    user = models.ForeignKey('User', on_delete=models.CASCADE)
-    label = models.CharField(max_length=256)
+    def __str__(self):
+        return self.name
 
 
 class UserManager(BaseUserManager):
@@ -136,8 +132,8 @@ class User(PermissionsMixin, AbstractBaseUser):
 
     @property
     def addresses(self):
-        if(self.company_pk):
-            return Address(company__pk=self.company_pk)
+        if(self.company):
+            return Address.objects.filter(company=self.company)
         return self.user_addresses
 
     class Meta:

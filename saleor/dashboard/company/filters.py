@@ -15,14 +15,14 @@ SORT_BY_FIELDS_LABELS = {
     'name': pgettext_lazy(
         'Company list sorting option', 'name'),
     'default_billing_address__city': pgettext_lazy(
-        'Customer list sorting option', 'location')}
+        'Company list sorting option', 'location')}
 
 IS_ACTIVE_CHOICES = (
     ('1', pgettext_lazy('Is active filter choice', 'Active')),
     ('0', pgettext_lazy('Is active filter choice', 'Not active')))
 
 
-class UserFilter(SortedFilterSet):
+class CompanyFilter(SortedFilterSet):
     name_or_email = CharFilter(
         label=pgettext_lazy('Company and contacts name or email filter',
                             'Name or email'),
@@ -41,7 +41,7 @@ class UserFilter(SortedFilterSet):
         field_labels=SORT_BY_FIELDS_LABELS)
 
     class Meta:
-        model = User
+        model = Company
         fields = []
 
     def filter_by_name_or_email(self, queryset, name, value):

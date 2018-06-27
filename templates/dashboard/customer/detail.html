@@ -45,6 +45,22 @@
             {{ customer.email }}
           </span>
           <div class="row">
+            {% if customer.company %}
+              <div class="col s12 m4 l12">
+                <h4>
+                  {% trans "Company" context "Customer field" %}
+                </h4>
+                <p>
+                  {%if perms.user.view_company %}
+                    <a href="{% url 'dashboard:company-details' pk=customer.company.pk %}">{{ customer.company }}</a>
+                  {% else %}
+                    {{ customer.company }}
+                  {% endif %}
+                </p>
+              </div>
+            {% endif %}
+          </div>
+          <div class="row">
             {% if customer.date_joined %}
               <div class="col s12 m4 l12">
                 <h4>

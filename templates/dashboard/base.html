@@ -163,6 +163,13 @@
                   </li>
                 {% endif %}
                 {% if perms.account.view_user %}
+                  <li class="{% block menu_companies_class %}{% endblock %}">
+                    <a href="{% url 'dashboard:companies' %}">
+                      {% trans "Companies" context "Dashboard companies list" %}
+                    </a>
+                  </li>
+                {% endif %}
+                {% if perms.account.view_user %}
                   <li class="{% block menu_customers_class %}{% endblock %}">
                     <a href="{% url 'dashboard:customers' %}">
                       {% trans "Customers" context "Dashboard customers list" %}

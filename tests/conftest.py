@@ -14,7 +14,7 @@ from payments import FraudStatus, PaymentStatus
 from PIL import Image
 from prices import Money
 
-from saleor.account.models import Address, User
+from saleor.account.models import Address, Company, User
 from saleor.checkout import utils
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import add_variant_to_cart
@@ -84,6 +84,24 @@ def customer_user(db, address):  # pylint: disable=W0613
         default_shipping_address=default_address)
     user.addresses.add(default_address)
     return user
+
+
+@pytest.fixture
+def company(db, address):
+    company = Company.objects.create(
+        name='Mirumee Software',
+        is_active=True)
+    company.addresses.add(address)
+    company.default_billing_address = address
+    company.save()
+    return company
+
+
+@pytest.fixture
+def company_customer_user(db, customer_user, company):
+    customer_user.company = company
+    customer_user.save()
+    return customer_user
 
 
 @pytest.fixture
