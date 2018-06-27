@@ -10,6 +10,7 @@ function loadStories() {
   require("./stories/components/EditableTableCell");
   require("./stories/components/ErrorMessageCard");
   require("./stories/components/Money");
+  require("./stories/components/MultiAutocompleteSelectField");
   require("./stories/components/MultiSelectField");
   require("./stories/components/PageHeader");
   require("./stories/components/PhoneField");
