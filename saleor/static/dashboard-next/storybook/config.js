@@ -41,7 +41,6 @@ function loadStories() {
   require("./stories/pages/PageContent");
   require("./stories/pages/PageDeleteDialog");
   require("./stories/pages/PageDetailsPage");
-  require("./stories/pages/PageList");
   require("./stories/pages/PageListPage");
   require("./stories/pages/PageProperties");
 
@@ -75,7 +74,6 @@ function loadStories() {
   require("./stories/orders/OrderFulfillmentDialog");
   require("./stories/orders/OrderFulfillmentTrackingDialog");
   require("./stories/orders/OrderHistory");
-  require("./stories/orders/OrderList");
   require("./stories/orders/OrderListPage");
   require("./stories/orders/OrderPaymentDialog");
   require("./stories/orders/OrderPaymentReleaseDialog");

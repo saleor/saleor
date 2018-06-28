@@ -1,11 +1,14 @@
+import IconButton from "@material-ui/core/IconButton";
+import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
+import { PageListProps } from "../../..";
 import { Container } from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
 import CollectionList from "../CollectionList/CollectionList";
 
-interface CollectionListPageProps {
+interface CollectionListPageProps extends PageListProps {
   collections?: Array<{
     id: string;
     name: string;
@@ -15,34 +18,28 @@ interface CollectionListPageProps {
       totalCount: number;
     };
   }>;
-  pageInfo?: {
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  };
-  onCollectionAdd?();
-  onCollectionClick?(id: string): () => void;
-  onCollectionShow?(slug: string): () => void;
-  onNextPage?();
-  onPreviousPage?();
 }
 
 const CollectionListPage: React.StatelessComponent<CollectionListPageProps> = ({
   collections,
+  disabled,
   pageInfo,
-  onCollectionAdd,
-  onCollectionClick,
-  onCollectionShow,
+  onAdd,
   onNextPage,
-  onPreviousPage
+  onPreviousPage,
+  onRowClick
 }) => (
   <Container width="md">
-    <PageHeader title={i18n.t("Collections")} />
+    <PageHeader title={i18n.t("Collections")}>
+      <IconButton disabled={disabled} onClick={onAdd}>
+        <AddIcon />
+      </IconButton>
+    </PageHeader>
     <CollectionList
       collections={collections}
+      disabled={disabled}
       pageInfo={pageInfo}
-      onCollectionAdd={onCollectionAdd}
-      onCollectionClick={onCollectionClick}
-      onCollectionShow={onCollectionShow}
+      onRowClick={onRowClick}
       onNextPage={onNextPage}
       onPreviousPage={onPreviousPage}
     />
