@@ -3,6 +3,7 @@ from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
 
 from ...core.utils.taxes import ZERO_TAXED_MONEY
+from ...account.models import Address
 from ...order import OrderStatus, models
 from ...shipping.models import ANY_COUNTRY
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -65,6 +66,8 @@ class DraftOrderCreate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, input, errors):
+        shipping_address = input.pop('shipping_address', None)
+        billing_address = input.pop('billing_address', None)
         cleaned_input = super().clean_input(info, instance, input, errors)
         cleaned_input['status'] = OrderStatus.DRAFT
         display_gross_prices = info.context.site.settings.display_gross_prices
@@ -72,14 +75,24 @@ class DraftOrderCreate(ModelMutation):
 
         # Set up default addresses if possible
         user = cleaned_input.get('user')
-        shipping_address = cleaned_input.get('shipping_address')
-        billing_address = cleaned_input.get('billing_address')
         if user and not shipping_address:
             cleaned_input[
                 'shipping_address'] = user.default_shipping_address
         if user and not billing_address:
             cleaned_input[
                 'billing_address'] = user.default_billing_address
+        if shipping_address:
+            shipping_address = Address(**shipping_address)
+            if not cls.clean_instance(shipping_address, errors):
+                shipping_address.save()
+            cleaned_input['shipping_address'] = shipping_address
+
+        if billing_address:
+            billing_address = Address(**billing_address)
+            if not cls.clean_instance(billing_address, errors):
+                billing_address.save()
+            cleaned_input['billing_address'] = billing_address
+
         return cleaned_input
 
     @classmethod
