@@ -69,7 +69,7 @@ class DraftOrderCreate(ModelMutation):
             description='Fields required to create an order.')
 
     class Meta:
-        description = 'Creates a new variant for a product'
+        description = 'Creates a new variant for a product.'
         model = models.Order
 
     @classmethod
@@ -140,7 +140,7 @@ class DraftOrderDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_product')
+        return user.has_perm('order.edit_order')
 
 
 def check_for_draft_order_errors(order):
@@ -217,3 +217,26 @@ class OrderUpdate(DraftOrderUpdate):
     class Meta:
         description = 'Updates an order.'
         model = models.Order
+
+
+class OrderAddNoteInput(graphene.InputObjectType):
+    order = graphene.ID(description='ID of the order.')
+    user = graphene.ID(description='ID of the user who added note.')
+    content = graphene.String(description='Note content.')
+    is_public = graphene.String(
+        description='Determine if note is visible by customer or not.')
+
+
+class OrderAddNote(ModelMutation):
+    class Arguments:
+        input = OrderAddNoteInput(
+            required=True,
+            description='Fields required to add note to order.')
+
+    class Meta:
+        description = 'Adds note to order.'
+        model = models.OrderNote
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('order.edit_order')
