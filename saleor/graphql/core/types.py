@@ -8,6 +8,8 @@ from graphql.language import ast
 
 from django_prices.templatetags import prices_i18n
 
+from .connection import CountableConnection
+
 
 # FIXME: not yet merged https://github.com/graphql-python/graphene/pull/726
 class Decimal(Scalar):
@@ -34,8 +36,6 @@ class Decimal(Scalar):
 class CountryDisplay(graphene.ObjectType):
     code = graphene.String(description='Country code.')
     country = graphene.String(description='Country.')
-
-from .connection import CountableConnection
 
 
 class CountableDjangoObjectType(DjangoObjectType):
@@ -64,15 +64,16 @@ class Error(graphene.ObjectType):
 
 
 class LanguageDisplay(graphene.ObjectType):
-    code = graphene.String(description='Language code.')
-    language = graphene.String(description='Language.')
+    code = graphene.String(description='Language code.', required=True)
+    language = graphene.String(description='Language.', required=True)
 
 
 class Money(graphene.ObjectType):
-    currency = graphene.String(description='Currency code.')
-    amount = graphene.Float(description='Amount of money.')
+    currency = graphene.String(description='Currency code.', required=True)
+    amount = graphene.Float(description='Amount of money.', required=True)
     localized = graphene.String(
-        description='Money formatted according to the current locale.')
+        description='Money formatted according to the current locale.',
+        required=True)
 
     class Meta:
         description = 'Represents amount of money in specific currency.'
@@ -92,20 +93,23 @@ class MoneyRange(graphene.ObjectType):
 
 
 class PermissionDisplay(graphene.ObjectType):
-    code = graphene.String(description='Internal code for permission.')
+    code = graphene.String(
+        description='Internal code for permission.', required=True)
     name = graphene.String(
-        description='Describe action(s) allowed to do by permission.')
+        description='Describe action(s) allowed to do by permission.',
+        required=True)
 
     class Meta:
         description = 'Represents a permission object in a friendly form.'
 
 
 class TaxedMoney(graphene.ObjectType):
-    currency = graphene.String(description='Currency code.')
+    currency = graphene.String(description='Currency code.', required=True)
     gross = graphene.Field(
-        Money, description='Amount of money including taxes.')
-    net = graphene.Field(Money, description='Amount of money without taxes.')
-    tax = graphene.Field(Money, description='Amount of taxes.')
+        Money, description='Amount of money including taxes.', required=True)
+    net = graphene.Field(
+        Money, description='Amount of money without taxes.', required=True)
+    tax = graphene.Field(Money, description='Amount of taxes.', required=True)
 
     class Meta:
         description = """Represents a monetary value with taxes. In
@@ -121,6 +125,7 @@ class TaxedMoneyRange(graphene.ObjectType):
 
     class Meta:
         description = 'Represents a range of monetary values.'
+
 
 class Shop(graphene.ObjectType):
     permissions = graphene.List(

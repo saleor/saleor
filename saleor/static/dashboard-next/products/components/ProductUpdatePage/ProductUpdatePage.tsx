@@ -1,11 +1,12 @@
-import IconButton from "@material-ui/core/IconButton";
 import DialogContentText from "@material-ui/core/DialogContentText";
+import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
 import DeleteIcon from "@material-ui/icons/Delete";
 import VisibilityIcon from "@material-ui/icons/Visibility";
 import * as CRC from 'crc-32'
 import * as React from "react";
 
+import { AttributeType, AttributeValueType, MoneyType } from "../../";
 import ActionDialog from "../../../components/ActionDialog";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
@@ -16,7 +17,6 @@ import SaveButtonBar, {
 import SeoForm from "../../../components/SeoForm";
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
-import { AttributeType, AttributeValueType, MoneyType } from "../../";
 import ProductAttributesForm from "../ProductAttributesForm";
 import ProductAvailabilityForm from "../ProductAvailabilityForm";
 import ProductCategoryAndCollectionsForm from "../ProductCategoryAndCollectionsForm";
@@ -31,7 +31,7 @@ interface ProductUpdateProps {
     id: string;
     name: string;
   }>;
-  categories?: Array<{
+  categories: Array<{
     id: string;
     name: string;
   }>;
@@ -90,9 +90,9 @@ interface ProductUpdateProps {
   };
   saveButtonBarState?: SaveButtonBarState;
   onBack?();
-  onDelete?();
+  onDelete?(id: string);
   onImageEdit?(id: string);
-  onImageReorder?();
+  onImageReorder?(event: { oldIndex: number; newIndex: number });
   onImageUpload?(event: React.ChangeEvent<any>);
   onProductShow?();
   onSeoClick?();
@@ -205,12 +205,15 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
                       </IconButton>
                     )}
                   </PageHeader>
-                  {product &&
+                  {product && onDelete &&
                     product.name && (
                       <ActionDialog
                         open={openedDeleteDialog}
                         onClose={toggleDeleteDialog}
-                        onConfirm={onDelete}
+                        onConfirm={() => {
+                          onDelete(product.id);
+                          toggleDeleteDialog();
+                        }}
                         variant="delete"
                         title={i18n.t("Remove product")}
                       >
@@ -230,7 +233,6 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
             <div className={classes.root}>
               <div>
                 <ProductDetailsForm
-                  onBack={onBack}
                   onChange={change}
                   name={data.name}
                   description={data.description}

@@ -24,14 +24,16 @@ export const categoryDeleteMutation = gql`
 
 export const TypedCategoryDeleteMutation: React.ComponentType<
   MutationProps<CategoryDeleteMutation, CategoryDeleteMutationVariables>
-> = Mutation;
+  > = Mutation;
 
 export const categoryCreateMutation = gql`
-  mutation CategoryCreate($name: String!, $description: String, $parentId: ID) {
+  mutation CategoryCreate($name: String, $description: String, $parent: ID) {
     categoryCreate(
-      name: $name
-      description: $description
-      parentId: $parentId
+      input: {
+        name: $name
+        description: $description
+        parent: $parent
+      }
     ) {
       errors {
         field
@@ -51,11 +53,11 @@ export const categoryCreateMutation = gql`
 
 export const TypedCategoryCreateMutation: React.ComponentType<
   MutationProps<CategoryCreateMutation, CategoryCreateMutationVariables>
-> = Mutation;
+  > = Mutation;
 
 export const categoryUpdateMutation = gql`
-  mutation CategoryUpdate($id: ID!, $name: String!, $description: String!) {
-    categoryUpdate(id: $id, name: $name, description: $description) {
+  mutation CategoryUpdate($id: ID!, $name: String, $description: String) {
+    categoryUpdate(id: $id, input: {name: $name, description: $description}) {
       errors {
         field
         message
@@ -74,4 +76,4 @@ export const categoryUpdateMutation = gql`
 
 export const TypedCategoryUpdateMutation: React.ComponentType<
   MutationProps<CategoryUpdateMutation, CategoryUpdateMutationVariables>
-> = Mutation;
+  > = Mutation;
