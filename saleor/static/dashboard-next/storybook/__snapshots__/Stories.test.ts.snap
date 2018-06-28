@@ -27318,8 +27318,9 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
         class="Component-action-521"
       >
         <button
-          class="MuiButtonBase-root-295 MuiIconButton-root-409"
-          tabindex="0"
+          class="MuiButtonBase-root-295 MuiButtonBase-disabled-296 MuiIconButton-root-409 MuiIconButton-disabled-413"
+          disabled=""
+          tabindex="-1"
           type="button"
         >
           <span
@@ -27338,9 +27339,6 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
               </g>
             </svg>
           </span>
-          <span
-            class="MuiTouchRipple-root-298"
-          />
         </button>
       </div>
     </div>
@@ -27364,12 +27362,13 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
                 Name
               </label>
               <div
-                class="MuiInput-root-31 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
+                class="MuiInput-root-31 MuiInput-disabled-34 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
               >
                 <input
                   aria-invalid="false"
                   aria-required="false"
-                  class="MuiInput-input-39"
+                  class="MuiInput-input-39 MuiInput-disabled-34"
+                  disabled=""
                   name="name"
                   type="text"
                   value=""
@@ -27439,10 +27438,11 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
             class="MuiCardContent-root-436"
           >
             <label
-              class="MuiFormControlLabel-root-553"
+              class="MuiFormControlLabel-root-553 MuiFormControlLabel-disabled-554"
             >
               <span
-                class="MuiButtonBase-root-295 MuiIconButton-root-409 MuiSwitchBase-root-561 MuiCheckbox-root-556 MuiCheckbox-colorSecondary-560"
+                class="MuiButtonBase-root-295 MuiButtonBase-disabled-296 MuiIconButton-root-409 MuiIconButton-disabled-413 MuiSwitchBase-root-561 MuiCheckbox-root-556 MuiCheckbox-colorSecondary-560 MuiSwitchBase-disabled-563 MuiCheckbox-disabled-558"
+                tabindex="-1"
               >
                 <span
                   class="MuiIconButton-label-414"
@@ -27459,16 +27459,14 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
                   </svg>
                   <input
                     class="MuiSwitchBase-input-564"
+                    disabled=""
                     name="hasVariants"
                     type="checkbox"
                   />
                 </span>
-                <span
-                  class="MuiTouchRipple-root-298"
-                />
               </span>
               <span
-                class="MuiTypography-root-60 MuiTypography-body1-69 MuiFormControlLabel-label-555"
+                class="MuiTypography-root-60 MuiTypography-body1-69 MuiFormControlLabel-label-555 MuiFormControlLabel-disabled-554"
               >
                 Has variants
               </span>
@@ -27477,10 +27475,11 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
               class="Component-spacer-44"
             />
             <label
-              class="MuiFormControlLabel-root-553"
+              class="MuiFormControlLabel-root-553 MuiFormControlLabel-disabled-554"
             >
               <span
-                class="MuiButtonBase-root-295 MuiIconButton-root-409 MuiSwitchBase-root-561 MuiCheckbox-root-556 MuiCheckbox-colorSecondary-560"
+                class="MuiButtonBase-root-295 MuiButtonBase-disabled-296 MuiIconButton-root-409 MuiIconButton-disabled-413 MuiSwitchBase-root-561 MuiCheckbox-root-556 MuiCheckbox-colorSecondary-560 MuiSwitchBase-disabled-563 MuiCheckbox-disabled-558"
+                tabindex="-1"
               >
                 <span
                   class="MuiIconButton-label-414"
@@ -27497,16 +27496,14 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
                   </svg>
                   <input
                     class="MuiSwitchBase-input-564"
+                    disabled=""
                     name="isShippingRequired"
                     type="checkbox"
                   />
                 </span>
-                <span
-                  class="MuiTouchRipple-root-298"
-                />
               </span>
               <span
-                class="MuiTypography-root-60 MuiTypography-body1-69 MuiFormControlLabel-label-555"
+                class="MuiTypography-root-60 MuiTypography-body1-69 MuiFormControlLabel-label-555 MuiFormControlLabel-disabled-554"
               >
                 Requires shipping
               </span>

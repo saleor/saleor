@@ -31,7 +31,7 @@ storiesOf("Views / Product types / Product type details", module)
   ))
   .add("loading", () => (
     <ProductTypeDetailsPage
-      disabled={false}
+      disabled={true}
       saveButtonBarState="default"
       searchLoading={false}
       searchResults={[]}
