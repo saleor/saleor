@@ -1,4 +1,5 @@
 import graphene
+from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
 from graphene_file_upload import Upload
 from graphql_jwt.decorators import permission_required
@@ -28,6 +29,13 @@ class CategoryCreateMutation(ModelMutation):
     class Meta:
         description = 'Creates a new category.'
         model = models.Category
+
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        cleaned_input = super().clean_input(info, instance, input, errors)
+        if 'slug' not in cleaned_input:
+            cleaned_input['slug'] = slugify(cleaned_input['name'])
+        return cleaned_input
 
     @classmethod
     def user_is_allowed(cls, user, input):
@@ -172,6 +180,7 @@ class AttributeValueInput(InputObjectType):
         required=True, description='Slug of an attribute.')
     value = graphene.String(
         required=True, description='Value of an attribute.')
+
 
 class ProductInput(graphene.InputObjectType):
     attributes = graphene.List(AttributeValueInput)
