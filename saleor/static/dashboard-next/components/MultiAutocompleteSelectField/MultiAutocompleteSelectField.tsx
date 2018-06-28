@@ -89,7 +89,7 @@ export const MultiAutocompleteSelectField = decorate<
     };
 
     const filteredChoices = choices.filter(
-      suggestion => value.indexOf(suggestion) === -1
+      suggestion => value.map(v => v.value).indexOf(suggestion.value) === -1
     );
 
     return (

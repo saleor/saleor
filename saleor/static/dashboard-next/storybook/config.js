@@ -88,6 +88,7 @@ function loadStories() {
 
   // Product types
   require("./stories/productTypes/ProductTypeListPage");
+  require("./stories/productTypes/ProductTypeDetailsPage");
 }
 
 configure(loadStories, module);

@@ -410,3 +410,80 @@ export const productTypes = [
     taxRate: "standard"
   }
 ];
+export const productType = {
+  id: "pt77249",
+  name: "Cotton",
+  hasVariants: true,
+  productAttributes: {
+    totalCount: 4,
+    edges: [
+      {
+        node: {
+          id: "pta27565",
+          sortNumber: 0,
+          name: "Virginia",
+          slug: "Virginia"
+        }
+      },
+      {
+        node: {
+          id: "pta84650",
+          sortNumber: 1,
+          name: "Tasty Granite Table",
+          slug: "Tasty-Granite-Table"
+        }
+      },
+      { node: { id: "pta50103", sortNumber: 2, name: "Small", slug: "Small" } }
+    ]
+  },
+  variantAttributes: {
+    totalCount: 2,
+    edges: [
+      {
+        node: {
+          id: "pta24175",
+          sortNumber: 4,
+          name: "enhance",
+          slug: "enhance"
+        }
+      },
+      {
+        node: {
+          id: "pta66068",
+          sortNumber: 5,
+          name: "Djibouti Franc",
+          slug: "Djibouti-Franc"
+        }
+      }
+    ]
+  },
+  isShippingRequired: true,
+  taxRate: "standard"
+};
+export const attributes = [
+  { id: "pta27565", sortNumber: 0, name: "Virginia", slug: "Virginia" },
+  {
+    id: "pta84650",
+    sortNumber: 1,
+    name: "Tasty Granite Table",
+    slug: "Tasty-Granite-Table"
+  },
+  { id: "pta50103", sortNumber: 2, name: "Small", slug: "Small" },
+  {
+    id: "pta95599",
+    sortNumber: 3,
+    name: "Home Loan Account",
+    slug: "Home-Loan-Account"
+  },
+  { id: "pta24175", sortNumber: 4, name: "enhance", slug: "enhance" },
+  {
+    id: "pta66068",
+    sortNumber: 5,
+    name: "Djibouti Franc",
+    slug: "Djibouti-Franc"
+  },
+  { id: "pta41930", sortNumber: 6, name: "Rustic", slug: "Rustic" },
+  { id: "pta91235", sortNumber: 7, name: "Principal", slug: "Principal" },
+  { id: "pta50181", sortNumber: 8, name: "Outdoors", slug: "Outdoors" },
+  { id: "pta38700", sortNumber: 9, name: "Canada", slug: "Canada" }
+];
