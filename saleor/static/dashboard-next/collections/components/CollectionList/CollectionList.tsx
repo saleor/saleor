@@ -10,12 +10,13 @@ import TableRow from "@material-ui/core/TableRow";
 import VisibilityIcon from "@material-ui/icons/Visibility";
 import * as React from "react";
 
+import { ListProps } from "../../..";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 
-interface CollectionListProps {
+interface CollectionListProps extends ListProps {
   collections?: Array<{
     id: string;
     name: string;
@@ -25,15 +26,6 @@ interface CollectionListProps {
       totalCount: number;
     };
   }>;
-  pageInfo?: {
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  };
-  onCollectionAdd?();
-  onCollectionClick?(id: string): () => void;
-  onCollectionShow?(slug: string): () => void;
-  onNextPage?();
-  onPreviousPage?();
 }
 
 const decorate = withStyles(theme => ({
@@ -48,11 +40,10 @@ const decorate = withStyles(theme => ({
 const CollectionList = decorate<CollectionListProps>(
   ({
     classes,
+    disabled,
     collections,
     pageInfo,
-    onCollectionAdd,
-    onCollectionClick,
-    onCollectionShow,
+    onRowClick,
     onNextPage,
     onPreviousPage
   }) => (
@@ -65,18 +56,17 @@ const CollectionList = decorate<CollectionListProps>(
             <TableCell className={classes.textRight}>
               {i18n.t("Products", { context: "object" })}
             </TableCell>
-            <TableCell className={classes.textRight}>
-              {i18n.t("Actions", { context: "object" })}
-            </TableCell>
           </TableRow>
         </TableHead>
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={4}
-              hasNextPage={pageInfo ? pageInfo.hasNextPage : false}
+              colSpan={3}
+              hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
-              hasPreviousPage={pageInfo ? pageInfo.hasPreviousPage : false}
+              hasPreviousPage={
+                pageInfo && !disabled ? pageInfo.hasPreviousPage : false
+              }
               onPreviousPage={onPreviousPage}
             />
           </TableRow>
@@ -93,22 +83,13 @@ const CollectionList = decorate<CollectionListProps>(
               <TableCell>
                 <Skeleton />
               </TableCell>
-              <TableCell className={classes.textRight}>
-                <IconButton disabled>
-                  <VisibilityIcon />
-                </IconButton>
-              </TableCell>
             </TableRow>
           ) : collections.length > 0 ? (
             collections.map(collection => (
               <TableRow key={collection.id}>
                 <TableCell
-                  onClick={
-                    !!onCollectionClick
-                      ? onCollectionClick(collection.id)
-                      : undefined
-                  }
-                  className={!!onCollectionClick ? classes.link : ""}
+                  onClick={!!onRowClick ? onRowClick(collection.id) : undefined}
+                  className={!!onRowClick ? classes.link : ""}
                 >
                   {collection.name}
                 </TableCell>
@@ -125,16 +106,11 @@ const CollectionList = decorate<CollectionListProps>(
                 <TableCell className={classes.textRight}>
                   {collection.products.totalCount}
                 </TableCell>
-                <TableCell className={classes.textRight}>
-                  <IconButton onClick={onCollectionShow(collection.slug)}>
-                    <VisibilityIcon />
-                  </IconButton>
-                </TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={4}>
+              <TableCell colSpan={3}>
                 {i18n.t("No collections found")}
               </TableCell>
             </TableRow>

@@ -1,31 +1,26 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
-import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
 import FileUpload from "../../../components/FileUpload";
 import FormSpacer from "../../../components/FormSpacer";
-import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 
 interface CollectionDetailsProps {
   collection?: {
+    backgroundImage: string;
+  };
+  data: {
     name: string;
     backgroundImage: string;
   };
-  data?: {
-    name: string;
-    backgroundImage: string;
-  };
-  disabled?: boolean;
-  onChange?(event: React.ChangeEvent<any>);
-  onDelete?();
-  onImageRemove?();
+  disabled: boolean;
+  onChange(event: React.ChangeEvent<any>);
+  onImageRemove();
 }
 
 const decorate = withStyles(theme => ({
@@ -38,23 +33,11 @@ const decorate = withStyles(theme => ({
   }
 }));
 const CollectionDetails = decorate<CollectionDetailsProps>(
-  ({
-    classes,
-    collection,
-    data,
-    disabled,
-    onChange,
-    onDelete,
-    onImageRemove
-  }) => (
+  ({ classes, collection, data, disabled, onChange, onImageRemove }) => (
     <Card>
-      <PageHeader title={i18n.t("Details")}>
-        <IconButton disabled={disabled} onClick={onDelete}>
-          <DeleteIcon />
-        </IconButton>
-      </PageHeader>
       <CardContent>
         <TextField
+          disabled={disabled}
           fullWidth
           label={i18n.t("Name")}
           name="name"
@@ -67,8 +50,8 @@ const CollectionDetails = decorate<CollectionDetailsProps>(
             <img src={collection.backgroundImage} className={classes.image} />
             <Typography
               variant="caption"
-              className={!!onImageRemove ? classes.link : ""}
-              onClick={onImageRemove}
+              className={!!onImageRemove && !disabled ? classes.link : ""}
+              onClick={disabled ? undefined : onImageRemove}
             >
               {i18n.t("Remove")}
             </Typography>

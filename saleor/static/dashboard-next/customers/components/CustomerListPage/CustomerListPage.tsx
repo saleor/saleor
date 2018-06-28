@@ -11,13 +11,14 @@ import TableRow from "@material-ui/core/TableRow";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
+import { PageListProps } from "../../..";
 import { Container } from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 
-interface CustomerListPageProps {
+interface CustomerListPageProps extends PageListProps {
   customers?: Array<{
     id: string;
     email: string;
@@ -28,14 +29,6 @@ interface CustomerListPageProps {
       country: string;
     };
   }>;
-  pageInfo?: {
-    hasPreviousPage: boolean;
-    hasNextPage: boolean;
-  };
-  onAddCustomer?();
-  onNextPage?();
-  onPreviousPage?();
-  onRowClick?(id: string): () => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -48,19 +41,18 @@ const CustomerListPage = decorate<CustomerListPageProps>(
   ({
     classes,
     customers,
+    disabled,
     pageInfo,
-    onAddCustomer,
+    onAdd,
     onNextPage,
     onPreviousPage,
     onRowClick
   }) => (
     <Container width="md">
       <PageHeader title={i18n.t("Customers")}>
-        {!!onAddCustomer && (
-          <IconButton onClick={onAddCustomer}>
-            <AddIcon />
-          </IconButton>
-        )}
+        <IconButton disabled={disabled} onClick={onAdd}>
+          <AddIcon />
+        </IconButton>
       </PageHeader>
       <Card>
         <Table>
