@@ -1,11 +1,11 @@
 import * as React from "react";
 
+import { productUrl, productVariantEditUrl } from "..";
 import * as placeholderImg from "../../../images/placeholder255x255.png";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import ProductVariantPage from "../components/ProductVariantPage";
 import { productVariantQuery, TypedProductVariantQuery } from "../queries";
-import { productUrl, productVariantEditUrl } from "..";
 
 interface ProductUpdateProps {
   variantId: string;
@@ -39,6 +39,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                   onBack={() => { navigate(productUrl(productId)); }}
                   onDelete={() => { }}
                   onImageSelect={() => { }}
+                  onSubmit={() => {}}
                   onVariantClick={(variantId) => {
                     navigate(productVariantEditUrl(productId, variantId));
                   }}

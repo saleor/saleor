@@ -15,7 +15,6 @@ interface ProductDetailsFormProps {
   disabled?: boolean;
   name?: string;
   price?: number;
-  onBack();
   onChange(event: any);
 }
 
@@ -33,7 +32,6 @@ export const ProductDetailsForm = decorate<ProductDetailsFormProps>(
     description,
     disabled,
     name,
-    onBack,
     onChange,
     price
   }) => (
