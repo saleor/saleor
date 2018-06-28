@@ -23,6 +23,9 @@ function loadStories() {
   require("./stories/components/TablePagination");
   require("./stories/components/Timeline");
 
+  // Attributes
+  require("./stories/attributes/AttributeListPage");
+
   // Categories
   require("./stories/categories/CategoryDeleteDialog");
   require("./stories/categories/CategoryDetailsPage");
