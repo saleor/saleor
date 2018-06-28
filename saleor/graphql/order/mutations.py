@@ -5,6 +5,7 @@ from graphql_jwt.decorators import permission_required
 from ...account.models import Address
 from ...core.utils.taxes import ZERO_TAXED_MONEY
 from ...order import OrderStatus, models
+from ...order.utils import cancel_order
 from ...shipping.models import ANY_COUNTRY
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import Decimal, Error
@@ -240,3 +241,22 @@ class OrderAddNote(ModelMutation):
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('order.edit_order')
+
+
+class OrderCancel(BaseMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of the order to cancel.')
+        restock = graphene.Boolean(
+            required=True,
+            description='Determine if lines will be restocked or not.')
+
+    order = graphene.Field(
+        Order, description='Canceled order.')
+
+    @classmethod
+    @permission_required('order.edit_order')
+    def mutate(cls, root, info, id, restock):
+        order = get_node(info, id, only_type=Order)
+        cancel_order(order=order, restock=restock)
+        return OrderCancel(order=order)
