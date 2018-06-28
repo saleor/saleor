@@ -39,27 +39,19 @@
             <table class="bordered highlight responsive data-table">
               <thead>
                 <tr>
-                  {% trans "Name" context "Copmanys table header" as label %}
+                  {% trans "Name" context "Company table header" as label %}
                   {% sorting_header 'name' label %}
 
-                  {% trans "Email" context "Copmanys table header" as label %}
-                  {% sorting_header 'email' label %}
-
-                  {% trans "Location" context "Copmanys table header" as label %}
+                  {% trans "Location" context "Customers table header" as label %}
                   {% sorting_header 'location' label %}
                 </tr>
               </thead>
               <tbody>
                 {% for company in companies %}
-                  <tr data-action-go="{% url "dashboard:company-details"
-                      pk=company.pk %}">
+                  <tr data-action-go="{% url "dashboard:company-details" pk=company.pk %}">
                     {% with company.default_billing_address as default_address %}
                       <td>
-                        {% if default_address %}
-                          {{ default_address.first_name }} {{ default_address.last_name }}
-                        {% else %}
-                          -
-                        {% endif %}
+                        {{ company.name }}
                       </td>
                       <td>
                         {% if default_address %}
