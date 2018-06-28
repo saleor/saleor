@@ -1,9 +1,14 @@
 import graphene
 from graphene.types import InputObjectType
+from graphql_jwt.decorators import permission_required
 
+from ...core.utils.taxes import ZERO_TAXED_MONEY
 from ...order import OrderStatus, models
+from ...shipping.models import ANY_COUNTRY
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types import Decimal
+from ..core.types import Decimal, Error
+from ..utils import get_node
+from .types import Order
 
 
 class AddressInput(graphene.InputObjectType):
@@ -115,3 +120,66 @@ class DraftOrderDelete(ModelDeleteMutation):
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('product.edit_product')
+
+
+def check_for_draft_order_errors(order):
+    """Return a list of errors associated with the order.
+
+    Checks, if given order has a proper shipping address and method
+    set up and return list of errors if not.
+    """
+    errors = []
+    if order.get_total_quantity() == 0:
+        errors.append(
+            Error(
+                field='lines',
+                message='Could not create order without any products.'))
+    method = order.shipping_method
+    shipping_address = order.shipping_address
+    shipping_not_valid = (
+        method and shipping_address and
+        method.country_code != ANY_COUNTRY and
+        shipping_address.country.code != method.country_code)
+    if shipping_not_valid:
+        errors.append(
+            Error(
+                field='shipping',
+                message='Shipping method is not valid for chosen shipping '
+                        'address'))
+    return errors
+
+
+class DraftOrderComplete(BaseMutation):
+    class Arguments:
+        order_id = graphene.ID(
+            required=True,
+            description='ID of the order that will be completed.')
+
+    class Meta:
+        description = 'Completes creating an order.'
+
+    order = graphene.Field(
+        Order, description='Completed order.')
+
+    @classmethod
+    @permission_required('order.edit_order')
+    def mutate(cls, root, info, order_id):
+        order = get_node(info, order_id, only_type=Order)
+        errors = check_for_draft_order_errors(order)
+        if errors:
+            return cls(errors=errors)
+
+        order.status = OrderStatus.UNFULFILLED
+        if order.user:
+            order.user_email = order.user.email
+        remove_shipping_address = False
+        if not order.is_shipping_required():
+            order.shipping_method_name = None
+            order.shipping_price = ZERO_TAXED_MONEY
+            if order.shipping_address:
+                remove_shipping_address = True
+        order.save()
+        if remove_shipping_address:
+            order.shipping_address.delete()
+
+        return DraftOrderComplete(order=order)
