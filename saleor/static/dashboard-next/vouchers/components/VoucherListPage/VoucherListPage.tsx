@@ -3,12 +3,13 @@ import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
 import { VoucherType } from "../..";
+import { PageListProps } from "../../..";
 import { Container } from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
 import VoucherList from "../VoucherList/VoucherList";
 
-interface VoucherListPageProps {
+interface VoucherListPageProps extends PageListProps {
   currency?: string;
   vouchers?: Array<{
     id: string;
@@ -34,33 +35,27 @@ interface VoucherListPageProps {
     applyTo: string | null;
     limit: { amount: number; currency: string } | null;
   }>;
-  pageInfo?: {
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  };
-  onAddVoucher?();
-  onNextPage?();
-  onPreviousPage?();
-  onRowClick?(id: string): () => void;
 }
 
 const VoucherListPage: React.StatelessComponent<VoucherListPageProps> = ({
   currency,
+  disabled,
   pageInfo,
   vouchers,
-  onAddVoucher,
+  onAdd,
   onNextPage,
   onPreviousPage,
   onRowClick
 }) => (
   <Container width="md">
     <PageHeader title={i18n.t("Vouchers")}>
-      <IconButton onClick={onAddVoucher}>
+      <IconButton onClick={onAdd} disabled={disabled}>
         <AddIcon />
       </IconButton>
     </PageHeader>
     <VoucherList
       currency={currency}
+      disabled={disabled}
       vouchers={vouchers}
       pageInfo={pageInfo}
       onNextPage={onNextPage}

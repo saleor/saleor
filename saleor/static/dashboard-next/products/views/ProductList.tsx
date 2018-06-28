@@ -1,7 +1,7 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { productShowUrl } from "..";
+import { productShowUrl, productAddUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import Toggle from "../../components/Toggle";
@@ -100,6 +100,8 @@ export const ProductList = decorate<ProductListProps>(
                       <>
                         <div>
                           <ProductListCard
+                            onAdd={() => navigate(productAddUrl)}
+                            disabled={loading}
                             products={
                               data &&
                               data.products !== undefined &&
@@ -107,18 +109,12 @@ export const ProductList = decorate<ProductListProps>(
                                 ? data.products.edges.map(p => p.node)
                                 : undefined
                             }
-                            onFilter={showFilters}
                             onNextPage={loadNextPage}
                             onPreviousPage={loadPreviousPage}
-                            hasPreviousPage={
-                              data && data.products && !loading
-                                ? data.products.pageInfo.hasPreviousPage
-                                : false
-                            }
-                            hasNextPage={
-                              data && data.products && !loading
-                                ? data.products.pageInfo.hasNextPage
-                                : false
+                            pageInfo={
+                              data && data.products && data.products.pageInfo
+                                ? data.products.pageInfo
+                                : undefined
                             }
                             onRowClick={id => () =>
                               navigate(productShowUrl(id))}

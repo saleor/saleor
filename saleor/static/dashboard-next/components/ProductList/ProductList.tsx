@@ -10,6 +10,7 @@ import TableRow from "@material-ui/core/TableRow";
 import Cached from "@material-ui/icons/Cached";
 import * as React from "react";
 
+import { ListProps } from "../..";
 import i18n from "../../i18n";
 import Skeleton from "../Skeleton";
 import TablePagination from "../TablePagination";
@@ -26,9 +27,7 @@ const decorate = withStyles(theme => ({
   }
 }));
 
-interface ProductListProps {
-  hasNextPage?: boolean;
-  hasPreviousPage?: boolean;
+interface ProductListProps extends ListProps {
   products?: Array<{
     id: string;
     name: string;
@@ -37,16 +36,13 @@ interface ProductListProps {
     };
     thumbnailUrl: string;
   }>;
-  onNextPage();
-  onPreviousPage();
-  onRowClick?(id: string);
 }
 
 export const ProductList = decorate<ProductListProps>(
   ({
     classes,
-    hasNextPage,
-    hasPreviousPage,
+    disabled,
+    pageInfo,
     onNextPage,
     onPreviousPage,
     onRowClick,
@@ -64,9 +60,11 @@ export const ProductList = decorate<ProductListProps>(
         <TableRow>
           <TablePagination
             colSpan={3}
-            hasNextPage={hasNextPage}
+            hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
             onNextPage={onNextPage}
-            hasPreviousPage={hasPreviousPage}
+            hasPreviousPage={
+              pageInfo && !disabled ? pageInfo.hasPreviousPage : false
+            }
             onPreviousPage={onPreviousPage}
           />
         </TableRow>
