@@ -8,6 +8,24 @@ import {
   ProductListQueryVariables
 } from "../gql-types";
 
+
+export const fragmentMoney = gql`
+  fragment Money on Money {
+    amount
+    currency
+    localized
+  }
+`;
+
+export const fragmentProductImage = gql`
+  fragment ProductImage on ProductImage {
+    id
+    alt
+    sortOrder
+    url
+  }
+`;
+
 export const TypedProductListQuery = Query as React.ComponentType<
   QueryProps<ProductListQuery, ProductListQueryVariables>
 >;
@@ -41,11 +59,8 @@ export const TypedProductDetailsQuery = Query as React.ComponentType<
 >;
 
 export const productDetailsQuery = gql`
-  fragment Money on Money {
-    amount
-    currency
-    localized
-  }
+  ${fragmentMoney}
+  ${fragmentProductImage}
   query ProductDetails($id: ID!) {
     product(id: $id) {
       id
@@ -84,6 +99,7 @@ export const productDetailsQuery = gql`
       availableOn
       attributes {
         attribute {
+          id
           slug
           name
           values {
@@ -115,10 +131,7 @@ export const productDetailsQuery = gql`
       images {
         edges {
           node {
-            id
-            alt
-            sortOrder
-            url
+            ...ProductImage
           }
         }
       }
@@ -166,11 +179,8 @@ export const TypedProductVariantQuery = Query as React.ComponentType<
 >;
 
 export const productVariantQuery = gql`
-  fragment Money on Money {
-    amount
-    currency
-    localized
-  }
+  ${fragmentMoney}
+  ${fragmentProductImage}
   query ProductVariantDetails($id: ID!) {
     variant(id: $id) {
       id
@@ -210,10 +220,7 @@ export const productVariantQuery = gql`
         images {
           edges {
             node {
-              id
-              alt
-              sortOrder
-              url
+              ...ProductImage
             }
           }
         }
