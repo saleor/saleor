@@ -1,10 +1,13 @@
 import graphene
+from django.utils.translation import pgettext_lazy
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
+from payments import PaymentError, PaymentStatus
 
 from ...account.models import Address
 from ...core.utils.taxes import ZERO_TAXED_MONEY
-from ...order import OrderStatus, models
+from ...order import (
+    CustomPaymentChoices, FulfillmentStatus, OrderStatus, models)
 from ...order.utils import cancel_order
 from ...shipping.models import ANY_COUNTRY
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -260,3 +263,34 @@ class OrderCancel(BaseMutation):
         order = get_node(info, id, only_type=Order)
         cancel_order(order=order, restock=restock)
         return OrderCancel(order=order)
+
+
+class OrderMarkAsPaid(BaseMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of the order to mark paid.')
+
+    order = graphene.Field(
+        Order, description='Mark order as manually paid.')
+
+    @classmethod
+    @permission_required('order.edit_order')
+    def mutate(cls, root, info, id):
+        order = get_node(info, id, only_type=Order)
+        if order.payments.exists():
+            field = 'payment'
+            msg = 'Orders with payments can not be manually marked as paid.'
+            return cls(errors=[Error(field=field, message=msg)])
+        defaults = {
+            'total': order.total.gross.amount,
+            'tax': order.total.tax.amount,
+            'currency': order.total.currency,
+            'delivery': order.shipping_price.net.amount,
+            'description': pgettext_lazy(
+                'Payment description', 'Order %(order)s') % {'order': order},
+            'captured_amount': order.total.gross.amount}
+        models.Payment.objects.get_or_create(
+            variant=CustomPaymentChoices.MANUAL,
+            status=PaymentStatus.CONFIRMED, order=order,
+            defaults=defaults)
+        return OrderMarkAsPaid(order=order)
