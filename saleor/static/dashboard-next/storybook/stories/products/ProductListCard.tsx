@@ -3,6 +3,7 @@ import * as React from "react";
 
 import * as placeholder from "../../../../images/placeholder255x255.png";
 import ProductListCard from "../../../products/components/ProductListCard";
+import { pageListProps } from "../../../fixtures";
 
 const images = [
   {
@@ -59,43 +60,10 @@ const products = [
 ];
 
 storiesOf("Views / Products / Product list", module)
-  .add("without initial data", () => (
-    <ProductListCard
-      hasNextPage={true}
-      hasPreviousPage={false}
-      products={[]}
-      onFilter={() => {}}
-      onNextPage={() => {}}
-      onPreviousPage={() => {}}
-    />
+  .add("default", () => (
+    <ProductListCard products={[]} {...pageListProps.default} />
   ))
-  .add("with initial data", () => (
-    <ProductListCard
-      hasNextPage={true}
-      hasPreviousPage={false}
-      products={products}
-      onFilter={() => {}}
-      onNextPage={() => {}}
-      onPreviousPage={() => {}}
-    />
-  ))
-  .add("with clickable rows", () => (
-    <ProductListCard
-      hasNextPage={true}
-      hasPreviousPage={false}
-      products={products}
-      onFilter={() => {}}
-      onNextPage={() => {}}
-      onPreviousPage={() => {}}
-      onRowClick={() => {}}
-    />
-  ))
-  .add("when loading data", () => (
-    <ProductListCard
-      hasNextPage={true}
-      hasPreviousPage={false}
-      onFilter={() => {}}
-      onNextPage={() => {}}
-      onPreviousPage={() => {}}
-    />
+  .add("loading", () => <ProductListCard {...pageListProps.loading} />)
+  .add("no data", () => (
+    <ProductListCard products={[]} {...pageListProps.default} />
   ));

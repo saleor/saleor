@@ -9,12 +9,14 @@ import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
 import { createVoucherName, VoucherType } from "../..";
+import { ListProps } from "../../..";
+import DateFormatter from "../../../components/DateFormatter";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 
-interface VoucherListProps {
+interface VoucherListProps extends ListProps {
   currency?: string;
   vouchers?: Array<{
     id: string;
@@ -32,13 +34,6 @@ interface VoucherListProps {
       name: string;
     } | null;
   }>;
-  pageInfo?: {
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  };
-  onNextPage?();
-  onPreviousPage?();
-  onRowClick?(id: string): () => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -52,6 +47,7 @@ const VoucherList = decorate<VoucherListProps>(
   ({
     classes,
     currency,
+    disabled,
     pageInfo,
     vouchers,
     onNextPage,
@@ -77,9 +73,13 @@ const VoucherList = decorate<VoucherListProps>(
           <TableRow>
             <TablePagination
               colSpan={5}
-              hasNextPage={pageInfo ? pageInfo.hasNextPage : undefined}
+              hasNextPage={
+                pageInfo && !disabled ? pageInfo.hasNextPage : undefined
+              }
               onNextPage={onNextPage}
-              hasPreviousPage={pageInfo ? pageInfo.hasPreviousPage : undefined}
+              hasPreviousPage={
+                pageInfo && !disabled ? pageInfo.hasPreviousPage : undefined
+              }
               onPreviousPage={onPreviousPage}
             />
           </TableRow>
@@ -125,7 +125,10 @@ const VoucherList = decorate<VoucherListProps>(
                 <TableCell>
                   {voucher ? (
                     voucher.startDate !== null ? (
-                      voucher.startDate
+                      <DateFormatter
+                        typographyProps={{ className: classes.tableCellFont }}
+                        date={voucher.startDate}
+                      />
                     ) : (
                       "-"
                     )
@@ -136,7 +139,10 @@ const VoucherList = decorate<VoucherListProps>(
                 <TableCell>
                   {voucher ? (
                     voucher.endDate !== null ? (
-                      voucher.endDate
+                      <DateFormatter
+                        typographyProps={{ className: classes.tableCellFont }}
+                        date={voucher.endDate}
+                      />
                     ) : (
                       "-"
                     )
@@ -180,7 +186,7 @@ const VoucherList = decorate<VoucherListProps>(
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={5}>{i18n.t("No customers found")}</TableCell>
+              <TableCell colSpan={5}>{i18n.t("No vouchers found")}</TableCell>
             </TableRow>
           )}
         </TableBody>

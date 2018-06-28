@@ -12,8 +12,15 @@ import Decorator from "../../Decorator";
 const collection = collectionsFixture(placeholderImage)[0];
 const callbacks = {
   onBack: () => {},
+  onDelete: () => {},
   onImageRemove: () => {},
+  onShow: () => {},
   onSubmit: () => {},
+  onNextPage: () => {},
+  onPreviousPage: () => {},
+  onProductAdd: () => {},
+  onProductClick: () => () => {},
+  onProductRemove: () => () => {},
   storefrontUrl
 };
 
@@ -21,6 +28,7 @@ storiesOf("Views / Collections / Collection details", module)
   .addDecorator(Decorator)
   .add("default", () => (
     <CollectionDetailsPage
+      disabled={false}
       collection={collection}
       products={collection.products.edges.map(edge => edge.node)}
       {...callbacks}
