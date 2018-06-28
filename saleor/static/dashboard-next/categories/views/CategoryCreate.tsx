@@ -44,7 +44,7 @@ export const CategoryCreateForm: React.StatelessComponent<
               disabled={createInProgress}
               variant="add"
               onBack={handleCancel}
-              onSubmit={data => mutate({ variables: { ...data, parentId } })}
+              onSubmit={data => mutate({ variables: { ...data, parent: parentId } })}
             />
           )}
         </NavigatorLink>

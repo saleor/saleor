@@ -9,6 +9,8 @@ from graphql.language import ast
 
 from .connection import CountableConnection
 
+from .connection import CountableConnection
+
 
 # FIXME: not yet merged https://github.com/graphql-python/graphene/pull/726
 class Decimal(Scalar):
@@ -127,6 +129,7 @@ class TaxedMoneyRange(graphene.ObjectType):
 
     class Meta:
         description = 'Represents a range of monetary values.'
+
 
 class Shop(graphene.ObjectType):
     permissions = graphene.List(

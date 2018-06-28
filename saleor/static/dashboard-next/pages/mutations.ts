@@ -12,7 +12,7 @@ import {
 
 export const TypedPageDeleteMutation = Mutation as React.ComponentType<
   MutationProps<PageDeleteMutation, PageDeleteMutationVariables>
->;
+  >;
 export const pageDeleteMutation = gql`
   mutation PageDelete($id: ID!) {
     pageDelete(id: $id) {
@@ -26,7 +26,7 @@ export const pageDeleteMutation = gql`
 
 export const TypedPageUpdateMutation = Mutation as React.ComponentType<
   MutationProps<PageUpdateMutation, PageUpdateMutationVariables>
->;
+  >;
 export const pageUpdateMutation = gql`
   mutation PageUpdate(
     $id: ID!
@@ -38,11 +38,13 @@ export const pageUpdateMutation = gql`
   ) {
     pageUpdate(
       id: $id
-      title: $title
-      content: $content
-      slug: $slug
-      isVisible: $isVisible
-      availableOn: $availableOn
+      input: {
+        title: $title
+        content: $content
+        slug: $slug
+        isVisible: $isVisible
+        availableOn: $availableOn
+      }
     ) {
       page {
         id
@@ -62,7 +64,7 @@ export const pageUpdateMutation = gql`
 
 export const TypedPageCreateMutation = Mutation as React.ComponentType<
   MutationProps<PageCreateMutation, PageCreateMutationVariables>
->;
+  >;
 export const pageCreateMutation = gql`
   mutation PageCreate(
     $title: String!
@@ -72,11 +74,13 @@ export const pageCreateMutation = gql`
     $availableOn: String
   ) {
     pageCreate(
-      title: $title
-      content: $content
-      slug: $slug
-      isVisible: $isVisible
-      availableOn: $availableOn
+      input: {
+        title: $title
+        content: $content
+        slug: $slug
+        isVisible: $isVisible
+        availableOn: $availableOn
+      }
     ) {
       page {
         id
