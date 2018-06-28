@@ -2,8 +2,8 @@ import graphene
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
 
-from ...core.utils.taxes import ZERO_TAXED_MONEY
 from ...account.models import Address
+from ...core.utils.taxes import ZERO_TAXED_MONEY
 from ...order import OrderStatus, models
 from ...shipping.models import ANY_COUNTRY
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -52,6 +52,14 @@ class DraftOrderInput(InputObjectType):
         description='ID of a selected shipping method.')
     voucher = graphene.ID(
         description='ID of the voucher associated with the order')
+
+
+class OrderUpdateInput(graphene.InputObjectType):
+    billing_address = AddressInput(
+        description='Address associated with the payment.')
+    user_email = graphene.String(description='Email address of the customer.')
+    shipping_address = AddressInput(
+        description='Address to where the order will be shipped.')
 
 
 class DraftOrderCreate(ModelMutation):
@@ -108,7 +116,7 @@ class DraftOrderCreate(ModelMutation):
         return user.has_perm('order.edit_order')
 
 
-class DraftOrderUpdate(ModelMutation):
+class DraftOrderUpdate(DraftOrderCreate):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of an order to update.')
@@ -117,7 +125,7 @@ class DraftOrderUpdate(ModelMutation):
             description='Fields required to update an order.')
 
     class Meta:
-        description = 'Updates an order.'
+        description = 'Updates a draft order.'
         model = models.Order
 
 
@@ -196,3 +204,16 @@ class DraftOrderComplete(BaseMutation):
             order.shipping_address.delete()
 
         return DraftOrderComplete(order=order)
+
+
+class OrderUpdate(DraftOrderUpdate):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of an order to update.')
+        input = OrderUpdateInput(
+            required=True,
+            description='Fields required to update an order.')
+
+    class Meta:
+        description = 'Updates an order.'
+        model = models.Order

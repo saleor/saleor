@@ -30,7 +30,8 @@ from .order.filters import OrderFilter
 from .order.resolvers import resolve_order, resolve_orders
 from .order.types import Order
 from .order.mutations import (
-    DraftOrderCreate, DraftOrderComplete, DraftOrderDelete, DraftOrderUpdate)
+    DraftOrderCreate, DraftOrderComplete, DraftOrderDelete, DraftOrderUpdate,
+    OrderUpdate)
 from .page.resolvers import resolve_pages, resolve_page
 from .page.types import Page
 from .page.mutations import PageCreate, PageDelete, PageUpdate
@@ -282,6 +283,7 @@ class Mutations(graphene.ObjectType):
     draft_order_complete = DraftOrderComplete.Field()
     draft_order_delete = DraftOrderDelete.Field()
     draft_order_update = DraftOrderUpdate.Field()
+    order_update = OrderUpdate.Field()
 
     page_create = PageCreate.Field()
     page_delete = PageDelete.Field()
