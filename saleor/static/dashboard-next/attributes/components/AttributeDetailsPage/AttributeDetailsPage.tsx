@@ -63,6 +63,7 @@ const AttributeDetailsPage = decorate<AttributeDetailsPageProps>(
                 : []
           }}
           onSubmit={onSubmit}
+          key={JSON.stringify(attribute)}
         >
           {({ change, data, hasChanged, submit }) => (
             <>
@@ -84,6 +85,7 @@ const AttributeDetailsPage = decorate<AttributeDetailsPageProps>(
                     />
                     <AttributeValueList
                       disabled={disabled}
+                      loading={!(attribute && attribute.values)}
                       values={data.values}
                       onChange={change}
                     />

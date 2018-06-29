@@ -25,4 +25,18 @@ storiesOf("Views / Attributes / Attribute details", module)
       onDelete={() => {}}
       onSubmit={() => {}}
     />
+  ))
+  .add("when no values", () => (
+    <AttributeDetailsPage
+      attribute={{
+        id: attributes[0].id,
+        name: attributes[0].name,
+        values: []
+      }}
+      disabled={false}
+      saveButtonBarState="default"
+      onBack={() => {}}
+      onDelete={() => {}}
+      onSubmit={() => {}}
+    />
   ));
