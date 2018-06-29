@@ -1,7 +1,8 @@
 from operator import attrgetter
 
 import graphene
-from django.utils.translation import pgettext_lazy
+from django.utils.translation import npgettext_lazy, pgettext_lazy
+from django_prices.templatetags import prices_i18n
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
 from payments import PaymentError, PaymentStatus
@@ -208,7 +209,8 @@ class DraftOrderComplete(BaseMutation):
         order.save()
         if remove_shipping_address:
             order.shipping_address.delete()
-
+        msg = 'Order created from draft order'
+        order.history.create(content=msg, user=info.context.user)
         return DraftOrderComplete(order=order)
 
 
@@ -232,6 +234,7 @@ class OrderAddNoteInput(graphene.InputObjectType):
     is_public = graphene.String(
         description='Determine if note is visible by customer or not.')
 
+
 class OrderAddNote(ModelMutation):
     class Arguments:
         input = OrderAddNoteInput(
@@ -245,6 +248,12 @@ class OrderAddNote(ModelMutation):
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('order.edit_order')
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        super.save(info, instance, cleaned_input)
+        msg = 'Added note'
+        instance.order.history.create(content=msg, user=info.context.user)
 
 
 class OrderCancel(BaseMutation):
@@ -263,6 +272,16 @@ class OrderCancel(BaseMutation):
     def mutate(cls, root, info, id, restock):
         order = get_node(info, id, only_type=Order)
         cancel_order(order=order, restock=restock)
+        if restock:
+            restock_msg = npgettext_lazy(
+                'Dashboard message',
+                'Restocked %(quantity)d item',
+                'Restocked %(quantity)d items',
+                'quantity') % {'quantity': order.get_total_quantity()}
+            order.history.create(content=restock_msg, user=info.context.user)
+        else:
+            msg = pgettext_lazy('Dashboard message', 'Order canceled')
+            order.history.create(content=msg, user=info.context.user)
         return OrderCancel(order=order)
 
 
@@ -294,6 +313,8 @@ class OrderMarkAsPaid(BaseMutation):
             variant=CustomPaymentChoices.MANUAL,
             status=PaymentStatus.CONFIRMED, order=order,
             defaults=defaults)
+        msg = 'Order manually marked as paid'
+        order.history.create(content=msg, user=info.context.user)
         return OrderMarkAsPaid(order=order)
 
 
@@ -313,6 +334,9 @@ class OrderCapture(BaseMutation):
         amount = order.total.quantize('0.01').gross
         try:
             payment.capture(amount.amount)
+            msg = 'Captured %(amount)s' % {
+                'amount': prices_i18n.amount(amount)}
+            order.history.create(content=msg, user=info.context.user)
         except (PaymentError, ValueError) as e:
             errors = []
             message_dict = e.message_dict
@@ -350,4 +374,7 @@ class OrderRelease(BaseMutation):
                     errors.append(Error(field=field, message=message))
         if errors:
             return cls(errors=errors)
+
+        msg = 'Released payment'
+        order.history.create(content=msg, user=info.context.user)
         return OrderRelease(order=order)
