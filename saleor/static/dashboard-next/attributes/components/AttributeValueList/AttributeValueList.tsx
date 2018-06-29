@@ -98,7 +98,7 @@ const AttributeValueList = decorate<AttributeValueListProps>(
               </TableRow>
             ) : values.length > 0 ? (
               values.map(value => (
-                <TableRow>
+                <TableRow key={value.id}>
                   <EditableTableCell
                     classes={{ root: classes.edit }}
                     focused={value.isNew}
