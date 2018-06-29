@@ -32,7 +32,7 @@ from .order.types import Order
 from .order.mutations import (
     DraftOrderCreate, OrderAddNote, OrderCancel, OrderCapture,
     DraftOrderComplete, DraftOrderDelete, OrderMarkAsPaid, DraftOrderUpdate,
-    OrderUpdate)
+    OrderRelease, OrderUpdate)
 from .page.resolvers import resolve_pages, resolve_page
 from .page.types import Page
 from .page.mutations import PageCreate, PageDelete, PageUpdate
@@ -288,6 +288,7 @@ class Mutations(graphene.ObjectType):
     order_cancel = OrderCancel.Field()
     order_capture = OrderCapture.Field()
     order_mark_as_paid = OrderMarkAsPaid.Field()
+    order_release = OrderRelease.Field()
     order_update = OrderUpdate.Field()
 
     page_create = PageCreate.Field()
