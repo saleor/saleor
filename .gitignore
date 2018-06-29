@@ -1,6 +1,7 @@
 *.py[cod]
 .*
 !.babelrc
+!.circleci
 !.codeclimate.yml
 !.coveragerc
 !.dockerignore
