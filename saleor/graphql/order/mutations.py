@@ -1,3 +1,5 @@
+from operator import attrgetter
+
 import graphene
 from django.utils.translation import pgettext_lazy
 from graphene.types import InputObjectType
@@ -230,7 +232,6 @@ class OrderAddNoteInput(graphene.InputObjectType):
     is_public = graphene.String(
         description='Determine if note is visible by customer or not.')
 
-
 class OrderAddNote(ModelMutation):
     class Arguments:
         input = OrderAddNoteInput(
@@ -294,3 +295,31 @@ class OrderMarkAsPaid(BaseMutation):
             status=PaymentStatus.CONFIRMED, order=order,
             defaults=defaults)
         return OrderMarkAsPaid(order=order)
+
+
+class OrderCapture(BaseMutation):
+    class Arguments:
+        order_id = graphene.ID(
+            required=True, description='ID of the order to capture.')
+
+    order = graphene.Field(
+        Order, description='Captured order.')
+
+    @classmethod
+    @permission_required('order.edit_order')
+    def mutate(cls, root, info, order_id):
+        order = get_node(info, order_id, only_type=Order)
+        # get last payment
+        payment = max(
+            order.payments.all(), default=None, key=attrgetter('pk'))
+        amount = order.total.quantize('0.01').gross
+        try:
+            payment.capture(amount.amount)
+        except (PaymentError, ValueError) as e:
+            errors = []
+            message_dict = e.message_dict
+            for field in message_dict:
+                for message in message_dict[field]:
+                    errors.append(Error(field=field, message=message))
+            return cls(errors=errors)
+        return OrderCapture(order=order)
