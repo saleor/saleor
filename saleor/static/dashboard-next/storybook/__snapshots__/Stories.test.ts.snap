@@ -15120,6 +15120,241 @@ exports[`Storyshots Views / Attributes / Attribute details when loading 1`] = `
               >
                 <td
                   class="MuiTableCell-root-88 MuiTableCell-body-90"
+                >
+                  <span
+                    class="Skeleton-skeleton-84"
+                  >
+                    ‌
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-88 MuiTableCell-body-90 Component-deleteIcon-448"
+                >
+                  <button
+                    class="MuiButtonBase-root-295 MuiButtonBase-disabled-296 MuiIconButton-root-409 MuiIconButton-disabled-413"
+                    disabled=""
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-414"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-51"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <g>
+                          <path
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                          />
+                        </g>
+                      </svg>
+                    </span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div
+      class="Component-root-266"
+    >
+      <div
+        class="Component-spacer-267"
+      />
+      <button
+        class="MuiButtonBase-root-295 MuiButtonBase-disabled-296 MuiButton-root-273 MuiButton-contained-282 MuiButton-containedSecondary-284 MuiButton-raised-285 MuiButton-raisedSecondary-287 MuiButton-disabled-289"
+        disabled=""
+        tabindex="-1"
+        type="button"
+      >
+        <span
+          class="MuiButton-label-274"
+        >
+          Save
+        </span>
+      </button>
+    </div>
+  </div>
+</form>
+`;
+
+exports[`Storyshots Views / Attributes / Attribute details when no values 1`] = `
+<form>
+  <div
+    class="Component-md-13"
+  >
+    <div
+      class="Component-root-445"
+    >
+      <button
+        class="MuiButtonBase-root-295 MuiIconButton-root-409 MuiIconButton-colorInherit-410 Component-menuButton-444"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiIconButton-label-414"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root-51"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <g>
+              <path
+                d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+              />
+            </g>
+          </svg>
+        </span>
+        <span
+          class="MuiTouchRipple-root-298"
+        />
+      </button>
+      <h2
+        class="MuiTypography-root-60 MuiTypography-title-66 PageHeader-title-441"
+      >
+        Savings Account
+      </h2>
+      <div
+        class="Component-action-442"
+      >
+        <button
+          class="MuiButtonBase-root-295 MuiIconButton-root-409"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label-414"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-51"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-298"
+          />
+        </button>
+      </div>
+    </div>
+    <div
+      class="Component-root-440"
+    >
+      <div>
+        <div
+          class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435"
+        >
+          <div
+            class="MuiCardContent-root-436"
+          >
+            <div
+              class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
+            >
+              <label
+                class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25 MuiInputLabel-shrink-24"
+                data-shrink="true"
+              >
+                Name
+              </label>
+              <div
+                class="MuiInput-root-31 MuiInput-fullWidth-38 MuiInput-formControl-32 MuiInput-underline-35"
+              >
+                <input
+                  aria-invalid="false"
+                  aria-required="false"
+                  class="MuiInput-input-39"
+                  name="name"
+                  type="text"
+                  value="Savings Account"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-root-450"
+        >
+          <div
+            class="Component-root-445"
+          >
+            <h2
+              class="MuiTypography-root-60 MuiTypography-title-66 PageHeader-title-441"
+            >
+              Attribute values
+            </h2>
+            <div
+              class="Component-action-442"
+            >
+              <button
+                class="MuiButtonBase-root-295 MuiIconButton-root-409"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiIconButton-label-414"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-51"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <g>
+                      <path
+                        d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                      />
+                    </g>
+                  </svg>
+                </span>
+                <span
+                  class="MuiTouchRipple-root-298"
+                />
+              </button>
+            </div>
+          </div>
+          <table
+            class="MuiTable-root-86"
+          >
+            <thead
+              class="MuiTableHead-root-87"
+            >
+              <tr
+                class="MuiTableRow-root-97 MuiTableRow-head-100"
+              >
+                <th
+                  class="MuiTableCell-root-88 MuiTableCell-head-89"
+                  scope="col"
+                >
+                  Name
+                </th>
+                <th
+                  class="MuiTableCell-root-88 MuiTableCell-head-89 Component-deleteIcon-448"
+                  scope="col"
+                />
+              </tr>
+            </thead>
+            <tbody
+              class="MuiTableBody-root-96"
+            >
+              <tr
+                class="MuiTableRow-root-97"
+              >
+                <td
+                  class="MuiTableCell-root-88 MuiTableCell-body-90"
                   colspan="2"
                 >
                   No attribute values found
