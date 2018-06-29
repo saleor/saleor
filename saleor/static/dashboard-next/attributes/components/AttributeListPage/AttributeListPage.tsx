@@ -14,7 +14,7 @@ interface AttributeListPageProps extends PageListProps {
     name: string;
     values: Array<{
       id: string;
-      sortNumber: number;
+      sortOrder: number;
       name: string;
     }>;
   }>;

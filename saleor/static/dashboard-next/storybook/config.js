@@ -24,6 +24,7 @@ function loadStories() {
   require("./stories/components/Timeline");
 
   // Attributes
+  require("./stories/attributes/AttributeDetailsPage");
   require("./stories/attributes/AttributeListPage");
 
   // Categories
