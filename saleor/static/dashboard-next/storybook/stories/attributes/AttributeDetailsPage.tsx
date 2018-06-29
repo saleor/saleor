@@ -15,10 +15,6 @@ storiesOf("Views / Attributes / Attribute details", module)
       onBack={() => {}}
       onDelete={() => {}}
       onSubmit={() => {}}
-      onValueAdd={() => {}}
-      onValueDelete={() => () => {}}
-      onValueEdit={() => () => () => {}}
-      onValueReorder={() => () => {}}
     />
   ))
   .add("when loading", () => (
@@ -28,9 +24,5 @@ storiesOf("Views / Attributes / Attribute details", module)
       onBack={() => {}}
       onDelete={() => {}}
       onSubmit={() => {}}
-      onValueAdd={() => {}}
-      onValueDelete={() => () => {}}
-      onValueEdit={() => () => () => {}}
-      onValueReorder={() => () => {}}
     />
   ));

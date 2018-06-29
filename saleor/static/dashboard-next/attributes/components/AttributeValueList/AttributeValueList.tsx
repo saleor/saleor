@@ -6,12 +6,9 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import Typography from "@material-ui/core/Typography";
 import AddIcon from "@material-ui/icons/Add";
 import CloseIcon from "@material-ui/icons/Close";
-import ReorderIcon from "@material-ui/icons/Reorder";
 import * as React from "react";
-import { SortableContainer, SortableElement } from "react-sortable-hoc";
 import Skeleton from "../../../components/Skeleton";
 
 import { EditableTableCell } from "../../../components/EditableTableCell/EditableTableCell";
@@ -23,13 +20,9 @@ interface AttributeValueListProps {
   values: Array<{
     id: string;
     name: string;
-    sortOrder: number;
-    slug: string;
+    isNew?: boolean;
   }>;
-  onAdd: () => void;
-  onDelete: (id: string) => () => void;
-  onEdit: (id: string) => (name: string) => () => void;
-  onReorder: (event: { oldIndex: number; newIndex: number }) => void;
+  onChange: (event: React.ChangeEvent<any>) => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -38,76 +31,103 @@ const decorate = withStyles(theme => ({
     paddingRight: "0 !important",
     width: theme.spacing.unit * 7
   },
-  reorderIcon: {
-    cursor: "move" as "move",
-    paddingLeft: theme.spacing.unit * 2,
-    paddingRight: 0,
-    width: theme.spacing.unit * 9
+  edit: {
+    width: "unset"
   },
   root: {
     marginTop: theme.spacing.unit * 2,
-    [theme.breakpoints.down("md")]: { marginTop: theme.spacing.unit }
+    overflow: "visible",
+    [theme.breakpoints.down("md")]: {
+      marginTop: theme.spacing.unit
+    }
   }
 }));
 const AttributeValueList = decorate<AttributeValueListProps>(
-  ({ classes, disabled, values, onAdd, onDelete, onEdit, onReorder }) => (
-    <Card className={classes.root}>
-      <PageHeader title={i18n.t("Attribute values")}>
-        <IconButton disabled={disabled} onClick={onAdd}>
-          <AddIcon />
-        </IconButton>
-      </PageHeader>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell className={classes.reorderIcon} />
-            <TableCell>{i18n.t("Name")}</TableCell>
-            <TableCell className={classes.deleteIcon} />
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {values === undefined ? (
+  ({ classes, disabled, values, onChange }) => {
+    const defaultValue = i18n.t("New value");
+    const handleAdd = () =>
+      onChange({
+        target: {
+          name: "values",
+          value: [
+            ...values,
+            {
+              id: "new-" + values.length,
+              isNew: true,
+              name: defaultValue
+            }
+          ]
+        }
+      } as any);
+    const handleEdit = (id: string) => (name: string) =>
+      onChange({
+        target: {
+          name: "values",
+          value: values.map(v => (v.id === id ? { id, name } : v))
+        }
+      } as any);
+    const handleDelete = (id: string) => () =>
+      onChange({
+        target: { name: "values", value: values.filter(v => v.id !== id) }
+      } as any);
+    return (
+      <Card className={classes.root}>
+        <PageHeader title={i18n.t("Attribute values")}>
+          <IconButton disabled={disabled} onClick={handleAdd}>
+            <AddIcon />
+          </IconButton>
+        </PageHeader>
+        <Table>
+          <TableHead>
             <TableRow>
-              <TableCell className={classes.reorderIcon}>
-                <ReorderIcon />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell className={classes.deleteIcon}>
-                <IconButton disabled={disabled}>
-                  <CloseIcon />
-                </IconButton>
-              </TableCell>
+              <TableCell>{i18n.t("Name")}</TableCell>
+              <TableCell className={classes.deleteIcon} />
             </TableRow>
-          ) : values.length > 0 ? (
-            values.map(value => (
+          </TableHead>
+          <TableBody>
+            {values === undefined ? (
               <TableRow>
-                <TableCell className={classes.reorderIcon}>
-                  <ReorderIcon />
+                <TableCell>
+                  <Skeleton />
                 </TableCell>
-                <EditableTableCell
-                  value={value.name}
-                  onConfirm={onEdit(value.id)}
-                />
                 <TableCell className={classes.deleteIcon}>
-                  <IconButton disabled={disabled} onClick={onDelete(value.id)}>
+                  <IconButton disabled={disabled}>
                     <CloseIcon />
                   </IconButton>
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={3}>
-                {i18n.t("No attribute values found")}
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </Card>
-  )
+            ) : values.length > 0 ? (
+              values.map(value => (
+                <TableRow>
+                  <EditableTableCell
+                    classes={{ root: classes.edit }}
+                    focused={value.isNew}
+                    defaultValue={defaultValue}
+                    value={value.name}
+                    onConfirm={handleEdit(value.id)}
+                  />
+                  <TableCell className={classes.deleteIcon}>
+                    <IconButton
+                      disabled={disabled}
+                      onClick={handleDelete(value.id)}
+                    >
+                      <CloseIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={2}>
+                  {i18n.t("No attribute values found")}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </Card>
+    );
+  }
 );
 AttributeValueList.displayName = "AttributeValueList";
 export default AttributeValueList;
