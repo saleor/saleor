@@ -87,21 +87,23 @@ def customer_user(db, address):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def company(db, address):
-    company = Company.objects.create(
-        name='Mirumee Software',
-        is_active=True)
-    company.addresses.add(address)
-    company.default_billing_address = address
-    company.save()
-    return company
+def company_factory(db):
+    def factory(name, address_street):
+        comp_address = address(db)
+        comp_address.street = address_street
+        comp_address.save()
+
+        company = Company.objects.create(name=name, is_active=True)
+        company.addresses.add(comp_address)
+        company.default_billing_address = comp_address
+        company.save()
+        return company
+    return factory
 
 
 @pytest.fixture
-def company_customer_user(db, customer_user, company):
-    customer_user.company = company
-    customer_user.save()
-    return customer_user
+def company(db, company_factory):
+    return company_factory("Mirumee", "123 Somewhere")
 
 
 @pytest.fixture
@@ -201,6 +203,16 @@ def default_category(db):  # pylint: disable=W0613
 @pytest.fixture
 def non_default_category(db):  # pylint: disable=W0613
     return Category.objects.create(name='Not default', slug='not-default')
+
+
+@pytest.fixture
+def group_factory():
+    def factory(name, *perms):
+        group = Group.objects.create(name=name)
+        for perm in perms:
+            group.permissions.add(Permission.objects.get(codename=perm))
+        return group
+    return factory
 
 
 @pytest.fixture

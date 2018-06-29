@@ -35,8 +35,7 @@ def company_list(request):
 @staff_member_required
 @permission_required('account.view_company')
 def company_details(request, pk):
-    queryset = Company.objects.select_related(
-        'default_billing_address', 'default_billing_address')
+    queryset = Company.objects.select_related('default_billing_address')
     company = get_object_or_404(queryset, pk=pk)
     company_orders = Order.objects.filter(user__company=company)
     company_users = User.objects.filter(company=company)

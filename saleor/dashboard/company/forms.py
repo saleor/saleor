@@ -13,7 +13,7 @@ class CompanyDeleteForm(forms.Form):
 
     def clean(self):
         data = super().clean()
-        if not self.instance.is_staff:
+        if not self.user.is_staff:
             return data
 
         if self.user.company == self.user:
