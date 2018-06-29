@@ -42,7 +42,7 @@ COPY --from=build-nodejs /app/templates /app/templates
 WORKDIR /app
 
 RUN useradd --system saleor && \
-    mkdir -p /app/media /app/static && \
+    mkdir /app/media /app/static && \
     chown -R saleor:saleor /app/media /app/static
 
 USER saleor
