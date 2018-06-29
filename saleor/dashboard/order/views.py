@@ -121,7 +121,7 @@ def order_details(request, order_pk):
         'fulfillments__lines__order_line')
     order = get_object_or_404(qs, pk=order_pk)
     all_payments = order.payments.exclude(status=PaymentStatus.INPUT)
-    payment = order.payments.last()
+    payment = order.get_last_payment()
     preauthorized = ZERO_TAXED_MONEY
     captured = ZERO_MONEY
     balance = captured - order.total.gross
