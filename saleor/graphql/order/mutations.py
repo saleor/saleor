@@ -21,12 +21,9 @@ from .types import Order
 
 def try_payment_action(action, money, errors):
     try:
-        action(money.amount)
+        action(money)
     except (PaymentError, ValueError) as e:
-        message_dict = e.message_dict
-        for field in message_dict:
-            for message in message_dict[field]:
-                errors.append(Error(field=field, message=message))
+        errors.append(Error(field='payment', message=str(e)))
 
 
 
@@ -324,7 +321,7 @@ class OrderMarkAsPaid(BaseMutation):
             variant=CustomPaymentChoices.MANUAL,
             status=PaymentStatus.CONFIRMED, order=order,
             defaults=defaults)
-        msg = 'Order manually marked as paid'
+        msg = 'Order manually marked as paid.'
         order.history.create(content=msg, user=info.context.user)
         return OrderMarkAsPaid(order=order)
 
@@ -333,23 +330,23 @@ class OrderCapture(BaseMutation):
     class Arguments:
         order_id = graphene.ID(
             required=True, description='ID of the order to capture.')
+        amount = Decimal(
+            required=True, description='Amount of money to capture.')
 
     order = graphene.Field(
         Order, description='Captured order.')
 
     @classmethod
     @permission_required('order.edit_order')
-    def mutate(cls, root, info, order_id):
+    def mutate(cls, root, info, order_id, amount):
         order = get_node(info, order_id, only_type=Order)
         payment = order.get_last_payment()
-        amount = order.total.quantize('0.01').gross
         errors = []
         try_payment_action(payment.capture, amount, errors)
         if errors:
             return cls(errors=errors)
 
-        msg = 'Captured %(amount)s' % {
-            'amount': prices_i18n.amount(amount)}
+        msg = 'Captured %(amount)s' % {'amount': amount}
         order.history.create(content=msg, user=info.context.user)
         return OrderCapture(order=order)
 
@@ -391,26 +388,27 @@ class OrderRefund(BaseMutation):
     class Arguments:
         order_id = graphene.ID(
             required=True, description='ID of the order to refund.')
+        amount = Decimal(
+            required=True, description='Amount of money to refund.')
 
     order = graphene.Field(
         Order, description='released order.')
 
     @classmethod
     @permission_required('order.edit_order')
-    def mutate(cls, root, info, order_id):
+    def mutate(cls, root, info, order_id, amount):
         order = get_node(info, order_id, only_type=Order)
         payment = order.get_last_payment()
-        amount = payment.captured_amount
         errors = []
         if payment.variant == CustomPaymentChoices.MANUAL:
             errors.append(
                 Error(field='payment',
                       message='Manual payments can not be refunded.'))
+        import ipdb; ipdb.set_trace()
         try_payment_action(payment.refund, amount, errors)
         if errors:
             return cls(errors=errors)
 
-        msg = 'Refunded %(amount)s' % {
-            'amount': prices_i18n.amount(amount)}
+        msg = 'Refunded %(amount)s' % {'amount': amount}
         order.history.create(content=msg, user=info.context.user)
         return OrderRefund(order=order)
