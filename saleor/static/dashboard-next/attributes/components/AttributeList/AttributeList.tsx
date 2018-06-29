@@ -19,7 +19,7 @@ interface AttributeListProps extends ListProps {
     name: string;
     values: Array<{
       id: string;
-      sortNumber: number;
+      sortOrder: number;
       name: string;
     }>;
   }>;
@@ -87,9 +87,9 @@ const AttributeList = decorate<AttributeListProps>(
                   {attribute.values
                     .sort(
                       (a, b) =>
-                        a.sortNumber > b.sortNumber
+                        a.sortOrder > b.sortOrder
                           ? 1
-                          : a.sortNumber < b.sortNumber
+                          : a.sortOrder < b.sortOrder
                             ? -1
                             : 0
                     )
