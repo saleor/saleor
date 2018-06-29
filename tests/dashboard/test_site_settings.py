@@ -15,7 +15,7 @@ def test_index_view(admin_client, site_settings):
     assert response.status_code == 200
 
     context = response.context
-    assert context['site'] == site_settings
+    assert context['site_settings'] == site_settings
 
 
 def test_site_form():
