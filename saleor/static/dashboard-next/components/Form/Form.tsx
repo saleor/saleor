@@ -12,6 +12,7 @@ export interface FormProps<T extends {}> {
       ) => React.ReactElement<any>)
     | React.ReactNode;
   initial?: T;
+  useForm?: boolean;
   onSubmit?(data: T);
 }
 
@@ -37,7 +38,16 @@ class Form<T extends {} = {}> extends React.Component<FormProps<T>, T> {
     this.setState(({ [target.name]: target.value } as any) as Pick<T, keyof T>);
   };
 
-  handleSubmit = (event: React.FormEvent<any>) => {
+  handleKeyDown = (event: React.KeyboardEvent<any>) => {
+    switch (event.keyCode) {
+      // Enter
+      case 13:
+        this.props.onSubmit(this.state);
+        break;
+    }
+  };
+
+  handleSubmit = (event?: React.FormEvent<any>) => {
     const { onSubmit } = this.props;
     event.preventDefault();
     if (onSubmit !== undefined) {
@@ -46,7 +56,7 @@ class Form<T extends {} = {}> extends React.Component<FormProps<T>, T> {
   };
 
   render() {
-    const { children } = this.props;
+    const { children, useForm = true } = this.props;
 
     let contents = children;
 
@@ -59,7 +69,11 @@ class Form<T extends {} = {}> extends React.Component<FormProps<T>, T> {
       });
     }
 
-    return <form onSubmit={this.handleSubmit}>{contents}</form>;
+    return useForm ? (
+      <form onSubmit={this.handleSubmit}>{contents}</form>
+    ) : (
+      <div onKeyDown={this.handleKeyDown}>{contents}</div>
+    );
   }
 }
 

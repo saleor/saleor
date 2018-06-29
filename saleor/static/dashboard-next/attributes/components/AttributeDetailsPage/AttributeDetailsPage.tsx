@@ -32,10 +32,6 @@ interface AttributeDetailsPageProps {
   onBack: () => void;
   onDelete: () => void;
   onSubmit: () => void;
-  onValueAdd: () => void;
-  onValueDelete: (id: string) => () => void;
-  onValueEdit: (id: string) => (name: string) => () => void;
-  onValueReorder: (event: { oldIndex: number; newIndex: number }) => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -53,18 +49,18 @@ const AttributeDetailsPage = decorate<AttributeDetailsPageProps>(
     saveButtonBarState,
     onBack,
     onDelete,
-    onSubmit,
-    onValueAdd,
-    onValueDelete,
-    onValueEdit,
-    onValueReorder
+    onSubmit
   }) => (
     <Toggle>
       {(openedDeleteDialog, { toggle: toggleDeleteDialog }) => (
         <Form
           initial={{
             name:
-              attribute && attribute.name !== undefined ? attribute.name : ""
+              attribute && attribute.name !== undefined ? attribute.name : "",
+            values:
+              attribute && attribute.values !== undefined
+                ? attribute.values
+                : []
           }}
           onSubmit={onSubmit}
         >
@@ -88,11 +84,8 @@ const AttributeDetailsPage = decorate<AttributeDetailsPageProps>(
                     />
                     <AttributeValueList
                       disabled={disabled}
-                      values={attribute ? attribute.values : undefined}
-                      onAdd={onValueAdd}
-                      onDelete={onValueDelete}
-                      onEdit={onValueEdit}
-                      onReorder={onValueReorder}
+                      values={data.values}
+                      onChange={change}
                     />
                   </div>
                 </div>
