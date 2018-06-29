@@ -309,9 +309,7 @@ class OrderCapture(BaseMutation):
     @permission_required('order.edit_order')
     def mutate(cls, root, info, order_id):
         order = get_node(info, order_id, only_type=Order)
-        # get last payment
-        payment = max(
-            order.payments.all(), default=None, key=attrgetter('pk'))
+        payment = order.get_last_payment()
         amount = order.total.quantize('0.01').gross
         try:
             payment.capture(amount.amount)
@@ -323,3 +321,33 @@ class OrderCapture(BaseMutation):
                     errors.append(Error(field=field, message=message))
             return cls(errors=errors)
         return OrderCapture(order=order)
+
+
+class OrderRelease(BaseMutation):
+    class Arguments:
+        order_id = graphene.ID(
+            required=True, description='ID of the order to release.')
+
+    order = graphene.Field(
+        Order, description='released order.')
+
+    @classmethod
+    @permission_required('order.edit_order')
+    def mutate(cls, root, info, order_id):
+        order = get_node(info, order_id, only_type=Order)
+        payment = order.get_last_payment()
+        errors = []
+        if payment.status != PaymentStatus.PREAUTH:
+            errors.append(
+                Error(field='payment',
+                      message='Only pre-authorized payments can be released'))
+        try:
+            payment.release()
+        except (PaymentError, ValueError) as e:
+            message_dict = e.message_dict
+            for field in message_dict:
+                for message in message_dict[field]:
+                    errors.append(Error(field=field, message=message))
+        if errors:
+            return cls(errors=errors)
+        return OrderRelease(order=order)
