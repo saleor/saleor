@@ -11,9 +11,11 @@ import Toggle from "../../components/Toggle";
 
 interface EditableTableCellProps {
   className?: string;
+  defaultValue?: string;
+  focused?: boolean;
   InputProps?: TextFieldProps;
   value: string;
-  onConfirm(value: string): () => void;
+  onConfirm(value: string): any;
 }
 
 const decorate = withStyles(theme => ({
@@ -42,9 +44,17 @@ const decorate = withStyles(theme => ({
   }
 }));
 export const EditableTableCell = decorate<EditableTableCellProps>(
-  ({ classes, className, InputProps, value, onConfirm }) => (
+  ({
+    classes,
+    className,
+    defaultValue,
+    focused,
+    InputProps,
+    value,
+    onConfirm
+  }) => (
     <TableCell className={[classes.container, className].join(" ")}>
-      <Toggle>
+      <Toggle initial={focused}>
         {(opened, { enable, disable }) => {
           const handleConfirm = (data: { value: string }) => {
             disable();
@@ -53,7 +63,11 @@ export const EditableTableCell = decorate<EditableTableCellProps>(
           return (
             <>
               {opened && <div className={classes.overlay} onClick={disable} />}
-              <Form initial={{ value }} onSubmit={handleConfirm}>
+              <Form
+                initial={{ value }}
+                onSubmit={handleConfirm}
+                useForm={false}
+              >
                 {({ change, data, submit }) => (
                   <>
                     <Typography
@@ -61,7 +75,7 @@ export const EditableTableCell = decorate<EditableTableCellProps>(
                       onClick={enable}
                       className={classes.text}
                     >
-                      {value}
+                      {value || defaultValue}
                     </Typography>
                     {opened && (
                       <div className={classes.root}>
