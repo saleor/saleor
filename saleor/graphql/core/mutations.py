@@ -177,7 +177,7 @@ class ModelMutation(BaseMutation):
         return errors
 
     @classmethod
-    def _save_m2m(cls, instance, cleaned_data):
+    def _save_m2m(cls, info, instance, cleaned_data):
         opts = instance._meta
         for f in chain(opts.many_to_many, opts.private_fields):
             if not hasattr(f, 'save_form_data'):
@@ -202,7 +202,7 @@ class ModelMutation(BaseMutation):
         return cls(**{cls._meta.return_field_name: instance, 'errors': []})
 
     @classmethod
-    def save(cls, instance, cleaned_input):
+    def save(cls, info, instance, cleaned_input):
         instance.save()
 
     @classmethod
@@ -235,8 +235,8 @@ class ModelMutation(BaseMutation):
         cls.clean_instance(instance, errors)
         if errors:
             return cls(errors=errors)
-        cls.save(instance, cleaned_input)
-        cls._save_m2m(instance, cleaned_input)
+        cls.save(info, instance, cleaned_input)
+        cls._save_m2m(info, instance, cleaned_input)
         return cls.success_response(instance)
 
 
