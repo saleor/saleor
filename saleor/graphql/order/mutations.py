@@ -19,6 +19,17 @@ from ..utils import get_node
 from .types import Order
 
 
+def try_payment_action(action, money, errors):
+    try:
+        action(money.amount)
+    except (PaymentError, ValueError) as e:
+        message_dict = e.message_dict
+        for field in message_dict:
+            for message in message_dict[field]:
+                errors.append(Error(field=field, message=message))
+
+
+
 class AddressInput(graphene.InputObjectType):
     first_name = graphene.String(description='Given name.')
     last_name = graphene.String(description='Family name.')
@@ -332,18 +343,14 @@ class OrderCapture(BaseMutation):
         order = get_node(info, order_id, only_type=Order)
         payment = order.get_last_payment()
         amount = order.total.quantize('0.01').gross
-        try:
-            payment.capture(amount.amount)
-            msg = 'Captured %(amount)s' % {
-                'amount': prices_i18n.amount(amount)}
-            order.history.create(content=msg, user=info.context.user)
-        except (PaymentError, ValueError) as e:
-            errors = []
-            message_dict = e.message_dict
-            for field in message_dict:
-                for message in message_dict[field]:
-                    errors.append(Error(field=field, message=message))
+        errors = []
+        try_payment_action(payment.capture, amount, errors)
+        if errors:
             return cls(errors=errors)
+
+        msg = 'Captured %(amount)s' % {
+            'amount': prices_i18n.amount(amount)}
+        order.history.create(content=msg, user=info.context.user)
         return OrderCapture(order=order)
 
 
@@ -378,3 +385,32 @@ class OrderRelease(BaseMutation):
         msg = 'Released payment'
         order.history.create(content=msg, user=info.context.user)
         return OrderRelease(order=order)
+
+
+class OrderRefund(BaseMutation):
+    class Arguments:
+        order_id = graphene.ID(
+            required=True, description='ID of the order to refund.')
+
+    order = graphene.Field(
+        Order, description='released order.')
+
+    @classmethod
+    @permission_required('order.edit_order')
+    def mutate(cls, root, info, order_id):
+        order = get_node(info, order_id, only_type=Order)
+        payment = order.get_last_payment()
+        amount = payment.captured_amount
+        errors = []
+        if payment.variant == CustomPaymentChoices.MANUAL:
+            errors.append(
+                Error(field='payment',
+                      message='Manual payments can not be refunded.'))
+        try_payment_action(payment.refund, amount, errors)
+        if errors:
+            return cls(errors=errors)
+
+        msg = 'Refunded %(amount)s' % {
+            'amount': prices_i18n.amount(amount)}
+        order.history.create(content=msg, user=info.context.user)
+        return OrderRefund(order=order)
