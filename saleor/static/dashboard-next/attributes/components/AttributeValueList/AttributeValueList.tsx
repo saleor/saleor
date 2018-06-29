@@ -17,6 +17,7 @@ import i18n from "../../../i18n";
 
 interface AttributeValueListProps {
   disabled: boolean;
+  loading: boolean;
   values: Array<{
     id: string;
     name: string;
@@ -43,7 +44,7 @@ const decorate = withStyles(theme => ({
   }
 }));
 const AttributeValueList = decorate<AttributeValueListProps>(
-  ({ classes, disabled, values, onChange }) => {
+  ({ classes, disabled, loading, values, onChange }) => {
     const defaultValue = i18n.t("New value");
     const handleAdd = () =>
       onChange({
@@ -85,7 +86,7 @@ const AttributeValueList = decorate<AttributeValueListProps>(
             </TableRow>
           </TableHead>
           <TableBody>
-            {values === undefined ? (
+            {values === undefined || loading ? (
               <TableRow>
                 <TableCell>
                   <Skeleton />
