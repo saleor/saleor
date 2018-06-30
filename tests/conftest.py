@@ -633,6 +633,11 @@ def menu_with_items(menu, default_category, collection):
 
 
 @pytest.fixture
+def footer():
+    return Menu.objects.get_or_create(slug='footer')[0]
+
+
+@pytest.fixture
 def tax_rates():
     return {
         'standard_rate': 23,

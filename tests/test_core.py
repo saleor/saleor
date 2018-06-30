@@ -9,12 +9,16 @@ from prices import Money
 
 from saleor.account.models import Address, User
 from saleor.core.storages import S3MediaStorage
+from saleor.core.templatetags.urls import (
+    get_internal_page_slug, get_internal_page_url)
 from saleor.core.utils import (
     Country, create_superuser, create_thumbnails, format_money,
     get_country_by_ip, get_currency_for_country, random_data)
 from saleor.core.utils.text import get_cleaner, strip_html
 from saleor.discount.models import Sale, Voucher
+from saleor.menu.models import Menu
 from saleor.order.models import Order
+from saleor.page.models import Page
 from saleor.product.models import Product, ProductImage
 from saleor.shipping.models import ShippingMethod
 
@@ -245,3 +249,47 @@ def test_storages_not_setting_s3_bucket_domain(*_patches):
     storage = S3MediaStorage()
     assert storage.bucket_name == 'media-bucket'
     assert storage.custom_domain is None
+
+
+@pytest.mark.parametrize(
+    'internal_page_name, creation_handler_fn', (
+        ('PrivacyPolicy', random_data.create_privacy_page),
+        ('SellingContract', random_data.create_selling_contract_page)
+    )
+)
+def test_random_data_create_privacy_page(
+        internal_page_name, creation_handler_fn):
+    slug = get_internal_page_slug(internal_page_name)
+
+    # default pages object can be already created by default in migration
+    assert Page.objects.all().delete()
+    assert Page.objects.all().count() == 0
+
+    # check if it created pages
+    assert list(creation_handler_fn())
+    assert Page.objects.all().count() == 1
+
+    created_page = Page.objects.all().last()
+    assert created_page.slug == slug
+    assert created_page.content == ''
+
+    # check if running random data, is not overriding current changes
+    created_page.title = title = 'New title was placed'
+    created_page.content = content = 'New content was placed'
+    created_page.save()
+
+    assert not list(creation_handler_fn())
+    assert Page.objects.all().count() == 1
+
+    created_page = Page.objects.all().last()
+    assert created_page.title == title
+    assert created_page.content == content
+
+
+@patch.object(settings, 'INTERNAL_PAGES', {'InternalPage': 'internal-page'})
+def test_templatetags_urls_get_internal_page_url():
+    expected_url = reverse('page:details', kwargs={'slug': 'internal-page'})
+    assert get_internal_page_url('InternalPage') == expected_url
+
+    with pytest.raises(ValueError):
+        get_internal_page_url('UnknownInternalPage')

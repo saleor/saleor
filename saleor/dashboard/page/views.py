@@ -56,14 +56,23 @@ def _page_edit(request, page):
 @permission_required('page.edit_page')
 def page_delete(request, pk):
     page = get_object_or_404(Page, pk=pk)
+    ctx = {'page': page}
+
+    # if the page is protected, deny the deletion, by showing an error modal
+    if page.is_protected:
+        return TemplateResponse(
+            request,
+            'dashboard/page/modals/protected_page_error_modal.html', ctx)
+
     if request.POST:
         page.delete()
         msg = pgettext_lazy(
             'Dashboard message', 'Removed page %s') % (page.title,)
         messages.success(request, msg)
         return redirect('dashboard:page-list')
-    ctx = {'page': page}
-    return TemplateResponse(request, 'dashboard/page/modal_delete.html', ctx)
+
+    return TemplateResponse(
+        request, 'dashboard/page/modals/delete_page_modal.html', ctx)
 
 
 @staff_member_required

@@ -2,6 +2,8 @@ import itertools
 import os
 import random
 import unicodedata
+from collections import defaultdict
+from os.path import isfile
 
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
@@ -11,6 +13,7 @@ from django.template.defaultfilters import slugify
 from django_countries.fields import Country
 from faker import Factory
 from faker.providers import BaseProvider
+from markdown import markdown
 from payments import PaymentStatus
 from prices import Money
 
@@ -32,6 +35,7 @@ from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
 from ...shipping.utils import get_taxed_shipping_price
+from ..templatetags.urls import get_internal_page_slug
 
 fake = Factory.create()
 
@@ -577,7 +581,7 @@ def create_collections_by_schema(placeholder_dir, schema=COLLECTIONS_SCHEMA):
         yield 'Collection: %s' % (collection,)
 
 
-def create_page():
+def create_about_page():
     content = """
     <h2 align="center">AN OPENSOURCE STOREFRONT PLATFORM FOR PERFECTIONISTS</h2>
     <h3 align="center">WRITTEN IN PYTHON, BEST SERVED AS A BESPOKE, HIGH-PERFORMANCE E-COMMERCE SOLUTION</h3>
@@ -590,6 +594,30 @@ def create_page():
     page_data = {'content': content, 'title': 'About', 'is_visible': True}
     page, dummy = Page.objects.get_or_create(slug='about', **page_data)
     yield 'Page %s created' % page.slug
+
+
+def _create_default_page_from_data(slug, data):
+    data.setdefault('is_visible', True)
+    page, created = Page.objects.get_or_create(defaults=data, slug=slug)
+
+    if created:
+        yield 'Created page: {0.title} ({0.slug})'.format(page)
+
+
+def create_privacy_page():
+    slug = get_internal_page_slug('PrivacyPolicy')
+    page_data = {
+        'title': 'Privacy Policy',
+        'content': ''}
+    return _create_default_page_from_data(slug, page_data)
+
+
+def create_selling_contract_page():
+    slug = get_internal_page_slug('SellingContract')
+    page_data = {
+        'title': 'Selling Contract',
+        'content': ''}
+    return _create_default_page_from_data(slug, page_data)
 
 
 def generate_menu_items(menu: Menu, category: Category, parent_menu_item):

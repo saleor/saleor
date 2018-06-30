@@ -18,6 +18,10 @@ class PageForm(forms.ModelForm):
         self.fields['seo_title'] = SeoTitleField(
             extra_attrs={'data-bind': self['title'].auto_id})
 
+        # Disabled the slug field if the page is protected
+        if self.instance and self.instance.is_protected:
+            self.fields['slug'].disabled = True
+
     class Meta:
         model = Page
         exclude = []

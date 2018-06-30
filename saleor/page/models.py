@@ -1,8 +1,10 @@
 import datetime
 
+from django.conf import settings
 from django.db import models
 from django.db.models import Q
 from django.urls import reverse
+from django.utils.functional import cached_property
 from django.utils.translation import pgettext_lazy
 
 from ..core.utils import build_absolute_uri
@@ -37,6 +39,10 @@ class Page(SeoModel):
 
     def __str__(self):
         return self.title
+
+    @cached_property
+    def is_protected(self):
+        return self.slug in settings.PROTECTED_PAGES
 
     def get_absolute_url(self):
         return reverse('page:details', kwargs={'slug': self.slug})
