@@ -51,16 +51,13 @@ def get_thumbnail(instance, size, method='crop'):
     on_demand = settings.VERSATILEIMAGEFIELD_SETTINGS[
         'create_images_on_demand']
     if instance:
-        if (size_name not in AVAILABLE_SIZES and not on_demand):
+        if size_name not in AVAILABLE_SIZES and not on_demand:
             msg = (
                 "Thumbnail size %s is not defined in settings "
                 "and it won't be generated automatically" % size_name)
             warnings.warn(msg)
         try:
-            if method == 'crop':
-                thumbnail = instance.crop[size]
-            else:
-                thumbnail = instance.thumbnail[size]
+            thumbnail = getattr(instance, method)[size]
         except Exception:
             logger.exception(
                 'Thumbnail fetch failed',
