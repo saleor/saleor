@@ -49,7 +49,7 @@ class DraftOrderInput(InputObjectType):
         description='Address associated with the payment.')
     user = graphene.ID(
         descripton='Customer associated with the draft order.')
-    email = graphene.String(description='Email address of the customer.')
+    user_email = graphene.String(description='Email address of the customer.')
     discount = Decimal(description='Discount amount for the order.')
     lines = graphene.List(
         LineInput,
