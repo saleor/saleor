@@ -3,6 +3,7 @@ import * as React from "react";
 
 import * as placeholder from "../../../../images/placeholder60x60.png";
 import CategoryProducts from "../../../categories/components/CategoryProducts";
+import Decorator from "../../Decorator";
 
 const products = [
   {
@@ -44,6 +45,7 @@ const products = [
 ];
 
 storiesOf("Categories / CategoryProducts", module)
+  .addDecorator(Decorator)
   .add("without initial data", () => (
     <CategoryProducts
       hasNextPage={true}

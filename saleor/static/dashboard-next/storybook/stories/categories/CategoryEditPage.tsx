@@ -2,16 +2,16 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import CategoryEditPage from "../../../categories/components/CategoryEditPage";
-// import Decorator from "../../Decorator";
 import {
   category as categoryFixture,
   errors
 } from "../../../categories/fixtures";
+import Decorator from "../../Decorator";
 
 const category = categoryFixture("");
 
 storiesOf("Views / Categories / Category edit", module)
-  // .addDecorator(Decorator)
+  .addDecorator(Decorator)
   .add("default", () => (
     <CategoryEditPage
       category={category}
