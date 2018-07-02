@@ -62,7 +62,7 @@ def company_create(request):
 @staff_member_required
 @permission_required('account.edit_company')
 def company_edit(request, pk=None):
-    company = get_object_or_404(User, pk=pk)
+    company = get_object_or_404(Company, pk=pk)
     form = CompanyForm(request.POST or None, instance=company)
     if form.is_valid():
         form.save()

@@ -48,6 +48,9 @@
                   {% trans "Customer" context "Orders table header" as label %}
                   {% sorting_header 'email' label %}
 
+                  {% trans "Company" context "Orders table header" as label %}
+                  {% sorting_header 'company' label %}
+
                   {% trans "Placed on" context "Orders table header" as label %}
                   {% sorting_header 'created' label %}
 
@@ -70,6 +73,11 @@
                     {% trans "Guest" context "Anonymous user account value" as guest %}
                     <td>
                       {{ order.user|default:guest }}
+                    </td>
+                    <td>
+                      {% if order.user.company %}
+                        {{ order.user.company.name|default:"" }}
+                      {% endif %}
                     </td>
                     <td>
                       {{ order.created }}
