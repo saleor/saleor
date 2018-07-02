@@ -289,10 +289,8 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
                 'product variant handle stock field help text',
                 'Automatically track this product\'s inventory')}
 
-    def __init__(self, *args, initial_track_inventory=True, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.initial['track_inventory'] = initial_track_inventory
 
         if self.instance.product.pk:
             self.fields['price_override'].widget.attrs[
