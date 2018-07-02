@@ -138,8 +138,8 @@ def test_product_query(admin_api_client, product):
         'purchaseCost']['start']['amount']
     assert purchase_cost.stop.amount == product_data[
         'purchaseCost']['stop']['amount']
-    assert margin[0] == product_data['margin'][0]['start']
-    assert margin[1] == product_data['margin'][0]['stop']
+    assert margin[0] == product_data['margin']['start']
+    assert margin[1] == product_data['margin']['stop']
 
 
 def test_product_with_collections(admin_api_client, product, collection):
@@ -941,9 +941,9 @@ def test_collections_query(user_api_client, collection):
 def test_create_collection(admin_api_client, product_list):
     query = """
         mutation createCollection(
-            $name: String!, $slug: String!, $products: [ID], $backgroundImage: Upload!) {
+            $name: String!, $slug: String!, $products: [ID], $backgroundImage: Upload!, $isPublished: Boolean!) {
             collectionCreate(
-                input: {name: $name, slug: $slug, products: $products, backgroundImage: $backgroundImage}) {
+                input: {name: $name, slug: $slug, products: $products, backgroundImage: $backgroundImage, isPublished: $isPublished}) {
                 collection {
                     name
                     slug
@@ -961,7 +961,7 @@ def test_create_collection(admin_api_client, product_list):
     slug = 'test-slug'
     variables = {
         'name': name, 'slug': slug, 'products': product_ids,
-        'backgroundImage': image_name}
+        'backgroundImage': image_name, 'isPublished': True}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = admin_api_client.post_multipart(reverse('api'), body)
     content = get_graphql_content(response)
