@@ -1,5 +1,5 @@
 ### Build python virtualenv
-FROM python:3.6-stretch as build-python
+FROM python:3.6 as build-python
 ENV PYTHONUNBUFFERED 1
 
 RUN \
@@ -27,7 +27,7 @@ RUN npm run build-assets && \
     npm run build-emails
 
 ### Final image
-FROM python:3.6-slim-stretch
+FROM python:3.6-slim
 
 RUN apt-get update && \
     apt-get install -y libxml2 libssl1.1 libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 shared-mime-info && \
