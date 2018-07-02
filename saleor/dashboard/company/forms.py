@@ -16,11 +16,12 @@ class CompanyDeleteForm(forms.Form):
         if not self.user.is_staff:
             return data
 
-        if self.user.company == self.user:
+        import ipdb
+        ipdb.set_trace()
+        if self.instance and self.instance.user_set.exists():
             raise forms.ValidationError(pgettext_lazy(
                 'Edit company details in order form error',
-                'You can\'t delete your own company via dashboard, '
-                'please try from the storefront.'))
+                'You can\'t delete a company with associated users.'))
         can_edit_company = self.user.has_perm('account.edit_company')
         if not can_edit_company:
             raise forms.ValidationError(pgettext_lazy(

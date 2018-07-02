@@ -1,5 +1,6 @@
 from django.urls import reverse
 
+from saleor.account.models import User
 from saleor.dashboard.company.forms import CompanyDeleteForm
 
 
@@ -24,6 +25,7 @@ def test_form_delete_company(
 
     group = group_factory('Company Manager', 'edit_company')
     staff_user.groups.add(group)
+    staff_user = User.objects.get(pk=staff_user.pk)
     form = CompanyDeleteForm(data, instance=company, user=staff_user)
     assert form.is_valid()
 
