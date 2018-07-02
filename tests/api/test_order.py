@@ -3,6 +3,7 @@ import json
 import graphene
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
+from saleor.order import OrderStatus
 
 
 def test_order_query(admin_api_client, fulfilled_order):
@@ -88,3 +89,71 @@ def test_non_staff_user_can_only_see_his_order(user_api_client, order):
     content = get_graphql_content(response)
     order_data = content['data']['order']
     assert not order_data
+
+
+def test_draft_order_create(
+        admin_api_client, customer_user, address, variant,
+        shipping_method, shipping_price, voucher):
+    query = """
+    mutation draftCreate(
+        $user: ID, $email: String, $discount: Decimal, $lines: [LineInput],
+        $shippingAddress: AddressInput, $shippingMethod: ID, $voucher: ID) {
+            draftOrderCreate(
+                input: {user: $user, userEmail: $email, discount: $discount,
+                lines: $lines, shippingAddress: $shippingAddress,
+                shippingMethod: $shippingMethod, voucher: $voucher}) {
+                    errors {
+                        field
+                        message
+                    }
+                    order {
+                        discountAmount {
+                            amount
+                        }
+                        discountName
+                        lines {
+                            edges {
+                                node {
+                                    productName
+                                    productSku
+                                    quantity
+                                }
+                            }
+                        }
+                        status
+                        statusDisplay
+                        orderId
+                        userEmail
+                        voucher {
+                            code
+                            discountValue
+                        }
+                        
+                    }
+                }
+        }
+    """
+    user_id = graphene.Node.to_global_id('User', customer_user.id)
+    email = 'not_default@example.com'
+    variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
+    discount = '10'
+    variant_list = [{'variantId': variant_id, 'quantity': 1}]
+    shipping_address = {
+        'firstName': 'John', 'lastName': 'Smith', 'country': 'PL'}
+    shipping_id = graphene.Node.to_global_id(
+        'ShippingMethodCountry', shipping_price.id)
+    voucher_id = graphene.Node.to_global_id('Voucher', voucher.id)
+    variables = json.dumps(
+        {
+            'user': user_id, 'email': email, 'discount': discount,
+            'lines': variant_list, 'shippingAddress': shipping_address,
+            'shippingMethod': shipping_id, 'voucher': voucher_id})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    import pdb; pdb.set_trace()
+    data = content['data']['draftOrderCreate']['order']
+    assert data['status'] == OrderStatus.DRAFT.upper()
+    assert data['userEmail'] == email
+
