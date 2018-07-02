@@ -4,6 +4,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import * as CRC from "crc-32";
 import * as React from "react";
 
+import { AttributeType, AttributeValueType, MoneyType, ProductImageType } from "../../";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
@@ -11,7 +12,6 @@ import SaveButtonBar, {
   SaveButtonBarState
 } from "../../../components/SaveButtonBar";
 import Toggle from "../../../components/Toggle";
-import { AttributeType, AttributeValueType, MoneyType, ProductImageType } from "../../";
 import ProductVariantAttributes from "../ProductVariantAttributes";
 import ProductVariantDeleteDialog from "../ProductVariantDeleteDialog";
 import ProductVariantImages from "../ProductVariantImages";
@@ -73,16 +73,16 @@ interface ProductVariantPageProps {
 
 const decorate = withStyles(theme => ({
   root: {
-    gridGap: `${theme.spacing.unit * 2}px`,
+    "& input": {
+      width: "100%"
+    },
     display: "grid",
+    gridGap: `${theme.spacing.unit * 2}px`,
     gridTemplateColumns: "1fr 2fr",
     [theme.breakpoints.down("sm")]: {
       gridGap: `${theme.spacing.unit}px`,
       gridTemplateColumns: "1fr"
     },
-    "& input": {
-      width: "100%"
-    }
   }
 }));
 
@@ -130,15 +130,15 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                   <Form
                     initial={{
                       costPrice:
-                        variant && variant.priceOverride
-                          ? variant.priceOverride.amount
+                        variant && variant.costPrice
+                          ? variant.costPrice.amount
                           : null,
                       priceOverride:
                         variant && variant.priceOverride
                           ? variant.priceOverride.amount
                           : null,
-                      stock: variant && variant.quantity ? variant.quantity : null,
-                      sku: variant && variant.sku ? variant.sku : null,
+                      sku: variant && variant.sku,
+                      stock: variant && variant.quantity ? variant.quantity : "",
                       ...attributes
                     }}
                     onSubmit={onSubmit}
@@ -179,7 +179,7 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                             <ProductVariantPrice
                               priceOverride={data.priceOverride}
                               currencySymbol={variant && variant.priceOverride ? variant.priceOverride.currency : ""}
-                              costPrice={variant && variant.costPrice ? variant.costPrice.amount : undefined}
+                              costPrice={data.costPrice}
                               loading={loading}
                               onChange={change}
                             />
