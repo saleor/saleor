@@ -5,13 +5,16 @@ from graphql_jwt.decorators import permission_required
 from payments import PaymentError, PaymentStatus
 
 from ...account.models import Address
+from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import ZERO_TAXED_MONEY
 from ...order import CustomPaymentChoices, OrderStatus, models
-from ...order.utils import cancel_fulfillment, cancel_order
+from ...order.utils import (
+    add_variant_to_order, cancel_fulfillment, cancel_order, recalculate_order)
 from ...shipping.models import ANY_COUNTRY
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import Decimal, Error
-from ..utils import get_node
+from ..product.types import ProductVariant
+from ..utils import get_node, get_nodes
 from .types import Fulfillment, Order
 
 
@@ -71,6 +74,25 @@ class OrderUpdateInput(graphene.InputObjectType):
         description='Address to where the order will be shipped.')
 
 
+def check_lines_quantity(variants, quantities):
+    """Check if stock is sufficient for each line in the list of dicts.
+
+    Return list of errors.
+    """
+    errors = []
+
+    for variant, quantity in zip(variants, quantities):
+        try:
+            variant.check_quantity(quantity)
+        except InsufficientStock as e:
+            message = pgettext_lazy(
+                'Add line mutation error',
+                'Could not add item. Only %(remaining)d remaining in stock.' %
+                {'remaining': e.item.quantity_available})
+            errors.append((variant.sku, message))
+    return errors
+
+
 class DraftOrderCreate(ModelMutation):
     class Arguments:
         input = DraftOrderInput(
@@ -86,6 +108,18 @@ class DraftOrderCreate(ModelMutation):
         shipping_address = input.pop('shipping_address', None)
         billing_address = input.pop('billing_address', None)
         cleaned_input = super().clean_input(info, instance, input, errors)
+        lines = input.pop('lines', None)
+        if lines:
+            variant_ids = [line.get('variant_id') for line in lines]
+            variants = get_nodes(ids=variant_ids, graphene_type=ProductVariant)
+            quantities = [line.get('quantity') for line in lines]
+            line_errors = check_lines_quantity(variants, quantities)
+            if line_errors:
+                for err in line_errors:
+                    cls.add_error(errors, field=err[0], message=err[1])
+            else:
+                cleaned_input['variants'] = variants
+                cleaned_input['quantities'] = quantities
         cleaned_input['status'] = OrderStatus.DRAFT
         display_gross_prices = info.context.site.settings.display_gross_prices
         cleaned_input['display_gross_prices'] = display_gross_prices
@@ -110,13 +144,6 @@ class DraftOrderCreate(ModelMutation):
 
         return cleaned_input
 
-    @classmethod
-    def construct_instance(cls, instance, cleaned_data):
-        instance = super().construct_instance(instance, cleaned_data)
-        instance.shipping_address = cleaned_data.get('shipping_address')
-        instance.billing_address = cleaned_data.get('billing_address')
-        return instance
-
 
     @classmethod
     def user_is_allowed(cls, user, input):
@@ -127,10 +154,19 @@ class DraftOrderCreate(ModelMutation):
         shipping_address = cleaned_input.get('shipping_address')
         if shipping_address:
             shipping_address.save()
+            instance.shipping_address = shipping_address
         billing_address = cleaned_input.get('billing_address')
         if billing_address:
             billing_address.save()
+            instance.billing_address = billing_address
         super().save(info, instance, cleaned_input)
+        instance.save(update_fields=['billing_address', 'shipping_address'])
+        variants = cleaned_input.get('variants')
+        quantities = cleaned_input.get('quantities')
+        if variants and quantities:
+            for variant, quantity in zip(variants, quantities):
+                add_variant_to_order(instance, variant, quantity)
+            recalculate_order(instance)
 
 
 class DraftOrderUpdate(DraftOrderCreate):
