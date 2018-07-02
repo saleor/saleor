@@ -78,6 +78,13 @@ class Company(models.Model):
         on_delete=models.SET_NULL)
     is_active = models.BooleanField(default=True)
 
+    class Meta:
+        permissions = (
+            ('view_company',
+             pgettext_lazy('Permission description', 'Can view companies')),
+            ('edit_company',
+             pgettext_lazy('Permission description', 'Can edit companies')))
+
     def __str__(self):
         return self.name
 

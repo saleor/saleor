@@ -1,6 +1,5 @@
 from django.urls import reverse
 
-from saleor.account.models import User
 from saleor.dashboard.company.forms import CompanyDeleteForm
 
 
@@ -8,8 +7,7 @@ def test_view_delete_company(admin_client, authorized_client, company):
     url = reverse('dashboard:company-delete', args=[company.pk])
     data = {'csrf': 'exampledata'}
     response = authorized_client.get(url, data=data)
-    assert response.status_code == 400
-
+    assert response.status_code == 302
 
     response = admin_client.get(url, data=data)
     assert response.status_code == 200
