@@ -9,13 +9,13 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Generate thumbanails for all images'
+    help = 'Generate thumbnails for all images'
 
     def handle(self, *args, **options):
         self.warm_products()
 
     def warm_products(self):
-        self.stdout.write('Products thumbanails generation:')
+        self.stdout.write('Products thumbnails generation:')
         warmer = VersatileImageFieldWarmer(
             instance_or_queryset=ProductImage.objects.all(),
             rendition_key_set='products', image_attr='image', verbose=True)
