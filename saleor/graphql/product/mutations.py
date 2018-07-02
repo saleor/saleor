@@ -6,7 +6,7 @@ from graphql_jwt.decorators import permission_required
 
 from ...product import models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types import Error, Decimal, Money
+from ..core.types import Decimal, Error
 from ..utils import get_attributes_dict_from_list, get_node, get_nodes
 from .types import Collection, Product, ProductImage
 
@@ -74,7 +74,8 @@ class CategoryDelete(ModelDeleteMutation):
 
 class CollectionInput(graphene.InputObjectType):
     is_published = graphene.Boolean(
-        description='Informs whether a collection is published.')
+        description='Informs whether a collection is published.',
+        required=True)
     name = graphene.String(description='Name of the collection.')
     slug = graphene.String(description='Slug of the collection.')
     products = graphene.List(
@@ -184,12 +185,15 @@ class AttributeValueInput(InputObjectType):
 
 class ProductInput(graphene.InputObjectType):
     attributes = graphene.List(AttributeValueInput)
-    available_on = graphene.String()
+    available_on = graphene.types.datetime.Date()
     category = graphene.ID()
-    charge_taxes = graphene.Boolean()
+    charge_taxes = graphene.Boolean(required=True)
+    collections = graphene.List(
+        graphene.ID,
+        description="List of IDs of collections that the product belongs to.")
     description = graphene.String()
-    is_published = graphene.Boolean()
-    is_featured = graphene.Boolean()
+    is_published = graphene.Boolean(required=True)
+    is_featured = graphene.Boolean(required=True)
     name = graphene.String()
     product_type = graphene.ID()
     price = Decimal()
@@ -208,7 +212,6 @@ class ProductCreateMutation(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
-
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
         # `Product` model, which is HStore field that maps attribute's PK to
@@ -226,6 +229,12 @@ class ProductCreateMutation(ModelMutation):
                 attributes, slug_to_id_map)
             cleaned_input['attributes'] = attributes
         return cleaned_input
+
+    @classmethod
+    def _save_m2m(cls, instance, cleaned_data):
+        collections = cleaned_data.get('collections', None)
+        if collections is not None:
+            instance.collections.set(collections)
 
     @classmethod
     def user_is_allowed(cls, user, input):
@@ -260,13 +269,12 @@ class ProductDeleteMutation(ModelDeleteMutation):
 
 class ProductVariantInput(graphene.InputObjectType):
     attributes = graphene.List(AttributeValueInput)
-    cost_price = graphene.Float()
-    name = graphene.String()
-    price_override = graphene.Float()
+    cost_price = Decimal()
+    price_override = Decimal()
     product = graphene.ID()
     sku = graphene.String()
     quantity = graphene.Int()
-    track_inventory = graphene.Boolean()
+    track_inventory = graphene.Boolean(required=True)
 
 
 class ProductVariantCreateMutation(ModelMutation):
@@ -334,10 +342,10 @@ class ProductVariantDeleteMutation(ModelDeleteMutation):
 
 class ProductTypeInput(graphene.InputObjectType):
     name = graphene.String()
-    has_variants = graphene.Boolean()
+    has_variants = graphene.Boolean(required=True)
     product_attributes = graphene.List(graphene.ID)
     variant_attributes = graphene.List(graphene.ID)
-    is_shipping_required = graphene.Boolean()
+    is_shipping_required = graphene.Boolean(required=True)
 
 
 class ProductTypeCreateMutation(ModelMutation):
