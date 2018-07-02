@@ -3,6 +3,7 @@ from unittest import mock
 import pytest
 from django.conf import settings
 from django.urls import reverse
+from templated_email import get_connection
 
 import saleor.order.emails as emails
 from saleor.core.utils import build_absolute_uri
@@ -63,11 +64,20 @@ def test_collect_data_for_email(order):
 def test_send_emails(mocked_templated_email, order, template, send_email):
     send_email(order.pk)
     email_data = emails.collect_data_for_email(order.pk, template)
+
+    recipients = [order.get_user_current_email()]
+
+    expected_call_kwargs = {
+        'context': email_data['context'],
+        'from_email': settings.ORDER_FROM_EMAIL,
+        'template_name': template}
+
     mocked_templated_email.assert_called_once_with(
-        recipient_list=[order.get_user_current_email()],
-        context=email_data['context'],
-        from_email=settings.ORDER_FROM_EMAIL,
-        template_name=template)
+        recipient_list=recipients, **expected_call_kwargs)
+
+    # Render the email to ensure there is no error
+    email_connection = get_connection()
+    email_connection.get_email_message(to=recipients, **expected_call_kwargs)
 
 
 @pytest.mark.parametrize('send_email,template', [
@@ -80,8 +90,17 @@ def test_send_fulfillment_emails(
     send_email(order_pk=fulfilled_order.pk, fulfillment_pk=fulfillment.pk)
     email_data = emails.collect_data_for_fullfillment_email(
         fulfilled_order.pk, template, fulfillment.pk)
+
+    recipients = [fulfilled_order.get_user_current_email()]
+
+    expected_call_kwargs = {
+        'context': email_data['context'],
+        'from_email': settings.ORDER_FROM_EMAIL,
+        'template_name': template}
+
     mocked_templated_email.assert_called_once_with(
-        recipient_list=[fulfilled_order.get_user_current_email()],
-        context=email_data['context'],
-        from_email=settings.ORDER_FROM_EMAIL,
-        template_name=template)
+        recipient_list=recipients, **expected_call_kwargs)
+
+    # Render the email to ensure there is no error
+    email_connection = get_connection()
+    email_connection.get_email_message(to=recipients, **expected_call_kwargs)

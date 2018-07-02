@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-04 04:15-0500\n"
+"POT-Creation-Date: 2018-06-15 08:35-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Tiberiu Ichim <tiberiu.ichim@gmail.com>, 2018\n"
 "Language-Team: Romanian (https://www.transifex.com/mirumee/teams/34782/ro/)\n"
@@ -51,14 +51,14 @@ msgstr[2] "S-a găsit %(counter)d categorie potrivită"
 #: saleor/dashboard/collection/forms.py:21
 #: saleor/dashboard/discount/forms.py:77 saleor/dashboard/group/forms.py:14
 #: saleor/dashboard/product/forms.py:76 saleor/dashboard/product/forms.py:204
-#: saleor/dashboard/product/forms.py:401 saleor/dashboard/shipping/forms.py:14
-#: saleor/dashboard/sites/forms.py:40
+#: saleor/dashboard/product/forms.py:412 saleor/dashboard/shipping/forms.py:14
+#: saleor/dashboard/sites/forms.py:48
 msgctxt "Item name"
 msgid "Name"
 msgstr "Nume"
 
 #: saleor/dashboard/category/forms.py:25 saleor/dashboard/product/forms.py:205
-#: saleor/dashboard/product/forms.py:350 saleor/dashboard/shipping/forms.py:16
+#: saleor/dashboard/product/forms.py:361 saleor/dashboard/shipping/forms.py:16
 #: saleor/dashboard/sites/forms.py:27
 msgctxt "Description"
 msgid "Description"
@@ -221,12 +221,29 @@ msgstr[0] "S-a găsit %(counter)d client potrivit"
 msgstr[1] "S-au găsit %(counter)d clienți potriviți"
 msgstr[2] "S-au găsit %(counter)d clienți potriviți"
 
-#: saleor/dashboard/customer/forms.py:28
+#: saleor/dashboard/customer/forms.py:22
+msgctxt "Edit customer details in order form error"
+msgid ""
+"You can't delete your own account via dashboard, please try from the "
+"storefront."
+msgstr ""
+
+#: saleor/dashboard/customer/forms.py:27
+msgctxt "Edit customer details in order form error"
+msgid "Only superuser can delete his own account."
+msgstr ""
+
+#: saleor/dashboard/customer/forms.py:32
+msgctxt "Edit customer details in order form error"
+msgid "You have insufficient permissions, to edit staff users."
+msgstr ""
+
+#: saleor/dashboard/customer/forms.py:57
 msgctxt "Customer note"
 msgid "Note"
 msgstr "Notă"
 
-#: saleor/dashboard/customer/forms.py:31 saleor/dashboard/order/forms.py:258
+#: saleor/dashboard/customer/forms.py:60 saleor/dashboard/order/forms.py:258
 msgctxt "Allow customers to see note toggle"
 msgid "Customer can see this note"
 msgstr "Clientul poate vedea această notă"
@@ -247,6 +264,12 @@ msgstr "Actualizat client %s"
 msgctxt "Dashboard message related to an customer"
 msgid "Added note"
 msgstr "Notă adăugată"
+
+#: saleor/dashboard/customer/views.py:133
+#, python-format
+msgctxt "Dashboard message"
+msgid "%(customer_name)s successfully removed"
+msgstr ""
 
 #: saleor/dashboard/discount/filters.py:14
 msgctxt "Sale list sorting option"
@@ -1433,80 +1456,90 @@ msgctxt "Currency net amount"
 msgid "Net price"
 msgstr "Preț net"
 
-#: saleor/dashboard/product/forms.py:278
+#: saleor/dashboard/product/forms.py:280
 msgctxt "SKU"
 msgid "SKU"
 msgstr "SKU"
 
-#: saleor/dashboard/product/forms.py:280
+#: saleor/dashboard/product/forms.py:282
 msgctxt "Override price"
 msgid "Selling price override"
 msgstr "Suprascrierea prețului de vânzare"
 
-#: saleor/dashboard/product/forms.py:281
+#: saleor/dashboard/product/forms.py:283
 msgctxt "Integer number"
 msgid "Number in stock"
 msgstr "Numărul în stoc"
 
-#: saleor/dashboard/product/forms.py:282
+#: saleor/dashboard/product/forms.py:284
 msgctxt "Currency amount"
 msgid "Cost price"
 msgstr "Prețul"
 
-#: saleor/dashboard/product/forms.py:297
+#: saleor/dashboard/product/forms.py:286
+msgctxt "Track inventory field"
+msgid "Track inventory"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:290
+msgctxt "product variant handle stock field help text"
+msgid "Automatically track this product's inventory"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:307
 msgctxt "Override price"
 msgid "Selling gross price override"
 msgstr "Prețul brut de vânzare suprascris"
 
-#: saleor/dashboard/product/forms.py:299
+#: saleor/dashboard/product/forms.py:309
 msgctxt "Currency amount"
 msgid "Cost gross price"
 msgstr "Costul prețului brut"
 
-#: saleor/dashboard/product/forms.py:302
+#: saleor/dashboard/product/forms.py:312
 msgctxt "Override price"
 msgid "Selling net price override"
 msgstr "Prețul net de vânzare suprascris"
 
-#: saleor/dashboard/product/forms.py:304
+#: saleor/dashboard/product/forms.py:314
 msgctxt "Currency amount"
 msgid "Cost net price"
 msgstr "Costul prețului net"
 
-#: saleor/dashboard/product/forms.py:348 saleor/dashboard/product/forms.py:453
+#: saleor/dashboard/product/forms.py:359 saleor/dashboard/product/forms.py:464
 msgctxt "Product image"
 msgid "Image"
 msgstr "Imagine"
 
-#: saleor/dashboard/product/forms.py:389
+#: saleor/dashboard/product/forms.py:400
 msgctxt "Product display name"
 msgid "Display name"
 msgstr "Numele afișat"
 
-#: saleor/dashboard/product/forms.py:391
+#: saleor/dashboard/product/forms.py:402
 msgctxt "Product internal name"
 msgid "Internal name"
 msgstr "Nume intern"
 
-#: saleor/dashboard/product/views.py:123
+#: saleor/dashboard/product/views.py:126
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added product %s"
 msgstr "Produs adăugat %s"
 
-#: saleor/dashboard/product/views.py:154
+#: saleor/dashboard/product/views.py:157
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated product %s"
 msgstr "Produs actualizat %s"
 
-#: saleor/dashboard/product/views.py:169
+#: saleor/dashboard/product/views.py:172
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed product %s"
 msgstr "Produs eliminat%s"
 
-#: saleor/dashboard/product/views.py:188
+#: saleor/dashboard/product/views.py:191
 #, python-format
 msgctxt "Dashboard message"
 msgid "%(count)d product has been updated"
@@ -1515,81 +1548,81 @@ msgstr[0] "%(count)d produs a fost actualizat"
 msgstr[1] "%(count)d produse au fost actualizate"
 msgstr[2] "%(count)d produse au fost actualizate"
 
-#: saleor/dashboard/product/views.py:241
+#: saleor/dashboard/product/views.py:244
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added product type %s"
 msgstr "Tip de produs adăugat %s"
 
-#: saleor/dashboard/product/views.py:260
+#: saleor/dashboard/product/views.py:263
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated product type %s"
 msgstr "Tip de produs actualizat %s"
 
-#: saleor/dashboard/product/views.py:277
+#: saleor/dashboard/product/views.py:280
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed product type %s"
 msgstr "Tip de produs eliminat%s"
 
-#: saleor/dashboard/product/views.py:321 saleor/dashboard/product/views.py:342
+#: saleor/dashboard/product/views.py:328 saleor/dashboard/product/views.py:349
 #, python-format
 msgctxt "Dashboard message"
 msgid "Saved variant %s"
 msgstr "Varianta salvată %s"
 
-#: saleor/dashboard/product/views.py:362
+#: saleor/dashboard/product/views.py:369
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed variant %s"
 msgstr "Varianta eliminată%s"
 
-#: saleor/dashboard/product/views.py:443
+#: saleor/dashboard/product/views.py:450
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added image %s"
 msgstr "Imagine adăugată %s"
 
-#: saleor/dashboard/product/views.py:464
+#: saleor/dashboard/product/views.py:471
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated image %s"
 msgstr "Imagine actualizată %s"
 
-#: saleor/dashboard/product/views.py:482
+#: saleor/dashboard/product/views.py:489
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed image %s"
 msgstr "Imagine eliminată%s"
 
-#: saleor/dashboard/product/views.py:559
+#: saleor/dashboard/product/views.py:566
 msgctxt "Dashboard message"
 msgid "Added attribute"
 msgstr "Adăugat atribut"
 
-#: saleor/dashboard/product/views.py:576
+#: saleor/dashboard/product/views.py:583
 msgctxt "Dashboard message"
 msgid "Updated attribute"
 msgstr "Atribut actualizat"
 
-#: saleor/dashboard/product/views.py:593
+#: saleor/dashboard/product/views.py:600
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed attribute %s"
 msgstr "Atribut eliminat %s"
 
-#: saleor/dashboard/product/views.py:612
+#: saleor/dashboard/product/views.py:619
 msgctxt "Dashboard message"
 msgid "Added attribute's value"
 msgstr "Valoarea atributului a fost adăugată"
 
-#: saleor/dashboard/product/views.py:631
+#: saleor/dashboard/product/views.py:638
 msgctxt "Dashboard message"
 msgid "Updated attribute's value"
 msgstr "Valoarea atributului actualizat"
 
-#: saleor/dashboard/product/views.py:649
+#: saleor/dashboard/product/views.py:656
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed attribute's value %s"
@@ -1683,12 +1716,24 @@ msgctxt "Header text"
 msgid "Header text"
 msgstr "Antet"
 
-#: saleor/dashboard/sites/forms.py:36
+#: saleor/dashboard/sites/forms.py:30
+msgctxt "Inventory tracking by default settings toggle label"
+msgid "Enable inventory tracking for newly created products"
+msgstr ""
+
+#: saleor/dashboard/sites/forms.py:34
+msgctxt "handle stock by default settings field help text"
+msgid ""
+"This will set the default value of stock handling on product and variant "
+"creation"
+msgstr ""
+
+#: saleor/dashboard/sites/forms.py:44
 msgctxt "Key for chosen authorization method"
 msgid "Key"
 msgstr "Cheie"
 
-#: saleor/dashboard/sites/forms.py:38
+#: saleor/dashboard/sites/forms.py:46
 msgctxt "Password"
 msgid "Password"
 msgstr "Parolă"
