@@ -96,7 +96,7 @@ interface ProductUpdateProps {
   onImageUpload?(event: React.ChangeEvent<any>);
   onProductShow?();
   onSeoClick?();
-  onSubmit?();
+  onSubmit?(data: any);
   onVariantAdd?();
   onVariantShow?(id: string);
 }
@@ -155,10 +155,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
     onVariantShow
   }) => {
     const initialData = {
-      available:
-        product && product.availability
-          ? product.availability.available
-          : false,
+      available: product ? product.isPublished : undefined,
       availableOn: product ? product.availableOn : "",
       category: product && product.category ? product.category.id : undefined,
       collections:

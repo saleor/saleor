@@ -1,6 +1,13 @@
 /* tslint:disable */
 //  This file was automatically generated and should not be edited.
 
+export interface AttributeValueInput {
+  // Slug of an attribute.
+  slug: string,
+  // Value of an attribute.
+  value: string,
+};
+
 export interface CategoryDeleteMutationVariables {
   id: string,
 };
@@ -390,6 +397,340 @@ export interface ProductImageReorderMutation {
   } | null,
 };
 
+export interface ProductUpdateMutationVariables {
+  id: string,
+  attributes?: Array< AttributeValueInput | null > | null,
+  availableOn?: string | null,
+  category?: string | null,
+  chargeTaxes: boolean,
+  collections?: Array< string | null > | null,
+  description?: string | null,
+  isPublished: boolean,
+  isFeatured: boolean,
+  name?: string | null,
+  price?: string | null,
+};
+
+export interface ProductUpdateMutation {
+  productUpdate:  {
+    // List of errors that occurred executing the mutation.
+    errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
+      field: string | null,
+      // The error message.
+      message: string | null,
+    } | null > | null,
+    product:  {
+      // The ID of the object.
+      id: string,
+      name: string,
+      description: string,
+      seoTitle: string | null,
+      seoDescription: string | null,
+      category:  {
+        // The ID of the object.
+        id: string,
+        name: string,
+      },
+      collections:  {
+        edges:  Array< {
+          // The item at the end of the edge
+          node:  {
+            // The ID of the object.
+            id: string,
+            name: string,
+          },
+        } >,
+      } | null,
+      // The product's base price (without any discounts
+      // applied).
+      price:  {
+        // Amount of money.
+        amount: number,
+        // Currency code.
+        currency: string,
+        // Money formatted according to the current locale.
+        localized: string,
+      } | null,
+      margin:  {
+        start: number | null,
+        stop: number | null,
+      } | null,
+      purchaseCost:  {
+        // Lower bound of a price range.
+        start:  {
+          // Amount of money.
+          amount: number,
+          // Currency code.
+          currency: string,
+          // Money formatted according to the current locale.
+          localized: string,
+        } | null,
+        // Upper bound of a price range.
+        stop:  {
+          // Amount of money.
+          amount: number,
+          // Currency code.
+          currency: string,
+          // Money formatted according to the current locale.
+          localized: string,
+        } | null,
+      } | null,
+      isPublished: boolean,
+      availableOn: string | null,
+      // List of product attributes assigned to this product.
+      attributes:  Array< {
+        // Name of an attribute
+        attribute:  {
+          // The ID of the object.
+          id: string,
+          // Internal representation of an attribute name.
+          slug: string | null,
+          // Visible name for display purposes.
+          name: string | null,
+          // List of attribute's values.
+          values:  Array< {
+            // Visible name for display purposes.
+            name: string | null,
+            // Internal representation of an attribute name.
+            slug: string | null,
+          } | null > | null,
+        } | null,
+        // Value of an attribute.
+        value:  {
+          // The ID of the object.
+          id: string,
+          // Visible name for display purposes.
+          name: string | null,
+          // Internal representation of an attribute name.
+          slug: string | null,
+        } | null,
+      } | null > | null,
+      // Informs about product's availability in the storefront,
+      // current price and discounts.
+      availability:  {
+        available: boolean | null,
+        priceRange:  {
+          // Lower bound of a price range.
+          start:  {
+            // Amount of money without taxes.
+            net:  {
+              // Amount of money.
+              amount: number,
+              // Currency code.
+              currency: string,
+              // Money formatted according to the current locale.
+              localized: string,
+            },
+          } | null,
+          // Upper bound of a price range.
+          stop:  {
+            // Amount of money without taxes.
+            net:  {
+              // Amount of money.
+              amount: number,
+              // Currency code.
+              currency: string,
+              // Money formatted according to the current locale.
+              localized: string,
+            },
+          } | null,
+        } | null,
+      } | null,
+      images:  {
+        edges:  Array< {
+          // The item at the end of the edge
+          node:  {
+            // The ID of the object.
+            id: string,
+            alt: string,
+            sortOrder: number,
+            url: string,
+          },
+        } >,
+      } | null,
+      variants:  {
+        edges:  Array< {
+          // The item at the end of the edge
+          node:  {
+            // The ID of the object.
+            id: string,
+            sku: string,
+            name: string,
+            // Override the base price of a product if necessary.
+            // A value of `null` indicates that the default product price is used.
+            priceOverride:  {
+              // Amount of money.
+              amount: number,
+              // Currency code.
+              currency: string,
+              // Money formatted according to the current locale.
+              localized: string,
+            } | null,
+            // Quantity of a product available for sale.
+            stockQuantity: number,
+            // Gross margin percentage value.
+            margin: number | null,
+          },
+        } >,
+      } | null,
+      productType:  {
+        // The ID of the object.
+        id: string,
+        name: string,
+      },
+      // The storefront URL for the product.
+      url: string,
+    } | null,
+  } | null,
+};
+
+export interface VariantDeleteMutationVariables {
+  id: string,
+};
+
+export interface VariantDeleteMutation {
+  productVariantDelete:  {
+    // List of errors that occurred executing the mutation.
+    errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
+      field: string | null,
+      // The error message.
+      message: string | null,
+    } | null > | null,
+    productVariant:  {
+      // The ID of the object.
+      id: string,
+    } | null,
+  } | null,
+};
+
+export interface VariantUpdateMutationVariables {
+  id: string,
+  attributes?: Array< AttributeValueInput | null > | null,
+  costPrice?: string | null,
+  priceOverride?: string | null,
+  product?: string | null,
+  sku?: string | null,
+  quantity?: number | null,
+  trackInventory: boolean,
+};
+
+export interface VariantUpdateMutation {
+  productVariantUpdate:  {
+    // List of errors that occurred executing the mutation.
+    errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
+      field: string | null,
+      // The error message.
+      message: string | null,
+    } | null > | null,
+    productVariant:  {
+      // The ID of the object.
+      id: string,
+      // List of attributes assigned to this variant.
+      attributes:  Array< {
+        // Name of an attribute
+        attribute:  {
+          // The ID of the object.
+          id: string,
+          // Visible name for display purposes.
+          name: string | null,
+          // Internal representation of an attribute name.
+          slug: string | null,
+          // List of attribute's values.
+          values:  Array< {
+            // The ID of the object.
+            id: string,
+            // Visible name for display purposes.
+            name: string | null,
+            // Internal representation of an attribute name.
+            slug: string | null,
+          } | null > | null,
+        } | null,
+        // Value of an attribute.
+        value:  {
+          // The ID of the object.
+          id: string,
+          // Visible name for display purposes.
+          name: string | null,
+          // Internal representation of an attribute name.
+          slug: string | null,
+        } | null,
+      } | null > | null,
+      // Cost price of the variant.
+      costPrice:  {
+        // Amount of money.
+        amount: number,
+        // Currency code.
+        currency: string,
+        // Money formatted according to the current locale.
+        localized: string,
+      } | null,
+      images:  {
+        edges:  Array< {
+          // The item at the end of the edge
+          node:  {
+            // The ID of the object.
+            id: string,
+          },
+        } >,
+      } | null,
+      name: string,
+      // Override the base price of a product if necessary.
+      // A value of `null` indicates that the default product price is used.
+      priceOverride:  {
+        // Amount of money.
+        amount: number,
+        // Currency code.
+        currency: string,
+        // Money formatted according to the current locale.
+        localized: string,
+      } | null,
+      product:  {
+        // The ID of the object.
+        id: string,
+        images:  {
+          edges:  Array< {
+            // The item at the end of the edge
+            node:  {
+              // The ID of the object.
+              id: string,
+              alt: string,
+              sortOrder: number,
+              url: string,
+            },
+          } >,
+        } | null,
+        name: string,
+        // The URL of a main thumbnail for a product.
+        thumbnailUrl: string | null,
+        variants:  {
+          // A total count of items in the collection
+          totalCount: number | null,
+          edges:  Array< {
+            // The item at the end of the edge
+            node:  {
+              // The ID of the object.
+              id: string,
+              name: string,
+            },
+          } >,
+        } | null,
+      },
+      sku: string,
+      quantity: number,
+      quantityAllocated: number,
+    } | null,
+  } | null,
+};
+
 export interface ProductListQueryVariables {
   first?: number | null,
   after?: string | null,
@@ -626,7 +967,7 @@ export interface ProductVariantDetailsQueryVariables {
 
 export interface ProductVariantDetailsQuery {
   // Lookup a variant by ID.
-  variant:  {
+  productVariant:  {
     // The ID of the object.
     id: string,
     // List of attributes assigned to this variant.
@@ -740,4 +1081,265 @@ export interface ProductImageFragment {
   alt: string,
   sortOrder: number,
   url: string,
+};
+
+export interface ProductFragment {
+  // The ID of the object.
+  id: string,
+  name: string,
+  description: string,
+  seoTitle: string | null,
+  seoDescription: string | null,
+  category:  {
+    // The ID of the object.
+    id: string,
+    name: string,
+  },
+  collections:  {
+    edges:  Array< {
+      // The item at the end of the edge
+      node:  {
+        // The ID of the object.
+        id: string,
+        name: string,
+      },
+    } >,
+  } | null,
+  // The product's base price (without any discounts
+  // applied).
+  price:  {
+    // Amount of money.
+    amount: number,
+    // Currency code.
+    currency: string,
+    // Money formatted according to the current locale.
+    localized: string,
+  } | null,
+  margin:  {
+    start: number | null,
+    stop: number | null,
+  } | null,
+  purchaseCost:  {
+    // Lower bound of a price range.
+    start:  {
+      // Amount of money.
+      amount: number,
+      // Currency code.
+      currency: string,
+      // Money formatted according to the current locale.
+      localized: string,
+    } | null,
+    // Upper bound of a price range.
+    stop:  {
+      // Amount of money.
+      amount: number,
+      // Currency code.
+      currency: string,
+      // Money formatted according to the current locale.
+      localized: string,
+    } | null,
+  } | null,
+  isPublished: boolean,
+  availableOn: string | null,
+  // List of product attributes assigned to this product.
+  attributes:  Array< {
+    // Name of an attribute
+    attribute:  {
+      // The ID of the object.
+      id: string,
+      // Internal representation of an attribute name.
+      slug: string | null,
+      // Visible name for display purposes.
+      name: string | null,
+      // List of attribute's values.
+      values:  Array< {
+        // Visible name for display purposes.
+        name: string | null,
+        // Internal representation of an attribute name.
+        slug: string | null,
+      } | null > | null,
+    } | null,
+    // Value of an attribute.
+    value:  {
+      // The ID of the object.
+      id: string,
+      // Visible name for display purposes.
+      name: string | null,
+      // Internal representation of an attribute name.
+      slug: string | null,
+    } | null,
+  } | null > | null,
+  // Informs about product's availability in the storefront,
+  // current price and discounts.
+  availability:  {
+    available: boolean | null,
+    priceRange:  {
+      // Lower bound of a price range.
+      start:  {
+        // Amount of money without taxes.
+        net:  {
+          // Amount of money.
+          amount: number,
+          // Currency code.
+          currency: string,
+          // Money formatted according to the current locale.
+          localized: string,
+        },
+      } | null,
+      // Upper bound of a price range.
+      stop:  {
+        // Amount of money without taxes.
+        net:  {
+          // Amount of money.
+          amount: number,
+          // Currency code.
+          currency: string,
+          // Money formatted according to the current locale.
+          localized: string,
+        },
+      } | null,
+    } | null,
+  } | null,
+  images:  {
+    edges:  Array< {
+      // The item at the end of the edge
+      node:  {
+        // The ID of the object.
+        id: string,
+        alt: string,
+        sortOrder: number,
+        url: string,
+      },
+    } >,
+  } | null,
+  variants:  {
+    edges:  Array< {
+      // The item at the end of the edge
+      node:  {
+        // The ID of the object.
+        id: string,
+        sku: string,
+        name: string,
+        // Override the base price of a product if necessary.
+        // A value of `null` indicates that the default product price is used.
+        priceOverride:  {
+          // Amount of money.
+          amount: number,
+          // Currency code.
+          currency: string,
+          // Money formatted according to the current locale.
+          localized: string,
+        } | null,
+        // Quantity of a product available for sale.
+        stockQuantity: number,
+        // Gross margin percentage value.
+        margin: number | null,
+      },
+    } >,
+  } | null,
+  productType:  {
+    // The ID of the object.
+    id: string,
+    name: string,
+  },
+  // The storefront URL for the product.
+  url: string,
+};
+
+export interface ProductVariantFragment {
+  // The ID of the object.
+  id: string,
+  // List of attributes assigned to this variant.
+  attributes:  Array< {
+    // Name of an attribute
+    attribute:  {
+      // The ID of the object.
+      id: string,
+      // Visible name for display purposes.
+      name: string | null,
+      // Internal representation of an attribute name.
+      slug: string | null,
+      // List of attribute's values.
+      values:  Array< {
+        // The ID of the object.
+        id: string,
+        // Visible name for display purposes.
+        name: string | null,
+        // Internal representation of an attribute name.
+        slug: string | null,
+      } | null > | null,
+    } | null,
+    // Value of an attribute.
+    value:  {
+      // The ID of the object.
+      id: string,
+      // Visible name for display purposes.
+      name: string | null,
+      // Internal representation of an attribute name.
+      slug: string | null,
+    } | null,
+  } | null > | null,
+  // Cost price of the variant.
+  costPrice:  {
+    // Amount of money.
+    amount: number,
+    // Currency code.
+    currency: string,
+    // Money formatted according to the current locale.
+    localized: string,
+  } | null,
+  images:  {
+    edges:  Array< {
+      // The item at the end of the edge
+      node:  {
+        // The ID of the object.
+        id: string,
+      },
+    } >,
+  } | null,
+  name: string,
+  // Override the base price of a product if necessary.
+  // A value of `null` indicates that the default product price is used.
+  priceOverride:  {
+    // Amount of money.
+    amount: number,
+    // Currency code.
+    currency: string,
+    // Money formatted according to the current locale.
+    localized: string,
+  } | null,
+  product:  {
+    // The ID of the object.
+    id: string,
+    images:  {
+      edges:  Array< {
+        // The item at the end of the edge
+        node:  {
+          // The ID of the object.
+          id: string,
+          alt: string,
+          sortOrder: number,
+          url: string,
+        },
+      } >,
+    } | null,
+    name: string,
+    // The URL of a main thumbnail for a product.
+    thumbnailUrl: string | null,
+    variants:  {
+      // A total count of items in the collection
+      totalCount: number | null,
+      edges:  Array< {
+        // The item at the end of the edge
+        node:  {
+          // The ID of the object.
+          id: string,
+          name: string,
+        },
+      } >,
+    } | null,
+  },
+  sku: string,
+  quantity: number,
+  quantityAllocated: number,
 };

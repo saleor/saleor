@@ -119,6 +119,9 @@ class Query(graphene.ObjectType):
     product_types = DjangoFilterConnectionField(
         ProductType, filterset_class=DistinctFilterSet,
         description='List of the shop\'s product types.')
+    product_variant = graphene.Field(
+        ProductVariant, id=graphene.Argument(graphene.ID),
+        description='Lookup a variant by ID.')
     sale = graphene.Field(
         Sale, id=graphene.Argument(graphene.ID),
         description='Lookup a sale by ID.')
@@ -128,9 +131,6 @@ class Query(graphene.ObjectType):
     shop = graphene.Field(
         Shop, description='Represents a shop resources.',
         resolver=resolve_shop)
-    variant = graphene.Field(
-        ProductVariant, id=graphene.Argument(graphene.ID),
-        description='Lookup a variant by ID.')
     voucher = graphene.Field(
         Voucher, id=graphene.Argument(graphene.ID),
         description='Lookup a voucher by ID.')
@@ -219,7 +219,7 @@ class Query(graphene.ObjectType):
     def resolve_sales(self, info, query=None, **kwargs):
         return resolve_sales(info, query)
 
-    def resolve_variant(self, info, id):
+    def resolve_product_variant(self, info, id):
         return get_node(info, id, only_type=ProductVariant)
 
     @permission_required('discount.view_voucher')

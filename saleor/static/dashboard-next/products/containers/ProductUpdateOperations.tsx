@@ -5,7 +5,8 @@ import ErrorMessageCard from "../../components/ErrorMessageCard";
 import {
   ProductDetailsQuery,
   ProductImageCreateMutationVariables,
-  ProductImageReorderMutationVariables
+  ProductImageReorderMutationVariables,
+  ProductUpdateMutationVariables
 } from "../../gql-types";
 import { productListUrl } from "../index";
 import {
@@ -16,6 +17,7 @@ import {
 } from "../mutations";
 import { productDetailsQuery } from "../queries";
 import ProductImagesReorderProvider from "./ProductImagesReorder";
+import ProductUpdateProvider from "./ProductUpdate";
 
 interface ProductDeleteProviderProps {
   productId: string;
@@ -57,7 +59,7 @@ const ProductImageCreateProvider: React.StatelessComponent<
         variables: { id: productId }
       });
       const edge = {
-        __typename: "ProductImageCountableEdge", // FIXME: check if this has to be hardcoded
+        __typename: "ProductImageCountableEdge",
         node: productImageCreate.productImage
       };
       data.product.images.edges.push(edge);
@@ -74,7 +76,7 @@ const ProductImageCreateProvider: React.StatelessComponent<
 );
 
 interface ProductUpdateOperationsProps {
-  productId: string;
+  product?: ProductDetailsQuery["product"];
   children: (
     mutations: {
       createProductImage(variables: ProductImageCreateMutationVariables): void;
@@ -82,33 +84,58 @@ interface ProductUpdateOperationsProps {
       reorderProductImages(
         variables: ProductImageReorderMutationVariables
       ): void;
+      updateProduct(variables: ProductUpdateMutationVariables): void;
     }
   ) => React.ReactElement<any>;
 }
 
 const ProductUpdateOperations: React.StatelessComponent<
   ProductUpdateOperationsProps
-> = ({ productId, children }) => {
+> = ({ product, children }) => {
+  const productId = product ? product.id : "";
   return (
-    <ProductImagesReorderProvider productId={productId}>
-      {reorderProductImages => (
-        <ProductImageCreateProvider productId={productId}>
-          {createProductImage => (
-            <ProductDeleteProvider productId={productId}>
-              {deleteProduct =>
-                children({
-                  createProductImage: variables =>
-                    createProductImage({ variables }),
-                  deleteProduct,
-                  reorderProductImages: variables =>
-                    reorderProductImages({ variables })
-                })
-              }
-            </ProductDeleteProvider>
+    <ProductUpdateProvider productId={productId}>
+      {updateProduct => (
+        <ProductImagesReorderProvider productId={productId}>
+          {reorderProductImages => (
+            <ProductImageCreateProvider productId={productId}>
+              {createProductImage => (
+                <ProductDeleteProvider productId={productId}>
+                  {deleteProduct =>
+                    children({
+                      createProductImage: variables =>
+                        createProductImage({ variables }),
+                      deleteProduct,
+                      reorderProductImages: variables => {
+                        const imagesMap = {};
+                        product.images.edges.forEach(edge => {
+                          const image = edge.node;
+                          imagesMap[image.id] = image;
+                        })
+                        const productImages = variables.imagesIds.map((id, index) => ({
+                          __typename: "ProductImage",
+                          ...imagesMap[id],
+                          sortOrder: index,
+                        }));
+                        const optimisticResponse = {
+                          productImageReorder: {
+                            __typename: "ProductImageReorder",
+                            errors: null,
+                            productImages
+                          }
+                        };
+                        reorderProductImages({ variables, optimisticResponse })
+                      },
+                      updateProduct: variables => updateProduct({ variables })
+                    })
+                  }
+                </ProductDeleteProvider>
+              )}
+            </ProductImageCreateProvider>
           )}
-        </ProductImageCreateProvider>
+        </ProductImagesReorderProvider>
       )}
-    </ProductImagesReorderProvider>
+    </ProductUpdateProvider>
   );
 };
 export default ProductUpdateOperations;
