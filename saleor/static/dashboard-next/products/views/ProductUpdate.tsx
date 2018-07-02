@@ -44,8 +44,13 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                 : undefined;
 
             return (
-              <ProductUpdateOperations productId={(product && product.id) || ""}>
-                {({ createProductImage, deleteProduct, reorderProductImages }) => {
+              <ProductUpdateOperations product={product}>
+                {({
+                  createProductImage,
+                  deleteProduct,
+                  reorderProductImages,
+                  updateProduct
+                }) => {
                   return (
                     <ProductUpdatePage
                       categories={allCategories}
@@ -63,7 +68,9 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                           ? product.variants.edges.map(edge => edge.node)
                           : undefined
                       }
-                      onBack={() => { navigate(productListUrl); }}
+                      onBack={() => {
+                        navigate(productListUrl);
+                      }}
                       onDelete={deleteProduct}
                       onProductShow={() => {
                         if (product) {
@@ -80,24 +87,58 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                           });
                         }
                       }}
-                      onSubmit={() => {}}
+                      onSubmit={data => {
+                        if (product) {
+                          const attributes = product.attributes
+                            .map(item => ({
+                              slug: item.attribute.slug,
+                              values: item.attribute.values
+                            }))
+                            .map(({ slug, values }) => {
+                              const valueSlug = data[slug];
+                              const value = values.filter(
+                                item => item.slug === valueSlug
+                              );
+                              return {
+                                slug,
+                                value: value ? value[0].name : valueSlug
+                              };
+                            });
+
+                          updateProduct({
+                            attributes,
+                            availableOn: data.availableOn !== "" ? data.availableOn : null,
+                            category: data.category,
+                            chargeTaxes: false,  // FIXME: missing in UI
+                            collections: data.collections,
+                            description: data.description,
+                            id: product.id,
+                            isFeatured: false,  // FIXME: missing in UI
+                            isPublished: data.available,
+                            name: data.name,
+                            price: data.price
+                          });
+                        }
+                      }}
                       onVariantAdd={() => {}}
                       onVariantShow={variantId => {
                         if (product) {
-                          navigate(productVariantEditUrl(product.id, variantId));
+                          navigate(
+                            productVariantEditUrl(product.id, variantId)
+                          );
                         }
                       }}
-                      onImageUpload={(event) => {
+                      onImageUpload={event => {
                         if (product) {
                           createProductImage({
                             alt: "",
                             image: event.target.files[0],
                             product: product.id
-                          })
+                          });
                         }
                       }}
                     />
-                  )
+                  );
                 }}
               </ProductUpdateOperations>
             );
