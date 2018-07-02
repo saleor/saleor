@@ -34,7 +34,6 @@ class AddressInput(graphene.InputObjectType):
     country = graphene.String(description='Country.')
     country_area = graphene.String(description='State or province.')
     phone = graphene.String(description='Phone number.')
-    email = graphene.String(description='Email address.')
 
 
 class LineInput(graphene.InputObjectType):
@@ -99,16 +98,14 @@ class DraftOrderCreate(ModelMutation):
         if user and not billing_address:
             cleaned_input[
                 'billing_address'] = user.default_billing_address
+
         if shipping_address:
             shipping_address = Address(**shipping_address)
-            if not cls.clean_instance(shipping_address, errors):
-                shipping_address.save()
+            cls.clean_instance(shipping_address, errors)
             cleaned_input['shipping_address'] = shipping_address
-
         if billing_address:
             billing_address = Address(**billing_address)
-            if not cls.clean_instance(billing_address, errors):
-                billing_address.save()
+            cls.clean_instance(billing_address, errors)
             cleaned_input['billing_address'] = billing_address
 
         return cleaned_input
@@ -124,6 +121,16 @@ class DraftOrderCreate(ModelMutation):
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('order.edit_order')
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        shipping_address = cleaned_input.get('shipping_address')
+        if shipping_address:
+            shipping_address.save()
+        billing_address = cleaned_input.get('billing_address')
+        if billing_address:
+            billing_address.save()
+        super().save(info, instance, cleaned_input)
 
 
 class DraftOrderUpdate(DraftOrderCreate):
@@ -396,7 +403,6 @@ class OrderRefund(BaseMutation):
             errors.append(
                 Error(field='payment',
                       message='Manual payments can not be refunded.'))
-        import ipdb; ipdb.set_trace()
         try_payment_action(payment.refund, amount, errors)
         if errors:
             return cls(errors=errors)
