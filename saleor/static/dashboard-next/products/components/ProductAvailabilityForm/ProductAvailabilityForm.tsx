@@ -18,26 +18,23 @@ interface ProductAvailabilityFormProps {
 const decorate = withStyles(theme => ({
   date: {
     marginTop: theme.spacing.unit
-  },
-  root: {
-    display: "grid",
-    gridTemplateColumns: "2fr 3fr"
   }
 }));
 export const ProductAvailabilityForm = decorate<ProductAvailabilityFormProps>(
   ({ classes, available, availableOn, loading, onChange }) => (
     <Card>
       <PageHeader title={i18n.t("Status")} />
-      <CardContent className={classes.root}>
+      <CardContent>
         <ControlledCheckbox
           name="available"
-          label={i18n.t("Available on")}
+          label={i18n.t("Published in storefront")}
           checked={available}
           onChange={onChange}
           disabled={loading}
         />
         <TextField
-          disabled={!available || loading}
+          disabled={loading}
+          label={i18n.t("Publish product on")}
           name="availableOn"
           type="date"
           value={availableOn ? availableOn : ""}
