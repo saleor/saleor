@@ -134,9 +134,11 @@ class Order(models.Model):
     def get_absolute_url(self):
         return reverse('order:details', kwargs={'token': self.token})
 
+    def get_last_payment(self):
+        return max(self.payments.all(), default=None, key=attrgetter('pk'))
+
     def get_last_payment_status(self):
-        last_payment = max(
-            self.payments.all(), default=None, key=attrgetter('pk'))
+        last_payment = self.get_last_payment()
         if last_payment:
             return last_payment.status
         return None
