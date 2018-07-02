@@ -261,8 +261,8 @@ def test_customer_create(admin_api_client, user_api_client):
 
 def test_customer_update(admin_api_client, customer_user, user_api_client):
     query = """
-    mutation UpdateCustomer($id: ID!, $email: String, $note: String) {
-        customerUpdate(id: $id, input: {email: $email, note: $note}) {
+    mutation UpdateCustomer($id: ID!, $note: String) {
+        customerUpdate(id: $id, input: {note: $note}) {
             errors {
                 field
                 message
@@ -366,8 +366,8 @@ def test_staff_create(
 
 def test_staff_update(admin_api_client, staff_user, user_api_client):
     query = """
-    mutation UpdateStaff($id: ID!, $email: String, $permissions: [String], $groups: [ID]) {
-        staffUpdate(id: $id, input: {email: $email, permissions: $permissions, groups: $groups}) {
+    mutation UpdateStaff($id: ID!, $permissions: [String], $groups: [ID]) {
+        staffUpdate(id: $id, input: {permissions: $permissions, groups: $groups}) {
             errors {
                 field
                 message
