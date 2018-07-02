@@ -111,7 +111,7 @@
             {% trans "Payments" context "Order summary card header" %}
           </h5>
           {% if payment %}
-            {% render_status payment.status payment.get_status_display %}
+            {% render_status order.get_last_payment_status order.get_last_payment_status_display %}
           {% else %}
             <span class="label">
               {% trans "N/A" context "Payment status not available" %}
