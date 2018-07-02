@@ -89,6 +89,6 @@
     "build-assets": "webpack -p --progress",
     "heroku-postbuild": "npm run build-assets && npm run build-emails",
     "start": "webpack -d --watch --progress",
-    "build-emails": "mjml -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled"
+    "build-emails": "mjml --config.beautify false -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled"
   }
 }
