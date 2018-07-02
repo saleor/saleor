@@ -3,7 +3,9 @@ import json
 import graphene
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
-from saleor.order import OrderStatus
+
+from saleor.account.models import Address
+from saleor.order.models import Order, OrderStatus
 
 
 def test_order_query(admin_api_client, fulfilled_order):
@@ -92,8 +94,9 @@ def test_non_staff_user_can_only_see_his_order(user_api_client, order):
 
 
 def test_draft_order_create(
-        admin_api_client, customer_user, address, variant,
-        shipping_method, shipping_price, voucher):
+        admin_api_client, customer_user, product_without_shipping,
+        shipping_price, variant, voucher):
+    variant_0 = variant
     query = """
     mutation draftCreate(
         $user: ID, $email: String, $discount: Decimal, $lines: [LineInput],
@@ -121,12 +124,9 @@ def test_draft_order_create(
                             }
                         }
                         status
-                        statusDisplay
-                        orderId
                         userEmail
                         voucher {
                             code
-                            discountValue
                         }
                         
                     }
@@ -135,11 +135,17 @@ def test_draft_order_create(
     """
     user_id = graphene.Node.to_global_id('User', customer_user.id)
     email = 'not_default@example.com'
-    variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
+    variant_0_id = graphene.Node.to_global_id('ProductVariant', variant_0.id)
+    variant_1 = product_without_shipping.variants.first()
+    variant_1.quantity = 2
+    variant_1.save()
+    variant_1_id = graphene.Node.to_global_id('ProductVariant', variant_1.id)
     discount = '10'
-    variant_list = [{'variantId': variant_id, 'quantity': 1}]
+    variant_list = [
+        {'variantId': variant_0_id, 'quantity': 2},
+        {'variantId': variant_1_id, 'quantity': 1}]
     shipping_address = {
-        'firstName': 'John', 'lastName': 'Smith', 'country': 'PL'}
+        'firstName': 'John', 'country': 'PL'}
     shipping_id = graphene.Node.to_global_id(
         'ShippingMethodCountry', shipping_price.id)
     voucher_id = graphene.Node.to_global_id('Voucher', voucher.id)
@@ -152,8 +158,13 @@ def test_draft_order_create(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    import pdb; pdb.set_trace()
     data = content['data']['draftOrderCreate']['order']
     assert data['status'] == OrderStatus.DRAFT.upper()
     assert data['userEmail'] == email
+    assert data['voucher']['code'] == voucher.code
 
+    order = Order.objects.first()
+    assert order.billing_address == customer_user.default_billing_address
+    assert order.shipping_method == shipping_price
+    assert order.shipping_address == Address(
+        **{'first_name': 'John', 'country': 'PL'})
