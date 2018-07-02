@@ -87,12 +87,14 @@ def customer_edit(request, pk=None):
 @staff_member_required
 @permission_required('account.view_user')
 def ajax_users_list(request):
-    queryset = User.objects.select_related('default_billing_address')
+    queryset = User.objects.select_related(
+        'default_billing_address', 'company')
     search_query = request.GET.get('q', '')
     if search_query:
         queryset = queryset.filter(
             Q(default_billing_address__first_name__icontains=search_query) |
             Q(default_billing_address__last_name__icontains=search_query) |
+            Q(company__name__icontains=search_query) |
             Q(email__icontains=search_query))
 
     users = [

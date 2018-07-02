@@ -167,11 +167,14 @@ class User(PermissionsMixin, AbstractBaseUser):
         return self.email
 
     def get_ajax_label(self):
+        label = self.email
         address = self.default_billing_address
         if address:
-            return '%s %s (%s)' % (
+            label = '%s %s (%s)' % (
                 address.first_name, address.last_name, self.email)
-        return self.email
+        if self.company:
+            label = '%s - %s' % (label, self.company.name)
+        return label
 
 
 class CustomerNote(BaseNote):
