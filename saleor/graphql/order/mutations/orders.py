@@ -135,7 +135,7 @@ class OrderMarkAsPaid(BaseMutation):
 
 class OrderCapture(BaseMutation):
     class Arguments:
-        order_id = graphene.ID(
+        id = graphene.ID(
             required=True, description='ID of the order to capture.')
         amount = Decimal(
             required=True, description='Amount of money to capture.')
@@ -145,8 +145,8 @@ class OrderCapture(BaseMutation):
 
     @classmethod
     @permission_required('order.edit_order')
-    def mutate(cls, root, info, order_id, amount):
-        order = get_node(info, order_id, only_type=Order)
+    def mutate(cls, root, info, id, amount):
+        order = get_node(info, id, only_type=Order)
         payment = order.get_last_payment()
         errors = []
         try_payment_action(payment.capture, amount, errors)
@@ -160,7 +160,7 @@ class OrderCapture(BaseMutation):
 
 class OrderRelease(BaseMutation):
     class Arguments:
-        order_id = graphene.ID(
+        id = graphene.ID(
             required=True, description='ID of the order to release.')
 
     order = graphene.Field(
@@ -168,8 +168,8 @@ class OrderRelease(BaseMutation):
 
     @classmethod
     @permission_required('order.edit_order')
-    def mutate(cls, root, info, order_id):
-        order = get_node(info, order_id, only_type=Order)
+    def mutate(cls, root, info, id):
+        order = get_node(info, id, only_type=Order)
         payment = order.get_last_payment()
         errors = []
         if payment.status != PaymentStatus.PREAUTH:
@@ -190,7 +190,7 @@ class OrderRelease(BaseMutation):
 
 class OrderRefund(BaseMutation):
     class Arguments:
-        order_id = graphene.ID(
+        id = graphene.ID(
             required=True, description='ID of the order to refund.')
         amount = Decimal(
             required=True, description='Amount of money to refund.')
@@ -200,8 +200,8 @@ class OrderRefund(BaseMutation):
 
     @classmethod
     @permission_required('order.edit_order')
-    def mutate(cls, root, info, order_id, amount):
-        order = get_node(info, order_id, only_type=Order)
+    def mutate(cls, root, info, id, amount):
+        order = get_node(info, id, only_type=Order)
         payment = order.get_last_payment()
         errors = []
         if payment.variant == CustomPaymentChoices.MANUAL:
