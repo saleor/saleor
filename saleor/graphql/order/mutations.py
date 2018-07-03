@@ -208,18 +208,18 @@ def check_for_draft_order_errors(order):
             Error(
                 field='lines',
                 message='Could not create order without any products.'))
-    method = order.shipping_method
-    shipping_address = order.shipping_address
-    shipping_not_valid = (
-        method and shipping_address and
-        method.country_code != ANY_COUNTRY and
-        shipping_address.country.code != method.country_code)
-    if shipping_not_valid:
-        errors.append(
-            Error(
-                field='shipping',
-                message='Shipping method is not valid for chosen shipping '
-                        'address'))
+    if order.is_shipping_required():
+        method = order.shipping_method
+        shipping_address = order.shipping_address
+        shipping_valid = (
+            method and shipping_address and
+            shipping_address.country.code != method.country_code)
+        if not shipping_valid:
+            errors.append(
+                Error(
+                    field='shipping',
+                    message='Shipping method is not valid for chosen shipping '
+                            'address'))
     return errors
 
 
