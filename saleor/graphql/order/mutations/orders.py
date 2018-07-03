@@ -5,12 +5,13 @@ from payments import PaymentError, PaymentStatus
 
 from saleor.graphql.core.mutations import BaseMutation, ModelMutation
 from saleor.graphql.core.types import Decimal, Error
-from saleor.graphql.order.mutations.draft_orders import (
-    DraftOrderUpdate, OrderUpdateInput)
+from saleor.graphql.order.mutations.draft_orders import DraftOrderUpdate
 from saleor.graphql.order.types import Order
 from saleor.graphql.utils import get_node
 from saleor.order import CustomPaymentChoices, models
 from saleor.order.utils import cancel_order
+
+from .draft_orders import AddressInput
 
 
 def try_payment_action(action, money, errors):
@@ -18,6 +19,14 @@ def try_payment_action(action, money, errors):
         action(money)
     except (PaymentError, ValueError) as e:
         errors.append(Error(field='payment', message=str(e)))
+
+
+class OrderUpdateInput(graphene.InputObjectType):
+    billing_address = AddressInput(
+        description='Address associated with the payment.')
+    user_email = graphene.String(description='Email address of the customer.')
+    shipping_address = AddressInput(
+        description='Address to where the order will be shipped.')
 
 
 class OrderUpdate(DraftOrderUpdate):
@@ -37,7 +46,7 @@ class OrderAddNoteInput(graphene.InputObjectType):
     order = graphene.ID(description='ID of the order.')
     user = graphene.ID(description='ID of the user who added note.')
     content = graphene.String(description='Note content.')
-    is_public = graphene.String(
+    is_public = graphene.Boolean(
         description='Determine if note is visible by customer or not.')
 
 
@@ -57,7 +66,7 @@ class OrderAddNote(ModelMutation):
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
-        super.save(info, instance, cleaned_input)
+        super().save(info, instance, cleaned_input)
         msg = 'Added note'
         instance.order.history.create(content=msg, user=info.context.user)
 

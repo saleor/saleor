@@ -251,3 +251,81 @@ def test_draft_order_complete(admin_api_client, draft_order):
     data = content['data']['draftOrderComplete']['order']
     order.refresh_from_db()
     assert data['status'] == order.status.upper()
+
+
+def test_order_update(admin_api_client, order_with_lines):
+    order = order_with_lines
+    query = """
+        mutation orderUpdate(
+        $id: ID!, $email: String, $first_name: String, $last_name: String,
+        $country_code: String) {
+            orderUpdate(
+                id: $id, input: {
+                    userEmail: $email, shippingAddress:
+                    {firstName: $first_name, country: $country_code},
+                    billingAddress:
+                    {lastName: $last_name, country: $country_code}}) {
+                errors {
+                    field
+                    message
+                }
+                order {
+                    userEmail
+                }
+            }
+        }
+        """
+    email = 'not_default@example.com'
+    first_name = 'Test fname'
+    last_name = 'Test lname'
+    assert not order.user_email == email
+    assert not order.shipping_address.first_name == first_name
+    assert not order.billing_address.last_name == last_name
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variables = json.dumps(
+        {'id': order_id, 'email': email, 'first_name': first_name,
+         'last_name': last_name, 'country_code': 'PL'})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['orderUpdate']['order']
+    assert data['userEmail'] == email
+
+    order.refresh_from_db()
+    assert order.shipping_address.first_name == first_name
+    assert order.billing_address.last_name == last_name
+
+
+def test_order_add_note(admin_api_client, order_with_lines, admin_user):
+    order = order_with_lines
+    query = """
+        mutation addNote(
+        $id: ID!, $note: String, $user: ID, $is_public: Boolean) {
+            orderAddNote(
+            input: {order: $id, content: $note, user: $user,
+            isPublic: $is_public}) {
+                orderNote {
+                    content
+                    isPublic
+                    user {
+                        email
+                    }
+                }
+            }
+        }
+        """
+    assert not order.notes.all()
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    note = 'nuclear note'
+    user = graphene.Node.to_global_id('User', admin_user.id)
+    is_public = True
+    variables = json.dumps(
+        {'id': order_id, 'user': user, 'is_public': is_public,
+         'note': note})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['orderAddNote']['orderNote']
+    assert data['content'] == note
+    assert data['isPublic'] == is_public
+    assert data['user']['email'] == admin_user.email
