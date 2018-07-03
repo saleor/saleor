@@ -216,7 +216,7 @@ def check_for_draft_order_errors(order):
 
 class DraftOrderComplete(BaseMutation):
     class Arguments:
-        order_id = graphene.ID(
+        id = graphene.ID(
             required=True,
             description='ID of the order that will be completed.')
 
@@ -228,8 +228,8 @@ class DraftOrderComplete(BaseMutation):
 
     @classmethod
     @permission_required('order.edit_order')
-    def mutate(cls, root, info, order_id):
-        order = get_node(info, order_id, only_type=Order)
+    def mutate(cls, root, info, id):
+        order = get_node(info, id, only_type=Order)
         errors = check_for_draft_order_errors(order)
         if errors:
             return cls(errors=errors)
