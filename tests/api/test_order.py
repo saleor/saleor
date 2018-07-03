@@ -7,7 +7,8 @@ from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 
 from saleor.account.models import Address
-from saleor.graphql.order.mutations import check_for_draft_order_errors
+from saleor.graphql.order.mutations.draft_orders import (
+    check_for_draft_order_errors)
 from saleor.order.models import Order, OrderStatus
 
 
