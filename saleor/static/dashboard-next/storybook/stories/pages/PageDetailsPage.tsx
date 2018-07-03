@@ -3,6 +3,7 @@ import * as React from "react";
 
 import PageDetailsPage from "../../../pages/components/PageDetailsPage";
 import { page } from "../../../pages/fixtures";
+import Decorator from "../../Decorator";
 
 const callbacks = {
   onBack: () => {},
@@ -10,6 +11,7 @@ const callbacks = {
 };
 
 storiesOf("Views / Pages / Page details", module)
+  .addDecorator(Decorator)
   .add("with initial data", () => (
     <PageDetailsPage page={page} {...callbacks} />
   ))
