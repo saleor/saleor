@@ -22,6 +22,7 @@ function loadStories() {
   require("./stories/components/StatusLabel");
   require("./stories/components/TablePagination");
   require("./stories/components/Timeline");
+  require("./stories/components/messages");
 
   // Attributes
   require("./stories/attributes/AttributeDetailsPage");
