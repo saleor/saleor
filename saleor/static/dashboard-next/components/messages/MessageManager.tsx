@@ -29,21 +29,21 @@ export class MessageManager extends React.Component<
     if (reason === "clickaway") {
       return;
     }
-    this.setState({ open: false });
+    this.setState({ opened: false });
   };
 
   handleExited = () => {
     this.processQueue();
   };
 
-  pushMessage = (message: Message) => {
+  pushMessage = (message: Message) => () => {
     this.queue.push({
       key: new Date().getTime(),
       message
     });
 
     if (this.state.opened) {
-      this.setState({ open: false });
+      this.setState({ opened: false });
     } else {
       this.processQueue();
     }
@@ -65,8 +65,8 @@ export class MessageManager extends React.Component<
         <Snackbar
           key={key}
           anchorOrigin={{
-            vertical: "top",
-            horizontal: "right"
+            horizontal: "right",
+            vertical: "top"
           }}
           open={this.state.opened}
           autoHideDuration={6000}
@@ -81,7 +81,7 @@ export class MessageManager extends React.Component<
               key="undo"
               color="secondary"
               size="small"
-              onClick={this.handleClose}
+              onClick={this.handleClose as any}
             >
               UNDO
             </Button>,
@@ -89,8 +89,8 @@ export class MessageManager extends React.Component<
               key="close"
               aria-label="Close"
               color="inherit"
-              className={classes.close}
-              onClick={this.handleClose}
+              // className={classes.close}
+              onClick={this.handleClose as any}
             >
               <CloseIcon />
             </IconButton>
