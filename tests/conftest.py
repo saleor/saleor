@@ -533,7 +533,8 @@ def payment_confirmed(order_with_lines):
     return order_with_lines.payments.create(
         variant='default', status=PaymentStatus.CONFIRMED,
         fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_amount, captured_amount=order_amount)
+        total=order_amount, captured_amount=order_amount,
+        tax=order_with_lines.total.tax.amount)
 
 
 @pytest.fixture()

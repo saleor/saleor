@@ -9,7 +9,7 @@ from tests.utils import get_graphql_content
 from saleor.account.models import Address
 from saleor.graphql.order.mutations.draft_orders import (
     check_for_draft_order_errors)
-from saleor.order.models import Order, OrderStatus
+from saleor.order.models import Order, OrderStatus, PaymentStatus
 
 
 def test_order_query(admin_api_client, fulfilled_order):
@@ -383,3 +383,73 @@ def test_order_capture(admin_api_client, order_with_lines, payment_preauth):
     assert data['isPaid'] == True
     assert data['capturedAmount']['amount'] == float(amount)
 
+
+def test_order_mark_as_paid(admin_api_client, order_with_lines):
+    order = order_with_lines
+    query = """
+            mutation markPaid($id: ID!) {
+                orderMarkAsPaid(id: $id) {
+                    order {
+                        isPaid
+                    }
+                }
+            }
+        """
+    assert not order.is_fully_paid()
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variables = json.dumps({'id': order_id})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['orderMarkAsPaid']['order']
+    order.refresh_from_db()
+    assert data['isPaid'] == True == order.is_fully_paid()
+
+
+def test_order_release(admin_api_client, payment_preauth):
+    order = payment_preauth.order
+    query = """
+            mutation releaseOrder($id: ID!) {
+                orderRelease(id: $id) {
+                    order {
+                        paymentStatus
+                    }
+                }
+            }
+        """
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variables = json.dumps({'id': order_id})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['orderRelease']['order']
+    assert data['paymentStatus'] == PaymentStatus.REFUNDED
+    history_entry = order.history.last().content
+    assert history_entry == 'Released payment'
+
+
+def test_order_refund(admin_api_client, payment_confirmed):
+    order = order = payment_confirmed.order
+    query = """
+        mutation refundOrder($id: ID!, $amount: Decimal!) {
+            orderRefund(id: $id, amount: $amount) {
+                order {
+                    paymentStatus
+                    isPaid
+                }
+            }
+        }
+    """
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    amount = str(payment_confirmed.get_total_price().gross.amount)
+    variables = json.dumps({'id': order_id, 'amount': amount})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['orderRefund']['order']
+    order.refresh_from_db()
+    msg = 'Refunded %(amount)s' % {'amount': amount}
+    history_entry = order.history.last().content
+    assert history_entry == msg
+    assert data['paymentStatus'] == PaymentStatus.REFUNDED
+    assert data['isPaid'] == False
