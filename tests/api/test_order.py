@@ -1,6 +1,7 @@
 import json
 
 import graphene
+import pytest
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 
@@ -99,10 +100,10 @@ def test_draft_order_create(
     variant_0 = variant
     query = """
     mutation draftCreate(
-        $user: ID, $email: String, $discount: Decimal, $lines: [LineInput],
+        $user: ID, $discount: Decimal, $lines: [LineInput],
         $shippingAddress: AddressInput, $shippingMethod: ID, $voucher: ID) {
             draftOrderCreate(
-                input: {user: $user, userEmail: $email, discount: $discount,
+                input: {user: $user, discount: $discount,
                 lines: $lines, shippingAddress: $shippingAddress,
                 shippingMethod: $shippingMethod, voucher: $voucher}) {
                     errors {
@@ -124,7 +125,6 @@ def test_draft_order_create(
                             }
                         }
                         status
-                        userEmail
                         voucher {
                             code
                         }
@@ -134,7 +134,6 @@ def test_draft_order_create(
         }
     """
     user_id = graphene.Node.to_global_id('User', customer_user.id)
-    email = 'not_default@example.com'
     variant_0_id = graphene.Node.to_global_id('ProductVariant', variant_0.id)
     variant_1 = product_without_shipping.variants.first()
     variant_1.quantity = 2
@@ -151,7 +150,7 @@ def test_draft_order_create(
     voucher_id = graphene.Node.to_global_id('Voucher', voucher.id)
     variables = json.dumps(
         {
-            'user': user_id, 'email': email, 'discount': discount,
+            'user': user_id, 'discount': discount,
             'lines': variant_list, 'shippingAddress': shipping_address,
             'shippingMethod': shipping_id, 'voucher': voucher_id})
     response = admin_api_client.post(
@@ -160,11 +159,55 @@ def test_draft_order_create(
     assert 'errors' not in content
     data = content['data']['draftOrderCreate']['order']
     assert data['status'] == OrderStatus.DRAFT.upper()
-    assert data['userEmail'] == email
     assert data['voucher']['code'] == voucher.code
 
     order = Order.objects.first()
+    assert order.user == customer_user
     assert order.billing_address == customer_user.default_billing_address
     assert order.shipping_method == shipping_price
     assert order.shipping_address == Address(
         **{'first_name': 'John', 'country': 'PL'})
+
+
+def test_draft_order_update(admin_api_client, order_with_lines):
+    order = order_with_lines
+    query = """
+        mutation draftUpdate($id: ID!, $email: String) {
+            draftOrderUpdate(id: $id, input: {userEmail: $email}) {
+                errors {
+                    field
+                    message
+                }
+                order {
+                    userEmail
+                }
+            }
+        }
+        """
+    email = 'not_default@example.com'
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variables = json.dumps({'id': order_id, 'email': email})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['draftOrderUpdate']['order']
+    assert data['userEmail'] == email
+
+
+def test_draft_order_delete(admin_api_client, order_with_lines):
+    order = order_with_lines
+    query = """
+        mutation draftDelete($id: ID!) {
+            draftOrderDelete(id: $id) {
+                order {
+                    id
+                }
+            }
+        }
+        """
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variables = json.dumps({'id': order_id})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    with pytest.raises(order._meta.model.DoesNotExist):
+        order.refresh_from_db()
