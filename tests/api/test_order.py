@@ -329,3 +329,57 @@ def test_order_add_note(admin_api_client, order_with_lines, admin_user):
     assert data['content'] == note
     assert data['isPublic'] == is_public
     assert data['user']['email'] == admin_user.email
+
+
+def test_order_cancel(admin_api_client, order_with_lines):
+    order = order_with_lines
+    query = """
+        mutation cancelOrder($id: ID!, $restock: Boolean!) {
+            orderCancel(id: $id, restock: $restock) {
+                order {
+                    status
+                }
+            }
+        }
+    """
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    restock = True
+    quantity = order.get_total_quantity()
+    variables = json.dumps({'id': order_id, 'restock': restock})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['orderCancel']['order']
+    order.refresh_from_db()
+    history_entry = 'Restocked %d items' % quantity
+    assert order.history.last().content == history_entry
+    assert data['status'] == order.status.upper()
+
+
+def test_order_capture(admin_api_client, order_with_lines, payment_preauth):
+    order = order_with_lines
+    query = """
+        mutation captureOrder($id: ID!, $amount: Decimal!) {
+            orderCapture(id: $id, amount: $amount) {
+                order {
+                    paymentStatus
+                    isPaid
+                    capturedAmount {
+                        amount
+                    }
+                }
+            }
+        }
+    """
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    amount = str(payment_preauth.get_total_price().gross.amount)
+    variables = json.dumps({'id': order_id, 'amount': amount})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['orderCapture']['order']
+    order.refresh_from_db()
+    assert data['paymentStatus'] == order.get_last_payment_status()
+    assert data['isPaid'] == True
+    assert data['capturedAmount']['amount'] == float(amount)
+
