@@ -230,3 +230,24 @@ def test_check_for_draft_order_errors(order_with_lines):
     errors = check_for_draft_order_errors(order_with_wrong_shipping)
     msg = 'Shipping method is not valid for chosen shipping address'
     assert errors[0].message == msg
+
+
+def test_draft_order_complete(admin_api_client, draft_order):
+    order = draft_order
+    query = """
+        mutation draftComplete($id: ID!) {
+            draftOrderComplete(id: $id) {
+                order {
+                    status
+                }
+            }
+        }
+        """
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variables = json.dumps({'id': order_id})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['draftOrderComplete']['order']
+    order.refresh_from_db()
+    assert data['status'] == order.status.upper()
