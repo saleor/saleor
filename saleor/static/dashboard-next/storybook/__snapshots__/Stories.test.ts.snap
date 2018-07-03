@@ -12303,13 +12303,13 @@ exports[`Storyshots Products / ProductAvailabilityForm when loading data 1`] = `
     />
   </div>
   <div
-    class="MuiCardContent-root-134 Component-root-537"
+    class="MuiCardContent-root-134"
   >
     <label
-      class="MuiFormControlLabel-root-538"
+      class="MuiFormControlLabel-root-537"
     >
       <span
-        class="MuiButtonBase-root-245 MuiIconButton-root-239 MuiSwitchBase-root-546 MuiCheckbox-root-541 MuiCheckbox-colorSecondary-545"
+        class="MuiButtonBase-root-245 MuiIconButton-root-239 MuiSwitchBase-root-545 MuiCheckbox-root-540 MuiCheckbox-colorSecondary-544"
       >
         <span
           class="MuiIconButton-label-244"
@@ -12325,7 +12325,7 @@ exports[`Storyshots Products / ProductAvailabilityForm when loading data 1`] = `
             />
           </svg>
           <input
-            class="MuiSwitchBase-input-549"
+            class="MuiSwitchBase-input-548"
             name="available"
             type="checkbox"
           />
@@ -12335,24 +12335,30 @@ exports[`Storyshots Products / ProductAvailabilityForm when loading data 1`] = `
         />
       </span>
       <span
-        class="MuiTypography-root-135 MuiTypography-body1-144 MuiFormControlLabel-label-540"
+        class="MuiTypography-root-135 MuiTypography-body1-144 MuiFormControlLabel-label-539"
       >
-        Available on
+        Published in storefront
       </span>
     </label>
     <div
       class="MuiFormControl-root-178 Component-date-536"
     >
+      <label
+        class="MuiFormLabel-root-222 MuiInputLabel-root-217 MuiInputLabel-formControl-218 MuiInputLabel-animated-221 MuiInputLabel-shrink-220"
+        data-shrink="true"
+      >
+        Publish product on
+      </label>
       <div
-        class="MuiInput-root-187 MuiInput-disabled-190 MuiInput-formControl-188 MuiInput-underline-191"
+        class="MuiInput-root-187 MuiInput-formControl-188 MuiInput-underline-191"
       >
         <input
           aria-invalid="false"
           aria-required="false"
-          class="MuiInput-input-195 MuiInput-disabled-190 MuiInput-inputType-198"
-          disabled=""
+          class="MuiInput-input-195 MuiInput-inputType-198"
           name="availableOn"
           type="date"
+          value=""
         />
       </div>
     </div>
@@ -12377,13 +12383,13 @@ exports[`Storyshots Products / ProductAvailabilityForm with loaded data 1`] = `
     />
   </div>
   <div
-    class="MuiCardContent-root-134 Component-root-537"
+    class="MuiCardContent-root-134"
   >
     <label
-      class="MuiFormControlLabel-root-538"
+      class="MuiFormControlLabel-root-537"
     >
       <span
-        class="MuiButtonBase-root-245 MuiIconButton-root-239 MuiSwitchBase-root-546 MuiCheckbox-root-541 MuiCheckbox-colorSecondary-545 MuiSwitchBase-checked-547 MuiCheckbox-checked-542"
+        class="MuiButtonBase-root-245 MuiIconButton-root-239 MuiSwitchBase-root-545 MuiCheckbox-root-540 MuiCheckbox-colorSecondary-544 MuiSwitchBase-checked-546 MuiCheckbox-checked-541"
       >
         <span
           class="MuiIconButton-label-244"
@@ -12400,7 +12406,7 @@ exports[`Storyshots Products / ProductAvailabilityForm with loaded data 1`] = `
           </svg>
           <input
             checked=""
-            class="MuiSwitchBase-input-549"
+            class="MuiSwitchBase-input-548"
             name="available"
             type="checkbox"
           />
@@ -12410,14 +12416,20 @@ exports[`Storyshots Products / ProductAvailabilityForm with loaded data 1`] = `
         />
       </span>
       <span
-        class="MuiTypography-root-135 MuiTypography-body1-144 MuiFormControlLabel-label-540"
+        class="MuiTypography-root-135 MuiTypography-body1-144 MuiFormControlLabel-label-539"
       >
-        Available on
+        Published in storefront
       </span>
     </label>
     <div
       class="MuiFormControl-root-178 Component-date-536"
     >
+      <label
+        class="MuiFormLabel-root-222 MuiInputLabel-root-217 MuiInputLabel-formControl-218 MuiInputLabel-animated-221 MuiInputLabel-shrink-220"
+        data-shrink="true"
+      >
+        Publish product on
+      </label>
       <div
         class="MuiInput-root-187 MuiInput-formControl-188 MuiInput-underline-191"
       >
@@ -12687,7 +12699,7 @@ exports[`Storyshots Products / ProductDetailsForm when loading data 1`] = `
     class="MuiCardContent-root-134"
   >
     <div
-      class="Component-root-550"
+      class="Component-root-549"
     >
       <div
         class="MuiFormControl-root-178 MuiFormControl-fullWidth-181"
@@ -12783,7 +12795,7 @@ exports[`Storyshots Products / ProductDetailsForm with initial data 1`] = `
     class="MuiCardContent-root-134"
   >
     <div
-      class="Component-root-550"
+      class="Component-root-549"
     >
       <div
         class="MuiFormControl-root-178 MuiFormControl-fullWidth-181"
@@ -12887,7 +12899,7 @@ exports[`Storyshots Products / ProductDetailsForm with no initial data 1`] = `
     class="MuiCardContent-root-134"
   >
     <div
-      class="Component-root-550"
+      class="Component-root-549"
     >
       <div
         class="MuiFormControl-root-178 MuiFormControl-fullWidth-181"
@@ -12974,7 +12986,7 @@ exports[`Storyshots Products / ProductDetailsForm with no initial data 1`] = `
 
 exports[`Storyshots Products / ProductImages when loading data 1`] = `
 <div
-  class="MuiPaper-root-107 MuiPaper-elevation2-111 MuiPaper-rounded-108 MuiCard-root-106 Component-card-554"
+  class="MuiPaper-root-107 MuiPaper-elevation2-111 MuiPaper-rounded-108 MuiCard-root-106 Component-card-553"
 >
   <div
     class="Component-root-235"
@@ -13013,7 +13025,7 @@ exports[`Storyshots Products / ProductImages when loading data 1`] = `
         />
       </button>
       <input
-        class="Component-fileField-557"
+        class="Component-fileField-556"
         id="fileUpload"
         type="file"
       />
@@ -13023,25 +13035,25 @@ exports[`Storyshots Products / ProductImages when loading data 1`] = `
     class="MuiCardContent-root-134"
   >
     <div
-      class="Component-root-553"
+      class="Component-root-552"
     >
       <div
-        class="MuiGridListTile-root-568 Component-gridElement-555"
+        class="MuiGridListTile-root-567 Component-gridElement-554"
       >
         <div
-          class="MuiGridListTile-tile-569"
+          class="MuiGridListTile-tile-568"
         >
           <img
             src="placeholder255x255.png"
           />
           <div
-            class="MuiGridListTileBar-root-572 MuiGridListTileBar-titlePositionBottom-573"
+            class="MuiGridListTileBar-root-571 MuiGridListTileBar-titlePositionBottom-572"
           >
             <div
-              class="MuiGridListTileBar-titleWrap-576"
+              class="MuiGridListTileBar-titleWrap-575"
             >
               <div
-                class="MuiGridListTileBar-title-579"
+                class="MuiGridListTileBar-title-578"
               >
                 Loading...
               </div>
@@ -13056,7 +13068,7 @@ exports[`Storyshots Products / ProductImages when loading data 1`] = `
 
 exports[`Storyshots Products / ProductImages with data 1`] = `
 <div
-  class="MuiPaper-root-107 MuiPaper-elevation2-111 MuiPaper-rounded-108 MuiCard-root-106 Component-card-554"
+  class="MuiPaper-root-107 MuiPaper-elevation2-111 MuiPaper-rounded-108 MuiCard-root-106 Component-card-553"
 >
   <div
     class="Component-root-235"
@@ -13095,7 +13107,7 @@ exports[`Storyshots Products / ProductImages with data 1`] = `
         />
       </button>
       <input
-        class="Component-fileField-557"
+        class="Component-fileField-556"
         id="fileUpload"
         type="file"
       />
@@ -13105,25 +13117,23 @@ exports[`Storyshots Products / ProductImages with data 1`] = `
     class="MuiCardContent-root-134"
   >
     <div
-      class="Component-root-553"
+      class="Component-root-552"
     >
       <div
-        class="MuiGridListTile-root-568 Component-gridElement-565"
+        class="MuiGridListTile-root-567 Component-gridElement-564"
       >
         <div
-          class="MuiGridListTile-tile-569"
+          class="MuiGridListTile-tile-568"
         >
-          <img
-            src="placeholder255x255.png"
-          />
+          <img />
           <div
-            class="MuiGridListTileBar-root-572 MuiGridListTileBar-titlePositionBottom-573"
+            class="MuiGridListTileBar-root-571 MuiGridListTileBar-titlePositionBottom-572"
           >
             <div
-              class="MuiGridListTileBar-titleWrap-576"
+              class="MuiGridListTileBar-titleWrap-575"
             >
               <div
-                class="MuiGridListTileBar-title-579"
+                class="MuiGridListTileBar-title-578"
               >
                 No description
               </div>
@@ -13132,23 +13142,22 @@ exports[`Storyshots Products / ProductImages with data 1`] = `
         </div>
       </div>
       <div
-        class="MuiGridListTile-root-568 Component-gridElement-565"
+        class="MuiGridListTile-root-567 Component-gridElement-564"
       >
         <div
-          class="MuiGridListTile-tile-569"
+          class="MuiGridListTile-tile-568"
         >
           <img
             alt="Id sit dolores adipisci"
-            src="placeholder255x255.png"
           />
           <div
-            class="MuiGridListTileBar-root-572 MuiGridListTileBar-titlePositionBottom-573"
+            class="MuiGridListTileBar-root-571 MuiGridListTileBar-titlePositionBottom-572"
           >
             <div
-              class="MuiGridListTileBar-titleWrap-576"
+              class="MuiGridListTileBar-titleWrap-575"
             >
               <div
-                class="MuiGridListTileBar-title-579"
+                class="MuiGridListTileBar-title-578"
               >
                 Id sit dolores adipisci
               </div>
@@ -13163,7 +13172,7 @@ exports[`Storyshots Products / ProductImages with data 1`] = `
 
 exports[`Storyshots Products / ProductImages without data 1`] = `
 <div
-  class="MuiPaper-root-107 MuiPaper-elevation2-111 MuiPaper-rounded-108 MuiCard-root-106 Component-card-554"
+  class="MuiPaper-root-107 MuiPaper-elevation2-111 MuiPaper-rounded-108 MuiCard-root-106 Component-card-553"
 >
   <div
     class="Component-root-235"
@@ -13202,7 +13211,7 @@ exports[`Storyshots Products / ProductImages without data 1`] = `
         />
       </button>
       <input
-        class="Component-fileField-557"
+        class="Component-fileField-556"
         id="fileUpload"
         type="file"
       />
@@ -13237,7 +13246,7 @@ exports[`Storyshots Products / ProductVariantAttributes when loaded data 1`] = `
     />
   </div>
   <div
-    class="MuiCardContent-root-134 Component-grid-653"
+    class="MuiCardContent-root-134 Component-grid-651"
   >
     <div
       class="MuiFormControl-root-178 Component-formControl-45"
@@ -13352,7 +13361,7 @@ exports[`Storyshots Products / ProductVariantAttributes when loading data 1`] = 
     />
   </div>
   <div
-    class="MuiCardContent-root-134 Component-grid-653"
+    class="MuiCardContent-root-134 Component-grid-651"
   >
     <span
       class="Skeleton-skeleton-238"
@@ -13369,7 +13378,7 @@ exports[`Storyshots Products / ProductVariantImageSelectDialog default 1`] = `nu
 
 exports[`Storyshots Products / ProductVariantImages when loaded data 1`] = `
 <div
-  class="MuiPaper-root-107 MuiPaper-elevation2-111 MuiPaper-rounded-108 MuiCard-root-106 Component-card-667"
+  class="MuiPaper-root-107 MuiPaper-elevation2-111 MuiPaper-rounded-108 MuiCard-root-106 Component-card-665"
 >
   <div
     class="Component-root-235"
@@ -13413,76 +13422,26 @@ exports[`Storyshots Products / ProductVariantImages when loaded data 1`] = `
     class="MuiCardContent-root-134"
   >
     <div
-      class="Component-root-666"
+      class="Component-root-664"
     >
       <div
-        class="MuiGridListTile-root-568 Component-gridElement-668"
+        class="MuiGridListTile-root-567 Component-gridElement-666"
       >
         <div
-          class="MuiGridListTile-tile-569"
-        >
-          <img
-            alt="Paper"
-            src="placeholder255x255.png"
-          />
-          <div
-            class="MuiGridListTileBar-root-572 MuiGridListTileBar-titlePositionBottom-573"
-          >
-            <div
-              class="MuiGridListTileBar-titleWrap-576"
-            >
-              <div
-                class="MuiGridListTileBar-title-579"
-              >
-                Paper
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        class="MuiGridListTile-root-568 Component-gridElement-668"
-      >
-        <div
-          class="MuiGridListTile-tile-569"
-        >
-          <img
-            alt="Extended version"
-            src="placeholder255x255.png"
-          />
-          <div
-            class="MuiGridListTileBar-root-572 MuiGridListTileBar-titlePositionBottom-573"
-          >
-            <div
-              class="MuiGridListTileBar-titleWrap-576"
-            >
-              <div
-                class="MuiGridListTileBar-title-579"
-              >
-                Extended version
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        class="MuiGridListTile-root-568 Component-gridElement-668"
-      >
-        <div
-          class="MuiGridListTile-tile-569"
+          class="MuiGridListTile-tile-568"
         >
           <img
             alt="Front"
             src="placeholder255x255.png"
           />
           <div
-            class="MuiGridListTileBar-root-572 MuiGridListTileBar-titlePositionBottom-573"
+            class="MuiGridListTileBar-root-571 MuiGridListTileBar-titlePositionBottom-572"
           >
             <div
-              class="MuiGridListTileBar-titleWrap-576"
+              class="MuiGridListTileBar-titleWrap-575"
             >
               <div
-                class="MuiGridListTileBar-title-579"
+                class="MuiGridListTileBar-title-578"
               >
                 Front
               </div>
@@ -13491,48 +13450,48 @@ exports[`Storyshots Products / ProductVariantImages when loaded data 1`] = `
         </div>
       </div>
       <div
-        class="MuiGridListTile-root-568 Component-gridElement-668"
+        class="MuiGridListTile-root-567 Component-gridElement-666"
       >
         <div
-          class="MuiGridListTile-tile-569"
+          class="MuiGridListTile-tile-568"
         >
           <img
-            alt="Hard cover"
+            alt="Back"
             src="placeholder255x255.png"
           />
           <div
-            class="MuiGridListTileBar-root-572 MuiGridListTileBar-titlePositionBottom-573"
+            class="MuiGridListTileBar-root-571 MuiGridListTileBar-titlePositionBottom-572"
           >
             <div
-              class="MuiGridListTileBar-titleWrap-576"
+              class="MuiGridListTileBar-titleWrap-575"
             >
               <div
-                class="MuiGridListTileBar-title-579"
+                class="MuiGridListTileBar-title-578"
               >
-                Hard cover
+                Back
               </div>
             </div>
           </div>
         </div>
       </div>
       <div
-        class="MuiGridListTile-root-568 Component-gridElement-668"
+        class="MuiGridListTile-root-567 Component-gridElement-666"
       >
         <div
-          class="MuiGridListTile-tile-569"
+          class="MuiGridListTile-tile-568"
         >
           <img
             alt="Right side"
             src="placeholder255x255.png"
           />
           <div
-            class="MuiGridListTileBar-root-572 MuiGridListTileBar-titlePositionBottom-573"
+            class="MuiGridListTileBar-root-571 MuiGridListTileBar-titlePositionBottom-572"
           >
             <div
-              class="MuiGridListTileBar-titleWrap-576"
+              class="MuiGridListTileBar-titleWrap-575"
             >
               <div
-                class="MuiGridListTileBar-title-579"
+                class="MuiGridListTileBar-title-578"
               >
                 Right side
               </div>
@@ -13541,73 +13500,23 @@ exports[`Storyshots Products / ProductVariantImages when loaded data 1`] = `
         </div>
       </div>
       <div
-        class="MuiGridListTile-root-568 Component-gridElement-668"
+        class="MuiGridListTile-root-567 Component-gridElement-666"
       >
         <div
-          class="MuiGridListTile-tile-569"
-        >
-          <img
-            alt="Cut version"
-            src="placeholder255x255.png"
-          />
-          <div
-            class="MuiGridListTileBar-root-572 MuiGridListTileBar-titlePositionBottom-573"
-          >
-            <div
-              class="MuiGridListTileBar-titleWrap-576"
-            >
-              <div
-                class="MuiGridListTileBar-title-579"
-              >
-                Cut version
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        class="MuiGridListTile-root-568 Component-gridElement-668"
-      >
-        <div
-          class="MuiGridListTile-tile-569"
-        >
-          <img
-            alt="Soft cover"
-            src="placeholder255x255.png"
-          />
-          <div
-            class="MuiGridListTileBar-root-572 MuiGridListTileBar-titlePositionBottom-573"
-          >
-            <div
-              class="MuiGridListTileBar-titleWrap-576"
-            >
-              <div
-                class="MuiGridListTileBar-title-579"
-              >
-                Soft cover
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        class="MuiGridListTile-root-568 Component-gridElement-668"
-      >
-        <div
-          class="MuiGridListTile-tile-569"
+          class="MuiGridListTile-tile-568"
         >
           <img
             alt="Left side"
             src="placeholder255x255.png"
           />
           <div
-            class="MuiGridListTileBar-root-572 MuiGridListTileBar-titlePositionBottom-573"
+            class="MuiGridListTileBar-root-571 MuiGridListTileBar-titlePositionBottom-572"
           >
             <div
-              class="MuiGridListTileBar-titleWrap-576"
+              class="MuiGridListTileBar-titleWrap-575"
             >
               <div
-                class="MuiGridListTileBar-title-579"
+                class="MuiGridListTileBar-title-578"
               >
                 Left side
               </div>
@@ -13616,25 +13525,125 @@ exports[`Storyshots Products / ProductVariantImages when loaded data 1`] = `
         </div>
       </div>
       <div
-        class="MuiGridListTile-root-568 Component-gridElement-668"
+        class="MuiGridListTile-root-567 Component-gridElement-666"
       >
         <div
-          class="MuiGridListTile-tile-569"
+          class="MuiGridListTile-tile-568"
         >
           <img
-            alt="Back"
+            alt="Paper"
             src="placeholder255x255.png"
           />
           <div
-            class="MuiGridListTileBar-root-572 MuiGridListTileBar-titlePositionBottom-573"
+            class="MuiGridListTileBar-root-571 MuiGridListTileBar-titlePositionBottom-572"
           >
             <div
-              class="MuiGridListTileBar-titleWrap-576"
+              class="MuiGridListTileBar-titleWrap-575"
             >
               <div
-                class="MuiGridListTileBar-title-579"
+                class="MuiGridListTileBar-title-578"
               >
-                Back
+                Paper
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="MuiGridListTile-root-567 Component-gridElement-666"
+      >
+        <div
+          class="MuiGridListTile-tile-568"
+        >
+          <img
+            alt="Hard cover"
+            src="placeholder255x255.png"
+          />
+          <div
+            class="MuiGridListTileBar-root-571 MuiGridListTileBar-titlePositionBottom-572"
+          >
+            <div
+              class="MuiGridListTileBar-titleWrap-575"
+            >
+              <div
+                class="MuiGridListTileBar-title-578"
+              >
+                Hard cover
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="MuiGridListTile-root-567 Component-gridElement-666"
+      >
+        <div
+          class="MuiGridListTile-tile-568"
+        >
+          <img
+            alt="Extended version"
+            src="placeholder255x255.png"
+          />
+          <div
+            class="MuiGridListTileBar-root-571 MuiGridListTileBar-titlePositionBottom-572"
+          >
+            <div
+              class="MuiGridListTileBar-titleWrap-575"
+            >
+              <div
+                class="MuiGridListTileBar-title-578"
+              >
+                Extended version
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="MuiGridListTile-root-567 Component-gridElement-666"
+      >
+        <div
+          class="MuiGridListTile-tile-568"
+        >
+          <img
+            alt="Cut version"
+            src="placeholder255x255.png"
+          />
+          <div
+            class="MuiGridListTileBar-root-571 MuiGridListTileBar-titlePositionBottom-572"
+          >
+            <div
+              class="MuiGridListTileBar-titleWrap-575"
+            >
+              <div
+                class="MuiGridListTileBar-title-578"
+              >
+                Cut version
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="MuiGridListTile-root-567 Component-gridElement-666"
+      >
+        <div
+          class="MuiGridListTile-tile-568"
+        >
+          <img
+            alt="Soft cover"
+            src="placeholder255x255.png"
+          />
+          <div
+            class="MuiGridListTileBar-root-571 MuiGridListTileBar-titlePositionBottom-572"
+          >
+            <div
+              class="MuiGridListTileBar-titleWrap-575"
+            >
+              <div
+                class="MuiGridListTileBar-title-578"
+              >
+                Soft cover
               </div>
             </div>
           </div>
@@ -13647,7 +13656,7 @@ exports[`Storyshots Products / ProductVariantImages when loaded data 1`] = `
 
 exports[`Storyshots Products / ProductVariantImages when loading data 1`] = `
 <div
-  class="MuiPaper-root-107 MuiPaper-elevation2-111 MuiPaper-rounded-108 MuiCard-root-106 Component-card-667"
+  class="MuiPaper-root-107 MuiPaper-elevation2-111 MuiPaper-rounded-108 MuiCard-root-106 Component-card-665"
 >
   <div
     class="Component-root-235"
@@ -13689,25 +13698,25 @@ exports[`Storyshots Products / ProductVariantImages when loading data 1`] = `
     class="MuiCardContent-root-134"
   >
     <div
-      class="Component-root-666"
+      class="Component-root-664"
     >
       <div
-        class="MuiGridListTile-root-568 Component-gridElement-668"
+        class="MuiGridListTile-root-567 Component-gridElement-666"
       >
         <div
-          class="MuiGridListTile-tile-569"
+          class="MuiGridListTile-tile-568"
         >
           <img
             src="placeholder255x255.png"
           />
           <div
-            class="MuiGridListTileBar-root-572 MuiGridListTileBar-titlePositionBottom-573"
+            class="MuiGridListTileBar-root-571 MuiGridListTileBar-titlePositionBottom-572"
           >
             <div
-              class="MuiGridListTileBar-titleWrap-576"
+              class="MuiGridListTileBar-titleWrap-575"
             >
               <div
-                class="MuiGridListTileBar-title-579"
+                class="MuiGridListTileBar-title-578"
               >
                 Loading...
               </div>
@@ -13722,7 +13731,7 @@ exports[`Storyshots Products / ProductVariantImages when loading data 1`] = `
 
 exports[`Storyshots Products / ProductVariantNavigation when loaded data 1`] = `
 <div
-  class="MuiPaper-root-107 MuiPaper-elevation2-111 MuiPaper-rounded-108 MuiCard-root-106 Component-card-669"
+  class="MuiPaper-root-107 MuiPaper-elevation2-111 MuiPaper-rounded-108 MuiCard-root-106 Component-card-667"
 >
   <div
     class="Component-root-235"
@@ -13740,31 +13749,31 @@ exports[`Storyshots Products / ProductVariantNavigation when loaded data 1`] = `
     class="MuiTable-root-322"
   >
     <tbody
-      class="MuiTableBody-root-597"
+      class="MuiTableBody-root-596"
     >
       <tr
-        class="MuiTableRow-root-591"
+        class="MuiTableRow-root-590"
       >
         <td
-          class="MuiTableCell-root-332 MuiTableCell-body-334"
+          class="MuiTableCell-root-332 MuiTableCell-body-334 Component-link-668"
         >
           Extended Soft
         </td>
       </tr>
       <tr
-        class="MuiTableRow-root-591"
+        class="MuiTableRow-root-590"
       >
         <td
-          class="MuiTableCell-root-332 MuiTableCell-body-334"
+          class="MuiTableCell-root-332 MuiTableCell-body-334 Component-link-668"
         >
           Normal Hard
         </td>
       </tr>
       <tr
-        class="MuiTableRow-root-591"
+        class="MuiTableRow-root-590"
       >
         <td
-          class="MuiTableCell-root-332 MuiTableCell-body-334"
+          class="MuiTableCell-root-332 MuiTableCell-body-334 Component-link-668"
         >
           Normal Soft
         </td>
@@ -13776,7 +13785,7 @@ exports[`Storyshots Products / ProductVariantNavigation when loaded data 1`] = `
 
 exports[`Storyshots Products / ProductVariantNavigation when loading data 1`] = `
 <div
-  class="MuiPaper-root-107 MuiPaper-elevation2-111 MuiPaper-rounded-108 MuiCard-root-106 Component-card-669"
+  class="MuiPaper-root-107 MuiPaper-elevation2-111 MuiPaper-rounded-108 MuiCard-root-106 Component-card-667"
 >
   <div
     class="Component-root-235"
@@ -13794,10 +13803,10 @@ exports[`Storyshots Products / ProductVariantNavigation when loading data 1`] = 
     class="MuiTable-root-322"
   >
     <tbody
-      class="MuiTableBody-root-597"
+      class="MuiTableBody-root-596"
     >
       <tr
-        class="MuiTableRow-root-591"
+        class="MuiTableRow-root-590"
       >
         <td
           class="MuiTableCell-root-332 MuiTableCell-body-334"
@@ -13816,7 +13825,7 @@ exports[`Storyshots Products / ProductVariantNavigation when loading data 1`] = 
 
 exports[`Storyshots Products / ProductVariantNavigation with clickable rows 1`] = `
 <div
-  class="MuiPaper-root-107 MuiPaper-elevation2-111 MuiPaper-rounded-108 MuiCard-root-106 Component-card-669"
+  class="MuiPaper-root-107 MuiPaper-elevation2-111 MuiPaper-rounded-108 MuiCard-root-106 Component-card-667"
 >
   <div
     class="Component-root-235"
@@ -13834,31 +13843,31 @@ exports[`Storyshots Products / ProductVariantNavigation with clickable rows 1`] 
     class="MuiTable-root-322"
   >
     <tbody
-      class="MuiTableBody-root-597"
+      class="MuiTableBody-root-596"
     >
       <tr
-        class="MuiTableRow-root-591"
+        class="MuiTableRow-root-590"
       >
         <td
-          class="MuiTableCell-root-332 MuiTableCell-body-334 Component-link-670"
+          class="MuiTableCell-root-332 MuiTableCell-body-334 Component-link-668"
         >
           Extended Soft
         </td>
       </tr>
       <tr
-        class="MuiTableRow-root-591"
+        class="MuiTableRow-root-590"
       >
         <td
-          class="MuiTableCell-root-332 MuiTableCell-body-334 Component-link-670"
+          class="MuiTableCell-root-332 MuiTableCell-body-334 Component-link-668"
         >
           Normal Hard
         </td>
       </tr>
       <tr
-        class="MuiTableRow-root-591"
+        class="MuiTableRow-root-590"
       >
         <td
-          class="MuiTableCell-root-332 MuiTableCell-body-334 Component-link-670"
+          class="MuiTableCell-root-332 MuiTableCell-body-334 Component-link-668"
         >
           Normal Soft
         </td>
@@ -13870,7 +13879,7 @@ exports[`Storyshots Products / ProductVariantNavigation with clickable rows 1`] 
 
 exports[`Storyshots Products / ProductVariantPrice when loaded data 1`] = `
 <div
-  class="MuiPaper-root-107 MuiPaper-elevation2-111 MuiPaper-rounded-108 MuiCard-root-106 Component-root-688"
+  class="MuiPaper-root-107 MuiPaper-elevation2-111 MuiPaper-rounded-108 MuiCard-root-106 Component-root-687"
 >
   <div
     class="Component-root-235"
@@ -13888,7 +13897,7 @@ exports[`Storyshots Products / ProductVariantPrice when loaded data 1`] = `
     class="MuiCardContent-root-134"
   >
     <div
-      class="Component-grid-689"
+      class="Component-grid-688"
     >
       <div>
         <div
@@ -13975,7 +13984,7 @@ exports[`Storyshots Products / ProductVariantPrice when loaded data 1`] = `
 
 exports[`Storyshots Products / ProductVariantPrice when loading data 1`] = `
 <div
-  class="MuiPaper-root-107 MuiPaper-elevation2-111 MuiPaper-rounded-108 MuiCard-root-106 Component-root-688"
+  class="MuiPaper-root-107 MuiPaper-elevation2-111 MuiPaper-rounded-108 MuiCard-root-106 Component-root-687"
 >
   <div
     class="Component-root-235"
@@ -13993,7 +14002,7 @@ exports[`Storyshots Products / ProductVariantPrice when loading data 1`] = `
     class="MuiCardContent-root-134"
   >
     <div
-      class="Component-grid-689"
+      class="Component-grid-688"
     >
       <div>
         <div
@@ -14072,9 +14081,10 @@ exports[`Storyshots Products / ProductVariantProduct when loaded data 1`] = `
     class="MuiCardContent-root-134"
   >
     <div
-      class="Component-root-690"
+      class="Component-root-689"
     >
       <img
+        class="Component-thumbnail-690"
         src="placeholder60x60.png"
       />
       <div>
@@ -14102,9 +14112,10 @@ exports[`Storyshots Products / ProductVariantProduct when loading data 1`] = `
     class="MuiCardContent-root-134"
   >
     <div
-      class="Component-root-690"
+      class="Component-root-689"
     >
       <img
+        class="Component-thumbnail-690"
         src="placeholder60x60.png"
       />
       <div>
@@ -14307,10 +14318,10 @@ exports[`Storyshots Products / ProductVariants when loading data 1`] = `
     class="MuiTable-root-322 Component-denseTable-694"
   >
     <thead
-      class="MuiTableHead-root-590"
+      class="MuiTableHead-root-589"
     >
       <tr
-        class="MuiTableRow-root-591 MuiTableRow-head-594"
+        class="MuiTableRow-root-590 MuiTableRow-head-593"
       >
         <th
           class="MuiTableCell-root-332 MuiTableCell-head-333"
@@ -14327,10 +14338,10 @@ exports[`Storyshots Products / ProductVariants when loading data 1`] = `
       </tr>
     </thead>
     <tbody
-      class="MuiTableBody-root-597"
+      class="MuiTableBody-root-596"
     >
       <tr
-        class="MuiTableRow-root-591"
+        class="MuiTableRow-root-590"
       >
         <td
           class="MuiTableCell-root-332 MuiTableCell-body-334"
@@ -14376,10 +14387,10 @@ exports[`Storyshots Products / ProductVariants when product has no variants 1`] 
     class="MuiTable-root-322 Component-denseTable-694"
   >
     <thead
-      class="MuiTableHead-root-590"
+      class="MuiTableHead-root-589"
     >
       <tr
-        class="MuiTableRow-root-591 MuiTableRow-head-594"
+        class="MuiTableRow-root-590 MuiTableRow-head-593"
       >
         <th
           class="MuiTableCell-root-332 MuiTableCell-head-333"
@@ -14396,16 +14407,28 @@ exports[`Storyshots Products / ProductVariants when product has no variants 1`] 
       </tr>
     </thead>
     <tbody
-      class="MuiTableBody-root-597"
+      class="MuiTableBody-root-596"
     >
       <tr
-        class="MuiTableRow-root-591"
+        class="MuiTableRow-root-590"
       >
         <td
           class="MuiTableCell-root-332 MuiTableCell-body-334"
-          colspan="2"
         >
-          This product has no variants
+          <span
+            class="Skeleton-skeleton-238"
+          >
+            ‌
+          </span>
+        </td>
+        <td
+          class="MuiTableCell-root-332 MuiTableCell-body-334"
+        >
+          <span
+            class="Skeleton-skeleton-238"
+          >
+            ‌
+          </span>
         </td>
       </tr>
     </tbody>
@@ -14433,10 +14456,10 @@ exports[`Storyshots Products / ProductVariants when product has variants 1`] = `
     class="MuiTable-root-322 Component-denseTable-694"
   >
     <thead
-      class="MuiTableHead-root-590"
+      class="MuiTableHead-root-589"
     >
       <tr
-        class="MuiTableRow-root-591 MuiTableRow-head-594"
+        class="MuiTableRow-root-590 MuiTableRow-head-593"
       >
         <th
           class="MuiTableCell-root-332 MuiTableCell-head-333"
@@ -14453,10 +14476,10 @@ exports[`Storyshots Products / ProductVariants when product has variants 1`] = `
       </tr>
     </thead>
     <tbody
-      class="MuiTableBody-root-597"
+      class="MuiTableBody-root-596"
     >
       <tr
-        class="MuiTableRow-root-591"
+        class="MuiTableRow-root-590"
       >
         <td
           class="MuiTableCell-root-332 MuiTableCell-body-334"
@@ -14467,13 +14490,13 @@ exports[`Storyshots Products / ProductVariants when product has variants 1`] = `
           class="MuiTableCell-root-332 MuiTableCell-body-334"
         >
           <span
-            class="Component-greenDot-695"
+            class="Component-redDot-697"
           />
-          Available
+          Unavailable
         </td>
       </tr>
       <tr
-        class="MuiTableRow-root-591"
+        class="MuiTableRow-root-590"
       >
         <td
           class="MuiTableCell-root-332 MuiTableCell-body-334"
@@ -14484,9 +14507,9 @@ exports[`Storyshots Products / ProductVariants when product has variants 1`] = `
           class="MuiTableCell-root-332 MuiTableCell-body-334"
         >
           <span
-            class="Component-greenDot-695"
+            class="Component-redDot-697"
           />
-          Available
+          Unavailable
         </td>
       </tr>
     </tbody>
@@ -14514,10 +14537,10 @@ exports[`Storyshots Products / ProductVariants with clickable rows 1`] = `
     class="MuiTable-root-322 Component-denseTable-694"
   >
     <thead
-      class="MuiTableHead-root-590"
+      class="MuiTableHead-root-589"
     >
       <tr
-        class="MuiTableRow-root-591 MuiTableRow-head-594"
+        class="MuiTableRow-root-590 MuiTableRow-head-593"
       >
         <th
           class="MuiTableCell-root-332 MuiTableCell-head-333"
@@ -14534,10 +14557,10 @@ exports[`Storyshots Products / ProductVariants with clickable rows 1`] = `
       </tr>
     </thead>
     <tbody
-      class="MuiTableBody-root-597"
+      class="MuiTableBody-root-596"
     >
       <tr
-        class="MuiTableRow-root-591"
+        class="MuiTableRow-root-590"
       >
         <td
           class="MuiTableCell-root-332 MuiTableCell-body-334 Component-link-696"
@@ -14548,13 +14571,13 @@ exports[`Storyshots Products / ProductVariants with clickable rows 1`] = `
           class="MuiTableCell-root-332 MuiTableCell-body-334"
         >
           <span
-            class="Component-greenDot-695"
+            class="Component-redDot-697"
           />
-          Available
+          Unavailable
         </td>
       </tr>
       <tr
-        class="MuiTableRow-root-591"
+        class="MuiTableRow-root-590"
       >
         <td
           class="MuiTableCell-root-332 MuiTableCell-body-334 Component-link-696"
@@ -14565,9 +14588,9 @@ exports[`Storyshots Products / ProductVariants with clickable rows 1`] = `
           class="MuiTableCell-root-332 MuiTableCell-body-334"
         >
           <span
-            class="Component-greenDot-695"
+            class="Component-redDot-697"
           />
-          Available
+          Unavailable
         </td>
       </tr>
     </tbody>
@@ -29658,7 +29681,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
       </div>
     </div>
     <div
-      class="Component-root-602"
+      class="Component-root-601"
     >
       <div>
         <div
@@ -29668,7 +29691,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
             class="MuiCardContent-root-436"
           >
             <div
-              class="Component-root-603"
+              class="Component-root-602"
             >
               <div
                 class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
@@ -29716,7 +29739,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                     value="339.39"
                   />
                   <div
-                    class="MuiInputAdornment-root-640 MuiInputAdornment-positionEnd-642"
+                    class="MuiInputAdornment-root-638 MuiInputAdornment-positionEnd-640"
                   >
                     <p
                       class="MuiTypography-root-60 MuiTypography-body1-69 MuiTypography-colorTextSecondary-82"
@@ -29763,10 +29786,10 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
           </div>
         </div>
         <div
-          class="Component-cardContainer-601"
+          class="Component-cardContainer-600"
         >
           <div
-            class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-card-609"
+            class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-card-608"
           >
             <div
               class="Component-root-445"
@@ -29805,7 +29828,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                   />
                 </button>
                 <input
-                  class="Component-fileField-612"
+                  class="Component-fileField-611"
                   id="fileUpload"
                   type="file"
                 />
@@ -29815,25 +29838,23 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
               class="MuiCardContent-root-436"
             >
               <div
-                class="Component-root-608"
+                class="Component-root-607"
               >
                 <div
-                  class="MuiGridListTile-root-613 Component-gridElement-650"
+                  class="MuiGridListTile-root-612 Component-gridElement-648"
                 >
                   <div
-                    class="MuiGridListTile-tile-614"
+                    class="MuiGridListTile-tile-613"
                   >
-                    <img
-                      src="placeholder255x255.png"
-                    />
+                    <img />
                     <div
-                      class="MuiGridListTileBar-root-617 MuiGridListTileBar-titlePositionBottom-618"
+                      class="MuiGridListTileBar-root-616 MuiGridListTileBar-titlePositionBottom-617"
                     >
                       <div
-                        class="MuiGridListTileBar-titleWrap-621"
+                        class="MuiGridListTileBar-titleWrap-620"
                       >
                         <div
-                          class="MuiGridListTileBar-title-624"
+                          class="MuiGridListTileBar-title-623"
                         >
                           No description
                         </div>
@@ -29842,23 +29863,22 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                   </div>
                 </div>
                 <div
-                  class="MuiGridListTile-root-613 Component-gridElement-650"
+                  class="MuiGridListTile-root-612 Component-gridElement-648"
                 >
                   <div
-                    class="MuiGridListTile-tile-614"
+                    class="MuiGridListTile-tile-613"
                   >
                     <img
                       alt="Id sit dolores adipisci"
-                      src="placeholder255x255.png"
                     />
                     <div
-                      class="MuiGridListTileBar-root-617 MuiGridListTileBar-titlePositionBottom-618"
+                      class="MuiGridListTileBar-root-616 MuiGridListTileBar-titlePositionBottom-617"
                     >
                       <div
-                        class="MuiGridListTileBar-titleWrap-621"
+                        class="MuiGridListTileBar-titleWrap-620"
                       >
                         <div
-                          class="MuiGridListTileBar-title-624"
+                          class="MuiGridListTileBar-title-623"
                         >
                           Id sit dolores adipisci
                         </div>
@@ -29871,7 +29891,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
           </div>
         </div>
         <div
-          class="Component-cardContainer-601"
+          class="Component-cardContainer-600"
         >
           <div
             class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435"
@@ -29915,7 +29935,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
               </div>
             </div>
             <table
-              class="MuiTable-root-86 Component-denseTable-629"
+              class="MuiTable-root-86 Component-denseTable-628"
             >
               <thead
                 class="MuiTableHead-root-87"
@@ -29944,7 +29964,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                   class="MuiTableRow-root-97"
                 >
                   <td
-                    class="MuiTableCell-root-88 MuiTableCell-body-90 Component-link-631"
+                    class="MuiTableCell-root-88 MuiTableCell-body-90 Component-link-630"
                   >
                     Cordoba Oro
                   </td>
@@ -29952,16 +29972,16 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                     class="MuiTableCell-root-88 MuiTableCell-body-90"
                   >
                     <span
-                      class="Component-greenDot-630"
+                      class="Component-redDot-631"
                     />
-                    Available
+                    Unavailable
                   </td>
                 </tr>
                 <tr
                   class="MuiTableRow-root-97"
                 >
                   <td
-                    class="MuiTableCell-root-88 MuiTableCell-body-90 Component-link-631"
+                    class="MuiTableCell-root-88 MuiTableCell-body-90 Component-link-630"
                   >
                     silver
                   </td>
@@ -29969,9 +29989,9 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                     class="MuiTableCell-root-88 MuiTableCell-body-90"
                   >
                     <span
-                      class="Component-greenDot-630"
+                      class="Component-redDot-631"
                     />
-                    Available
+                    Unavailable
                   </td>
                 </tr>
               </tbody>
@@ -29979,7 +29999,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
           </div>
         </div>
         <div
-          class="Component-cardContainer-601"
+          class="Component-cardContainer-600"
         >
           <div
             class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435"
@@ -30055,23 +30075,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                       >
                         <div
                           class="Component-preview-501"
-                        >
-                          <p
-                            class="MuiTypography-root-60 MuiTypography-body1-69 Component-titleBar-503"
-                          >
-                            Ergonomic Plastic Bacon
-                          </p>
-                          <p
-                            class="MuiTypography-root-60 MuiTypography-body1-69 Component-addressBar-498"
-                          >
-                            https://demo.getsaleor.com/product/Ergonomic Plastic Bacon
-                          </p>
-                          <p
-                            class="MuiTypography-root-60 MuiTypography-body1-69 Component-descriptionBar-500"
-                          >
-                            Omnis rerum ea. Fugit dignissimos modi est rerum
-                          </p>
-                        </div>
+                        />
                         <div
                           class="Component-spacer-44"
                         />
@@ -30160,13 +30164,13 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
             />
           </div>
           <div
-            class="MuiCardContent-root-436 Component-root-634"
+            class="MuiCardContent-root-436"
           >
             <label
               class="MuiFormControlLabel-root-505"
             >
               <span
-                class="MuiButtonBase-root-295 MuiIconButton-root-409 MuiSwitchBase-root-513 MuiCheckbox-root-508 MuiCheckbox-colorSecondary-512"
+                class="MuiButtonBase-root-295 MuiIconButton-root-409 MuiSwitchBase-root-513 MuiCheckbox-root-508 MuiCheckbox-colorSecondary-512 MuiSwitchBase-checked-514 MuiCheckbox-checked-509"
               >
                 <span
                   class="MuiIconButton-label-414"
@@ -30178,10 +30182,11 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                     viewBox="0 0 24 24"
                   >
                     <path
-                      d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                      d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
                     />
                   </svg>
                   <input
+                    checked=""
                     class="MuiSwitchBase-input-516"
                     name="available"
                     type="checkbox"
@@ -30194,20 +30199,25 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
               <span
                 class="MuiTypography-root-60 MuiTypography-body1-69 MuiFormControlLabel-label-507"
               >
-                Available on
+                Published in storefront
               </span>
             </label>
             <div
-              class="MuiFormControl-root-17 Component-date-633"
+              class="MuiFormControl-root-17 Component-date-632"
             >
+              <label
+                class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25 MuiInputLabel-shrink-24"
+                data-shrink="true"
+              >
+                Publish product on
+              </label>
               <div
-                class="MuiInput-root-31 MuiInput-disabled-34 MuiInput-formControl-32 MuiInput-underline-35"
+                class="MuiInput-root-31 MuiInput-formControl-32 MuiInput-underline-35"
               >
                 <input
                   aria-invalid="false"
                   aria-required="false"
-                  class="MuiInput-input-39 MuiInput-disabled-34 MuiInput-inputType-42"
-                  disabled=""
+                  class="MuiInput-input-39 MuiInput-inputType-42"
                   name="availableOn"
                   type="date"
                   value="2018-08-25T18:45:54.125Z"
@@ -30217,7 +30227,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
           </div>
         </div>
         <div
-          class="Component-cardContainer-601"
+          class="Component-cardContainer-600"
         >
           <div
             class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435"
@@ -30235,7 +30245,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
               />
             </div>
             <table
-              class="MuiTable-root-86 Component-root-635"
+              class="MuiTable-root-86 Component-root-633"
             >
               <tbody
                 class="MuiTableBody-root-96"
@@ -30249,7 +30259,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                     Purchase cost
                   </td>
                   <td
-                    class="MuiTableCell-root-88 MuiTableCell-body-90 Component-textRight-636"
+                    class="MuiTableCell-root-88 MuiTableCell-body-90 Component-textRight-634"
                   >
                     <span
                       class="MuiTypography-root-60 MuiTypography-body1-69"
@@ -30273,7 +30283,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                     Margin
                   </td>
                   <td
-                    class="MuiTableCell-root-88 MuiTableCell-body-90 Component-textRight-636"
+                    class="MuiTableCell-root-88 MuiTableCell-body-90 Component-textRight-634"
                   >
                     2 % - 7%
                   </td>
@@ -30283,7 +30293,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
           </div>
         </div>
         <div
-          class="Component-cardContainer-601"
+          class="Component-cardContainer-600"
         >
           <div
             class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435"
@@ -30351,7 +30361,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                 class="Component-spacer-44"
               />
               <div
-                class="MuiFormControl-root-17 Component-formControl-639"
+                class="MuiFormControl-root-17 Component-formControl-637"
               >
                 <label
                   class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25 MuiInputLabel-shrink-24"
@@ -30373,10 +30383,10 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                       tabindex="0"
                     >
                       <div
-                        class="Component-chipContainer-638"
+                        class="Component-chipContainer-636"
                       >
                         <div
-                          class="MuiChip-root-164 Component-chip-637"
+                          class="MuiChip-root-164 Component-chip-635"
                           role="button"
                           tabindex="-1"
                         >
@@ -30412,7 +30422,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
           </div>
         </div>
         <div
-          class="Component-cardContainer-601"
+          class="Component-cardContainer-600"
         >
           <div
             class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435"
@@ -30602,7 +30612,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
       />
     </div>
     <div
-      class="Component-root-602"
+      class="Component-root-601"
     >
       <div>
         <div
@@ -30612,7 +30622,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
             class="MuiCardContent-root-436"
           >
             <div
-              class="Component-root-603"
+              class="Component-root-602"
             >
               <div
                 class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
@@ -30700,10 +30710,10 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
           </div>
         </div>
         <div
-          class="Component-cardContainer-601"
+          class="Component-cardContainer-600"
         >
           <div
-            class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-card-609"
+            class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-card-608"
           >
             <div
               class="Component-root-445"
@@ -30742,7 +30752,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
                   />
                 </button>
                 <input
-                  class="Component-fileField-612"
+                  class="Component-fileField-611"
                   id="fileUpload"
                   type="file"
                 />
@@ -30752,25 +30762,25 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
               class="MuiCardContent-root-436"
             >
               <div
-                class="Component-root-608"
+                class="Component-root-607"
               >
                 <div
-                  class="MuiGridListTile-root-613 Component-gridElement-610"
+                  class="MuiGridListTile-root-612 Component-gridElement-609"
                 >
                   <div
-                    class="MuiGridListTile-tile-614"
+                    class="MuiGridListTile-tile-613"
                   >
                     <img
                       src="placeholder255x255.png"
                     />
                     <div
-                      class="MuiGridListTileBar-root-617 MuiGridListTileBar-titlePositionBottom-618"
+                      class="MuiGridListTileBar-root-616 MuiGridListTileBar-titlePositionBottom-617"
                     >
                       <div
-                        class="MuiGridListTileBar-titleWrap-621"
+                        class="MuiGridListTileBar-titleWrap-620"
                       >
                         <div
-                          class="MuiGridListTileBar-title-624"
+                          class="MuiGridListTileBar-title-623"
                         >
                           Loading...
                         </div>
@@ -30783,7 +30793,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
           </div>
         </div>
         <div
-          class="Component-cardContainer-601"
+          class="Component-cardContainer-600"
         >
           <div
             class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435"
@@ -30801,7 +30811,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
               />
             </div>
             <table
-              class="MuiTable-root-86 Component-denseTable-629"
+              class="MuiTable-root-86 Component-denseTable-628"
             >
               <thead
                 class="MuiTableHead-root-87"
@@ -30853,7 +30863,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
           </div>
         </div>
         <div
-          class="Component-cardContainer-601"
+          class="Component-cardContainer-600"
         >
           <div
             class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435"
@@ -31024,7 +31034,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
             />
           </div>
           <div
-            class="MuiCardContent-root-436 Component-root-634"
+            class="MuiCardContent-root-436"
           >
             <label
               class="MuiFormControlLabel-root-505 MuiFormControlLabel-disabled-506"
@@ -31057,12 +31067,18 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
               <span
                 class="MuiTypography-root-60 MuiTypography-body1-69 MuiFormControlLabel-label-507 MuiFormControlLabel-disabled-506"
               >
-                Available on
+                Published in storefront
               </span>
             </label>
             <div
-              class="MuiFormControl-root-17 Component-date-633"
+              class="MuiFormControl-root-17 Component-date-632"
             >
+              <label
+                class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25 MuiInputLabel-shrink-24"
+                data-shrink="true"
+              >
+                Publish product on
+              </label>
               <div
                 class="MuiInput-root-31 MuiInput-disabled-34 MuiInput-formControl-32 MuiInput-underline-35"
               >
@@ -31080,7 +31096,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
           </div>
         </div>
         <div
-          class="Component-cardContainer-601"
+          class="Component-cardContainer-600"
         >
           <div
             class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435"
@@ -31098,7 +31114,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
               />
             </div>
             <table
-              class="MuiTable-root-86 Component-root-635"
+              class="MuiTable-root-86 Component-root-633"
             >
               <tbody
                 class="MuiTableBody-root-96"
@@ -31112,7 +31128,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
                     Purchase cost
                   </td>
                   <td
-                    class="MuiTableCell-root-88 MuiTableCell-body-90 Component-textRight-636"
+                    class="MuiTableCell-root-88 MuiTableCell-body-90 Component-textRight-634"
                   >
                     <span
                       class="Skeleton-skeleton-84"
@@ -31130,7 +31146,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
                     Margin
                   </td>
                   <td
-                    class="MuiTableCell-root-88 MuiTableCell-body-90 Component-textRight-636"
+                    class="MuiTableCell-root-88 MuiTableCell-body-90 Component-textRight-634"
                   >
                     <span
                       class="Skeleton-skeleton-84"
@@ -31144,7 +31160,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
           </div>
         </div>
         <div
-          class="Component-cardContainer-601"
+          class="Component-cardContainer-600"
         >
           <div
             class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435"
@@ -31213,7 +31229,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
                 class="Component-spacer-44"
               />
               <div
-                class="MuiFormControl-root-17 Component-formControl-639"
+                class="MuiFormControl-root-17 Component-formControl-637"
               >
                 <label
                   class="MuiFormLabel-root-26 MuiFormLabel-disabled-28 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25"
@@ -31261,7 +31277,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
           </div>
         </div>
         <div
-          class="Component-cardContainer-601"
+          class="Component-cardContainer-600"
         >
           <div
             class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435"
@@ -31363,7 +31379,7 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
         class="MuiCardContent-root-436"
       >
         <img
-          class="Component-image-552"
+          class="Component-image-551"
           src="placeholder255x255.png"
         />
         <div
@@ -31526,7 +31542,7 @@ exports[`Storyshots Views / Products / Product image details when loading data 1
 
 exports[`Storyshots Views / Products / Product list default 1`] = `
 <div
-  class="Component-md-585"
+  class="Component-md-584"
 >
   <div
     class="Component-root-235"
@@ -31573,13 +31589,13 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
       class="MuiTable-root-322"
     >
       <thead
-        class="MuiTableHead-root-590"
+        class="MuiTableHead-root-589"
       >
         <tr
-          class="MuiTableRow-root-591 MuiTableRow-head-594"
+          class="MuiTableRow-root-590 MuiTableRow-head-593"
         >
           <th
-            class="MuiTableCell-root-332 MuiTableCell-head-333 Component-avatarCell-588"
+            class="MuiTableCell-root-332 MuiTableCell-head-333 Component-avatarCell-587"
             scope="col"
           />
           <th
@@ -31597,10 +31613,10 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
         </tr>
       </thead>
       <tfoot
-        class="MuiTableFooter-root-596"
+        class="MuiTableFooter-root-595"
       >
         <tr
-          class="MuiTableRow-root-591 MuiTableRow-footer-595"
+          class="MuiTableRow-root-590 MuiTableRow-footer-594"
         >
           <td
             class="MuiTableCell-root-332 MuiTableCell-footer-335 TablePagination-root-326"
@@ -31665,13 +31681,13 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
         </tr>
       </tfoot>
       <tbody
-        class="MuiTableBody-root-597"
+        class="MuiTableBody-root-596"
       >
         <tr
-          class="MuiTableRow-root-591"
+          class="MuiTableRow-root-590"
         >
           <td
-            class="MuiTableCell-root-332 MuiTableCell-body-334 Component-avatarCell-588"
+            class="MuiTableCell-root-332 MuiTableCell-body-334 Component-avatarCell-587"
           />
           <td
             class="MuiTableCell-root-332 MuiTableCell-body-334"
@@ -31688,7 +31704,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
 
 exports[`Storyshots Views / Products / Product list loading 1`] = `
 <div
-  class="Component-md-585"
+  class="Component-md-584"
 >
   <div
     class="Component-root-235"
@@ -31735,13 +31751,13 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
       class="MuiTable-root-322"
     >
       <thead
-        class="MuiTableHead-root-590"
+        class="MuiTableHead-root-589"
       >
         <tr
-          class="MuiTableRow-root-591 MuiTableRow-head-594"
+          class="MuiTableRow-root-590 MuiTableRow-head-593"
         >
           <th
-            class="MuiTableCell-root-332 MuiTableCell-head-333 Component-avatarCell-588"
+            class="MuiTableCell-root-332 MuiTableCell-head-333 Component-avatarCell-587"
             scope="col"
           />
           <th
@@ -31759,10 +31775,10 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
         </tr>
       </thead>
       <tfoot
-        class="MuiTableFooter-root-596"
+        class="MuiTableFooter-root-595"
       >
         <tr
-          class="MuiTableRow-root-591 MuiTableRow-footer-595"
+          class="MuiTableRow-root-590 MuiTableRow-footer-594"
         >
           <td
             class="MuiTableCell-root-332 MuiTableCell-footer-335 TablePagination-root-326"
@@ -31825,16 +31841,16 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
         </tr>
       </tfoot>
       <tbody
-        class="MuiTableBody-root-597"
+        class="MuiTableBody-root-596"
       >
         <tr
-          class="MuiTableRow-root-591"
+          class="MuiTableRow-root-590"
         >
           <td
-            class="MuiTableCell-root-332 MuiTableCell-body-334 Component-avatarCell-588"
+            class="MuiTableCell-root-332 MuiTableCell-body-334 Component-avatarCell-587"
           >
             <div
-              class="MuiAvatar-root-598 MuiAvatar-colorDefault-599"
+              class="MuiAvatar-root-597 MuiAvatar-colorDefault-598"
             >
               <svg
                 aria-hidden="true"
@@ -31877,7 +31893,7 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
 
 exports[`Storyshots Views / Products / Product list no data 1`] = `
 <div
-  class="Component-md-585"
+  class="Component-md-584"
 >
   <div
     class="Component-root-235"
@@ -31924,13 +31940,13 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
       class="MuiTable-root-322"
     >
       <thead
-        class="MuiTableHead-root-590"
+        class="MuiTableHead-root-589"
       >
         <tr
-          class="MuiTableRow-root-591 MuiTableRow-head-594"
+          class="MuiTableRow-root-590 MuiTableRow-head-593"
         >
           <th
-            class="MuiTableCell-root-332 MuiTableCell-head-333 Component-avatarCell-588"
+            class="MuiTableCell-root-332 MuiTableCell-head-333 Component-avatarCell-587"
             scope="col"
           />
           <th
@@ -31948,10 +31964,10 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
         </tr>
       </thead>
       <tfoot
-        class="MuiTableFooter-root-596"
+        class="MuiTableFooter-root-595"
       >
         <tr
-          class="MuiTableRow-root-591 MuiTableRow-footer-595"
+          class="MuiTableRow-root-590 MuiTableRow-footer-594"
         >
           <td
             class="MuiTableCell-root-332 MuiTableCell-footer-335 TablePagination-root-326"
@@ -32016,13 +32032,13 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
         </tr>
       </tfoot>
       <tbody
-        class="MuiTableBody-root-597"
+        class="MuiTableBody-root-596"
       >
         <tr
-          class="MuiTableRow-root-591"
+          class="MuiTableRow-root-590"
         >
           <td
-            class="MuiTableCell-root-332 MuiTableCell-body-334 Component-avatarCell-588"
+            class="MuiTableCell-root-332 MuiTableCell-body-334 Component-avatarCell-587"
           />
           <td
             class="MuiTableCell-root-332 MuiTableCell-body-334"
@@ -32106,7 +32122,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
   </div>
   <form>
     <div
-      class="Component-root-671"
+      class="Component-root-669"
     >
       <div>
         <div
@@ -32116,9 +32132,10 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
             class="MuiCardContent-root-436"
           >
             <div
-              class="Component-root-672"
+              class="Component-root-670"
             >
               <img
+                class="Component-thumbnail-671"
                 src="placeholder60x60.png"
               />
               <div>
@@ -32137,7 +32154,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
           </div>
         </div>
         <div
-          class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-card-673"
+          class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-card-672"
         >
           <div
             class="Component-root-445"
@@ -32161,7 +32178,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                 class="MuiTableRow-root-97"
               >
                 <td
-                  class="MuiTableCell-root-88 MuiTableCell-body-90 Component-link-674"
+                  class="MuiTableCell-root-88 MuiTableCell-body-90 Component-link-673"
                 >
                   Extended Soft
                 </td>
@@ -32170,7 +32187,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                 class="MuiTableRow-root-97"
               >
                 <td
-                  class="MuiTableCell-root-88 MuiTableCell-body-90 Component-link-674"
+                  class="MuiTableCell-root-88 MuiTableCell-body-90 Component-link-673"
                 >
                   Normal Hard
                 </td>
@@ -32179,7 +32196,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                 class="MuiTableRow-root-97"
               >
                 <td
-                  class="MuiTableCell-root-88 MuiTableCell-body-90 Component-link-674"
+                  class="MuiTableCell-root-88 MuiTableCell-body-90 Component-link-673"
                 >
                   Normal Soft
                 </td>
@@ -32205,14 +32222,14 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
             />
           </div>
           <div
-            class="MuiCardContent-root-436 Component-grid-675"
+            class="MuiCardContent-root-436 Component-grid-674"
           >
             <div
               class="MuiFormControl-root-17 Component-formControl-45"
             >
               <label
-                class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25 MuiInputLabel-shrink-24"
-                data-shrink="true"
+                class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25"
+                data-shrink="false"
               >
                 Cover
               </label>
@@ -32229,14 +32246,16 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                     role="button"
                     tabindex="0"
                   >
-                    hard
+                    <span>
+                      ​
+                    </span>
                   </div>
                   <input
                     aria-invalid="false"
                     aria-required="false"
                     name="cover"
                     type="hidden"
-                    value="hard"
+                    value=""
                   />
                   <svg
                     aria-hidden="true"
@@ -32255,8 +32274,8 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
               class="MuiFormControl-root-17 Component-formControl-45"
             >
               <label
-                class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25 MuiInputLabel-shrink-24"
-                data-shrink="true"
+                class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25"
+                data-shrink="false"
               >
                 Version
               </label>
@@ -32273,14 +32292,16 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                     role="button"
                     tabindex="0"
                   >
-                    extended
+                    <span>
+                      ​
+                    </span>
                   </div>
                   <input
                     aria-invalid="false"
                     aria-required="false"
                     name="version"
                     type="hidden"
-                    value="extended"
+                    value=""
                   />
                   <svg
                     aria-hidden="true"
@@ -32298,7 +32319,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
           </div>
         </div>
         <div
-          class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-root-676"
+          class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-root-675"
         >
           <div
             class="Component-root-445"
@@ -32316,7 +32337,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
             class="MuiCardContent-root-436"
           >
             <div
-              class="Component-grid-677"
+              class="Component-grid-676"
             >
               <div>
                 <div
@@ -32341,7 +32362,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                       value="100"
                     />
                     <div
-                      class="MuiInputAdornment-root-640 MuiInputAdornment-positionEnd-642"
+                      class="MuiInputAdornment-root-638 MuiInputAdornment-positionEnd-640"
                     >
                       <p
                         class="MuiTypography-root-60 MuiTypography-body1-69 MuiTypography-colorTextSecondary-82"
@@ -32362,8 +32383,8 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                   class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
                 >
                   <label
-                    class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25 MuiInputLabel-shrink-24"
-                    data-shrink="true"
+                    class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25"
+                    data-shrink="false"
                     for="costPrice"
                   >
                     Cost price override
@@ -32377,10 +32398,10 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                       class="MuiInput-input-39 MuiInput-inputType-42"
                       name="costPrice"
                       type="number"
-                      value="100"
+                      value=""
                     />
                     <div
-                      class="MuiInputAdornment-root-640 MuiInputAdornment-positionEnd-642"
+                      class="MuiInputAdornment-root-638 MuiInputAdornment-positionEnd-640"
                     >
                       <p
                         class="MuiTypography-root-60 MuiTypography-body1-69 MuiTypography-colorTextSecondary-82"
@@ -32400,7 +32421,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
           </div>
         </div>
         <div
-          class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-root-678"
+          class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-root-677"
         >
           <div
             class="Component-root-445"
@@ -32418,15 +32439,15 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
             class="MuiCardContent-root-436"
           >
             <div
-              class="Component-grid-679"
+              class="Component-grid-678"
             >
               <div>
                 <div
                   class="MuiFormControl-root-17 MuiFormControl-fullWidth-20"
                 >
                   <label
-                    class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25 MuiInputLabel-shrink-24"
-                    data-shrink="true"
+                    class="MuiFormLabel-root-26 MuiInputLabel-root-21 MuiInputLabel-formControl-22 MuiInputLabel-animated-25"
+                    data-shrink="false"
                   >
                     In stock
                   </label>
@@ -32439,13 +32460,13 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                       class="MuiInput-input-39"
                       name="stock"
                       type="text"
-                      value="49"
+                      value=""
                     />
                   </div>
                   <p
                     class="MuiFormHelperText-root-171"
                   >
-                    Allocated: 12
+                    Allocated: undefined
                   </p>
                 </div>
               </div>
@@ -32477,7 +32498,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
           </div>
         </div>
         <div
-          class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-card-681"
+          class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-card-680"
         >
           <div
             class="Component-root-445"
@@ -32521,51 +32542,26 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
             class="MuiCardContent-root-436"
           >
             <div
-              class="Component-root-680"
+              class="Component-root-679"
             >
               <div
-                class="MuiGridListTile-root-613 Component-gridElement-682"
+                class="MuiGridListTile-root-612 Component-gridElement-681"
               >
                 <div
-                  class="MuiGridListTile-tile-614"
-                >
-                  <img
-                    alt="Extended version"
-                    src="placeholder60x60.png"
-                  />
-                  <div
-                    class="MuiGridListTileBar-root-617 MuiGridListTileBar-titlePositionBottom-618"
-                  >
-                    <div
-                      class="MuiGridListTileBar-titleWrap-621"
-                    >
-                      <div
-                        class="MuiGridListTileBar-title-624"
-                      >
-                        Extended version
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="MuiGridListTile-root-613 Component-gridElement-682"
-              >
-                <div
-                  class="MuiGridListTile-tile-614"
+                  class="MuiGridListTile-tile-613"
                 >
                   <img
                     alt="Front"
                     src="placeholder60x60.png"
                   />
                   <div
-                    class="MuiGridListTileBar-root-617 MuiGridListTileBar-titlePositionBottom-618"
+                    class="MuiGridListTileBar-root-616 MuiGridListTileBar-titlePositionBottom-617"
                   >
                     <div
-                      class="MuiGridListTileBar-titleWrap-621"
+                      class="MuiGridListTileBar-titleWrap-620"
                     >
                       <div
-                        class="MuiGridListTileBar-title-624"
+                        class="MuiGridListTileBar-title-623"
                       >
                         Front
                       </div>
@@ -32574,50 +32570,75 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                 </div>
               </div>
               <div
-                class="MuiGridListTile-root-613 Component-gridElement-682"
+                class="MuiGridListTile-root-612 Component-gridElement-681"
               >
                 <div
-                  class="MuiGridListTile-tile-614"
-                >
-                  <img
-                    alt="Cut version"
-                    src="placeholder60x60.png"
-                  />
-                  <div
-                    class="MuiGridListTileBar-root-617 MuiGridListTileBar-titlePositionBottom-618"
-                  >
-                    <div
-                      class="MuiGridListTileBar-titleWrap-621"
-                    >
-                      <div
-                        class="MuiGridListTileBar-title-624"
-                      >
-                        Cut version
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="MuiGridListTile-root-613 Component-gridElement-682"
-              >
-                <div
-                  class="MuiGridListTile-tile-614"
+                  class="MuiGridListTile-tile-613"
                 >
                   <img
                     alt="Back"
                     src="placeholder60x60.png"
                   />
                   <div
-                    class="MuiGridListTileBar-root-617 MuiGridListTileBar-titlePositionBottom-618"
+                    class="MuiGridListTileBar-root-616 MuiGridListTileBar-titlePositionBottom-617"
                   >
                     <div
-                      class="MuiGridListTileBar-titleWrap-621"
+                      class="MuiGridListTileBar-titleWrap-620"
                     >
                       <div
-                        class="MuiGridListTileBar-title-624"
+                        class="MuiGridListTileBar-title-623"
                       >
                         Back
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="MuiGridListTile-root-612 Component-gridElement-681"
+              >
+                <div
+                  class="MuiGridListTile-tile-613"
+                >
+                  <img
+                    alt="Extended version"
+                    src="placeholder60x60.png"
+                  />
+                  <div
+                    class="MuiGridListTileBar-root-616 MuiGridListTileBar-titlePositionBottom-617"
+                  >
+                    <div
+                      class="MuiGridListTileBar-titleWrap-620"
+                    >
+                      <div
+                        class="MuiGridListTileBar-title-623"
+                      >
+                        Extended version
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="MuiGridListTile-root-612 Component-gridElement-681"
+              >
+                <div
+                  class="MuiGridListTile-tile-613"
+                >
+                  <img
+                    alt="Cut version"
+                    src="placeholder60x60.png"
+                  />
+                  <div
+                    class="MuiGridListTileBar-root-616 MuiGridListTileBar-titlePositionBottom-617"
+                  >
+                    <div
+                      class="MuiGridListTileBar-titleWrap-620"
+                    >
+                      <div
+                        class="MuiGridListTileBar-title-623"
+                      >
+                        Cut version
                       </div>
                     </div>
                   </div>
@@ -32723,7 +32744,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
   </div>
   <form>
     <div
-      class="Component-root-671"
+      class="Component-root-669"
     >
       <div>
         <div
@@ -32733,9 +32754,10 @@ exports[`Storyshots Views / Products / Product variant details when loading data
             class="MuiCardContent-root-436"
           >
             <div
-              class="Component-root-672"
+              class="Component-root-670"
             >
               <img
+                class="Component-thumbnail-671"
                 src="placeholder60x60.png"
               />
               <div>
@@ -32762,7 +32784,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
           </div>
         </div>
         <div
-          class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-card-673"
+          class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-card-672"
         >
           <div
             class="Component-root-445"
@@ -32816,7 +32838,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
             />
           </div>
           <div
-            class="MuiCardContent-root-436 Component-grid-675"
+            class="MuiCardContent-root-436 Component-grid-674"
           >
             <span
               class="Skeleton-skeleton-84"
@@ -32826,7 +32848,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
           </div>
         </div>
         <div
-          class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-root-676"
+          class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-root-675"
         >
           <div
             class="Component-root-445"
@@ -32844,7 +32866,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
             class="MuiCardContent-root-436"
           >
             <div
-              class="Component-grid-677"
+              class="Component-grid-676"
             >
               <div>
                 <div
@@ -32914,7 +32936,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
           </div>
         </div>
         <div
-          class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-root-678"
+          class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-root-677"
         >
           <div
             class="Component-root-445"
@@ -32932,7 +32954,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
             class="MuiCardContent-root-436"
           >
             <div
-              class="Component-grid-679"
+              class="Component-grid-678"
             >
               <div>
                 <div
@@ -32954,6 +32976,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
                       disabled=""
                       name="stock"
                       type="text"
+                      value=""
                     />
                   </div>
                 </div>
@@ -32986,7 +33009,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
           </div>
         </div>
         <div
-          class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-card-681"
+          class="MuiPaper-root-376 MuiPaper-elevation2-380 MuiPaper-rounded-377 MuiCard-root-435 Component-card-680"
         >
           <div
             class="Component-root-445"
@@ -33028,25 +33051,25 @@ exports[`Storyshots Views / Products / Product variant details when loading data
             class="MuiCardContent-root-436"
           >
             <div
-              class="Component-root-680"
+              class="Component-root-679"
             >
               <div
-                class="MuiGridListTile-root-613 Component-gridElement-682"
+                class="MuiGridListTile-root-612 Component-gridElement-681"
               >
                 <div
-                  class="MuiGridListTile-tile-614"
+                  class="MuiGridListTile-tile-613"
                 >
                   <img
                     src="placeholder60x60.png"
                   />
                   <div
-                    class="MuiGridListTileBar-root-617 MuiGridListTileBar-titlePositionBottom-618"
+                    class="MuiGridListTileBar-root-616 MuiGridListTileBar-titlePositionBottom-617"
                   >
                     <div
-                      class="MuiGridListTileBar-titleWrap-621"
+                      class="MuiGridListTileBar-titleWrap-620"
                     >
                       <div
-                        class="MuiGridListTileBar-title-624"
+                        class="MuiGridListTileBar-title-623"
                       >
                         Loading...
                       </div>
