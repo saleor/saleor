@@ -57,14 +57,6 @@ class DraftOrderInput(InputObjectType):
         description='ID of the voucher associated with the order')
 
 
-class OrderUpdateInput(graphene.InputObjectType):
-    billing_address = AddressInput(
-        description='Address associated with the payment.')
-    user_email = graphene.String(description='Email address of the customer.')
-    shipping_address = AddressInput(
-        description='Address to where the order will be shipped.')
-
-
 def check_lines_quantity(variants, quantities):
     """Check if stock is sufficient for each line in the list of dicts.
 
