@@ -1,4 +1,5 @@
 import json
+from unittest.mock import MagicMock, Mock
 
 import graphene
 import pytest
@@ -6,6 +7,7 @@ from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 
 from saleor.account.models import Address
+from saleor.graphql.order.mutations import check_for_draft_order_errors
 from saleor.order.models import Order, OrderStatus
 
 
@@ -211,3 +213,19 @@ def test_draft_order_delete(admin_api_client, order_with_lines):
         reverse('api'), {'query': query, 'variables': variables})
     with pytest.raises(order._meta.model.DoesNotExist):
         order.refresh_from_db()
+
+
+def test_check_for_draft_order_errors(order_with_lines):
+    errors = check_for_draft_order_errors(order_with_lines)
+    assert not errors
+
+    order_with_no_lines = Mock(spec=Order)
+    order_with_no_lines.get_total_quantity = MagicMock(return_value=0)
+    errors = check_for_draft_order_errors(order_with_no_lines)
+    assert errors[0].message == 'Could not create order without any products.'
+
+    order_with_wrong_shipping = Mock(spec=Order)
+    order_with_wrong_shipping.shipping_method = False
+    errors = check_for_draft_order_errors(order_with_wrong_shipping)
+    msg = 'Shipping method is not valid for chosen shipping address'
+    assert errors[0].message == msg
