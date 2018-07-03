@@ -14,7 +14,7 @@
       <div class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="dropdownMenuLink">
         <form id="language-picker" action="{% url 'set_language' %}" method="post">
           {% csrf_token %}
-          <input name="next" type="hidden" value="/">
+          <input name="next" type="hidden" value="{{ request.get_full_path }}">
           {# Language code will be dynamically appended to the form via JS due to select-box styling nature #}
           {% for language in languages %}
             <a data-lang="{{ language.code }}" class="dropdown-item language-pick dropdown-link{% if language.code == LANGUAGE_CODE %} active{% endif %}">
