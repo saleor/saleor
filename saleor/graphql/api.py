@@ -29,10 +29,13 @@ from .core.types import Shop
 from .order.filters import OrderFilter
 from .order.resolvers import resolve_order, resolve_orders
 from .order.types import Order
-from .order.mutations import (
-    DraftOrderCreate, FulfillmentCancel, OrderAddNote, OrderCancel, OrderCapture,
-    DraftOrderComplete, DraftOrderDelete, OrderMarkAsPaid, DraftOrderUpdate,
-    OrderRefund, OrderRelease, OrderUpdate)
+from .order.mutations.draft_orders import (
+    DraftOrderComplete, DraftOrderCreate, DraftOrderDelete, DraftOrderUpdate)
+from .order.mutations.fulfillments import (
+    FulfillmentCancel, FulfillmentCreate, FulfillmentUpdate)
+from .order.mutations.orders import  (
+    OrderAddNote, OrderCancel, OrderCapture, OrderMarkAsPaid, OrderRefund,
+    OrderRelease, OrderUpdate)
 from .page.resolvers import resolve_pages, resolve_page
 from .page.types import Page
 from .page.mutations import PageCreate, PageDelete, PageUpdate
