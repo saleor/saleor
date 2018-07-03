@@ -2,41 +2,41 @@
 # Copyright (C) 2017 Mirumee Software
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-07-03 06:24-0500\n"
+"POT-Creation-Date: 2018-06-25 05:21-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"Last-Translator: newnewcoder <pinkycho1221@gmail.com>, 2018\n"
+"Language-Team: Chinese (Taiwan) (https://www.transifex.com/mirumee/teams/34782/zh_TW/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: zh_TW\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 
 #: saleor/dashboard/category/filters.py:8
 msgctxt "Category list sorting option"
 msgid "name"
-msgstr ""
+msgstr "名稱"
 
 #: saleor/dashboard/category/filters.py:10
 msgctxt "Category list sorting option"
 msgid "description"
-msgstr ""
+msgstr "描述"
 
 #: saleor/dashboard/category/filters.py:15
 msgctxt "Category list filter label"
 msgid "Name"
-msgstr ""
+msgstr "名字"
 
 #: saleor/dashboard/category/filters.py:18
 msgctxt "Category list sorting filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "排序"
 
 #: saleor/dashboard/category/filters.py:30
 #, python-format
@@ -44,53 +44,52 @@ msgctxt "Number of matching records in the dashboard categories list"
 msgid "Found %(counter)d matching category"
 msgid_plural "Found %(counter)d matching categories"
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/category/forms.py:24
 #: saleor/dashboard/collection/forms.py:21
 #: saleor/dashboard/discount/forms.py:77 saleor/dashboard/group/forms.py:14
 #: saleor/dashboard/product/forms.py:76 saleor/dashboard/product/forms.py:204
-#: saleor/dashboard/product/forms.py:410 saleor/dashboard/shipping/forms.py:14
+#: saleor/dashboard/product/forms.py:412 saleor/dashboard/shipping/forms.py:14
 #: saleor/dashboard/sites/forms.py:48
 msgctxt "Item name"
 msgid "Name"
-msgstr ""
+msgstr "名字"
 
 #: saleor/dashboard/category/forms.py:25 saleor/dashboard/product/forms.py:205
-#: saleor/dashboard/product/forms.py:359 saleor/dashboard/shipping/forms.py:16
+#: saleor/dashboard/product/forms.py:361 saleor/dashboard/shipping/forms.py:16
 #: saleor/dashboard/sites/forms.py:27
 msgctxt "Description"
 msgid "Description"
-msgstr ""
+msgstr "描述"
 
 #: saleor/dashboard/category/views.py:46
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added category %s"
-msgstr ""
+msgstr "新增分類%s"
 
 #: saleor/dashboard/category/views.py:71
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated category %s"
-msgstr ""
+msgstr "更新分類%s"
 
 #: saleor/dashboard/category/views.py:107
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed category %s"
-msgstr ""
+msgstr "刪除分類%s"
 
 #: saleor/dashboard/collection/filters.py:9
 msgctxt "Collection list sorting option"
 msgid "name"
-msgstr ""
+msgstr "名稱"
 
 #: saleor/dashboard/collection/filters.py:12
 #: saleor/dashboard/product/filters.py:22
 msgctxt "Is publish filter choice"
 msgid "Published"
-msgstr ""
+msgstr "已發布"
 
 #: saleor/dashboard/collection/filters.py:13
 #: saleor/dashboard/product/filters.py:23
@@ -101,7 +100,7 @@ msgstr ""
 #: saleor/dashboard/collection/filters.py:18
 msgctxt "Collection list name filter label"
 msgid "Name"
-msgstr ""
+msgstr "名稱"
 
 #: saleor/dashboard/collection/filters.py:21
 msgctxt "Collection list filter label"
@@ -111,17 +110,18 @@ msgstr ""
 #: saleor/dashboard/collection/filters.py:23
 #: saleor/dashboard/customer/filters.py:38
 #: saleor/dashboard/discount/filters.py:43
-#: saleor/dashboard/discount/filters.py:74 saleor/dashboard/order/filters.py:43
-#: saleor/dashboard/order/filters.py:49 saleor/dashboard/product/filters.py:49
+#: saleor/dashboard/discount/filters.py:74
+#: saleor/dashboard/order/filters.py:43 saleor/dashboard/order/filters.py:49
+#: saleor/dashboard/product/filters.py:49
 #: saleor/dashboard/product/filters.py:55 saleor/dashboard/taxes/filters.py:25
 msgctxt "Filter empty choice label"
 msgid "All"
-msgstr ""
+msgstr "全部"
 
 #: saleor/dashboard/collection/filters.py:26
 msgctxt "Collection list sorting filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "排序"
 
 #: saleor/dashboard/collection/filters.py:38
 #, python-format
@@ -129,12 +129,11 @@ msgctxt "Number of matching records in the dashboard collections list"
 msgid "Found %(counter)d matching collection"
 msgid_plural "Found %(counter)d matching collections"
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/collection/forms.py:22
 msgctxt "Products selection"
 msgid "Products"
-msgstr ""
+msgstr "產品"
 
 #: saleor/dashboard/collection/forms.py:25
 msgctxt "Products selection"
@@ -144,7 +143,7 @@ msgstr ""
 #: saleor/dashboard/collection/forms.py:28
 msgctxt "Collection published toggle"
 msgid "Published"
-msgstr ""
+msgstr "已發布"
 
 #: saleor/dashboard/collection/views.py:41
 msgctxt "Collection message"
@@ -161,20 +160,23 @@ msgctxt "Collection message"
 msgid "Deleted collection"
 msgstr ""
 
-#: saleor/dashboard/customer/filters.py:17 saleor/dashboard/staff/filters.py:15
+#: saleor/dashboard/customer/filters.py:17
+#: saleor/dashboard/staff/filters.py:15
 msgctxt "Customer list sorting option"
 msgid "email"
-msgstr ""
+msgstr "電子信箱"
 
-#: saleor/dashboard/customer/filters.py:19 saleor/dashboard/staff/filters.py:17
+#: saleor/dashboard/customer/filters.py:19
+#: saleor/dashboard/staff/filters.py:17
 msgctxt "Customer list sorting option"
 msgid "name"
-msgstr ""
+msgstr "名稱"
 
-#: saleor/dashboard/customer/filters.py:21 saleor/dashboard/staff/filters.py:19
+#: saleor/dashboard/customer/filters.py:21
+#: saleor/dashboard/staff/filters.py:19
 msgctxt "Customer list sorting option"
 msgid "location"
-msgstr ""
+msgstr "地址"
 
 #: saleor/dashboard/customer/filters.py:24
 msgctxt "Is active filter choice"
@@ -194,7 +196,7 @@ msgstr ""
 #: saleor/dashboard/customer/filters.py:33
 msgctxt "Customer list filter label"
 msgid "Location"
-msgstr ""
+msgstr "地址"
 
 #: saleor/dashboard/customer/filters.py:36
 msgctxt "Customer list filter label"
@@ -204,7 +206,7 @@ msgstr ""
 #: saleor/dashboard/customer/filters.py:41
 msgctxt "Customer list filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "排序"
 
 #: saleor/dashboard/customer/filters.py:74
 #, python-format
@@ -212,7 +214,6 @@ msgctxt "Number of matching records in the dashboard customers list"
 msgid "Found %(counter)d matching customer"
 msgid_plural "Found %(counter)d matching customers"
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/customer/forms.py:22
 msgctxt "Edit customer details in order form error"
@@ -256,7 +257,7 @@ msgstr ""
 #: saleor/dashboard/customer/views.py:112
 msgctxt "Dashboard message related to an customer"
 msgid "Added note"
-msgstr ""
+msgstr "新增備註"
 
 #: saleor/dashboard/customer/views.py:133
 #, python-format
@@ -267,7 +268,7 @@ msgstr ""
 #: saleor/dashboard/discount/filters.py:14
 msgctxt "Sale list sorting option"
 msgid "name"
-msgstr ""
+msgstr "名稱"
 
 #: saleor/dashboard/discount/filters.py:15
 msgctxt "Sale list sorting option"
@@ -277,7 +278,7 @@ msgstr ""
 #: saleor/dashboard/discount/filters.py:18
 msgctxt "Voucher list sorting option"
 msgid "name"
-msgstr ""
+msgstr "名稱"
 
 #: saleor/dashboard/discount/filters.py:20
 msgctxt "Voucher list sorting option"
@@ -322,12 +323,12 @@ msgstr ""
 #: saleor/dashboard/discount/filters.py:34
 msgctxt "Sale list filter label"
 msgid "Name"
-msgstr ""
+msgstr "名字"
 
 #: saleor/dashboard/discount/filters.py:37
 msgctxt "Sale list filter label"
 msgid "Categories"
-msgstr ""
+msgstr "產品分類"
 
 #: saleor/dashboard/discount/filters.py:41
 msgctxt "Sale list filter label"
@@ -342,7 +343,7 @@ msgstr ""
 #: saleor/dashboard/discount/filters.py:48
 msgctxt "Sale list filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "排序"
 
 #: saleor/dashboard/discount/filters.py:60
 #, python-format
@@ -350,12 +351,11 @@ msgctxt "Number of matching records in the dashboard sales list"
 msgid "Found %(counter)d matching sale"
 msgid_plural "Found %(counter)d matching sales"
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/discount/filters.py:67
 msgctxt "Voucher list name filter label"
 msgid "Name"
-msgstr ""
+msgstr "名字"
 
 #: saleor/dashboard/discount/filters.py:72
 msgctxt "Sale list is sale type filter label"
@@ -380,7 +380,7 @@ msgstr ""
 #: saleor/dashboard/discount/filters.py:86
 msgctxt "Voucher list sorting filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "排序"
 
 #: saleor/dashboard/discount/filters.py:109
 #, python-format
@@ -388,12 +388,11 @@ msgctxt "Number of matching records in the dashboard vouchers list"
 msgid "Found %(counter)d matching voucher"
 msgid_plural "Found %(counter)d matching vouchers"
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/discount/forms.py:29
 msgctxt "Sale name"
 msgid "Name"
-msgstr ""
+msgstr "名字"
 
 #: saleor/dashboard/discount/forms.py:32
 msgctxt "Discount type"
@@ -418,7 +417,7 @@ msgstr ""
 #: saleor/dashboard/discount/forms.py:55
 msgctxt "Sale (discount) error"
 msgid "Sale cannot exceed 100%"
-msgstr ""
+msgstr "促銷幅度不能超過 100%"
 
 #: saleor/dashboard/discount/forms.py:61
 msgctxt "Sale (discount) error"
@@ -443,19 +442,19 @@ msgstr ""
 #: saleor/dashboard/discount/forms.py:86
 msgctxt "Voucher date restrictions"
 msgid "Start date"
-msgstr ""
+msgstr "開始日期"
 
 #: saleor/dashboard/discount/forms.py:89
 msgctxt "Voucher date restrictions"
 msgid "End date"
-msgstr ""
+msgstr "結束日期"
 
 #: saleor/dashboard/discount/forms.py:131
 #: saleor/dashboard/discount/forms.py:193
 #: saleor/dashboard/discount/forms.py:212
 msgctxt "Country"
 msgid "Country"
-msgstr ""
+msgstr "國家"
 
 #: saleor/dashboard/discount/forms.py:134
 msgctxt "Lowest value for order to be able to use the voucher"
@@ -470,9 +469,10 @@ msgstr ""
 #: saleor/dashboard/discount/forms.py:196
 msgctxt "Product"
 msgid "Product"
-msgstr ""
+msgstr "產品"
 
-#: saleor/dashboard/discount/forms.py:215 saleor/dashboard/product/forms.py:208
+#: saleor/dashboard/discount/forms.py:215
+#: saleor/dashboard/product/forms.py:208
 msgctxt "Category"
 msgid "Category"
 msgstr ""
@@ -480,54 +480,55 @@ msgstr ""
 #: saleor/dashboard/discount/views.py:54
 msgctxt "Sale (discount) message"
 msgid "Added sale"
-msgstr ""
+msgstr "新增促銷"
 
 #: saleor/dashboard/discount/views.py:68
 msgctxt "Sale (discount) message"
 msgid "Updated sale"
-msgstr ""
+msgstr "更新促銷"
 
 #: saleor/dashboard/discount/views.py:82
 #, python-format
 msgctxt "Sale (discount) message"
 msgid "Removed sale %s"
-msgstr ""
+msgstr "刪除促銷%s"
 
 #: saleor/dashboard/discount/views.py:122
 msgctxt "Voucher message"
 msgid "Added voucher"
-msgstr ""
+msgstr "新增優惠券"
 
 #: saleor/dashboard/discount/views.py:148
 msgctxt "Voucher message"
 msgid "Updated voucher"
-msgstr ""
+msgstr "更新優惠券"
 
 #: saleor/dashboard/discount/views.py:165
 #, python-format
 msgctxt "Voucher message"
 msgid "Removed voucher %s"
-msgstr ""
+msgstr "刪除優惠券%s"
 
-#: saleor/dashboard/group/filters.py:11 saleor/dashboard/shipping/filters.py:10
+#: saleor/dashboard/group/filters.py:11
+#: saleor/dashboard/shipping/filters.py:10
 msgctxt "Group list sorting option"
 msgid "name"
-msgstr ""
+msgstr "名稱"
 
 #: saleor/dashboard/group/filters.py:20
 msgctxt "Group list filter label"
 msgid "Name"
-msgstr ""
+msgstr "名字"
 
 #: saleor/dashboard/group/filters.py:23
 msgctxt "Group list filter label"
 msgid "Permissions"
-msgstr ""
+msgstr "權限"
 
 #: saleor/dashboard/group/filters.py:27
 msgctxt "Group list filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "排序"
 
 #: saleor/dashboard/group/filters.py:39
 #, python-format
@@ -535,39 +536,38 @@ msgctxt "Number of matching records in the dashboard groups list"
 msgid "Found %(counter)d matching group"
 msgid_plural "Found %(counter)d matching groups"
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/group/forms.py:15
 msgctxt "Permissions"
 msgid "Permissions"
-msgstr ""
+msgstr "權限"
 
 #: saleor/dashboard/group/views.py:38
 msgctxt "Dashboard message"
 msgid "Created group"
-msgstr ""
+msgstr "新增群組"
 
 #: saleor/dashboard/group/views.py:53
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated group %s"
-msgstr ""
+msgstr "更新群組%s"
 
 #: saleor/dashboard/group/views.py:66
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed group %s"
-msgstr ""
+msgstr "刪除群組%s"
 
 #: saleor/dashboard/menu/filters.py:9
 msgctxt "Menu list sorting option"
 msgid "Name"
-msgstr ""
+msgstr "名稱"
 
 #: saleor/dashboard/menu/filters.py:12
 msgctxt "Menu item list sorting option"
 msgid "Name"
-msgstr ""
+msgstr "名稱"
 
 #: saleor/dashboard/menu/filters.py:17
 msgctxt "Menu list filter label"
@@ -577,7 +577,7 @@ msgstr ""
 #: saleor/dashboard/menu/filters.py:20
 msgctxt "Menu list filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "排序"
 
 #: saleor/dashboard/menu/filters.py:32
 #, python-format
@@ -585,12 +585,11 @@ msgctxt "Number of matching records in the dashboard menus list"
 msgid "Found %(counter)d matching menu"
 msgid_plural "Found %(counter)d matching menus"
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/menu/filters.py:39
 msgctxt "Menu item list filter label"
 msgid "Name"
-msgstr ""
+msgstr "名稱"
 
 #: saleor/dashboard/menu/filters.py:42
 msgctxt "Menu item list filter label"
@@ -600,7 +599,7 @@ msgstr ""
 #: saleor/dashboard/menu/filters.py:45
 msgctxt "Menu item list sorting filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "排序"
 
 #: saleor/dashboard/menu/filters.py:57
 #, python-format
@@ -608,7 +607,6 @@ msgctxt "Number of matching records in the dashboard menu items list"
 msgid "Found %(counter)d matching menu item"
 msgid_plural "Found %(counter)d matching menu items"
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/menu/forms.py:34
 msgctxt "Menu name"
@@ -618,7 +616,7 @@ msgstr ""
 #: saleor/dashboard/menu/forms.py:59
 msgctxt "Menu item name"
 msgid "Name"
-msgstr ""
+msgstr "名稱"
 
 #: saleor/dashboard/menu/forms.py:60
 msgctxt "Menu item url"
@@ -714,12 +712,12 @@ msgstr ""
 #: saleor/dashboard/order/filters.py:24
 msgctxt "Order list sorting option"
 msgid "email"
-msgstr ""
+msgstr "電子信箱"
 
 #: saleor/dashboard/order/filters.py:25 saleor/dashboard/order/filters.py:26
 msgctxt "Order list sorting option"
 msgid "created"
-msgstr ""
+msgstr "新增時間"
 
 #: saleor/dashboard/order/filters.py:31
 msgctxt "Order list filter label"
@@ -739,12 +737,12 @@ msgstr ""
 #: saleor/dashboard/order/filters.py:41
 msgctxt "Order list filter label"
 msgid "Order status"
-msgstr ""
+msgstr "訂單狀態"
 
 #: saleor/dashboard/order/filters.py:46
 msgctxt "Order list filter label"
 msgid "Payment status"
-msgstr ""
+msgstr "付款狀態"
 
 #: saleor/dashboard/order/filters.py:52
 msgctxt "Order list filter label"
@@ -754,7 +752,7 @@ msgstr ""
 #: saleor/dashboard/order/filters.py:55
 msgctxt "Order list filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "排序"
 
 #: saleor/dashboard/order/filters.py:73
 #, python-format
@@ -762,7 +760,6 @@ msgctxt "Number of matching records in the dashboard orders list"
 msgid "Found %(counter)d matching order"
 msgid_plural "Found %(counter)d matching orders"
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/order/forms.py:39
 msgctxt "Send email to customer about order created by staff users"
@@ -792,7 +789,7 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:110
 msgctxt "Order customer email"
 msgid "Email"
-msgstr ""
+msgstr "電子信箱"
 
 #: saleor/dashboard/order/forms.py:125
 msgctxt "Edit customer details in order form error"
@@ -803,7 +800,7 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:159
 msgctxt "Shipping method form field label"
 msgid "Shipping method"
-msgstr ""
+msgstr "配送方式"
 
 #: saleor/dashboard/order/forms.py:212
 msgctxt "Order discount amount fixed value"
@@ -823,23 +820,23 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:268
 msgctxt "Payment management form (capture, refund, release)"
 msgid "Amount"
-msgstr ""
+msgstr "金額"
 
 #: saleor/dashboard/order/forms.py:284 saleor/dashboard/order/forms.py:340
 #, python-format
 msgctxt "Payment form error"
 msgid "Payment gateway error: %s"
-msgstr ""
+msgstr "付款通訊錯誤： %s"
 
 #: saleor/dashboard/order/forms.py:300
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be captured"
-msgstr ""
+msgstr "只有預授權的付款可以被獲取"
 
 #: saleor/dashboard/order/forms.py:310
 msgctxt "Payment form error"
 msgid "Only confirmed payments can be refunded"
-msgstr ""
+msgstr "只有確認的訂單可以退款"
 
 #: saleor/dashboard/order/forms.py:318
 msgctxt "Payment form error"
@@ -849,7 +846,7 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:335
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be released"
-msgstr ""
+msgstr "只有預授權的付款可以被釋放"
 
 #: saleor/dashboard/order/forms.py:364
 msgctxt "Mark order as paid form error"
@@ -860,20 +857,19 @@ msgstr ""
 #, python-format
 msgctxt "Payment description"
 msgid "Order %(order)s"
-msgstr ""
+msgstr "訂單%(order)s"
 
 #: saleor/dashboard/order/forms.py:405
 msgctxt "Integer number"
 msgid "Quantity"
-msgstr ""
+msgstr "庫存"
 
 #: saleor/dashboard/order/forms.py:420
 #, python-format
 msgctxt "Change quantity form error"
 msgid "Only %(remaining)d remaining in stock."
 msgid_plural "Only %(remaining)d remaining in stock."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "庫存僅剩 %(remaining)d"
 
 #: saleor/dashboard/order/forms.py:452
 #, python-format
@@ -881,7 +877,6 @@ msgctxt "Cancel order form action"
 msgid "Restock %(quantity)d item"
 msgid_plural "Restock %(quantity)d items"
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/order/forms.py:462
 msgctxt "Cancel order form error"
@@ -894,7 +889,6 @@ msgctxt "Cancel fulfillment form action"
 msgid "Restock %(quantity)d item"
 msgid_plural "Restock %(quantity)d items"
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/order/forms.py:492
 msgctxt "Cancel fulfillment form error"
@@ -914,17 +908,17 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:533
 msgctxt "Remove voucher form error"
 msgid "This order has no voucher"
-msgstr ""
+msgstr "訂單無優惠券可用"
 
 #: saleor/dashboard/order/forms.py:545
 msgctxt "Payment status field value"
 msgid "All"
-msgstr ""
+msgstr "全部"
 
 #: saleor/dashboard/order/forms.py:562
 msgctxt "Add variant to order form label"
 msgid "Quantity"
-msgstr ""
+msgstr "數量"
 
 #: saleor/dashboard/order/forms.py:583
 #, python-format
@@ -948,7 +942,6 @@ msgctxt "Fulfill order line form error"
 msgid "%(quantity)d item remaining to fulfill."
 msgid_plural "%(quantity)d items remaining to fulfill."
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/order/views.py:67
 msgctxt "Dashboard message related to an order"
@@ -974,24 +967,24 @@ msgstr ""
 #: saleor/dashboard/order/views.py:165
 msgctxt "Dashboard message related to an order"
 msgid "Added note"
-msgstr ""
+msgstr "新增備註"
 
 #: saleor/dashboard/order/views.py:192
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Captured %(amount)s"
-msgstr ""
+msgstr "獲取 %(amount)s"
 
 #: saleor/dashboard/order/views.py:216
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Refunded %(amount)s"
-msgstr ""
+msgstr "退款 %(amount)s"
 
 #: saleor/dashboard/order/views.py:235
 msgctxt "Dashboard message"
 msgid "Released payment"
-msgstr ""
+msgstr "付款已釋放"
 
 #: saleor/dashboard/order/views.py:258
 #, python-format
@@ -1022,12 +1015,12 @@ msgstr ""
 #: saleor/dashboard/order/views.py:340
 msgctxt "Dashboard message"
 msgid "Updated shipping address"
-msgstr ""
+msgstr "更新配送地址"
 
 #: saleor/dashboard/order/views.py:346
 msgctxt "Dashboard message"
 msgid "Updated billing address"
-msgstr ""
+msgstr "更新帳單地址"
 
 #: saleor/dashboard/order/views.py:376
 #, python-format
@@ -1082,12 +1075,11 @@ msgctxt "Dashboard message"
 msgid "Restocked %(quantity)d item"
 msgid_plural "Restocked %(quantity)d items"
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/order/views.py:517
 msgctxt "Dashboard message"
 msgid "Removed voucher from order"
-msgstr ""
+msgstr "刪除訂單優惠券"
 
 #: saleor/dashboard/order/views.py:548
 msgctxt "Dashboard message"
@@ -1100,7 +1092,6 @@ msgctxt "Dashboard message related to an order"
 msgid "Fulfilled %(quantity_fulfilled)d item"
 msgid_plural "Fulfilled %(quantity_fulfilled)d items"
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/order/views.py:625
 #, python-format
@@ -1123,7 +1114,8 @@ msgstr ""
 #, python-format
 msgctxt "Dashboard message"
 msgid ""
-"Fulfillment #%(fulfillment)s tracking number changed to: #%(tracking_number)s"
+"Fulfillment #%(fulfillment)s tracking number changed to: "
+"#%(tracking_number)s"
 msgstr ""
 
 #: saleor/dashboard/order/views.py:696
@@ -1161,7 +1153,7 @@ msgstr ""
 #: saleor/dashboard/page/filters.py:20
 msgctxt "Page list sorting filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "排序"
 
 #: saleor/dashboard/page/filters.py:32
 #, python-format
@@ -1169,12 +1161,11 @@ msgctxt "Number of matching records in the dashboard page list"
 msgid "Found %(counter)d matching page"
 msgid_plural "Found %(counter)d matching pages"
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/page/forms.py:28
 msgctxt "Visibility status indicator"
 msgid "Publish"
-msgstr ""
+msgstr "發佈"
 
 #: saleor/dashboard/page/forms.py:32
 msgctxt "Form field help text"
@@ -1195,32 +1186,32 @@ msgstr ""
 #: saleor/dashboard/product/__init__.py:11
 msgctxt "product bulk action"
 msgid "Publish"
-msgstr ""
+msgstr "發佈"
 
 #: saleor/dashboard/product/__init__.py:12
 msgctxt "product bulk action"
 msgid "Unpublish"
-msgstr ""
+msgstr "取消發佈"
 
 #: saleor/dashboard/product/filters.py:12
 msgctxt "Product list sorting option"
 msgid "name"
-msgstr ""
+msgstr "名稱"
 
 #: saleor/dashboard/product/filters.py:13
 msgctxt "Product type list sorting option"
 msgid "price"
-msgstr ""
+msgstr "價格"
 
 #: saleor/dashboard/product/filters.py:16
 msgctxt "Product attribute list sorting option"
 msgid "name"
-msgstr ""
+msgstr "名稱"
 
 #: saleor/dashboard/product/filters.py:19
 msgctxt "Product type list sorting option"
 msgid "name"
-msgstr ""
+msgstr "名稱"
 
 #: saleor/dashboard/product/filters.py:26
 msgctxt "Is featured filter choice"
@@ -1235,7 +1226,7 @@ msgstr ""
 #: saleor/dashboard/product/filters.py:32
 msgctxt "Product list filter label"
 msgid "Name"
-msgstr ""
+msgstr "名字"
 
 #: saleor/dashboard/product/filters.py:35
 msgctxt "Product list filter label"
@@ -1250,7 +1241,7 @@ msgstr ""
 #: saleor/dashboard/product/filters.py:43
 msgctxt "Product list filter label"
 msgid "Price"
-msgstr ""
+msgstr "價格"
 
 #: saleor/dashboard/product/filters.py:47
 msgctxt "Product list filter label"
@@ -1265,7 +1256,7 @@ msgstr ""
 #: saleor/dashboard/product/filters.py:58
 msgctxt "Product list filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "排序"
 
 #: saleor/dashboard/product/filters.py:70
 #, python-format
@@ -1273,17 +1264,16 @@ msgctxt "Number of matching records in the dashboard products list"
 msgid "Found %(counter)d matching product"
 msgid_plural "Found %(counter)d matching products"
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/product/filters.py:77
 msgctxt "Product attribute list filter label"
 msgid "Name"
-msgstr ""
+msgstr "名字"
 
 #: saleor/dashboard/product/filters.py:80
 msgctxt "Product attribute list filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "排序"
 
 #: saleor/dashboard/product/filters.py:93
 #, python-format
@@ -1291,17 +1281,16 @@ msgctxt "Number of matching records in the dashboard product attributes list"
 msgid "Found %(counter)d matching attribute"
 msgid_plural "Found %(counter)d matching attributes"
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/product/filters.py:100
 msgctxt "Product type list filter label"
 msgid "Name"
-msgstr ""
+msgstr "名字"
 
 #: saleor/dashboard/product/filters.py:103
 msgctxt "Product type list filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "排序"
 
 #: saleor/dashboard/product/filters.py:115
 #, python-format
@@ -1309,7 +1298,6 @@ msgctxt "Number of matching records in the dashboard product types list"
 msgid "Found %(counter)d matching product type"
 msgid_plural "Found %(counter)d matching product types"
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/product/forms.py:37
 msgctxt "Help text in rich-text editor field"
@@ -1369,7 +1357,7 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:209 saleor/dashboard/shipping/forms.py:29
 msgctxt "Currency amount"
 msgid "Price"
-msgstr ""
+msgstr "價格"
 
 #: saleor/dashboard/product/forms.py:211
 msgctxt "Availability date"
@@ -1379,7 +1367,7 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:213
 msgctxt "Product published toggle"
 msgid "Published"
-msgstr ""
+msgstr "已發布"
 
 #: saleor/dashboard/product/forms.py:216
 msgctxt "Featured product toggle"
@@ -1414,7 +1402,7 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:280
 msgctxt "SKU"
 msgid "SKU"
-msgstr ""
+msgstr "庫存單位"
 
 #: saleor/dashboard/product/forms.py:282
 msgctxt "Override price"
@@ -1441,37 +1429,37 @@ msgctxt "product variant handle stock field help text"
 msgid "Automatically track this product's inventory"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:305
+#: saleor/dashboard/product/forms.py:307
 msgctxt "Override price"
 msgid "Selling gross price override"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:307
+#: saleor/dashboard/product/forms.py:309
 msgctxt "Currency amount"
 msgid "Cost gross price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:310
+#: saleor/dashboard/product/forms.py:312
 msgctxt "Override price"
 msgid "Selling net price override"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:312
+#: saleor/dashboard/product/forms.py:314
 msgctxt "Currency amount"
 msgid "Cost net price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:357 saleor/dashboard/product/forms.py:462
+#: saleor/dashboard/product/forms.py:359 saleor/dashboard/product/forms.py:464
 msgctxt "Product image"
 msgid "Image"
-msgstr ""
-
-#: saleor/dashboard/product/forms.py:398
-msgctxt "Product display name"
-msgid "Display name"
-msgstr ""
+msgstr "圖片"
 
 #: saleor/dashboard/product/forms.py:400
+msgctxt "Product display name"
+msgid "Display name"
+msgstr "顯示名稱"
+
+#: saleor/dashboard/product/forms.py:402
 msgctxt "Product internal name"
 msgid "Internal name"
 msgstr ""
@@ -1480,107 +1468,106 @@ msgstr ""
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added product %s"
-msgstr ""
+msgstr "新增產品%s"
 
 #: saleor/dashboard/product/views.py:157
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated product %s"
-msgstr ""
+msgstr "更新產品%s"
 
 #: saleor/dashboard/product/views.py:172
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed product %s"
-msgstr ""
+msgstr "刪除產品%s"
 
 #: saleor/dashboard/product/views.py:191
 #, python-format
 msgctxt "Dashboard message"
 msgid "%(count)d product has been updated"
 msgid_plural "%(count)d products have been updated"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d個產品已更新"
 
 #: saleor/dashboard/product/views.py:244
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added product type %s"
-msgstr ""
+msgstr "新增產品分類%s"
 
 #: saleor/dashboard/product/views.py:263
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated product type %s"
-msgstr ""
+msgstr "更新產品分類%s"
 
 #: saleor/dashboard/product/views.py:280
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed product type %s"
-msgstr ""
+msgstr "刪除產品分類%s"
 
-#: saleor/dashboard/product/views.py:327 saleor/dashboard/product/views.py:348
+#: saleor/dashboard/product/views.py:328 saleor/dashboard/product/views.py:349
 #, python-format
 msgctxt "Dashboard message"
 msgid "Saved variant %s"
-msgstr ""
+msgstr "新增產品變種%s"
 
-#: saleor/dashboard/product/views.py:368
+#: saleor/dashboard/product/views.py:369
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed variant %s"
-msgstr ""
+msgstr "刪除產品變種%s"
 
-#: saleor/dashboard/product/views.py:449
+#: saleor/dashboard/product/views.py:450
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added image %s"
-msgstr ""
+msgstr "新增圖片%s"
 
-#: saleor/dashboard/product/views.py:470
+#: saleor/dashboard/product/views.py:471
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated image %s"
-msgstr ""
+msgstr "更新圖片%s"
 
-#: saleor/dashboard/product/views.py:488
+#: saleor/dashboard/product/views.py:489
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed image %s"
-msgstr ""
+msgstr "刪除圖片%s"
 
-#: saleor/dashboard/product/views.py:565
+#: saleor/dashboard/product/views.py:566
 msgctxt "Dashboard message"
 msgid "Added attribute"
-msgstr ""
+msgstr "新增屬性"
 
-#: saleor/dashboard/product/views.py:582
+#: saleor/dashboard/product/views.py:583
 msgctxt "Dashboard message"
 msgid "Updated attribute"
-msgstr ""
+msgstr "更新屬性"
 
-#: saleor/dashboard/product/views.py:599
+#: saleor/dashboard/product/views.py:600
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed attribute %s"
-msgstr ""
+msgstr "刪除屬性%s"
 
-#: saleor/dashboard/product/views.py:618
+#: saleor/dashboard/product/views.py:619
 msgctxt "Dashboard message"
 msgid "Added attribute's value"
-msgstr ""
+msgstr "新增屬性值"
 
-#: saleor/dashboard/product/views.py:637
+#: saleor/dashboard/product/views.py:638
 msgctxt "Dashboard message"
 msgid "Updated attribute's value"
-msgstr ""
+msgstr "更新屬性值"
 
-#: saleor/dashboard/product/views.py:655
+#: saleor/dashboard/product/views.py:656
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed attribute's value %s"
-msgstr ""
+msgstr "刪除屬性值%s"
 
 #: saleor/dashboard/seo/fields.py:9
 msgctxt "Form field help text"
@@ -1590,22 +1577,22 @@ msgstr ""
 #: saleor/dashboard/shipping/filters.py:16
 msgctxt "Shipping method list filter label"
 msgid "Name"
-msgstr ""
+msgstr "名字"
 
 #: saleor/dashboard/shipping/filters.py:20
 msgctxt "Shipping method list filter label"
 msgid "Price range"
-msgstr ""
+msgstr "價格範圍"
 
 #: saleor/dashboard/shipping/filters.py:23
 msgctxt "Shipping method filter label"
 msgid "Country"
-msgstr ""
+msgstr "國家"
 
 #: saleor/dashboard/shipping/filters.py:27
 msgctxt "Product list sorting filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "排序"
 
 #: saleor/dashboard/shipping/filters.py:40
 #, python-format
@@ -1613,17 +1600,16 @@ msgctxt "Number of matching records in the dashboard shipping methods list"
 msgid "Found %(counter)d matching shipping method"
 msgid_plural "Found %(counter)d matching shipping methods"
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/shipping/forms.py:27
 msgctxt "List of countries"
 msgid "Country"
-msgstr ""
+msgstr "國家"
 
 #: saleor/dashboard/shipping/views.py:38
 msgctxt "Dashboard message"
 msgid "Added shipping method"
-msgstr ""
+msgstr "新增配送方式"
 
 #: saleor/dashboard/shipping/views.py:52
 msgctxt "Dashboard message"
@@ -1634,25 +1620,25 @@ msgstr ""
 #, python-format
 msgctxt "Dashboard message"
 msgid "%(shipping_method_name)s successfully removed"
-msgstr ""
+msgstr "成功刪除配送方式%(shipping_method_name)s"
 
 #: saleor/dashboard/shipping/views.py:97
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added shipping price for %s"
-msgstr ""
+msgstr "新增運費%s"
 
 #: saleor/dashboard/shipping/views.py:117
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated country shipping price %s"
-msgstr ""
+msgstr "更新運費%s"
 
 #: saleor/dashboard/shipping/views.py:135
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed shipping method %s"
-msgstr ""
+msgstr "刪除配送方式%s"
 
 #: saleor/dashboard/sites/forms.py:14
 msgctxt "Domain name (FQDN)"
@@ -1662,12 +1648,12 @@ msgstr ""
 #: saleor/dashboard/sites/forms.py:16
 msgctxt "Display name"
 msgid "Display name"
-msgstr ""
+msgstr "顯示名稱"
 
 #: saleor/dashboard/sites/forms.py:25
 msgctxt "Header text"
 msgid "Header text"
-msgstr ""
+msgstr "抬頭文字"
 
 #: saleor/dashboard/sites/forms.py:30
 msgctxt "Inventory tracking by default settings toggle label"
@@ -1684,45 +1670,45 @@ msgstr ""
 #: saleor/dashboard/sites/forms.py:44
 msgctxt "Key for chosen authorization method"
 msgid "Key"
-msgstr ""
+msgstr "密鑰"
 
 #: saleor/dashboard/sites/forms.py:46
 msgctxt "Password"
 msgid "Password"
-msgstr ""
+msgstr "密碼"
 
 #: saleor/dashboard/sites/views.py:35
 msgctxt "Dashboard message"
 msgid "Updated site settings"
-msgstr ""
+msgstr "更新站點設置"
 
-#: saleor/dashboard/sites/views.py:64
+#: saleor/dashboard/sites/views.py:62
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added authorization key %s"
-msgstr ""
+msgstr "新增授權密鑰%s"
 
-#: saleor/dashboard/sites/views.py:80
+#: saleor/dashboard/sites/views.py:78
 #, python-format
 msgctxt "dashboard message"
 msgid "Updated authorization key %s"
-msgstr ""
+msgstr "更新授權密鑰%s"
 
-#: saleor/dashboard/sites/views.py:98
+#: saleor/dashboard/sites/views.py:96
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed site authorization key %s"
-msgstr ""
+msgstr "刪除站點授權密鑰%s"
 
 #: saleor/dashboard/staff/filters.py:24
 msgctxt "Staff list filter label"
 msgid "Groups"
-msgstr ""
+msgstr "分組"
 
 #: saleor/dashboard/staff/filters.py:28
 msgctxt "Staff list filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "排序"
 
 #: saleor/dashboard/staff/filters.py:40
 #, python-format
@@ -1730,17 +1716,16 @@ msgctxt "Number of matching records in the dashboard staff members list"
 msgid "Found %(counter)d matching staff member"
 msgid_plural "Found %(counter)d matching staff members"
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/staff/forms.py:20
 msgctxt "Email"
 msgid "Email"
-msgstr ""
+msgstr "電子信箱"
 
 #: saleor/dashboard/staff/forms.py:22
 msgctxt "Groups"
 msgid "Groups"
-msgstr ""
+msgstr "分組"
 
 #: saleor/dashboard/staff/forms.py:24
 msgctxt "User active toggle"
@@ -1751,19 +1736,19 @@ msgstr ""
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated staff member %s"
-msgstr ""
+msgstr "更新員工%s"
 
 #: saleor/dashboard/staff/views.py:63
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added staff member %s"
-msgstr ""
+msgstr "新增員工%s"
 
 #: saleor/dashboard/staff/views.py:82
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed staff member %s"
-msgstr ""
+msgstr "刪除員工%s"
 
 #: saleor/dashboard/taxes/filters.py:11
 msgctxt "Product list sorting option"
@@ -1778,7 +1763,7 @@ msgstr ""
 #: saleor/dashboard/taxes/filters.py:28
 msgctxt "Taxes list sorting form"
 msgid "Sort by"
-msgstr ""
+msgstr "排序"
 
 #: saleor/dashboard/taxes/filters.py:45
 #, python-format
@@ -1786,7 +1771,6 @@ msgctxt "Number of matching records in the dashboard taxes list"
 msgid "Found %(counter)d matching country"
 msgid_plural "Found %(counter)d matching countries"
 msgstr[0] ""
-msgstr[1] ""
 
 #: saleor/dashboard/taxes/forms.py:16
 msgctxt "Include taxes in prices"
@@ -1815,7 +1799,8 @@ msgstr ""
 
 #: saleor/dashboard/taxes/views.py:69
 msgctxt "Dashboard message"
-msgid "Could not fetch tax rates. You have not supplied a valid API Access Key"
+msgid ""
+"Could not fetch tax rates. You have not supplied a valid API Access Key"
 msgstr ""
 
 #: saleor/dashboard/templatetags/chips.py:66
