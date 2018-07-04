@@ -5,9 +5,27 @@ from graphql_jwt.decorators import permission_required
 from saleor.graphql.core.mutations import BaseMutation, ModelMutation
 from saleor.graphql.core.types import Error
 from saleor.graphql.order.types import Fulfillment
-from saleor.graphql.utils import get_node
+from saleor.graphql.utils import get_node, get_nodes
 from saleor.order import models
-from saleor.order.utils import cancel_fulfillment
+from saleor.order.utils import cancel_fulfillment, update_order_status
+from ....dashboard.order.utils import fulfill_order_line
+from ..types import OrderLine
+
+
+def clean_lines_quantities(order_lines, quantities):
+    errors = []
+    import ipdb; ipdb.set_trace()
+    for order_line, quantity in zip(order_lines, quantities):
+        if quantity > order_line.quantity_unfulfilled:
+            msg = npgettext_lazy(
+                'Fulfill order line mutation error',
+                '%(quantity)d item remaining to fulfill.',
+                '%(quantity)d items remaining to fulfill.',
+                'quantity') % {
+                    'quantity': order_line.quantity_unfulfilled,
+                    'order_line': order_line}
+            errors.append((order_line.variant.name, msg))
+    return errors
 
 
 class FulfillmentLineInput(graphene.InputObjectType):
@@ -44,6 +62,65 @@ class FulfillmentCreate(ModelMutation):
     class Meta:
         description = 'Creates a new fulfillment for an order.'
         model = models.Fulfillment
+
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        lines = input.pop('lines', None)
+        cleaned_input = super().clean_input(info, instance, input, errors)
+        if lines:
+            lines_ids = [line.get('order_line_id') for line in lines]
+            quantities = [line.get('quantity') for line in lines]
+            order_lines = get_nodes(
+                ids=lines_ids, graphene_type=OrderLine)
+            line_errors = clean_lines_quantities(order_lines, quantities)
+            if line_errors:
+                for err in line_errors:
+                    cls.add_error(errors, field=err[0], message=err[1])
+            else:
+                cleaned_input['order_lines'] = order_lines
+                cleaned_input['quantities'] = quantities
+        return cleaned_input
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('order.edit_order')
+
+    @classmethod
+    def construct_instance(cls, instance, cleaned_data):
+        instance.order = cleaned_data['order']
+        return super().construct_instance(instance, cleaned_data)
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        order_lines = cleaned_input.get('order_lines')
+        quantities = cleaned_input.get('quantities')
+        if order_lines and quantities:
+            quantity_fulfilled = 0
+            lines_to_fulfill = [
+                (order_line, quantity) for order_line, quantity
+                in zip(order_lines, quantities) if quantity > 0]
+            for line in lines_to_fulfill:
+                order_line = line[0]
+                quantity = line[1]
+                fulfill_order_line(order_line, quantity)
+                quantity_fulfilled += quantity
+            fulfillment_lines = [
+                models.FulfillmentLine(
+                    order_line=line[0],
+                    fulfillment=instance,
+                    quantity=line[1]) for line in lines_to_fulfill]
+            # FIXME: Something is wrong here
+            models.FulfillmentLine.objects.bulk_create(fulfillment_lines)
+            order = instance.order
+            update_order_status(order)
+            msg = npgettext_lazy(
+                'Dashboard message related to an order',
+                'Fulfilled %(quantity_fulfilled)d item',
+                'Fulfilled %(quantity_fulfilled)d items',
+                'quantity_fulfilled') % {
+                      'quantity_fulfilled': quantity_fulfilled}
+            order.history.create(content=msg, user=info.context.user)
+        super().save(info, instance, cleaned_input)
 
 
 class FulfillmentUpdate(FulfillmentCreate):

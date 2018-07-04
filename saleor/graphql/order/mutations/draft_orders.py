@@ -72,7 +72,7 @@ def check_lines_quantity(variants, quantities):
                 'Add line mutation error',
                 'Could not add item. Only %(remaining)d remaining in stock.' %
                 {'remaining': e.item.quantity_available})
-            errors.append((variant.sku, message))
+            errors.append((variant.name, message))
     return errors
 
 
@@ -149,7 +149,7 @@ class DraftOrderCreate(ModelMutation):
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
                 add_variant_to_order(instance, variant, quantity)
-            recalculate_order(instance)
+        recalculate_order(instance)
 
 
 class DraftOrderUpdate(DraftOrderCreate):
