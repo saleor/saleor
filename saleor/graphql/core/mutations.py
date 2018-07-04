@@ -115,28 +115,27 @@ class ModelMutation(BaseMutation):
         for field_name, field in InputCls._meta.fields.items():
             if field_name in input:
                 value = input[field_name]
-                if value is not None:
-                    # FIXME: maybe we could have custom input field type that takes
-                    # the type of IDs e.g. graphene.IdList(graphene.ID, type=Product).
+                # FIXME: maybe we could have custom input field type that takes
+                # the type of IDs e.g. graphene.IdList(graphene.ID, type=Product).
 
-                    # handle list of IDs field
-                    if isinstance(field.type, graphene.List) and field.type.of_type == graphene.ID:
-                        instances = get_nodes(value) if value else []
-                        cleaned_input[field_name] = instances
+                # handle list of IDs field
+                if value is not None and isinstance(field.type, graphene.List) and field.type.of_type == graphene.ID:
+                    instances = get_nodes(value) if value else []
+                    cleaned_input[field_name] = instances
 
-                    # handle ID field
-                    elif field.type == graphene.ID:
-                        instance = get_node(info, value)
-                        cleaned_input[field_name] = instance
+                # handle ID field
+                elif value is not None and field.type == graphene.ID:
+                    instance = get_node(info, value)
+                    cleaned_input[field_name] = instance
 
-                    # handle uploaded files
-                    elif cls._check_type(field, Upload):
-                        value = info.context.FILES.get(value)
-                        cleaned_input[field_name] = value
+                # handle uploaded files
+                elif value is not None and cls._check_type(field, Upload):
+                    value = info.context.FILES.get(value)
+                    cleaned_input[field_name] = value
 
-                    # handle other fields
-                    else:
-                        cleaned_input[field_name] = value
+                # handle other fields
+                else:
+                    cleaned_input[field_name] = value
         return cleaned_input
 
     @classmethod
@@ -153,8 +152,6 @@ class ModelMutation(BaseMutation):
 
         for f in opts.fields:
             if not f.editable or isinstance(f, models.AutoField) or f.name not in cleaned_data:
-                continue
-            if f.name in cleaned_data and cleaned_data[f.name] is None:
                 continue
             else:
                 f.save_form_data(instance, cleaned_data[f.name])

@@ -8,7 +8,7 @@ class PageInput(graphene.InputObjectType):
     slug = graphene.String()
     title = graphene.String()
     content = graphene.String()
-    is_visible = graphene.Boolean()
+    is_visible = graphene.Boolean(required=True)
     available_on = graphene.String()
 
 

@@ -12,6 +12,7 @@ import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import * as React from "react";
 
 import i18n from "../../../i18n";
+import { ProductImageType } from "../..";
 
 const decorate = withStyles(theme => ({
   root: {
@@ -39,12 +40,7 @@ const decorate = withStyles(theme => ({
 }));
 
 interface ProductVariantImageSelectDialogProps {
-  images?: Array<{
-    id: string;
-    url: string;
-    alt: string;
-    order: number;
-  }>;
+  images?: Array<ProductImageType>;
   selectedImages?: Array<{
     id: string;
   }>;
@@ -100,7 +96,7 @@ const ProductVariantImageSelectDialog = decorate<
             <DialogContentText>{i18n.t("Select images")}</DialogContentText>
             <div className={classes.root}>
               {images
-                .sort((prev, next) => (prev.order > next.order ? 1 : -1))
+                .sort((prev, next) => (prev.sortOrder > next.sortOrder ? 1 : -1))
                 .map(tile => (
                   <GridListTile
                     key={tile.id}

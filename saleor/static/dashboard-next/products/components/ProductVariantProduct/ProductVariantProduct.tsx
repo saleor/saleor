@@ -24,22 +24,26 @@ const decorate = withStyles(theme => ({
   root: {
     display: "grid",
     gridColumnGap: `${theme.spacing.unit * 2}px`,
-    gridTemplateColumns: "60px 1fr"
+    gridTemplateColumns: "60px 1fr",
+  },
+  thumbnail: {
+    maxWidth: "60px"
   }
 }));
+
 const ProductVariantProduct = decorate<ProductVariantProductProps>(
   ({ classes, product, loading, placeholderImage }) => (
     <Card>
       <CardContent>
         <div className={classes.root}>
-          <img src={loading ? placeholderImage : product.thumbnailUrl} />
+          <img className={classes.thumbnail} src={product ? product.thumbnailUrl : placeholderImage } />
           <div>
-            <Typography>{loading ? <Skeleton /> : product.name}</Typography>
+            <Typography>{product ? product.name : <Skeleton /> }</Typography>
             <Typography variant="caption">
-              {loading ? (
-                <Skeleton />
-              ) : (
+              {product ? (
                 i18n.t("Variants:") + " " + product.variants.totalCount
+              ) : (
+                <Skeleton />
               )}
             </Typography>
           </div>

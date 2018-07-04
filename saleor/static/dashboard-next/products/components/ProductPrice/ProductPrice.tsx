@@ -11,17 +11,15 @@ import Money from "../../../components/Money";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
 import Skeleton from "../../../components/Skeleton";
+import { MoneyType } from "../..";
 
-interface MoneyType {
-  currency: string;
-  amount: number;
-}
+
 interface ProductPriceProps {
-  purchaseCost: {
+  purchaseCost?: {
     start: MoneyType;
     stop: MoneyType;
   };
-  margin: {
+  margin?: {
     start: number;
     stop: number;
   };
@@ -37,6 +35,7 @@ const decorate = withStyles(theme => ({
     textAlign: "right" as "right"
   }
 }));
+
 const ProductPrice = decorate<ProductPriceProps>(
   ({ classes, margin, purchaseCost }) => (
     <Card>
@@ -93,5 +92,6 @@ const ProductPrice = decorate<ProductPriceProps>(
     </Card>
   )
 );
+
 ProductPrice.displayName = "ProductPrice";
 export default ProductPrice;

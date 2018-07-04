@@ -1,11 +1,12 @@
+import DialogContentText from "@material-ui/core/DialogContentText";
 import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
 import DeleteIcon from "@material-ui/icons/Delete";
 import VisibilityIcon from "@material-ui/icons/Visibility";
+import * as CRC from 'crc-32'
 import * as React from "react";
 
-import DialogContentText from "@material-ui/core/DialogContentText";
-import { AttributeType } from "../../";
+import { AttributeType, AttributeValueType, MoneyType } from "../../";
 import ActionDialog from "../../../components/ActionDialog";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
@@ -24,17 +25,13 @@ import ProductImages from "../ProductImages";
 import ProductPrice from "../ProductPrice/ProductPrice";
 import ProductVariants from "../ProductVariants";
 
-interface MoneyType {
-  currency: string;
-  amount: number;
-}
 interface ProductUpdateProps {
   placeholderImage: string;
   collections?: Array<{
     id: string;
     name: string;
   }>;
-  categories?: Array<{
+  categories: Array<{
     id: string;
     name: string;
   }>;
@@ -47,37 +44,36 @@ interface ProductUpdateProps {
     id: string;
     sku: string;
     name: string;
-    priceOverride: number;
-    quantity: number;
+    priceOverride?: MoneyType;
+    stockQuantity: number;
     margin: number;
   }>;
   images?: Array<{
     id: string;
     alt?: string;
-    image: string;
     sortOrder: number;
+    url: string;
   }>;
   product?: {
     id: string;
-    seoTitle: string;
-    seoDescription: string;
-    productType: {
-      id: string;
-    };
     name: string;
     description: string;
+    seoTitle?: string;
+    seoDescription?: string;
+    productType: {
+      id: string;
+      name: string;
+    };
     category: {
       id: string;
       name: string;
     };
     price: MoneyType;
-    availableOn: string;
+    availableOn?: string;
     isPublished: boolean;
     attributes: Array<{
-      attribute: AttributeType & {
-        values: AttributeType[];
-      };
-      value: AttributeType;
+      attribute: AttributeType;
+      value: AttributeValueType;
     }>;
     availability: {
       available: boolean;
@@ -90,17 +86,17 @@ interface ProductUpdateProps {
       start: number;
       stop: number;
     };
+    url: string;
   };
   saveButtonBarState?: SaveButtonBarState;
-  storefrontUrl?(value: string): string;
   onBack?();
-  onDelete?();
+  onDelete?(id: string);
   onImageEdit?(id: string);
-  onImageReorder?();
+  onImageReorder?(event: { oldIndex: number; newIndex: number });
   onImageUpload?(event: React.ChangeEvent<any>);
   onProductShow?();
   onSeoClick?();
-  onSubmit?();
+  onSubmit?(data: any);
   onVariantAdd?();
   onVariantShow?(id: string);
 }
@@ -134,6 +130,7 @@ const decorate = withStyles(theme => ({
     }
   }
 }));
+
 export const ProductUpdate = decorate<ProductUpdateProps>(
   ({
     classes,
@@ -145,7 +142,6 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
     product,
     productCollections,
     saveButtonBarState,
-    storefrontUrl,
     variants,
     onBack,
     onDelete,
@@ -159,10 +155,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
     onVariantShow
   }) => {
     const initialData = {
-      available:
-        product && product.availability
-          ? product.availability.available
-          : false,
+      available: product ? product.isPublished : undefined,
       availableOn: product ? product.availableOn : "",
       category: product && product.category ? product.category.id : undefined,
       collections:
@@ -173,18 +166,18 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
       name: product ? product.name : "",
       price: product && product.price ? product.price.amount : undefined,
       seoDescription: product ? product.seoDescription : "",
-      seoTitle: product ? product.seoTitle : ""
+      seoTitle: product && product.seoTitle ? product.seoTitle : ""
     };
     if (product && product.attributes) {
-      product.attributes.forEach(attr => {
-        initialData[attr.attribute.slug] = attr.value.slug;
+      product.attributes.forEach(item => {
+        initialData[item.attribute.slug] = item.value.slug;
       });
     }
     return (
       <Form
         onSubmit={onSubmit}
         initial={initialData}
-        key={product && product.name ? product.name : "loading"}
+        key={product ? CRC.str(JSON.stringify(product)) : 'loading'}
       >
         {({ change, data, submit }) => (
           <Container width="md">
@@ -209,12 +202,15 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
                       </IconButton>
                     )}
                   </PageHeader>
-                  {product &&
+                  {product && onDelete &&
                     product.name && (
                       <ActionDialog
                         open={openedDeleteDialog}
                         onClose={toggleDeleteDialog}
-                        onConfirm={onDelete}
+                        onConfirm={() => {
+                          onDelete(product.id);
+                          toggleDeleteDialog();
+                        }}
                         variant="delete"
                         title={i18n.t("Remove product")}
                       >
@@ -234,7 +230,6 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
             <div className={classes.root}>
               <div>
                 <ProductDetailsForm
-                  onBack={onBack}
                   onChange={change}
                   name={data.name}
                   description={data.description}
@@ -267,9 +262,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
                     titlePlaceholder={data.name}
                     description={data.seoDescription}
                     descriptionPlaceholder={data.description}
-                    storefrontUrl={
-                      product ? storefrontUrl(product.seoTitle) : undefined
-                    }
+                    storefrontUrl={ product ? product.url : undefined }
                     loading={disabled}
                     onClick={onSeoClick}
                     onChange={change}
@@ -285,14 +278,8 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
                 />
                 <div className={classes.cardContainer}>
                   <ProductPrice
-                    margin={
-                      product && product.margin ? product.margin : undefined
-                    }
-                    purchaseCost={
-                      product && product.purchaseCost
-                        ? product.purchaseCost
-                        : undefined
-                    }
+                    margin={ product ? product.margin : undefined }
+                    purchaseCost={ product ? product.purchaseCost : undefined }
                   />
                 </div>
                 <div className={classes.cardContainer}>

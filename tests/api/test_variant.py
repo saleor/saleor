@@ -6,13 +6,69 @@ from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 
 
+def test_fetch_variant(admin_api_client, product):
+    query = """
+    query ProductVariantDetails($id: ID!) {
+        productVariant(id: $id) {
+            id
+            attributes {
+                attribute {
+                    id
+                    name
+                    slug
+                    values {
+                        id
+                        name
+                        slug
+                    }
+                }
+                value {
+                    id
+                    name
+                    slug
+                }
+            }
+            costPrice {
+                currency
+                amount
+            }
+            images {
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
+            name
+            priceOverride {
+                currency
+                amount
+            }
+            product {
+                id
+            }
+        }
+    }
+    """
+
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
+    variables = json.dumps({ 'id': variant_id })
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productVariant']
+    assert data['name'] == variant.name
+
+
 def test_create_variant(admin_api_client, product, product_type):
     query = """
         mutation createVariant (
             $productId: ID!,
             $sku: String!,
-            $priceOverride: Float,
-            $costPrice: Float,
+            $priceOverride: Decimal,
+            $costPrice: Decimal,
             $quantity: Int!,
             $attributes: [AttributeValueInput],
             $trackInventory: Boolean!) {
@@ -89,7 +145,7 @@ def test_update_product_variant(admin_api_client, product):
         mutation updateVariant (
             $id: ID!,
             $sku: String!,
-            $costPrice: Float,
+            $costPrice: Decimal,
             $quantity: Int!,
             $trackInventory: Boolean!) {
                 productVariantUpdate(

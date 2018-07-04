@@ -17,14 +17,29 @@ interface ProductImagesProps {
   placeholderImage?: string;
   images?: Array<{
     id: string;
-    image: string;
     alt?: string;
     sortOrder: number;
+    url: string;
   }>;
   loading?: boolean;
   onImageEdit?(id: string);
   onImageUpload?(event: React.ChangeEvent<any>);
   onImageReorder?(event: { oldIndex: number; newIndex: number });
+}
+
+interface ImageListElementProps {
+  tile: {
+    id: string;
+    alt?: string;
+    sortOrder: number;
+    url: string;
+  }
+  onImageEdit(event: React.ChangeEvent<any>);
+}
+
+interface ImageListContainerProps {
+  items: any;
+  onImageEdit(id: string);
 }
 
 const decorate = withStyles(theme => ({
@@ -60,9 +75,9 @@ const decorate = withStyles(theme => ({
 }));
 
 const ImageListElement = SortableElement(
-  decorate<{ tile: any; onImageEdit() }>(({ classes, onImageEdit, tile }) => (
+  decorate<ImageListElementProps>(({ classes, onImageEdit, tile }) => (
     <GridListTile key={tile.id} component="div" className={classes.gridElement}>
-      <img src={tile.image} alt={tile.alt} />
+      <img src={tile.url} alt={tile.alt} />
       <GridListTileBar
         title={tile.alt || i18n.t("No description")}
         actionIcon={
@@ -78,17 +93,18 @@ const ImageListElement = SortableElement(
     </GridListTile>
   ))
 );
+
 const ImageListContainer = SortableContainer(
-  decorate<{ items: any; onImageEdit(id: string) }>(
+  decorate<ImageListContainerProps>(
     ({ classes, items, onImageEdit, ...props }) => {
       return (
         <div {...props}>
-          {items.map((value, index) => (
+          {items.map((image, index) => (
             <ImageListElement
               key={`item-${index}`}
               index={index}
-              tile={value}
-              onImageEdit={onImageEdit ? onImageEdit(value.id) : null}
+              tile={image}
+              onImageEdit={onImageEdit ? onImageEdit(image.id) : null}
             />
           ))}
         </div>
@@ -96,6 +112,7 @@ const ImageListContainer = SortableContainer(
     }
   )
 );
+
 const ProductImages = decorate<ProductImagesProps>(
   ({
     classes,
@@ -111,7 +128,6 @@ const ProductImages = decorate<ProductImagesProps>(
         <IconButton onClick={e => this.upload.click()} disabled={loading}>
           <AddIcon />
         </IconButton>
-
         <input
           className={classes.fileField}
           id="fileUpload"

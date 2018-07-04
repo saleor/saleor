@@ -8,9 +8,188 @@ import {
   ProductListQueryVariables
 } from "../gql-types";
 
+export const fragmentMoney = gql`
+  fragment Money on Money {
+    amount
+    currency
+    localized
+  }
+`;
+
+export const fragmentProductImage = gql`
+  fragment ProductImage on ProductImage {
+    id
+    alt
+    sortOrder
+    url
+  }
+`;
+
+export const fragmentProduct = gql`
+  ${fragmentProductImage}
+  ${fragmentMoney}
+  fragment Product on Product {
+    id
+    name
+    description
+    seoTitle
+    seoDescription
+    category {
+      id
+      name
+    }
+    collections {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+    price {
+      ...Money
+    }
+    margin {
+      start
+      stop
+    }
+    purchaseCost {
+      start {
+        ...Money
+      }
+      stop {
+        ...Money
+      }
+    }
+    isPublished
+    availableOn
+    attributes {
+      attribute {
+        id
+        slug
+        name
+        values {
+          name
+          slug
+        }
+      }
+      value {
+        id
+        name
+        slug
+      }
+    }
+    availability {
+      available
+      priceRange {
+        start {
+          net {
+            ...Money
+          }
+        }
+        stop {
+          net {
+            ...Money
+          }
+        }
+      }
+    }
+    images {
+      edges {
+        node {
+          ...ProductImage
+        }
+      }
+    }
+    variants {
+      edges {
+        node {
+          id
+          sku
+          name
+          priceOverride {
+            ...Money
+          }
+          stockQuantity
+          margin
+        }
+      }
+    }
+    productType {
+      id
+      name
+    }
+    url
+  }
+`;
+
+export const fragmentVariant = gql`
+  ${fragmentMoney}
+  ${fragmentProductImage}
+  fragment ProductVariant on ProductVariant {
+    id
+    attributes {
+      attribute {
+        id
+        name
+        slug
+        values {
+          id
+          name
+          slug
+        }
+      }
+      value {
+        id
+        name
+        slug
+      }
+    }
+    costPrice {
+      ...Money
+    }
+    images {
+      edges {
+        node {
+          id
+        }
+      }
+    }
+    name
+    priceOverride {
+      ...Money
+    }
+    product {
+      id
+      images {
+        edges {
+          node {
+            ...ProductImage
+          }
+        }
+      }
+      name
+      thumbnailUrl
+      variants {
+        totalCount
+        edges {
+          node {
+            id
+            name
+          }
+        }
+      }
+    }
+    sku
+    quantity
+    quantityAllocated
+  }
+`;
+
 export const TypedProductListQuery = Query as React.ComponentType<
   QueryProps<ProductListQuery, ProductListQueryVariables>
 >;
+
 export const productListQuery = gql`
   query ProductList($first: Int, $after: String, $last: Int, $before: String) {
     products(before: $before, after: $after, first: $first, last: $last) {
@@ -38,84 +217,41 @@ export const productListQuery = gql`
 export const TypedProductDetailsQuery = Query as React.ComponentType<
   QueryProps<ProductDetailsQuery, ProductDetailsQueryVariables>
 >;
+
 export const productDetailsQuery = gql`
+  ${fragmentProduct}
   query ProductDetails($id: ID!) {
     product(id: $id) {
-      id
-      name
-      description
-      collections {
-        edges {
-          node {
-            id
-            name
-          }
+      ...Product
+    }
+    collections {
+      edges {
+        node {
+          id
+          name
         }
       }
-      price {
-        localized
-      }
-      grossMargin {
-        start
-        stop
-      }
-      purchaseCost {
-        start {
-          gross {
-            localized
-          }
-        }
-        stop {
-          gross {
-            localized
-          }
+    }
+    categories {
+      edges {
+        node {
+          id
+          name
         }
       }
-      isPublished
-      availability {
-        available
-        priceRange {
-          start {
-            net {
-              localized
-            }
-          }
-          stop {
-            net {
-              localized
-            }
-          }
-        }
-      }
-      images {
-        edges {
-          node {
-            id
-            alt
-            order
-            url
-          }
-        }
-      }
-      variants {
-        edges {
-          node {
-            id
-            sku
-            name
-            priceOverride {
-              localized
-            }
-            stockQuantity
-            margin
-          }
-        }
-      }
-      productType {
-        id
-        name
-      }
-      url
+    }
+  }
+`;
+
+export const TypedProductVariantQuery = Query as React.ComponentType<
+  QueryProps<any, { id: string }>
+>;
+
+export const productVariantQuery = gql`
+  ${fragmentVariant}
+  query ProductVariantDetails($id: ID!) {
+    productVariant(id: $id) {
+      ...ProductVariant
     }
   }
 `;

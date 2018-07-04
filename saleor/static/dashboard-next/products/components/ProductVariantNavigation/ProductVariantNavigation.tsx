@@ -12,13 +12,14 @@ import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 
 interface ProductVariantNavigationProps {
+  current?: string;
+  loading?: boolean;
+  productId?: string;
   variants?: Array<{
     id: string;
     name: string;
   }>;
-  current?: string;
-  loading?: boolean;
-  onRowClick?(id: string);
+  onRowClick(variantId: string);
 }
 
 const decorate = withStyles(theme => ({
@@ -33,8 +34,9 @@ const decorate = withStyles(theme => ({
     cursor: "pointer"
   }
 }));
+
 const ProductVariantNavigation = decorate<ProductVariantNavigationProps>(
-  ({ classes, variants, current, loading, onRowClick }) => (
+  ({ classes, current, loading, productId, variants, onRowClick }) => (
     <Card className={classes.card}>
       <PageHeader title={i18n.t("Variants")} />
       <Table>
@@ -48,10 +50,7 @@ const ProductVariantNavigation = decorate<ProductVariantNavigationProps>(
           ) : variants.length > 0 ? (
             variants.map(variant => (
               <TableRow key={variant.id}>
-                <TableCell
-                  className={onRowClick ? classes.link : ""}
-                  onClick={onRowClick ? onRowClick(variant.id) : () => {}}
-                >
+                <TableCell className={classes.link} onClick={() => onRowClick(variant.id)}>
                   {variant.name}
                 </TableCell>
               </TableRow>

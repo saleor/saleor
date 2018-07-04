@@ -46,7 +46,8 @@ from .product.resolvers import (
     resolve_attributes, resolve_categories, resolve_collections,
     resolve_products, resolve_product_types)
 from .product.types import (
-    Category, Collection, Product, ProductAttribute, ProductType)
+    Category, Collection, Product, ProductAttribute, ProductType,
+    ProductVariant)
 from .shipping.resolvers import resolve_shipping_methods
 from .shipping.types import ShippingMethod
 from .shipping.mutations import (
@@ -118,6 +119,9 @@ class Query(graphene.ObjectType):
     product_types = DjangoFilterConnectionField(
         ProductType, filterset_class=DistinctFilterSet,
         description='List of the shop\'s product types.')
+    product_variant = graphene.Field(
+        ProductVariant, id=graphene.Argument(graphene.ID),
+        description='Lookup a variant by ID.')
     sale = graphene.Field(
         Sale, id=graphene.Argument(graphene.ID),
         description='Lookup a sale by ID.')
@@ -214,6 +218,9 @@ class Query(graphene.ObjectType):
     @permission_required('discount.view_sale')
     def resolve_sales(self, info, query=None, **kwargs):
         return resolve_sales(info, query)
+
+    def resolve_product_variant(self, info, id):
+        return get_node(info, id, only_type=ProductVariant)
 
     @permission_required('discount.view_voucher')
     def resolve_voucher(self, info, id):

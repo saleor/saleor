@@ -21,19 +21,20 @@ import i18n from "../../../i18n";
 interface MoneyType {
   amount: number;
   currency: string;
+  localized: string;
 }
+
 interface ProductVariantsProps {
   disabled?: boolean;
   variants?: Array<{
     id: string;
     sku: string;
     name: string;
-    priceOverride: number;
-    quantity: number;
+    priceOverride?: MoneyType;
+    stockQuantity: number;
     margin: number;
   }>;
   fallbackPrice?: MoneyType;
-  fallbackGross?: string;
   onRowClick?(id: string);
   onVariantAdd?();
 }
@@ -69,106 +70,105 @@ const decorate = withStyles(theme => {
     }
   };
 });
+
 export const ProductVariants = decorate<ProductVariantsProps>(
   ({
     classes,
     disabled,
     variants,
     fallbackPrice,
-    fallbackGross,
     onRowClick,
     onVariantAdd
   }) => (
-    <Card>
-      <PageHeader title={i18n.t("Variants")}>
-        {!!onVariantAdd && (
-          <IconButton disabled={disabled} onClick={onVariantAdd}>
-            <AddIcon />
-          </IconButton>
-        )}
-      </PageHeader>
-      <Table className={classes.denseTable}>
-        <TableHead>
-          <TableRow>
-            <Hidden smDown>
-              <TableCell>{i18n.t("SKU")}</TableCell>
-            </Hidden>
-            <TableCell>{i18n.t("Name")}</TableCell>
-            <TableCell>{i18n.t("Status")}</TableCell>
-            <Hidden smDown>
-              <TableCell className={classes.alignRightText}>
-                {i18n.t("Price")}
-              </TableCell>
-            </Hidden>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {variants === undefined || variants === null ? (
+      <Card>
+        <PageHeader title={i18n.t("Variants")}>
+          {!!onVariantAdd && (
+            <IconButton disabled={disabled} onClick={onVariantAdd}>
+              <AddIcon />
+            </IconButton>
+          )}
+        </PageHeader>
+        <Table className={classes.denseTable}>
+          <TableHead>
             <TableRow>
               <Hidden smDown>
-                <TableCell>
-                  <Skeleton />
-                </TableCell>
+                <TableCell>{i18n.t("SKU")}</TableCell>
               </Hidden>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
+              <TableCell>{i18n.t("Name")}</TableCell>
+              <TableCell>{i18n.t("Status")}</TableCell>
               <Hidden smDown>
                 <TableCell className={classes.alignRightText}>
-                  <Skeleton />
+                  {i18n.t("Price")}
                 </TableCell>
               </Hidden>
             </TableRow>
-          ) : variants.length > 0 ? (
-            variants.map(variant => (
-              <TableRow key={variant.id}>
+          </TableHead>
+          <TableBody>
+            {variants === undefined || variants === null || fallbackPrice === undefined ? (
+              <TableRow>
                 <Hidden smDown>
-                  <TableCell>{variant.sku}</TableCell>
+                  <TableCell>
+                    <Skeleton />
+                  </TableCell>
                 </Hidden>
-                <TableCell
-                  className={onRowClick ? classes.link : ""}
-                  onClick={onRowClick ? onRowClick(variant.id) : () => {}}
-                >
-                  {variant.name}
+                <TableCell>
+                  <Skeleton />
                 </TableCell>
                 <TableCell>
-                  <span
-                    className={
-                      variant.quantity > 0 ? classes.greenDot : classes.redDot
-                    }
-                  />
-                  {variant.quantity > 0
-                    ? i18n.t("Available")
-                    : i18n.t("Unavailable")}
+                  <Skeleton />
                 </TableCell>
                 <Hidden smDown>
                   <TableCell className={classes.alignRightText}>
-                    {variant && variant.priceOverride !== undefined ? (
-                      <Money
-                        amount={variant.priceOverride || fallbackPrice.amount}
-                        currency={fallbackPrice.currency}
-                      />
-                    ) : (
-                      <Skeleton />
-                    )}
+                    <Skeleton />
                   </TableCell>
                 </Hidden>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={2}>
-                {i18n.t("This product has no variants")}
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </Card>
-  )
+            ) : variants.length > 0 ? (
+              variants.map(variant => {
+                const price = variant.priceOverride || fallbackPrice;
+                return (
+                  <TableRow key={variant.id}>
+                    <Hidden smDown>
+                      <TableCell>{variant.sku}</TableCell>
+                    </Hidden>
+                    <TableCell className={
+                      onRowClick ? classes.link : ""}
+                      onClick={() => {
+                        if (onRowClick) {
+                          onRowClick(variant.id);
+                        }
+                      }}>
+                      {variant.name}
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={
+                          variant.stockQuantity > 0 ? classes.greenDot : classes.redDot
+                        }
+                      />
+                      {variant.stockQuantity > 0
+                        ? i18n.t("Available")
+                        : i18n.t("Unavailable")}
+                    </TableCell>
+                    <Hidden smDown>
+                      <TableCell className={classes.alignRightText}>
+                        <Money amount={price.amount} currency={price.currency} />
+                      </TableCell>
+                    </Hidden>
+                  </TableRow>
+                )
+              })
+            ) : (
+                  <TableRow>
+                    <TableCell colSpan={2}>
+                      {i18n.t("This product has no variants")}
+                    </TableCell>
+                  </TableRow>
+                )}
+          </TableBody>
+        </Table>
+      </Card>
+    )
 );
 ProductVariants.displayName = "ProductVariants";
 export default ProductVariants;
