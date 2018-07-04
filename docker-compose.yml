@@ -16,7 +16,7 @@ services:
       context: .
       dockerfile: Dockerfile
     env_file: common.env
-    command: /app/virtualenv/bin/celery -A saleor worker --app=saleor.celeryconf:app --loglevel=info
+    command: /usr/local/lib/python3.6/site-packages/bin/celery -A saleor worker --app=saleor.celeryconf:app --loglevel=info
     volumes:
       - ./saleor:/app/saleor:Z
       - ./locale:/app/locale:Z
