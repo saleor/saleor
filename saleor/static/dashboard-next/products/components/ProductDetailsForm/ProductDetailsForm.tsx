@@ -41,6 +41,7 @@ export const ProductDetailsForm = decorate<ProductDetailsFormProps>(
           <TextField
             disabled={disabled}
             fullWidth
+            key="nameInput"
             label={i18n.t("Name")}
             name="name"
             rows={5}
@@ -51,6 +52,7 @@ export const ProductDetailsForm = decorate<ProductDetailsFormProps>(
           <PriceField
             currencySymbol={currencySymbol}
             disabled={disabled}
+            key="priceInput"
             label={i18n.t("Price")}
             onChange={onChange}
             value={price}
@@ -61,6 +63,7 @@ export const ProductDetailsForm = decorate<ProductDetailsFormProps>(
           disabled={disabled}
           fullWidth
           helperText={i18n.t("Select text to enable text-formatting tools.")}
+          key="descriptionInput"
           label={i18n.t("Description")}
           name="description"
           value={description}

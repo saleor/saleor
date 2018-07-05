@@ -3,7 +3,6 @@ import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
 import DeleteIcon from "@material-ui/icons/Delete";
 import VisibilityIcon from "@material-ui/icons/Visibility";
-import * as CRC from 'crc-32'
 import * as React from "react";
 
 import { AttributeType, AttributeValueType, MoneyType } from "../../";
@@ -60,6 +59,8 @@ interface ProductUpdateProps {
     description: string;
     seoTitle?: string;
     seoDescription?: string;
+    isFeatured?: boolean;
+    chargeTaxes?: boolean;
     productType: {
       id: string;
       name: string;
@@ -100,16 +101,6 @@ interface ProductUpdateProps {
   onVariantAdd?();
   onVariantShow?(id: string);
 }
-
-const shallowCompare = (a, b) => {
-  let ret = true;
-  Object.keys(a).forEach(k => {
-    if (a[k] !== b[k]) {
-      ret = false;
-    }
-  });
-  return ret;
-};
 
 const decorate = withStyles(theme => ({
   cardContainer: {
@@ -158,11 +149,13 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
       available: product ? product.isPublished : undefined,
       availableOn: product ? product.availableOn : "",
       category: product && product.category ? product.category.id : undefined,
+      chargeTaxes: product && product.chargeTaxes ? product.chargeTaxes : false,
       collections:
         product && productCollections
           ? productCollections.map(node => node.id)
           : [],
       description: product ? product.description : "",
+      featured: product && product.isFeatured ? product.isFeatured : false,
       name: product ? product.name : "",
       price: product && product.price ? product.price.amount : undefined,
       seoDescription: product ? product.seoDescription : "",
@@ -177,9 +170,9 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
       <Form
         onSubmit={onSubmit}
         initial={initialData}
-        key={product ? CRC.str(JSON.stringify(product)) : 'loading'}
+        key={product ? JSON.stringify(product) : "loading"}
       >
-        {({ change, data, submit }) => (
+        {({ change, data, hasChanged, submit }) => (
           <Container width="md">
             <Toggle>
               {(openedDeleteDialog, { toggle: toggleDeleteDialog }) => (
@@ -202,7 +195,8 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
                       </IconButton>
                     )}
                   </PageHeader>
-                  {product && onDelete &&
+                  {product &&
+                    onDelete &&
                     product.name && (
                       <ActionDialog
                         open={openedDeleteDialog}
@@ -262,7 +256,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
                     titlePlaceholder={data.name}
                     description={data.seoDescription}
                     descriptionPlaceholder={data.description}
-                    storefrontUrl={ product ? product.url : undefined }
+                    storefrontUrl={product ? product.url : undefined}
                     loading={disabled}
                     onClick={onSeoClick}
                     onChange={change}
@@ -271,15 +265,14 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
               </div>
               <div>
                 <ProductAvailabilityForm
-                  available={data.available}
-                  availableOn={data.availableOn}
+                  data={data}
                   loading={disabled}
                   onChange={change}
                 />
                 <div className={classes.cardContainer}>
                   <ProductPrice
-                    margin={ product ? product.margin : undefined }
-                    purchaseCost={ product ? product.purchaseCost : undefined }
+                    margin={product ? product.margin : undefined}
+                    purchaseCost={product ? product.purchaseCost : undefined}
                   />
                 </div>
                 <div className={classes.cardContainer}>
@@ -319,9 +312,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
             <SaveButtonBar
               onSave={submit}
               state={saveButtonBarState}
-              disabled={
-                disabled || !onSubmit || shallowCompare(initialData, data)
-              }
+              disabled={disabled || !onSubmit || !hasChanged}
             />
           </Container>
         )}

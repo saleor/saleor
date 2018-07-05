@@ -1,16 +1,26 @@
 import * as React from "react";
 
+import { MutationProviderChildrenRenderProps } from "../..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
-import { ProductDetailsQuery } from "../../gql-types";
+import {
+  ProductDetailsQuery,
+  ProductUpdateMutation,
+  ProductUpdateMutationVariables
+} from "../../gql-types";
 import {
   productUpdateMutation,
-  TypedProductUpdateMutation,
+  TypedProductUpdateMutation
 } from "../mutations";
 import { productDetailsQuery } from "../queries";
 
 interface ProductUpdateProviderProps {
   productId: string;
-  children: any;
+  children: ((
+    props: MutationProviderChildrenRenderProps<
+      ProductUpdateMutation,
+      ProductUpdateMutationVariables
+    >
+  ) => React.ReactElement<any>);
 }
 
 const ProductUpdateProvider: React.StatelessComponent<
@@ -27,11 +37,16 @@ const ProductUpdateProvider: React.StatelessComponent<
       cache.writeQuery({ query: productDetailsQuery, data });
     }}
   >
-    {(updateProduct, { error }) => {
+    {(mutate, { called, error, loading }) => {
       if (error) {
         return <ErrorMessageCard message={error.message} />;
       }
-      return children(updateProduct);
+      return children({
+        called,
+        error,
+        loading,
+        mutate
+      });
     }}
   </TypedProductUpdateMutation>
 );

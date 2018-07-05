@@ -62,6 +62,8 @@ export const fragmentProduct = gql`
       }
     }
     isPublished
+    isFeatured
+    chargeTaxes
     availableOn
     attributes {
       attribute {
