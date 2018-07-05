@@ -48,6 +48,8 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                 {({
                   createProductImage,
                   deleteProduct,
+                  error,
+                  loading,
                   reorderProductImages,
                   updateProduct
                 }) => {
@@ -55,6 +57,8 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                     <ProductUpdatePage
                       categories={allCategories}
                       collections={allCollections}
+                      disabled={loading}
+                      saveButtonBarState={loading ? "loading" : "idle"}
                       images={images}
                       placeholderImage={placeholderImg}
                       product={product}
@@ -107,13 +111,14 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
 
                           updateProduct({
                             attributes,
-                            availableOn: data.availableOn !== "" ? data.availableOn : null,
+                            availableOn:
+                              data.availableOn !== "" ? data.availableOn : null,
                             category: data.category,
-                            chargeTaxes: false,  // FIXME: missing in UI
+                            chargeTaxes: data.chargeTaxes,
                             collections: data.collections,
                             description: data.description,
                             id: product.id,
-                            isFeatured: false,  // FIXME: missing in UI
+                            isFeatured: data.featured,
                             isPublished: data.available,
                             name: data.name,
                             price: data.price

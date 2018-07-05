@@ -1,14 +1,24 @@
 import * as React from "react";
 
 import ErrorMessageCard from "../../components/ErrorMessageCard";
-import { ProductDetailsQuery } from "../../gql-types";
+import {
+  ProductDetailsQuery,
+  ProductImageReorderMutation,
+  ProductImageReorderMutationVariables
+} from "../../gql-types";
 import { productImagesReorder, TypedProductImagesReorder } from "../mutations";
 
+import { MutationProviderChildrenRenderProps } from "../..";
 import { productDetailsQuery } from "../queries";
 
 interface ProductImagesReorderProviderProps {
   productId: string;
-  children: any;
+  children: ((
+    props: MutationProviderChildrenRenderProps<
+      ProductImageReorderMutation,
+      ProductImageReorderMutationVariables
+    >
+  ) => React.ReactElement<any>);
 }
 
 const ProductImagesReorderProvider: React.StatelessComponent<
@@ -27,11 +37,16 @@ const ProductImagesReorderProvider: React.StatelessComponent<
       cache.writeQuery({ query: productDetailsQuery, data });
     }}
   >
-    {(reorderProductImages, { error }) => {
+    {(mutate, { called, error, loading }) => {
       if (error) {
         return <ErrorMessageCard message={error.message} />;
       }
-      return children(reorderProductImages);
+      return children({
+        called,
+        error,
+        loading,
+        mutate
+      });
     }}
   </TypedProductImagesReorder>
 );
