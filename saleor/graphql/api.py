@@ -33,7 +33,11 @@ from .page.resolvers import resolve_pages, resolve_page
 from .page.types import Page
 from .page.mutations import PageCreate, PageDelete, PageUpdate
 from .product.filters import ProductFilterSet
-from .product.mutations import (
+from .product.mutations.attributes import (
+    AttributeChoiceValueCreate, AttributeChoiceValueDelete,
+    AttributeChoiceValueUpdate, ProductAttributeCreate, ProductAttributeDelete,
+    ProductAttributeUpdate)
+from .product.mutations.products import (
     CategoryCreateMutation, CategoryDelete, CategoryUpdateMutation,
     CollectionAddProducts, CollectionCreateMutation, CollectionDelete,
     CollectionRemoveProducts, CollectionUpdate, ProductCreateMutation,
@@ -244,6 +248,10 @@ class Mutations(graphene.ObjectType):
 
     set_password = SetPassword.Field()
 
+    attribute_choice_value_create = AttributeChoiceValueCreate.Field()
+    attribute_choice_value_delete = AttributeChoiceValueDelete.Field()
+    attribute_choice_value_update = AttributeChoiceValueUpdate.Field()
+
     category_create = CategoryCreateMutation.Field()
     category_delete = CategoryDelete.Field()
     category_update = CategoryUpdateMutation.Field()
@@ -271,6 +279,10 @@ class Mutations(graphene.ObjectType):
     page_create = PageCreate.Field()
     page_delete = PageDelete.Field()
     page_update = PageUpdate.Field()
+
+    product_attribute_create = ProductAttributeCreate.Field()
+    product_attribute_delete = ProductAttributeDelete.Field()
+    product_attribute_update = ProductAttributeUpdate.Field()
 
     product_create = ProductCreateMutation.Field()
     product_delete = ProductDeleteMutation.Field()
