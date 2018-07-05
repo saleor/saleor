@@ -4,11 +4,11 @@ from graphene.types import InputObjectType
 from graphene_file_upload import Upload
 from graphql_jwt.decorators import permission_required
 
-from ...product import models
-from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types import Decimal, Error
-from ..utils import get_attributes_dict_from_list, get_node, get_nodes
-from .types import Collection, Product, ProductImage
+from ....product import models
+from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
+from ...core.types import Decimal, Error
+from ...utils import get_attributes_dict_from_list, get_node, get_nodes
+from ..types import Collection, Product, ProductImage
 
 
 class CategoryInput(graphene.InputObjectType):
