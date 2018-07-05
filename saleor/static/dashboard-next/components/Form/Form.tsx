@@ -16,16 +16,6 @@ export interface FormProps<T extends {}> {
   onSubmit?(data: T);
 }
 
-const shallowCompare = (a, b) => {
-  let ret = true;
-  Object.keys(a).forEach(k => {
-    if (a[k] !== b[k]) {
-      ret = false;
-    }
-  });
-  return ret;
-};
-
 class Form<T extends {} = {}> extends React.Component<FormProps<T>, T> {
   state: T = this.props.initial;
 
@@ -64,7 +54,8 @@ class Form<T extends {} = {}> extends React.Component<FormProps<T>, T> {
       contents = children({
         change: this.handleChange,
         data: this.state,
-        hasChanged: !shallowCompare(this.props.initial, this.state),
+        hasChanged:
+          JSON.stringify(this.props.initial) !== JSON.stringify(this.state),
         submit: this.handleSubmit
       });
     }

@@ -1,6 +1,6 @@
 import * as React from "react";
-
 import { arrayMove } from "react-sortable-hoc";
+
 import * as placeholderImg from "../../../images/placeholder255x255.png";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";

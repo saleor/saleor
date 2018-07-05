@@ -157,7 +157,8 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
       description: product ? product.description : "",
       featured: product && product.isFeatured ? product.isFeatured : false,
       name: product ? product.name : "",
-      price: product && product.price ? product.price.amount : undefined,
+      price:
+        product && product.price ? product.price.amount.toString() : undefined,
       seoDescription: product ? product.seoDescription : "",
       seoTitle: product && product.seoTitle ? product.seoTitle : ""
     };
