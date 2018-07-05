@@ -124,7 +124,7 @@ class ModelMutation(BaseMutation):
                     cleaned_input[field_name] = instances
 
                 # handle ID field
-                elif value is not None and (field.type == graphene.ID or field.type.of_type == graphene.ID):
+                elif value is not None and field.type == graphene.ID:
                     instance = get_node(info, value)
                     cleaned_input[field_name] = instance
 
