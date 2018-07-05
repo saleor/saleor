@@ -1,9 +1,14 @@
 import * as React from "react";
 import { Redirect } from "react-router-dom";
 
+import { ApolloError } from "apollo-client";
+import { MutationProviderChildrenRenderProps } from "../..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import {
+  ProductDeleteMutation,
+  ProductDeleteMutationVariables,
   ProductDetailsQuery,
+  ProductImageCreateMutation,
   ProductImageCreateMutationVariables,
   ProductImageReorderMutationVariables,
   ProductUpdateMutationVariables
@@ -21,7 +26,12 @@ import ProductUpdateProvider from "./ProductUpdate";
 
 interface ProductDeleteProviderProps {
   productId: string;
-  children: ((deleteProduct: () => void) => React.ReactElement<any>);
+  children: ((
+    props: MutationProviderChildrenRenderProps<
+      ProductDeleteMutation,
+      ProductDeleteMutationVariables
+    >
+  ) => React.ReactElement<any>);
 }
 
 const ProductDeleteProvider: React.StatelessComponent<
@@ -31,21 +41,31 @@ const ProductDeleteProvider: React.StatelessComponent<
     mutation={productDeleteMutation}
     variables={{ id: productId }}
   >
-    {(deleteProduct, { called, loading, error }) => {
-      if (called && !loading) {
-        return <Redirect to={productListUrl} push={false} />;
-      }
+    {(mutate, { called, error, loading }) => {
       if (error) {
         return <ErrorMessageCard message={error.message} />;
       }
-      return children(() => deleteProduct());
+      if (called && !loading) {
+        return <Redirect to={productListUrl} push={false} />;
+      }
+      return children({
+        called,
+        error,
+        loading,
+        mutate
+      });
     }}
   </TypedProductDeleteMutation>
 );
 
 interface ProductImageCreateProviderProps {
   productId: string;
-  children: any;
+  children: ((
+    props: MutationProviderChildrenRenderProps<
+      ProductImageCreateMutation,
+      ProductImageCreateMutationVariables
+    >
+  ) => React.ReactElement<any>);
 }
 
 const ProductImageCreateProvider: React.StatelessComponent<
@@ -66,11 +86,16 @@ const ProductImageCreateProvider: React.StatelessComponent<
       cache.writeQuery({ query: productDetailsQuery, data });
     }}
   >
-    {(createProductImage, { error }) => {
+    {(mutate, { called, error, loading }) => {
       if (error) {
         return <ErrorMessageCard message={error.message} />;
       }
-      return children(createProductImage);
+      return children({
+        called,
+        error,
+        loading,
+        mutate
+      });
     }}
   </TypedProductImageCreateMutation>
 );
@@ -78,7 +103,9 @@ const ProductImageCreateProvider: React.StatelessComponent<
 interface ProductUpdateOperationsProps {
   product?: ProductDetailsQuery["product"];
   children: (
-    mutations: {
+    props: {
+      error: ApolloError;
+      loading: boolean;
       createProductImage(variables: ProductImageCreateMutationVariables): void;
       deleteProduct(): void;
       reorderProductImages(
@@ -104,19 +131,31 @@ const ProductUpdateOperations: React.StatelessComponent<
                   {deleteProduct =>
                     children({
                       createProductImage: variables =>
-                        createProductImage({ variables }),
-                      deleteProduct,
+                        createProductImage.mutate({ variables }),
+                      deleteProduct: deleteProduct.mutate,
+                      error:
+                        updateProduct.error ||
+                        reorderProductImages.error ||
+                        createProductImage.error ||
+                        deleteProduct.error,
+                      loading:
+                        updateProduct.loading ||
+                        reorderProductImages.loading ||
+                        createProductImage.loading ||
+                        deleteProduct.loading,
                       reorderProductImages: variables => {
                         const imagesMap = {};
                         product.images.edges.forEach(edge => {
                           const image = edge.node;
                           imagesMap[image.id] = image;
-                        })
-                        const productImages = variables.imagesIds.map((id, index) => ({
-                          __typename: "ProductImage",
-                          ...imagesMap[id],
-                          sortOrder: index,
-                        }));
+                        });
+                        const productImages = variables.imagesIds.map(
+                          (id, index) => ({
+                            __typename: "ProductImage",
+                            ...imagesMap[id],
+                            sortOrder: index
+                          })
+                        );
                         const optimisticResponse = {
                           productImageReorder: {
                             __typename: "ProductImageReorder",
@@ -124,9 +163,13 @@ const ProductUpdateOperations: React.StatelessComponent<
                             productImages
                           }
                         };
-                        reorderProductImages({ variables, optimisticResponse })
+                        reorderProductImages.mutate({
+                          optimisticResponse,
+                          variables
+                        });
                       },
-                      updateProduct: variables => updateProduct({ variables })
+                      updateProduct: variables =>
+                        updateProduct.mutate({ variables })
                     })
                   }
                 </ProductDeleteProvider>

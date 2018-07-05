@@ -1,10 +1,10 @@
 import CssBaseline from "@material-ui/core/CssBaseline";
 import MuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
 import { InMemoryCache } from "apollo-cache-inmemory";
-import { ApolloClient } from "apollo-client";
+import { ApolloClient, ApolloError } from "apollo-client";
 import { createUploadLink } from "apollo-upload-client";
 import * as React from "react";
-import { ApolloProvider } from "react-apollo";
+import { ApolloProvider, MutationFn } from "react-apollo";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
 import { BrowserRouter, Route, Switch } from "react-router-dom";
@@ -64,4 +64,14 @@ export interface ListProps {
 }
 export interface PageListProps extends ListProps {
   onAdd: () => void;
+}
+
+export interface MutationProviderChildrenRenderProps<
+  TData extends {} = {},
+  TVariables extends {} = {}
+> {
+  loading: boolean;
+  called: boolean;
+  error?: ApolloError;
+  mutate: MutationFn<TData, TVariables>;
 }
