@@ -13,7 +13,7 @@ class ProductAttributesInput(graphene.InputObjectType):
 
 class AttributeChoiceValueInput(graphene.InputObjectType):
     attribute = graphene.ID(
-        required=True,
+        required=False,
         description='Attribute to which value will be assigned.')
     slug = graphene.String(
         required=True, description='Internal name.')
@@ -45,6 +45,8 @@ class ProductAttributeCreate(ModelMutation):
 
 class ProductAttributeUpdate(ProductAttributeCreate):
     class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of a product attribute to update.')
         input = ProductAttributesInput(
             required=True,
             description='Fields required to update a product attribute.')
@@ -87,6 +89,9 @@ class AttributeChoiceValueCreate(ModelMutation):
 
 class AttributeChoiceValueUpdate(AttributeChoiceValueCreate):
     class Arguments:
+        id = graphene.ID(
+            required=True,
+            description='ID of an attribute choice value to update.')
         input = AttributeChoiceValueUpdateInput(
             required=True,
             description='Fields required to update an attribute choice value.')
