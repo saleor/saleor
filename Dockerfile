@@ -4,12 +4,12 @@ ENV PYTHONUNBUFFERED 1
 
 RUN \
   apt-get -y update && \
-  apt-get install -y gettext virtualenv && \
+  apt-get install -y gettext && \
   # Cleanup apt cache
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
-RUN virtualenv -p python3 /app/virtualenv
+RUN python3 -m venv /app/virtualenv
 ADD requirements.txt /app/
 RUN /app/virtualenv/bin/pip install -r /app/requirements.txt
 
