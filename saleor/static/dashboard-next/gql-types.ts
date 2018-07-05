@@ -479,6 +479,8 @@ export interface ProductUpdateMutation {
         } | null,
       } | null,
       isPublished: boolean,
+      isFeatured: boolean,
+      chargeTaxes: boolean,
       availableOn: string | null,
       // List of product attributes assigned to this product.
       attributes:  Array< {
@@ -832,6 +834,8 @@ export interface ProductDetailsQuery {
       } | null,
     } | null,
     isPublished: boolean,
+    isFeatured: boolean,
+    chargeTaxes: boolean,
     availableOn: string | null,
     // List of product attributes assigned to this product.
     attributes:  Array< {
@@ -1140,6 +1144,8 @@ export interface ProductFragment {
     } | null,
   } | null,
   isPublished: boolean,
+  isFeatured: boolean,
+  chargeTaxes: boolean,
   availableOn: string | null,
   // List of product attributes assigned to this product.
   attributes:  Array< {

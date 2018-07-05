@@ -33,7 +33,7 @@ interface ImageListElementProps {
     alt?: string;
     sortOrder: number;
     url: string;
-  }
+  };
   onImageEdit(event: React.ChangeEvent<any>);
 }
 
@@ -62,8 +62,9 @@ const decorate = withStyles(theme => ({
     cursor: "move",
     userSelect: "none" as "none",
     "& img": {
+      height: 20 * theme.spacing.unit,
       pointerEvents: "none" as "none",
-      width: "100%"
+      width: 20 * theme.spacing.unit
     }
   },
   icon: {
