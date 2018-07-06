@@ -5,14 +5,6 @@ Docker
 
 You will need to install Docker first.
 
-Before building the image make sure you have all of the front-end assets prepared for production:
-
-.. code-block:: bash
-
- $ npm run build-assets --production
- $ npm run build-emails
- $ python manage.py collectstatic
-
 Then use Docker to build the image:
 
 .. code-block:: bash
