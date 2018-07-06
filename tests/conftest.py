@@ -504,6 +504,11 @@ def fulfilled_order(order_with_lines):
 
 
 @pytest.fixture
+def fulfillment(fulfilled_order):
+    return fulfilled_order.fulfillments.first()
+
+
+@pytest.fixture
 def draft_order(order_with_lines):
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.save(update_fields=['status'])
