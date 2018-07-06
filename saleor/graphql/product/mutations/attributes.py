@@ -8,7 +8,7 @@ class ProductAttributesInput(graphene.InputObjectType):
     slug = graphene.String(
         required=True, description='Internal name.')
     name = graphene.String(
-        required=True, description='Attribute name.')
+        required=True, description='Name displayed in the interface.')
 
 
 class AttributeChoiceValueInput(graphene.InputObjectType):
@@ -18,14 +18,14 @@ class AttributeChoiceValueInput(graphene.InputObjectType):
     slug = graphene.String(
         required=True, description='Internal name.')
     name = graphene.String(
-        required=True, description='Value name.')
+        required=True, description='Name displayed in the interface.')
 
 
 class AttributeChoiceValueUpdateInput(graphene.InputObjectType):
     slug = graphene.String(
         required=True, description='Internal name.')
     name = graphene.String(
-        required=True, description='Value name.')
+        required=True, description='Name displayed in the interface.')
 
 
 class ProductAttributeCreate(ModelMutation):
@@ -83,8 +83,6 @@ class AttributeChoiceValueCreate(ModelMutation):
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('product.edit_product')
-
-
 
 
 class AttributeChoiceValueUpdate(AttributeChoiceValueCreate):
