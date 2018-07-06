@@ -14,7 +14,6 @@ from ..types import OrderLine
 
 def clean_lines_quantities(order_lines, quantities):
     errors = []
-    import ipdb; ipdb.set_trace()
     for order_line, quantity in zip(order_lines, quantities):
         if quantity > order_line.quantity_unfulfilled:
             msg = npgettext_lazy(
@@ -95,6 +94,7 @@ class FulfillmentCreate(ModelMutation):
         order_lines = cleaned_input.get('order_lines')
         quantities = cleaned_input.get('quantities')
         if order_lines and quantities:
+            super().save(info, instance, cleaned_input)
             quantity_fulfilled = 0
             lines_to_fulfill = [
                 (order_line, quantity) for order_line, quantity
@@ -109,7 +109,6 @@ class FulfillmentCreate(ModelMutation):
                     order_line=line[0],
                     fulfillment=instance,
                     quantity=line[1]) for line in lines_to_fulfill]
-            # FIXME: Something is wrong here
             models.FulfillmentLine.objects.bulk_create(fulfillment_lines)
             order = instance.order
             update_order_status(order)
