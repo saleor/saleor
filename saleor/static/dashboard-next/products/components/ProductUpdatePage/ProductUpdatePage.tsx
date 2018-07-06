@@ -30,7 +30,7 @@ interface ProductUpdateProps {
     id: string;
     name: string;
   }>;
-  categories: Array<{
+  categories?: Array<{
     id: string;
     name: string;
   }>;
