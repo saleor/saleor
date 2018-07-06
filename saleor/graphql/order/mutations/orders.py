@@ -172,6 +172,7 @@ class OrderRelease(BaseMutation):
         order = get_node(info, id, only_type=Order)
         payment = order.get_last_payment()
         errors = []
+        import pdb; pdb.set_trace()
         if payment.status != PaymentStatus.PREAUTH:
             errors.append(
                 Error(field='payment',
