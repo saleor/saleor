@@ -232,6 +232,13 @@ def color_attribute(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def pink_choice_value(color_attribute):  # pylint: disable=W0613
+    value = AttributeChoiceValue.objects.create(
+        slug='pink', name='Color', attribute=color_attribute)
+    return value
+
+
+@pytest.fixture
 def size_attribute(db):  # pylint: disable=W0613
     attribute = ProductAttribute.objects.create(slug='size', name='Size')
     AttributeChoiceValue.objects.create(
