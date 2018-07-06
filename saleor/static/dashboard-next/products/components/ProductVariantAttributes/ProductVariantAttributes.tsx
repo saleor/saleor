@@ -3,19 +3,21 @@ import CardContent from "@material-ui/core/CardContent";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
+import { debug } from "util";
+import { AttributeType, AttributeValueType } from "../..";
 import PageHeader from "../../../components/PageHeader";
 import SingleSelectField from "../../../components/SingleSelectField";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
-import { AttributeType, AttributeValueType } from "../..";
-import { debug } from "util";
 
 interface ProductVariantAttributesProps {
   attributes?: Array<{
     attribute: AttributeType;
     value: AttributeValueType;
   }>;
-  formData?: any;
+  data: {
+    [key: string]: string;
+  };
   loading?: boolean;
   onChange(event: any);
 }
@@ -32,7 +34,7 @@ const decorate = withStyles(theme => ({
 }));
 
 const ProductVariantAttributes = decorate<ProductVariantAttributesProps>(
-  ({ attributes, classes, formData, loading, onChange }) => (
+  ({ attributes, classes, data, loading, onChange }) => (
     <Card>
       <PageHeader title={i18n.t("Attributes")} />
       <CardContent className={classes.grid}>
@@ -41,17 +43,21 @@ const ProductVariantAttributes = decorate<ProductVariantAttributesProps>(
             const { attribute } = item;
             return (
               <SingleSelectField
-                choices={attribute.values ? attribute.values.map(value => ({
-                  label: value.name,
-                  value: value.slug
-                })) : []}
+                choices={
+                  attribute.values
+                    ? attribute.values.map(value => ({
+                        label: value.name,
+                        value: value.slug
+                      }))
+                    : []
+                }
                 onChange={onChange}
-                value={formData ? formData[attribute.slug].slug : ""}
+                value={data[attribute.slug]}
                 label={attribute.name}
                 name={attribute.slug}
                 key={attribute.slug}
               />
-            )
+            );
           })
         ) : (
           <Skeleton />
