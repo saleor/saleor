@@ -69,7 +69,6 @@ export interface AttributeType {
 }
 
 export interface AttributeValueType {
-  id: string;
   name: string;
   slug: string;
 }
