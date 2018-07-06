@@ -61,7 +61,7 @@ const products = [
 
 storiesOf("Views / Products / Product list", module)
   .add("default", () => (
-    <ProductListCard products={[]} {...pageListProps.default} />
+    <ProductListCard products={products} {...pageListProps.default} />
   ))
   .add("loading", () => <ProductListCard {...pageListProps.loading} />)
   .add("no data", () => (

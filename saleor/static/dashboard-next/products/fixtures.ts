@@ -11,7 +11,7 @@ export const product = (placeholderImage: string) => ({
   collections: {
     edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
   },
-  price: { currency: "NZD", amount: 339.39 },
+  price: { currency: "NZD", amount: 339.39, localized: "339.39 NZD" },
   availableOn: "2018-08-25T18:45:54.125Z",
   isPublished: true,
   attributes: [
@@ -67,8 +67,12 @@ export const product = (placeholderImage: string) => ({
           id: "pv75934",
           sku: "87192-94370",
           name: "Cordoba Oro",
-          priceOverride: 678.78,
-          quantity: 48,
+          priceOverride: {
+            amount: 678.78,
+            currency: "USD",
+            localized: "678.78 USD"
+          },
+          stockQuantity: 48,
           margin: 2
         }
       },
@@ -78,7 +82,7 @@ export const product = (placeholderImage: string) => ({
           sku: "69055-15190",
           name: "silver",
           priceOverride: null,
-          quantity: 14,
+          stockQuantity: 14,
           margin: 7
         }
       }
@@ -91,7 +95,8 @@ export const product = (placeholderImage: string) => ({
         node: {
           id: "UHJvZHVjdEltYWdlOjE=",
           sortOrder: 0,
-          image: placeholderImage
+          image: placeholderImage,
+          url: placeholderImage
         }
       },
       {
@@ -99,17 +104,19 @@ export const product = (placeholderImage: string) => ({
           id: "UHJvZHVjdEltYWdlOjE=",
           sortOrder: 2,
           image: placeholderImage,
-          alt: "Id sit dolores adipisci"
+          alt: "Id sit dolores adipisci",
+          url: placeholderImage
         }
       }
     ]
   },
   availability: { available: false },
   purchaseCost: {
-    start: { currency: "NZD", amount: 339.39 },
-    stop: { currency: "NZD", amount: 678.78 }
+    start: { currency: "NZD", amount: 339.39, localized: "339.39 NZD" },
+    stop: { currency: "NZD", amount: 678.78, localized: "678.78 NZD" }
   },
-  margin: { start: 2, stop: 7 }
+  margin: { start: 2, stop: 7 },
+  url: "/example-url"
 });
 export const products = (placeholderImage: string) => [
   {
@@ -150,36 +157,50 @@ export const products = (placeholderImage: string) => [
   }
 ];
 
-// export const variants = product.variants.edges.map(edge => edge.node);
-// export const grossMargin = product.grossMargin[0];
-// export const salePrice = {
-//   start: product('').availability.priceRange.start.net.localized,
-//   stop: product('').availability.priceRange.stop.net.localized
-// };
-// export const purchaseCost = {
-//   start: product('').purchaseCost.start.gross.localized,
-//   stop: product('').purchaseCost.stop.gross.localized
-// };
-// export const collections = product.collections.edges.map(edge => edge.node);
-// export const images = product('').images.edges.map(edge => edge.node);
-
 export const variant = (placeholderImage: string) => ({
   attributes: [
     {
       attribute: {
-        name: "Cover",
-        slug: "cover",
-        values: ["hard", "soft"]
+        id: "pta18161",
+        sortNumber: 0,
+        name: "Borders",
+        slug: "Borders",
+        values: [
+          { id: "ptav47282", sortNumber: 0, name: "portals", slug: "portals" },
+          { id: "ptav17253", sortNumber: 1, name: "Baht", slug: "Baht" }
+        ]
       },
-      value: "hard"
+      value: {
+        id: "ptav47282",
+        sortNumber: 0,
+        name: "portals",
+        slug: "portals"
+      }
     },
     {
       attribute: {
-        name: "Version",
-        slug: "version",
-        values: ["regular", "extended"]
+        id: "pta22785",
+        sortNumber: 1,
+        name: "Legacy",
+        slug: "Legacy",
+        values: [
+          { id: "ptav31282", sortNumber: 0, name: "payment", slug: "payment" },
+          {
+            id: "ptav14907",
+            sortNumber: 1,
+            name: "Auto Loan Account",
+            slug: "Auto-Loan-Account"
+          },
+          { id: "ptav27366", sortNumber: 2, name: "Garden", slug: "Garden" },
+          { id: "ptav11873", sortNumber: 3, name: "override", slug: "override" }
+        ]
       },
-      value: "extended"
+      value: {
+        id: "ptav14907",
+        sortNumber: 1,
+        name: "Auto Loan Account",
+        slug: "Auto-Loan-Account"
+      }
     }
   ],
   images: {
@@ -210,8 +231,12 @@ export const variant = (placeholderImage: string) => ({
   name: "Extended Hard",
   priceOverride: {
     currency: "USD",
-    amount: 100
+    amount: 100,
+    localized: "100 USD"
   },
+  quantity: 19,
+  quantityAllocated: 12,
+  stockQuantity: 1,
   product: {
     id: "prod1",
     name: "Our Awesome Book",
@@ -223,7 +248,7 @@ export const variant = (placeholderImage: string) => ({
             id: "img1",
             url: placeholderImage,
             alt: "Front",
-            order: 1
+            sortOrder: 1
           }
         },
         {
@@ -231,7 +256,7 @@ export const variant = (placeholderImage: string) => ({
             id: "img2",
             url: placeholderImage,
             alt: "Back",
-            order: 4
+            sortOrder: 4
           }
         },
         {
@@ -239,7 +264,7 @@ export const variant = (placeholderImage: string) => ({
             id: "img3",
             url: placeholderImage,
             alt: "Right side",
-            order: 2
+            sortOrder: 2
           }
         },
         {
@@ -247,7 +272,7 @@ export const variant = (placeholderImage: string) => ({
             id: "img4",
             url: placeholderImage,
             alt: "Left side",
-            order: 3
+            sortOrder: 3
           }
         },
         {
@@ -255,7 +280,7 @@ export const variant = (placeholderImage: string) => ({
             id: "img5",
             url: placeholderImage,
             alt: "Paper",
-            order: 0
+            sortOrder: 0
           }
         },
         {
@@ -263,7 +288,7 @@ export const variant = (placeholderImage: string) => ({
             id: "img6",
             url: placeholderImage,
             alt: "Hard cover",
-            order: 1
+            sortOrder: 1
           }
         },
         {
@@ -271,7 +296,7 @@ export const variant = (placeholderImage: string) => ({
             id: "img7",
             url: placeholderImage,
             alt: "Extended version",
-            order: 0
+            sortOrder: 0
           }
         },
         {
@@ -279,7 +304,7 @@ export const variant = (placeholderImage: string) => ({
             id: "img8",
             url: placeholderImage,
             alt: "Cut version",
-            order: 2
+            sortOrder: 2
           }
         },
         {
@@ -287,7 +312,7 @@ export const variant = (placeholderImage: string) => ({
             id: "img9",
             url: placeholderImage,
             alt: "Soft cover",
-            order: 2
+            sortOrder: 2
           }
         }
       ]
