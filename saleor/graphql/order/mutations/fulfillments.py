@@ -86,7 +86,7 @@ class FulfillmentCreate(ModelMutation):
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):
-        instance.order = cleaned_data['order']
+        instance.order = cleaned_data.get('order') or instance.order
         return super().construct_instance(instance, cleaned_data)
 
     @classmethod

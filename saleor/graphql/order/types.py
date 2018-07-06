@@ -80,7 +80,7 @@ class OrderNote(CountableDjangoObjectType):
         exclude_fields = ['order']
 
 
-class Fulfillment(DjangoObjectType):
+class Fulfillment(CountableDjangoObjectType):
     status_display = graphene.String(
         description='User-friendly fulfillment status.')
 
@@ -94,8 +94,9 @@ class Fulfillment(DjangoObjectType):
         return self.get_status_display()
 
 
-class FulfillmentLine(DjangoObjectType):
+class FulfillmentLine(CountableDjangoObjectType):
     class Meta:
         description = 'Represents line of the fulfillment.'
+        interfaces = [relay.Node]
         model = models.FulfillmentLine
         exclude_fields = ['fulfillment']

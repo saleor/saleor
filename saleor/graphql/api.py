@@ -289,6 +289,7 @@ class Mutations(graphene.ObjectType):
     draft_order_update = DraftOrderUpdate.Field()
     fulfillment_cancel = FulfillmentCancel.Field()
     fulfillment_create = FulfillmentCreate.Field()
+    fulfillment_update = FulfillmentUpdate.Field()
     order_add_note = OrderAddNote.Field()
     order_cancel = OrderCancel.Field()
     order_capture = OrderCapture.Field()
