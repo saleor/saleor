@@ -231,7 +231,7 @@ class ProductCreateMutation(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def _save_m2m(cls, instance, cleaned_data):
+    def _save_m2m(cls, info, instance, cleaned_data):
         collections = cleaned_data.get('collections', None)
         if collections is not None:
             instance.collections.set(collections)

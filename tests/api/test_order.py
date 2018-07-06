@@ -38,7 +38,12 @@ def test_order_query(admin_api_client, fulfilled_order):
                         totalCount
                     }
                     fulfillments {
-                        fulfillmentOrder
+                        edges {
+                            node {
+                                fulfillmentOrder
+                            }
+                        }
+                        
                     }
                     history {
                         totalCount
@@ -66,7 +71,9 @@ def test_order_query(admin_api_client, fulfilled_order):
     assert order_data['lines']['totalCount'] == order.lines.count()
     assert order_data['notes']['totalCount'] == order.notes.count()
     fulfillment = order.fulfillments.first().fulfillment_order
-    assert order_data['fulfillments'][0]['fulfillmentOrder'] == fulfillment
+    fulfillment_order = order_data[
+        'fulfillments']['edges'][0]['node']['fulfillmentOrder']
+    assert fulfillment_order == fulfillment
 
 
 def test_non_staff_user_can_only_see_his_order(user_api_client, order):

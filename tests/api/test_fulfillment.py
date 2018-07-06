@@ -44,7 +44,7 @@ def test_create_fulfillment(admin_api_client, order_with_lines):
     content = get_graphql_content(response)
     assert 'errors' not in content
     data = content['data']['fulfillmentCreate']['fulfillment']
-    assert data['fulfillmentOrder'] == order.pk
+    assert data['fulfillmentOrder'] == 1
     assert data['status'] == FulfillmentStatus.FULFILLED.upper()
     assert data['trackingNumber'] == tracking
     assert data['lines']['totalCount'] == 1
