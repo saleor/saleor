@@ -86,6 +86,7 @@ class Fulfillment(DjangoObjectType):
 
     class Meta:
         description = 'Represents order fulfillment.'
+        interfaces = [relay.Node]
         model = models.Fulfillment
         exclude_fields = ['order']
 
