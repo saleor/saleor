@@ -45,7 +45,7 @@ from .utils import (
 @permission_required('order.view_order')
 def order_list(request):
     orders = Order.objects.prefetch_related(
-        'payments', 'lines').select_related('user__company')
+        'payments', 'lines').select_related('user', 'user__company')
     order_filter = OrderFilter(request.GET, queryset=orders)
     orders = get_paginator_items(
         order_filter.qs, settings.DASHBOARD_PAGINATE_BY,
@@ -117,7 +117,8 @@ def remove_draft_order(request, order_pk):
 @permission_required('order.view_order')
 def order_details(request, order_pk):
     qs = Order.objects.select_related(
-        'user', 'shipping_address', 'billing_address').prefetch_related(
+        'user', 'shipping_address', 'user__company',
+        'billing_address').prefetch_related(
         'notes__user', 'payments', 'history__user', 'lines__variant__product',
         'fulfillments__lines__order_line')
     order = get_object_or_404(qs, pk=order_pk)
