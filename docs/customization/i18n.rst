@@ -30,6 +30,14 @@ This is required for Django to see the translations.
 
  $ python manage.py compilemessages
 
+.. note::
+
+  On Windows, you will need to install GNU's gettext command.
+  To do that you need to install `gettext-iconv <https://mlocati.github.io/articles/gettext-iconv-windows.html>`_.
+  During the installation, make sure to check "Add to PATH".
+
+  Don't forget to restart your terminal or software after the installation to take the changes into effect.
+
 
 Extracting Messages to Translate
 --------------------------------
