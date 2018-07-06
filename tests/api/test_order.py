@@ -1,5 +1,5 @@
 import json
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock, Mock, patch
 
 import graphene
 import pytest
@@ -363,8 +363,8 @@ def test_order_cancel(admin_api_client, order_with_lines):
     assert data['status'] == order.status.upper()
 
 
-def test_order_capture(admin_api_client, order_with_lines, payment_preauth):
-    order = order_with_lines
+def test_order_capture(admin_api_client, payment_preauth):
+    order = payment_preauth.order
     query = """
         mutation captureOrder($id: ID!, $amount: Decimal!) {
             orderCapture(id: $id, amount: $amount) {
@@ -391,11 +391,43 @@ def test_order_capture(admin_api_client, order_with_lines, payment_preauth):
     assert data['capturedAmount']['amount'] == float(amount)
 
 
-def test_order_mark_as_paid(admin_api_client, order_with_lines):
+def test_paid_order_mark_as_paid(
+        admin_api_client, payment_preauth):
+    order = payment_preauth.order
+    query = """
+            mutation markPaid($id: ID!) {
+                orderMarkAsPaid(id: $id) {
+                    errors {
+                        field
+                        message
+                    }
+                    order {
+                        isPaid
+                    }
+                }
+            }
+        """
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variables = json.dumps({'id': order_id})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    errors = content['data']['orderMarkAsPaid']['errors']
+    msg = 'Orders with payments can not be manually marked as paid.'
+    assert errors[0]['message'] == msg
+    assert errors[0]['field'] == 'payment'
+
+
+def test_order_mark_as_paid(
+        admin_api_client, order_with_lines):
     order = order_with_lines
     query = """
             mutation markPaid($id: ID!) {
                 orderMarkAsPaid(id: $id) {
+                    errors {
+                        field
+                        message
+                    }
                     order {
                         isPaid
                     }
@@ -433,6 +465,44 @@ def test_order_release(admin_api_client, payment_preauth):
     assert data['paymentStatus'] == PaymentStatus.REFUNDED
     history_entry = order.history.last().content
     assert history_entry == 'Released payment'
+
+
+@patch('saleor.graphql.order.mutations.orders.get_node')
+def test_order_release_errors(get_node_mock, admin_api_client):
+    query = """
+            mutation releaseOrder($id: ID!) {
+                orderRelease(id: $id) {
+                    errors {
+                        field
+                        message
+                    }
+                    order {
+                        paymentStatus
+                    }
+                }
+            }
+        """
+    order = get_node_mock
+    order.mock_add_spec(Order)
+    order.payments = Mock()
+    payment = order.payments.first()
+    payment.status = 'not preauth'
+    order_id = 'Does not matter'
+    variables = json.dumps({'id': order_id})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['orderRelease']['errors'][0]
+    assert data['field'] == 'payment'
+    assert data['message'] == 'Only pre-authorized payments can be released'
+
+    payment.status = 'preauth'
+    error_msg = 'error has happened'
+    payment.release = Mock(return_value=ValueError(error_msg))
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['orderRelease']['errors'][0]
 
 
 def test_order_refund(admin_api_client, payment_confirmed):
