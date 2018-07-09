@@ -7,11 +7,16 @@ from ..core.utils import clean_seo_fields
 
 
 class PageInput(graphene.InputObjectType):
-    slug = graphene.String()
-    title = graphene.String()
-    content = graphene.String()
-    is_visible = graphene.Boolean(required=True)
-    available_on = graphene.String()
+    slug = graphene.String(description='Page internal name.')
+    title = graphene.String(description='Page title.')
+    content = graphene.String(
+        description="""Page content.
+        May consists of ordinary text, HTML and images.""")
+    is_visible = graphene.Boolean(
+        required=True,
+        description='Determines if page is visible in the storefront')
+    available_on = graphene.String(
+        description='Publication date. ISO 8601 standard.')
     seo = SeoInput(description='Search engine optimization fields.')
 
 
