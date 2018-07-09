@@ -51,7 +51,7 @@ def test_order_query(admin_api_client, fulfilled_order):
                     history {
                         totalCount
                     }
-                    totalPrize {
+                    totalPrice {
                         net {
                             amount
                         }
@@ -118,7 +118,7 @@ def test_draft_order_create(
     variant_0 = variant
     query = """
     mutation draftCreate(
-        $user: ID, $discount: Decimal, $lines: [LineInput],
+        $user: ID, $discount: Decimal, $lines: [OrderLineInput],
         $shippingAddress: AddressInput, $shippingMethod: ID, $voucher: ID) {
             draftOrderCreate(
                 input: {user: $user, discount: $discount,

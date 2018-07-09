@@ -18,7 +18,7 @@ class Order(CountableDjangoObjectType):
         description='User-friendly order status.')
     captured_amount = graphene.Field(
         Money, description='Amount captured by payment.')
-    total_prize = graphene.Field(
+    total_price = graphene.Field(
         TaxedMoney, description='Total price of the order.')
 
     class Meta:
