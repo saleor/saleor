@@ -1,5 +1,5 @@
 import json
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock
 
 import graphene
 import pytest
@@ -9,7 +9,10 @@ from tests.utils import get_graphql_content
 from saleor.account.models import Address
 from saleor.graphql.order.mutations.draft_orders import (
     check_for_draft_order_errors)
-from saleor.order.models import Order, OrderStatus, PaymentStatus
+from saleor.graphql.order.mutations.orders import (
+    clean_refund_payment, clean_release_payment)
+from saleor.order import CustomPaymentChoices
+from saleor.order.models import Order, OrderStatus, Payment, PaymentStatus
 
 
 def test_order_query(admin_api_client, fulfilled_order):
@@ -47,6 +50,11 @@ def test_order_query(admin_api_client, fulfilled_order):
                     }
                     history {
                         totalCount
+                    }
+                    totalPrize {
+                        net {
+                            amount
+                        }
                     }
                 }
             }
@@ -467,44 +475,6 @@ def test_order_release(admin_api_client, payment_preauth):
     assert history_entry == 'Released payment'
 
 
-@patch('saleor.graphql.order.mutations.orders.get_node')
-def test_order_release_errors(get_node_mock, admin_api_client):
-    query = """
-            mutation releaseOrder($id: ID!) {
-                orderRelease(id: $id) {
-                    errors {
-                        field
-                        message
-                    }
-                    order {
-                        paymentStatus
-                    }
-                }
-            }
-        """
-    order = get_node_mock
-    order.mock_add_spec(Order)
-    order.payments = Mock()
-    payment = order.payments.first()
-    payment.status = 'not preauth'
-    order_id = 'Does not matter'
-    variables = json.dumps({'id': order_id})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    data = content['data']['orderRelease']['errors'][0]
-    assert data['field'] == 'payment'
-    assert data['message'] == 'Only pre-authorized payments can be released'
-
-    payment.status = 'preauth'
-    error_msg = 'error has happened'
-    payment.release = Mock(return_value=ValueError(error_msg))
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    data = content['data']['orderRelease']['errors'][0]
-
-
 def test_order_refund(admin_api_client, payment_confirmed):
     order = order = payment_confirmed.order
     query = """
@@ -530,3 +500,34 @@ def test_order_refund(admin_api_client, payment_confirmed):
     assert history_entry == msg
     assert data['paymentStatus'] == PaymentStatus.REFUNDED
     assert data['isPaid'] == False
+
+
+def test_clean_order_release_payment():
+    payment = MagicMock(spec=Payment)
+    payment.status = 'not preauth'
+    errors = clean_release_payment(payment)
+    assert errors[0].field == 'payment'
+    assert errors[0].message == 'Only pre-authorized payments can be released'
+
+    payment.status = PaymentStatus.PREAUTH
+    error_msg = 'error has happened.'
+    payment.release = Mock(side_effect=ValueError(error_msg))
+    errors = clean_release_payment(payment)
+    assert errors[0].field == 'payment'
+    assert errors[0].message == error_msg
+
+
+def test_clean_order_refund_payment():
+    payment = MagicMock(spec=Payment)
+    payment.variant = CustomPaymentChoices.MANUAL
+    amount = Mock(spec='string')
+    errors = clean_refund_payment(payment, amount)
+    assert errors[0].field == 'payment'
+    assert errors[0].message == 'Manual payments can not be refunded.'
+
+    payment.variant = None
+    error_msg = 'error has happened.'
+    payment.refund = Mock(side_effect=ValueError(error_msg))
+    errors = clean_refund_payment(payment, amount)
+    assert errors[0].field == 'payment'
+    assert errors[0].message == error_msg

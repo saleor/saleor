@@ -3,14 +3,13 @@ from django.utils.translation import npgettext_lazy, pgettext_lazy
 from graphql_jwt.decorators import permission_required
 from payments import PaymentError, PaymentStatus
 
-from saleor.graphql.core.mutations import BaseMutation, ModelMutation
-from saleor.graphql.core.types import Decimal, Error
-from saleor.graphql.order.mutations.draft_orders import DraftOrderUpdate
-from saleor.graphql.order.types import Order
-from saleor.graphql.utils import get_node
-from saleor.order import CustomPaymentChoices, models
-from saleor.order.utils import cancel_order
-
+from ....order import CustomPaymentChoices, models
+from ....order.utils import cancel_order
+from ...core.mutations import BaseMutation, ModelMutation
+from ...core.types import Decimal, Error
+from ...order.mutations.draft_orders import DraftOrderUpdate
+from ...order.types import Order
+from ...utils import get_node
 from .draft_orders import AddressInput
 
 
@@ -19,6 +18,30 @@ def try_payment_action(action, money, errors):
         action(money)
     except (PaymentError, ValueError) as e:
         errors.append(Error(field='payment', message=str(e)))
+
+
+def clean_release_payment(payment):
+    """Check for payment errors."""
+    errors = []
+    if payment.status != PaymentStatus.PREAUTH:
+        errors.append(
+            Error(field='payment',
+                  message='Only pre-authorized payments can be released'))
+    try:
+        payment.release()
+    except (PaymentError, ValueError) as e:
+        errors.append(Error(field='payment', message=str(e)))
+    return errors
+
+
+def clean_refund_payment(payment, amount):
+    errors = []
+    if payment.variant == CustomPaymentChoices.MANUAL:
+        errors.append(
+            Error(field='payment',
+                  message='Manual payments can not be refunded.'))
+    try_payment_action(payment.refund, amount, errors)
+    return errors
 
 
 class OrderUpdateInput(graphene.InputObjectType):
@@ -171,16 +194,7 @@ class OrderRelease(BaseMutation):
     def mutate(cls, root, info, id):
         order = get_node(info, id, only_type=Order)
         payment = order.get_last_payment()
-        errors = []
-        import pdb; pdb.set_trace()
-        if payment.status != PaymentStatus.PREAUTH:
-            errors.append(
-                Error(field='payment',
-                      message='Only pre-authorized payments can be released'))
-        try:
-            payment.release()
-        except (PaymentError, ValueError) as e:
-            errors.append(Error(field='payment', message=str(e)))
+        errors = clean_release_payment(payment)
         if errors:
             return cls(errors=errors)
 
@@ -204,12 +218,7 @@ class OrderRefund(BaseMutation):
     def mutate(cls, root, info, id, amount):
         order = get_node(info, id, only_type=Order)
         payment = order.get_last_payment()
-        errors = []
-        if payment.variant == CustomPaymentChoices.MANUAL:
-            errors.append(
-                Error(field='payment',
-                      message='Manual payments can not be refunded.'))
-        try_payment_action(payment.refund, amount, errors)
+        errors = clean_refund_payment(payment, amount)
         if errors:
             return cls(errors=errors)
 
