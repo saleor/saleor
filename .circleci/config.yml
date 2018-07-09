@@ -22,7 +22,7 @@ jobs:
           name: Run tests
           command: |
             docker run -d --name db circleci/postgres:latest
-            docker run --network container:db --rm -e DATABASE_URL -e DJANGO_SETTINGS_MODULE -e SECRET_KEY mirumee/saleor:latest /app/virtualenv/bin/pytest
+            docker run --network container:db --rm -e DATABASE_URL -e DJANGO_SETTINGS_MODULE -e SECRET_KEY mirumee/saleor:latest pytest
           environment:
             DATABASE_URL: postgres://root:@localhost:5432/circle_test
             DJANGO_SETTINGS_MODULE: saleor.settings
