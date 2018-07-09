@@ -1,8 +1,9 @@
-import json
-from tests.utils import get_graphql_content
 from django.shortcuts import reverse
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
+from tests.utils import get_graphql_content
+
 from saleor.core.permissions import MODELS_PERMISSIONS
+from saleor.graphql.core.utils import handle_seo_fields
 
 
 def test_shop_endpoint(settings, admin_api_client):
@@ -35,3 +36,13 @@ def test_shop_endpoint(settings, admin_api_client):
     assert len(data['languages']) == len(languages)
     assert len(data['phonePrefixes']) == len(COUNTRY_CODE_TO_REGION_CODE)
 
+
+def test_handle_seo_fields():
+    title = 'camel title'
+    description = 'fantasy description'
+    data = {'seo_fields':
+                {'seo_title': title,
+                 'seo_description': description}}
+    handle_seo_fields(data)
+    assert data['seo_title'] == title
+    assert data['seo_description'] == description
