@@ -629,6 +629,15 @@ def test_fulfill_order_line(order_with_lines):
     assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
 
 
+def test_fulfill_order_line_with_variant_deleted(order_with_lines):
+    line = order_with_lines.lines.first()
+    line.variant.delete()
+
+    line.refresh_from_db()
+
+    fulfill_order_line(line, line.quantity)
+
+
 def test_view_change_fulfillment_tracking(admin_client, fulfilled_order):
     fulfillment = fulfilled_order.fulfillments.first()
     url = reverse(
