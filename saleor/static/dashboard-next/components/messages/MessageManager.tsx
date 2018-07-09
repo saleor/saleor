@@ -20,7 +20,7 @@ export class MessageManager extends React.Component<
   MessageManagerState
 > {
   state = {
-    message: null,
+    message: { text: "", key: "0" } as Message,
     opened: false
   };
   queue = [];
@@ -36,10 +36,10 @@ export class MessageManager extends React.Component<
     this.processQueue();
   };
 
-  pushMessage = (message: Message) => () => {
+  pushMessage = (message: Message) => (event: any) => {
     this.queue.push({
       key: new Date().getTime(),
-      message
+      ...message
     });
 
     if (this.state.opened) {
@@ -59,7 +59,7 @@ export class MessageManager extends React.Component<
   };
 
   render() {
-    const { text, key } = this.state.message;
+    const { text, key, onUndo } = this.state.message;
     return (
       <>
         <Snackbar
@@ -69,7 +69,7 @@ export class MessageManager extends React.Component<
             vertical: "top"
           }}
           open={this.state.opened}
-          autoHideDuration={6000}
+          autoHideDuration={5000}
           onClose={this.handleClose}
           onExited={this.handleExited}
           ContentProps={{
@@ -77,14 +77,18 @@ export class MessageManager extends React.Component<
           }}
           message={<span id="message-id">{text}</span>}
           action={[
-            <Button
-              key="undo"
-              color="secondary"
-              size="small"
-              onClick={this.handleClose as any}
-            >
-              UNDO
-            </Button>,
+            !!onUndo ? (
+              <Button
+                key="undo"
+                color="secondary"
+                size="small"
+                onClick={this.handleClose as any}
+              >
+                UNDO
+              </Button>
+            ) : (
+              undefined
+            ),
             <IconButton
               key="close"
               aria-label="Close"

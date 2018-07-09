@@ -1360,6 +1360,40 @@ exports[`Storyshots Generics / ErrorMessageCard default 1`] = `
 </div>
 `;
 
+exports[`Storyshots Generics / Global messages default 1`] = `
+<button
+  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedPrimary-id MuiButton-raised-id MuiButton-raisedPrimary-id"
+  tabindex="0"
+  type="button"
+>
+  <span
+    class="MuiButton-label-id"
+  >
+    Push message
+  </span>
+  <span
+    class="MuiTouchRipple-root-id"
+  />
+</button>
+`;
+
+exports[`Storyshots Generics / Global messages with undo action 1`] = `
+<button
+  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedPrimary-id MuiButton-raised-id MuiButton-raisedPrimary-id"
+  tabindex="0"
+  type="button"
+>
+  <span
+    class="MuiButton-label-id"
+  >
+    Push message
+  </span>
+  <span
+    class="MuiTouchRipple-root-id"
+  />
+</button>
+`;
+
 exports[`Storyshots Generics / Money default 1`] = `
 <p
   class="MuiTypography-root-id MuiTypography-body1-id"
@@ -12134,2467 +12168,6 @@ exports[`Storyshots Pages / PageProperties when loading 1`] = `
       </span>
     </label>
   </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductAttributesForm when data loaded 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Attributes
-    </h2>
-    <div
-      class="Component-action-id"
-    />
-  </div>
-  <div
-    class="MuiCardContent-root-id"
-  >
-    <div
-      class="MuiFormControl-root-id Component-formControl-id"
-    >
-      <label
-        class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-        data-shrink="false"
-      >
-        Borders
-      </label>
-      <div
-        class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-      >
-        <div
-          class="MuiSelect-root-id"
-        >
-          <div
-            aria-haspopup="true"
-            aria-pressed="false"
-            class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInput-input-id"
-            role="button"
-            tabindex="0"
-          >
-            <span>
-              ​
-            </span>
-          </div>
-          <input
-            aria-invalid="false"
-            aria-required="false"
-            name="Borders"
-            type="hidden"
-            value=""
-          />
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id MuiSelect-icon-id"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M7 10l5 5 5-5z"
-            />
-          </svg>
-        </div>
-      </div>
-    </div>
-    <div
-      class="Component-spacer-id"
-    />
-    <div
-      class="MuiFormControl-root-id Component-formControl-id"
-    >
-      <label
-        class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-        data-shrink="false"
-      >
-        Legacy
-      </label>
-      <div
-        class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-      >
-        <div
-          class="MuiSelect-root-id"
-        >
-          <div
-            aria-haspopup="true"
-            aria-pressed="false"
-            class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInput-input-id"
-            role="button"
-            tabindex="0"
-          >
-            <span>
-              ​
-            </span>
-          </div>
-          <input
-            aria-invalid="false"
-            aria-required="false"
-            name="Legacy"
-            type="hidden"
-            value=""
-          />
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id MuiSelect-icon-id"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M7 10l5 5 5-5z"
-            />
-          </svg>
-        </div>
-      </div>
-    </div>
-    <div
-      class="Component-spacer-id"
-    />
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductAttributesForm when loading data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Attributes
-    </h2>
-    <div
-      class="Component-action-id"
-    />
-  </div>
-  <div
-    class="MuiCardContent-root-id"
-  >
-    <span
-      class="Skeleton-skeleton-id"
-    >
-      ‌
-    </span>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductAvailabilityForm when loading data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Status
-    </h2>
-    <div
-      class="Component-action-id"
-    />
-  </div>
-  <div
-    class="MuiCardContent-root-id"
-  >
-    <label
-      class="MuiFormControlLabel-root-id"
-    >
-      <span
-        class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorSecondary-id"
-      >
-        <span
-          class="MuiIconButton-label-id"
-        >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
-            />
-          </svg>
-          <input
-            class="MuiSwitchBase-input-id"
-            name="available"
-            type="checkbox"
-          />
-        </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
-      </span>
-      <span
-        class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
-      >
-        Published in storefront
-      </span>
-    </label>
-    <div
-      class="MuiFormControl-root-id Component-date-id"
-    >
-      <label
-        class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-        data-shrink="true"
-      >
-        Publish product on
-      </label>
-      <div
-        class="MuiInput-root-id MuiInput-formControl-id MuiInput-underline-id"
-      >
-        <input
-          aria-invalid="false"
-          aria-required="false"
-          class="MuiInput-input-id MuiInput-inputType-id"
-          name="availableOn"
-          type="date"
-          value=""
-        />
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductAvailabilityForm with loaded data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Status
-    </h2>
-    <div
-      class="Component-action-id"
-    />
-  </div>
-  <div
-    class="MuiCardContent-root-id"
-  >
-    <label
-      class="MuiFormControlLabel-root-id"
-    >
-      <span
-        class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorSecondary-id MuiSwitchBase-checked-id MuiCheckbox-checked-id"
-      >
-        <span
-          class="MuiIconButton-label-id"
-        >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-            />
-          </svg>
-          <input
-            checked=""
-            class="MuiSwitchBase-input-id"
-            name="available"
-            type="checkbox"
-          />
-        </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
-      </span>
-      <span
-        class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
-      >
-        Published in storefront
-      </span>
-    </label>
-    <div
-      class="MuiFormControl-root-id Component-date-id"
-    >
-      <label
-        class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-        data-shrink="true"
-      >
-        Publish product on
-      </label>
-      <div
-        class="MuiInput-root-id MuiInput-formControl-id MuiInput-underline-id"
-      >
-        <input
-          aria-invalid="false"
-          aria-required="false"
-          class="MuiInput-input-id MuiInput-inputType-id"
-          name="availableOn"
-          type="date"
-          value="04-10-2010"
-        />
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductCategoryAndCollectionsForm when data is loaded 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Organisation
-    </h2>
-    <div
-      class="Component-action-id"
-    />
-  </div>
-  <div
-    class="MuiCardContent-root-id"
-  >
-    <div
-      class="MuiFormControl-root-id Component-formControl-id"
-    >
-      <label
-        class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-        data-shrink="true"
-      >
-        Category
-      </label>
-      <div
-        class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-      >
-        <div
-          class="MuiSelect-root-id"
-        >
-          <div
-            aria-haspopup="true"
-            aria-pressed="false"
-            class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInput-input-id"
-            role="button"
-            tabindex="0"
-          >
-            Mauris vehicula tortor vulputate
-          </div>
-          <input
-            aria-invalid="false"
-            aria-required="false"
-            name="category"
-            type="hidden"
-            value="876752"
-          />
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id MuiSelect-icon-id"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M7 10l5 5 5-5z"
-            />
-          </svg>
-        </div>
-      </div>
-    </div>
-    <div
-      class="Component-spacer-id"
-    />
-    <div
-      class="MuiFormControl-root-id Component-formControl-id"
-    >
-      <label
-        class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-        data-shrink="true"
-      >
-        Collections
-      </label>
-      <div
-        class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-      >
-        <div
-          class="MuiSelect-root-id"
-        >
-          <div
-            aria-haspopup="true"
-            aria-pressed="false"
-            class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInput-input-id"
-            role="button"
-            tabindex="0"
-          >
-            <div
-              class="Component-chipContainer-id"
-            >
-              <div
-                class="MuiChip-root-id Component-chip-id"
-                role="button"
-                tabindex="-1"
-              >
-                <span
-                  class="MuiChip-label-id"
-                >
-                  Winter collection
-                </span>
-              </div>
-            </div>
-          </div>
-          <input
-            aria-invalid="false"
-            aria-required="false"
-            name="collections"
-            type="hidden"
-            value="1"
-          />
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id MuiSelect-icon-id"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M7 10l5 5 5-5z"
-            />
-          </svg>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductCategoryAndCollectionsForm while loading data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Organisation
-    </h2>
-    <div
-      class="Component-action-id"
-    />
-  </div>
-  <div
-    class="MuiCardContent-root-id"
-  >
-    <div
-      class="MuiFormControl-root-id Component-formControl-id"
-    >
-      <label
-        class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-        data-shrink="false"
-      >
-        Category
-      </label>
-      <div
-        class="MuiInput-root-id MuiInput-disabled-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-      >
-        <div
-          class="MuiSelect-root-id"
-        >
-          <div
-            aria-haspopup="true"
-            aria-pressed="false"
-            class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-disabled-id MuiInput-input-id MuiInput-disabled-id"
-            role="button"
-          >
-            <span>
-              ​
-            </span>
-          </div>
-          <input
-            aria-invalid="false"
-            aria-required="false"
-            name="category"
-            type="hidden"
-            value=""
-          />
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id MuiSelect-icon-id"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M7 10l5 5 5-5z"
-            />
-          </svg>
-        </div>
-      </div>
-    </div>
-    <div
-      class="Component-spacer-id"
-    />
-    <div
-      class="MuiFormControl-root-id Component-formControl-id"
-    >
-      <label
-        class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-        data-shrink="false"
-      >
-        Collections
-      </label>
-      <div
-        class="MuiInput-root-id MuiInput-disabled-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-      >
-        <div
-          class="MuiSelect-root-id"
-        >
-          <div
-            aria-haspopup="true"
-            aria-pressed="false"
-            class="MuiSelect-select-id MuiSelect-selectMenu-id MuiSelect-disabled-id MuiInput-input-id MuiInput-disabled-id"
-            role="button"
-          >
-            <span>
-              ​
-            </span>
-          </div>
-          <input
-            aria-invalid="false"
-            aria-required="false"
-            name="collections"
-            type="hidden"
-            value=""
-          />
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id MuiSelect-icon-id"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M7 10l5 5 5-5z"
-            />
-          </svg>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductDetailsForm when loading data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id"
->
-  <div
-    class="MuiCardContent-root-id"
-  >
-    <div
-      class="Component-root-id"
-    >
-      <div
-        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-      >
-        <label
-          class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-          data-shrink="false"
-        >
-          Name
-        </label>
-        <div
-          class="MuiInput-root-id MuiInput-disabled-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-        >
-          <input
-            aria-invalid="false"
-            aria-required="false"
-            class="MuiInput-input-id MuiInput-disabled-id"
-            disabled=""
-            name="name"
-            rows="5"
-            type="text"
-          />
-        </div>
-      </div>
-      <span />
-      <div
-        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-      >
-        <label
-          class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-          data-shrink="false"
-          for="price"
-        >
-          Price
-        </label>
-        <div
-          class="MuiInput-root-id MuiInput-disabled-id MuiInput-formControl-id MuiInput-underline-id"
-        >
-          <input
-            aria-invalid="false"
-            aria-required="false"
-            class="MuiInput-input-id MuiInput-disabled-id MuiInput-inputType-id"
-            disabled=""
-            name="price"
-            type="number"
-            value=""
-          />
-          <span />
-        </div>
-      </div>
-    </div>
-    <div
-      class="Component-spacer-id"
-    />
-    <div
-      class="MuiFormControl-root-id"
-      style="width:100%"
-    >
-      <label
-        class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-        data-shrink="false"
-      >
-        Description
-      </label>
-      <div
-        class="MuiInput-root-id MuiInput-disabled-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
-      >
-        <textarea
-          aria-invalid="false"
-          aria-required="false"
-          class="MuiInput-input-id MuiInput-disabled-id MuiInput-inputMultiline-id"
-          disabled=""
-          name="description"
-          rows="10"
-          type="text"
-        />
-      </div>
-      <p
-        class="MuiFormHelperText-root-id"
-      >
-        Select text to enable text-formatting tools.
-      </p>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductDetailsForm with initial data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id"
->
-  <div
-    class="MuiCardContent-root-id"
-  >
-    <div
-      class="Component-root-id"
-    >
-      <div
-        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-      >
-        <label
-          class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-          data-shrink="true"
-        >
-          Name
-        </label>
-        <div
-          class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-        >
-          <input
-            aria-invalid="false"
-            aria-required="false"
-            class="MuiInput-input-id"
-            name="name"
-            rows="5"
-            type="text"
-            value="Ergonomic Plastic Bacon"
-          />
-        </div>
-      </div>
-      <span />
-      <div
-        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-      >
-        <label
-          class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-          data-shrink="true"
-          for="price"
-        >
-          Price
-        </label>
-        <div
-          class="MuiInput-root-id MuiInput-formControl-id MuiInput-underline-id"
-        >
-          <input
-            aria-invalid="false"
-            aria-required="false"
-            class="MuiInput-input-id MuiInput-inputType-id"
-            name="price"
-            type="number"
-            value="339.39"
-          />
-          <div
-            class="MuiInputAdornment-root-id MuiInputAdornment-positionEnd-id"
-          >
-            <p
-              class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
-            >
-              NZD
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div
-      class="Component-spacer-id"
-    />
-    <div
-      class="MuiFormControl-root-id"
-      style="width:100%"
-    >
-      <label
-        class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-        data-shrink="true"
-      >
-        Description
-      </label>
-      <div
-        class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
-      >
-        <textarea
-          aria-invalid="false"
-          aria-required="false"
-          class="MuiInput-input-id MuiInput-inputMultiline-id"
-          name="description"
-          rows="10"
-          type="text"
-        >
-          Omnis rerum ea. Fugit dignissimos modi est rerum. Qui corrupti expedita et. Dolorem dolorum illo doloremque. Officia perspiciatis facilis ab maxime voluptatem eligendi ipsam. Quisquam impedit repudiandae eos. Id sit dolores adipisci qui omnis dolores qui. Illo deleniti mollitia perspiciatis.
-        </textarea>
-      </div>
-      <p
-        class="MuiFormHelperText-root-id"
-      >
-        Select text to enable text-formatting tools.
-      </p>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductDetailsForm with no initial data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id"
->
-  <div
-    class="MuiCardContent-root-id"
-  >
-    <div
-      class="Component-root-id"
-    >
-      <div
-        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-      >
-        <label
-          class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-          data-shrink="false"
-        >
-          Name
-        </label>
-        <div
-          class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-        >
-          <input
-            aria-invalid="false"
-            aria-required="false"
-            class="MuiInput-input-id"
-            name="name"
-            rows="5"
-            type="text"
-          />
-        </div>
-      </div>
-      <span />
-      <div
-        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-      >
-        <label
-          class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-          data-shrink="false"
-          for="price"
-        >
-          Price
-        </label>
-        <div
-          class="MuiInput-root-id MuiInput-formControl-id MuiInput-underline-id"
-        >
-          <input
-            aria-invalid="false"
-            aria-required="false"
-            class="MuiInput-input-id MuiInput-inputType-id"
-            name="price"
-            type="number"
-            value=""
-          />
-          <span />
-        </div>
-      </div>
-    </div>
-    <div
-      class="Component-spacer-id"
-    />
-    <div
-      class="MuiFormControl-root-id"
-      style="width:100%"
-    >
-      <label
-        class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-        data-shrink="false"
-      >
-        Description
-      </label>
-      <div
-        class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
-      >
-        <textarea
-          aria-invalid="false"
-          aria-required="false"
-          class="MuiInput-input-id MuiInput-inputMultiline-id"
-          name="description"
-          rows="10"
-          type="text"
-        />
-      </div>
-      <p
-        class="MuiFormHelperText-root-id"
-      >
-        Select text to enable text-formatting tools.
-      </p>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductImages when loading data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id Component-card-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Images
-    </h2>
-    <div
-      class="Component-action-id"
-    >
-      <button
-        class="MuiButtonBase-root-id MuiIconButton-root-id"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiIconButton-label-id"
-        >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <g>
-              <path
-                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-              />
-            </g>
-          </svg>
-        </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
-      </button>
-      <input
-        class="Component-fileField-id"
-        id="fileUpload"
-        type="file"
-      />
-    </div>
-  </div>
-  <div
-    class="MuiCardContent-root-id"
-  >
-    <div
-      class="Component-root-id"
-    >
-      <div
-        class="MuiGridListTile-root-id Component-gridElement-id"
-      >
-        <div
-          class="MuiGridListTile-tile-id"
-        >
-          <img
-            src="placeholder255x255.png"
-          />
-          <div
-            class="MuiGridListTileBar-root-id MuiGridListTileBar-titlePositionBottom-id"
-          >
-            <div
-              class="MuiGridListTileBar-titleWrap-id"
-            >
-              <div
-                class="MuiGridListTileBar-title-id"
-              >
-                Loading...
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductImages with data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id Component-card-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Images
-    </h2>
-    <div
-      class="Component-action-id"
-    >
-      <button
-        class="MuiButtonBase-root-id MuiIconButton-root-id"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiIconButton-label-id"
-        >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <g>
-              <path
-                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-              />
-            </g>
-          </svg>
-        </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
-      </button>
-      <input
-        class="Component-fileField-id"
-        id="fileUpload"
-        type="file"
-      />
-    </div>
-  </div>
-  <div
-    class="MuiCardContent-root-id"
-  >
-    <div
-      class="Component-root-id"
-    >
-      <div
-        class="MuiGridListTile-root-id Component-gridElement-id"
-      >
-        <div
-          class="MuiGridListTile-tile-id"
-        >
-          <img />
-          <div
-            class="MuiGridListTileBar-root-id MuiGridListTileBar-titlePositionBottom-id"
-          >
-            <div
-              class="MuiGridListTileBar-titleWrap-id"
-            >
-              <div
-                class="MuiGridListTileBar-title-id"
-              >
-                No description
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        class="MuiGridListTile-root-id Component-gridElement-id"
-      >
-        <div
-          class="MuiGridListTile-tile-id"
-        >
-          <img
-            alt="Id sit dolores adipisci"
-          />
-          <div
-            class="MuiGridListTileBar-root-id MuiGridListTileBar-titlePositionBottom-id"
-          >
-            <div
-              class="MuiGridListTileBar-titleWrap-id"
-            >
-              <div
-                class="MuiGridListTileBar-title-id"
-              >
-                Id sit dolores adipisci
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductImages without data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id Component-card-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Images
-    </h2>
-    <div
-      class="Component-action-id"
-    >
-      <button
-        class="MuiButtonBase-root-id MuiIconButton-root-id"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiIconButton-label-id"
-        >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <g>
-              <path
-                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-              />
-            </g>
-          </svg>
-        </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
-      </button>
-      <input
-        class="Component-fileField-id"
-        id="fileUpload"
-        type="file"
-      />
-    </div>
-  </div>
-  <div
-    class="MuiCardContent-root-id"
-  >
-    <p
-      class="MuiTypography-root-id MuiTypography-body1-id"
-    >
-      No images available
-    </p>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductVariantAttributes when loaded data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Attributes
-    </h2>
-    <div
-      class="Component-action-id"
-    />
-  </div>
-  <div
-    class="MuiCardContent-root-id Component-grid-id"
-  >
-    <div
-      class="MuiFormControl-root-id Component-formControl-id"
-    >
-      <label
-        class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-        data-shrink="false"
-      >
-        Cover
-      </label>
-      <div
-        class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-      >
-        <div
-          class="MuiSelect-root-id"
-        >
-          <div
-            aria-haspopup="true"
-            aria-pressed="false"
-            class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInput-input-id"
-            role="button"
-            tabindex="0"
-          >
-            <span>
-              ​
-            </span>
-          </div>
-          <input
-            aria-invalid="false"
-            aria-required="false"
-            name="cover"
-            type="hidden"
-            value=""
-          />
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id MuiSelect-icon-id"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M7 10l5 5 5-5z"
-            />
-          </svg>
-        </div>
-      </div>
-    </div>
-    <div
-      class="MuiFormControl-root-id Component-formControl-id"
-    >
-      <label
-        class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-        data-shrink="false"
-      >
-        Version
-      </label>
-      <div
-        class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-      >
-        <div
-          class="MuiSelect-root-id"
-        >
-          <div
-            aria-haspopup="true"
-            aria-pressed="false"
-            class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInput-input-id"
-            role="button"
-            tabindex="0"
-          >
-            <span>
-              ​
-            </span>
-          </div>
-          <input
-            aria-invalid="false"
-            aria-required="false"
-            name="version"
-            type="hidden"
-            value=""
-          />
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id MuiSelect-icon-id"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M7 10l5 5 5-5z"
-            />
-          </svg>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductVariantAttributes when loading data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Attributes
-    </h2>
-    <div
-      class="Component-action-id"
-    />
-  </div>
-  <div
-    class="MuiCardContent-root-id Component-grid-id"
-  >
-    <span
-      class="Skeleton-skeleton-id"
-    >
-      ‌
-    </span>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductVariantDeleteDialog default 1`] = `null`;
-
-exports[`Storyshots Products / ProductVariantImageSelectDialog default 1`] = `null`;
-
-exports[`Storyshots Products / ProductVariantImages when loaded data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id Component-card-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Images
-    </h2>
-    <div
-      class="Component-action-id"
-    >
-      <button
-        class="MuiButtonBase-root-id MuiIconButton-root-id"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiIconButton-label-id"
-        >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <g>
-              <path
-                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-              />
-            </g>
-          </svg>
-        </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
-      </button>
-    </div>
-  </div>
-  <div
-    class="MuiCardContent-root-id"
-  >
-    <div
-      class="Component-root-id"
-    >
-      <div
-        class="MuiGridListTile-root-id Component-gridElement-id"
-      >
-        <div
-          class="MuiGridListTile-tile-id"
-        >
-          <img
-            alt="Front"
-            src="placeholder255x255.png"
-          />
-          <div
-            class="MuiGridListTileBar-root-id MuiGridListTileBar-titlePositionBottom-id"
-          >
-            <div
-              class="MuiGridListTileBar-titleWrap-id"
-            >
-              <div
-                class="MuiGridListTileBar-title-id"
-              >
-                Front
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        class="MuiGridListTile-root-id Component-gridElement-id"
-      >
-        <div
-          class="MuiGridListTile-tile-id"
-        >
-          <img
-            alt="Back"
-            src="placeholder255x255.png"
-          />
-          <div
-            class="MuiGridListTileBar-root-id MuiGridListTileBar-titlePositionBottom-id"
-          >
-            <div
-              class="MuiGridListTileBar-titleWrap-id"
-            >
-              <div
-                class="MuiGridListTileBar-title-id"
-              >
-                Back
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        class="MuiGridListTile-root-id Component-gridElement-id"
-      >
-        <div
-          class="MuiGridListTile-tile-id"
-        >
-          <img
-            alt="Right side"
-            src="placeholder255x255.png"
-          />
-          <div
-            class="MuiGridListTileBar-root-id MuiGridListTileBar-titlePositionBottom-id"
-          >
-            <div
-              class="MuiGridListTileBar-titleWrap-id"
-            >
-              <div
-                class="MuiGridListTileBar-title-id"
-              >
-                Right side
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        class="MuiGridListTile-root-id Component-gridElement-id"
-      >
-        <div
-          class="MuiGridListTile-tile-id"
-        >
-          <img
-            alt="Left side"
-            src="placeholder255x255.png"
-          />
-          <div
-            class="MuiGridListTileBar-root-id MuiGridListTileBar-titlePositionBottom-id"
-          >
-            <div
-              class="MuiGridListTileBar-titleWrap-id"
-            >
-              <div
-                class="MuiGridListTileBar-title-id"
-              >
-                Left side
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        class="MuiGridListTile-root-id Component-gridElement-id"
-      >
-        <div
-          class="MuiGridListTile-tile-id"
-        >
-          <img
-            alt="Paper"
-            src="placeholder255x255.png"
-          />
-          <div
-            class="MuiGridListTileBar-root-id MuiGridListTileBar-titlePositionBottom-id"
-          >
-            <div
-              class="MuiGridListTileBar-titleWrap-id"
-            >
-              <div
-                class="MuiGridListTileBar-title-id"
-              >
-                Paper
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        class="MuiGridListTile-root-id Component-gridElement-id"
-      >
-        <div
-          class="MuiGridListTile-tile-id"
-        >
-          <img
-            alt="Hard cover"
-            src="placeholder255x255.png"
-          />
-          <div
-            class="MuiGridListTileBar-root-id MuiGridListTileBar-titlePositionBottom-id"
-          >
-            <div
-              class="MuiGridListTileBar-titleWrap-id"
-            >
-              <div
-                class="MuiGridListTileBar-title-id"
-              >
-                Hard cover
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        class="MuiGridListTile-root-id Component-gridElement-id"
-      >
-        <div
-          class="MuiGridListTile-tile-id"
-        >
-          <img
-            alt="Extended version"
-            src="placeholder255x255.png"
-          />
-          <div
-            class="MuiGridListTileBar-root-id MuiGridListTileBar-titlePositionBottom-id"
-          >
-            <div
-              class="MuiGridListTileBar-titleWrap-id"
-            >
-              <div
-                class="MuiGridListTileBar-title-id"
-              >
-                Extended version
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        class="MuiGridListTile-root-id Component-gridElement-id"
-      >
-        <div
-          class="MuiGridListTile-tile-id"
-        >
-          <img
-            alt="Cut version"
-            src="placeholder255x255.png"
-          />
-          <div
-            class="MuiGridListTileBar-root-id MuiGridListTileBar-titlePositionBottom-id"
-          >
-            <div
-              class="MuiGridListTileBar-titleWrap-id"
-            >
-              <div
-                class="MuiGridListTileBar-title-id"
-              >
-                Cut version
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        class="MuiGridListTile-root-id Component-gridElement-id"
-      >
-        <div
-          class="MuiGridListTile-tile-id"
-        >
-          <img
-            alt="Soft cover"
-            src="placeholder255x255.png"
-          />
-          <div
-            class="MuiGridListTileBar-root-id MuiGridListTileBar-titlePositionBottom-id"
-          >
-            <div
-              class="MuiGridListTileBar-titleWrap-id"
-            >
-              <div
-                class="MuiGridListTileBar-title-id"
-              >
-                Soft cover
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductVariantImages when loading data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id Component-card-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Images
-    </h2>
-    <div
-      class="Component-action-id"
-    >
-      <button
-        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
-        disabled=""
-        tabindex="-1"
-        type="button"
-      >
-        <span
-          class="MuiIconButton-label-id"
-        >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <g>
-              <path
-                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-              />
-            </g>
-          </svg>
-        </span>
-      </button>
-    </div>
-  </div>
-  <div
-    class="MuiCardContent-root-id"
-  >
-    <div
-      class="Component-root-id"
-    >
-      <div
-        class="MuiGridListTile-root-id Component-gridElement-id"
-      >
-        <div
-          class="MuiGridListTile-tile-id"
-        >
-          <img
-            src="placeholder255x255.png"
-          />
-          <div
-            class="MuiGridListTileBar-root-id MuiGridListTileBar-titlePositionBottom-id"
-          >
-            <div
-              class="MuiGridListTileBar-titleWrap-id"
-            >
-              <div
-                class="MuiGridListTileBar-title-id"
-              >
-                Loading...
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductVariantNavigation when loaded data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id Component-card-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Variants
-    </h2>
-    <div
-      class="Component-action-id"
-    />
-  </div>
-  <table
-    class="MuiTable-root-id"
-  >
-    <tbody
-      class="MuiTableBody-root-id"
-    >
-      <tr
-        class="MuiTableRow-root-id"
-      >
-        <td
-          class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-        >
-          Extended Soft
-        </td>
-      </tr>
-      <tr
-        class="MuiTableRow-root-id"
-      >
-        <td
-          class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-        >
-          Normal Hard
-        </td>
-      </tr>
-      <tr
-        class="MuiTableRow-root-id"
-      >
-        <td
-          class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-        >
-          Normal Soft
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-`;
-
-exports[`Storyshots Products / ProductVariantNavigation when loading data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id Component-card-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Variants
-    </h2>
-    <div
-      class="Component-action-id"
-    />
-  </div>
-  <table
-    class="MuiTable-root-id"
-  >
-    <tbody
-      class="MuiTableBody-root-id"
-    >
-      <tr
-        class="MuiTableRow-root-id"
-      >
-        <td
-          class="MuiTableCell-root-id MuiTableCell-body-id"
-        >
-          <span
-            class="Skeleton-skeleton-id"
-          >
-            ‌
-          </span>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-`;
-
-exports[`Storyshots Products / ProductVariantNavigation with clickable rows 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id Component-card-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Variants
-    </h2>
-    <div
-      class="Component-action-id"
-    />
-  </div>
-  <table
-    class="MuiTable-root-id"
-  >
-    <tbody
-      class="MuiTableBody-root-id"
-    >
-      <tr
-        class="MuiTableRow-root-id"
-      >
-        <td
-          class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-        >
-          Extended Soft
-        </td>
-      </tr>
-      <tr
-        class="MuiTableRow-root-id"
-      >
-        <td
-          class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-        >
-          Normal Hard
-        </td>
-      </tr>
-      <tr
-        class="MuiTableRow-root-id"
-      >
-        <td
-          class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-        >
-          Normal Soft
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-`;
-
-exports[`Storyshots Products / ProductVariantPrice when loaded data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id Component-root-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Pricing
-    </h2>
-    <div
-      class="Component-action-id"
-    />
-  </div>
-  <div
-    class="MuiCardContent-root-id"
-  >
-    <div
-      class="Component-grid-id"
-    >
-      <div>
-        <div
-          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-        >
-          <label
-            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-            data-shrink="true"
-            for="priceOverride"
-          >
-            Selling price override
-          </label>
-          <div
-            class="MuiInput-root-id MuiInput-formControl-id MuiInput-underline-id"
-          >
-            <input
-              aria-invalid="false"
-              aria-required="false"
-              class="MuiInput-input-id MuiInput-inputType-id"
-              name="priceOverride"
-              type="number"
-              value="100"
-            />
-            <div
-              class="MuiInputAdornment-root-id MuiInputAdornment-positionEnd-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
-              >
-                USD
-              </p>
-            </div>
-          </div>
-          <p
-            class="MuiFormHelperText-root-id"
-          >
-            Optional
-          </p>
-        </div>
-      </div>
-      <div>
-        <div
-          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-        >
-          <label
-            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-            data-shrink="true"
-            for="costPrice"
-          >
-            Cost price override
-          </label>
-          <div
-            class="MuiInput-root-id MuiInput-formControl-id MuiInput-underline-id"
-          >
-            <input
-              aria-invalid="false"
-              aria-required="false"
-              class="MuiInput-input-id MuiInput-inputType-id"
-              name="costPrice"
-              type="number"
-              value="100"
-            />
-            <div
-              class="MuiInputAdornment-root-id MuiInputAdornment-positionEnd-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorTextSecondary-id"
-              >
-                USD
-              </p>
-            </div>
-          </div>
-          <p
-            class="MuiFormHelperText-root-id"
-          >
-            Optional
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductVariantPrice when loading data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id Component-root-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Pricing
-    </h2>
-    <div
-      class="Component-action-id"
-    />
-  </div>
-  <div
-    class="MuiCardContent-root-id"
-  >
-    <div
-      class="Component-grid-id"
-    >
-      <div>
-        <div
-          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-        >
-          <label
-            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-            data-shrink="false"
-            for="priceOverride"
-          >
-            Selling price override
-          </label>
-          <div
-            class="MuiInput-root-id MuiInput-disabled-id MuiInput-formControl-id MuiInput-underline-id"
-          >
-            <input
-              aria-invalid="false"
-              aria-required="false"
-              class="MuiInput-input-id MuiInput-disabled-id MuiInput-inputType-id"
-              disabled=""
-              name="priceOverride"
-              type="number"
-              value=""
-            />
-            <span />
-          </div>
-          <p
-            class="MuiFormHelperText-root-id"
-          >
-            Optional
-          </p>
-        </div>
-      </div>
-      <div>
-        <div
-          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-        >
-          <label
-            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-            data-shrink="false"
-            for="costPrice"
-          >
-            Cost price override
-          </label>
-          <div
-            class="MuiInput-root-id MuiInput-disabled-id MuiInput-formControl-id MuiInput-underline-id"
-          >
-            <input
-              aria-invalid="false"
-              aria-required="false"
-              class="MuiInput-input-id MuiInput-disabled-id MuiInput-inputType-id"
-              disabled=""
-              name="costPrice"
-              type="number"
-              value=""
-            />
-            <span />
-          </div>
-          <p
-            class="MuiFormHelperText-root-id"
-          >
-            Optional
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductVariantProduct when loaded data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id"
->
-  <div
-    class="MuiCardContent-root-id"
-  >
-    <div
-      class="Component-root-id"
-    >
-      <img
-        class="Component-thumbnail-id"
-        src="placeholder60x60.png"
-      />
-      <div>
-        <p
-          class="MuiTypography-root-id MuiTypography-body1-id"
-        >
-          Our Awesome Book
-        </p>
-        <span
-          class="MuiTypography-root-id MuiTypography-caption-id"
-        >
-          Variants: 11
-        </span>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductVariantProduct when loading data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id"
->
-  <div
-    class="MuiCardContent-root-id"
-  >
-    <div
-      class="Component-root-id"
-    >
-      <img
-        class="Component-thumbnail-id"
-        src="placeholder60x60.png"
-      />
-      <div>
-        <p
-          class="MuiTypography-root-id MuiTypography-body1-id"
-        >
-          <span
-            class="Skeleton-skeleton-id"
-          >
-            ‌
-          </span>
-        </p>
-        <span
-          class="MuiTypography-root-id MuiTypography-caption-id"
-        >
-          <span
-            class="Skeleton-skeleton-id"
-          >
-            ‌
-          </span>
-        </span>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductVariantStock when loaded data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id Component-root-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Stock
-    </h2>
-    <div
-      class="Component-action-id"
-    />
-  </div>
-  <div
-    class="MuiCardContent-root-id"
-  >
-    <div
-      class="Component-grid-id"
-    >
-      <div>
-        <div
-          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-        >
-          <label
-            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-            data-shrink="true"
-          >
-            In stock
-          </label>
-          <div
-            class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-          >
-            <input
-              aria-invalid="false"
-              aria-required="false"
-              class="MuiInput-input-id"
-              name="stock"
-              type="text"
-              value="49"
-            />
-          </div>
-          <p
-            class="MuiFormHelperText-root-id"
-          >
-            Allocated: 12
-          </p>
-        </div>
-      </div>
-      <div>
-        <div
-          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-        >
-          <label
-            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-            data-shrink="true"
-          >
-            SKU
-          </label>
-          <div
-            class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-          >
-            <input
-              aria-invalid="false"
-              aria-required="false"
-              class="MuiInput-input-id"
-              name="sku"
-              type="text"
-              value="1230959124123"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductVariantStock when loading data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id Component-root-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Stock
-    </h2>
-    <div
-      class="Component-action-id"
-    />
-  </div>
-  <div
-    class="MuiCardContent-root-id"
-  >
-    <div
-      class="Component-grid-id"
-    >
-      <div>
-        <div
-          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-        >
-          <label
-            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-            data-shrink="false"
-          >
-            In stock
-          </label>
-          <div
-            class="MuiInput-root-id MuiInput-disabled-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-          >
-            <input
-              aria-invalid="false"
-              aria-required="false"
-              class="MuiInput-input-id MuiInput-disabled-id"
-              disabled=""
-              name="stock"
-              type="text"
-            />
-          </div>
-        </div>
-      </div>
-      <div>
-        <div
-          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-        >
-          <label
-            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-            data-shrink="false"
-          >
-            SKU
-          </label>
-          <div
-            class="MuiInput-root-id MuiInput-disabled-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-          >
-            <input
-              aria-invalid="false"
-              aria-required="false"
-              class="MuiInput-input-id MuiInput-disabled-id"
-              disabled=""
-              name="sku"
-              type="text"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Products / ProductVariants when loading data 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Variants
-    </h2>
-    <div
-      class="Component-action-id"
-    />
-  </div>
-  <table
-    class="MuiTable-root-id Component-denseTable-id"
-  >
-    <thead
-      class="MuiTableHead-root-id"
-    >
-      <tr
-        class="MuiTableRow-root-id MuiTableRow-head-id"
-      >
-        <th
-          class="MuiTableCell-root-id MuiTableCell-head-id"
-          scope="col"
-        >
-          Name
-        </th>
-        <th
-          class="MuiTableCell-root-id MuiTableCell-head-id"
-          scope="col"
-        >
-          Status
-        </th>
-      </tr>
-    </thead>
-    <tbody
-      class="MuiTableBody-root-id"
-    >
-      <tr
-        class="MuiTableRow-root-id"
-      >
-        <td
-          class="MuiTableCell-root-id MuiTableCell-body-id"
-        >
-          <span
-            class="Skeleton-skeleton-id"
-          >
-            ‌
-          </span>
-        </td>
-        <td
-          class="MuiTableCell-root-id MuiTableCell-body-id"
-        >
-          <span
-            class="Skeleton-skeleton-id"
-          >
-            ‌
-          </span>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-`;
-
-exports[`Storyshots Products / ProductVariants when product has no variants 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Variants
-    </h2>
-    <div
-      class="Component-action-id"
-    />
-  </div>
-  <table
-    class="MuiTable-root-id Component-denseTable-id"
-  >
-    <thead
-      class="MuiTableHead-root-id"
-    >
-      <tr
-        class="MuiTableRow-root-id MuiTableRow-head-id"
-      >
-        <th
-          class="MuiTableCell-root-id MuiTableCell-head-id"
-          scope="col"
-        >
-          Name
-        </th>
-        <th
-          class="MuiTableCell-root-id MuiTableCell-head-id"
-          scope="col"
-        >
-          Status
-        </th>
-      </tr>
-    </thead>
-    <tbody
-      class="MuiTableBody-root-id"
-    >
-      <tr
-        class="MuiTableRow-root-id"
-      >
-        <td
-          class="MuiTableCell-root-id MuiTableCell-body-id"
-        >
-          <span
-            class="Skeleton-skeleton-id"
-          >
-            ‌
-          </span>
-        </td>
-        <td
-          class="MuiTableCell-root-id MuiTableCell-body-id"
-        >
-          <span
-            class="Skeleton-skeleton-id"
-          >
-            ‌
-          </span>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-`;
-
-exports[`Storyshots Products / ProductVariants when product has variants 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Variants
-    </h2>
-    <div
-      class="Component-action-id"
-    />
-  </div>
-  <table
-    class="MuiTable-root-id Component-denseTable-id"
-  >
-    <thead
-      class="MuiTableHead-root-id"
-    >
-      <tr
-        class="MuiTableRow-root-id MuiTableRow-head-id"
-      >
-        <th
-          class="MuiTableCell-root-id MuiTableCell-head-id"
-          scope="col"
-        >
-          Name
-        </th>
-        <th
-          class="MuiTableCell-root-id MuiTableCell-head-id"
-          scope="col"
-        >
-          Status
-        </th>
-      </tr>
-    </thead>
-    <tbody
-      class="MuiTableBody-root-id"
-    >
-      <tr
-        class="MuiTableRow-root-id"
-      >
-        <td
-          class="MuiTableCell-root-id MuiTableCell-body-id"
-        >
-          Cordoba Oro
-        </td>
-        <td
-          class="MuiTableCell-root-id MuiTableCell-body-id"
-        >
-          <span
-            class="Component-redDot-id"
-          />
-          Unavailable
-        </td>
-      </tr>
-      <tr
-        class="MuiTableRow-root-id"
-      >
-        <td
-          class="MuiTableCell-root-id MuiTableCell-body-id"
-        >
-          silver
-        </td>
-        <td
-          class="MuiTableCell-root-id MuiTableCell-body-id"
-        >
-          <span
-            class="Component-redDot-id"
-          />
-          Unavailable
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-`;
-
-exports[`Storyshots Products / ProductVariants with clickable rows 1`] = `
-<div
-  class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id"
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Variants
-    </h2>
-    <div
-      class="Component-action-id"
-    />
-  </div>
-  <table
-    class="MuiTable-root-id Component-denseTable-id"
-  >
-    <thead
-      class="MuiTableHead-root-id"
-    >
-      <tr
-        class="MuiTableRow-root-id MuiTableRow-head-id"
-      >
-        <th
-          class="MuiTableCell-root-id MuiTableCell-head-id"
-          scope="col"
-        >
-          Name
-        </th>
-        <th
-          class="MuiTableCell-root-id MuiTableCell-head-id"
-          scope="col"
-        >
-          Status
-        </th>
-      </tr>
-    </thead>
-    <tbody
-      class="MuiTableBody-root-id"
-    >
-      <tr
-        class="MuiTableRow-root-id"
-      >
-        <td
-          class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-        >
-          Cordoba Oro
-        </td>
-        <td
-          class="MuiTableCell-root-id MuiTableCell-body-id"
-        >
-          <span
-            class="Component-redDot-id"
-          />
-          Unavailable
-        </td>
-      </tr>
-      <tr
-        class="MuiTableRow-root-id"
-      >
-        <td
-          class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-        >
-          silver
-        </td>
-        <td
-          class="MuiTableCell-root-id MuiTableCell-body-id"
-        >
-          <span
-            class="Component-redDot-id"
-          />
-          Unavailable
-        </td>
-      </tr>
-    </tbody>
-  </table>
 </div>
 `;
 
@@ -29846,7 +27419,9 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                   <div
                     class="MuiGridListTile-tile-id"
                   >
-                    <img />
+                    <img
+                      src="placeholder255x255.png"
+                    />
                     <div
                       class="MuiGridListTileBar-root-id MuiGridListTileBar-titlePositionBottom-id"
                     >
@@ -29870,6 +27445,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                   >
                     <img
                       alt="Id sit dolores adipisci"
+                      src="placeholder255x255.png"
                     />
                     <div
                       class="MuiGridListTileBar-root-id MuiGridListTileBar-titlePositionBottom-id"
@@ -29972,9 +27548,9 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                     class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
                     <span
-                      class="Component-redDot-id"
+                      class="Component-greenDot-id"
                     />
-                    Unavailable
+                    Available
                   </td>
                 </tr>
                 <tr
@@ -29989,9 +27565,9 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                     class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
                     <span
-                      class="Component-redDot-id"
+                      class="Component-greenDot-id"
                     />
-                    Unavailable
+                    Available
                   </td>
                 </tr>
               </tbody>
@@ -30075,7 +27651,23 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                       >
                         <div
                           class="Component-preview-id"
-                        />
+                        >
+                          <p
+                            class="MuiTypography-root-id MuiTypography-body1-id Component-titleBar-id"
+                          >
+                            Ergonomic Plastic Bacon
+                          </p>
+                          <p
+                            class="MuiTypography-root-id MuiTypography-body1-id Component-addressBar-id"
+                          >
+                            /example-url
+                          </p>
+                          <p
+                            class="MuiTypography-root-id MuiTypography-body1-id Component-descriptionBar-id"
+                          >
+                            Omnis rerum ea. Fugit dignissimos modi est rerum
+                          </p>
+                        </div>
                         <div
                           class="Component-spacer-id"
                         />
@@ -30166,42 +27758,44 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
           <div
             class="MuiCardContent-root-id"
           >
-            <label
-              class="MuiFormControlLabel-root-id"
-            >
-              <span
-                class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorSecondary-id MuiSwitchBase-checked-id MuiCheckbox-checked-id"
+            <div>
+              <label
+                class="MuiFormControlLabel-root-id"
               >
                 <span
-                  class="MuiIconButton-label-id"
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorSecondary-id MuiSwitchBase-checked-id MuiCheckbox-checked-id"
                 >
-                  <svg
-                    aria-hidden="true"
-                    class="MuiSvgIcon-root-id"
-                    focusable="false"
-                    viewBox="0 0 24 24"
+                  <span
+                    class="MuiIconButton-label-id"
                   >
-                    <path
-                      d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                      />
+                    </svg>
+                    <input
+                      checked=""
+                      class="MuiSwitchBase-input-id"
+                      name="available"
+                      type="checkbox"
                     />
-                  </svg>
-                  <input
-                    checked=""
-                    class="MuiSwitchBase-input-id"
-                    name="available"
-                    type="checkbox"
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
                   />
                 </span>
                 <span
-                  class="MuiTouchRipple-root-id"
-                />
-              </span>
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
-              >
-                Published in storefront
-              </span>
-            </label>
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                >
+                  Published in storefront
+                </span>
+              </label>
+            </div>
             <div
               class="MuiFormControl-root-id Component-date-id"
             >
@@ -30223,6 +27817,80 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                   value="2018-08-25T18:45:54.125Z"
                 />
               </div>
+            </div>
+            <div>
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorSecondary-id"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                      />
+                    </svg>
+                    <input
+                      class="MuiSwitchBase-input-id"
+                      name="featured"
+                      type="checkbox"
+                    />
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                >
+                  Feature this product on homepage
+                </span>
+              </label>
+            </div>
+            <div>
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorSecondary-id"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                      />
+                    </svg>
+                    <input
+                      class="MuiSwitchBase-input-id"
+                      name="chargeTaxes"
+                      type="checkbox"
+                    />
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                >
+                  Charge taxes
+                </span>
+              </label>
             </div>
           </div>
         </div>
@@ -31036,62 +28704,113 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
           <div
             class="MuiCardContent-root-id"
           >
-            <label
-              class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
-            >
-              <span
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorSecondary-id MuiSwitchBase-disabled-id MuiCheckbox-disabled-id"
-                tabindex="-1"
+            <div>
+              <label
+                class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
               >
                 <span
-                  class="MuiIconButton-label-id"
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorSecondary-id MuiSwitchBase-disabled-id MuiCheckbox-disabled-id"
+                  tabindex="-1"
                 >
-                  <svg
-                    aria-hidden="true"
-                    class="MuiSvgIcon-root-id"
-                    focusable="false"
-                    viewBox="0 0 24 24"
+                  <span
+                    class="MuiIconButton-label-id"
                   >
-                    <path
-                      d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                      />
+                    </svg>
+                    <input
+                      class="MuiSwitchBase-input-id"
+                      disabled=""
+                      name="available"
+                      type="checkbox"
                     />
-                  </svg>
-                  <input
-                    class="MuiSwitchBase-input-id"
-                    disabled=""
-                    name="available"
-                    type="checkbox"
-                  />
+                  </span>
                 </span>
-              </span>
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
-              >
-                Published in storefront
-              </span>
-            </label>
-            <div
-              class="MuiFormControl-root-id Component-date-id"
-            >
-              <label
-                class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                data-shrink="true"
-              >
-                Publish product on
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                >
+                  Published in storefront
+                </span>
               </label>
-              <div
-                class="MuiInput-root-id MuiInput-disabled-id MuiInput-formControl-id MuiInput-underline-id"
+            </div>
+            <div>
+              <label
+                class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
               >
-                <input
-                  aria-invalid="false"
-                  aria-required="false"
-                  class="MuiInput-input-id MuiInput-disabled-id MuiInput-inputType-id"
-                  disabled=""
-                  name="availableOn"
-                  type="date"
-                  value=""
-                />
-              </div>
+                <span
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorSecondary-id MuiSwitchBase-disabled-id MuiCheckbox-disabled-id"
+                  tabindex="-1"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                      />
+                    </svg>
+                    <input
+                      class="MuiSwitchBase-input-id"
+                      disabled=""
+                      name="featured"
+                      type="checkbox"
+                    />
+                  </span>
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                >
+                  Feature this product on homepage
+                </span>
+              </label>
+            </div>
+            <div>
+              <label
+                class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+              >
+                <span
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorSecondary-id MuiSwitchBase-disabled-id MuiCheckbox-disabled-id"
+                  tabindex="-1"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                      />
+                    </svg>
+                    <input
+                      class="MuiSwitchBase-input-id"
+                      disabled=""
+                      name="chargeTaxes"
+                      type="checkbox"
+                    />
+                  </span>
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                >
+                  Charge taxes
+                </span>
+              </label>
             </div>
           </div>
         </div>
@@ -31688,12 +29407,119 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
         >
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-avatarCell-id"
-          />
+          >
+            <div
+              class="MuiAvatar-root-id"
+            >
+              <img
+                class="MuiAvatar-img-id"
+                src="placeholder255x255.png"
+              />
+            </div>
+          </td>
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id"
-            colspan="2"
           >
-            No products found
+            <span
+              class="Component-link-id"
+            >
+              Gardner, Graham and King
+            </span>
+          </td>
+          <td
+            class="MuiTableCell-root-id MuiTableCell-body-id"
+          >
+            T-Shirt
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root-id"
+        >
+          <td
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-avatarCell-id"
+          >
+            <div
+              class="MuiAvatar-root-id"
+            >
+              <img
+                class="MuiAvatar-img-id"
+                src="placeholder255x255.png"
+              />
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root-id MuiTableCell-body-id"
+          >
+            <span
+              class="Component-link-id"
+            >
+              Gardner, Graham and King
+            </span>
+          </td>
+          <td
+            class="MuiTableCell-root-id MuiTableCell-body-id"
+          >
+            T-Shirt
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root-id"
+        >
+          <td
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-avatarCell-id"
+          >
+            <div
+              class="MuiAvatar-root-id"
+            >
+              <img
+                class="MuiAvatar-img-id"
+                src="placeholder255x255.png"
+              />
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root-id MuiTableCell-body-id"
+          >
+            <span
+              class="Component-link-id"
+            >
+              Gardner, Graham and King
+            </span>
+          </td>
+          <td
+            class="MuiTableCell-root-id MuiTableCell-body-id"
+          >
+            T-Shirt
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root-id"
+        >
+          <td
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-avatarCell-id"
+          >
+            <div
+              class="MuiAvatar-root-id"
+            >
+              <img
+                class="MuiAvatar-img-id"
+                src="placeholder255x255.png"
+              />
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root-id MuiTableCell-body-id"
+          >
+            <span
+              class="Component-link-id"
+            >
+              Gardner, Graham and King
+            </span>
+          </td>
+          <td
+            class="MuiTableCell-root-id MuiTableCell-body-id"
+          >
+            T-Shirt
           </td>
         </tr>
       </tbody>
@@ -32228,10 +30054,10 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
               class="MuiFormControl-root-id Component-formControl-id"
             >
               <label
-                class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                data-shrink="false"
+                class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                data-shrink="true"
               >
-                Cover
+                Borders
               </label>
               <div
                 class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
@@ -32246,16 +30072,14 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                     role="button"
                     tabindex="0"
                   >
-                    <span>
-                      ​
-                    </span>
+                    portals
                   </div>
                   <input
                     aria-invalid="false"
                     aria-required="false"
-                    name="cover"
+                    name="Borders"
                     type="hidden"
-                    value=""
+                    value="portals"
                   />
                   <svg
                     aria-hidden="true"
@@ -32274,10 +30098,10 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
               class="MuiFormControl-root-id Component-formControl-id"
             >
               <label
-                class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                data-shrink="false"
+                class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                data-shrink="true"
               >
-                Version
+                Legacy
               </label>
               <div
                 class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
@@ -32292,16 +30116,14 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                     role="button"
                     tabindex="0"
                   >
-                    <span>
-                      ​
-                    </span>
+                    Auto Loan Account
                   </div>
                   <input
                     aria-invalid="false"
                     aria-required="false"
-                    name="version"
+                    name="Legacy"
                     type="hidden"
-                    value=""
+                    value="Auto-Loan-Account"
                   />
                   <svg
                     aria-hidden="true"
@@ -32446,8 +30268,8 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                    data-shrink="false"
+                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
                   >
                     In stock
                   </label>
@@ -32460,13 +30282,13 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                       class="MuiInput-input-id"
                       name="stock"
                       type="text"
-                      value=""
+                      value="19"
                     />
                   </div>
                   <p
                     class="MuiFormHelperText-root-id"
                   >
-                    Allocated: undefined
+                    Allocated: 12
                   </p>
                 </div>
               </div>
@@ -32551,56 +30373,6 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                   class="MuiGridListTile-tile-id"
                 >
                   <img
-                    alt="Front"
-                    src="placeholder60x60.png"
-                  />
-                  <div
-                    class="MuiGridListTileBar-root-id MuiGridListTileBar-titlePositionBottom-id"
-                  >
-                    <div
-                      class="MuiGridListTileBar-titleWrap-id"
-                    >
-                      <div
-                        class="MuiGridListTileBar-title-id"
-                      >
-                        Front
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="MuiGridListTile-root-id Component-gridElement-id"
-              >
-                <div
-                  class="MuiGridListTile-tile-id"
-                >
-                  <img
-                    alt="Back"
-                    src="placeholder60x60.png"
-                  />
-                  <div
-                    class="MuiGridListTileBar-root-id MuiGridListTileBar-titlePositionBottom-id"
-                  >
-                    <div
-                      class="MuiGridListTileBar-titleWrap-id"
-                    >
-                      <div
-                        class="MuiGridListTileBar-title-id"
-                      >
-                        Back
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="MuiGridListTile-root-id Component-gridElement-id"
-              >
-                <div
-                  class="MuiGridListTile-tile-id"
-                >
-                  <img
                     alt="Extended version"
                     src="placeholder60x60.png"
                   />
@@ -32626,6 +30398,31 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                   class="MuiGridListTile-tile-id"
                 >
                   <img
+                    alt="Front"
+                    src="placeholder60x60.png"
+                  />
+                  <div
+                    class="MuiGridListTileBar-root-id MuiGridListTileBar-titlePositionBottom-id"
+                  >
+                    <div
+                      class="MuiGridListTileBar-titleWrap-id"
+                    >
+                      <div
+                        class="MuiGridListTileBar-title-id"
+                      >
+                        Front
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="MuiGridListTile-root-id Component-gridElement-id"
+              >
+                <div
+                  class="MuiGridListTile-tile-id"
+                >
+                  <img
                     alt="Cut version"
                     src="placeholder60x60.png"
                   />
@@ -32639,6 +30436,31 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                         class="MuiGridListTileBar-title-id"
                       >
                         Cut version
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="MuiGridListTile-root-id Component-gridElement-id"
+              >
+                <div
+                  class="MuiGridListTile-tile-id"
+                >
+                  <img
+                    alt="Back"
+                    src="placeholder60x60.png"
+                  />
+                  <div
+                    class="MuiGridListTileBar-root-id MuiGridListTileBar-titlePositionBottom-id"
+                  >
+                    <div
+                      class="MuiGridListTileBar-titleWrap-id"
+                    >
+                      <div
+                        class="MuiGridListTileBar-title-id"
+                      >
+                        Back
                       </div>
                     </div>
                   </div>

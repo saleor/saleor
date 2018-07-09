@@ -5,23 +5,27 @@ import * as React from "react";
 import withMessages from "../../../components/messages";
 import Decorator from "../../Decorator";
 
-storiesOf("Components / messages", module)
+storiesOf("Generics / Global messages", module)
   .addDecorator(Decorator)
-  .add("default", () =>
-    withMessages(pushMessage => (
+  .add(
+    "default",
+    withMessages(({ pushMessage }) => (
       <Button
-        onClick={pushMessage({ text: "This is message" })}
+        color="primary"
         variant="raised"
+        onClick={pushMessage({ text: "This is message" })}
       >
         Push message
       </Button>
     ))
   )
-  .add("other", () =>
-    withMessages(pushMessage => (
+  .add(
+    "with undo action",
+    withMessages(({ pushMessage }) => (
       <Button
-        onClick={pushMessage({ text: "This is message", onUndo: () => {} })}
+        color="primary"
         variant="raised"
+        onClick={pushMessage({ text: "This is message", onUndo: () => {} })}
       >
         Push message
       </Button>
