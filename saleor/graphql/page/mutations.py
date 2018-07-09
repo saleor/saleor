@@ -3,7 +3,7 @@ import graphene
 from ...page import models
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types import SeoInput
-from ..core.utils import handle_seo_fields
+from ..core.utils import clean_seo_fields
 
 
 class PageInput(graphene.InputObjectType):
@@ -12,7 +12,7 @@ class PageInput(graphene.InputObjectType):
     content = graphene.String()
     is_visible = graphene.Boolean(required=True)
     available_on = graphene.String()
-    seo_fields = SeoInput(description='Search engine optimization fields.')
+    seo = SeoInput(description='Search engine optimization fields.')
 
 
 class PageCreate(ModelMutation):
@@ -31,7 +31,7 @@ class PageCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
-        handle_seo_fields(cleaned_input)
+        clean_seo_fields(cleaned_input)
         return cleaned_input
 
 

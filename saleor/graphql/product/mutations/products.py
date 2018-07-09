@@ -7,7 +7,7 @@ from graphql_jwt.decorators import permission_required
 from ....product import models
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import Decimal, Error, SeoInput
-from ...core.utils import handle_seo_fields
+from ...core.utils import clean_seo_fields
 from ...utils import get_attributes_dict_from_list, get_node, get_nodes
 from ..types import Collection, Product, ProductImage
 
@@ -20,7 +20,7 @@ class CategoryInput(graphene.InputObjectType):
         ID of the parent category. If empty, category will be top level
         category.''')
     slug = graphene.String(description='Category slug')
-    seo_fields = SeoInput(description='Search engine optimization fields.')
+    seo = SeoInput(description='Search engine optimization fields.')
 
 
 class CategoryCreate(ModelMutation):
@@ -37,7 +37,7 @@ class CategoryCreate(ModelMutation):
         cleaned_input = super().clean_input(info, instance, input, errors)
         if 'slug' not in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
-        handle_seo_fields(cleaned_input)
+        clean_seo_fields(cleaned_input)
         return cleaned_input
 
     @classmethod
@@ -81,7 +81,7 @@ class CollectionInput(graphene.InputObjectType):
         graphene.ID,
         description='List of products to be added to the collection.')
     background_image = Upload(description='Background image file.')
-    seo_fields = SeoInput(description='Search engine optimization fields.')
+    seo = SeoInput(description='Search engine optimization fields.')
 
 
 class CollectionCreate(ModelMutation):
@@ -101,7 +101,7 @@ class CollectionCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
-        handle_seo_fields(cleaned_input)
+        clean_seo_fields(cleaned_input)
         return cleaned_input
 
 
@@ -201,7 +201,7 @@ class ProductInput(graphene.InputObjectType):
     product_type = graphene.ID()
     price = Decimal()
     tax_rate = graphene.String()
-    seo_fields = SeoInput(description='Search engine optimization fields.')
+    seo = SeoInput(description='Search engine optimization fields.')
 
 
 class ProductCreate(ModelMutation):
@@ -232,7 +232,7 @@ class ProductCreate(ModelMutation):
             attributes = get_attributes_dict_from_list(
                 attributes, slug_to_id_map)
             cleaned_input['attributes'] = attributes
-        handle_seo_fields(cleaned_input)
+        clean_seo_fields(cleaned_input)
         return cleaned_input
 
     @classmethod
