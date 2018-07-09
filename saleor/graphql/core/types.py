@@ -100,8 +100,8 @@ class PermissionDisplay(graphene.ObjectType):
 
 
 class SeoInput(graphene.InputObjectType):
-    seo_title = graphene.String(description='SEO title.')
-    seo_description = graphene.String(description='SEO description.')
+    title = graphene.String(description='SEO title.')
+    description = graphene.String(description='SEO description.')
 
 
 class TaxedMoney(graphene.ObjectType):
