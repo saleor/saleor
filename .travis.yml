@@ -24,14 +24,21 @@ env:
   matrix:
   - DJANGO="1.11"
   - DJANGO="2.0"
+  - DJANGO="2.1"
   - DJANGO="master"
 matrix:
   allow_failures:
     - python: "3.5"
+      env: DJANGO="2.1"
+    - python: "3.5"
       env: DJANGO="master"
+    - python: "3.6"
+      env: DJANGO="2.1"
     - python: "3.6"
       env: DJANGO="master"
   exclude:
+    - python: "3.4"
+      env: DJANGO="2.1"
     - python: "3.4"
       env: DJANGO="master"
 after_success:
