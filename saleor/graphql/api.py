@@ -45,14 +45,14 @@ from .product.mutations.attributes import (
     AttributeChoiceValueUpdate, ProductAttributeCreate, ProductAttributeDelete,
     ProductAttributeUpdate)
 from .product.mutations.products import (
-    CategoryCreateMutation, CategoryDelete, CategoryUpdateMutation,
-    CollectionAddProducts, CollectionCreateMutation, CollectionDelete,
-    CollectionRemoveProducts, CollectionUpdate, ProductCreateMutation,
-    ProductDeleteMutation, ProductUpdateMutation, ProductTypeCreateMutation,
-    ProductTypeDeleteMutation, ProductImageCreate, ProductImageDelete,
-    ProductImageReorder, ProductImageUpdate, ProductTypeUpdateMutation,
-    ProductVariantCreateMutation, ProductVariantDeleteMutation,
-    ProductVariantUpdateMutation)
+    CategoryCreate, CategoryDelete, CategoryUpdate,
+    CollectionAddProducts, CollectionCreate, CollectionDelete,
+    CollectionRemoveProducts, CollectionUpdate, ProductCreate,
+    ProductDelete, ProductUpdate, ProductTypeCreate,
+    ProductTypeDelete, ProductImageCreate, ProductImageDelete,
+    ProductImageReorder, ProductImageUpdate, ProductTypeUpdate,
+    ProductVariantCreate, ProductVariantDelete,
+    ProductVariantUpdate)
 from .product.resolvers import (
     resolve_attributes, resolve_categories, resolve_collections,
     resolve_products, resolve_product_types)
@@ -259,9 +259,9 @@ class Mutations(graphene.ObjectType):
     attribute_choice_value_delete = AttributeChoiceValueDelete.Field()
     attribute_choice_value_update = AttributeChoiceValueUpdate.Field()
 
-    category_create = CategoryCreateMutation.Field()
+    category_create = CategoryCreate.Field()
     category_delete = CategoryDelete.Field()
-    category_update = CategoryUpdateMutation.Field()
+    category_update = CategoryUpdate.Field()
 
     customer_create = CustomerCreate.Field()
     customer_update = CustomerUpdate.Field()
@@ -269,7 +269,7 @@ class Mutations(graphene.ObjectType):
     staff_create = StaffCreate.Field()
     staff_update = StaffUpdate.Field()
 
-    collection_create = CollectionCreateMutation.Field()
+    collection_create = CollectionCreate.Field()
     collection_update = CollectionUpdate.Field()
     collection_delete = CollectionDelete.Field()
     collection_add_products = CollectionAddProducts.Field()
@@ -306,22 +306,22 @@ class Mutations(graphene.ObjectType):
     product_attribute_delete = ProductAttributeDelete.Field()
     product_attribute_update = ProductAttributeUpdate.Field()
 
-    product_create = ProductCreateMutation.Field()
-    product_delete = ProductDeleteMutation.Field()
-    product_update = ProductUpdateMutation.Field()
+    product_create = ProductCreate.Field()
+    product_delete = ProductDelete.Field()
+    product_update = ProductUpdate.Field()
 
     product_image_create = ProductImageCreate.Field()
     product_image_reorder = ProductImageReorder.Field()
     product_image_delete = ProductImageDelete.Field()
     product_image_update = ProductImageUpdate.Field()
 
-    product_type_create = ProductTypeCreateMutation.Field()
-    product_type_update = ProductTypeUpdateMutation.Field()
-    product_type_delete = ProductTypeDeleteMutation.Field()
+    product_type_create = ProductTypeCreate.Field()
+    product_type_update = ProductTypeUpdate.Field()
+    product_type_delete = ProductTypeDelete.Field()
 
-    product_variant_create = ProductVariantCreateMutation.Field()
-    product_variant_delete = ProductVariantDeleteMutation.Field()
-    product_variant_update = ProductVariantUpdateMutation.Field()
+    product_variant_create = ProductVariantCreate.Field()
+    product_variant_delete = ProductVariantDelete.Field()
+    product_variant_update = ProductVariantUpdate.Field()
 
     sale_create = SaleCreate.Field()
     sale_delete = SaleDelete.Field()

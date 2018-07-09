@@ -1,21 +1,17 @@
 import decimal
 
 import graphene
-from django_countries import countries
+from django_prices.templatetags import prices_i18n
 from graphene.types import Scalar
 from graphene_django import DjangoObjectType
 from graphql.language import ast
-
-from django_prices.templatetags import prices_i18n
 
 from .connection import CountableConnection
 
 
 # FIXME: not yet merged https://github.com/graphql-python/graphene/pull/726
 class Decimal(Scalar):
-    """
-    The `Decimal` scalar type represents a python Decimal.
-    """
+    """The `Decimal` scalar type represents a python Decimal."""
 
     @staticmethod
     def serialize(dec):
@@ -101,6 +97,11 @@ class PermissionDisplay(graphene.ObjectType):
 
     class Meta:
         description = 'Represents a permission object in a friendly form.'
+
+
+class SeoInput(graphene.InputObjectType):
+    seo_title = graphene.String(description='SEO title.')
+    seo_description = graphene.String(description='SEO description.')
 
 
 class TaxedMoney(graphene.ObjectType):

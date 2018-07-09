@@ -1,7 +1,9 @@
 import graphene
 
 from ...page import models
-from ..core.mutations import ModelMutation, ModelDeleteMutation
+from ..core.mutations import ModelDeleteMutation, ModelMutation
+from ..core.types import SeoInput
+from ..core.utils import handle_seo_fields
 
 
 class PageInput(graphene.InputObjectType):
@@ -10,6 +12,7 @@ class PageInput(graphene.InputObjectType):
     content = graphene.String()
     is_visible = graphene.Boolean(required=True)
     available_on = graphene.String()
+    seo_fields = SeoInput(description='Search engine optimization fields.')
 
 
 class PageCreate(ModelMutation):
@@ -25,8 +28,14 @@ class PageCreate(ModelMutation):
     def user_is_allowed(cls, user, input):
         return user.has_perm('page.edit_page')
 
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        cleaned_input = super().clean_input(info, instance, input, errors)
+        handle_seo_fields(cleaned_input)
+        return cleaned_input
 
-class PageUpdate(ModelMutation):
+
+class PageUpdate(PageCreate):
     class Arguments:
         id = graphene.ID(required=True, description='ID of a page to update.')
         input = PageInput(
@@ -35,10 +44,6 @@ class PageUpdate(ModelMutation):
     class Meta:
         description = 'Updates an existing page.'
         model = models.Page
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('page.edit_page')
 
 
 class PageDelete(ModelDeleteMutation):
