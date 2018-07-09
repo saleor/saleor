@@ -1,6 +1,7 @@
 from django import forms
 from django.urls import reverse_lazy
 from django.utils.translation import pgettext_lazy
+from modeltranslation.forms import TranslationModelForm
 
 from ...menu.models import Menu, MenuItem
 from ...page.models import Page
@@ -34,7 +35,7 @@ class MenuForm(forms.ModelForm):
             'name': pgettext_lazy('Menu name', 'Menu name')}
 
 
-class MenuItemForm(forms.ModelForm):
+class MenuItemForm(TranslationModelForm):
     """Add or update menu item.
 
     An item can point to a URL passed directly or to an object belonging
