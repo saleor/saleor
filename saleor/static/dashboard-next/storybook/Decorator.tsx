@@ -6,11 +6,9 @@ import { MessageManager } from "../components/messages";
 import theme from "../theme";
 
 export const Decorator = storyFn => (
-  <MessageManager>
-    <MuiThemeProvider theme={theme}>
-      <CssBaseline />
-      {storyFn()}
-    </MuiThemeProvider>
-  </MessageManager>
+  <MuiThemeProvider theme={theme}>
+    <CssBaseline />
+    <MessageManager>{storyFn()}</MessageManager>
+  </MuiThemeProvider>
 );
 export default Decorator;
