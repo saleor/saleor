@@ -35,6 +35,10 @@ matrix:
     - python: "3.7"
       sudo: required
       dist: xenial
+      env: DJANGO="2.1"
+    - python: "3.7"
+      sudo: required
+      dist: xenial
       env: DJANGO="master"
   allow_failures:
     - python: "3.5"
@@ -45,6 +49,10 @@ matrix:
       env: DJANGO="2.1"
     - python: "3.6"
       env: DJANGO="master"
+    - python: "3.7"
+      sudo: required
+      dist: xenial
+      env: DJANGO="2.1"
     - python: "3.7"
       env: DJANGO="master"
       sudo: required
