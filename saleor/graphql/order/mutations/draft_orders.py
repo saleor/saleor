@@ -30,27 +30,25 @@ class AddressInput(graphene.InputObjectType):
     phone = graphene.String(description='Phone number.')
 
 
-class LineInput(graphene.InputObjectType):
+class OrderLineInput(graphene.InputObjectType):
     variant_id = graphene.ID(description='Product variant ID.')
     quantity = graphene.Int(
-        description='The number of products in the order.')
+        description='Number of variant items ordered.')
 
-    class Meta:
-        description = 'Represents a permission object in a friendly form.'
 
 class DraftOrderInput(InputObjectType):
     billing_address = AddressInput(
-        description='Address associated with the payment.')
+        description='Billing address of the customer.')
     user = graphene.ID(
         descripton='Customer associated with the draft order.')
     user_email = graphene.String(description='Email address of the customer.')
     discount = Decimal(description='Discount amount for the order.')
     lines = graphene.List(
-        LineInput,
+        OrderLineInput,
         description="""Variant line input consisting of variant ID 
         and quantity of products.""")
     shipping_address = AddressInput(
-        description='Address to where the order will be shipped.')
+        description='Shipping address of the customer.')
     shipping_method = graphene.ID(
         description='ID of a selected shipping method.')
     voucher = graphene.ID(
@@ -83,7 +81,7 @@ class DraftOrderCreate(ModelMutation):
             description='Fields required to create an order.')
 
     class Meta:
-        description = 'Creates a new variant for a product.'
+        description = 'Creates a new draft order.'
         model = models.Order
 
     @classmethod
@@ -229,15 +227,15 @@ class DraftOrderComplete(BaseMutation):
         order.status = OrderStatus.UNFULFILLED
         if order.user:
             order.user_email = order.user.email
-        remove_shipping_address = False
         if not order.is_shipping_required():
             order.shipping_method_name = None
             order.shipping_price = ZERO_TAXED_MONEY
             if order.shipping_address:
-                remove_shipping_address = True
+                order.shipping_address.delete()
         order.save()
-        if remove_shipping_address:
-            order.shipping_address.delete()
-        msg = 'Order created from draft order'
+
+        msg = pgettext_lazy(
+            'Dashboard message related to an order',
+            'Order created from draft order')
         order.history.create(content=msg, user=info.context.user)
         return DraftOrderComplete(order=order)

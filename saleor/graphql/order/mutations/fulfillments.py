@@ -37,7 +37,8 @@ class FulfillmentCreateInput(graphene.InputObjectType):
     order = graphene.ID(description='ID of the order to be fulfilled.')
     tracking_number = graphene.String(
         description='Fulfillment tracking number')
-    notify_customer = graphene.Boolean(description='Is customer notified.')
+    notify_customer = graphene.Boolean(
+        description='If true, send an email notification to the customer.')
     lines = graphene.List(
         FulfillmentLineInput, description='Item line to be fulfilled.')
 
@@ -45,7 +46,8 @@ class FulfillmentCreateInput(graphene.InputObjectType):
 class FulfillmentUpdateInput(graphene.InputObjectType):
     tracking_number = graphene.String(
         description='Fulfillment tracking number')
-    notify_customer = graphene.Boolean(description='Is customer notified.')
+    notify_customer = graphene.Boolean(
+        description='If true, send an email notification to the customer.')
 
 
 class FulfillmentCancelInput(graphene.InputObjectType):
@@ -143,8 +145,13 @@ class FulfillmentCancel(BaseMutation):
             required=True,
             description='Fields required to cancel an fulfillment.')
 
+    class Meta:
+        description = """Cancels existing fulfillment
+        and optionally restocks items."""
+
+
     fulfillment = graphene.Field(
-        Fulfillment, description='released fulfillment.')
+        Fulfillment, description='A canceled fulfillment.')
 
     @classmethod
     @permission_required('order.edit_order')
