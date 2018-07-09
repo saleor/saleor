@@ -2,12 +2,13 @@ import graphene
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from graphql_jwt.decorators import permission_required
 
-from saleor.graphql.core.mutations import BaseMutation, ModelMutation
-from saleor.graphql.core.types import Error
-from saleor.graphql.order.types import Fulfillment
-from saleor.graphql.utils import get_node, get_nodes
-from saleor.order import models
-from saleor.order.utils import cancel_fulfillment, update_order_status
+from ....graphql.core.mutations import BaseMutation, ModelMutation
+from ....graphql.core.types import Error
+from ....graphql.order.types import Fulfillment
+from ....graphql.utils import get_node, get_nodes
+from ....order import models
+from ....order.emails import send_fulfillment_confirmation
+from ....order.utils import cancel_fulfillment, update_order_status
 from ....dashboard.order.utils import fulfill_order_line
 from ..types import OrderLine
 
@@ -95,8 +96,9 @@ class FulfillmentCreate(ModelMutation):
     def save(cls, info, instance, cleaned_input):
         order_lines = cleaned_input.get('order_lines')
         quantities = cleaned_input.get('quantities')
+        super().save(info, instance, cleaned_input)
+        order = instance.order
         if order_lines and quantities:
-            super().save(info, instance, cleaned_input)
             quantity_fulfilled = 0
             lines_to_fulfill = [
                 (order_line, quantity) for order_line, quantity
@@ -112,7 +114,6 @@ class FulfillmentCreate(ModelMutation):
                     fulfillment=instance,
                     quantity=line[1]) for line in lines_to_fulfill]
             models.FulfillmentLine.objects.bulk_create(fulfillment_lines)
-            order = instance.order
             update_order_status(order)
             msg = npgettext_lazy(
                 'Dashboard message related to an order',
@@ -122,6 +123,14 @@ class FulfillmentCreate(ModelMutation):
                       'quantity_fulfilled': quantity_fulfilled}
             order.history.create(content=msg, user=info.context.user)
         super().save(info, instance, cleaned_input)
+
+        if cleaned_input.get('notify_customer'):
+            send_fulfillment_confirmation.delay(order.pk, instance.pk)
+            send_mail_msg = pgettext_lazy(
+                'Dashboard message related to an order',
+                'Shipping confirmation email was sent to user'
+                '(%(email)s)') % {'email': order.get_user_current_email()}
+            order.history.create(content=send_mail_msg, user=info.context.user)
 
 
 class FulfillmentUpdate(FulfillmentCreate):
