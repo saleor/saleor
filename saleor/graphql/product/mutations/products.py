@@ -187,20 +187,29 @@ class AttributeValueInput(InputObjectType):
 
 class ProductInput(graphene.InputObjectType):
     attributes = graphene.List(
-        AttributeValueInput)
-    available_on = graphene.types.datetime.Date()
-    category = graphene.ID()
-    charge_taxes = graphene.Boolean(required=True)
+        AttributeValueInput,
+        description='List of product attributes.')
+    available_on = graphene.types.datetime.Date(
+        description='Publication date. ISO 8601 standard.')
+    category = graphene.ID(description='ID of the product\'s category.')
+    charge_taxes = graphene.Boolean(
+        required=True,
+        description='Determine if taxes are being charged for the product.')
     collections = graphene.List(
         graphene.ID,
-        description="List of IDs of collections that the product belongs to.")
-    description = graphene.String()
-    is_published = graphene.Boolean(required=True)
-    is_featured = graphene.Boolean(required=True)
-    name = graphene.String()
-    product_type = graphene.ID()
-    price = Decimal()
-    tax_rate = graphene.String()
+        description='List of IDs of collections that the product belongs to.')
+    description = graphene.String(description='Product description.')
+    is_published = graphene.Boolean(
+        required=True,
+        description='Determines if product is visible to customers.')
+    is_featured = graphene.Boolean(
+        required=True,
+        description='Determines if product is feature in the storefront.')
+    name = graphene.String(description='Product name.')
+    product_type = graphene.ID(
+        description='ID of the type that product belongs to.')
+    price = Decimal(description='Product price.')
+    tax_rate = graphene.String(description='Tax rate.')
     seo = SeoInput(description='Search engine optimization fields.')
 
 
@@ -273,13 +282,20 @@ class ProductDelete(ModelDeleteMutation):
 
 
 class ProductVariantInput(graphene.InputObjectType):
-    attributes = graphene.List(AttributeValueInput)
-    cost_price = Decimal()
-    price_override = Decimal()
-    product = graphene.ID()
-    sku = graphene.String()
-    quantity = graphene.Int()
-    track_inventory = graphene.Boolean(required=True)
+    attributes = graphene.List(
+        AttributeValueInput,
+        description='List of product attributes.')
+    cost_price = Decimal(description='Cost price of the variant.')
+    price_override = Decimal(
+        description='Special price of the particular variant.')
+    product = graphene.ID(
+        description='Product ID of which type is the variant.')
+    sku = graphene.String(description='SKU.')
+    quantity = graphene.Int(
+        description='Available amount of products of this variant.')
+    track_inventory = graphene.Boolean(
+        required=True,
+        description='Determines if inventoryof the variant should be tracked.')
 
 
 class ProductVariantCreate(ModelMutation):
@@ -346,11 +362,21 @@ class ProductVariantDelete(ModelDeleteMutation):
 
 
 class ProductTypeInput(graphene.InputObjectType):
-    name = graphene.String()
-    has_variants = graphene.Boolean(required=True)
-    product_attributes = graphene.List(graphene.ID)
-    variant_attributes = graphene.List(graphene.ID)
-    is_shipping_required = graphene.Boolean(required=True)
+    name = graphene.String(description='Name.')
+    has_variants = graphene.Boolean(
+        required=True,
+        description="""Determines if variants are allowed
+        for this product type.""")
+    product_attributes = graphene.List(
+        graphene.ID,
+        description='List of product type specific attributes.')
+    variant_attributes = graphene.List(
+        graphene.ID,
+        description='List of variant of this type specific attributes.')
+    is_shipping_required = graphene.Boolean(
+        required=True,
+        description="""Determines if shipping is required for products
+        of this variant.""")
 
 
 class ProductTypeCreate(ModelMutation):
