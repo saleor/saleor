@@ -204,7 +204,7 @@ class ProductInput(graphene.InputObjectType):
         description='Determines if product is visible to customers.')
     is_featured = graphene.Boolean(
         required=True,
-        description='Determines if product is feature in the storefront.')
+        description='Determines if product is featured in the storefront.')
     name = graphene.String(description='Product name.')
     product_type = graphene.ID(
         description='ID of the type that product belongs to.')
@@ -284,18 +284,20 @@ class ProductDelete(ModelDeleteMutation):
 class ProductVariantInput(graphene.InputObjectType):
     attributes = graphene.List(
         AttributeValueInput,
-        description='List of product attributes.')
+        description='List of attributes specific to this variant.')
     cost_price = Decimal(description='Cost price of the variant.')
     price_override = Decimal(
         description='Special price of the particular variant.')
     product = graphene.ID(
         description='Product ID of which type is the variant.')
-    sku = graphene.String(description='SKU.')
+    sku = graphene.String(description='Stock keeping unit.')
     quantity = graphene.Int(
-        description='Available amount of products of this variant.')
+        description='The total quantity of this variant available for sale.')
     track_inventory = graphene.Boolean(
         required=True,
-        description='Determines if inventoryof the variant should be tracked.')
+        description="""Determines if the inventory of this variant should
+        be tracked. If false, the quantity won't change when customers
+        buy this item.""")
 
 
 class ProductVariantCreate(ModelMutation):
@@ -362,17 +364,21 @@ class ProductVariantDelete(ModelDeleteMutation):
 
 
 class ProductTypeInput(graphene.InputObjectType):
-    name = graphene.String(description='Name.')
+
+    name = graphene.String(description='Name of the product type.')
     has_variants = graphene.Boolean(
         required=True,
-        description="""Determines if variants are allowed
-        for this product type.""")
+        description="""Determines if product of this type has multiple
+        variants. This option mainly simplifies product management
+        in the dashboard. There is always at least one variant created under
+        the hood.""")
     product_attributes = graphene.List(
         graphene.ID,
-        description='List of product type specific attributes.')
+        description='List of attributes shared among all product variants.')
     variant_attributes = graphene.List(
         graphene.ID,
-        description='List of variant of this type specific attributes.')
+        description="""List of attributes used to distinguish between
+        different variants of a product.""")
     is_shipping_required = graphene.Boolean(
         required=True,
         description="""Determines if shipping is required for products
