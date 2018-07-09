@@ -6,7 +6,8 @@ from graphql_jwt.decorators import permission_required
 
 from ....product import models
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types import Decimal, Error
+from ...core.types import Decimal, Error, SeoInput
+from ...core.utils import handle_seo_fields
 from ...utils import get_attributes_dict_from_list, get_node, get_nodes
 from ..types import Collection, Product, ProductImage
 
@@ -19,9 +20,10 @@ class CategoryInput(graphene.InputObjectType):
         ID of the parent category. If empty, category will be top level
         category.''')
     slug = graphene.String(description='Category slug')
+    seo_fields = SeoInput(description='Search engine optimization fields.')
 
 
-class CategoryCreateMutation(ModelMutation):
+class CategoryCreate(ModelMutation):
     class Arguments:
         input = CategoryInput(
             required=True, description='Fields required to create a category.')
@@ -35,6 +37,7 @@ class CategoryCreateMutation(ModelMutation):
         cleaned_input = super().clean_input(info, instance, input, errors)
         if 'slug' not in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
+        handle_seo_fields(cleaned_input)
         return cleaned_input
 
     @classmethod
@@ -42,7 +45,7 @@ class CategoryCreateMutation(ModelMutation):
         return user.has_perm('category.edit_category')
 
 
-class CategoryUpdateMutation(ModelMutation):
+class CategoryUpdate(CategoryCreate):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a category to update.')
@@ -52,10 +55,6 @@ class CategoryUpdateMutation(ModelMutation):
     class Meta:
         description = 'Updates a category.'
         model = models.Category
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('category.edit_category')
 
 
 class CategoryDelete(ModelDeleteMutation):
@@ -82,9 +81,10 @@ class CollectionInput(graphene.InputObjectType):
         graphene.ID,
         description='List of products to be added to the collection.')
     background_image = Upload(description='Background image file.')
+    seo_fields = SeoInput(description='Search engine optimization fields.')
 
 
-class CollectionCreateMutation(ModelMutation):
+class CollectionCreate(ModelMutation):
     class Arguments:
         input = CollectionInput(
             required=True,
@@ -98,8 +98,14 @@ class CollectionCreateMutation(ModelMutation):
     def user_is_allowed(cls, user, input):
         return user.has_perm('collection.edit_collection')
 
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        cleaned_input = super().clean_input(info, instance, input, errors)
+        handle_seo_fields(cleaned_input)
+        return cleaned_input
 
-class CollectionUpdate(ModelMutation):
+
+class CollectionUpdate(CollectionCreate):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a collection to update.')
@@ -110,10 +116,6 @@ class CollectionUpdate(ModelMutation):
     class Meta:
         description = 'Updates a collection.'
         model = models.Collection
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('collection.edit_collection')
 
 
 class CollectionDelete(ModelDeleteMutation):
@@ -184,7 +186,8 @@ class AttributeValueInput(InputObjectType):
 
 
 class ProductInput(graphene.InputObjectType):
-    attributes = graphene.List(AttributeValueInput)
+    attributes = graphene.List(
+        AttributeValueInput)
     available_on = graphene.types.datetime.Date()
     category = graphene.ID()
     charge_taxes = graphene.Boolean(required=True)
@@ -198,9 +201,10 @@ class ProductInput(graphene.InputObjectType):
     product_type = graphene.ID()
     price = Decimal()
     tax_rate = graphene.String()
+    seo_fields = SeoInput(description='Search engine optimization fields.')
 
 
-class ProductCreateMutation(ModelMutation):
+class ProductCreate(ModelMutation):
     class Arguments:
         input = ProductInput(
             required=True, description='Fields required to create a product.')
@@ -228,6 +232,7 @@ class ProductCreateMutation(ModelMutation):
             attributes = get_attributes_dict_from_list(
                 attributes, slug_to_id_map)
             cleaned_input['attributes'] = attributes
+        handle_seo_fields(cleaned_input)
         return cleaned_input
 
     @classmethod
@@ -241,7 +246,7 @@ class ProductCreateMutation(ModelMutation):
         return user.has_perm('product.edit_product')
 
 
-class ProductUpdateMutation(ProductCreateMutation):
+class ProductUpdate(ProductCreate):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a product to update.')
@@ -253,7 +258,7 @@ class ProductUpdateMutation(ProductCreateMutation):
         model = models.Product
 
 
-class ProductDeleteMutation(ModelDeleteMutation):
+class ProductDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a product to delete.')
@@ -277,7 +282,7 @@ class ProductVariantInput(graphene.InputObjectType):
     track_inventory = graphene.Boolean(required=True)
 
 
-class ProductVariantCreateMutation(ModelMutation):
+class ProductVariantCreate(ModelMutation):
     class Arguments:
         input = ProductVariantInput(
             required=True,
@@ -313,7 +318,7 @@ class ProductVariantCreateMutation(ModelMutation):
         return user.has_perm('product.edit_product')
 
 
-class ProductVariantUpdateMutation(ProductVariantCreateMutation):
+class ProductVariantUpdate(ProductVariantCreate):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a product variant to update.')
@@ -326,7 +331,7 @@ class ProductVariantUpdateMutation(ProductVariantCreateMutation):
         model = models.ProductVariant
 
 
-class ProductVariantDeleteMutation(ModelDeleteMutation):
+class ProductVariantDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a product variant to delete.')
@@ -348,7 +353,7 @@ class ProductTypeInput(graphene.InputObjectType):
     is_shipping_required = graphene.Boolean(required=True)
 
 
-class ProductTypeCreateMutation(ModelMutation):
+class ProductTypeCreate(ModelMutation):
     class Arguments:
         input = ProductTypeInput(
             required=True,
@@ -363,7 +368,7 @@ class ProductTypeCreateMutation(ModelMutation):
         return user.has_perm('product.edit_properties')
 
 
-class ProductTypeUpdateMutation(ModelMutation):
+class ProductTypeUpdate(ProductTypeCreate):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a product type to update.')
@@ -375,12 +380,8 @@ class ProductTypeUpdateMutation(ModelMutation):
         description = 'Updates an existing product type.'
         model = models.ProductType
 
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_properties')
 
-
-class ProductTypeDeleteMutation(ModelDeleteMutation):
+class ProductTypeDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a product type to delete.')
