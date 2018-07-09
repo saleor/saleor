@@ -5,7 +5,7 @@ import { IMessage, MessageContext } from ".";
 type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
 type Subtract<T, K> = Omit<T, keyof K>;
 interface InjectorProps {
-  pushMessage: (message: IMessage) => void;
+  pushMessage: (message: IMessage) => (event: any) => void;
 }
 
 export const withMessages = <T extends InjectorProps>(
