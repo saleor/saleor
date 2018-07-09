@@ -49,8 +49,8 @@ def fulfill_order_line(order_line, quantity):
     """Fulfill order line with given quantity."""
     if order_line.variant and order_line.variant.track_inventory:
         decrease_stock(order_line.variant, quantity)
-        order_line.quantity_fulfilled += quantity
-        order_line.save(update_fields=['quantity_fulfilled'])
+    order_line.quantity_fulfilled += quantity
+    order_line.save(update_fields=['quantity_fulfilled'])
 
 
 def update_order_with_user_addresses(order):
