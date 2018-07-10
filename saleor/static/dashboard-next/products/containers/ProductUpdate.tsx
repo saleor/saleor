@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { MutationProviderChildrenRenderProps } from "../..";
+import { MutationProviderProps, MutationProviderRenderProps } from "../..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import {
   ProductDetailsQuery,
@@ -13,10 +13,11 @@ import {
 } from "../mutations";
 import { productDetailsQuery } from "../queries";
 
-interface ProductUpdateProviderProps {
+interface ProductUpdateProviderProps
+  extends MutationProviderProps<ProductUpdateMutation> {
   productId: string;
   children: ((
-    props: MutationProviderChildrenRenderProps<
+    props: MutationProviderRenderProps<
       ProductUpdateMutation,
       ProductUpdateMutationVariables
     >
@@ -25,9 +26,11 @@ interface ProductUpdateProviderProps {
 
 const ProductUpdateProvider: React.StatelessComponent<
   ProductUpdateProviderProps
-> = ({ productId, children }) => (
+> = ({ productId, children, onError, onSuccess }) => (
   <TypedProductUpdateMutation
     mutation={productUpdateMutation}
+    onCompleted={onSuccess}
+    onError={onError}
     update={(cache, { data: { productUpdate } }) => {
       const data: ProductDetailsQuery = cache.readQuery({
         query: productDetailsQuery,
@@ -37,12 +40,12 @@ const ProductUpdateProvider: React.StatelessComponent<
       cache.writeQuery({ query: productDetailsQuery, data });
     }}
   >
-    {(mutate, { called, error, loading }) => {
+    {(mutate, { data, error, loading }) => {
       if (error) {
         return <ErrorMessageCard message={error.message} />;
       }
       return children({
-        called,
+        data,
         error,
         loading,
         mutate
