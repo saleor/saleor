@@ -1,6 +1,5 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
-import { Redirect } from "react-router-dom";
 
 import Form, { FormProps } from "../../components/Form";
 import LoginCard from "../../components/LoginCard";
@@ -36,7 +35,7 @@ const TokenAuthProvider: React.StatelessComponent<TokenAuthProviderProps> = ({
       if (called && !loading && !error) {
         const { token } = data.tokenCreate;
         onAccept(token);
-        return <Redirect to="/" />;
+        // FIXME: set user in AuthProvider's state
       }
       if (typeof children === "function") {
         return children((email, password) =>
