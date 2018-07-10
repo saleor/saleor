@@ -16,6 +16,50 @@ export interface TokenAuthMutationVariables {
 export interface TokenAuthMutation {
   tokenCreate:  {
     token: string | null,
+    errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
+      field: string | null,
+      // The error message.
+      message: string | null,
+    } | null > | null,
+    user:  {
+      // The ID of the object.
+      id: string,
+      email: string,
+      isStaff: boolean,
+      note: string | null,
+      permissions:  Array< {
+        // Internal code for permission.
+        code: string,
+        // Describe action(s) allowed to do by permission.
+        name: string,
+      } | null > | null,
+    } | null,
+  } | null,
+};
+
+export interface VerifyTokenMutationVariables {
+  token: string,
+};
+
+export interface VerifyTokenMutation {
+  tokenVerify:  {
+    payload: string | null,
+    user:  {
+      // The ID of the object.
+      id: string,
+      email: string,
+      isStaff: boolean,
+      note: string | null,
+      permissions:  Array< {
+        // Internal code for permission.
+        code: string,
+        // Describe action(s) allowed to do by permission.
+        name: string,
+      } | null > | null,
+    } | null,
   } | null,
 };
 
@@ -1079,6 +1123,20 @@ export interface ProductVariantDetailsQuery {
     quantity: number,
     quantityAllocated: number,
   } | null,
+};
+
+export interface UserFragment {
+  // The ID of the object.
+  id: string,
+  email: string,
+  isStaff: boolean,
+  note: string | null,
+  permissions:  Array< {
+    // Internal code for permission.
+    code: string,
+    // Describe action(s) allowed to do by permission.
+    name: string,
+  } | null > | null,
 };
 
 export interface MoneyFragment {
