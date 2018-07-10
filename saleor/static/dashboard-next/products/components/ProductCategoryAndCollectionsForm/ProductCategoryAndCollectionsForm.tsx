@@ -10,13 +10,13 @@ import SingleSelectField from "../../../components/SingleSelectField";
 import i18n from "../../../i18n";
 
 interface ProductCategoryAndCollectionsFormProps {
-  // TODO: TYPE IT
-  categories?: any[];
-  collections?: any[];
-  productCollections?: any[];
-  category?: any;
+  categories?: Array<{ value: string; label: string }>;
+  collections?: Array<{ value: string; label: string }>;
+  errors: { [key: string]: string };
+  productCollections?: string[];
+  category?: string;
   loading?: boolean;
-  onChange(event: any);
+  onChange: (event: React.ChangeEvent<any>) => void;
 }
 
 const decorate = withStyles(theme => ({}));
@@ -27,6 +27,7 @@ const ProductCategoryAndCollectionsForm = decorate<
     classes,
     categories,
     collections,
+    errors,
     productCollections,
     category,
     loading,
@@ -37,6 +38,8 @@ const ProductCategoryAndCollectionsForm = decorate<
       <CardContent>
         <SingleSelectField
           disabled={loading}
+          error={!!errors.category}
+          hint={errors.category}
           label={i18n.t("Category")}
           choices={loading ? [] : categories}
           name="category"
@@ -46,6 +49,8 @@ const ProductCategoryAndCollectionsForm = decorate<
         <FormSpacer />
         <MultiSelectField
           disabled={loading}
+          error={!!errors.collections}
+          hint={errors.collections}
           label={i18n.t("Collections")}
           choices={loading ? [] : collections}
           name="collections"

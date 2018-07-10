@@ -6,6 +6,7 @@ import VisibilityIcon from "@material-ui/icons/Visibility";
 import * as React from "react";
 
 import { AttributeType, AttributeValueType, MoneyType } from "../../";
+import { UserError } from "../../../";
 import ActionDialog from "../../../components/ActionDialog";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
@@ -25,6 +26,7 @@ import ProductPrice from "../ProductPrice/ProductPrice";
 import ProductVariants from "../ProductVariants";
 
 interface ProductUpdateProps {
+  errors: UserError[];
   placeholderImage: string;
   collections?: Array<{
     id: string;
@@ -128,6 +130,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
     disabled,
     categories,
     collections,
+    errors: userErrors,
     images,
     placeholderImage,
     product,
@@ -170,10 +173,11 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
     return (
       <Form
         onSubmit={onSubmit}
+        errors={userErrors}
         initial={initialData}
         key={product ? JSON.stringify(product) : "loading"}
       >
-        {({ change, data, hasChanged, submit }) => (
+        {({ change, data, errors, hasChanged, submit }) => (
           <Container width="md">
             <Toggle>
               {(openedDeleteDialog, { toggle: toggleDeleteDialog }) => (
@@ -226,6 +230,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
               <div>
                 <ProductDetailsForm
                   onChange={change}
+                  errors={errors}
                   name={data.name}
                   description={data.description}
                   currencySymbol={
@@ -267,6 +272,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
               <div>
                 <ProductAvailabilityForm
                   data={data}
+                  errors={errors}
                   loading={disabled}
                   onChange={change}
                 />
@@ -287,6 +293,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
                           }))
                         : []
                     }
+                    errors={errors}
                     productCollections={data.collections}
                     collections={
                       collections !== undefined && collections !== null
