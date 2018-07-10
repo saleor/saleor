@@ -13,6 +13,7 @@ interface ProductDetailsFormProps {
   currencySymbol?: string;
   description?: string;
   disabled?: boolean;
+  errors: { [key: string]: string };
   name?: string;
   price?: number;
   onChange(event: any);
@@ -31,6 +32,7 @@ export const ProductDetailsForm = decorate<ProductDetailsFormProps>(
     currencySymbol,
     description,
     disabled,
+    errors,
     name,
     onChange,
     price
@@ -39,6 +41,8 @@ export const ProductDetailsForm = decorate<ProductDetailsFormProps>(
       <CardContent>
         <div className={classes.root}>
           <TextField
+            error={!!errors.name}
+            helperText={errors.name}
             disabled={disabled}
             fullWidth
             key="nameInput"
@@ -50,6 +54,9 @@ export const ProductDetailsForm = decorate<ProductDetailsFormProps>(
           />
           <span />
           <PriceField
+            error={!!errors.price}
+            name="price"
+            hint={errors.price}
             currencySymbol={currencySymbol}
             disabled={disabled}
             key="priceInput"
@@ -60,9 +67,14 @@ export const ProductDetailsForm = decorate<ProductDetailsFormProps>(
         </div>
         <FormSpacer />
         <RichTextEditor
+          error={!!errors.description}
           disabled={disabled}
           fullWidth
-          helperText={i18n.t("Select text to enable text-formatting tools.")}
+          helperText={
+            errors.description
+              ? errors.description
+              : i18n.t("Select text to enable text-formatting tools.")
+          }
           key="descriptionInput"
           label={i18n.t("Description")}
           name="description"

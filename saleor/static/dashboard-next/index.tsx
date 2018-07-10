@@ -69,11 +69,15 @@ export interface PageListProps extends ListProps {
   onAdd: () => void;
 }
 
-export interface MutationProviderProps<T extends {}> {
+export interface UserError {
+  field: string;
+  message: string;
+}
+export interface PartialMutationProviderProps<T extends {}> {
   onSuccess?: (data: T) => void;
   onError?: (error: ApolloError) => void;
 }
-export interface MutationProviderPartialOutput<
+export interface PartialMutationProviderOutput<
   TData extends {} = {},
   TVariables extends {} = {}
 > {
@@ -81,14 +85,8 @@ export interface MutationProviderPartialOutput<
   loading: boolean;
   mutate: (variables: TVariables) => void;
 }
-export interface MutationProviderOutput<
-  TData extends {} = {},
-  TVariables extends {} = {}
-> extends MutationProviderPartialOutput<TData, TVariables> {
-  error: ApolloError;
-}
 
-export interface MutationProviderRenderProps<
+export interface PartialMutationProviderRenderProps<
   TData extends {} = {},
   TVariables extends {} = {}
 > {
@@ -97,3 +95,7 @@ export interface MutationProviderRenderProps<
   error?: ApolloError;
   mutate: MutationFn<TData, TVariables>;
 }
+
+export type MutationProviderRenderProps<T> = T & {
+  errors: UserError[];
+};

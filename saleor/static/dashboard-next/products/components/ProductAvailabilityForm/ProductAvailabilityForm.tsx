@@ -15,6 +15,7 @@ interface ProductAvailabilityFormProps {
     chargeTaxes: boolean;
     featured: boolean;
   };
+  errors: { [key: string]: string };
   loading?: boolean;
   onChange(event: any);
 }
@@ -28,6 +29,7 @@ export const ProductAvailabilityForm = decorate<ProductAvailabilityFormProps>(
   ({
     classes,
     data: { available, availableOn, chargeTaxes, featured },
+    errors,
     loading,
     onChange
   }) => (
@@ -45,10 +47,12 @@ export const ProductAvailabilityForm = decorate<ProductAvailabilityFormProps>(
         </div>
         {available && (
           <TextField
+            error={!!errors.availableOn}
             disabled={loading}
             label={i18n.t("Publish product on")}
             name="availableOn"
             type="date"
+            helperText={errors.availableOn}
             value={availableOn ? availableOn : ""}
             onChange={onChange}
             className={classes.date}
