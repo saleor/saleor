@@ -13,6 +13,7 @@ import * as Cookies from "universal-cookie";
 
 import AppRoot from "./AppRoot";
 import CategorySection from "./categories";
+import { MessageManager } from "./components/messages";
 import "./i18n";
 import PageSection from "./pages";
 import ProductSection from "./products";
@@ -37,14 +38,16 @@ render(
     <ApolloProvider client={apolloClient}>
       <BrowserRouter basename="/dashboard/next/">
         <MuiThemeProvider theme={theme}>
-          <CssBaseline />
-          <AppRoot>
-            <Switch>
-              <Route path="/categories" component={CategorySection} />
-              <Route path="/pages" component={PageSection} />
-              <Route path="/products" component={ProductSection} />
-            </Switch>
-          </AppRoot>
+          <MessageManager>
+            <CssBaseline />
+            <AppRoot>
+              <Switch>
+                <Route path="/categories" component={CategorySection} />
+                <Route path="/pages" component={PageSection} />
+                <Route path="/products" component={ProductSection} />
+              </Switch>
+            </AppRoot>
+          </MessageManager>
         </MuiThemeProvider>
       </BrowserRouter>
     </ApolloProvider>
@@ -66,12 +69,31 @@ export interface PageListProps extends ListProps {
   onAdd: () => void;
 }
 
-export interface MutationProviderChildrenRenderProps<
+export interface MutationProviderProps<T extends {}> {
+  onSuccess?: (data: T) => void;
+  onError?: (error: ApolloError) => void;
+}
+export interface MutationProviderPartialOutput<
   TData extends {} = {},
   TVariables extends {} = {}
 > {
+  data: TData;
   loading: boolean;
-  called: boolean;
+  mutate: (variables: TVariables) => void;
+}
+export interface MutationProviderOutput<
+  TData extends {} = {},
+  TVariables extends {} = {}
+> extends MutationProviderPartialOutput<TData, TVariables> {
+  error: ApolloError;
+}
+
+export interface MutationProviderRenderProps<
+  TData extends {} = {},
+  TVariables extends {} = {}
+> {
+  data: TData;
+  loading: boolean;
   error?: ApolloError;
   mutate: MutationFn<TData, TVariables>;
 }
