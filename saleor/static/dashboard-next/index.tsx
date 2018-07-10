@@ -13,6 +13,7 @@ import * as Cookies from "universal-cookie";
 
 import AppRoot from "./AppRoot";
 import Auth, { getAuthToken, removeAuthToken } from "./auth";
+import AuthProvider from "./auth/AuthProvider";
 import CategorySection from "./categories";
 import { MessageManager } from "./components/messages";
 import "./i18n";
@@ -65,13 +66,23 @@ render(
       <MuiThemeProvider theme={theme}>
         <MessageManager>
           <CssBaseline />
-          <AppRoot>
-            <Switch>
-              <Route path="/categories" component={CategorySection} />
-              <Route path="/pages" component={PageSection} />
-              <Route path="/products" component={ProductSection} />
-            </Switch>
-          </AppRoot>
+          <AuthProvider>
+          {({ isAuthenticated, logout }) => {
+            return (
+              isAuthenticated ? (
+                <AppRoot logout={ logout }>
+                  <Switch>
+                    <Route path="/categories" component={CategorySection} />
+                    <Route path="/pages" component={PageSection} />
+                    <Route path="/products" component={ProductSection} />
+                  </Switch>
+                </AppRoot>
+              ) : (
+                <Route component={Auth} />
+              )
+            )
+          }}
+        </AuthProvider>
         </MessageManager>
       </MuiThemeProvider>
     </BrowserRouter>

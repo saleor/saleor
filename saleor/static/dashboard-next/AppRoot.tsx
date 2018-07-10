@@ -91,11 +91,15 @@ const ResponsiveDrawer = decorate<ResponsiveDrawerProps>(
   )
 );
 
+interface AppRootProps {
+  logout: () => void;
+}
+
 interface AppRootState {
   open: boolean;
 }
 
-export const AppRoot = decorate<{}>(
+export const AppRoot = decorate<AppRootProps>(
   class InnerAppRoot extends React.Component<
     WithStyles<
       | "root"
@@ -107,7 +111,7 @@ export const AppRoot = decorate<{}>(
       | "content"
       | "contentShift"
       | "toolBar"
-    >,
+    > & AppRootProps,
     AppRootState
   > {
     state = { open: false };
@@ -117,7 +121,7 @@ export const AppRoot = decorate<{}>(
     };
 
     render() {
-      const { children, classes } = this.props;
+      const { children, classes, logout } = this.props;
       const { open } = this.state;
 
       return (
@@ -187,6 +191,13 @@ export const AppRoot = decorate<{}>(
                     }}
                   >
                     <ListItemText primary={i18n.t("Products")} />
+                  </ListItem>
+                  <ListItem
+                    button
+                    onClick={() => logout()}
+                  >
+                    {/* FIXME: move logout button to appropriate place */}
+                    <ListItemText primary={i18n.t("Logout")} />
                   </ListItem>
                 </List>
               </ResponsiveDrawer>
