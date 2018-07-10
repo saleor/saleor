@@ -73,6 +73,9 @@ export interface UserError {
   field: string;
   message: string;
 }
+
+// These interfaces are used in atomic mutation providers, which then are
+// combined into one compound mutation provider
 export interface PartialMutationProviderProps<T extends {}> {
   onSuccess?: (data: T) => void;
   onError?: (error: ApolloError) => void;
@@ -85,7 +88,6 @@ export interface PartialMutationProviderOutput<
   loading: boolean;
   mutate: (variables: TVariables) => void;
 }
-
 export interface PartialMutationProviderRenderProps<
   TData extends {} = {},
   TVariables extends {} = {}
@@ -96,6 +98,6 @@ export interface PartialMutationProviderRenderProps<
   mutate: MutationFn<TData, TVariables>;
 }
 
-export type MutationProviderRenderProps<T> = T & {
-  errors: UserError[];
-};
+export type MutationProviderRenderProps<T> = (
+  props: T & { errors: UserError[] }
+) => React.ReactElement<any>;
