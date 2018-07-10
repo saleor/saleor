@@ -187,20 +187,29 @@ class AttributeValueInput(InputObjectType):
 
 class ProductInput(graphene.InputObjectType):
     attributes = graphene.List(
-        AttributeValueInput)
-    available_on = graphene.types.datetime.Date()
-    category = graphene.ID()
-    charge_taxes = graphene.Boolean(required=True)
+        AttributeValueInput,
+        description='List of product attributes.')
+    available_on = graphene.types.datetime.Date(
+        description='Publication date. ISO 8601 standard.')
+    category = graphene.ID(description='ID of the product\'s category.')
+    charge_taxes = graphene.Boolean(
+        required=True,
+        description='Determine if taxes are being charged for the product.')
     collections = graphene.List(
         graphene.ID,
-        description="List of IDs of collections that the product belongs to.")
-    description = graphene.String()
-    is_published = graphene.Boolean(required=True)
-    is_featured = graphene.Boolean(required=True)
-    name = graphene.String()
-    product_type = graphene.ID()
-    price = Decimal()
-    tax_rate = graphene.String()
+        description='List of IDs of collections that the product belongs to.')
+    description = graphene.String(description='Product description.')
+    is_published = graphene.Boolean(
+        required=True,
+        description='Determines if product is visible to customers.')
+    is_featured = graphene.Boolean(
+        required=True,
+        description='Determines if product is featured in the storefront.')
+    name = graphene.String(description='Product name.')
+    product_type = graphene.ID(
+        description='ID of the type that product belongs to.')
+    price = Decimal(description='Product price.')
+    tax_rate = graphene.String(description='Tax rate.')
     seo = SeoInput(description='Search engine optimization fields.')
 
 
@@ -273,13 +282,22 @@ class ProductDelete(ModelDeleteMutation):
 
 
 class ProductVariantInput(graphene.InputObjectType):
-    attributes = graphene.List(AttributeValueInput)
-    cost_price = Decimal()
-    price_override = Decimal()
-    product = graphene.ID()
-    sku = graphene.String()
-    quantity = graphene.Int()
-    track_inventory = graphene.Boolean(required=True)
+    attributes = graphene.List(
+        AttributeValueInput,
+        description='List of attributes specific to this variant.')
+    cost_price = Decimal(description='Cost price of the variant.')
+    price_override = Decimal(
+        description='Special price of the particular variant.')
+    product = graphene.ID(
+        description='Product ID of which type is the variant.')
+    sku = graphene.String(description='Stock keeping unit.')
+    quantity = graphene.Int(
+        description='The total quantity of this variant available for sale.')
+    track_inventory = graphene.Boolean(
+        required=True,
+        description="""Determines if the inventory of this variant should
+        be tracked. If false, the quantity won't change when customers
+        buy this item.""")
 
 
 class ProductVariantCreate(ModelMutation):
@@ -346,11 +364,25 @@ class ProductVariantDelete(ModelDeleteMutation):
 
 
 class ProductTypeInput(graphene.InputObjectType):
-    name = graphene.String()
-    has_variants = graphene.Boolean(required=True)
-    product_attributes = graphene.List(graphene.ID)
-    variant_attributes = graphene.List(graphene.ID)
-    is_shipping_required = graphene.Boolean(required=True)
+
+    name = graphene.String(description='Name of the product type.')
+    has_variants = graphene.Boolean(
+        required=True,
+        description="""Determines if product of this type has multiple
+        variants. This option mainly simplifies product management
+        in the dashboard. There is always at least one variant created under
+        the hood.""")
+    product_attributes = graphene.List(
+        graphene.ID,
+        description='List of attributes shared among all product variants.')
+    variant_attributes = graphene.List(
+        graphene.ID,
+        description="""List of attributes used to distinguish between
+        different variants of a product.""")
+    is_shipping_required = graphene.Boolean(
+        required=True,
+        description="""Determines if shipping is required for products
+        of this variant.""")
 
 
 class ProductTypeCreate(ModelMutation):
