@@ -104,23 +104,21 @@ const ProductImageCreateProvider: React.StatelessComponent<
 interface ProductUpdateOperationsProps
   extends PartialMutationProviderProps<ProductImageCreateMutation> {
   product?: ProductDetailsQuery["product"];
-  children: (
-    props: MutationProviderRenderProps<{
-      createProductImage: PartialMutationProviderOutput<
-        ProductImageCreateMutation,
-        ProductImageCreateMutationVariables
-      >;
-      deleteProduct: PartialMutationProviderOutput;
-      reorderProductImages: PartialMutationProviderOutput<
-        ProductImageReorderMutation,
-        ProductImageReorderMutationVariables
-      >;
-      updateProduct: PartialMutationProviderOutput<
-        ProductUpdateMutation,
-        ProductUpdateMutationVariables
-      >;
-    }>
-  ) => React.ReactElement<any>;
+  children: MutationProviderRenderProps<{
+    createProductImage: PartialMutationProviderOutput<
+      ProductImageCreateMutation,
+      ProductImageCreateMutationVariables
+    >;
+    deleteProduct: PartialMutationProviderOutput;
+    reorderProductImages: PartialMutationProviderOutput<
+      ProductImageReorderMutation,
+      ProductImageReorderMutationVariables
+    >;
+    updateProduct: PartialMutationProviderOutput<
+      ProductUpdateMutation,
+      ProductUpdateMutationVariables
+    >;
+  }>;
   onDelete?: (data: ProductDeleteMutation) => void;
   onError?: (error: ApolloError) => void;
   onImageCreate?: (data: ProductImageCreateMutation) => void;
