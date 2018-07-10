@@ -36,7 +36,7 @@ export class MessageManager extends React.Component<
     this.processQueue();
   };
 
-  pushMessage = (message: Message) => (event: any) => {
+  pushMessage = (message: Message) => {
     this.queue.push({
       key: new Date().getTime(),
       ...message
@@ -69,7 +69,7 @@ export class MessageManager extends React.Component<
             vertical: "top"
           }}
           open={this.state.opened}
-          autoHideDuration={5000}
+          autoHideDuration={3000}
           onClose={this.handleClose}
           onExited={this.handleExited}
           ContentProps={{
