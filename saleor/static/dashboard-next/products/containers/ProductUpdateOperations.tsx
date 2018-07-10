@@ -1,11 +1,12 @@
 import * as React from "react";
 
+import { ApolloError } from "apollo-client";
 import {
-  MutationProviderPartialOutput,
-  MutationProviderProps,
-  MutationProviderRenderProps
+  MutationProviderRenderProps,
+  PartialMutationProviderOutput,
+  PartialMutationProviderProps,
+  PartialMutationProviderRenderProps
 } from "../..";
-import ErrorMessageCard from "../../components/ErrorMessageCard";
 import {
   ProductDeleteMutation,
   ProductDeleteMutationVariables,
@@ -28,10 +29,10 @@ import ProductImagesReorderProvider from "./ProductImagesReorder";
 import ProductUpdateProvider from "./ProductUpdate";
 
 interface ProductDeleteProviderProps
-  extends MutationProviderProps<ProductDeleteMutation> {
+  extends PartialMutationProviderProps<ProductDeleteMutation> {
   productId: string;
   children: ((
-    props: MutationProviderRenderProps<
+    props: PartialMutationProviderRenderProps<
       ProductDeleteMutation,
       ProductDeleteMutationVariables
     >
@@ -47,25 +48,22 @@ const ProductDeleteProvider: React.StatelessComponent<
     onCompleted={onSuccess}
     onError={onError}
   >
-    {(mutate, { data, error, loading }) => {
-      if (error) {
-        return <ErrorMessageCard message={error.message} />;
-      }
-      return children({
+    {(mutate, { data, error, loading }) =>
+      children({
         data,
         error,
         loading,
         mutate
-      });
-    }}
+      })
+    }
   </TypedProductDeleteMutation>
 );
 
 interface ProductImageCreateProviderProps
-  extends MutationProviderProps<ProductImageCreateMutation> {
+  extends PartialMutationProviderProps<ProductImageCreateMutation> {
   productId: string;
   children: ((
-    props: MutationProviderRenderProps<
+    props: PartialMutationProviderRenderProps<
       ProductImageCreateMutation,
       ProductImageCreateMutationVariables
     >
@@ -92,44 +90,39 @@ const ProductImageCreateProvider: React.StatelessComponent<
     onCompleted={onSuccess}
     onError={onError}
   >
-    {(mutate, { data, error, loading }) => {
-      if (error) {
-        return <ErrorMessageCard message={error.message} />;
-      }
-      return children({
+    {(mutate, { data, error, loading }) =>
+      children({
         data,
         error,
         loading,
         mutate
-      });
-    }}
+      })
+    }
   </TypedProductImageCreateMutation>
 );
 
 interface ProductUpdateOperationsProps
-  extends MutationProviderProps<ProductImageCreateMutation> {
+  extends PartialMutationProviderProps<ProductImageCreateMutation> {
   product?: ProductDetailsQuery["product"];
   children: (
-    props: {
-      createProductImage: MutationProviderPartialOutput<
+    props: MutationProviderRenderProps<{
+      createProductImage: PartialMutationProviderOutput<
         ProductImageCreateMutation,
         ProductImageCreateMutationVariables
       >;
-      deleteProduct: MutationProviderPartialOutput;
-      reorderProductImages: Exclude<
-        MutationProviderPartialOutput<
-          ProductImageReorderMutation,
-          ProductImageReorderMutationVariables
-        >,
-        { error: any }
+      deleteProduct: PartialMutationProviderOutput;
+      reorderProductImages: PartialMutationProviderOutput<
+        ProductImageReorderMutation,
+        ProductImageReorderMutationVariables
       >;
-      updateProduct: MutationProviderPartialOutput<
+      updateProduct: PartialMutationProviderOutput<
         ProductUpdateMutation,
         ProductUpdateMutationVariables
       >;
-    }
+    }>
   ) => React.ReactElement<any>;
   onDelete?: (data: ProductDeleteMutation) => void;
+  onError?: (error: ApolloError) => void;
   onImageCreate?: (data: ProductImageCreateMutation) => void;
   onImageReorder?: (data: ProductImageReorderMutation) => void;
   onUpdate?: (data: ProductUpdateMutation) => void;
@@ -141,26 +134,34 @@ const ProductUpdateOperations: React.StatelessComponent<
   product,
   children,
   onDelete,
+  onError,
   onImageCreate,
   onImageReorder,
   onUpdate
 }) => {
   const productId = product ? product.id : "";
   return (
-    <ProductUpdateProvider productId={productId} onSuccess={onUpdate}>
+    <ProductUpdateProvider
+      productId={productId}
+      onError={onError}
+      onSuccess={onUpdate}
+    >
       {updateProduct => (
         <ProductImagesReorderProvider
           productId={productId}
+          onError={onError}
           onSuccess={onImageReorder}
         >
           {reorderProductImages => (
             <ProductImageCreateProvider
               productId={productId}
+              onError={onError}
               onSuccess={onImageCreate}
             >
               {createProductImage => (
                 <ProductDeleteProvider
                   productId={productId}
+                  onError={onError}
                   onSuccess={onDelete}
                 >
                   {deleteProduct =>
@@ -176,6 +177,12 @@ const ProductUpdateOperations: React.StatelessComponent<
                         loading: deleteProduct.loading,
                         mutate: deleteProduct.mutate
                       },
+                      errors:
+                        updateProduct &&
+                        updateProduct.data &&
+                        updateProduct.data.productUpdate
+                          ? updateProduct.data.productUpdate.errors
+                          : [],
                       reorderProductImages: {
                         data: reorderProductImages.data,
                         loading: reorderProductImages.loading,

@@ -11,6 +11,7 @@ import ProductUpdatePage from "../components/ProductUpdatePage";
 import ProductUpdateOperations from "../containers/ProductUpdateOperations";
 import { productListUrl, productVariantEditUrl } from "../index";
 import { productDetailsQuery, TypedProductDetailsQuery } from "../queries";
+import { ApolloError } from "apollo-client";
 
 interface ProductUpdateProps {
   id: string;
@@ -39,6 +40,10 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                     pushMessage({ text: i18n.t("Product removed") });
                     navigate(categoryShowUrl(data.product.category.id));
                   };
+                  const handleError = (error: ApolloError) => {
+                    console.error(error.message);
+                    pushMessage({ text: i18n.t("Something went wrong") });
+                  };
                   const handleUpdate = () =>
                     pushMessage({ text: i18n.t("Saved changes") });
                   const handleImageCreate = () =>
@@ -58,17 +63,18 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                     data && data.product
                       ? data.product.images.edges.map(edge => edge.node)
                       : undefined;
-
                   return (
                     <ProductUpdateOperations
                       product={product}
                       onDelete={handleDelete}
+                      onError={handleError}
                       onImageCreate={handleImageCreate}
                       onUpdate={handleUpdate}
                     >
                       {({
                         createProductImage,
                         deleteProduct,
+                        errors,
                         reorderProductImages,
                         updateProduct
                       }) => {
@@ -85,6 +91,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                             categories={allCategories}
                             collections={allCollections}
                             disabled={disableFormSave}
+                            errors={errors}
                             saveButtonBarState={formSubmitState}
                             images={images}
                             placeholderImage={placeholderImg}
