@@ -343,6 +343,12 @@ def product(product_type, default_category):
         cost_price=Money('1.00', 'USD'), quantity=10, quantity_allocated=1)
     return product
 
+@pytest.fixture
+def variant(product):
+    product_variant = ProductVariant.objects.create(
+        product=product, sku='SKU_A', cost_price=Money(1, 'USD'), quantity=5,
+        quantity_allocated=3)
+    return product_variant
 
 @pytest.fixture
 def product_without_shipping(default_category):
@@ -498,6 +504,11 @@ def fulfilled_order(order_with_lines):
 
 
 @pytest.fixture
+def fulfillment(fulfilled_order):
+    return fulfilled_order.fulfillments.first()
+
+
+@pytest.fixture
 def draft_order(order_with_lines):
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.save(update_fields=['status'])
@@ -527,7 +538,8 @@ def payment_confirmed(order_with_lines):
     return order_with_lines.payments.create(
         variant='default', status=PaymentStatus.CONFIRMED,
         fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_amount, captured_amount=order_amount)
+        total=order_amount, captured_amount=order_amount,
+        tax=order_with_lines.total.tax.amount)
 
 
 @pytest.fixture()

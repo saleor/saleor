@@ -29,6 +29,13 @@ from .core.types import Shop
 from .order.filters import OrderFilter
 from .order.resolvers import resolve_order, resolve_orders
 from .order.types import Order
+from .order.mutations.draft_orders import (
+    DraftOrderComplete, DraftOrderCreate, DraftOrderDelete, DraftOrderUpdate)
+from .order.mutations.fulfillments import (
+    FulfillmentCancel, FulfillmentCreate, FulfillmentUpdate)
+from .order.mutations.orders import  (
+    OrderAddNote, OrderCancel, OrderCapture, OrderMarkAsPaid, OrderRefund,
+    OrderRelease, OrderUpdate)
 from .page.resolvers import resolve_pages, resolve_page
 from .page.types import Page
 from .page.mutations import PageCreate, PageDelete, PageUpdate
@@ -275,6 +282,21 @@ class Mutations(graphene.ObjectType):
     menu_item_create = MenuItemCreate.Field()
     menu_item_delete = MenuItemDelete.Field()
     menu_item_update = MenuItemUpdate.Field()
+
+    draft_order_create = DraftOrderCreate.Field()
+    draft_order_complete = DraftOrderComplete.Field()
+    draft_order_delete = DraftOrderDelete.Field()
+    draft_order_update = DraftOrderUpdate.Field()
+    fulfillment_cancel = FulfillmentCancel.Field()
+    fulfillment_create = FulfillmentCreate.Field()
+    fulfillment_update = FulfillmentUpdate.Field()
+    order_add_note = OrderAddNote.Field()
+    order_cancel = OrderCancel.Field()
+    order_capture = OrderCapture.Field()
+    order_mark_as_paid = OrderMarkAsPaid.Field()
+    order_refund = OrderRefund.Field()
+    order_release = OrderRelease.Field()
+    order_update = OrderUpdate.Field()
 
     page_create = PageCreate.Field()
     page_delete = PageDelete.Field()

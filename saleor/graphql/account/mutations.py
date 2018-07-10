@@ -2,7 +2,7 @@ import graphene
 from django.contrib.auth.tokens import default_token_generator
 
 from ...account import models
-from ...core.permissions import get_permissions, MODELS_PERMISSIONS
+from ...core.permissions import MODELS_PERMISSIONS, get_permissions
 from ..core.mutations import ModelMutation
 
 
@@ -130,6 +130,6 @@ class SetPassword(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def save(cls, instance, cleaned_input):
+    def save(cls, info, instance, cleaned_input):
         instance.set_password(cleaned_input['password'])
         instance.save()

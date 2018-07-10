@@ -3,7 +3,7 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from ...order import models
-from ..core.types import CountableDjangoObjectType
+from ..core.types import CountableDjangoObjectType, Money, TaxedMoney
 
 
 class Order(CountableDjangoObjectType):
@@ -16,6 +16,10 @@ class Order(CountableDjangoObjectType):
         description='User-friendly payment status.')
     status_display = graphene.String(
         description='User-friendly order status.')
+    captured_amount = graphene.Field(
+        Money, description='Amount captured by payment.')
+    total_price = graphene.Field(
+        TaxedMoney, description='Total price of the order.')
 
     class Meta:
         description = 'Represents an order in the shop.'
@@ -24,6 +28,11 @@ class Order(CountableDjangoObjectType):
         exclude_fields = [
             'shipping_price_gross', 'shipping_price_net', 'total_gross',
             'total_net']
+
+    def resolve_captured_amount(self, info):
+        payment = self.get_last_payment()
+        if payment:
+            return payment.get_captured_price()
 
     def resolve_is_paid(self, info):
         return self.is_fully_paid()
@@ -39,6 +48,11 @@ class Order(CountableDjangoObjectType):
 
     def resolve_status_display(self, info):
         return self.get_status_display()
+
+    def resolve_total_prize(self, info):
+        payment = self.get_last_payment()
+        if payment:
+            return payment.get_total_price()
 
 
 class OrderHistoryEntry(CountableDjangoObjectType):
@@ -66,12 +80,13 @@ class OrderNote(CountableDjangoObjectType):
         exclude_fields = ['order']
 
 
-class Fulfillment(DjangoObjectType):
+class Fulfillment(CountableDjangoObjectType):
     status_display = graphene.String(
         description='User-friendly fulfillment status.')
 
     class Meta:
         description = 'Represents order fulfillment.'
+        interfaces = [relay.Node]
         model = models.Fulfillment
         exclude_fields = ['order']
 
@@ -79,8 +94,9 @@ class Fulfillment(DjangoObjectType):
         return self.get_status_display()
 
 
-class FulfillmentLine(DjangoObjectType):
+class FulfillmentLine(CountableDjangoObjectType):
     class Meta:
         description = 'Represents line of the fulfillment.'
+        interfaces = [relay.Node]
         model = models.FulfillmentLine
         exclude_fields = ['fulfillment']
