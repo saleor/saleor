@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { ApolloError } from "apollo-client";
 import {
+  MutationProviderProps,
   MutationProviderRenderProps,
   PartialMutationProviderOutput,
   PartialMutationProviderProps,
@@ -101,8 +102,7 @@ const ProductImageCreateProvider: React.StatelessComponent<
   </TypedProductImageCreateMutation>
 );
 
-interface ProductUpdateOperationsProps
-  extends PartialMutationProviderProps<ProductImageCreateMutation> {
+interface ProductUpdateOperationsProps extends MutationProviderProps {
   product?: ProductDetailsQuery["product"];
   children: MutationProviderRenderProps<{
     createProductImage: PartialMutationProviderOutput<
@@ -120,7 +120,6 @@ interface ProductUpdateOperationsProps
     >;
   }>;
   onDelete?: (data: ProductDeleteMutation) => void;
-  onError?: (error: ApolloError) => void;
   onImageCreate?: (data: ProductImageCreateMutation) => void;
   onImageReorder?: (data: ProductImageReorderMutation) => void;
   onUpdate?: (data: ProductUpdateMutation) => void;
