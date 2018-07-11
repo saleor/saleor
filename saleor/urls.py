@@ -6,7 +6,6 @@ from django.contrib.sitemaps.views import sitemap
 from django.contrib.staticfiles.views import serve
 from django.views.decorators.csrf import csrf_exempt
 from django.views.i18n import JavaScriptCatalog, set_language
-from graphene_django.views import GraphQLView
 from graphene_file_upload import ModifiedGraphQLView
 
 from .account.urls import urlpatterns as account_urls
