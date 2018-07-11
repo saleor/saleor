@@ -88,15 +88,17 @@ export interface PartialMutationProviderOutput<
   loading: boolean;
   mutate: (variables: TVariables) => void;
 }
-export interface PartialMutationProviderRenderProps<
+export type PartialMutationProviderRenderProps<
   TData extends {} = {},
   TVariables extends {} = {}
-> {
-  data: TData;
-  loading: boolean;
-  error?: ApolloError;
-  mutate: MutationFn<TData, TVariables>;
-}
+> = (
+  props: {
+    data: TData;
+    loading: boolean;
+    error?: ApolloError;
+    mutate: MutationFn<TData, TVariables>;
+  }
+) => React.ReactElement<any>;
 
 export interface MutationProviderProps {
   onError?: (error: ApolloError) => void;
