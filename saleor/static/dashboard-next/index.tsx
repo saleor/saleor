@@ -76,7 +76,7 @@ export interface UserError {
 
 // These interfaces are used in atomic mutation providers, which then are
 // combined into one compound mutation provider
-export interface PartialMutationProviderProps<T extends {}> {
+export interface PartialMutationProviderProps<T extends {} = {}> {
   onSuccess?: (data: T) => void;
   onError?: (error: ApolloError) => void;
 }
