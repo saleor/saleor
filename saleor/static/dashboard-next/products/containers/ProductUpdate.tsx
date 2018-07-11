@@ -18,12 +18,10 @@ import { productDetailsQuery } from "../queries";
 interface ProductUpdateProviderProps
   extends PartialMutationProviderProps<ProductUpdateMutation> {
   productId: string;
-  children: ((
-    props: PartialMutationProviderRenderProps<
-      ProductUpdateMutation,
-      ProductUpdateMutationVariables
-    >
-  ) => React.ReactElement<any>);
+  children: PartialMutationProviderRenderProps<
+    ProductUpdateMutation,
+    ProductUpdateMutationVariables
+  >;
 }
 
 const ProductUpdateProvider: React.StatelessComponent<
