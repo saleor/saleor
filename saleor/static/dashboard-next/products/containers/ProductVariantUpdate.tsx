@@ -1,37 +1,52 @@
 import * as React from "react";
 
-import ErrorMessageCard from "../../components/ErrorMessageCard";
-import { ProductVariantDetailsQuery } from "../../gql-types";
+import {
+  PartialMutationProviderProps,
+  PartialMutationProviderRenderProps
+} from "../..";
+import {
+  ProductVariantDetailsQuery,
+  VariantUpdateMutation,
+  VariantUpdateMutationVariables
+} from "../../gql-types";
 import {
   TypedVariantUpdateMutation,
   variantUpdateMutation
 } from "../mutations";
 import { productVariantQuery } from "../queries";
 
-interface ProductVariantUpdateProviderProps {
-  children: any;
-  variantId: string;
+interface ProductVariantUpdateProviderProps
+  extends PartialMutationProviderProps<VariantUpdateMutation> {
+  children: PartialMutationProviderRenderProps<
+    VariantUpdateMutation,
+    VariantUpdateMutationVariables
+  >;
+  id: string;
 }
 
 const ProductVariantUpdateProvider: React.StatelessComponent<
   ProductVariantUpdateProviderProps
-> = ({ variantId, children }) => (
+> = ({ id, children, onError, onSuccess }) => (
   <TypedVariantUpdateMutation
     mutation={variantUpdateMutation}
     update={(cache, { data: { productVariantUpdate } }) => {
       const data: ProductVariantDetailsQuery = cache.readQuery({
         query: productVariantQuery,
-        variables: { id: variantId }
+        variables: { id }
       });
       data.productVariant = productVariantUpdate.productVariant;
       cache.writeQuery({ query: productVariantQuery, data });
     }}
+    onCompleted={onSuccess}
+    onError={onError}
   >
-    {(updateVariant, { error }) => {
-      if (error) {
-        return <ErrorMessageCard message={error.message} />;
-      }
-      return children(updateVariant);
+    {(mutate, { data, error, loading }) => {
+      return children({
+        data,
+        error,
+        loading,
+        mutate
+      });
     }}
   </TypedVariantUpdateMutation>
 );

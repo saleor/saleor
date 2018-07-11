@@ -12,6 +12,7 @@ interface ProductVariantPriceProps {
   currencySymbol?: string;
   priceOverride?: number;
   costPrice?: number;
+  errors: { [key: string]: string };
   loading?: boolean;
   onChange(event: any);
 }
@@ -34,6 +35,7 @@ const ProductVariantPrice = decorate<ProductVariantPriceProps>(
     classes,
     currencySymbol,
     costPrice,
+    errors,
     priceOverride,
     loading,
     onChange
@@ -44,9 +46,14 @@ const ProductVariantPrice = decorate<ProductVariantPriceProps>(
         <div className={classes.grid}>
           <div>
             <PriceField
+              error={!!errors.price_override}
               name="priceOverride"
               label={i18n.t("Selling price override")}
-              hint={i18n.t("Optional")}
+              hint={
+                errors.price_override
+                  ? errors.price_override
+                  : i18n.t("Optional")
+              }
               value={priceOverride}
               currencySymbol={currencySymbol}
               onChange={onChange}
@@ -55,9 +62,10 @@ const ProductVariantPrice = decorate<ProductVariantPriceProps>(
           </div>
           <div>
             <PriceField
+              error={!!errors.cost_price}
               name="costPrice"
               label={i18n.t("Cost price override")}
-              hint={i18n.t("Optional")}
+              hint={errors.cost_price ? errors.cost_price : i18n.t("Optional")}
               value={costPrice}
               currencySymbol={currencySymbol}
               onChange={onChange}
