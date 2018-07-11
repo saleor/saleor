@@ -1,31 +1,42 @@
 import * as React from "react";
-import { Redirect } from "react-router-dom";
 
-import ErrorMessageCard from "../../components/ErrorMessageCard";
-import { productUrl } from "../index";
-import { TypedVariantDeleteMutation, variantDeleteMutation } from "../mutations";
+import {
+  PartialMutationProviderProps,
+  PartialMutationProviderRenderProps
+} from "../..";
+import {
+  VariantDeleteMutation,
+  VariantDeleteMutationVariables
+} from "../../gql-types";
+import {
+  TypedVariantDeleteMutation,
+  variantDeleteMutation
+} from "../mutations";
 
-interface VariantDeleteProviderProps {
-  productId: string;
-  variantId: string;
-  children: ((deleteVariant: () => void) => React.ReactElement<any>);
+interface VariantDeleteProviderProps extends PartialMutationProviderProps {
+  id: string;
+  children: PartialMutationProviderRenderProps<
+    VariantDeleteMutation,
+    VariantDeleteMutationVariables
+  >;
 }
 
 const VariantDeleteProvider: React.StatelessComponent<
   VariantDeleteProviderProps
-> = ({ productId, variantId, children }) => (
+> = ({ id, children, onError, onSuccess }) => (
   <TypedVariantDeleteMutation
     mutation={variantDeleteMutation}
-    variables={{ id: variantId }}
+    variables={{ id }}
+    onCompleted={onSuccess}
+    onError={onError}
   >
-    {(deleteVariant, { called, loading, error }) => {
-      if (called && !loading) {
-        return <Redirect to={productUrl(productId)} push={false} />;
-      }
-      if (error) {
-        return <ErrorMessageCard message={error.message} />;
-      }
-      return children(() => deleteVariant());
+    {(mutate, { data, loading, error }) => {
+      return children({
+        data,
+        error,
+        loading,
+        mutate
+      });
     }}
   </TypedVariantDeleteMutation>
 );
