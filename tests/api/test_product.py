@@ -1,92 +1,20 @@
 import json
-from unittest.mock import patch
 
 import graphene
 import pytest
-from django.forms.models import model_to_dict
 from django.shortcuts import reverse
 from django.utils.text import slugify
+from graphql_relay import to_global_id
 from prices import Money
+from tests.utils import create_image, get_graphql_content
 
-from saleor.graphql.core.mutations import (
-    ModelFormMutation, ModelFormUpdateMutation)
-from saleor.page.models import Page
 from saleor.product.models import (
-    Category, Product, ProductAttribute, ProductType)
+    Category, Collection, Product, ProductAttribute, ProductType)
 
-from .utils import get_graphql_content
-
-
-def test_create_token_mutation(admin_client, staff_user):
-    query = '''
-    mutation {
-        tokenCreate(email: "%(email)s", password: "%(password)s") {
-            token
-            errors {
-                field
-                message
-            }
-        }
-    }
-    '''
-    success_query = query % {'email': staff_user.email, 'password': 'password'}
-    response = admin_client.post(reverse('api'), {'query': success_query})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    token_data = content['data']['tokenCreate']
-    assert token_data['token']
-    assert not token_data['errors']
-
-    error_query = query % {'email': staff_user.email, 'password': 'wat'}
-    response = admin_client.post(reverse('api'), {'query': error_query})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    token_data = content['data']['tokenCreate']
-    assert not token_data['token']
-    errors = token_data['errors']
-    assert errors
-    assert not errors[0]['field']
+from .utils import get_multipart_request_body
 
 
-def test_category_query(client, product):
-    category = Category.objects.first()
-    query = '''
-    query {
-        category(id: "%(category_pk)s") {
-            id
-            name
-            ancestors {
-                edges {
-                    node {
-                        name
-                    }
-                }
-            }
-            children {
-                edges {
-                    node {
-                        name
-                    }
-                }
-            }
-        }
-    }
-    ''' % {'category_pk': graphene.Node.to_global_id('Category', category.pk)}
-    response = client.post(reverse('api'), {'query': query})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    category_data = content['data']['category']
-    assert category_data is not None
-    assert category_data['name'] == category.name
-    assert (
-        len(category_data['ancestors']['edges']) ==
-        category.get_ancestors().count())
-    assert (
-        len(category_data['children']['edges']) ==
-        category.get_children().count())
-
-
-def test_fetch_all_products(client, product):
+def test_fetch_all_products(user_api_client, product):
     query = '''
     query {
         products {
@@ -99,7 +27,7 @@ def test_fetch_all_products(client, product):
         }
     }
     '''
-    response = client.post(reverse('api'), {'query': query})
+    response = user_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
     assert 'errors' not in content
     num_products = Product.objects.count()
@@ -108,7 +36,7 @@ def test_fetch_all_products(client, product):
 
 
 @pytest.mark.djangodb
-def test_fetch_unavailable_products(client, product):
+def test_fetch_unavailable_products(user_api_client, product):
     Product.objects.update(is_published=False)
     query = '''
     query {
@@ -122,14 +50,14 @@ def test_fetch_unavailable_products(client, product):
         }
     }
     '''
-    response = client.post(reverse('api'), {'query': query})
+    response = user_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
     assert 'errors' not in content
     assert content['data']['products']['totalCount'] == 0
     assert not content['data']['products']['edges']
 
 
-def test_product_query(admin_client, product):
+def test_product_query(admin_api_client, product):
     category = Category.objects.first()
     product = category.products.first()
     query = '''
@@ -175,11 +103,11 @@ def test_product_query(admin_client, product):
                                 }
                             }
                         }
-                        purchaseCost{
-                            start{
+                        purchaseCost {
+                            start {
                                 amount
                             }
-                            stop{
+                            stop {
                                 amount
                             }
                         }
@@ -193,7 +121,7 @@ def test_product_query(admin_client, product):
         }
     }
     ''' % {'category_id': graphene.Node.to_global_id('Category', category.id)}
-    response = admin_client.post(reverse('api'), {'query': query})
+    response = admin_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
     assert 'errors' not in content
     assert content['data']['category'] is not None
@@ -210,11 +138,11 @@ def test_product_query(admin_client, product):
         'purchaseCost']['start']['amount']
     assert purchase_cost.stop.amount == product_data[
         'purchaseCost']['stop']['amount']
-    assert margin[0] == product_data['margin'][0]['start']
-    assert margin[1] == product_data['margin'][0]['stop']
+    assert margin[0] == product_data['margin']['start']
+    assert margin[1] == product_data['margin']['stop']
 
 
-def test_product_with_collections(admin_client, product, collection):
+def test_product_with_collections(admin_api_client, product, collection):
     query = '''
         query getProduct($productID: ID!) {
             product(id: $productID) {
@@ -233,7 +161,7 @@ def test_product_with_collections(admin_client, product, collection):
     product_id = graphene.Node.to_global_id('Product', product.id)
 
     variables = json.dumps({'productID': product_id})
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -242,7 +170,7 @@ def test_product_with_collections(admin_client, product, collection):
     assert len(data['collections']['edges']) == 1
 
 
-def test_filter_product_by_category(client, product):
+def test_filter_product_by_category(user_api_client, product):
     category = product.category
     query = '''
     query getProducts($categoryId: ID) {
@@ -255,7 +183,7 @@ def test_filter_product_by_category(client, product):
         }
     }
     '''
-    response = client.post(
+    response = user_api_client.post(
         reverse('api'),
         {
             'query': query,
@@ -270,7 +198,7 @@ def test_filter_product_by_category(client, product):
     assert product_data['name'] == product.name
 
 
-def test_fetch_product_by_id(client, product):
+def test_fetch_product_by_id(user_api_client, product):
     query = '''
     query ($productId: ID!) {
         node(id: $productId) {
@@ -280,7 +208,7 @@ def test_fetch_product_by_id(client, product):
         }
     }
     '''
-    response = client.post(
+    response = user_api_client.post(
         reverse('api'),
         {
             'query': query,
@@ -294,7 +222,7 @@ def test_fetch_product_by_id(client, product):
     assert product_data['name'] == product.name
 
 
-def test_filter_product_by_attributes(client, product):
+def test_filter_product_by_attributes(user_api_client, product):
     product_attr = product.product_type.product_attributes.first()
     category = product.category
     attr_value = product_attr.values.first()
@@ -314,14 +242,14 @@ def test_filter_product_by_attributes(client, product):
     ''' % {
         'category_id': graphene.Node.to_global_id('Category', category.id),
         'filter_by': filter_by}
-    response = client.post(reverse('api'), {'query': query})
+    response = user_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
     assert 'errors' not in content
     product_data = content['data']['category']['products']['edges'][0]['node']
     assert product_data['name'] == product.name
 
 
-def test_sort_products(client, product):
+def test_sort_products(user_api_client, product):
     # set price of the first product
     product.price = Money('10.00', 'USD')
     product.save()
@@ -346,7 +274,7 @@ def test_sort_products(client, product):
     '''
 
     asc_price_query = query % {'sort_by': 'price'}
-    response = client.post(reverse('api'), {'query': asc_price_query})
+    response = user_api_client.post(reverse('api'), {'query': asc_price_query})
     content = get_graphql_content(response)
     assert 'errors' not in content
     product_data = content['data']['products']['edges'][0]['node']
@@ -355,7 +283,7 @@ def test_sort_products(client, product):
     assert price_0 < price_1
 
     desc_price_query = query % {'sort_by': '-price'}
-    response = client.post(reverse('api'), {'query': desc_price_query})
+    response = user_api_client.post(reverse('api'), {'query': desc_price_query})
     content = get_graphql_content(response)
     assert 'errors' not in content
     product_data = content['data']['products']['edges'][0]['node']
@@ -364,7 +292,7 @@ def test_sort_products(client, product):
     assert price_0 > price_1
 
 
-def test_attributes_query(client, product):
+def test_attributes_query(user_api_client, product):
     attributes = ProductAttribute.objects.prefetch_related('values')
     query = '''
     query {
@@ -384,14 +312,14 @@ def test_attributes_query(client, product):
         }
     }
     '''
-    response = client.post(reverse('api'), {'query': query})
+    response = user_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
     assert 'errors' not in content
     attributes_data = content['data']['attributes']['edges']
     assert len(attributes_data) == attributes.count()
 
 
-def test_attributes_in_category_query(client, product):
+def test_attributes_in_category_query(user_api_client, product):
     category = Category.objects.first()
     query = '''
     query {
@@ -411,265 +339,15 @@ def test_attributes_in_category_query(client, product):
         }
     }
     ''' % {'category_id': graphene.Node.to_global_id('Category', category.id)}
-    response = client.post(reverse('api'), {'query': query})
+    response = user_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
     assert 'errors' not in content
     attributes_data = content['data']['attributes']['edges']
     assert len(attributes_data) == ProductAttribute.objects.count()
 
 
-def test_real_query(admin_client, product):
-    product_attr = product.product_type.product_attributes.first()
-    category = product.category
-    attr_value = product_attr.values.first()
-    filter_by = '%s:%s' % (product_attr.slug, attr_value.slug)
-    query = '''
-    query Root($categoryId: ID!, $sortBy: String, $first: Int, $attributesFilter: [AttributeScalar], $minPrice: Float, $maxPrice: Float) {
-        category(id: $categoryId) {
-            ...CategoryPageFragmentQuery
-            __typename
-        }
-        attributes(inCategory: $categoryId) {
-            edges {
-                node {
-                    ...ProductFiltersFragmentQuery
-                    __typename
-                }
-            }
-        }
-    }
-
-    fragment CategoryPageFragmentQuery on Category {
-        id
-        name
-        url
-        ancestors {
-            edges {
-                node {
-                    name
-                    id
-                    url
-                    __typename
-                }
-            }
-        }
-        children {
-            edges {
-                node {
-                    name
-                    id
-                    url
-                    slug
-                    __typename
-                }
-            }
-        }
-        products(first: $first, sortBy: $sortBy, attributes: $attributesFilter, price_Gte: $minPrice, price_Lte: $maxPrice) {
-            ...ProductListFragmentQuery
-            __typename
-        }
-        __typename
-    }
-
-    fragment ProductListFragmentQuery on ProductCountableConnection {
-        edges {
-            node {
-                ...ProductFragmentQuery
-                __typename
-            }
-            __typename
-        }
-        pageInfo {
-            hasNextPage
-            __typename
-        }
-        __typename
-    }
-
-    fragment ProductFragmentQuery on Product {
-        id
-        name
-        price {
-            amount
-            currency
-            localized
-            __typename
-        }
-        availability {
-            ...ProductPriceFragmentQuery
-            __typename
-        }
-        thumbnailUrl1x: thumbnailUrl(size: "255x255")
-        thumbnailUrl2x: thumbnailUrl(size: "510x510")
-        url
-        __typename
-    }
-
-    fragment ProductPriceFragmentQuery on ProductAvailability {
-        available
-        discount {
-            gross {
-                amount
-                currency
-                __typename
-            }
-            __typename
-        }
-        priceRange {
-            stop {
-                gross {
-                    amount
-                    currency
-                    localized
-                    __typename
-                }
-                currency
-                __typename
-            }
-            start {
-                gross {
-                    amount
-                    currency
-                    localized
-                    __typename
-                }
-                currency
-                __typename
-            }
-            __typename
-        }
-        __typename
-    }
-
-    fragment ProductFiltersFragmentQuery on ProductAttribute {
-        id
-        name
-        slug
-        values {
-            id
-            name
-            slug
-            __typename
-        }
-        __typename
-    }
-    '''
-    response = admin_client.post(
-        reverse('api'), {
-            'query': query,
-            'variables': json.dumps(
-                {
-                    'categoryId': graphene.Node.to_global_id(
-                        'Category', category.id),
-                    'sortBy': 'name',
-                    'first': 1,
-                    'attributesFilter': [filter_by]})})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-
-def test_page_query(client, page):
-    page.is_visible = True
-    query = """
-    query PageQuery($id: ID!) {
-        page(id: $id) {
-            title
-            slug
-        }
-    }
-    """
-    variables = json.dumps({
-        'id': graphene.Node.to_global_id('Page', page.id)})
-    response = client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    page_data = content['data']['page']
-    assert page_data['title'] == page.title
-    assert page_data['slug'] == page.slug
-
-
-def test_paginate_pages(client, page):
-    page.is_visible = True
-    data_02 = {
-        'slug': 'test02-url',
-        'title': 'Test page',
-        'content': 'test content',
-        'is_visible': True}
-    data_03 = {
-        'slug': 'test03-url',
-        'title': 'Test page',
-        'content': 'test content',
-        'is_visible': True}
-
-    page2 = Page.objects.create(**data_02)
-    page3 = Page.objects.create(**data_03)
-    query = """
-        query PagesQuery {
-            pages(first: 2) {
-                edges {
-                    node {
-                        id
-                        title
-                    }
-                }
-            }
-        }
-        """
-    response = client.post(
-        reverse('api'), {'query': query})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    pages_data = content['data']['pages']
-    assert len(pages_data['edges']) == 2
-
-@patch('saleor.graphql.core.mutations.convert_form_fields')
-@patch('saleor.graphql.core.mutations.convert_form_field')
-def test_model_form_mutation(
-        mocked_convert_form_field, mocked_convert_form_fields,
-        model_form_class):
-
-    mocked_convert_form_fields.return_value = {
-        model_form_class._meta.fields: mocked_convert_form_field.return_value}
-
-    class TestMutation(ModelFormMutation):
-        test_field = graphene.String()
-
-        class Arguments:
-            test_input = graphene.String()
-
-        class Meta:
-            form_class = model_form_class
-            return_field_name = 'test_return_field'
-
-    meta = TestMutation._meta
-    assert meta.form_class == model_form_class
-    assert meta.model == 'test_model'
-    assert meta.return_field_name == 'test_return_field'
-    arguments = meta.arguments
-    # check if declarative arguments are present
-    assert 'test_input' in arguments
-    # check if model form field is present
-    mocked_convert_form_fields.assert_called_with(model_form_class, None)
-    assert 'test_field' in arguments
-
-    output_fields = meta.fields
-    assert 'test_return_field' in output_fields
-    assert 'errors' in output_fields
-
-
-@patch('saleor.graphql.core.mutations')
-def test_model_form_update_mutation(model_form_class):
-    class TestUpdateMutation(ModelFormUpdateMutation):
-        class Meta:
-            form_class = model_form_class
-            return_field_name = 'test_return_field'
-
-    meta = TestUpdateMutation._meta
-    assert 'id' in meta.arguments
-
-
 def test_create_product(
-        admin_client, product_type, default_category, size_attribute):
+        admin_api_client, product_type, default_category, size_attribute):
     query = """
         mutation createProduct(
             $productTypeId: ID!,
@@ -680,21 +358,23 @@ def test_create_product(
             $isFeatured: Boolean!,
             $chargeTaxes: Boolean!,
             $taxRate: String!,
-            $price: Float!,
-            $attributes: [AttributeValueInput]) {
+            $price: Decimal!,
+            $attributes: [AttributeValueInput!]) {
                 productCreate(
-                    categoryId: $categoryId,
-                    productTypeId: $productTypeId,
-                    name: $name,
-                    description: $description,
-                    isPublished: $isPublished,
-                    isFeatured: $isFeatured,
-                    chargeTaxes: $chargeTaxes,
-                    taxRate: $taxRate,
-                    price: $price,
-                    attributes: $attributes) {
+                    input: {
+                        category: $categoryId,
+                        productType: $productTypeId,
+                        name: $name,
+                        description: $description,
+                        isPublished: $isPublished,
+                        isFeatured: $isFeatured,
+                        chargeTaxes: $chargeTaxes,
+                        taxRate: $taxRate,
+                        price: $price,
+                        attributes: $attributes
+                    }) {
                         product {
-                            category{
+                            category {
                                 name
                             }
                             description
@@ -703,15 +383,19 @@ def test_create_product(
                             chargeTaxes
                             taxRate
                             name
-                            price{
+                            price {
                                 amount
                             }
-                            productType{
+                            productType {
                                 name
                             }
-                            attributes{
-                                name
-                                value
+                            attributes {
+                                attribute {
+                                    slug
+                                }
+                                value {
+                                    slug
+                                }
                             }
                           }
                           errors {
@@ -732,7 +416,7 @@ def test_create_product(
     product_isFeatured = False
     product_chargeTaxes = True
     product_taxRate = 'standard'
-    product_price = 22
+    product_price = "22.33"
 
     # Default attribute defined in product_type fixture
     color_attr = product_type.product_attributes.get(name='Color')
@@ -759,7 +443,7 @@ def test_create_product(
             {'slug': color_attr_slug, 'value': color_attr_value},
             {'slug': size_attr_slug, 'value': non_existent_attr_value}]})
 
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -774,40 +458,42 @@ def test_create_product(
     assert data['product']['productType']['name'] == product_type.name
     assert data['product']['category']['name'] == default_category.name
     values = (
-        data['product']['attributes'][0].get('value'),
-        data['product']['attributes'][1].get('value'))
+        data['product']['attributes'][0]['value']['slug'],
+        data['product']['attributes'][1]['value']['slug'])
     assert slugify(non_existent_attr_value) in values
     assert color_value_slug in values
 
 
 def test_update_product(
-        admin_client, default_category, non_default_category,
+        admin_api_client, default_category, non_default_category,
         product):
     query = """
         mutation updateProduct(
             $productId: ID!,
-            $categoryId: ID,
+            $categoryId: ID!,
             $name: String!,
             $description: String!,
             $isPublished: Boolean!,
             $isFeatured: Boolean!,
             $chargeTaxes: Boolean!,
             $taxRate: String!,
-            $price: Float!,
-            $attributes: [AttributeValueInput]) {
+            $price: Decimal!,
+            $attributes: [AttributeValueInput!]) {
                 productUpdate(
-                    categoryId: $categoryId,
                     id: $productId,
-                    name: $name,
-                    description: $description,
-                    isPublished: $isPublished,
-                    isFeatured: $isFeatured,
-                    chargeTaxes: $chargeTaxes,
-                    taxRate: $taxRate,
-                    price: $price,
-                    attributes: $attributes) {
+                    input: {
+                        category: $categoryId,
+                        name: $name,
+                        description: $description,
+                        isPublished: $isPublished,
+                        isFeatured: $isFeatured,
+                        chargeTaxes: $chargeTaxes,
+                        taxRate: $taxRate,
+                        price: $price,
+                        attributes: $attributes
+                    }) {
                         product {
-                            category{
+                            category {
                                 name
                             }
                             description
@@ -816,15 +502,19 @@ def test_update_product(
                             chargeTaxes
                             taxRate
                             name
-                            price{
+                            price {
                                 amount
                             }
-                            productType{
+                            productType {
                                 name
                             }
-                            attributes{
-                                name
-                                value
+                            attributes {
+                                attribute {
+                                    name
+                                }
+                                value {
+                                    name
+                                }
                             }
                           }
                           errors {
@@ -843,7 +533,7 @@ def test_update_product(
     product_isFeatured = False
     product_chargeTaxes = True
     product_taxRate = 'standard'
-    product_price = 33
+    product_price = "33.12"
 
     variables = json.dumps({
         'productId': product_id,
@@ -856,7 +546,7 @@ def test_update_product(
         'taxRate': product_taxRate,
         'price': product_price})
 
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -871,7 +561,7 @@ def test_update_product(
     assert not data['product']['category']['name'] == default_category.name
 
 
-def test_delete_product(admin_client, product):
+def test_delete_product(admin_api_client, product):
     query = """
         mutation DeleteProduct($id: ID!) {
             productDelete(id: $id) {
@@ -888,7 +578,7 @@ def test_delete_product(admin_client, product):
     """
     variables = json.dumps({
         'id': graphene.Node.to_global_id('Product', product.id)})
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -898,210 +588,7 @@ def test_delete_product(admin_client, product):
         product.refresh_from_db()
 
 
-def test_category_create_mutation(admin_client):
-    query = """
-        mutation($name: String!, $description: String, $parentId: ID) {
-            categoryCreate(
-                name: $name
-                description: $description
-                parentId: $parentId
-            ) {
-                category {
-                    id
-                    name
-                    slug
-                    description
-                    parent {
-                        name
-                        id
-                    }
-                }
-                errors {
-                    field
-                    message
-                }
-            }
-        }
-    """
-
-    category_name = 'Test category'
-    category_description = 'Test description'
-
-    # test creating root category
-    variables = json.dumps({
-        'name': category_name, 'description': category_description})
-    response = admin_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['categoryCreate']
-    assert data['errors'] == []
-    assert data['category']['name'] == category_name
-    assert data['category']['description'] == category_description
-    assert not data['category']['parent']
-
-    # test creating subcategory
-    parent_id = data['category']['id']
-    variables = json.dumps({
-        'name': category_name, 'description': category_description,
-        'parentId': parent_id})
-    response = admin_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['categoryCreate']
-    assert data['errors'] == []
-    assert data['category']['parent']['id'] == parent_id
-
-
-def test_category_update_mutation(admin_client, default_category):
-    query = """
-        mutation($id: ID, $name: String!, $description: String) {
-            categoryUpdate(
-                id: $id
-                name: $name
-                description: $description
-            ) {
-                category {
-                    id
-                    name
-                    description
-                    parent {
-                        id
-                    }
-                }
-                errors {
-                    field
-                    message
-                }
-            }
-        }
-    """
-    # create child category and test that the update mutation won't change
-    # it's parent
-    child_category = default_category.children.create(name='child')
-
-    category_name = 'Updated name'
-    category_description = 'Updated description'
-
-    category_id = graphene.Node.to_global_id('Category', child_category.pk)
-    variables = json.dumps({
-        'name': category_name, 'description': category_description,
-        'id': category_id})
-    response = admin_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['categoryUpdate']
-    assert data['errors'] == []
-    assert data['category']['id'] == category_id
-    assert data['category']['name'] == category_name
-    assert data['category']['description'] == category_description
-
-    parent_id = graphene.Node.to_global_id('Category', default_category.pk)
-    assert data['category']['parent']['id'] == parent_id
-
-
-def test_category_delete_mutation(admin_client, default_category):
-    query = """
-        mutation($id: ID!) {
-            categoryDelete(id: $id) {
-                category {
-                    name
-                }
-                errors {
-                    field
-                    message
-                }
-            }
-        }
-    """
-    variables = json.dumps({
-        'id': graphene.Node.to_global_id('Category', default_category.id)})
-    response = admin_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['categoryDelete']
-    assert data['category']['name'] == default_category.name
-    with pytest.raises(default_category._meta.model.DoesNotExist):
-        default_category.refresh_from_db()
-
-
-def test_page_create_mutation(admin_client):
-    query = """
-        mutation CreatePage(
-            $slug: String!,
-            $title: String!,
-            $content: String!,
-            $isVisible: Boolean!) {
-                pageCreate(slug: $slug,
-                title: $title,
-                content: $content,
-                isVisible: $isVisible) {
-                    page {
-                        id
-                        title
-                        content
-                        slug
-                        isVisible
-                      }
-                      errors {
-                        message
-                        field
-                      }
-                    }
-                  }
-    """
-    page_slug = 'test-slug'
-    page_content = 'test content'
-    page_title = 'test title'
-    page_isVisible = True
-
-    # test creating root page
-    variables = json.dumps({
-        'title': page_title, 'content': page_content,
-        'isVisible': page_isVisible, 'slug': page_slug})
-    response = admin_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['pageCreate']
-    assert data['errors'] == []
-    assert data['page']['title'] == page_title
-    assert data['page']['content'] == page_content
-    assert data['page']['slug'] == page_slug
-    assert data['page']['isVisible'] == page_isVisible
-
-
-def test_page_delete_mutation(admin_client, page):
-    query = """
-        mutation DeletePage($id: ID!) {
-            pageDelete(id: $id) {
-                page {
-                    title
-                    id
-                }
-                errors {
-                    field
-                    message
-                }
-              }
-            }
-    """
-    variables = json.dumps({
-        'id': graphene.Node.to_global_id('Page', page.id)})
-    response = admin_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['pageDelete']
-    assert data['page']['title'] == page.title
-    with pytest.raises(page._meta.model.DoesNotExist):
-        page.refresh_from_db()
-
-
-def test_product_type(client, product_type):
+def test_product_type(user_api_client, product_type):
     query = """
     query {
         productTypes {
@@ -1115,7 +602,7 @@ def test_product_type(client, product_type):
         }
     }
     """
-    response = client.post(reverse('api'), {'query': query})
+    response = user_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
     no_product_types = ProductType.objects.count()
     assert 'errors' not in content
@@ -1124,15 +611,15 @@ def test_product_type(client, product_type):
 
 
 def test_product_type_query(
-        client, admin_client, product_type, product):
+        user_api_client, admin_api_client, product_type, product):
     query = """
             query getProductType($id: ID!) {
                 productType(id: $id) {
                     name
                     products {
                         totalCount
-                        edges{
-                            node{
+                        edges {
+                            node {
                                 name
                             }
                         }
@@ -1146,14 +633,14 @@ def test_product_type_query(
     variables = json.dumps({
         'id': graphene.Node.to_global_id('ProductType', product_type.id)})
 
-    response = client.post(
+    response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
     data = content['data']
     assert data['productType']['products']['totalCount'] == no_products - 1
 
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -1161,7 +648,7 @@ def test_product_type_query(
     assert data['productType']['products']['totalCount'] == no_products
 
 
-def test_product_type_create_mutation(admin_client, product_type):
+def test_product_type_create_mutation(admin_api_client, product_type):
     query = """
     mutation createProductType(
         $name: String!,
@@ -1169,33 +656,34 @@ def test_product_type_create_mutation(admin_client, product_type):
         $isShippingRequired: Boolean!,
         $productAttributes: [ID],
         $variantAttributes: [ID]) {
-            productTypeCreate(
-            name: $name,
-            hasVariants: $hasVariants,
-            isShippingRequired: $isShippingRequired,
-            productAttributes: $productAttributes,
-            variantAttributes: $variantAttributes) {
-                productType {
+        productTypeCreate(
+            input: {
+                name: $name,
+                hasVariants: $hasVariants,
+                isShippingRequired: $isShippingRequired,
+                productAttributes: $productAttributes,
+                variantAttributes: $variantAttributes}) {
+            productType {
+            name
+            isShippingRequired
+            hasVariants
+            variantAttributes {
+                edges {
+                node {
                     name
-                    isShippingRequired
-                    hasVariants
-                    variantAttributes {
-                        edges {
-                            node {
-                                name
-                            }
-                        }
-                    }
-                    productAttributes {
-                        edges {
-                            node {
-                                name
-                            }
-                        }
-                    }
                 }
-              }
+                }
             }
+            productAttributes {
+                edges {
+                node {
+                    name
+                }
+                }
+            }
+            }
+        }
+    }
     """
     product_type_name = 'test type'
     has_variants = True
@@ -1214,7 +702,7 @@ def test_product_type_create_mutation(admin_client, product_type):
         'isShippingRequired': require_shipping,
         'productAttributes': product_attributes_ids,
         'variantAttributes': variant_attributes_ids})
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -1228,7 +716,7 @@ def test_product_type_create_mutation(admin_client, product_type):
     assert len(data['productType']['variantAttributes']['edges']) == no_va
 
 
-def test_product_type_update_mutation(admin_client, product_type):
+def test_product_type_update_mutation(admin_api_client, product_type):
     query = """
     mutation updateProductType(
         $id: ID!,
@@ -1239,27 +727,21 @@ def test_product_type_update_mutation(admin_client, product_type):
         ) {
             productTypeUpdate(
             id: $id,
-            name: $name,
-            hasVariants: $hasVariants,
-            isShippingRequired: $isShippingRequired,
-            productAttributes: $productAttributes) {
+            input: {
+                name: $name,
+                hasVariants: $hasVariants,
+                isShippingRequired: $isShippingRequired,
+                productAttributes: $productAttributes
+            }) {
                 productType {
                     name
                     isShippingRequired
                     hasVariants
                     variantAttributes {
-                        edges {
-                            node {
-                                name
-                            }
-                        }
+                        totalCount
                     }
                     productAttributes {
-                        edges {
-                            node {
-                                name
-                            }
-                        }
+                        totalCount
                     }
                 }
               }
@@ -1284,7 +766,7 @@ def test_product_type_update_mutation(admin_client, product_type):
         'hasVariants': has_variants,
         'isShippingRequired': require_shipping,
         'productAttributes': product_attributes_ids})
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -1292,12 +774,12 @@ def test_product_type_update_mutation(admin_client, product_type):
     assert data['productType']['name'] == product_type_name
     assert data['productType']['hasVariants'] == has_variants
     assert data['productType']['isShippingRequired'] == require_shipping
-    assert len(data['productType']['productAttributes']['edges']) == 0
+    assert data['productType']['productAttributes']['totalCount'] == 0
     no_va = variant_attributes.count()
-    assert len(data['productType']['variantAttributes']['edges']) == no_va
+    assert data['productType']['variantAttributes']['totalCount'] == no_va
 
 
-def test_product_type_delete_mutation(admin_client, product_type):
+def test_product_type_delete_mutation(admin_api_client, product_type):
     query = """
         mutation deleteProductType($id: ID!) {
             productTypeDelete(id: $id) {
@@ -1309,7 +791,7 @@ def test_product_type_delete_mutation(admin_client, product_type):
     """
     variables = json.dumps({
         'id': graphene.Node.to_global_id('ProductType', product_type.id)})
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -1317,3 +799,284 @@ def test_product_type_delete_mutation(admin_client, product_type):
     assert data['productType']['name'] == product_type.name
     with pytest.raises(product_type._meta.model.DoesNotExist):
         product_type.refresh_from_db()
+
+
+def test_product_image_create_mutation(admin_api_client, product):
+    query = """
+    mutation createProductImage($image: Upload!, $product: ID!) {
+        productImageCreate(input: {image: $image, product: $product}) {
+            productImage {
+                id
+                image
+                url
+                sortOrder
+            }
+        }
+    }
+    """
+    image_file, image_name = create_image()
+    variables = {
+        'product': graphene.Node.to_global_id('Product', product.id),
+        'image': image_name}
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = admin_api_client.post_multipart(reverse('api'), body)
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productImageCreate']
+    file_name = data['productImage']['image']
+    product.refresh_from_db()
+    assert product.images.first().image.file
+    assert product.images.first().image.name == file_name
+
+
+def test_product_image_update_mutation(admin_api_client, product_with_image):
+    product = product_with_image
+    query = """
+    mutation updateProductImage($image: Upload!, $alt: String, $product: ID!) {
+        productImageCreate(input: {image: $image, alt: $alt, product: $product}) {
+            productImage {
+                alt
+            }
+        }
+    }
+    """
+    image_obj = product_with_image.images.first()
+    image = image_obj.image
+    assert not image_obj.alt
+    alt = 'damage alt'
+    variables = {
+        'product': graphene.Node.to_global_id('Product', product.id),
+        'image': image.name, 'alt': alt}
+    body = get_multipart_request_body(query, variables, image.file, image.name)
+    response = admin_api_client.post_multipart(reverse('api'), body)
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productImageCreate']
+    assert data['productImage']['alt'] == alt
+
+
+def test_product_image_delete(admin_api_client, product_with_image):
+    product = product_with_image
+    query = """
+            mutation deleteProductImage($id: ID!) {
+                productImageDelete(id: $id) {
+                    productImage {
+                        url
+                    }
+                }
+            }
+        """
+    image_obj = product.images.first()
+    variables = {
+        'id': graphene.Node.to_global_id('ProductImage', image_obj.id)}
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productImageDelete']
+    assert data['productImage']['url'] == image_obj.image.url
+    with pytest.raises(image_obj._meta.model.DoesNotExist):
+        image_obj.refresh_from_db()
+
+
+def test_reorder_images(admin_api_client, product_with_images):
+    query = """
+    mutation reorderImages($product_id: ID!, $images_ids: [ID]!) {
+        productImageReorder(productId: $product_id, imagesIds: $images_ids) {
+            productImages {
+                id
+            }
+        }
+    }
+    """
+    product = product_with_images
+    images = product.images.all()
+    image_0 = images[0]
+    image_1 = images[1]
+    image_0_id = graphene.Node.to_global_id('ProductImage', image_0.id)
+    image_1_id = graphene.Node.to_global_id('ProductImage', image_1.id)
+    product_id = graphene.Node.to_global_id('Product', product.id)
+
+    variables = {
+        'product_id': product_id, 'images_ids': [image_1_id, image_0_id]}
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+
+    # Check if order has been changed
+    product.refresh_from_db()
+    reordered_images = product.images.all()
+    reordered_image_0 = reordered_images[0]
+    reordered_image_1 = reordered_images[1]
+    assert image_0.id == reordered_image_1.id
+    assert image_1.id == reordered_image_0.id
+
+
+def test_collections_query(user_api_client, collection):
+    query = """
+        query Collections {
+            collections(first: 1) {
+                edges {
+                    node {
+                        name
+                        slug
+                        products {
+                            totalCount
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response = user_api_client.post(reverse('api'), {'query': query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['collections']['edges'][0]['node']
+    assert data['name'] == collection.name
+    assert data['slug'] == collection.slug
+    assert data['products']['totalCount'] == collection.products.count()
+
+
+def test_create_collection(admin_api_client, product_list):
+    query = """
+        mutation createCollection(
+            $name: String!, $slug: String!, $products: [ID], $backgroundImage: Upload!, $isPublished: Boolean!) {
+            collectionCreate(
+                input: {name: $name, slug: $slug, products: $products, backgroundImage: $backgroundImage, isPublished: $isPublished}) {
+                collection {
+                    name
+                    slug
+                    products {
+                        totalCount
+                    }
+                }
+            }
+        }
+    """
+    product_ids = [
+        to_global_id('Product', product.pk) for product in product_list]
+    image_file, image_name = create_image()
+    name = 'test-name'
+    slug = 'test-slug'
+    variables = {
+        'name': name, 'slug': slug, 'products': product_ids,
+        'backgroundImage': image_name, 'isPublished': True}
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = admin_api_client.post_multipart(reverse('api'), body)
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['collectionCreate']['collection']
+    assert data['name'] == name
+    assert data['slug'] == slug
+    assert data['products']['totalCount'] == len(product_ids)
+    collection = Collection.objects.get(slug=slug)
+    assert collection.background_image.file
+
+
+def test_update_collection(admin_api_client, collection):
+    query = """
+        mutation updateCollection(
+            $name: String!, $slug: String!, $id: ID!, $isPublished: Boolean!) {
+            collectionUpdate(
+                id: $id, input: {name: $name, slug: $slug, isPublished: $isPublished}) {
+                collection {
+                    name
+                    slug
+                }
+            }
+        }
+    """
+    collection_id = to_global_id('Collection', collection.id)
+    name = 'new-name'
+    slug = 'new-slug'
+    variables = json.dumps(
+        {'name': name, 'slug': slug, 'id': collection_id, 'isPublished': True})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['collectionUpdate']['collection']
+    assert data['name'] == name
+    assert data['slug'] == slug
+
+
+def test_delete_collection(admin_api_client, collection):
+    query = """
+        mutation deleteCollection($id: ID!) {
+            collectionDelete(id: $id) {
+                collection {
+                    name
+                }
+            }
+        }
+    """
+    collection_id = to_global_id('Collection', collection.id)
+    variables = json.dumps({'id': collection_id})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['collectionDelete']['collection']
+    assert data['name'] == collection.name
+    with pytest.raises(collection._meta.model.DoesNotExist):
+        collection.refresh_from_db()
+
+
+def test_add_products_to_collection(
+        admin_api_client, collection, product_list):
+    query = """
+        mutation collectionAddProducts(
+            $id: ID!, $products: [ID]!) {
+            collectionAddProducts(collectionId: $id, products: $products) {
+                collection {
+                    products {
+                        totalCount
+                    }
+                }
+            }
+        }
+    """
+    collection_id = to_global_id('Collection', collection.id)
+    product_ids = [
+        to_global_id('Product', product.pk) for product in product_list]
+    no_products_before = collection.products.count()
+    variables = json.dumps(
+        {'id': collection_id, 'products': product_ids})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['collectionAddProducts']['collection']
+    assert data[
+        'products']['totalCount'] == no_products_before + len(product_ids)
+
+
+def test_remove_products_to_collection(
+        admin_api_client, collection, product_list):
+    query = """
+        mutation collectionRemoveProducts(
+            $id: ID!, $products: [ID]!) {
+            collectionRemoveProducts(collectionId: $id, products: $products) {
+                collection {
+                    products {
+                        totalCount
+                    }
+                }
+            }
+        }
+    """
+    collection.products.add(*product_list)
+    collection_id = to_global_id('Collection', collection.id)
+    product_ids = [
+        to_global_id('Product', product.pk) for product in product_list]
+    no_products_before = collection.products.count()
+    variables = json.dumps(
+        {'id': collection_id, 'products': product_ids})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['collectionRemoveProducts']['collection']
+    assert data[
+        'products']['totalCount'] == no_products_before - len(product_ids)
