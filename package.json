@@ -19,6 +19,8 @@
   "dependencies": {
     "@material-ui/core": "^1.2.0",
     "@material-ui/icons": "^1.1.0",
+    "@types/storybook__addon-storyshots": "^3.4.3",
+    "@types/storybook__react": "^3.0.8",
     "apollo": "^0.2.2",
     "apollo-cache-inmemory": "^1.1.12",
     "apollo-client": "^2.2.8",
