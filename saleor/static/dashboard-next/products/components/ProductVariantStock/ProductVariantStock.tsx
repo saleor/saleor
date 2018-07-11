@@ -9,6 +9,7 @@ import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
 
 interface ProductVariantStockProps {
+  errors: { [key: string]: string };
   sku?: string;
   stock?: number;
   stockAllocated?: number;
@@ -34,18 +35,23 @@ const decorate = withStyles(theme => ({
 }));
 
 const ProductVariantStock = decorate<ProductVariantStockProps>(
-  ({ classes, sku, stock, stockAllocated, loading, onChange }) => (
+  ({ classes, errors, sku, stock, stockAllocated, loading, onChange }) => (
     <Card className={classes.root}>
       <PageHeader title={i18n.t("Stock")} />
       <CardContent>
         <div className={classes.grid}>
           <div>
             <TextField
+              error={!!errors.stock}
               name="stock"
               value={stock}
               label={i18n.t("In stock")}
               helperText={
-                loading ? "" : `${i18n.t("Allocated:")} ${stockAllocated}`
+                errors.stock
+                  ? errors.stock
+                  : loading
+                    ? ""
+                    : `${i18n.t("Allocated:")} ${stockAllocated}`
               }
               onChange={onChange}
               disabled={loading}
@@ -54,6 +60,8 @@ const ProductVariantStock = decorate<ProductVariantStockProps>(
           </div>
           <div>
             <TextField
+              error={!!errors.sku}
+              helperText={errors.sku}
               name="sku"
               value={sku}
               label={i18n.t("SKU")}
