@@ -1,6 +1,7 @@
 import * as React from "react";
 import { arrayMove } from "react-sortable-hoc";
 
+import { ApolloError } from "apollo-client";
 import * as placeholderImg from "../../../images/placeholder255x255.png";
 import { categoryShowUrl } from "../../categories";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
@@ -11,7 +12,6 @@ import ProductUpdatePage from "../components/ProductUpdatePage";
 import ProductUpdateOperations from "../containers/ProductUpdateOperations";
 import { productListUrl, productVariantEditUrl } from "../index";
 import { productDetailsQuery, TypedProductDetailsQuery } from "../queries";
-import { ApolloError } from "apollo-client";
 
 interface ProductUpdateProps {
   id: string;
