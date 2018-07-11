@@ -25,7 +25,7 @@ Quering for data in GraphQL can be vary easy with tool GraphiQL, which can be us
 
 For example this query:
 
-.. code-block::
+.. code-block:: html
 
     query happyThreeProducts {
       products(first: 3){
@@ -42,7 +42,7 @@ For example this query:
 
 results in the following result:
 
-.. code-block::
+.. code-block:: html
 
     {
       "data": {
@@ -81,7 +81,7 @@ Authorization
 ----------------------------
 Saleor GraphQL API uses `JWT <https://jwt.io/>`_ - to authorize you need to create and add token to the ``Authorization`` header. You can do it with the following mutation:
 
-.. code-block::
+.. code-block:: html
 
     mutation tokenCreate($username: String!, $password: String!) {
       tokenAuth(username: $username, password: $password) {
@@ -91,7 +91,7 @@ Saleor GraphQL API uses `JWT <https://jwt.io/>`_ - to authorize you need to crea
 
 Verification and refreshing the token is very simple:
 
-.. code-block::
+.. code-block:: html
 
     mutation tokenVerify($token: String!) {
       verifyToken(token: $token) {
@@ -99,7 +99,7 @@ Verification and refreshing the token is very simple:
       }
     }
 
-.. code-block::
+.. code-block:: html
 
     mutation tokenRefresh($token: String!) {
       tokenRefresh(token: $token) {
