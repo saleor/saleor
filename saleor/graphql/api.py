@@ -14,8 +14,6 @@ from .menu.types import Menu, MenuItem
 from .menu.mutations import (
     MenuCreate, MenuDelete, MenuUpdate, MenuItemCreate, MenuItemDelete,
     MenuItemUpdate)
-from .account.resolvers import resolve_user, resolve_users
-from .account.types import User
 from .descriptions import DESCRIPTIONS
 from .discount.resolvers import resolve_sales, resolve_vouchers
 from .discount.types import Sale, Voucher
