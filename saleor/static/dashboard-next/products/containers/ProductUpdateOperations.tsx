@@ -1,6 +1,5 @@
 import * as React from "react";
 
-import { ApolloError } from "apollo-client";
 import {
   MutationProviderProps,
   MutationProviderRenderProps,
@@ -32,12 +31,10 @@ import ProductUpdateProvider from "./ProductUpdate";
 interface ProductDeleteProviderProps
   extends PartialMutationProviderProps<ProductDeleteMutation> {
   productId: string;
-  children: ((
-    props: PartialMutationProviderRenderProps<
-      ProductDeleteMutation,
-      ProductDeleteMutationVariables
-    >
-  ) => React.ReactElement<any>);
+  children: PartialMutationProviderRenderProps<
+    ProductDeleteMutation,
+    ProductDeleteMutationVariables
+  >;
 }
 
 const ProductDeleteProvider: React.StatelessComponent<
@@ -63,12 +60,10 @@ const ProductDeleteProvider: React.StatelessComponent<
 interface ProductImageCreateProviderProps
   extends PartialMutationProviderProps<ProductImageCreateMutation> {
   productId: string;
-  children: ((
-    props: PartialMutationProviderRenderProps<
-      ProductImageCreateMutation,
-      ProductImageCreateMutationVariables
-    >
-  ) => React.ReactElement<any>);
+  children: PartialMutationProviderRenderProps<
+    ProductImageCreateMutation,
+    ProductImageCreateMutationVariables
+  >;
 }
 
 const ProductImageCreateProvider: React.StatelessComponent<
