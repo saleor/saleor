@@ -136,7 +136,6 @@ class OrderMarkAsPaid(BaseMutation):
     class Meta:
         description = 'Mark order as manually paid.'
 
-
     order = graphene.Field(
         Order, description='Order marked as paid.')
 

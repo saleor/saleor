@@ -123,7 +123,7 @@ class ModelMutation(BaseMutation):
                 # handle list of IDs field
                 if value is not None and isinstance(
                     field.type, graphene.List) and (
-                    field.type.of_type == graphene.ID):
+                        field.type.of_type == graphene.ID):
                     instances = get_nodes(value) if value else []
                     cleaned_input[field_name] = instances
 
@@ -156,7 +156,7 @@ class ModelMutation(BaseMutation):
 
         for f in opts.fields:
             if not f.editable or isinstance(
-                f, models.AutoField) or f.name not in cleaned_data:
+                    f, models.AutoField) or f.name not in cleaned_data:
                 continue
             else:
                 f.save_form_data(instance, cleaned_data[f.name])
