@@ -79,7 +79,8 @@ LANGUAGES = [
     ('tr', _('Turkish')),
     ('uk', _('Ukrainian')),
     ('vi', _('Vietnamese')),
-    ('zh-hans', _('Chinese'))]
+    ('zh-hans', _('Chinese')),
+    ('zh-tw', _('Chinese (Taiwan)'))]
 LOCALE_PATHS = [os.path.join(PROJECT_ROOT, 'locale')]
 USE_I18N = True
 USE_L10N = True
