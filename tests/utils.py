@@ -1,8 +1,11 @@
 import json
+from io import BytesIO
 from urllib.parse import urlparse
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db.models import Q
 from django.utils.encoding import smart_text
+from PIL import Image
 
 
 def get_url_path(url):
@@ -39,3 +42,13 @@ def compare_taxes(taxes_1, taxes_2):
         value_1 = tax['value']
         value_2 = taxes_2.get(rate_name)['value']
         assert value_1 == value_2
+
+
+def create_image():
+    img_data = BytesIO()
+    image = Image.new('RGB', size=(1, 1), color=(255, 0, 0, 0))
+    image.save(img_data, format='JPEG')
+    image_name = 'product2'
+    image = SimpleUploadedFile(
+        image_name + '.jpg', img_data.getvalue(), 'image/png')
+    return image, image_name

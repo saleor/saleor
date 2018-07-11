@@ -42,7 +42,7 @@ django-payments==0.12.3
 django-phonenumber-field==2.0.0
 django-prices-openexchangerates==1.0.0
 django-prices-vatlayer==1.0.1
-django-prices==1.0.0
+django-prices==1.0.1
 django-recaptcha==1.4.0
 django-redis==4.8.0
 django-render-block==0.5  # via django-templated-email
@@ -59,6 +59,7 @@ freezegun==0.3.10
 google-i18n-address==2.3.0
 google-measurement-protocol==1.0.0
 graphene-django==2.0.0
+graphene-file-upload==0.1.1
 graphene==2.0.1           # via django-graphql-jwt, graphene-django
 graphql-core==2.0         # via graphene, graphql-relay
 graphql-relay==0.4.5      # via graphene

@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager, PermissionsMixin)
 from django.db import models
+from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.translation import pgettext_lazy
@@ -91,6 +92,13 @@ class UserManager(BaseUserManager):
     def create_superuser(self, email, password=None, **extra_fields):
         return self.create_user(
             email, password, is_staff=True, is_superuser=True, **extra_fields)
+
+    def customers(self):
+        return self.get_queryset().filter(
+            Q(is_staff=False) | (Q(is_staff=True) & Q(orders__isnull=False)))
+
+    def staff(self):
+        return self.get_queryset().filter(is_staff=True)
 
 
 def get_token():
