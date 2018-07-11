@@ -1,4 +1,4 @@
-from .account.resolvers import USER_SEARCH_FIELDS, GROUP_SEARCH_FIELDS
+from .account.resolvers import GROUP_SEARCH_FIELDS, USER_SEARCH_FIELDS
 from .discount.resolvers import SALE_SEARCH_FIELDS, VOUCHER_SEARCH_FIELDS
 from .menu.resolvers import MENU_ITEM_SEARCH_FIELDS, MENU_SEARCH_FIELDS
 from .order.resolvers import ORDER_SEARCH_FIELDS
@@ -7,7 +7,6 @@ from .product.resolvers import (
     ATTRIBUTES_SEARCH_FIELDS, CATEGORY_SEARCH_FIELDS, COLLECTION_SEARCH_FIELDS,
     PRODUCT_SEARCH_FIELDS)
 from .utils import generate_query_argument_description
-
 
 DESCRIPTIONS = {
     'attributes': generate_query_argument_description(

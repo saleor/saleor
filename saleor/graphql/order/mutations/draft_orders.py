@@ -45,7 +45,7 @@ class DraftOrderInput(InputObjectType):
     discount = Decimal(description='Discount amount for the order.')
     lines = graphene.List(
         OrderLineInput,
-        description="""Variant line input consisting of variant ID 
+        description="""Variant line input consisting of variant ID
         and quantity of products.""")
     shipping_address = AddressInput(
         description='Shipping address of the customer.')
@@ -124,7 +124,6 @@ class DraftOrderCreate(ModelMutation):
             cleaned_input['billing_address'] = billing_address
 
         return cleaned_input
-
 
     @classmethod
     def user_is_allowed(cls, user, input):

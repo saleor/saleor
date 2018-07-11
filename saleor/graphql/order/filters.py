@@ -1,5 +1,5 @@
 from django.db.models import Q
-from django_filters import (CharFilter, NumberFilter)
+from django_filters import CharFilter, NumberFilter
 from graphene_django.filter.filterset import GlobalIDMultipleChoiceFilter
 
 from ...order import models

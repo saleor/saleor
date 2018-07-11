@@ -13,7 +13,7 @@ def resolve_orders(info, query):
     user = info.context.user
     queryset = user.orders.confirmed().distinct()
     if user.get_all_permissions() & {'order.view_order', 'order.edit_order'}:
-        queryset =  models.Order.objects.all().distinct()
+        queryset = models.Order.objects.all().distinct()
     queryset = filter_by_query_param(queryset, query, ORDER_SEARCH_FIELDS)
     return queryset.prefetch_related('lines')
 

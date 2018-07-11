@@ -6,7 +6,6 @@ import dj_email_url
 import django_cache_url
 from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _, pgettext_lazy
-
 from django_prices.templatetags.prices_i18n import get_currency_fraction
 
 from . import __version__
@@ -180,7 +179,7 @@ MIDDLEWARE = [
     'saleor.core.middleware.taxes',
     'social_django.middleware.SocialAuthExceptionMiddleware',
     'impersonate.middleware.ImpersonateMiddleware',
-    # 'saleor.graphql.middleware.jwt_middleware'
+    'saleor.graphql.middleware.jwt_middleware'
 ]
 
 INSTALLED_APPS = [

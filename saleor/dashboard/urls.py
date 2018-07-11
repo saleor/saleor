@@ -33,5 +33,4 @@ urlpatterns = [
     url(r'^shipping/', include(shipping_urls)),
     url(r'^style-guide/', core_views.styleguide, name='styleguide'),
     url(r'^search/', include(search_urls)),
-    url(r'^taxes/', include(taxes_urls)),
-    url(r'^next/', TemplateView.as_view(template_name='dashboard/next.html'))]
+    url(r'^taxes/', include(taxes_urls))]

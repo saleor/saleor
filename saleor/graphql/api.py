@@ -33,7 +33,7 @@ from .order.mutations.draft_orders import (
     DraftOrderComplete, DraftOrderCreate, DraftOrderDelete, DraftOrderUpdate)
 from .order.mutations.fulfillments import (
     FulfillmentCancel, FulfillmentCreate, FulfillmentUpdate)
-from .order.mutations.orders import  (
+from .order.mutations.orders import (
     OrderAddNote, OrderCancel, OrderCapture, OrderMarkAsPaid, OrderRefund,
     OrderRelease, OrderUpdate)
 from .page.resolvers import resolve_pages, resolve_page

@@ -2,7 +2,6 @@ from ...page import models
 from ..utils import filter_by_query_param, get_node
 from .types import Page
 
-
 PAGE_SEARCH_FIELDS = ('content', 'slug', 'title')
 
 

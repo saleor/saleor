@@ -16,6 +16,7 @@ class Menu(CountableDjangoObjectType):
 
 class MenuItem(CountableDjangoObjectType):
     url = graphene.String(description='URL to the menu item.')
+
     class Meta:
         description = """Represents a single item of the related menu.
         Can store categories, collection or pages."""
