@@ -1,10 +1,9 @@
 from django.contrib.auth import models as auth_models
-from graphql_jwt.decorators import staff_member_required, permission_required
+from graphql_jwt.decorators import permission_required, staff_member_required
 
 from ...account import models
 from ..utils import filter_by_query_param, get_node
 from .types import User
-
 
 USER_SEARCH_FIELDS = (
     'email', 'default_shipping_address__first_name',

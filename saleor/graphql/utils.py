@@ -8,7 +8,6 @@ from graphql_relay import from_global_id
 from ..product.models import AttributeChoiceValue, ProductAttribute
 from .core.types import PermissionDisplay
 
-
 registry = get_global_registry()
 
 
@@ -110,7 +109,7 @@ def filter_by_query_param(queryset, query, search_fields):
                 field, 'icontains'): query for field in search_fields}
         query_objects = Q()
         for q in query_by:
-            query_objects |= Q(**{q:query_by[q]})
+            query_objects |= Q(**{q: query_by[q]})
         return queryset.filter(query_objects)
     return queryset
 

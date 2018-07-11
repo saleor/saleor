@@ -2,6 +2,7 @@ import graphene
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from graphql_jwt.decorators import permission_required
 
+from ....dashboard.order.utils import fulfill_order_line
 from ....graphql.core.mutations import BaseMutation, ModelMutation
 from ....graphql.core.types import Error
 from ....graphql.order.types import Fulfillment
@@ -9,7 +10,6 @@ from ....graphql.utils import get_node, get_nodes
 from ....order import models
 from ....order.emails import send_fulfillment_confirmation
 from ....order.utils import cancel_fulfillment, update_order_status
-from ....dashboard.order.utils import fulfill_order_line
 from ..types import OrderLine
 
 
@@ -120,7 +120,7 @@ class FulfillmentCreate(ModelMutation):
                 'Fulfilled %(quantity_fulfilled)d item',
                 'Fulfilled %(quantity_fulfilled)d items',
                 'quantity_fulfilled') % {
-                      'quantity_fulfilled': quantity_fulfilled}
+                    'quantity_fulfilled': quantity_fulfilled}
             order.history.create(content=msg, user=info.context.user)
         super().save(info, instance, cleaned_input)
 
@@ -157,7 +157,6 @@ class FulfillmentCancel(BaseMutation):
     class Meta:
         description = """Cancels existing fulfillment
         and optionally restocks items."""
-
 
     fulfillment = graphene.Field(
         Fulfillment, description='A canceled fulfillment.')

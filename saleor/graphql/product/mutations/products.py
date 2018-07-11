@@ -320,7 +320,8 @@ class ProductVariantCreate(ModelMutation):
         # the value's PK.
 
         attributes = cleaned_input.pop('attributes', [])
-        product = instance.product if instance.pk else cleaned_input.get('product')
+        product = instance.product if instance.pk else cleaned_input.get(
+            'product')
         product_type = product.product_type
 
         if attributes and product_type:

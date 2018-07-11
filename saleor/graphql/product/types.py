@@ -21,15 +21,15 @@ def resolve_attribute_list(attributes):
 
     attributes_map = {
         att.pk: att for att in models.ProductAttribute.objects.filter(
-        pk__in=keys)}
+            pk__in=keys)}
     values_map = {
         val.pk: val for val in models.AttributeChoiceValue.objects.filter(
-        pk__in=values)}
+            pk__in=values)}
 
     attributes_list = [SelectedAttribute(
         attribute=attributes_map.get(int(k)),
         value=values_map.get(int(v)))
-        for k,v in attributes.items()]
+        for k, v in attributes.items()]
     return attributes_list
 
 
@@ -70,9 +70,11 @@ class Margin(graphene.ObjectType):
 
 
 class SelectedAttribute(graphene.ObjectType):
-    attribute = graphene.Field(ProductAttribute,
+    attribute = graphene.Field(
+        ProductAttribute,
         default_value=None, description='Name of an attribute')
-    value = graphene.Field(ProductAttributeValue,
+    value = graphene.Field(
+        ProductAttributeValue,
         default_value=None, description='Value of an attribute.')
 
     class Meta:
@@ -210,7 +212,6 @@ class Collection(CountableDjangoObjectType):
             'name': ['exact', 'icontains', 'istartswith']}
         interfaces = [relay.Node]
         model = models.Collection
-
 
     def resolve_products(self, info, **kwargs):
         user = info.context.user

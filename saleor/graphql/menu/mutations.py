@@ -71,7 +71,7 @@ class MenuItemCreate(ModelMutation):
         input = MenuItemInput(
             required=True,
             description="""Fields required to update a menu item.
-            Only one of 'url', 'category', 'page', 'collection' is allowed 
+            Only one of 'url', 'category', 'page', 'collection' is allowed
             per item""")
 
     class Meta:
@@ -103,7 +103,7 @@ class MenuItemUpdate(MenuItemCreate):
         input = MenuItemInput(
             required=True,
             description="""Fields required to update a menu item.
-            Only one of 'url', 'category', 'page', 'collection' is allowed 
+            Only one of 'url', 'category', 'page', 'collection' is allowed
             per item""")
 
     class Meta:

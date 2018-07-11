@@ -55,7 +55,8 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def __init_subclass_with_meta__(
-            cls, arguments=None, model=None, exclude=None, _meta=None, **options):
+            cls, arguments=None, model=None, exclude=None, _meta=None,
+            **options):
         if not model:
             raise ImproperlyConfigured('model is required for ModelMutation')
         if not _meta:
@@ -116,10 +117,13 @@ class ModelMutation(BaseMutation):
             if field_name in input:
                 value = input[field_name]
                 # FIXME: maybe we could have custom input field type that takes
-                # the type of IDs e.g. graphene.IdList(graphene.ID, type=Product).
+                # the type of IDs
+                # e.g. graphene.IdList(graphene.ID, type=Product).
 
                 # handle list of IDs field
-                if value is not None and isinstance(field.type, graphene.List) and field.type.of_type == graphene.ID:
+                if value is not None and isinstance(
+                    field.type, graphene.List) and (
+                    field.type.of_type == graphene.ID):
                     instances = get_nodes(value) if value else []
                     cleaned_input[field_name] = instances
 
@@ -151,7 +155,8 @@ class ModelMutation(BaseMutation):
         opts = instance._meta
 
         for f in opts.fields:
-            if not f.editable or isinstance(f, models.AutoField) or f.name not in cleaned_data:
+            if not f.editable or isinstance(
+                f, models.AutoField) or f.name not in cleaned_data:
                 continue
             else:
                 f.save_form_data(instance, cleaned_data[f.name])

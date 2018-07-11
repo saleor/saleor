@@ -1,6 +1,6 @@
 import graphene
-from graphene import Field, ObjectType, String, NonNull, List
-from graphene.relay.connection import ConnectionOptions, Connection
+from graphene import Field, List, NonNull, ObjectType, String
+from graphene.relay.connection import Connection, ConnectionOptions
 
 
 class NonNullConnection(Connection):
@@ -12,7 +12,7 @@ class NonNullConnection(Connection):
     def __init_subclass_with_meta__(cls, node=None, name=None, **options):
         super().__init_subclass_with_meta__(node=node, name=name, **options)
 
-        # Override the original EdgeBase type to make to `node`` field required.
+        # Override the original EdgeBase type to make to `node` field required.
         class EdgeBase(object):
             node = Field(
                 cls._meta.node, description='The item at the end of the edge',
@@ -26,7 +26,8 @@ class NonNullConnection(Connection):
         edge = type(edge_name, edge_bases, {})
         cls.Edge = edge
 
-        # Override the `edges` field to make it non-null list of non-null edges.
+        # Override the `edges` field to make it non-null list
+        # of non-null edges.
         cls._meta.fields['edges'] = Field(NonNull(List(NonNull(cls.Edge))))
 
 
