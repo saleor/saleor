@@ -10,6 +10,7 @@ import {
   MoneyType,
   ProductImageType
 } from "../../";
+import { UserError } from "../../..";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
@@ -66,6 +67,7 @@ interface ProductVariantPageProps {
     quantity: number;
     quantityAllocated: number;
   };
+  errors: UserError[];
   saveButtonBarState?: SaveButtonBarState;
   loading?: boolean;
   placeholderImage?: string;
@@ -94,14 +96,15 @@ const decorate = withStyles(theme => ({
 const ProductVariantPage = decorate<ProductVariantPageProps>(
   ({
     classes,
-    variant,
+    errors: formErrors,
     loading,
     placeholderImage,
+    saveButtonBarState,
+    variant,
     onBack,
     onDelete,
-    saveButtonBarState,
-    onSubmit,
     onImageSelect,
+    onSubmit,
     onVariantClick
   }) => {
     const attributes = variant
@@ -154,10 +157,11 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                         variant && variant.quantity ? variant.quantity : "",
                       ...attributes
                     }}
+                    errors={formErrors}
                     onSubmit={onSubmit}
                     key={variant ? CRC.str(JSON.stringify(variant)) : "loading"}
                   >
-                    {({ change, data, hasChanged, submit }) => (
+                    {({ change, data, errors, hasChanged, submit }) => (
                       <>
                         <div className={classes.root}>
                           <div>
@@ -196,6 +200,7 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                               loading={loading}
                             />
                             <ProductVariantPrice
+                              errors={errors}
                               priceOverride={data.priceOverride}
                               currencySymbol={
                                 variant && variant.priceOverride
@@ -207,6 +212,7 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                               onChange={change}
                             />
                             <ProductVariantStock
+                              errors={errors}
                               sku={data.sku}
                               stock={data.stock}
                               stockAllocated={
