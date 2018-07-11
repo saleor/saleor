@@ -16,12 +16,10 @@ import { productDetailsQuery } from "../queries";
 interface ProductImagesReorderProviderProps
   extends PartialMutationProviderProps<ProductImageReorderMutation> {
   productId: string;
-  children: ((
-    props: PartialMutationProviderRenderProps<
-      ProductImageReorderMutation,
-      ProductImageReorderMutationVariables
-    >
-  ) => React.ReactElement<any>);
+  children: PartialMutationProviderRenderProps<
+    ProductImageReorderMutation,
+    ProductImageReorderMutationVariables
+  >;
 }
 
 const ProductImagesReorderProvider: React.StatelessComponent<
