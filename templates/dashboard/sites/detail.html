@@ -4,7 +4,7 @@
 {% load staticfiles %}
 
 {% block title %}
-  {{ site }} - {{ block.super }}
+  {{ site_settings }} - {{ block.super }}
 {% endblock %}
 
 {% block menu_settings_class %}active{% endblock %}
@@ -25,7 +25,7 @@
       <div class="card">
         <div class="card-content">
           <span class="card-title">
-            {{ site.site.name }}
+            {{ site.name }}
           </span>
           <div class="row">
             <div class="col s12 m4 l12">
@@ -33,7 +33,7 @@
                 {% trans "Domain" context "Site settings field" %}
               </h4>
               <p>
-                {{ site.site.domain }}
+                {{ site.domain }}
               </p>
             </div>
           </div>
@@ -43,7 +43,7 @@
                 {% trans "Header text" context "Site settings field" %}
               </h4>
               <p>
-                {{ site.header_text }}
+                {{ site_settings.header_text }}
               </p>
             </div>
           </div>
@@ -53,13 +53,13 @@
                 {% trans "Description" context "Site settings field" %}
               </h4>
               <p>
-                {{ site.description|default:"-" }}
+                {{ site_settings.description|default:"-" }}
               </p>
             </div>
           </div>
         </div>
         <div class="card-action">
-          <a class="btn-flat waves-effect" href="{% url 'dashboard:site-update' pk=site.pk %}">
+          <a class="btn-flat waves-effect" href="{% url 'dashboard:site-update' pk=site_settings.pk %}">
             {% trans "Edit site settings" context "Site settings action" %}
           </a>
         </div>
@@ -73,7 +73,7 @@
           </span>
         </div>
         <div class="data-table-header-action">
-          <a href="{% url 'dashboard:authorization-key-add' site_settings_pk=site.pk %}" class="btn-flat waves-effect">
+          <a href="{% url 'dashboard:authorization-key-add' site_settings_pk=site_settings.pk %}" class="btn-flat waves-effect">
             {% trans "Add" %}
           </a>
         </div>
@@ -95,10 +95,10 @@
                   <td>{{ key.name }}</td>
                   <td>{{ key.key }}</td>
                   <td class="right-align">
-                    <a href="{% url 'dashboard:authorization-key-edit' site_settings_pk=site.pk key_pk=key.pk %}" class="btn-flat waves-effect">
+                    <a href="{% url 'dashboard:authorization-key-edit' site_settings_pk=site_settings.pk key_pk=key.pk %}" class="btn-flat waves-effect">
                       {% trans 'Edit' context 'Authorization key edit action' %}
                     </a>
-                    <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:authorization-key-delete' site_settings_pk=site.pk key_pk=key.pk %}">
+                    <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:authorization-key-delete' site_settings_pk=site_settings.pk key_pk=key.pk %}">
                       {% trans 'Remove' context 'Authorization key remove action' %}
                     </a>
                   </td>

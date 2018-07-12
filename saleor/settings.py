@@ -5,7 +5,7 @@ import dj_database_url
 import dj_email_url
 import django_cache_url
 from django.contrib.messages import constants as messages
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, pgettext_lazy
 from django_prices.templatetags.prices_i18n import get_currency_fraction
 
 from . import __version__
@@ -79,7 +79,8 @@ LANGUAGES = [
     ('tr', _('Turkish')),
     ('uk', _('Ukrainian')),
     ('vi', _('Vietnamese')),
-    ('zh-hans', _('Chinese'))]
+    ('zh-hans', _('Chinese')),
+    ('zh-tw', _('Chinese (Taiwan)'))]
 LOCALE_PATHS = [os.path.join(PROJECT_ROOT, 'locale')]
 USE_I18N = True
 USE_L10N = True
@@ -171,7 +172,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django_babel.middleware.LocaleMiddleware',
-    'graphql_jwt.middleware.JSONWebTokenMiddleware',
     'saleor.core.middleware.discounts',
     'saleor.core.middleware.google_analytics',
     'saleor.core.middleware.country',
@@ -179,7 +179,9 @@ MIDDLEWARE = [
     'saleor.core.middleware.site',
     'saleor.core.middleware.taxes',
     'social_django.middleware.SocialAuthExceptionMiddleware',
-    'impersonate.middleware.ImpersonateMiddleware']
+    'impersonate.middleware.ImpersonateMiddleware',
+    'saleor.graphql.middleware.jwt_middleware'
+]
 
 INSTALLED_APPS = [
     # External apps that need to go before django's
@@ -286,10 +288,14 @@ AUTH_USER_MODEL = 'account.User'
 
 LOGIN_URL = '/account/login/'
 
-DEFAULT_COUNTRY = 'US'
-DEFAULT_CURRENCY = 'USD'
+DEFAULT_COUNTRY = os.environ.get('DEFAULT_COUNTRY', 'US')
+DEFAULT_CURRENCY = os.environ.get('DEFAULT_CURRENCY', 'USD')
 DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
+COUNTRIES_OVERRIDE = {
+    'EU': pgettext_lazy(
+        'Name of political and economical union of european countries',
+        'European Union')}
 
 OPENEXCHANGERATES_API_KEY = os.environ.get('OPENEXCHANGERATES_API_KEY')
 
@@ -341,7 +347,8 @@ bootstrap4 = {
 
 TEST_RUNNER = ''
 
-ALLOWED_HOSTS = get_list(os.environ.get('ALLOWED_HOSTS', 'localhost'))
+ALLOWED_HOSTS = get_list(
+    os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1'))
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
@@ -417,9 +424,6 @@ if ES_URL:
     ELASTICSEARCH_DSL = {
         'default': {
             'hosts': ES_URL}}
-
-
-GRAPHENE = {'MIDDLEWARE': ['graphene_django.debug.DjangoDebugMiddleware']}
 
 AUTHENTICATION_BACKENDS = [
     'saleor.account.backends.facebook.CustomFacebookOAuth2',

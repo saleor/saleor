@@ -34,7 +34,8 @@ def site_settings_edit(request, pk):
         messages.success(request, pgettext_lazy(
             'Dashboard message', 'Updated site settings'))
         return redirect('dashboard:site-details', pk=site_settings.id)
-    ctx = {'site': site_settings, 'site_settings_form': site_settings_form,
+    ctx = {'site_settings': site_settings,
+           'site_settings_form': site_settings_form,
            'site_form': site_form}
     return TemplateResponse(request, 'dashboard/sites/form.html', ctx)
 
@@ -46,7 +47,8 @@ def site_settings_details(request, pk):
     authorization_keys = AuthorizationKey.objects.filter(
         site_settings=site_settings)
     ctx = {
-        'site': site_settings, 'authorization_keys': authorization_keys,
+        'site_settings': site_settings,
+        'authorization_keys': authorization_keys,
         'is_empty': not authorization_keys.exists()}
     return TemplateResponse(request, 'dashboard/sites/detail.html', ctx)
 

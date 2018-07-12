@@ -1,0 +1,39 @@
+version: 2
+jobs:
+  build:
+    working_directory: /app
+    docker:
+      - image: docker:17.09.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Set version
+          command: |
+            sed -i.bak "s#'dev'#'$(git describe --tags)'#" saleor/__init__.py
+      - run:
+          name: Build application Docker image
+          command: |
+            docker build --cache-from=mirumee/saleor:latest -t mirumee/saleor:latest .
+          environment:
+            STATIC_URL: https://saleor-demo.s3.amazonaws.com/assets/
+      - run:
+          name: Run tests
+          command: |
+            docker run -d --name db circleci/postgres:latest
+            docker run --network container:db --rm -e DATABASE_URL -e DJANGO_SETTINGS_MODULE -e SECRET_KEY mirumee/saleor:latest pytest
+          environment:
+            DATABASE_URL: postgres://root:@localhost:5432/circle_test
+            DJANGO_SETTINGS_MODULE: saleor.settings
+            SECRET_KEY: irrelevant
+      - deploy:
+          name: Push Docker image
+          command: |
+            if [ "${CIRCLE_TAG}" == demo* ]; then
+              docker login -e $DOCKERCLOUD_EMAIL -u $DOCKERCLOUD_USER -p $DOCKERCLOUD_PASS
+              docker tag mirumee/saleor:latest mirumee/saleor:$CIRCLE_SHA1
+              docker push mirumee/saleor:$CIRCLE_SHA1
+              docker push mirumee/saleor:latest
+              curl -X POST https://circleci.com/api/v1.1/project/github/mirumee/saleor-demo?circle-token=$CIRCLE_API_TOKEN
+            fi

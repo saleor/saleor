@@ -5,6 +5,7 @@ from unittest.mock import Mock, patch
 import pytest
 from django.conf import settings
 from django.shortcuts import reverse
+from django.urls import translate_url
 from prices import Money
 
 from saleor.account.models import Address, User
@@ -245,3 +246,42 @@ def test_storages_not_setting_s3_bucket_domain(*_patches):
     storage = S3MediaStorage()
     assert storage.bucket_name == 'media-bucket'
     assert storage.custom_domain is None
+
+
+def test_set_language_redirects_to_current_endpoint(client):
+    user_language_point = 'en'
+    new_user_language = 'fr'
+    new_user_language_point = '/fr/'
+    test_endpoint = 'cart:index'
+
+    # get a English translated url (.../en/...)
+    # and the expected url after we change it
+    current_url = reverse(test_endpoint)
+    expected_url = translate_url(current_url, new_user_language)
+
+    # check the received urls:
+    #   - current url is english (/en/) (default from tests.settings);
+    #   - expected url is french (/fr/)
+    assert user_language_point in current_url
+    assert user_language_point not in expected_url
+    assert new_user_language_point in expected_url
+
+    # ensure we are getting directed to english page, not anything else
+    response = client.get(reverse(test_endpoint), follow=True)
+    new_url = response.request['PATH_INFO']
+    assert new_url == current_url
+
+    # change the user language to French,
+    # and tell the view we want to be redirected to our current page
+    set_language_url = reverse('set_language')
+    data = {'language': new_user_language, 'next': current_url}
+
+    redirect_response = client.post(set_language_url, data, follow=True)
+    new_url = redirect_response.request['PATH_INFO']
+
+    # check if we got redirected somewhere else
+    assert new_url != current_url
+
+    # now check if we got redirect the endpoint we wanted to go back
+    # in the new language (cart:index)
+    assert expected_url == new_url

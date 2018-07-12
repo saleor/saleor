@@ -629,6 +629,33 @@ def test_fulfill_order_line(order_with_lines):
     assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
 
 
+def test_fulfill_order_line_with_variant_deleted(order_with_lines):
+    line = order_with_lines.lines.first()
+    line.variant.delete()
+
+    line.refresh_from_db()
+
+    fulfill_order_line(line, line.quantity)
+
+
+def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
+    order = order_with_lines
+    line = order.lines.first()
+    quantity_fulfilled_before = line.quantity_fulfilled
+    variant = line.variant
+    variant.track_inventory = False
+    variant.save()
+
+    # stock should not change
+    stock_quantity_after = variant.quantity
+
+    fulfill_order_line(line, line.quantity)
+
+    variant.refresh_from_db()
+    assert variant.quantity == stock_quantity_after
+    assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
+
+
 def test_view_change_fulfillment_tracking(admin_client, fulfilled_order):
     fulfillment = fulfilled_order.fulfillments.first()
     url = reverse(

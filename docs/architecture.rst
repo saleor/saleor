@@ -15,3 +15,4 @@ Architecture
    architecture/settings
    architecture/page
    architecture/gdpr
+   architecture/graphql

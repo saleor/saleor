@@ -15,11 +15,11 @@ botocore==1.8.45          # via boto3, s3transfer
 braintree==3.39.1         # via django-payments
 cairocffi==0.8.0          # via cairosvg, weasyprint
 cairosvg==2.1.3
-celery[redis]==4.1.0
+celery[redis]==4.2.0
 certifi==2018.1.18        # via requests
 cffi==1.11.4              # via cairocffi, cryptography, weasyprint
 chardet==3.0.4            # via requests
-cryptography==2.1.4       # via django-payments
+cryptography==2.2.2       # via django-payments
 cssselect2==0.2.1         # via cairosvg, weasyprint
 defusedxml==0.5.0         # via cairosvg, python3-openid, social-auth-core
 dj-database-url==0.4.2
@@ -42,7 +42,7 @@ django-payments==0.12.3
 django-phonenumber-field==2.0.0
 django-prices-openexchangerates==1.0.0
 django-prices-vatlayer==1.0.1
-django-prices==1.0.0
+django-prices==1.0.1
 django-recaptcha==1.4.0
 django-redis==4.8.0
 django-render-block==0.5  # via django-templated-email
@@ -55,23 +55,23 @@ docutils==0.14            # via botocore
 elasticsearch-dsl==5.4.0
 elasticsearch==5.5.2
 faker==0.8.11
-freezegun==0.3.9
+freezegun==0.3.10
 google-i18n-address==2.3.0
 google-measurement-protocol==1.0.0
 graphene-django==2.0.0
+graphene-file-upload==0.1.1
 graphene==2.0.1           # via django-graphql-jwt, graphene-django
 graphql-core==2.0         # via graphene, graphql-relay
 graphql-relay==0.4.5      # via graphene
 html5lib==1.0.1           # via bleach, weasyprint
-idna==2.6                 # via cryptography, requests, yarl
+idna==2.6                 # via cryptography, requests
 iso8601==0.1.12           # via graphene-django
 jmespath==0.9.3           # via boto3, botocore
 jsonfield==2.0.2
-kombu==4.1.0              # via celery
+kombu==4.2.1              # via celery
 markdown==2.6.11
 maxminddb-geolite2==2017.803
 maxminddb==1.3.0
-multidict==3.3.2          # via yarl
 oauthlib==2.0.6           # via requests-oauthlib, social-auth-core
 pdfrw==0.4                # via weasyprint
 phonenumberslite==8.9.1
@@ -92,7 +92,7 @@ pytest==3.4.0
 python-dateutil==2.6.1    # via botocore, elasticsearch-dsl, faker, freezegun
 python3-openid==3.1.0     # via social-auth-core
 pytz==2018.3              # via babel, celery, django
-pyyaml==3.12              # via vcrpy
+pyyaml==3.13              # via vcrpy
 raven==6.9.0
 redis==2.10.6             # via celery, django-redis
 requests-oauthlib==0.8.0  # via social-auth-core
@@ -117,4 +117,3 @@ weasyprint==0.42.2
 webencodings==0.5.1       # via html5lib, tinycss2
 wrapt==1.10.11            # via vcrpy
 xmltodict==0.11.0         # via django-payments
-yarl==0.17.0              # via vcrpy

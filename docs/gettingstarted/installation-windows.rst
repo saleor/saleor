@@ -13,9 +13,9 @@ Before you are ready to run Saleor you will need additional software installed o
 Python
 ~~~~~~
 
-Download the latest 3.6 Windows installer from the `Python download page <https://www.python.org/downloads/>`_ and follow the instructions.
+Download the latest **3.7** Windows installer from the `Python download page <https://www.python.org/downloads/>`_ and follow the instructions.
 
-Make sure that "**Add Python 3.6 to PATH**" is checked.
+Make sure that "**Add Python 3.7 to PATH**" is checked.
 
 
 Node.js

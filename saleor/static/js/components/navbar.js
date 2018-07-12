@@ -15,11 +15,11 @@ const renderNavbar = () => {
     if ($desktopLinks.length) {
       $searchForm.addClass('search-form--hidden');
       $mobileNav.append('<ul class="nav navbar-nav navbar__menu__login"></ul>');
-      $desktopLinks
-        .appendTo('.navbar__menu__login')
+      $languagePicker.appendTo('.navbar__menu__login')
         .wrap('<li class="nav-item login-item"></li>')
         .addClass('nav-link');
-      $languagePicker.appendTo('.navbar__menu__login')
+      $desktopLinks
+        .appendTo('.navbar__menu__login')
         .wrap('<li class="nav-item login-item"></li>')
         .addClass('nav-link');
       $desktopLinkBar
@@ -27,9 +27,12 @@ const renderNavbar = () => {
         .remove();
     }
   } else {
-    const $mobileLinks = $mobileLinkBar.find('a');
+    const $mobileLinks = $mobileLinkBar.find('a').not('.dropdown-link');
     if ($mobileLinks.length) {
       $searchForm.removeClass('search-form--hidden');
+      $languagePicker.appendTo('.navbar__login ul')
+        .wrap('<li></li>')
+        .removeClass('nav-link');
       $mobileLinks
         .appendTo('.navbar__login ul')
         .wrap('<li></li>')

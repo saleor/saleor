@@ -46,12 +46,14 @@
         </div>
       </div>
     </div>
-    <div class="home__featured">
-      <h2 class="text-center">{% trans "Featured products" context "Homepage title" %}</h2>
-      <div class="row">
-        {% include "product/_items.html" %}
+    {% if products %}
+      <div class="home__featured">
+        <h2 class="text-center">{% trans "Featured products" context "Homepage title" %}</h2>
+        <div class="row">
+          {% include "product/_items.html" %}
+        </div>
       </div>
-    </div>
+    {% endif %}
     <script type="application/ld+json">{{ webpage_schema|safe }}</script>
   </div>
 {% endblock %}
