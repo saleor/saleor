@@ -124,13 +124,21 @@ class ModelMutation(BaseMutation):
                 if value is not None and isinstance(
                     field.type, graphene.List) and (
                         field.type.of_type == graphene.ID):
-                    instances = get_nodes(value) if value else []
-                    cleaned_input[field_name] = instances
+                    try:
+                        instances = get_nodes(value) if value else []
+                        cleaned_input[field_name] = instances
+                    except Exception as e:
+                        cls.add_error(
+                            field=field_name, message=str(e), errors=errors)
 
                 # handle ID field
                 elif value is not None and field.type == graphene.ID:
-                    instance = get_node(info, value)
-                    cleaned_input[field_name] = instance
+                    try:
+                        instance = get_node(info, value)
+                        cleaned_input[field_name] = instance
+                    except Exception as e:
+                        cls.add_error(
+                            field=field_name, message=str(e), errors=errors)
 
                 # handle uploaded files
                 elif value is not None and cls._check_type(field, Upload):
