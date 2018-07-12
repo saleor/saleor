@@ -11,7 +11,9 @@ from tests.utils import get_graphql_content
 from saleor.account.models import Address
 from saleor.graphql.account.mutations import SetPassword
 
-from .utils import assert_no_permission, convert_dict_keys_to_camel_case
+from .utils import (
+    assert_no_permission, assert_read_only_mode,
+    convert_dict_keys_to_camel_case)
 
 
 def test_create_token_mutation(admin_client, staff_user):
@@ -265,26 +267,11 @@ def test_customer_create(
 
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    assert_no_permission(response)
+    assert_read_only_mode(response)
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-
-    User = get_user_model()
-    customer = User.objects.get(email=email)
-
-    assert customer.default_billing_address == address
-    assert customer.default_shipping_address == address
-    assert customer.default_shipping_address.pk != customer.default_billing_address.pk
-
-    assert 'errors' not in content
-    data = content['data']['customerCreate']
-    assert data['errors'] == []
-    assert data['user']['email'] == email
-    assert data['user']['note'] == note
-    assert data['user']['isStaff'] == False
-    assert data['user']['isActive'] == True
+    assert_read_only_mode(response)
 
     assert send_password_reset_mock.call_count == 1
     args, kwargs = send_password_reset_mock.call_args
@@ -342,26 +329,11 @@ def test_customer_update(
     # check unauthorized access
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    assert_no_permission(response)
+    assert_read_only_mode(response)
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-
-    User = get_user_model()
-    customer = User.objects.get(email=customer_user.email)
-
-    # check that existing instances are updated
-    assert customer.default_billing_address.pk == billing_address_pk
-    assert customer.default_shipping_address.pk == shipping_address_pk
-
-    assert customer.default_billing_address.street_address_1 == new_street_address
-    assert customer.default_shipping_address.street_address_1 == new_street_address
-
-    assert 'errors' not in content
-    data = content['data']['customerUpdate']
-    assert data['errors'] == []
-    assert data['user']['note'] == note
+    assert_read_only_mode(response)
 
 
 @patch('saleor.account.emails.send_password_reset_email.delay')
@@ -401,26 +373,11 @@ def test_staff_create(
     # check unauthorized access
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    assert_no_permission(response)
+    assert_read_only_mode(response)
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['staffCreate']
-    assert data['errors'] == []
-    assert data['user']['email'] == email
-    assert data['user']['isStaff'] == True
-    assert data['user']['isActive'] == True
-    permissions = data['user']['permissions']
-    assert permissions[0]['code'] == permission_manage_products_codename
-
-    assert send_password_reset_mock.call_count == 1
-    args, kwargs = send_password_reset_mock.call_args
-    call_context = args[0]
-    call_email = args[1]
-    assert call_email == email
-    assert 'token' in call_context
+    assert_read_only_mode(response)
 
 
 def test_staff_update(admin_api_client, staff_user, user_api_client):
@@ -445,15 +402,11 @@ def test_staff_update(admin_api_client, staff_user, user_api_client):
     # check unauthorized access
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    assert_no_permission(response)
+    assert_read_only_mode(response)
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['staffUpdate']
-    assert data['errors'] == []
-    assert data['user']['permissions'] == []
+    assert_read_only_mode(response)
 
 
 def test_set_password(user_api_client, customer_user):
@@ -480,20 +433,7 @@ def test_set_password(user_api_client, customer_user):
     variables['token'] = 'nope'
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': json.dumps(variables)})
-    content = get_graphql_content(response)
-    errors = content['data']['setPassword']['errors']
-    assert errors[0]['message'] == SetPassword.INVALID_TOKEN
-
-    variables['token'] = token
-    response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': json.dumps(variables)})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['setPassword']
-    assert data['user']['id']
-
-    customer_user.refresh_from_db()
-    assert customer_user.check_password(password)
+    assert_read_only_mode(response)
 
 
 @patch('saleor.account.emails.send_password_reset_email.delay')
@@ -513,16 +453,7 @@ def test_password_reset_email(
     variables = json.dumps({'email': email})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['passwordReset']
-    assert data is None
-    assert send_password_reset_mock.call_count == 1
-    args, kwargs = send_password_reset_mock.call_args
-    call_context = args[0]
-    call_email = args[1]
-    assert call_email == email
-    assert 'token' in call_context
+    assert_read_only_mode(response)
 
 
 @patch('saleor.account.emails.send_password_reset_email.delay')
@@ -542,12 +473,7 @@ def test_password_reset_email_non_existing_user(
     variables = json.dumps({'email': email})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['passwordReset']
-    assert data['errors'] == [{
-        'field': 'email', 'message': "User with this email doesn't exist"}]
-    send_password_reset_mock.assert_not_called()
+    assert_read_only_mode(response)
 
 
 def test_create_address_mutation(admin_api_client, customer_user):
@@ -571,13 +497,7 @@ def test_create_address_mutation(admin_api_client, customer_user):
         {'user': user_id, 'city': 'Dummy', 'country': 'PL'})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert content['data']['addressCreate']['errors'] == []
-    address_response = content['data']['addressCreate']['address']
-    assert address_response['city'] == 'Dummy'
-    assert address_response['country'] == 'PL'
-    address_obj = Address.objects.get(city='Dummy')
-    assert address_obj.user_addresses.first() == customer_user
+    assert_read_only_mode(response)
 
 
 def test_address_update_mutation(admin_api_client, customer_user):
@@ -597,12 +517,7 @@ def test_address_update_mutation(admin_api_client, customer_user):
         'city': new_city}
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['addressUpdate']
-    assert data['address']['city'] == new_city
-    address_obj.refresh_from_db()
-    assert address_obj.city == new_city
+    assert_read_only_mode(response)
 
 
 def test_address_delete_mutation(admin_api_client, customer_user):
@@ -620,9 +535,4 @@ def test_address_delete_mutation(admin_api_client, customer_user):
         'id': graphene.Node.to_global_id('Address', address_obj.id)}
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['addressDelete']
-    assert data['address']['city'] == address_obj.city
-    with pytest.raises(address_obj._meta.model.DoesNotExist):
-        address_obj.refresh_from_db()
+    assert_read_only_mode(response)

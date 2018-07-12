@@ -14,7 +14,7 @@ from saleor.graphql.product.mutations.products import update_variants_names
 from saleor.product.models import (
     Category, Collection, Product, ProductAttribute, ProductType, ProductImage)
 
-from .utils import assert_no_permission, get_multipart_request_body
+from .utils import get_multipart_request_body, assert_read_only_mode
 
 
 def test_fetch_all_products(user_api_client, product):
@@ -464,22 +464,7 @@ def test_create_product(
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['productCreate']
-    assert data['errors'] == []
-    assert data['product']['name'] == product_name
-    assert data['product']['description'] == product_description
-    assert data['product']['isPublished'] == product_isPublished
-    assert data['product']['chargeTaxes'] == product_chargeTaxes
-    assert data['product']['taxRate'] == product_taxRate
-    assert data['product']['productType']['name'] == product_type.name
-    assert data['product']['category']['name'] == default_category.name
-    values = (
-        data['product']['attributes'][0]['value']['slug'],
-        data['product']['attributes'][1]['value']['slug'])
-    assert slugify(non_existent_attr_value) in values
-    assert color_value_slug in values
+    assert_read_only_mode(response)
 
 
 def test_update_product(
@@ -561,16 +546,7 @@ def test_update_product(
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['productUpdate']
-    assert data['errors'] == []
-    assert data['product']['name'] == product_name
-    assert data['product']['description'] == product_description
-    assert data['product']['isPublished'] == product_isPublished
-    assert data['product']['chargeTaxes'] == product_chargeTaxes
-    assert data['product']['taxRate'] == product_taxRate
-    assert not data['product']['category']['name'] == default_category.name
+    assert_read_only_mode(response)
 
 
 def test_delete_product(admin_api_client, product):
@@ -592,13 +568,7 @@ def test_delete_product(admin_api_client, product):
     variables = json.dumps({'id': node_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['productDelete']
-    assert data['product']['name'] == product.name
-    with pytest.raises(product._meta.model.DoesNotExist):
-        product.refresh_from_db()
-    assert node_id == data['product']['id']
+    assert_read_only_mode(response)
 
 
 def test_product_type(user_api_client, product_type):
@@ -717,16 +687,7 @@ def test_product_type_create_mutation(admin_api_client, product_type):
         'variantAttributes': variant_attributes_ids})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['productTypeCreate']
-    assert data['productType']['name'] == product_type_name
-    assert data['productType']['hasVariants'] == has_variants
-    assert data['productType']['isShippingRequired'] == require_shipping
-    no_pa = product_attributes.count()
-    assert len(data['productType']['productAttributes']['edges']) == no_pa
-    no_va = variant_attributes.count()
-    assert len(data['productType']['variantAttributes']['edges']) == no_va
+    assert_read_only_mode(response)
 
 
 def test_product_type_update_mutation(admin_api_client, product_type):
@@ -781,15 +742,7 @@ def test_product_type_update_mutation(admin_api_client, product_type):
         'productAttributes': product_attributes_ids})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['productTypeUpdate']
-    assert data['productType']['name'] == product_type_name
-    assert data['productType']['hasVariants'] == has_variants
-    assert data['productType']['isShippingRequired'] == require_shipping
-    assert data['productType']['productAttributes']['totalCount'] == 0
-    no_va = variant_attributes.count()
-    assert data['productType']['variantAttributes']['totalCount'] == no_va
+    assert_read_only_mode(response)
 
 
 def test_product_type_delete_mutation(admin_api_client, product_type):
@@ -806,12 +759,7 @@ def test_product_type_delete_mutation(admin_api_client, product_type):
         'id': graphene.Node.to_global_id('ProductType', product_type.id)})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['productTypeDelete']
-    assert data['productType']['name'] == product_type.name
-    with pytest.raises(product_type._meta.model.DoesNotExist):
-        product_type.refresh_from_db()
+    assert_read_only_mode(response)
 
 
 def test_product_image_create_mutation(admin_api_client, product):
@@ -832,11 +780,7 @@ def test_product_image_create_mutation(admin_api_client, product):
         'image': image_name}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = admin_api_client.post_multipart(reverse('api'), body)
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['productImageCreate']
-    product.refresh_from_db()
-    assert product.images.first().image.file
+    assert_read_only_mode(response)
 
 
 def test_invalid_product_image_create_mutation(admin_api_client, product):
@@ -861,12 +805,7 @@ def test_invalid_product_image_create_mutation(admin_api_client, product):
         'image': image_name}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = admin_api_client.post_multipart(reverse('api'), body)
-    content = get_graphql_content(response)
-    assert content['data']['productImageCreate']['errors'] == [{
-        'field': 'image',
-        'message': 'Invalid file type'}]
-    product.refresh_from_db()
-    assert product.images.count() == 0
+    assert_read_only_mode(response)
 
 
 def test_product_image_update_mutation(admin_api_client, product_with_image):
@@ -886,9 +825,7 @@ def test_product_image_update_mutation(admin_api_client, product_with_image):
         'imageId': graphene.Node.to_global_id('ProductImage', image_obj.id)})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['productImageUpdate']['productImage']['alt'] == alt
+    assert_read_only_mode(response)
 
 
 def test_product_image_delete(admin_api_client, product_with_image):
@@ -908,13 +845,7 @@ def test_product_image_delete(admin_api_client, product_with_image):
     variables = {'id': node_id}
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['productImageDelete']
-    assert data['productImage']['url'] == image_obj.image.url
-    with pytest.raises(image_obj._meta.model.DoesNotExist):
-        image_obj.refresh_from_db()
-    assert node_id == data['productImage']['id']
+    assert_read_only_mode(response)
 
 
 def test_reorder_images(admin_api_client, product_with_images):
@@ -939,16 +870,7 @@ def test_reorder_images(admin_api_client, product_with_images):
         'product_id': product_id, 'images_ids': [image_1_id, image_0_id]}
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-
-    # Check if order has been changed
-    product.refresh_from_db()
-    reordered_images = product.images.all()
-    reordered_image_0 = reordered_images[0]
-    reordered_image_1 = reordered_images[1]
-    assert image_0.id == reordered_image_1.id
-    assert image_1.id == reordered_image_0.id
+    assert_read_only_mode(response)
 
 
 def test_collections_query(user_api_client, collection):
@@ -1002,14 +924,7 @@ def test_create_collection(admin_api_client, product_list):
         'backgroundImage': image_name, 'isPublished': True}
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = admin_api_client.post_multipart(reverse('api'), body)
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['collectionCreate']['collection']
-    assert data['name'] == name
-    assert data['slug'] == slug
-    assert data['products']['totalCount'] == len(product_ids)
-    collection = Collection.objects.get(slug=slug)
-    assert collection.background_image.file
+    assert_read_only_mode(response)
 
 
 def test_update_collection(admin_api_client, collection):
@@ -1032,11 +947,7 @@ def test_update_collection(admin_api_client, collection):
         {'name': name, 'slug': slug, 'id': collection_id, 'isPublished': True})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['collectionUpdate']['collection']
-    assert data['name'] == name
-    assert data['slug'] == slug
+    assert_read_only_mode(response)
 
 
 def test_delete_collection(admin_api_client, collection):
@@ -1053,12 +964,7 @@ def test_delete_collection(admin_api_client, collection):
     variables = json.dumps({'id': collection_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['collectionDelete']['collection']
-    assert data['name'] == collection.name
-    with pytest.raises(collection._meta.model.DoesNotExist):
-        collection.refresh_from_db()
+    assert_read_only_mode(response)
 
 
 def test_add_products_to_collection(
@@ -1083,11 +989,7 @@ def test_add_products_to_collection(
         {'id': collection_id, 'products': product_ids})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['collectionAddProducts']['collection']
-    assert data[
-        'products']['totalCount'] == no_products_before + len(product_ids)
+    assert_read_only_mode(response)
 
 
 def test_remove_products_to_collection(
@@ -1113,11 +1015,7 @@ def test_remove_products_to_collection(
         {'id': collection_id, 'products': product_ids})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['collectionRemoveProducts']['collection']
-    assert data[
-        'products']['totalCount'] == no_products_before - len(product_ids)
+    assert_read_only_mode(response)
 
 
 def test_assign_variant_image(admin_api_client, user_api_client, product_with_image):
@@ -1142,28 +1040,7 @@ def test_assign_variant_image(admin_api_client, user_api_client, product_with_im
         'imageId': to_global_id('ProductImage', image.pk)})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    variant.refresh_from_db()
-    assert variant.images.first() == image
-
-    # check that assigning an image from a different product is not allowed
-    product_with_image.pk = None
-    product_with_image.save()
-
-    image_2 = ProductImage.objects.create(product=product_with_image)
-    variables = json.dumps({
-        'variantId': to_global_id('ProductVariant', variant.pk),
-        'imageId': to_global_id('ProductImage', image_2.pk)})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert content['data']['variantImageAssign']['errors'][0]['field'] == 'imageId'
-
-    # check permissions
-    response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    assert_no_permission(response)
+    assert_read_only_mode(response)
 
 
 def test_unassign_variant_image(admin_api_client, user_api_client, product_with_image):
@@ -1190,25 +1067,7 @@ def test_unassign_variant_image(admin_api_client, user_api_client, product_with_
         'imageId': to_global_id('ProductImage', image.pk)})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    variant.refresh_from_db()
-    assert variant.images.count() == 0
-
-    # check that unsassigning a not assigned image throws error
-    image_2 = ProductImage.objects.create(product=product_with_image)
-    variables = json.dumps({
-        'variantId': to_global_id('ProductVariant', variant.pk),
-        'imageId': to_global_id('ProductImage', image_2.pk)})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert content['data']['variantImageUnassign']['errors'][0]['field'] == 'imageId'
-
-    # check permissions
-    response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    assert_no_permission(response)
+    assert_read_only_mode(response)
 
 
 def test_product_type_update_changes_variant_name(
@@ -1251,13 +1110,7 @@ def test_product_type_update_changes_variant_name(
         'variantAttributes': variant_attributes_ids})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    product.refresh_from_db()
-    variant = product.variants.first()
-    attribute = product.product_type.variant_attributes.first()
-    value = attribute.values.first().name
-    assert variant.name == value
+    assert_read_only_mode(response)
 
 
 def test_update_variants_changed_does_nothing_with_no_attributes():

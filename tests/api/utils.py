@@ -33,3 +33,9 @@ def convert_dict_keys_to_camel_case(d):
         new_key = snake_to_camel_case(k)
         data[new_key] = d[k]
     return data
+
+
+def assert_read_only_mode(response):
+    content = get_graphql_content(response)
+    assert 'errors' in content
+    assert content['errors'][0]['message'] == 'Be aware admin pirate! API runs in read only mode!'

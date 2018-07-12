@@ -4,6 +4,7 @@ import graphene
 import pytest
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
+from .utils import assert_read_only_mode
 
 
 def test_menu_query(user_api_client, menu, menu_item):
@@ -84,9 +85,7 @@ def test_create_menu(admin_api_client):
     variables = json.dumps({'name': 'test-menu'})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    assert content['data']['menuCreate']['menu']['name'] == 'test-menu'
+    assert_read_only_mode(response)
 
 
 def test_update_menu(admin_api_client, menu):
@@ -104,9 +103,7 @@ def test_update_menu(admin_api_client, menu):
     variables = json.dumps({'id': menu_id, 'name': name})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    assert content['data']['menuUpdate']['menu']['name'] == name
+    assert_read_only_mode(response)
 
 def test_delete_menu(admin_api_client, menu):
     query = """
@@ -122,11 +119,7 @@ def test_delete_menu(admin_api_client, menu):
     variables = json.dumps({'id': menu_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    assert content['data']['menuDelete']['menu']['name'] == menu.name
-    with pytest.raises(menu._meta.model.DoesNotExist):
-        menu.refresh_from_db()
+    assert_read_only_mode(response)
 
 
 def test_create_menu_item(admin_api_client, menu):
@@ -149,12 +142,7 @@ def test_create_menu_item(admin_api_client, menu):
     variables = json.dumps({'name': name, 'url': url, 'menu_id': menu_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['menuItemCreate']['menuItem']
-    assert data['name'] == name
-    assert data['url'] == url
-    assert data['menu']['name'] == menu.name
+    assert_read_only_mode(response)
 
 
 def test_update_menu_item(admin_api_client, menu, menu_item, page):
@@ -177,10 +165,7 @@ def test_update_menu_item(admin_api_client, menu, menu_item, page):
         {'id': menu_item_id, 'page': page_id, 'menu_id': menu_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['menuItemUpdate']['menuItem']
-    assert data['url'] == page.get_absolute_url()
+    assert_read_only_mode(response)
 
 
 def test_delete_menu_item(admin_api_client, menu_item):
@@ -197,12 +182,7 @@ def test_delete_menu_item(admin_api_client, menu_item):
     variables = json.dumps({'id': menu_item_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['menuItemDelete']['menuItem']
-    assert data['name'] == menu_item.name
-    with pytest.raises(menu_item._meta.model.DoesNotExist):
-        menu_item.refresh_from_db()
+    assert_read_only_mode(response)
 
 
 def test_add_more_than_one_item(admin_api_client, menu, menu_item, page):
@@ -228,7 +208,4 @@ def test_add_more_than_one_item(admin_api_client, menu, menu_item, page):
         {'id': menu_item_id, 'page': page_id, 'menu_id': menu_id, 'url': url})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    data = content['data']['menuItemUpdate']['errors'][0]
-    assert data['field'] == 'items'
-    assert data['message'] == 'More than one item provided.'
+    assert_read_only_mode(response)

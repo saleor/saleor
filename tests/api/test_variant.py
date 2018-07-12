@@ -4,6 +4,7 @@ import graphene
 import pytest
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
+from .utils import assert_read_only_mode
 
 
 def test_fetch_variant(admin_api_client, product):
@@ -128,16 +129,7 @@ def test_create_variant(admin_api_client, product, product_type):
         'trackInventory': True})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['productVariantCreate']['productVariant']
-    assert data['name'] == variant_value
-    assert data['quantity'] == quantity
-    assert data['costPrice']['amount'] == cost_price
-    assert data['priceOverride']['amount'] == price_override
-    assert data['sku'] == sku
-    assert data['attributes'][0]['attribute']['slug'] == variant_slug
-    assert data['attributes'][0]['value']['slug'] == variant_value
+    assert_read_only_mode(response)
 
 
 def test_update_product_variant(admin_api_client, product):
@@ -185,14 +177,7 @@ def test_update_product_variant(admin_api_client, product):
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    variant.refresh_from_db()
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['productVariantUpdate']['productVariant']
-    assert data['name'] == variant.name
-    assert data['quantity'] == quantity
-    assert data['costPrice']['amount'] == cost_price
-    assert data['sku'] == sku
+    assert_read_only_mode(response)
 
 
 def test_delete_variant(admin_api_client, product):
@@ -211,9 +196,4 @@ def test_delete_variant(admin_api_client, product):
     variables = json.dumps({'id': variant_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['productVariantDelete']
-    assert data['productVariant']['sku'] == variant.sku
-    with pytest.raises(variant._meta.model.DoesNotExist):
-        variant.refresh_from_db()
+    assert_read_only_mode(response)
