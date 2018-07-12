@@ -3,25 +3,25 @@ GraphQL API (Beta)
 
 .. note::
 
-    The GraphQL API is in the early version, it is not fully optimized against database queries and some mutations or queries may be missing.
+    The GraphQL API is in the early version. It is not yet fully optimized against database queries and some mutations or queries may be missing.
 
 
 Saleor provides a GraphQL API which allows to query and modify the shop's data in an efficient and flexible manner.
 
 Learn more about GraphQL language and its concepts on the `official website <https://graphql.org>`_.
 
+
 Endpoint
 --------
-API is available under ``/graphql`` endpoint. Requests must be sent using HTTP POST method and ``application/json`` content type.
+API is available under ``/graphql`` endpoint. Requests must be sent using HTTP ``POST`` method and ``application/json`` content type.
 
-With the ``DEBUG=True`` setting enabled, Saleor exposes an interactive GraphQL editor under ``/graphql``, that allows to access the API from the browser
-You can perform queries normally, however you need to log in to an account with proper permissions to run mutations and query for restricted data.
+With the ``DEBUG=True`` setting enabled, Saleor exposes an interactive GraphQL editor under ``/graphql``, that allows accessing the API from the browser.
 
 
 Example Query
 -------------
 
-Quering for data in GraphQL can be very easy with tool GraphiQL, which can be used from a web browser.
+Querying for data in GraphQL can be very easy with tool GraphiQL, which can be used from a web browser.
 
 Here is an example query that fetches three products:
 
@@ -79,7 +79,7 @@ results in the following result:
 
 Authorization
 ----------------------------
-By default, you are able to query for public data such as published products or pages. In order to fetch protected data like orders or users, you need to authorize your access. Saleor API uses JWT token authentication mechanism. Once you create a token, you have to include it as a header with each GraphQL request.
+By default, you can query for public data such as published products or pages. To fetch protected data like orders or users, you need to authorize your access. Saleor API uses a `JWT token <https://jwt.io/>`_ authentication mechanism. Once you create a token, you have to include it as a header with each GraphQL request.
 
 The authorization header has the following format:
 
@@ -87,7 +87,7 @@ The authorization header has the following format:
 
     Authorization: JWT token
 
-Create a new JWT token with the following mutation:
+Create a new JWT token with the ``tokenCreate`` mutation:
 
 .. code-block:: html
 
@@ -97,7 +97,7 @@ Create a new JWT token with the following mutation:
       }
     }
 
-Verification and refreshing the token is very simple:
+Verification and refreshing the token is straightforward:
 
 .. code-block:: html
 
