@@ -1,6 +1,7 @@
 import graphene
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from graphql_jwt.decorators import permission_required
+from graphql_jwt.exceptions import PermissionDenied
 
 from ....dashboard.order.utils import fulfill_order_line
 from ....order import models
@@ -165,6 +166,9 @@ class FulfillmentCancel(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, input):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         restock = input.get('restock')
         fulfillment = get_node(info, id, only_type=Fulfillment)
         order = fulfillment.order

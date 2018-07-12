@@ -1,6 +1,7 @@
 import graphene
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from graphql_jwt.decorators import permission_required
+from graphql_jwt.exceptions import PermissionDenied
 from payments import PaymentError, PaymentStatus
 
 from ....order import CustomPaymentChoices, models
@@ -111,6 +112,9 @@ class OrderCancel(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, restock):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         order = get_node(info, id, only_type=Order)
         cancel_order(order=order, restock=restock)
         if restock:
@@ -141,6 +145,9 @@ class OrderMarkAsPaid(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         order = get_node(info, id, only_type=Order)
         if order.payments.exists():
             field = 'payment'
@@ -181,6 +188,9 @@ class OrderCapture(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, amount):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         order = get_node(info, id, only_type=Order)
         payment = order.get_last_payment()
         errors = []
@@ -209,6 +219,9 @@ class OrderRelease(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         order = get_node(info, id, only_type=Order)
         payment = order.get_last_payment()
         errors = clean_release_payment(payment)
@@ -238,6 +251,9 @@ class OrderRefund(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, amount):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         order = get_node(info, id, only_type=Order)
         payment = order.get_last_payment()
         errors = clean_refund_payment(payment, amount)

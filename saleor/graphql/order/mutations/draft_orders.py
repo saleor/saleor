@@ -2,6 +2,7 @@ import graphene
 from django.utils.translation import pgettext_lazy
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
+from graphql_jwt.exceptions import PermissionDenied
 
 from ....account.models import Address
 from ....core.exceptions import InsufficientStock
@@ -208,6 +209,9 @@ class DraftOrderComplete(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         order = get_node(info, id, only_type=Order)
         errors = check_for_draft_order_errors(order)
         if errors:
