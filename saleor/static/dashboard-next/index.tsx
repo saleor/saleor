@@ -6,9 +6,7 @@ import { createUploadLink } from "apollo-upload-client";
 import * as React from "react";
 import { ApolloProvider, MutationFn } from "react-apollo";
 import { render } from "react-dom";
-import { Provider } from "react-redux";
 import { BrowserRouter, Route, Switch } from "react-router-dom";
-import { createStore } from "redux";
 import * as Cookies from "universal-cookie";
 
 import AppRoot from "./AppRoot";
@@ -31,27 +29,24 @@ const apolloClient = new ApolloClient({
     uri: "/graphql/"
   })
 });
-const store = createStore(() => undefined);
 
 render(
-  <Provider store={store}>
-    <ApolloProvider client={apolloClient}>
-      <BrowserRouter basename="/dashboard/next/">
-        <MuiThemeProvider theme={theme}>
-          <MessageManager>
-            <CssBaseline />
-            <AppRoot>
-              <Switch>
-                <Route path="/categories" component={CategorySection} />
-                <Route path="/pages" component={PageSection} />
-                <Route path="/products" component={ProductSection} />
-              </Switch>
-            </AppRoot>
-          </MessageManager>
-        </MuiThemeProvider>
-      </BrowserRouter>
-    </ApolloProvider>
-  </Provider>,
+  <ApolloProvider client={apolloClient}>
+    <BrowserRouter basename="/dashboard/next/">
+      <MuiThemeProvider theme={theme}>
+        <MessageManager>
+          <CssBaseline />
+          <AppRoot>
+            <Switch>
+              <Route path="/categories" component={CategorySection} />
+              <Route path="/pages" component={PageSection} />
+              <Route path="/products" component={ProductSection} />
+            </Switch>
+          </AppRoot>
+        </MessageManager>
+      </MuiThemeProvider>
+    </BrowserRouter>
+  </ApolloProvider>,
   document.querySelector("#dashboard-app")
 );
 
