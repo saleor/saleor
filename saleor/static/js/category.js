@@ -13,7 +13,7 @@ const SORT_BY_FIELDS = ['name', 'price'];
 const PAGINATE_BY = 24;
 
 const networkInterface = createNetworkInterface({
-  uri: '/graphql',
+  uri: '/graphql/',
   opts: {
     credentials: 'same-origin',
     headers: {
