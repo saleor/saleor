@@ -13,6 +13,7 @@ storiesOf("Views / Products / Product edit", module)
   .addDecorator(Decorator)
   .add("when data is fully loaded", () => (
     <ProductUpdatePage
+      errors={[]}
       onBack={() => {}}
       onSubmit={() => {}}
       product={product}
@@ -30,6 +31,7 @@ storiesOf("Views / Products / Product edit", module)
   ))
   .add("when loading data", () => (
     <ProductUpdatePage
+      errors={[]}
       categories={[]}
       onBack={() => {}}
       onSubmit={() => {}}

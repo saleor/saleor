@@ -12,6 +12,7 @@ storiesOf("Views / Products / Product variant details", module)
   .addDecorator(Decorator)
   .add("when loaded data", () => (
     <ProductVariantPage
+      errors={[]}
       variant={variant}
       onBack={() => () => {}}
       onDelete={() => {}}
@@ -22,6 +23,7 @@ storiesOf("Views / Products / Product variant details", module)
   ))
   .add("when loading data", () => (
     <ProductVariantPage
+      errors={[]}
       loading={true}
       onBack={() => () => {}}
       placeholderImage={placeholderImage}
