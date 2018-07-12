@@ -9,7 +9,7 @@ from django_prices_vatlayer.models import VAT
 from tests.utils import get_graphql_content
 
 from saleor.core.permissions import MODELS_PERMISSIONS
-from saleor.graphql.core.utils import clean_seo_fields
+from saleor.graphql.core.utils import clean_seo_fields, snake_to_camel_case
 from saleor.graphql.product import types as product_types
 from saleor.graphql.utils import get_database_id
 from .utils import assert_no_permission
@@ -246,3 +246,8 @@ def test_get_database_id(product):
     node_id = graphene.Node.to_global_id('Product', product.pk)
     pk = get_database_id(info, node_id, product_types.Product)
     assert int(pk) == product.pk
+
+
+def test_snake_to_camel_case():
+    assert snake_to_camel_case('test_camel_case') == 'testCamelCase'
+    assert snake_to_camel_case('testCamel_case') == 'testCamelCase'
