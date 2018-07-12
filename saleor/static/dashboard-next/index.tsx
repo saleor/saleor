@@ -1,10 +1,10 @@
 import CssBaseline from "@material-ui/core/CssBaseline";
 import MuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
 import { InMemoryCache } from "apollo-cache-inmemory";
-import { ApolloClient } from "apollo-client";
+import { ApolloClient, ApolloError } from "apollo-client";
 import { createUploadLink } from "apollo-upload-client";
 import * as React from "react";
-import { ApolloProvider } from "react-apollo";
+import { ApolloProvider, MutationFn } from "react-apollo";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
 import { BrowserRouter, Route, Switch } from "react-router-dom";
@@ -13,6 +13,7 @@ import * as Cookies from "universal-cookie";
 
 import AppRoot from "./AppRoot";
 import CategorySection from "./categories";
+import { MessageManager } from "./components/messages";
 import "./i18n";
 import PageSection from "./pages";
 import ProductSection from "./products";
@@ -37,14 +38,16 @@ render(
     <ApolloProvider client={apolloClient}>
       <BrowserRouter basename="/dashboard/next/">
         <MuiThemeProvider theme={theme}>
-          <CssBaseline />
-          <AppRoot>
-            <Switch>
-              <Route path="/categories" component={CategorySection} />
-              <Route path="/pages" component={PageSection} />
-              <Route path="/products" component={ProductSection} />
-            </Switch>
-          </AppRoot>
+          <MessageManager>
+            <CssBaseline />
+            <AppRoot>
+              <Switch>
+                <Route path="/categories" component={CategorySection} />
+                <Route path="/pages" component={PageSection} />
+                <Route path="/products" component={ProductSection} />
+              </Switch>
+            </AppRoot>
+          </MessageManager>
         </MuiThemeProvider>
       </BrowserRouter>
     </ApolloProvider>
@@ -65,3 +68,41 @@ export interface ListProps {
 export interface PageListProps extends ListProps {
   onAdd: () => void;
 }
+
+export interface UserError {
+  field: string;
+  message: string;
+}
+
+// These interfaces are used in atomic mutation providers, which then are
+// combined into one compound mutation provider
+export interface PartialMutationProviderProps<T extends {} = {}> {
+  onSuccess?: (data: T) => void;
+  onError?: (error: ApolloError) => void;
+}
+export interface PartialMutationProviderOutput<
+  TData extends {} = {},
+  TVariables extends {} = {}
+> {
+  data: TData;
+  loading: boolean;
+  mutate: (variables: TVariables) => void;
+}
+export type PartialMutationProviderRenderProps<
+  TData extends {} = {},
+  TVariables extends {} = {}
+> = (
+  props: {
+    data: TData;
+    loading: boolean;
+    error?: ApolloError;
+    mutate: MutationFn<TData, TVariables>;
+  }
+) => React.ReactElement<any>;
+
+export interface MutationProviderProps {
+  onError?: (error: ApolloError) => void;
+}
+export type MutationProviderRenderProps<T> = (
+  props: T & { errors: UserError[] }
+) => React.ReactElement<any>;

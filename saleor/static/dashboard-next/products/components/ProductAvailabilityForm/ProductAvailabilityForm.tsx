@@ -9,8 +9,13 @@ import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
 
 interface ProductAvailabilityFormProps {
-  available?: boolean;
-  availableOn?: string;
+  data: {
+    available: boolean;
+    availableOn: string;
+    chargeTaxes: boolean;
+    featured: boolean;
+  };
+  errors: { [key: string]: string };
   loading?: boolean;
   onChange(event: any);
 }
@@ -21,29 +26,59 @@ const decorate = withStyles(theme => ({
   }
 }));
 export const ProductAvailabilityForm = decorate<ProductAvailabilityFormProps>(
-  ({ classes, available, availableOn, loading, onChange }) => (
+  ({
+    classes,
+    data: { available, availableOn, chargeTaxes, featured },
+    errors,
+    loading,
+    onChange
+  }) => (
     <Card>
       <PageHeader title={i18n.t("Status")} />
       <CardContent>
-        <ControlledCheckbox
-          name="available"
-          label={i18n.t("Published in storefront")}
-          checked={available}
-          onChange={onChange}
-          disabled={loading}
-        />
-        <TextField
-          disabled={loading}
-          label={i18n.t("Publish product on")}
-          name="availableOn"
-          type="date"
-          value={availableOn ? availableOn : ""}
-          onChange={onChange}
-          className={classes.date}
-          InputLabelProps={{
-            shrink: true
-          }}
-        />
+        <div>
+          <ControlledCheckbox
+            name="available"
+            label={i18n.t("Published in storefront")}
+            checked={available}
+            onChange={onChange}
+            disabled={loading}
+          />
+        </div>
+        {available && (
+          <TextField
+            error={!!errors.availableOn}
+            disabled={loading}
+            label={i18n.t("Publish product on")}
+            name="availableOn"
+            type="date"
+            helperText={errors.availableOn}
+            value={availableOn ? availableOn : ""}
+            onChange={onChange}
+            className={classes.date}
+            InputLabelProps={{
+              shrink: true
+            }}
+          />
+        )}
+        <div>
+          <ControlledCheckbox
+            name="featured"
+            label={i18n.t("Feature this product on homepage")}
+            checked={featured}
+            onChange={onChange}
+            disabled={loading}
+          />
+        </div>
+        <div>
+          <ControlledCheckbox
+            name="chargeTaxes"
+            label={i18n.t("Charge taxes")}
+            checked={chargeTaxes}
+            onChange={onChange}
+            disabled={loading}
+          />
+        </div>
       </CardContent>
     </Card>
   )

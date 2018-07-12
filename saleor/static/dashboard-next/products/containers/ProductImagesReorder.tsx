@@ -1,21 +1,34 @@
 import * as React from "react";
 
-import ErrorMessageCard from "../../components/ErrorMessageCard";
-import { ProductDetailsQuery } from "../../gql-types";
+import {
+  ProductDetailsQuery,
+  ProductImageReorderMutation,
+  ProductImageReorderMutationVariables
+} from "../../gql-types";
 import { productImagesReorder, TypedProductImagesReorder } from "../mutations";
 
+import {
+  PartialMutationProviderProps,
+  PartialMutationProviderRenderProps
+} from "../..";
 import { productDetailsQuery } from "../queries";
 
-interface ProductImagesReorderProviderProps {
+interface ProductImagesReorderProviderProps
+  extends PartialMutationProviderProps<ProductImageReorderMutation> {
   productId: string;
-  children: any;
+  children: PartialMutationProviderRenderProps<
+    ProductImageReorderMutation,
+    ProductImageReorderMutationVariables
+  >;
 }
 
 const ProductImagesReorderProvider: React.StatelessComponent<
   ProductImagesReorderProviderProps
-> = ({ productId, children }) => (
+> = ({ productId, children, onError, onSuccess }) => (
   <TypedProductImagesReorder
     mutation={productImagesReorder}
+    onCompleted={onSuccess}
+    onError={onError}
     update={(cache, { data: { productImageReorder } }) => {
       const data: ProductDetailsQuery = cache.readQuery({
         query: productDetailsQuery,
@@ -27,12 +40,14 @@ const ProductImagesReorderProvider: React.StatelessComponent<
       cache.writeQuery({ query: productDetailsQuery, data });
     }}
   >
-    {(reorderProductImages, { error }) => {
-      if (error) {
-        return <ErrorMessageCard message={error.message} />;
-      }
-      return children(reorderProductImages);
-    }}
+    {(mutate, { data, error, loading }) =>
+      children({
+        data,
+        error,
+        loading,
+        mutate
+      })
+    }
   </TypedProductImagesReorder>
 );
 

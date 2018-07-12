@@ -1,4 +1,5 @@
 import * as React from "react";
+import { UserError } from "../../";
 
 export interface FormProps<T extends {}> {
   children:
@@ -6,25 +7,17 @@ export interface FormProps<T extends {}> {
         props: {
           data: T;
           hasChanged: boolean;
+          errors: { [key: string]: string };
           change(event: React.ChangeEvent<any>);
           submit(event: React.FormEvent<any>);
         }
       ) => React.ReactElement<any>)
     | React.ReactNode;
+  errors?: UserError[];
   initial?: T;
   useForm?: boolean;
   onSubmit?(data: T);
 }
-
-const shallowCompare = (a, b) => {
-  let ret = true;
-  Object.keys(a).forEach(k => {
-    if (a[k] !== b[k]) {
-      ret = false;
-    }
-  });
-  return ret;
-};
 
 class Form<T extends {} = {}> extends React.Component<FormProps<T>, T> {
   state: T = this.props.initial;
@@ -56,7 +49,7 @@ class Form<T extends {} = {}> extends React.Component<FormProps<T>, T> {
   };
 
   render() {
-    const { children, useForm = true } = this.props;
+    const { children, errors, useForm = true } = this.props;
 
     let contents = children;
 
@@ -64,7 +57,14 @@ class Form<T extends {} = {}> extends React.Component<FormProps<T>, T> {
       contents = children({
         change: this.handleChange,
         data: this.state,
-        hasChanged: !shallowCompare(this.props.initial, this.state),
+        errors: errors
+          ? errors.reduce(
+              (prev, curr) => ({ ...prev, [curr.field]: curr.message }),
+              {}
+            )
+          : {},
+        hasChanged:
+          JSON.stringify(this.props.initial) !== JSON.stringify(this.state),
         submit: this.handleSubmit
       });
     }

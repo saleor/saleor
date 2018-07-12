@@ -4,7 +4,13 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import * as CRC from "crc-32";
 import * as React from "react";
 
-import { AttributeType, AttributeValueType, MoneyType, ProductImageType } from "../../";
+import {
+  AttributeType,
+  AttributeValueType,
+  MoneyType,
+  ProductImageType
+} from "../../";
+import { UserError } from "../../..";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
@@ -55,12 +61,13 @@ interface ProductVariantPageProps {
           };
         }>;
         totalCount: number;
-      }
+      };
     };
     sku: string;
     quantity: number;
     quantityAllocated: number;
   };
+  errors: UserError[];
   saveButtonBarState?: SaveButtonBarState;
   loading?: boolean;
   placeholderImage?: string;
@@ -82,39 +89,44 @@ const decorate = withStyles(theme => ({
     [theme.breakpoints.down("sm")]: {
       gridGap: `${theme.spacing.unit}px`,
       gridTemplateColumns: "1fr"
-    },
+    }
   }
 }));
 
 const ProductVariantPage = decorate<ProductVariantPageProps>(
   ({
     classes,
-    variant,
+    errors: formErrors,
     loading,
     placeholderImage,
+    saveButtonBarState,
+    variant,
     onBack,
     onDelete,
-    saveButtonBarState,
-    onSubmit,
     onImageSelect,
+    onSubmit,
     onVariantClick
   }) => {
-    const attributes = variant ? variant.attributes.reduce((prev, curr) => {
-      prev[curr.attribute.slug] = curr.value;
-      return prev;
-    }, {}) : {};
-    const variantImages = variant ? variant.images.edges.map(edge => edge.node.id) : [];
+    const attributes = variant
+      ? variant.attributes.reduce((prev, curr) => {
+          prev[curr.attribute.slug] = curr.value.slug;
+          return prev;
+        }, {})
+      : {};
+    const variantImages = variant
+      ? variant.images.edges.map(edge => edge.node.id)
+      : [];
     const productImages = variant
       ? variant.product.images.edges
-        .map(edge => edge.node)
-        .sort((prev, next) => (prev.sortOrder > next.sortOrder ? 1 : -1))
+          .map(edge => edge.node)
+          .sort((prev, next) => (prev.sortOrder > next.sortOrder ? 1 : -1))
       : undefined;
     const images = productImages
       ? productImages
-        .filter(image => variantImages.indexOf(image.id) !== -1)
-        .sort((prev, next) => (prev.sortOrder > next.sortOrder ? 1 : -1))
+          .filter(image => variantImages.indexOf(image.id) !== -1)
+          .sort((prev, next) => (prev.sortOrder > next.sortOrder ? 1 : -1))
       : undefined;
-    const handleImageSelect = (images: string[]) => { };
+    const handleImageSelect = (images: string[]) => {};
     return (
       <Toggle>
         {(isModalActive, { toggle: toggleDeleteModal }) => (
@@ -122,7 +134,10 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
             {(isImageSelectModalActive, { toggle: toggleImageSelectModal }) => (
               <>
                 <Container width="md">
-                  <PageHeader title={variant ? variant.name : undefined} onBack={onBack}>
+                  <PageHeader
+                    title={variant ? variant.name : undefined}
+                    onBack={onBack}
+                  >
                     <IconButton onClick={toggleDeleteModal} disabled={loading}>
                       <DeleteIcon />
                     </IconButton>
@@ -131,20 +146,22 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                     initial={{
                       costPrice:
                         variant && variant.costPrice
-                          ? variant.costPrice.amount
+                          ? variant.costPrice.amount.toString()
                           : null,
                       priceOverride:
                         variant && variant.priceOverride
-                          ? variant.priceOverride.amount
+                          ? variant.priceOverride.amount.toString()
                           : null,
                       sku: variant && variant.sku,
-                      stock: variant && variant.quantity ? variant.quantity : "",
+                      stock:
+                        variant && variant.quantity ? variant.quantity : "",
                       ...attributes
                     }}
+                    errors={formErrors}
                     onSubmit={onSubmit}
                     key={variant ? CRC.str(JSON.stringify(variant)) : "loading"}
                   >
-                    {({ change, data, hasChanged, submit }) => (
+                    {({ change, data, errors, hasChanged, submit }) => (
                       <>
                         <div className={classes.root}>
                           <div>
@@ -156,10 +173,14 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                             <ProductVariantNavigation
                               current={variant ? variant.id : undefined}
                               loading={loading}
-                              productId={variant ? variant.product.id : undefined}
+                              productId={
+                                variant ? variant.product.id : undefined
+                              }
                               variants={
                                 variant
-                                  ? variant.product.variants.edges.map(edge => edge.node)
+                                  ? variant.product.variants.edges.map(
+                                      edge => edge.node
+                                    )
                                   : undefined
                               }
                               onRowClick={(variantId: string) => {
@@ -171,22 +192,32 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                           </div>
                           <div>
                             <ProductVariantAttributes
-                              attributes={variant ? variant.attributes : undefined}
-                              formData={data}
+                              attributes={
+                                variant ? variant.attributes : undefined
+                              }
+                              data={data}
                               onChange={change}
                               loading={loading}
                             />
                             <ProductVariantPrice
+                              errors={errors}
                               priceOverride={data.priceOverride}
-                              currencySymbol={variant && variant.priceOverride ? variant.priceOverride.currency : ""}
+                              currencySymbol={
+                                variant && variant.priceOverride
+                                  ? variant.priceOverride.currency
+                                  : ""
+                              }
                               costPrice={data.costPrice}
                               loading={loading}
                               onChange={change}
                             />
                             <ProductVariantStock
+                              errors={errors}
                               sku={data.sku}
                               stock={data.stock}
-                              stockAllocated={variant ? variant.quantityAllocated : undefined}
+                              stockAllocated={
+                                variant ? variant.quantityAllocated : undefined
+                              }
                               loading={loading}
                               onChange={change}
                             />

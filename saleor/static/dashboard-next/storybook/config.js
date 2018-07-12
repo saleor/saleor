@@ -22,6 +22,7 @@ function loadStories() {
   require("./stories/components/StatusLabel");
   require("./stories/components/TablePagination");
   require("./stories/components/Timeline");
+  require("./stories/components/messages");
 
   // Attributes
   require("./stories/attributes/AttributeDetailsPage");
@@ -50,24 +51,10 @@ function loadStories() {
   require("./stories/pages/PageProperties");
 
   // Products
-  require("./stories/products/ProductAttributesForm");
-  require("./stories/products/ProductAvailabilityForm");
-  require("./stories/products/ProductCategoryAndCollectionsForm");
-  require("./stories/products/ProductDetailsForm");
   require("./stories/products/ProductImagePage");
-  require("./stories/products/ProductImages");
   require("./stories/products/ProductListCard");
   require("./stories/products/ProductUpdatePage");
-  require("./stories/products/ProductVariantAttributes");
-  require("./stories/products/ProductVariantDeleteDialog");
-  require("./stories/products/ProductVariantImageSelectDialog");
-  require("./stories/products/ProductVariantImages");
-  require("./stories/products/ProductVariantNavigation");
   require("./stories/products/ProductVariantPage");
-  require("./stories/products/ProductVariantPrice");
-  require("./stories/products/ProductVariantProduct");
-  require("./stories/products/ProductVariantStock");
-  require("./stories/products/ProductVariants");
 
   // Orders
   require("./stories/orders/OrderAddressEditDialog");
