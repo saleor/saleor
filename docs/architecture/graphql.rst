@@ -3,31 +3,31 @@ GraphQL API (Beta)
 
 .. note::
 
-    The GraphQL API is in the early version and is subject to change.
+    The GraphQL API is in the early version, it is not fully optimized against database queries and some mutations or queries may be missing.
 
 
-Saleor supports GraphQL API. It allows to create apps that can handle fulfillment, orders, pages, product and shipping management.
+Saleor provides a GraphQL API which allows to query and modify the shop's data in an efficient and flexible manner.
 
-GraphQL allows for more efficient data retrieval - it is easier to fetch all desired resources without redundant ones.
-
-Learn more at `official website <https://graphql.org>`_.
+Learn more about GraphQL language and its concepts on the `official website <https://graphql.org>`_.
 
 Endpoint
 --------
-You can test API under ``/graphql`` endpoint - in default Saleor configuration URL would be ``http://localhost:8000/graphql/``. You can perform queries normally, however you need to log in to an account with proper permissions to run mutations and query for restricted data.
+API is available under ``/graphql`` endpoint. Requests must be sent using HTTP POST method and ``application/json`` content type.
+
+With the ``DEBUG=True`` setting enabled, Saleor exposes an interactive GraphQL editor under ``/graphql``, that allows to access the API from the browser
+You can perform queries normally, however you need to log in to an account with proper permissions to run mutations and query for restricted data.
 
 
-Query
------
-Saleor GraphQL uses `Relay connection standard <facebook.github.io/relay/graphql/connections.htm>`_, which is very handy in case of pagination.
+Example Query
+-------------
 
-Quering for data in GraphQL can be vary easy with tool GraphiQL, which can be used in the browser.
+Quering for data in GraphQL can be very easy with tool GraphiQL, which can be used from a web browser.
 
-For example this query:
+Here is an example query that fetches three products:
 
 .. code-block:: html
 
-    query happyThreeProducts {
+    query {
       products(first: 3){
         edges {
           node {
@@ -79,12 +79,20 @@ results in the following result:
 
 Authorization
 ----------------------------
-Saleor GraphQL API uses `JWT <https://jwt.io/>`_ - to authorize you need to create and add token to the ``Authorization`` header. You can do it with the following mutation:
+By default, you are able to query for public data such as published products or pages. In order to fetch protected data like orders or users, you need to authorize your access. Saleor API uses JWT token authentication mechanism. Once you create a token, you have to include it as a header with each GraphQL request.
+
+The authorization header has the following format:
 
 .. code-block:: html
 
-    mutation tokenCreate($username: String!, $password: String!) {
-      tokenAuth(username: $username, password: $password) {
+    Authorization: JWT token
+
+Create a new JWT token with the following mutation:
+
+.. code-block:: html
+
+    mutation {
+      tokenCreate(email: "admin@example.com", password: "admin") {
         token
       }
     }
