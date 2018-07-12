@@ -6,6 +6,7 @@ from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 
 from saleor.page.models import Page
+from .utils import assert_read_only_mode
 
 
 def test_page_query(user_api_client, page):
@@ -58,14 +59,7 @@ def test_page_create_mutation(admin_api_client):
         'isVisible': page_isVisible, 'slug': page_slug})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['pageCreate']
-    assert data['errors'] == []
-    assert data['page']['title'] == page_title
-    assert data['page']['content'] == page_content
-    assert data['page']['slug'] == page_slug
-    assert data['page']['isVisible'] == page_isVisible
+    assert_read_only_mode(response)
 
 
 def test_page_delete_mutation(admin_api_client, page):
@@ -87,12 +81,7 @@ def test_page_delete_mutation(admin_api_client, page):
         'id': graphene.Node.to_global_id('Page', page.id)})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['pageDelete']
-    assert data['page']['title'] == page.title
-    with pytest.raises(page._meta.model.DoesNotExist):
-        page.refresh_from_db()
+    assert_read_only_mode(response)
 
 
 def test_paginate_pages(user_api_client, page):

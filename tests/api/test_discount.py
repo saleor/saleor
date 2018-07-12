@@ -10,7 +10,7 @@ from saleor.discount import (
 from saleor.graphql.discount.types import (
     ApplyToEnum, DiscountValueTypeEnum, VoucherTypeEnum)
 
-from .utils import assert_no_permission
+from .utils import assert_no_permission, assert_read_only_mode
 
 
 def test_voucher_permissions(
@@ -109,7 +109,7 @@ def test_create_voucher(user_api_client, admin_api_client):
         $applyTo: ApplyToEnum, $discountValueType: DiscountValueTypeEnum,
         $discountValue: Decimal, $limit: Decimal) {
             voucherCreate(input: {
-            name: $name, type: $type, code: $code, applyTo: $applyTo, 
+            name: $name, type: $type, code: $code, applyTo: $applyTo,
             discountValueType: $discountValueType, discountValue: $discountValue,
             limit: $limit}) {
                 errors {
@@ -139,19 +139,11 @@ def test_create_voucher(user_api_client, admin_api_client):
         'limit': '1.12'})
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    assert_no_permission(response)
+    assert_read_only_mode(response)
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['voucherCreate']['voucher']
-    assert data['type'] == VoucherType.VALUE.upper()
-    assert data['limit']['amount'] == float('1.12')
-    assert data['applyTo'] == VoucherApplyToProduct.ALL_PRODUCTS
-    assert data['name'] == 'test voucher'
-    assert data['code'] == 'testcode123'
-    assert data['discountValueType'] == DiscountValueType.FIXED.upper()
+    assert_read_only_mode(response)
 
 
 def test_update_voucher(user_api_client, admin_api_client, voucher):
@@ -182,15 +174,11 @@ def test_update_voucher(user_api_client, admin_api_client, voucher):
 
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    assert_no_permission(response)
+    assert_read_only_mode(response)
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['voucherUpdate']['voucher']
-    assert data['code'] == 'testcode123'
-    assert data['discountValueType'] == DiscountValueType.PERCENTAGE.upper()
+    assert_read_only_mode(response)
 
 
 def test_voucher_delete_mutation(user_api_client, admin_api_client, voucher):
@@ -213,16 +201,11 @@ def test_voucher_delete_mutation(user_api_client, admin_api_client, voucher):
 
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    assert_no_permission(response)
+    assert_read_only_mode(response)
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['voucherDelete']
-    assert data['voucher']['name'] == voucher.name
-    with pytest.raises(voucher._meta.model.DoesNotExist):
-        voucher.refresh_from_db()
+    assert_read_only_mode(response)
 
 
 def test_create_sale(user_api_client, admin_api_client):
@@ -248,16 +231,11 @@ def test_create_sale(user_api_client, admin_api_client):
         'value': '10.12'})
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    assert_no_permission(response)
+    assert_read_only_mode(response)
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['saleCreate']['sale']
-    assert data['type'] == DiscountValueType.FIXED.upper()
-    assert data['name'] == 'test sale'
-    assert data['value'] == 10.12
+    assert_read_only_mode(response)
 
 
 def test_update_sale(user_api_client, admin_api_client, sale):
@@ -283,15 +261,11 @@ def test_update_sale(user_api_client, admin_api_client, sale):
 
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-
-    assert_no_permission(response)
+    assert_read_only_mode(response)
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['saleUpdate']['sale']
-    assert data['type'] == DiscountValueType.PERCENTAGE.upper()
+    assert_read_only_mode(response)
 
 
 def test_sale_delete_mutation(user_api_client, admin_api_client, sale):
@@ -314,16 +288,11 @@ def test_sale_delete_mutation(user_api_client, admin_api_client, sale):
 
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    assert_no_permission(response)
+    assert_read_only_mode(response)
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['saleDelete']
-    assert data['sale']['name'] == sale.name
-    with pytest.raises(sale._meta.model.DoesNotExist):
-        sale.refresh_from_db()
+    assert_read_only_mode(response)
 
 
 def test_validate_voucher(voucher, admin_api_client, product):
@@ -353,7 +322,4 @@ def test_validate_voucher(voucher, admin_api_client, product):
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    data = content['data']['voucherUpdate']['errors'][0]
-    assert data['field'] == 'product'
-    assert data['message'] == 'This field is required.'
+    assert_read_only_mode(response)

@@ -17,3 +17,9 @@ def get_multipart_request_body(query, variables, file, file_name):
     return {
         'operations': json.dumps({'query': query, 'variables': variables}),
         'map': json.dumps({file_name: ['variables.file']}), file_name: file}
+
+
+def assert_read_only_mode(response):
+    content = get_graphql_content(response)
+    assert 'errors' in content
+    assert content['errors'][0]['message'] == 'Be aware admin pirate! API runs in read only mode!'

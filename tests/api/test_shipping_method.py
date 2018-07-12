@@ -5,6 +5,8 @@ import pytest
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 
+from .utils import assert_read_only_mode
+
 
 def test_shipping_method_query(user_api_client, shipping_method):
     shipping = shipping_method
@@ -80,11 +82,7 @@ def test_create_shipping_method(admin_api_client):
         }
     """
     response = admin_api_client.post(reverse('api'), {'query': query})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['shippingMethodCreate']['shippingMethod']
-    assert data['name'] == 'test shipping'
-    assert data['description'] == 'test desc'
+    assert_read_only_mode(response)
 
 
 def test_update_shipping_method(admin_api_client, shipping_method):
@@ -104,10 +102,7 @@ def test_update_shipping_method(admin_api_client, shipping_method):
     variables = json.dumps({'id': shipping_id, 'name': name})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['shippingMethodUpdate']['shippingMethod']
-    assert data['name'] == name
+    assert_read_only_mode(response)
 
 
 def test_delete_shipping_method(admin_api_client, shipping_method):
@@ -125,12 +120,7 @@ def test_delete_shipping_method(admin_api_client, shipping_method):
     variables = json.dumps({'id': shipping_method_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['shippingMethodDelete']['shippingMethod']
-    assert data['name'] == shipping_method.name
-    with pytest.raises(shipping_method._meta.model.DoesNotExist):
-        shipping_method.refresh_from_db()
+    assert_read_only_mode(response)
 
 
 def test_create_shipping_price(admin_api_client, shipping_method):
@@ -161,11 +151,7 @@ def test_create_shipping_price(admin_api_client, shipping_method):
             'price': price})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['shippingPriceCreate']['shippingMethodCountry']
-    assert data['countryCode'] == code
-    assert data['price']['amount'] == float(price)
+    assert_read_only_mode(response)
 
 
 def test_update_shipping_price(admin_api_client, shipping_method, shipping_price):
@@ -196,10 +182,7 @@ def test_update_shipping_price(admin_api_client, shipping_method, shipping_price
             'id': shipping_price_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['shippingPriceUpdate']['shippingMethodCountry']
-    assert data['price']['amount'] == float(price)
+    assert_read_only_mode(response)
 
 
 def test_delete_shipping_price(admin_api_client, shipping_price):
@@ -217,9 +200,4 @@ def test_delete_shipping_price(admin_api_client, shipping_price):
     variables = json.dumps({'id': shipping_price_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['shippingPriceDelete']['shippingMethodCountry']
-    assert data['countryCode'] == shipping_price.country_code
-    with pytest.raises(shipping_price._meta.model.DoesNotExist):
-        shipping_price.refresh_from_db()
+    assert_read_only_mode(response)

@@ -5,7 +5,7 @@ import graphene
 from django.contrib.auth import get_user_model
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
-from .utils import assert_no_permission
+from .utils import assert_no_permission, assert_read_only_mode
 
 from saleor.graphql.account.mutations import SetPassword
 
@@ -245,18 +245,11 @@ def test_customer_create(admin_api_client, user_api_client):
 
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    assert_no_permission(response)
+    assert_read_only_mode(response)
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['customerCreate']
-    assert data['errors'] == []
-    assert data['user']['email'] == email
-    assert data['user']['note'] == note
-    assert data['user']['isStaff'] == False
-    assert data['user']['isActive'] == True
+    assert_read_only_mode(response)
 
 
 def test_customer_update(admin_api_client, customer_user, user_api_client):
@@ -285,15 +278,11 @@ def test_customer_update(admin_api_client, customer_user, user_api_client):
     # check unauthorized access
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    assert_no_permission(response)
+    assert_read_only_mode(response)
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['customerUpdate']
-    assert data['errors'] == []
-    assert data['user']['note'] == note
+    assert_read_only_mode(response)
 
 
 def test_staff_create(
@@ -345,23 +334,11 @@ def test_staff_create(
     # check unauthorized access
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    assert_no_permission(response)
+    assert_read_only_mode(response)
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['staffCreate']
-    assert data['errors'] == []
-    assert data['user']['email'] == email
-    assert data['user']['isStaff'] == True
-    assert data['user']['isActive'] == True
-    permissions = data['user']['permissions']
-    assert permissions[0]['code'] == permission_view_user_codename
-    assert permissions[1]['code'] == permission_view_product_codename
-    groups = data['user']['groups']['edges']
-    assert len(groups) == 1
-    assert groups[0]['node']['name'] == staff_group.name
+    assert_read_only_mode(response)
 
 
 def test_staff_update(admin_api_client, staff_user, user_api_client):
@@ -393,16 +370,11 @@ def test_staff_update(admin_api_client, staff_user, user_api_client):
     # check unauthorized access
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    assert_no_permission(response)
+    assert_read_only_mode(response)
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['staffUpdate']
-    assert data['errors'] == []
-    assert data['user']['permissions'] == []
-    assert data['user']['groups']['edges'] == []
+    assert_read_only_mode(response)
 
 
 def test_set_password(user_api_client, customer_user):
@@ -429,17 +401,9 @@ def test_set_password(user_api_client, customer_user):
     variables['token'] = 'nope'
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': json.dumps(variables)})
-    content = get_graphql_content(response)
-    errors = content['data']['setPassword']['errors']
-    assert errors[0]['message'] == SetPassword.INVALID_TOKEN
+    assert_read_only_mode(response)
 
     variables['token'] = token
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': json.dumps(variables)})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['setPassword']
-    assert data['user']['id']
-
-    customer_user.refresh_from_db()
-    assert customer_user.check_password(password)
+    assert_read_only_mode(response)

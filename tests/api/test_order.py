@@ -13,6 +13,7 @@ from saleor.graphql.order.mutations.orders import (
     clean_refund_payment, clean_release_payment)
 from saleor.order import CustomPaymentChoices
 from saleor.order.models import Order, OrderStatus, Payment, PaymentStatus
+from .utils import assert_read_only_mode
 
 
 def test_order_query(admin_api_client, fulfilled_order):
@@ -46,7 +47,7 @@ def test_order_query(admin_api_client, fulfilled_order):
                                 fulfillmentOrder
                             }
                         }
-                        
+
                     }
                     history {
                         totalCount
@@ -146,7 +147,7 @@ def test_draft_order_create(
                         voucher {
                             code
                         }
-                        
+
                     }
                 }
         }
@@ -173,18 +174,7 @@ def test_draft_order_create(
             'shippingMethod': shipping_id, 'voucher': voucher_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['draftOrderCreate']['order']
-    assert data['status'] == OrderStatus.DRAFT.upper()
-    assert data['voucher']['code'] == voucher.code
-
-    order = Order.objects.first()
-    assert order.user == customer_user
-    assert order.billing_address == customer_user.default_billing_address
-    assert order.shipping_method == shipping_price
-    assert order.shipping_address == Address(
-        **{'first_name': 'John', 'country': 'PL'})
+    assert_read_only_mode(response)
 
 
 def test_draft_order_update(admin_api_client, order_with_lines):
@@ -207,9 +197,7 @@ def test_draft_order_update(admin_api_client, order_with_lines):
     variables = json.dumps({'id': order_id, 'email': email})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    data = content['data']['draftOrderUpdate']['order']
-    assert data['userEmail'] == email
+    assert_read_only_mode(response)
 
 
 def test_draft_order_delete(admin_api_client, order_with_lines):
@@ -227,8 +215,7 @@ def test_draft_order_delete(admin_api_client, order_with_lines):
     variables = json.dumps({'id': order_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    with pytest.raises(order._meta.model.DoesNotExist):
-        order.refresh_from_db()
+    assert_read_only_mode(response)
 
 
 def test_check_for_draft_order_errors(order_with_lines):
@@ -262,10 +249,7 @@ def test_draft_order_complete(admin_api_client, draft_order):
     variables = json.dumps({'id': order_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    data = content['data']['draftOrderComplete']['order']
-    order.refresh_from_db()
-    assert data['status'] == order.status.upper()
+    assert_read_only_mode(response)
 
 
 def test_order_update(admin_api_client, order_with_lines):
@@ -302,13 +286,7 @@ def test_order_update(admin_api_client, order_with_lines):
          'last_name': last_name, 'country_code': 'PL'})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    data = content['data']['orderUpdate']['order']
-    assert data['userEmail'] == email
-
-    order.refresh_from_db()
-    assert order.shipping_address.first_name == first_name
-    assert order.billing_address.last_name == last_name
+    assert_read_only_mode(response)
 
 
 def test_order_add_note(admin_api_client, order_with_lines, admin_user):
@@ -339,11 +317,7 @@ def test_order_add_note(admin_api_client, order_with_lines, admin_user):
          'note': note})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    data = content['data']['orderAddNote']['orderNote']
-    assert data['content'] == note
-    assert data['isPublic'] == is_public
-    assert data['user']['email'] == admin_user.email
+    assert_read_only_mode(response)
 
 
 def test_order_cancel(admin_api_client, order_with_lines):
@@ -363,12 +337,7 @@ def test_order_cancel(admin_api_client, order_with_lines):
     variables = json.dumps({'id': order_id, 'restock': restock})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    data = content['data']['orderCancel']['order']
-    order.refresh_from_db()
-    history_entry = 'Restocked %d items' % quantity
-    assert order.history.last().content == history_entry
-    assert data['status'] == order.status.upper()
+    assert_read_only_mode(response)
 
 
 def test_order_capture(admin_api_client, payment_preauth):
@@ -391,12 +360,7 @@ def test_order_capture(admin_api_client, payment_preauth):
     variables = json.dumps({'id': order_id, 'amount': amount})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    data = content['data']['orderCapture']['order']
-    order.refresh_from_db()
-    assert data['paymentStatus'] == order.get_last_payment_status()
-    assert data['isPaid'] == True
-    assert data['capturedAmount']['amount'] == float(amount)
+    assert_read_only_mode(response)
 
 
 def test_paid_order_mark_as_paid(
@@ -419,11 +383,7 @@ def test_paid_order_mark_as_paid(
     variables = json.dumps({'id': order_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    errors = content['data']['orderMarkAsPaid']['errors']
-    msg = 'Orders with payments can not be manually marked as paid.'
-    assert errors[0]['message'] == msg
-    assert errors[0]['field'] == 'payment'
+    assert_read_only_mode(response)
 
 
 def test_order_mark_as_paid(
@@ -447,10 +407,7 @@ def test_order_mark_as_paid(
     variables = json.dumps({'id': order_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    data = content['data']['orderMarkAsPaid']['order']
-    order.refresh_from_db()
-    assert data['isPaid'] == True == order.is_fully_paid()
+    assert_read_only_mode(response)
 
 
 def test_order_release(admin_api_client, payment_preauth):
@@ -468,11 +425,7 @@ def test_order_release(admin_api_client, payment_preauth):
     variables = json.dumps({'id': order_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    data = content['data']['orderRelease']['order']
-    assert data['paymentStatus'] == PaymentStatus.REFUNDED
-    history_entry = order.history.last().content
-    assert history_entry == 'Released payment'
+    assert_read_only_mode(response)
 
 
 def test_order_refund(admin_api_client, payment_confirmed):
@@ -492,14 +445,7 @@ def test_order_refund(admin_api_client, payment_confirmed):
     variables = json.dumps({'id': order_id, 'amount': amount})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    data = content['data']['orderRefund']['order']
-    order.refresh_from_db()
-    msg = 'Refunded %(amount)s' % {'amount': amount}
-    history_entry = order.history.last().content
-    assert history_entry == msg
-    assert data['paymentStatus'] == PaymentStatus.REFUNDED
-    assert data['isPaid'] == False
+    assert_read_only_mode(response)
 
 
 def test_clean_order_release_payment():

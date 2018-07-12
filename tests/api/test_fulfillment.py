@@ -10,6 +10,7 @@ from saleor.account.models import Address
 from saleor.graphql.order.mutations.draft_orders import (
     check_for_draft_order_errors)
 from saleor.order.models import Order, OrderStatus, PaymentStatus, FulfillmentStatus
+from .utils import assert_read_only_mode
 
 
 def test_create_fulfillment(admin_api_client, order_with_lines):
@@ -41,13 +42,7 @@ def test_create_fulfillment(admin_api_client, order_with_lines):
          'tracking': tracking})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['fulfillmentCreate']['fulfillment']
-    assert data['fulfillmentOrder'] == 1
-    assert data['status'] == FulfillmentStatus.FULFILLED.upper()
-    assert data['trackingNumber'] == tracking
-    assert data['lines']['totalCount'] == 1
+    assert_read_only_mode(response)
 
 
 def test_update_fulfillment(admin_api_client, fulfillment):
@@ -67,10 +62,7 @@ def test_update_fulfillment(admin_api_client, fulfillment):
         {'id': fulfillment_id, 'tracking': tracking})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['fulfillmentUpdate']['fulfillment']
-    assert data['trackingNumber'] == tracking
+    assert_read_only_mode(response)
 
 
 def test_cancel_fulfillment(admin_api_client, fulfillment):
@@ -89,7 +81,4 @@ def test_cancel_fulfillment(admin_api_client, fulfillment):
         {'id': fulfillment_id, 'restock': restock})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['fulfillmentCancel']['fulfillment']
-    assert data['status'] == FulfillmentStatus.CANCELED.upper()
+    assert_read_only_mode(response)

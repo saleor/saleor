@@ -7,6 +7,7 @@ from django.template.defaultfilters import slugify
 from tests.utils import get_graphql_content
 
 from saleor.product.models import Category
+from .utils import assert_read_only_mode
 
 
 def test_category_query(user_api_client, product):
@@ -86,26 +87,7 @@ def test_category_create_mutation(admin_api_client):
         'slug': category_slug})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['categoryCreate']
-    assert data['errors'] == []
-    assert data['category']['name'] == category_name
-    assert data['category']['description'] == category_description
-    assert not data['category']['parent']
-
-    # test creating subcategory
-    parent_id = data['category']['id']
-    variables = json.dumps({
-        'name': category_name, 'description': category_description,
-        'parentId': parent_id, 'slug': category_slug})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['categoryCreate']
-    assert data['errors'] == []
-    assert data['category']['parent']['id'] == parent_id
+    assert_read_only_mode(response)
 
 
 def test_category_update_mutation(admin_api_client, default_category):
@@ -148,16 +130,7 @@ def test_category_update_mutation(admin_api_client, default_category):
         'id': category_id, 'slug': category_slug})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['categoryUpdate']
-    assert data['errors'] == []
-    assert data['category']['id'] == category_id
-    assert data['category']['name'] == category_name
-    assert data['category']['description'] == category_description
-
-    parent_id = graphene.Node.to_global_id('Category', default_category.pk)
-    assert data['category']['parent']['id'] == parent_id
+    assert_read_only_mode(response)
 
 
 def test_category_delete_mutation(admin_api_client, default_category):
@@ -178,12 +151,7 @@ def test_category_delete_mutation(admin_api_client, default_category):
         'id': graphene.Node.to_global_id('Category', default_category.id)})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['categoryDelete']
-    assert data['category']['name'] == default_category.name
-    with pytest.raises(default_category._meta.model.DoesNotExist):
-        default_category.refresh_from_db()
+    assert_read_only_mode(response)
 
 
 def test_category_level(user_api_client, default_category):

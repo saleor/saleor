@@ -4,6 +4,7 @@ import graphene
 import pytest
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
+from .utils import assert_read_only_mode
 
 
 def test_create_product_attribute(admin_api_client):
@@ -26,12 +27,7 @@ def test_create_product_attribute(admin_api_client):
     variables = json.dumps({'name': name, 'slug': slug})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['productAttributeCreate']['productAttribute']
-    assert data['name'] == name
-    assert data['slug'] == slug
-    assert not data['values']
+    assert_read_only_mode(response)
 
 
 def test_update_product_attribute(admin_api_client, color_attribute):
@@ -51,11 +47,7 @@ def test_update_product_attribute(admin_api_client, color_attribute):
     variables = json.dumps({'name': name, 'id': id, 'slug': slug})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    attribute.refresh_from_db()
-    assert 'errors' not in content
-    data = content['data']['productAttributeUpdate']['productAttribute']
-    assert data['name'] == name == attribute.name
+    assert_read_only_mode(response)
 
 
 def test_delete_product_attribute(admin_api_client, color_attribute):
@@ -73,10 +65,7 @@ def test_delete_product_attribute(admin_api_client, color_attribute):
     variables = json.dumps({'id': id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    with pytest.raises(attribute._meta.model.DoesNotExist):
-        attribute.refresh_from_db()
+    assert_read_only_mode(response)
 
 
 def test_create_attribute_choice_value(admin_api_client, color_attribute):
@@ -99,12 +88,7 @@ def test_create_attribute_choice_value(admin_api_client, color_attribute):
         {'name': name, 'slug': slug, 'attribute': attribute_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content[
-        'data']['attributeChoiceValueCreate']['attributeChoiceValue']
-    assert data['name'] == name
-    assert data['slug'] == slug
+    assert_read_only_mode(response)
 
 
 def test_update_attribute_choice_value(admin_api_client, pink_choice_value):
@@ -127,12 +111,7 @@ def test_update_attribute_choice_value(admin_api_client, pink_choice_value):
         {'name': name, 'slug': slug, 'id': id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    value.refresh_from_db()
-    data = content[
-        'data']['attributeChoiceValueUpdate']['attributeChoiceValue']
-    assert data['name'] == name == value.name
+    assert_read_only_mode(response)
 
 
 def test_delete_attribute_choice_value(admin_api_client, color_attribute, pink_choice_value):
@@ -152,7 +131,4 @@ def test_delete_attribute_choice_value(admin_api_client, color_attribute, pink_c
     variables = json.dumps({'id': id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    with pytest.raises(value._meta.model.DoesNotExist):
-        value.refresh_from_db()
+    assert_read_only_mode(response)
