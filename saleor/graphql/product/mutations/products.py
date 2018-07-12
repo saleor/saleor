@@ -3,6 +3,7 @@ from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
 from graphene_file_upload import Upload
 from graphql_jwt.decorators import permission_required
+from graphql_jwt.exceptions import PermissionDenied
 
 from ....product import models
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -150,6 +151,9 @@ class CollectionAddProducts(BaseMutation):
 
     @permission_required('collection.edit_collection')
     def mutate(self, info, collection_id, products):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         collection = get_node(info, collection_id, only_type=Collection)
         products = get_nodes(products, Product)
         collection.products.add(*products)
@@ -172,6 +176,9 @@ class CollectionRemoveProducts(BaseMutation):
 
     @permission_required('collection.edit_collection')
     def mutate(self, info, collection_id, products):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         collection = get_node(info, collection_id, only_type=Collection)
         products = get_nodes(products, Product)
         collection.products.remove(*products)
@@ -485,6 +492,9 @@ class ProductImageReorder(BaseMutation):
     @classmethod
     @permission_required('product.edit_product')
     def mutate(cls, root, info, product_id, images_ids):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         product = get_node(info, product_id, Product)
         if len(images_ids) != product.images.count():
             return cls(

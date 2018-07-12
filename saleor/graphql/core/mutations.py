@@ -219,8 +219,12 @@ class ModelMutation(BaseMutation):
         that this is an "update" mutation. Otherwise, a new instance is
         created based on the model associated with this mutation.
         """
-        if not cls.user_is_allowed(info.context.user, data):
-            raise PermissionDenied()
+
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
+        # if not cls.user_is_allowed(info.context.user, data):
+        #     raise PermissionDenied()
 
         id = data.get('id')
         input = data.get('input')
@@ -252,6 +256,10 @@ class ModelDeleteMutation(ModelMutation):
     @classmethod
     def mutate(cls, root, info, **data):
         """Perform a mutation that deletes a model instance."""
+
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         if not cls.user_is_allowed(info.context.user, data):
             raise PermissionDenied()
 
