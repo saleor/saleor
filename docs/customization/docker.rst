@@ -14,61 +14,36 @@ Using Docker to build software allows you to run and test code without having to
 Local Prerequisites
 -------------------
 
-You will need to install Docker and
-`docker-compose <https://docs.docker.com/compose/install/>`_ before
-performing the following steps.
-
-To build assets you will need `node <https://nodejs.org/en/download/package-manager/>`_ and `webpack module bundler <https://webpack.github.io/>`_.
+You will need to install Docker and `docker-compose <https://docs.docker.com/compose/install/>`_ before performing the following steps.
 
 .. note::
 
-   Our configuration exposes PostgreSQL, Redis and Elasticsearch ports. If you have problems running this docker file because of port conflicts, you can remove 'ports' section from docker-compose.yml
+   Our configuration exposes PostgreSQL, Redis and Elasticsearch ports. If you have problems running this docker file because of port conflicts, you can remove ``ports`` section from ``docker-compose.yml``.
 
 
 Usage
 -----
 
-1. Install JavaScript dependencies
-
-   .. code-block:: bash
-
-    $ npm install
-
-
-2. Prepare static assets
-
-   .. code-block:: bash
-
-    $ npm run build-assets
-
-
-3. Build emails
-
-   .. code-block:: bash
-
-    $ npm run build-emails
-
-
-4. Build the containers using ``docker-compose``
+1. Build the containers using ``docker-compose``
 
    .. code-block:: bash
 
     $ docker-compose build
 
 
-5. Prepare the database
+2. Prepare the database
 
    .. code-block:: bash
 
-    $ docker-compose run web python manage.py migrate
-    $ docker-compose run web python manage.py collectstatic
-    $ docker-compose run web python manage.py populatedb --createsuperuser
+    $ docker-compose run web python3 manage.py migrate
+    $ docker-compose run web python3 manage.py collectstatic
+    $ docker-compose run web python3 manage.py populatedb --createsuperuser
 
    The ``--createsuperuser`` switch creates an admin account for
    ``admin@example.com`` with the password set to ``admin``.
 
 
-6. Run the containers
+3. Run the containers
 
    .. code-block:: bash
 

@@ -16,9 +16,11 @@ services:
       context: .
       dockerfile: Dockerfile
     env_file: common.env
-    command: celery -A saleor worker --app=saleor.celeryconf:app --loglevel=info
+    command: /app/virtualenv/bin/celery -A saleor worker --app=saleor.celeryconf:app --loglevel=info
     volumes:
-      - .:/app:Z
+      - ./saleor:/app/saleor:Z
+      - ./locale:/app/locale:Z
+      - ./templates:/app/templates:Z
     links:
       - redis
     depends_on:
@@ -31,8 +33,9 @@ services:
     ports:
       - '127.0.0.1:9200:9200'
   web:
-    build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    build:
+      context: .
+      dockerfile: Dockerfile
     env_file: common.env
     depends_on:
       - db
@@ -41,4 +44,6 @@ services:
     ports:
       - '8000:8000'
     volumes:
-      - .:/app:Z
+      - ./saleor:/app/saleor:Z
+      - ./locale:/app/locale:Z
+      - ./templates:/app/templates:Z

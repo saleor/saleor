@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-25 05:21-0500\n"
+"POT-Creation-Date: 2018-07-03 06:24-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -50,14 +50,14 @@ msgstr[1] ""
 #: saleor/dashboard/collection/forms.py:21
 #: saleor/dashboard/discount/forms.py:77 saleor/dashboard/group/forms.py:14
 #: saleor/dashboard/product/forms.py:76 saleor/dashboard/product/forms.py:204
-#: saleor/dashboard/product/forms.py:412 saleor/dashboard/shipping/forms.py:14
+#: saleor/dashboard/product/forms.py:410 saleor/dashboard/shipping/forms.py:14
 #: saleor/dashboard/sites/forms.py:48
 msgctxt "Item name"
 msgid "Name"
 msgstr ""
 
 #: saleor/dashboard/category/forms.py:25 saleor/dashboard/product/forms.py:205
-#: saleor/dashboard/product/forms.py:361 saleor/dashboard/shipping/forms.py:16
+#: saleor/dashboard/product/forms.py:359 saleor/dashboard/shipping/forms.py:16
 #: saleor/dashboard/sites/forms.py:27
 msgctxt "Description"
 msgid "Description"
@@ -1441,37 +1441,37 @@ msgctxt "product variant handle stock field help text"
 msgid "Automatically track this product's inventory"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:307
+#: saleor/dashboard/product/forms.py:305
 msgctxt "Override price"
 msgid "Selling gross price override"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:309
+#: saleor/dashboard/product/forms.py:307
 msgctxt "Currency amount"
 msgid "Cost gross price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:312
+#: saleor/dashboard/product/forms.py:310
 msgctxt "Override price"
 msgid "Selling net price override"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:314
+#: saleor/dashboard/product/forms.py:312
 msgctxt "Currency amount"
 msgid "Cost net price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:359 saleor/dashboard/product/forms.py:464
+#: saleor/dashboard/product/forms.py:357 saleor/dashboard/product/forms.py:462
 msgctxt "Product image"
 msgid "Image"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:400
+#: saleor/dashboard/product/forms.py:398
 msgctxt "Product display name"
 msgid "Display name"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:402
+#: saleor/dashboard/product/forms.py:400
 msgctxt "Product internal name"
 msgid "Internal name"
 msgstr ""
@@ -1520,63 +1520,63 @@ msgctxt "Dashboard message"
 msgid "Removed product type %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:328 saleor/dashboard/product/views.py:349
+#: saleor/dashboard/product/views.py:327 saleor/dashboard/product/views.py:348
 #, python-format
 msgctxt "Dashboard message"
 msgid "Saved variant %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:369
+#: saleor/dashboard/product/views.py:368
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed variant %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:450
+#: saleor/dashboard/product/views.py:449
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added image %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:471
+#: saleor/dashboard/product/views.py:470
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated image %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:489
+#: saleor/dashboard/product/views.py:488
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed image %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:566
+#: saleor/dashboard/product/views.py:565
 msgctxt "Dashboard message"
 msgid "Added attribute"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:583
+#: saleor/dashboard/product/views.py:582
 msgctxt "Dashboard message"
 msgid "Updated attribute"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:600
+#: saleor/dashboard/product/views.py:599
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed attribute %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:619
+#: saleor/dashboard/product/views.py:618
 msgctxt "Dashboard message"
 msgid "Added attribute's value"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:638
+#: saleor/dashboard/product/views.py:637
 msgctxt "Dashboard message"
 msgid "Updated attribute's value"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:656
+#: saleor/dashboard/product/views.py:655
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed attribute's value %s"
@@ -1696,19 +1696,19 @@ msgctxt "Dashboard message"
 msgid "Updated site settings"
 msgstr ""
 
-#: saleor/dashboard/sites/views.py:62
+#: saleor/dashboard/sites/views.py:64
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added authorization key %s"
 msgstr ""
 
-#: saleor/dashboard/sites/views.py:78
+#: saleor/dashboard/sites/views.py:80
 #, python-format
 msgctxt "dashboard message"
 msgid "Updated authorization key %s"
 msgstr ""
 
-#: saleor/dashboard/sites/views.py:96
+#: saleor/dashboard/sites/views.py:98
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed site authorization key %s"

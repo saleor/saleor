@@ -1,0 +1,5968 @@
+# Saleor
+# Copyright (C) 2017 Mirumee Software
+# This file is distributed under the same license as the Saleor package.
+# Mirumee Software <hello@mirumee.com>, 2017.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: master\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-06-25 05:21-0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: newnewcoder <pinkycho1221@gmail.com>, 2018\n"
+"Language-Team: Chinese (Taiwan) (https://www.transifex.com/mirumee/teams/34782/zh_TW/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_TW\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: saleor/account/forms.py:69
+msgctxt "Form field"
+msgid "Email"
+msgstr "電子信箱"
+
+#: saleor/account/forms.py:86
+msgctxt "Registration error"
+msgid "This email has already been registered."
+msgstr ""
+
+#: saleor/account/forms.py:93
+msgctxt "Email"
+msgid "Email"
+msgstr "電子信箱"
+
+#: saleor/account/forms.py:95
+msgctxt "Password"
+msgid "Password"
+msgstr "密碼"
+
+#: saleor/account/i18n.py:19
+msgctxt "Address field"
+msgid "Area"
+msgstr ""
+
+#: saleor/account/i18n.py:20
+msgctxt "Address field"
+msgid "County"
+msgstr "國家"
+
+#: saleor/account/i18n.py:21
+msgctxt "Address field"
+msgid "Department"
+msgstr ""
+
+#: saleor/account/i18n.py:22
+msgctxt "Address field"
+msgid "District"
+msgstr "區"
+
+#: saleor/account/i18n.py:23
+msgctxt "Address field"
+msgid "Do/si"
+msgstr ""
+
+#: saleor/account/i18n.py:24
+msgctxt "Address field"
+msgid "Eircode"
+msgstr ""
+
+#: saleor/account/i18n.py:25
+msgctxt "Address field"
+msgid "Emirate"
+msgstr ""
+
+#: saleor/account/i18n.py:26
+msgctxt "Address field"
+msgid "Island"
+msgstr ""
+
+#: saleor/account/i18n.py:27
+msgctxt "Address field"
+msgid "Neighborhood"
+msgstr ""
+
+#: saleor/account/i18n.py:28
+msgctxt "Address field"
+msgid "Oblast"
+msgstr ""
+
+#: saleor/account/i18n.py:29
+msgctxt "Address field"
+msgid "Parish"
+msgstr ""
+
+#: saleor/account/i18n.py:30
+msgctxt "Address field"
+msgid "PIN"
+msgstr ""
+
+#: saleor/account/i18n.py:31
+msgctxt "Address field"
+msgid "Postal code"
+msgstr "郵遞區號"
+
+#: saleor/account/i18n.py:32
+msgctxt "Address field"
+msgid "Prefecture"
+msgstr ""
+
+#: saleor/account/i18n.py:33
+msgctxt "Address field"
+msgid "Province"
+msgstr "省"
+
+#: saleor/account/i18n.py:34
+msgctxt "Address field"
+msgid "State"
+msgstr "州"
+
+#: saleor/account/i18n.py:35
+msgctxt "Address field"
+msgid "Suburb"
+msgstr ""
+
+#: saleor/account/i18n.py:36
+msgctxt "Address field"
+msgid "Townland"
+msgstr ""
+
+#: saleor/account/i18n.py:37
+msgctxt "Address field"
+msgid "Village/township"
+msgstr ""
+
+#: saleor/account/i18n.py:38
+msgctxt "Address field"
+msgid "ZIP code"
+msgstr ""
+
+#: saleor/account/i18n.py:66 saleor/account/i18n.py:113
+msgctxt "Country"
+msgid "Country"
+msgstr "國家"
+
+#: saleor/account/i18n.py:97
+msgctxt "Personal name"
+msgid "Given name"
+msgstr ""
+
+#: saleor/account/i18n.py:99
+msgctxt "Personal name"
+msgid "Family name"
+msgstr ""
+
+#: saleor/account/i18n.py:101
+msgctxt "Company or organization"
+msgid "Company or organization"
+msgstr ""
+
+#: saleor/account/i18n.py:103 saleor/account/i18n.py:105
+msgctxt "Address"
+msgid "Address"
+msgstr "地址"
+
+#: saleor/account/i18n.py:107
+msgctxt "City"
+msgid "City"
+msgstr "城市"
+
+#: saleor/account/i18n.py:109
+msgctxt "City area"
+msgid "District"
+msgstr "區"
+
+#: saleor/account/i18n.py:111
+msgctxt "Postal code"
+msgid "Postal code"
+msgstr "郵遞區號"
+
+#: saleor/account/i18n.py:115
+msgctxt "Country area"
+msgid "State or province"
+msgstr ""
+
+#: saleor/account/i18n.py:117
+msgctxt "Phone number"
+msgid "Phone number"
+msgstr "電話號碼"
+
+#: saleor/account/i18n.py:163
+msgctxt "Address form"
+msgid "This value is invalid for selected country"
+msgstr ""
+
+#: saleor/account/models.py:123
+msgctxt "Permission description"
+msgid "Can view users"
+msgstr "可查看用戶"
+
+#: saleor/account/models.py:125
+msgctxt "Permission description"
+msgid "Can edit users"
+msgstr "可編輯用戶"
+
+#: saleor/account/models.py:127
+msgctxt "Permission description"
+msgid "Can view groups"
+msgstr "可查看群組"
+
+#: saleor/account/models.py:129
+msgctxt "Permission description"
+msgid "Can edit groups"
+msgstr "可編輯群組"
+
+#: saleor/account/models.py:131
+msgctxt "Permission description"
+msgid "Can view staff"
+msgstr "可查看員工"
+
+#: saleor/account/models.py:133
+msgctxt "Permission description"
+msgid "Can edit staff"
+msgstr "可編輯員工"
+
+#: saleor/account/models.py:135
+msgctxt "Permission description"
+msgid "Can impersonate users"
+msgstr ""
+
+#: saleor/account/templatetags/i18n_address_tags.py:12
+#, python-format
+msgctxt "Address data"
+msgid "%(first_name)s %(last_name)s"
+msgstr ""
+
+#: saleor/account/templatetags/i18n_address_tags.py:16
+#, python-format
+msgctxt "Address data"
+msgid ""
+"%(street_address_1)s\n"
+"%(street_address_2)s"
+msgstr ""
+
+#: saleor/account/validators.py:11
+msgid "The phone number entered is not valid."
+msgstr ""
+
+#: saleor/account/views.py:31
+msgid "You have been successfully logged out."
+msgstr "您已成功登出"
+
+#: saleor/account/views.py:45
+msgid "User has been created"
+msgstr "用戶已建立"
+
+#: saleor/account/views.py:95
+msgctxt "Storefront message"
+msgid "Password successfully changed."
+msgstr "密碼修改成功"
+
+#: saleor/account/views.py:108
+msgctxt "Storefront message"
+msgid "Address successfully updated."
+msgstr "成功更新地址"
+
+#: saleor/account/views.py:123
+msgctxt "Storefront message"
+msgid "Address successfully removed"
+msgstr "成功刪除地址"
+
+#: saleor/account/views.py:137
+msgctxt "Storefront message, when user requested his account removed"
+msgid "Please check your inbox for a confirmation e-mail."
+msgstr ""
+
+#: saleor/account/views.py:152
+msgctxt "Account deleted"
+msgid ""
+"Your account was deleted successfully. In case of any trouble or questions "
+"feel free to contact us."
+msgstr ""
+
+#: saleor/checkout/__init__.py:15
+msgctxt "Type of address used to fulfill order"
+msgid "Billing"
+msgstr ""
+
+#: saleor/checkout/__init__.py:19
+msgctxt "Type of address used to fulfill order"
+msgid "Shipping"
+msgstr ""
+
+#: saleor/checkout/forms.py:39
+msgctxt "Add to cart form field label"
+msgid "Quantity"
+msgstr "庫存"
+
+#: saleor/checkout/forms.py:43
+msgctxt "Add to cart form error"
+msgid "Sorry. This product is currently not available."
+msgstr ""
+
+#: saleor/checkout/forms.py:46
+msgctxt "Add to cart form error"
+msgid "Sorry. This product is currently out of stock."
+msgstr "對不起，該產品目前無庫存"
+
+#: saleor/checkout/forms.py:49
+msgctxt "Add to cart form error"
+msgid "Oops. We could not find that product."
+msgstr "我們找不到該產品"
+
+#: saleor/checkout/forms.py:52
+#, python-format
+msgctxt "Add to cart form error"
+msgid "Only %d remaining in stock."
+msgid_plural "Only %d remaining in stock."
+msgstr[0] "庫存僅剩%d"
+
+#: saleor/checkout/forms.py:165
+msgctxt "Country form field label"
+msgid "Country"
+msgstr "國家"
+
+#: saleor/checkout/forms.py:183 saleor/checkout/forms.py:195
+msgctxt "Address form field label"
+msgid "Email"
+msgstr "電子信箱"
+
+#: saleor/checkout/forms.py:208
+msgctxt "Shipping addresses form choice"
+msgid "Enter a new address"
+msgstr "請輸入新地址"
+
+#: saleor/checkout/forms.py:211
+msgctxt "Shipping addresses form field label"
+msgid "Address"
+msgstr "地址"
+
+#: saleor/checkout/forms.py:228
+msgctxt "Billing addresses form choice"
+msgid "Enter a new address"
+msgstr "請輸入新地址"
+
+#: saleor/checkout/forms.py:230
+msgctxt "Billing addresses form choice"
+msgid "Same as shipping"
+msgstr ""
+
+#: saleor/checkout/forms.py:233
+msgctxt "Billing addresses form field label"
+msgid "Address"
+msgstr "地址"
+
+#: saleor/checkout/forms.py:266
+msgctxt "Shipping method form field label"
+msgid "Shipping method"
+msgstr "配送方式"
+
+#: saleor/checkout/forms.py:307
+msgctxt "Voucher form error"
+msgid "Discount code incorrect or expired"
+msgstr "折扣碼不正確或已過期"
+
+#: saleor/checkout/forms.py:318
+msgctxt "Checkout discount form label for voucher field"
+msgid "Gift card or discount code"
+msgstr "禮品卡或折扣碼"
+
+#: saleor/checkout/utils.py:105
+msgctxt "Cart warning message"
+msgid ""
+"Sorry. We don't have that many items in stock. Quantity was set to maximum "
+"available for now."
+msgstr ""
+
+#: saleor/checkout/utils.py:622
+msgctxt "Voucher not applicable"
+msgid "Your order does not require shipping."
+msgstr "您的訂單不需要配送"
+
+#: saleor/checkout/utils.py:628
+msgctxt "Voucher not applicable"
+msgid "Please select a shipping method first."
+msgstr "請選擇一種配送方式"
+
+#: saleor/checkout/utils.py:635
+#, python-format
+msgctxt "Voucher not applicable"
+msgid "This offer is only valid in %(country)s."
+msgstr ""
+
+#: saleor/checkout/utils.py:655
+msgctxt "Voucher not applicable"
+msgid "This offer is only valid for selected items."
+msgstr ""
+
+#: saleor/checkout/utils.py:748
+msgctxt "Voucher not applicable"
+msgid "Voucher expired in meantime. Order placement aborted."
+msgstr ""
+
+#: saleor/checkout/views/discount.py:62
+msgctxt "Checkout warning"
+msgid "This voucher has expired. Please review your checkout."
+msgstr ""
+
+#: saleor/checkout/views/summary.py:32
+msgctxt "Checkout warning"
+msgid "Please review your checkout."
+msgstr ""
+
+#: saleor/checkout/views/summary.py:38
+msgctxt "Order status history entry"
+msgid "Order was placed"
+msgstr ""
+
+#: saleor/core/filters.py:27
+#, python-format
+msgctxt "Number of matching records in the dashboard list"
+msgid "Found %(counter)d matching record"
+msgid_plural "Found %(counter)d matching records"
+msgstr[0] ""
+
+#: saleor/core/i18n.py:5
+msgctxt "Country choice"
+msgid "Rest of World"
+msgstr "世界的其他地方"
+
+#: saleor/core/i18n.py:9
+msgctxt "VAT rate type"
+msgid "accommodation"
+msgstr ""
+
+#: saleor/core/i18n.py:11
+msgctxt "VAT rate type"
+msgid "admission to cultural events"
+msgstr ""
+
+#: saleor/core/i18n.py:13
+msgctxt "VAT rate type"
+msgid "admission to entertainment events"
+msgstr ""
+
+#: saleor/core/i18n.py:15
+msgctxt "VAT rate type"
+msgid "admission to sporting events"
+msgstr ""
+
+#: saleor/core/i18n.py:17
+msgctxt "VAT rate type"
+msgid "advertising"
+msgstr ""
+
+#: saleor/core/i18n.py:19
+msgctxt "VAT rate type"
+msgid "agricultural supplies"
+msgstr ""
+
+#: saleor/core/i18n.py:20
+msgctxt "VAT rate type"
+msgid "baby foodstuffs"
+msgstr ""
+
+#: saleor/core/i18n.py:21
+msgctxt "VAT rate type"
+msgid "bikes"
+msgstr ""
+
+#: saleor/core/i18n.py:22
+msgctxt "VAT rate type"
+msgid "books"
+msgstr ""
+
+#: saleor/core/i18n.py:23
+msgctxt "VAT rate type"
+msgid "childrens clothing"
+msgstr ""
+
+#: saleor/core/i18n.py:24
+msgctxt "VAT rate type"
+msgid "domestic fuel"
+msgstr ""
+
+#: saleor/core/i18n.py:25
+msgctxt "VAT rate type"
+msgid "domestic services"
+msgstr ""
+
+#: saleor/core/i18n.py:26
+msgctxt "VAT rate type"
+msgid "e-books"
+msgstr ""
+
+#: saleor/core/i18n.py:27
+msgctxt "VAT rate type"
+msgid "foodstuffs"
+msgstr ""
+
+#: saleor/core/i18n.py:28
+msgctxt "VAT rate type"
+msgid "hotels"
+msgstr ""
+
+#: saleor/core/i18n.py:29
+msgctxt "VAT rate type"
+msgid "medical"
+msgstr ""
+
+#: saleor/core/i18n.py:30
+msgctxt "VAT rate type"
+msgid "newspapers"
+msgstr ""
+
+#: saleor/core/i18n.py:32
+msgctxt "VAT rate type"
+msgid "passenger transport"
+msgstr ""
+
+#: saleor/core/i18n.py:33
+msgctxt "VAT rate type"
+msgid "pharmaceuticals"
+msgstr ""
+
+#: saleor/core/i18n.py:35
+msgctxt "VAT rate type"
+msgid "property renovations"
+msgstr ""
+
+#: saleor/core/i18n.py:36
+msgctxt "VAT rate type"
+msgid "restaurants"
+msgstr ""
+
+#: saleor/core/i18n.py:37
+msgctxt "VAT rate type"
+msgid "social housing"
+msgstr ""
+
+#: saleor/core/i18n.py:38
+msgctxt "VAT rate type"
+msgid "standard"
+msgstr ""
+
+#: saleor/core/i18n.py:39
+msgctxt "VAT rate type"
+msgid "water"
+msgstr ""
+
+#: saleor/core/i18n.py:40
+msgctxt "VAT rate type"
+msgid "wine"
+msgstr ""
+
+#: saleor/core/views.py:38
+msgctxt "Impersonation message"
+msgid "You are now logged as {}"
+msgstr ""
+
+#: saleor/discount/__init__.py:12
+msgctxt "Discount type"
+msgid "%"
+msgstr ""
+
+#: saleor/discount/__init__.py:22
+msgctxt "Voucher: discount for"
+msgid "All purchases"
+msgstr ""
+
+#: saleor/discount/__init__.py:23
+msgctxt "Voucher: discount for"
+msgid "One product"
+msgstr ""
+
+#: saleor/discount/__init__.py:25
+msgctxt "Voucher: discount for"
+msgid "A category of products"
+msgstr ""
+
+#: saleor/discount/__init__.py:26
+msgctxt "Voucher: discount for"
+msgid "Shipping"
+msgstr ""
+
+#: saleor/discount/__init__.py:35
+msgctxt "Voucher application"
+msgid "Apply to a single item"
+msgstr ""
+
+#: saleor/discount/__init__.py:37
+msgctxt "Voucher application"
+msgid "Apply to all matching products"
+msgstr ""
+
+#: saleor/discount/models.py:68
+msgctxt "Permission description"
+msgid "Can view vouchers"
+msgstr "可以查看優惠券"
+
+#: saleor/discount/models.py:70
+msgctxt "Permission description"
+msgid "Can edit vouchers"
+msgstr "可以編輯優惠券"
+
+#: saleor/discount/models.py:79
+msgctxt "Voucher type"
+msgid "Free shipping"
+msgstr "免運費"
+
+#: saleor/discount/models.py:82
+#, python-format
+msgctxt "Voucher type"
+msgid "%(discount)s off shipping"
+msgstr ""
+
+#: saleor/discount/models.py:86
+#, python-format
+msgctxt "Voucher type"
+msgid "%(discount)s off %(product)s"
+msgstr ""
+
+#: saleor/discount/models.py:91
+#, python-format
+msgctxt "Voucher type"
+msgid "%(discount)s off %(category)s"
+msgstr ""
+
+#: saleor/discount/models.py:94
+#, python-format
+msgctxt "Voucher type"
+msgid "%(discount)s off"
+msgstr ""
+
+#: saleor/discount/models.py:106
+msgctxt "Voucher"
+msgid "Any country"
+msgstr "任何國家"
+
+#: saleor/discount/models.py:135
+#, python-format
+msgctxt "Voucher not applicable"
+msgid "This offer is only valid for orders over %(amount)s."
+msgstr ""
+
+#: saleor/discount/models.py:154
+msgctxt "Permission description"
+msgid "Can view sales"
+msgstr "可以查看促銷"
+
+#: saleor/discount/models.py:156
+msgctxt "Permission description"
+msgid "Can edit sales"
+msgstr "可以編輯促銷"
+
+#: saleor/discount/utils.py:40
+msgctxt "Voucher not applicable"
+msgid "Discount not applicable for this product"
+msgstr "該產品不適用折扣"
+
+#: saleor/menu/models.py:17
+msgctxt "Permission description"
+msgid "Can view menus"
+msgstr ""
+
+#: saleor/menu/models.py:19
+msgctxt "Permission description"
+msgid "Can edit menus"
+msgstr ""
+
+#: saleor/menu/models.py:66
+msgctxt "Link object type description"
+msgid "URL: "
+msgstr ""
+
+#: saleor/menu/models.py:71
+msgctxt "Link object type description"
+msgid "Category: "
+msgstr ""
+
+#: saleor/menu/models.py:74
+msgctxt "Link object type description"
+msgid "Collection: "
+msgstr ""
+
+#: saleor/menu/models.py:77
+msgctxt "Link object type description"
+msgid "Page: "
+msgstr ""
+
+#: saleor/order/__init__.py:25
+msgctxt ""
+"Status for a fully editable, not confirmed order created by staff users"
+msgid "Draft"
+msgstr "草稿"
+
+#: saleor/order/__init__.py:28
+msgctxt "Status for an order with any items marked as fulfilled"
+msgid "Unfulfilled"
+msgstr ""
+
+#: saleor/order/__init__.py:31
+msgctxt "Status for an order with some items marked as fulfilled"
+msgid "Partially fulfilled"
+msgstr ""
+
+#: saleor/order/__init__.py:34
+msgctxt "Status for an order with all items marked as fulfilled"
+msgid "Fulfilled"
+msgstr ""
+
+#: saleor/order/__init__.py:37
+msgctxt "Status for a permanently canceled order"
+msgid "Canceled"
+msgstr ""
+
+#: saleor/order/__init__.py:47
+msgctxt "Status for a group of products in an order marked as fulfilled"
+msgid "Fulfilled"
+msgstr ""
+
+#: saleor/order/__init__.py:51
+msgctxt ""
+"Status for a fulfilled group of products in an order marked as canceled"
+msgid "Canceled"
+msgstr ""
+
+#: saleor/order/__init__.py:58
+msgctxt "Custom payment choice type"
+msgid "Manual"
+msgstr ""
+
+#: saleor/order/forms.py:12
+msgctxt "Payment methods form label"
+msgid "Method"
+msgstr "付款方式"
+
+#: saleor/order/forms.py:35
+msgctxt "Payment delete form error"
+msgid "Payment does not exist"
+msgstr "付款資訊不存在"
+
+#: saleor/order/forms.py:59
+msgctxt "Order note"
+msgid "Add note to order"
+msgstr ""
+
+#: saleor/order/models.py:99
+msgctxt "Permission description"
+msgid "Can view orders"
+msgstr "可以查看訂單"
+
+#: saleor/order/models.py:101
+msgctxt "Permission description"
+msgid "Can edit orders"
+msgstr "可以編輯訂單"
+
+#: saleor/order/models.py:228
+#, python-format
+msgctxt "Fulfillment str"
+msgid "Fulfillment #%s"
+msgstr ""
+
+#: saleor/order/signals.py:15
+msgctxt "Order status history entry"
+msgid "Order fully paid"
+msgstr "訂單全額付款"
+
+#: saleor/order/views.py:107
+#, python-format
+msgctxt "Payment description"
+msgid "Order %(order_number)s"
+msgstr "訂單 %(order_number)s"
+
+#: saleor/order/views.py:126
+msgctxt "Payment gateway error"
+msgid ""
+"Oops, it looks like we were unable to contact the selected payment service"
+msgstr "我們無法聯繫到選擇的付款服務"
+
+#: saleor/order/views.py:200
+msgctxt "Connect order with user warning message"
+msgid ""
+"We couldn't assign the order to your account as the email addresses don't "
+"match"
+msgstr ""
+
+#: saleor/order/views.py:207
+msgctxt "storefront message"
+msgid "The order is now assigned to your account"
+msgstr ""
+
+#: saleor/page/models.py:34
+msgctxt "Permission description"
+msgid "Can view pages"
+msgstr ""
+
+#: saleor/page/models.py:36
+msgctxt "Permission description"
+msgid "Can edit pages"
+msgstr ""
+
+#: saleor/product/__init__.py:15
+msgctxt "Product status"
+msgid "not published"
+msgstr "未發佈"
+
+#: saleor/product/__init__.py:17
+msgctxt "Product status"
+msgid "variants missing"
+msgstr ""
+
+#: saleor/product/__init__.py:19
+msgctxt "Product status"
+msgid "out of stock"
+msgstr "已售罄"
+
+#: saleor/product/__init__.py:21
+msgctxt "Product status"
+msgid "stock running low"
+msgstr "庫存量低"
+
+#: saleor/product/__init__.py:23
+msgctxt "Product status"
+msgid "not yet available"
+msgstr ""
+
+#: saleor/product/__init__.py:25
+msgctxt "Product status"
+msgid "ready for purchase"
+msgstr ""
+
+#: saleor/product/__init__.py:37
+msgctxt "Variant status"
+msgid "available"
+msgstr ""
+
+#: saleor/product/__init__.py:39
+msgctxt "Variant status"
+msgid "out of stock"
+msgstr "已售罄"
+
+#: saleor/product/filters.py:13
+msgctxt "Product list sorting option"
+msgid "name"
+msgstr "名稱"
+
+#: saleor/product/filters.py:14
+msgctxt "Product list sorting option"
+msgid "price"
+msgstr "價格"
+
+#: saleor/product/filters.py:19
+msgctxt "Product list sorting form"
+msgid "Sort by"
+msgstr "排序"
+
+#: saleor/product/filters.py:23
+msgctxt "Currency amount"
+msgid "Price"
+msgstr "價格"
+
+#: saleor/product/filters.py:86
+#, python-format
+msgctxt "Validation error for sort_by filter"
+msgid "%(value)s is not a valid sorting option"
+msgstr ""
+
+#: saleor/product/forms.py:23
+#, python-format
+msgctxt "Variant choice field label"
+msgid "%(variant_label)s - %(price)s"
+msgstr ""
+
+#: saleor/product/models.py:45
+msgctxt "Permission description"
+msgid "Can view categories"
+msgstr "可以查看產品分類"
+
+#: saleor/product/models.py:47
+msgctxt "Permission description"
+msgid "Can edit categories"
+msgstr "可以編輯產品分類"
+
+#: saleor/product/models.py:122
+msgctxt "Permission description"
+msgid "Can view products"
+msgstr "可以查看產品"
+
+#: saleor/product/models.py:124
+msgctxt "Permission description"
+msgid "Can edit products"
+msgstr "可以編輯產品"
+
+#: saleor/product/models.py:127
+msgctxt "Permission description"
+msgid "Can view product properties"
+msgstr "可以查看產品屬性"
+
+#: saleor/product/models.py:130
+msgctxt "Permission description"
+msgid "Can edit product properties"
+msgstr "可以編輯產品屬性"
+
+#: saleor/search/forms.py:9
+msgctxt "Search form label"
+msgid "Query"
+msgstr "查詢"
+
+#: saleor/settings.py:61
+msgid "Bulgarian"
+msgstr ""
+
+#: saleor/settings.py:62
+msgid "Czech"
+msgstr ""
+
+#: saleor/settings.py:63
+msgid "German"
+msgstr ""
+
+#: saleor/settings.py:64
+msgid "English"
+msgstr ""
+
+#: saleor/settings.py:65
+msgid "Spanish"
+msgstr ""
+
+#: saleor/settings.py:66
+msgid "Persian (Iran)"
+msgstr ""
+
+#: saleor/settings.py:67
+msgid "French"
+msgstr ""
+
+#: saleor/settings.py:68
+msgid "Hungarian"
+msgstr ""
+
+#: saleor/settings.py:69
+msgid "Italian"
+msgstr ""
+
+#: saleor/settings.py:70
+msgid "Japanese"
+msgstr ""
+
+#: saleor/settings.py:71
+msgid "Korean"
+msgstr ""
+
+#: saleor/settings.py:72
+msgid "Norwegian"
+msgstr ""
+
+#: saleor/settings.py:73
+msgid "Dutch"
+msgstr ""
+
+#: saleor/settings.py:74
+msgid "Polish"
+msgstr ""
+
+#: saleor/settings.py:75
+msgid "Portuguese (Brazil)"
+msgstr ""
+
+#: saleor/settings.py:76
+msgid "Romanian"
+msgstr ""
+
+#: saleor/settings.py:77
+msgid "Russian"
+msgstr ""
+
+#: saleor/settings.py:78
+msgid "Slovak"
+msgstr ""
+
+#: saleor/settings.py:79
+msgid "Turkish"
+msgstr ""
+
+#: saleor/settings.py:80
+msgid "Ukrainian"
+msgstr ""
+
+#: saleor/settings.py:81
+msgid "Vietnamese"
+msgstr ""
+
+#: saleor/settings.py:82
+msgid "Chinese"
+msgstr ""
+
+#: saleor/shipping/models.py:26
+msgctxt "Permission description"
+msgid "Can view shipping method"
+msgstr "可以查看配送方式"
+
+#: saleor/shipping/models.py:29
+msgctxt "Permission description"
+msgid "Can edit shipping method"
+msgstr "可以編輯配送方式"
+
+#: saleor/site/models.py:31
+msgctxt "Permission description"
+msgid "Can edit site settings"
+msgstr "可以編輯站點配置"
+
+#: saleor/site/models.py:34
+msgctxt "Permission description"
+msgid "Can view site settings"
+msgstr "可以查看站點配置"
+
+#: templates/404.html:6
+msgctxt "Eror page not found"
+msgid "Page not found"
+msgstr "找不到頁面"
+
+#: templates/account/account_delete_prompt.html:8
+msgctxt "Account deletetion confirmation page title"
+msgid "Are you sure?"
+msgstr "您確定?"
+
+#: templates/account/account_delete_prompt.html:16
+msgctxt "Message displayed to the user requesting for his account deletetion"
+msgid "Sorry to see you go!"
+msgstr ""
+
+#: templates/account/account_delete_prompt.html:22
+msgctxt "Message displayed to the user requesting for his account deletetion"
+msgid "Are you sure you want to delete your account?"
+msgstr ""
+
+#: templates/account/account_delete_prompt.html:27
+msgctxt "Confirm account deletion button"
+msgid "Delete account"
+msgstr ""
+
+#: templates/account/address_delete.html:6
+msgctxt "Remove address form action"
+msgid "Remove Address"
+msgstr "刪除地址"
+
+#: templates/account/address_delete.html:9
+msgctxt "Remove address form action"
+msgid "Cancel"
+msgstr "取消"
+
+#: templates/account/address_edit.html:7
+msgctxt "Edit address page title"
+msgid "Edit address"
+msgstr "編輯地址"
+
+#: templates/account/address_edit.html:9
+msgctxt "New address page title"
+msgid "New address"
+msgstr "新增地址"
+
+#: templates/account/address_edit.html:16 templates/account/details.html:16
+#: templates/account/password_change.html:7 templates/checkout/index.html:11
+#: templates/order/details.html:18 templates/order/payment.html:18
+#: templates/order/payment/details.html:12 templates/page/details.html:27
+#: templates/product/details.html:44
+msgctxt "Main navigation item"
+msgid "Home"
+msgstr "首頁"
+
+#: templates/account/address_edit.html:21
+msgctxt "Edit/new address breadcrumb"
+msgid "Your profile"
+msgstr "您的簡介"
+
+#: templates/account/address_edit.html:27
+msgctxt "Edit address breadcrumb"
+msgid "Edit address"
+msgstr "編輯地址"
+
+#: templates/account/address_edit.html:33
+msgctxt "New address breadcrumb"
+msgid "New address"
+msgstr "新增地址"
+
+#: templates/account/address_edit.html:47
+msgctxt "Edit address title"
+msgid "Edit address"
+msgstr "編輯地址"
+
+#: templates/account/address_edit.html:49
+msgctxt "New address title"
+msgid "New address"
+msgstr "新增地址"
+
+#: templates/account/address_edit.html:57
+msgctxt "Edit/new address primary action"
+msgid "Save changes"
+msgstr "保存變更"
+
+#: templates/account/details.html:10
+msgctxt "User profile page title"
+msgid "Your profile"
+msgstr "您的簡介"
+
+#: templates/account/details.html:19 templates/account/password_change.html:8
+#: templates/base.html:69 templates/base.html:211
+#: templates/order/details.html:23 templates/order/payment.html:23
+#: templates/order/payment/details.html:17
+msgctxt "Main navigation item"
+msgid "Your account"
+msgstr "您的帳號"
+
+#: templates/account/details.html:26
+msgid "My account"
+msgstr "我的帳號"
+
+#: templates/account/details.html:30
+msgctxt "User profile tab"
+msgid "Recent Orders"
+msgstr "最近的訂單"
+
+#: templates/account/details.html:36
+msgctxt "User profile tab"
+msgid "Change password"
+msgstr "修改密碼"
+
+#: templates/account/details.html:42
+msgctxt "User profile tab"
+msgid "Addresses book"
+msgstr "地址通訊錄"
+
+#: templates/account/details.html:47
+msgctxt "User profile tab"
+msgid "Settings"
+msgstr ""
+
+#: templates/account/details.html:59
+msgctxt "Recent orders column title"
+msgid "Order"
+msgstr "訂單"
+
+#: templates/account/details.html:62
+msgctxt "Recent orders column title"
+msgid "Date"
+msgstr "日期"
+
+#: templates/account/details.html:65
+msgctxt "Recent orders column title"
+msgid "Summary"
+msgstr "摘要"
+
+#: templates/account/details.html:68
+msgctxt "Recent orders column title"
+msgid "Status"
+msgstr "狀態"
+
+#: templates/account/details.html:92
+msgctxt "Recent orders link text"
+msgid "Details"
+msgstr "詳情"
+
+#: templates/account/details.html:107
+msgctxt "No recent orders text"
+msgid "There are not any completed orders yet."
+msgstr "還沒有完成的訂單"
+
+#: templates/account/details.html:118
+msgctxt "User profile action"
+msgid "Change password"
+msgstr "修改密碼"
+
+#: templates/account/details.html:133
+msgctxt "User address action"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/account/details.html:149
+msgctxt "No addresses text"
+msgid "You will see new addresses here after first successful checkout."
+msgstr ""
+
+#: templates/account/details.html:160
+msgctxt "Message informing about the process of account removal"
+msgid ""
+"\n"
+"                  If you'd like to remove your account, please click on the button below and a confirmation email will be sent to you.\n"
+"                "
+msgstr ""
+
+#: templates/account/details.html:165
+msgctxt "Remove account form action"
+msgid "Remove Account"
+msgstr ""
+
+#: templates/account/login.html:5
+msgctxt "Login page title"
+msgid "Log in"
+msgstr "登入"
+
+#: templates/account/login.html:16
+msgctxt "Login form secondary title"
+msgid "Don't have an account yet?"
+msgstr "還沒有帳號嗎?"
+
+#: templates/account/login.html:21
+msgctxt "Login form secondary action"
+msgid "Register"
+msgstr "註冊"
+
+#: templates/account/login.html:26
+msgctxt "Login form title"
+msgid "Log in"
+msgstr "登入"
+
+#: templates/account/partials/already_logged_in.html:5
+#, python-format
+msgctxt "Already logged in warning message"
+msgid "You are already logged in as %(user)s."
+msgstr "您已登入，%(user)s。"
+
+#: templates/account/partials/login_form.html:16
+msgctxt "Login form primary action"
+msgid "Log in"
+msgstr "登入"
+
+#: templates/account/partials/login_form.html:19
+msgctxt "Login form secondary link"
+msgid "Forgot password?"
+msgstr "忘記密碼?"
+
+#: templates/account/partials/login_form.html:29
+msgid "Facebook"
+msgstr ""
+
+#: templates/account/partials/login_form.html:37
+msgid "Google"
+msgstr ""
+
+#: templates/account/password_change.html:9
+msgctxt "Password change breadcrumb"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/account/password_change.html:22
+msgctxt "Password change form legend"
+msgid "Change Password"
+msgstr "修改密碼"
+
+#: templates/account/password_change.html:28
+msgctxt "Password change form primary action"
+msgid "Save new password"
+msgstr "儲存新密碼"
+
+#: templates/account/password_reset.html:6
+msgctxt "Password reset page title"
+msgid "Password reset"
+msgstr "重設密碼"
+
+#: templates/account/password_reset.html:17
+msgctxt "Password reset form title"
+msgid "Forgot your password?"
+msgstr "忘記密碼"
+
+#: templates/account/password_reset.html:19
+msgctxt "Password reset form help text"
+msgid ""
+"Please let us know the email you have used to register or purchase at our "
+"store."
+msgstr "請讓我們知道您用於註冊和購物的電子信箱"
+
+#: templates/account/password_reset.html:30
+msgctxt "Password reset primary action"
+msgid "Continue"
+msgstr "繼續"
+
+#: templates/account/password_reset_done.html:6
+msgctxt "Password reset done page title"
+msgid "Password Reset"
+msgstr "重設密碼"
+
+#: templates/account/password_reset_done.html:10
+msgctxt "Password reset done title"
+msgid "Password Reset"
+msgstr "重設密碼"
+
+#: templates/account/password_reset_done.html:14
+msgctxt "Password reset done text"
+msgid ""
+"We have sent you an e-mail. Please contact us if you do not receive it "
+"within a few minutes."
+msgstr "我們發了一封電子郵件給您。如果幾分鐘內還沒有收到，請聯繫我們。"
+
+#: templates/account/password_reset_from_key.html:6
+msgctxt "Password reset from key page title"
+msgid "Change Password"
+msgstr "修改密碼"
+
+#: templates/account/password_reset_from_key.html:11
+msgid "Bad Token"
+msgstr ""
+
+#: templates/account/password_reset_from_key.html:13
+#, python-format
+msgctxt "Password reset text if key is invalid"
+msgid ""
+"The password reset link was invalid, possibly because it has already been "
+"used.<br> Please request a <a href=\"%(passwd_reset_url)s\">new password "
+"reset</a>."
+msgstr ""
+"重設密碼連結失效，可能它已經被使用過了。<br/>您可以再請求一次<a href=\"%(passwd_reset_url)s\">重設密碼</a>。"
+
+#: templates/account/password_reset_from_key.html:24
+msgctxt "Password reset from key form title"
+msgid "Password Reset"
+msgstr "重設密碼"
+
+#: templates/account/password_reset_from_key.html:25
+msgctxt "Password reset from key form title"
+msgid "Now you can set new password for you account."
+msgstr "現在您可以為您的帳號設置新密碼"
+
+#: templates/account/password_reset_from_key.html:32
+msgctxt "Password reset from key form primary action"
+msgid "Continue"
+msgstr "繼續"
+
+#: templates/account/password_reset_from_key.html:39
+msgctxt "Password reset link expired from key form title"
+msgid "Password Reset Link Expired"
+msgstr "重設密碼連結已過期"
+
+#: templates/account/password_reset_from_key.html:40
+msgctxt "Password reset from key form title"
+msgid ""
+"Sorry but this link is no longer valid. If you forget your password, please "
+"use link below."
+msgstr "這個連結已經失效。如果您忘記了密碼，請點擊如下連結。"
+
+#: templates/account/password_reset_from_key.html:42
+msgctxt "Reset my password link"
+msgid "Reset my password"
+msgstr "重設密碼"
+
+#: templates/account/password_reset_from_key_done.html:4
+msgctxt "Password reset from key done page title"
+msgid "Password Changed"
+msgstr "密碼已更新"
+
+#: templates/account/password_reset_from_key_done.html:7
+msgctxt "Password reset from key done title"
+msgid "Password Changed"
+msgstr "密碼已更新"
+
+#: templates/account/password_reset_from_key_done.html:9
+msgid "Your password is now changed."
+msgstr "您的密碼已更新"
+
+#: templates/account/password_reset_from_key_done.html:10
+#, python-format
+msgctxt "Password reset from key done text"
+msgid "You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
+msgstr "您現在可以用您的新密碼<a href=\"%(login_url)s\"> 登入</a>"
+
+#: templates/account/signup.html:6
+msgctxt "Signup page title"
+msgid "Sign Up"
+msgstr "註冊"
+
+#: templates/account/signup.html:17
+msgctxt "Signup form secondary title"
+msgid "Already have an account?"
+msgstr "已有帳號?"
+
+#: templates/account/signup.html:21
+msgctxt "Signup form secondary action"
+msgid "Log in"
+msgstr "登入"
+
+#: templates/account/signup.html:28
+msgctxt "Signup form title"
+msgid "Create an account"
+msgstr "創建帳號"
+
+#: templates/account/signup.html:36
+msgctxt "Signup form primary action"
+msgid "Create an account"
+msgstr "創建帳號"
+
+#: templates/base.html:63 templates/base.html:200
+msgctxt "Main navigation item"
+msgid "Dashboard"
+msgstr "後台"
+
+#: templates/base.html:74 templates/base.html:217
+msgctxt "Main navigation item"
+msgid "Stop impersonating"
+msgstr ""
+
+#: templates/base.html:80 templates/base.html:223
+msgctxt "Main navigation item"
+msgid "Log out"
+msgstr "登出"
+
+#: templates/base.html:86 templates/base.html:229
+msgctxt "Main navigation item"
+msgid "Register"
+msgstr "註冊"
+
+#: templates/base.html:90 templates/base.html:234
+msgctxt "Main navigation item"
+msgid "Log in"
+msgstr "登入"
+
+#: templates/base.html:105
+msgctxt "Hamburger button text"
+msgid "menu"
+msgstr "選單"
+
+#: templates/base.html:122
+msgid "Search for product"
+msgstr "搜尋產品"
+
+#: templates/base.html:134 templates/base.html:193
+msgctxt "Main navigation item"
+msgid "Your Cart"
+msgstr "您的購物車"
+
+#: templates/base.html:205
+msgctxt "Main navigation item"
+msgid "Style guide"
+msgstr "樣式指南"
+
+#: templates/cart_dropdown.html:39 templates/checkout/_subtotal_table.html:8
+#: templates/dashboard/order/detail.html:345
+msgctxt "Order subtotal"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/cart_dropdown.html:40
+msgctxt "Cart dropdown text"
+msgid "Shipment and taxes calculated at checkout"
+msgstr ""
+
+#: templates/cart_dropdown.html:54
+msgctxt "Cart dropdown secondary action"
+msgid "Go to cart"
+msgstr "跳轉到購物車"
+
+#: templates/cart_dropdown.html:57
+msgctxt "Cart dropdown primary action"
+msgid "Checkout"
+msgstr "結帳"
+
+#: templates/cart_dropdown.html:62 templates/checkout/index.html:88
+msgctxt "Empty cart message"
+msgid "There are no products in your shopping cart."
+msgstr "您的購物車是空的"
+
+#: templates/cart_dropdown.html:67 templates/checkout/index.html:89
+msgctxt "Empty cart link"
+msgid "Check out our sales"
+msgstr ""
+
+#: templates/category/index.html:7
+msgctxt "Category breadcrumbs home"
+msgid "Home"
+msgstr "首頁"
+
+#: templates/checkout/_subtotal_table.html:31
+msgctxt "Cart shipping cost form"
+msgid "Shipping cost for:"
+msgstr ""
+
+#: templates/checkout/_subtotal_table.html:55
+msgctxt "Order subtotal"
+msgid "Total"
+msgstr ""
+
+#: templates/checkout/_subtotal_table.html:56
+msgctxt "Cart summary text"
+msgid "Shipment and taxes calculated at checkout"
+msgstr ""
+
+#: templates/checkout/details.html:7
+msgctxt "Checkout page title"
+msgid "Checkout"
+msgstr "結帳"
+
+#: templates/checkout/details.html:12
+msgctxt "Checkout top message"
+msgid "Easy and secure!"
+msgstr "簡單、安全！"
+
+#: templates/checkout/details.html:20
+msgctxt "Checkout title"
+msgid "Checkout"
+msgstr "結帳"
+
+#: templates/checkout/details.html:35
+msgctxt "Order review title"
+msgid "Order review"
+msgstr ""
+
+#: templates/checkout/details.html:51
+msgctxt "Order review section"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/checkout/details.html:61
+msgctxt "Order review section"
+msgid "Shipment"
+msgstr ""
+
+#: templates/checkout/details.html:77
+msgctxt "Order review section title"
+msgid "Taxes (included)"
+msgstr ""
+
+#: templates/checkout/details.html:79
+msgctxt "Order review section title"
+msgid "Taxes"
+msgstr ""
+
+#: templates/checkout/details.html:89
+msgctxt "Order review section title"
+msgid "Promo code"
+msgstr ""
+
+#: templates/checkout/details.html:95
+msgctxt "Order review section title"
+msgid "Total"
+msgstr ""
+
+#: templates/checkout/index.html:7
+msgctxt "Cart page title"
+msgid "Your cart"
+msgstr "您的購物車"
+
+#: templates/checkout/index.html:12
+msgctxt "Cart breadcrumb"
+msgid "Cart"
+msgstr "購物車"
+
+#: templates/checkout/index.html:22
+msgctxt "Cart message"
+msgid "Product has been removed from cart"
+msgstr "從購物車刪除產品"
+
+#: templates/checkout/index.html:30
+msgctxt "Cart table header"
+msgid "Product"
+msgstr "產品"
+
+#: templates/checkout/index.html:33
+msgctxt "Cart table header"
+msgid "Quantity"
+msgstr "庫存"
+
+#: templates/checkout/index.html:36
+msgctxt "Cart table header"
+msgid "Price"
+msgstr "價格"
+
+#: templates/checkout/index.html:81
+msgctxt "Cart primary action"
+msgid "Checkout"
+msgstr "結帳"
+
+#: templates/checkout/login.html:6
+msgctxt "Checkout login page title"
+msgid "Login"
+msgstr "登入"
+
+#: templates/checkout/login.html:12
+msgctxt "Checkout login page title"
+msgid "New customer?"
+msgstr "新客戶？"
+
+#: templates/checkout/login.html:18
+msgctxt "Checkout login page new users action"
+msgid "Continue"
+msgstr "繼續"
+
+#: templates/checkout/login.html:21
+msgctxt "Checkout login page new users message"
+msgid "Registration is not required!"
+msgstr "不需要註冊！"
+
+#: templates/checkout/login.html:26
+msgctxt "Checkout login form title"
+msgid "Existing customer? Log in."
+msgstr "已有帳號？請登入。"
+
+#: templates/checkout/payment.html:9
+msgctxt "Checkout payment title"
+msgid "Payment"
+msgstr "付款"
+
+#: templates/checkout/payment.html:13
+msgctxt "Checkout payment primary action"
+msgid "Place order"
+msgstr ""
+
+#: templates/checkout/shipping_address.html:8
+#: templates/checkout/shipping_method.html:7
+msgctxt "Checkout shipping address title"
+msgid "Shipping address"
+msgstr "配送地址"
+
+#: templates/checkout/shipping_address.html:18
+msgctxt "Checkout shipping address primary action"
+msgid "Continue"
+msgstr "繼續"
+
+#: templates/checkout/shipping_method.html:9
+msgid "Select other address"
+msgstr "選擇其他地址"
+
+#: templates/checkout/shipping_method.html:13
+msgctxt "Checkout shipping method form title"
+msgid "Shipping method"
+msgstr "配送方式"
+
+#: templates/checkout/shipping_method.html:17
+msgctxt "Checkout shipping method primary action"
+msgid "Continue"
+msgstr "繼續"
+
+#: templates/checkout/snippets/addresses_form.html:4
+msgctxt "Checkout addresses form label"
+msgid "Same as shipping"
+msgstr ""
+
+#: templates/checkout/snippets/addresses_form.html:11
+msgctxt "Checkout addresses form label"
+msgid "Enter a new address"
+msgstr "請輸入新地址"
+
+#: templates/checkout/snippets/addresses_form_panel.html:2
+msgid "Same as shipping"
+msgstr ""
+
+#: templates/checkout/snippets/voucher_form.html:14
+msgctxt "Checkout voucher form action"
+msgid "Remove"
+msgstr "刪除"
+
+#: templates/checkout/snippets/voucher_form.html:15
+msgctxt "Checkout voucher form action"
+msgid "(Remove)"
+msgstr ""
+
+#: templates/checkout/snippets/voucher_form.html:25
+msgctxt "Checkout voucher form action"
+msgid "Use"
+msgstr ""
+
+#: templates/checkout/summary.html:8
+msgctxt "Checkout summary title"
+msgid "Billing address"
+msgstr "帳單地址"
+
+#: templates/checkout/summary.html:10
+msgctxt "Checkout summary note title"
+msgid "Add a note to your order"
+msgstr ""
+
+#: templates/checkout/summary.html:14
+msgctxt "Checkout summary primary action"
+msgid "Order & Pay"
+msgstr "訂單 & 付款"
+
+#: templates/checkout/summary_without_shipping.html:8
+msgctxt "Checkout summary without shipping title"
+msgid "Billing address"
+msgstr "帳單地址"
+
+#: templates/checkout/summary_without_shipping.html:15
+msgctxt "Checkout summary without shipping note title"
+msgid "Add a note to your order"
+msgstr ""
+
+#: templates/checkout/summary_without_shipping.html:19
+msgctxt "Checkout summary without shipping action"
+msgid "Place order"
+msgstr ""
+
+#: templates/collection/index.html:7
+msgctxt "Site breadcrumbs home"
+msgid "Home"
+msgstr "首頁"
+
+#: templates/collection/index.html:15
+msgctxt "Unavailable collection detail text"
+msgid ""
+"\n"
+"        <strong>Warning!</strong>\n"
+"        You are previewing a collection that is not published.\n"
+"      "
+msgstr ""
+
+#: templates/dashboard/base.html:11
+#, python-format
+msgctxt "Dashboard default page title"
+msgid "Dashboard - %(site_name)s"
+msgstr ""
+
+#: templates/dashboard/base.html:42
+msgctxt "Dashboard top navigation action"
+msgid "Visit storefront"
+msgstr "訪問商店前台"
+
+#: templates/dashboard/base.html:47
+msgctxt "Dashboard top navigation action"
+msgid "Style guide"
+msgstr "樣式指南"
+
+#: templates/dashboard/base.html:52
+msgctxt "Dashboard top navigation action"
+msgid "Log out"
+msgstr "登出"
+
+#: templates/dashboard/base.html:81
+msgctxt "Dashboard search"
+msgid "Search"
+msgstr "搜尋"
+
+#: templates/dashboard/base.html:96 templates/dashboard/base.html:269
+msgctxt "Dashboard homepage"
+msgid "Home"
+msgstr "首頁"
+
+#: templates/dashboard/base.html:102
+msgctxt "Dashboard catalogue"
+msgid "Catalogue"
+msgstr "分類"
+
+#: templates/dashboard/base.html:108 templates/dashboard/product/form.html:28
+#: templates/dashboard/product/list.html:10
+#: templates/dashboard/product/list.html:38
+#: templates/dashboard/product/product_image/list.html:29
+#: templates/dashboard/product/product_type/form.html:12
+#: templates/dashboard/product/product_variant/form.html:26
+msgctxt "Dashboard products list"
+msgid "Products"
+msgstr "產品"
+
+#: templates/dashboard/base.html:115
+#: templates/dashboard/category/detail.html:33
+#: templates/dashboard/category/detail.html:39
+#: templates/dashboard/category/form.html:13
+#: templates/dashboard/category/form.html:32
+#: templates/dashboard/category/list.html:34
+msgctxt "Dashboard categories list"
+msgid "Categories"
+msgstr "產品分類"
+
+#: templates/dashboard/base.html:122
+msgctxt "Dashboard side navigation link"
+msgid "Collections"
+msgstr ""
+
+#: templates/dashboard/base.html:132
+msgctxt "Dashboard discounts list"
+msgid "Discounts"
+msgstr "折扣"
+
+#: templates/dashboard/base.html:138
+msgctxt "Dashboard sales (discounts) list"
+msgid "Sales"
+msgstr "促銷"
+
+#: templates/dashboard/base.html:145
+#: templates/dashboard/discount/voucher/form.html:12
+#: templates/dashboard/discount/voucher/form.html:43
+#: templates/dashboard/discount/voucher/list.html:9
+#: templates/dashboard/discount/voucher/list.html:19
+msgctxt "Dashboard vouchers list"
+msgid "Vouchers"
+msgstr "優惠券"
+
+#: templates/dashboard/base.html:155
+msgctxt "Dashboard sales. `Sales' is noun of to sell"
+msgid "Sales"
+msgstr "促銷"
+
+#: templates/dashboard/base.html:161
+#: templates/dashboard/order/address_form.html:7
+#: templates/dashboard/order/address_form.html:23
+#: templates/dashboard/order/detail.html:12
+#: templates/dashboard/order/detail.html:59
+#: templates/dashboard/order/fulfillment.html:11
+#: templates/dashboard/order/fulfillment.html:27
+#: templates/dashboard/order/list.html:9
+#: templates/dashboard/order/list.html:31
+msgctxt "Dashboard orders list"
+msgid "Orders"
+msgstr "訂單"
+
+#: templates/dashboard/base.html:168
+#: templates/dashboard/customer/detail.html:9
+#: templates/dashboard/customer/detail.html:25
+#: templates/dashboard/customer/form.html:28
+#: templates/dashboard/customer/list.html:8
+#: templates/dashboard/customer/list.html:28
+msgctxt "Dashboard customers list"
+msgid "Customers"
+msgstr "客戶"
+
+#: templates/dashboard/base.html:178
+msgctxt "Management section"
+msgid "Staff management"
+msgstr "員工管理"
+
+#: templates/dashboard/base.html:184
+msgctxt "Dashboard staff members list"
+msgid "Staff members"
+msgstr "員工"
+
+#: templates/dashboard/base.html:191 templates/dashboard/group/detail.html:28
+#: templates/dashboard/group/list.html:8
+#: templates/dashboard/group/list.html:28
+msgctxt "Dashboard groups list"
+msgid "Groups"
+msgstr "分組"
+
+#: templates/dashboard/base.html:201
+msgctxt "Dashboard configuration"
+msgid "Configuration"
+msgstr "配置"
+
+#: templates/dashboard/base.html:207
+#: templates/dashboard/product/product_type/form.html:28
+#: templates/dashboard/product/product_type/list.html:8
+#: templates/dashboard/product/product_type/list.html:28
+msgctxt "Dashboard product types list"
+msgid "Product types"
+msgstr "產品類別"
+
+#: templates/dashboard/base.html:214
+#: templates/dashboard/product/product_attribute/form.html:29
+#: templates/dashboard/product/product_attribute/list.html:8
+#: templates/dashboard/product/product_attribute/list.html:28
+#: templates/dashboard/product/product_attribute/values/form.html:29
+msgctxt "Dashboard attributes list"
+msgid "Attributes"
+msgstr "屬性"
+
+#: templates/dashboard/base.html:221 templates/dashboard/shipping/list.html:9
+#: templates/dashboard/shipping/list.html:19
+msgctxt "Dashboard shipping methods list"
+msgid "Shipping methods"
+msgstr "配送方式"
+
+#: templates/dashboard/base.html:228 templates/dashboard/menu/detail.html:21
+#: templates/dashboard/menu/form.html:12 templates/dashboard/menu/form.html:29
+#: templates/dashboard/menu/item/detail.html:22
+#: templates/dashboard/menu/item/detail.html:28
+#: templates/dashboard/menu/item/form.html:29
+#: templates/dashboard/menu/list.html:32
+msgctxt "Dashboard menus list"
+msgid "Navigation"
+msgstr ""
+
+#: templates/dashboard/base.html:235 templates/dashboard/sites/form.html:11
+#: templates/dashboard/taxes/form.html:12
+msgctxt "Dashboard site settings"
+msgid "Site settings"
+msgstr "站點設置"
+
+#: templates/dashboard/base.html:241
+msgctxt "Dashboard taxes"
+msgid "Taxes"
+msgstr ""
+
+#: templates/dashboard/base.html:247
+msgctxt "Dashboard static pages"
+msgid "Pages"
+msgstr ""
+
+#: templates/dashboard/base.html:255
+msgctxt "Dashboard software version"
+msgid "Release:"
+msgstr "釋放："
+
+#: templates/dashboard/base_modal.html:33
+#: templates/dashboard/category/form.html:111
+#: templates/dashboard/category/form.html:115
+#: templates/dashboard/customer/form.html:60
+#: templates/dashboard/customer/form.html:67
+#: templates/dashboard/discount/sale/form.html:102
+#: templates/dashboard/discount/voucher/form.html:125
+#: templates/dashboard/group/detail.html:85
+#: templates/dashboard/menu/form.html:58
+#: templates/dashboard/menu/item/form.html:80
+#: templates/dashboard/order/address_form.html:61
+#: templates/dashboard/order/fulfillment.html:133
+#: templates/dashboard/product/form.html:132
+#: templates/dashboard/product/form.html:139
+#: templates/dashboard/product/product_attribute/form.html:77
+#: templates/dashboard/product/product_attribute/form.html:84
+#: templates/dashboard/product/product_attribute/values/form.html:78
+#: templates/dashboard/product/product_image/form.html:79
+#: templates/dashboard/product/product_type/form.html:105
+#: templates/dashboard/product/product_variant/form.html:107
+#: templates/dashboard/product/product_variant/form.html:114
+#: templates/dashboard/shipping/country/form.html:80
+#: templates/dashboard/shipping/form.html:78
+#: templates/dashboard/shipping/form.html:85
+#: templates/dashboard/sites/authorization_keys/form.html:71
+#: templates/dashboard/sites/form.html:58
+#: templates/dashboard/staff/detail.html:76
+#: templates/dashboard/taxes/form.html:100
+msgctxt "Dashboard cancel action"
+msgid "Cancel"
+msgstr "取消"
+
+#: templates/dashboard/category/detail.html:8
+#: templates/dashboard/category/list.html:9
+msgctxt "Category list page title"
+msgid "Categories"
+msgstr "產品分類"
+
+#: templates/dashboard/category/detail.html:83
+msgctxt "Category field"
+msgid "Description"
+msgstr "描述"
+
+#: templates/dashboard/category/detail.html:95
+msgctxt "Category detail view action"
+msgid "Edit category"
+msgstr ""
+
+#: templates/dashboard/category/detail.html:98
+msgctxt "Category detail view action"
+msgid "Remove category"
+msgstr ""
+
+#: templates/dashboard/category/detail.html:106
+msgctxt "Title of the subcategories list"
+msgid "Subcategories"
+msgstr ""
+
+#: templates/dashboard/category/detail.html:111
+#: templates/dashboard/includes/_menu_items.html:13
+#: templates/dashboard/product/detail.html:96
+#: templates/dashboard/product/product_attribute/detail.html:66
+#: templates/dashboard/shipping/detail.html:78
+#: templates/dashboard/sites/detail.html:77
+msgid "Add"
+msgstr "新增"
+
+#: templates/dashboard/category/detail.html:118
+#: templates/dashboard/category/list.html:51
+msgctxt "Category list table header name"
+msgid "Name"
+msgstr "名字"
+
+#: templates/dashboard/category/detail.html:121
+#: templates/dashboard/category/list.html:54
+msgctxt "Category list table header description"
+msgid "Description"
+msgstr "描述"
+
+#: templates/dashboard/category/detail.html:145
+msgctxt "Category edit action"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/category/detail.html:148
+msgctxt "Category list action link"
+msgid "Remove"
+msgstr "刪除"
+
+#: templates/dashboard/category/detail.html:155
+msgctxt "Empty list of categories"
+msgid "No subcategories"
+msgstr ""
+
+#: templates/dashboard/category/form.html:9
+msgctxt "Category form page title"
+msgid "Edit category"
+msgstr ""
+
+#: templates/dashboard/category/form.html:11
+msgctxt "Category detail page title"
+msgid "Add new category"
+msgstr "新增分類"
+
+#: templates/dashboard/category/form.html:24
+msgctxt "Category form page title"
+msgid "Add new category"
+msgstr "新增分類"
+
+#: templates/dashboard/category/form.html:55
+msgctxt "Category form page title"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/category/form.html:61
+#: templates/dashboard/category/form.html:77
+msgctxt "Category detail breadcrumbs"
+msgid "Add new category"
+msgstr "新增分類"
+
+#: templates/dashboard/category/form.html:120
+#: templates/dashboard/customer/form.html:63
+#: templates/dashboard/discount/sale/form.html:106
+#: templates/dashboard/discount/voucher/form.html:129
+#: templates/dashboard/group/detail.html:89
+#: templates/dashboard/menu/form.html:62
+#: templates/dashboard/menu/item/form.html:84
+#: templates/dashboard/order/address_form.html:64
+#: templates/dashboard/order/modal/change_quantity.html:19
+#: templates/dashboard/product/product_type/form.html:109
+#: templates/dashboard/sites/form.html:61
+#: templates/dashboard/staff/detail.html:80
+#: templates/dashboard/taxes/form.html:103
+msgctxt "Dashboard update action"
+msgid "Update"
+msgstr "更新"
+
+#: templates/dashboard/category/form.html:124
+#: templates/dashboard/discount/sale/form.html:110
+#: templates/dashboard/discount/voucher/form.html:133
+#: templates/dashboard/menu/form.html:66
+#: templates/dashboard/menu/item/form.html:88
+#: templates/dashboard/product/form.html:142
+#: templates/dashboard/product/product_attribute/form.html:87
+#: templates/dashboard/product/product_attribute/values/form.html:86
+#: templates/dashboard/product/product_image/form.html:87
+#: templates/dashboard/product/product_type/form.html:113
+#: templates/dashboard/product/product_variant/form.html:117
+#: templates/dashboard/shipping/country/form.html:88
+#: templates/dashboard/shipping/form.html:88
+#: templates/dashboard/sites/authorization_keys/form.html:79
+msgctxt "Dashboard create action"
+msgid "Create"
+msgstr "創建"
+
+#: templates/dashboard/category/list.html:23
+msgctxt "Category list add button text"
+msgid "Add category"
+msgstr "新增分類"
+
+#: templates/dashboard/category/list.html:85
+msgctxt "Empty category list message"
+msgid "No categories found."
+msgstr ""
+
+#: templates/dashboard/category/modal/confirm_delete.html:13
+#, python-format
+msgctxt "Remove category modal title"
+msgid "Remove category %(category)s"
+msgstr "删除分類%(category)s"
+
+#: templates/dashboard/category/modal/confirm_delete.html:20
+#, python-format
+msgctxt "Remove category modal title"
+msgid ""
+"Are you sure you want to remove category <strong>%(category)s</strong>?"
+msgstr "您確定要删除分類<strong>%(category)s</strong>?"
+
+#: templates/dashboard/category/modal/confirm_delete.html:25
+msgctxt "Delete category form text about descendant categories"
+msgid "The following child categories will be removed:"
+msgstr "以下子分類將被删除："
+
+#: templates/dashboard/category/modal/confirm_delete.html:38
+#, python-format
+msgctxt "Remove category form text about products"
+msgid "There is one product in this category that will be removed."
+msgid_plural ""
+"There are %(counter)s products in this category that will be removed."
+msgstr[0] "該分類下的%(counter)s個產品將被删除。"
+
+#: templates/dashboard/category/modal/confirm_delete.html:49
+#: templates/dashboard/collection/confirm_delete.html:26
+#: templates/dashboard/customer/modal/confirm_delete.html:28
+#: templates/dashboard/discount/sale/modal/confirm_delete.html:24
+#: templates/dashboard/discount/voucher/modal/confirm_delete.html:26
+#: templates/dashboard/group/modal/confirm_delete.html:27
+#: templates/dashboard/menu/item/modal/confirm_delete.html:34
+#: templates/dashboard/menu/modal/confirm_delete.html:34
+#: templates/dashboard/order/modal/cancel_line.html:65
+#: templates/dashboard/page/modal_delete.html:26
+#: templates/dashboard/product/modal/confirm_delete.html:26
+#: templates/dashboard/product/product_attribute/modal/attribute_confirm_delete.html:26
+#: templates/dashboard/product/product_attribute/values/modal/confirm_delete.html:26
+#: templates/dashboard/product/product_image/modal/confirm_delete.html:25
+#: templates/dashboard/product/product_type/modal/confirm_delete.html:40
+#: templates/dashboard/product/product_variant/modal/confirm_delete.html:34
+#: templates/dashboard/shipping/modal/confirm_delete.html:27
+#: templates/dashboard/shipping/modal/country_confirm_delete.html:26
+#: templates/dashboard/sites/modal/confirm_delete.html:26
+#: templates/dashboard/staff/modal/confirm_delete.html:24
+msgctxt "Dashboard delete action"
+msgid "Remove"
+msgstr "刪除"
+
+#: templates/dashboard/category/zero_page.html:5
+msgid "No categories found."
+msgstr ""
+
+#: templates/dashboard/category/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Categories are used to organize products into groups that are displayed in the navigation in the storefront.<br>\n"
+"    You can create categories by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+
+#: templates/dashboard/collection/confirm_delete.html:12
+#, python-format
+msgctxt "Modal remove collection text"
+msgid "Remove collection %(collection)s"
+msgstr ""
+
+#: templates/dashboard/collection/confirm_delete.html:19
+#, python-format
+msgctxt "Modal remove collection text"
+msgid ""
+"Are you sure you want to remove collection <strong>%(collection)s</strong>?"
+msgstr ""
+
+#: templates/dashboard/collection/detail.html:8
+#: templates/dashboard/collection/detail.html:14
+#: templates/dashboard/collection/detail.html:20
+msgid "Add new collection"
+msgstr ""
+
+#: templates/dashboard/collection/detail.html:8
+#: templates/dashboard/collection/detail.html:18
+#: templates/dashboard/collection/list.html:18
+msgid "Collections"
+msgstr ""
+
+#: templates/dashboard/collection/detail.html:33
+msgctxt "Collection action"
+msgid "Remove collection"
+msgstr ""
+
+#: templates/dashboard/collection/detail.html:38
+msgctxt "Collection action"
+msgid "View on site"
+msgstr "在網站中查看"
+
+#: templates/dashboard/collection/detail.html:70
+msgctxt "Collection secondary action"
+msgid "Cancel"
+msgstr "取消"
+
+#: templates/dashboard/collection/detail.html:73
+msgctxt "Collection detail action"
+msgid "Update"
+msgstr "更新"
+
+#: templates/dashboard/collection/detail.html:77
+msgctxt "Collection detail action"
+msgid "Create"
+msgstr "創建"
+
+#: templates/dashboard/collection/detail.html:98
+msgctxt "Collection field"
+msgid "Published"
+msgstr "已發佈"
+
+#: templates/dashboard/collection/detail.html:100
+msgctxt "Collection field"
+msgid "Draft"
+msgstr "草稿"
+
+#: templates/dashboard/collection/list.html:9
+msgctxt "Collections list page title "
+msgid "Collections"
+msgstr ""
+
+#: templates/dashboard/collection/list.html:25
+msgctxt "Collections list add button text"
+msgid "Add collection"
+msgstr ""
+
+#: templates/dashboard/collection/list.html:41
+msgctxt "Collections list table header name"
+msgid "Name"
+msgstr "名字"
+
+#: templates/dashboard/collection/list.html:44
+msgctxt "Voucher table header"
+msgid "Number of products"
+msgstr ""
+
+#: templates/dashboard/collection/list.html:47
+msgctxt "Collections list table header"
+msgid "Visibility"
+msgstr ""
+
+#: templates/dashboard/collection/list.html:59
+msgid "Products in collection:"
+msgstr ""
+
+#: templates/dashboard/collection/list.html:80
+msgctxt "Empty collection list message"
+msgid "No collections found."
+msgstr ""
+
+#: templates/dashboard/collection/zero_page.html:5
+msgid "No collections found."
+msgstr ""
+
+#: templates/dashboard/collection/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Collections are used to organize products into custom groups.<br>\n"
+"    You can create collections by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+
+#: templates/dashboard/customer/detail.html:51
+msgctxt "Customer field"
+msgid "Date joined"
+msgstr ""
+
+#: templates/dashboard/customer/detail.html:63
+msgctxt "Customer field"
+msgid "Note"
+msgstr ""
+
+#: templates/dashboard/customer/detail.html:75
+msgctxt "Customer action"
+msgid "Edit customer"
+msgstr ""
+
+#: templates/dashboard/customer/detail.html:78
+msgctxt "Customer action"
+msgid "Remove customer"
+msgstr ""
+
+#: templates/dashboard/customer/detail.html:83
+msgctxt "Customer impersonate action"
+msgid "Impersonate customer"
+msgstr ""
+
+#: templates/dashboard/customer/detail.html:92
+msgctxt "Customer recent orders table title"
+msgid "Recent orders"
+msgstr ""
+
+#: templates/dashboard/customer/detail.html:101
+msgctxt "Customer orders table header"
+msgid "Number"
+msgstr ""
+
+#: templates/dashboard/customer/detail.html:104
+msgctxt "Customer orders table header"
+msgid "Placed on"
+msgstr ""
+
+#: templates/dashboard/customer/detail.html:107
+msgctxt "Customer orders table header"
+msgid "Order status"
+msgstr "訂單狀態"
+
+#: templates/dashboard/customer/detail.html:110
+msgctxt "Customer orders table header"
+msgid "Total"
+msgstr ""
+
+#: templates/dashboard/customer/detail.html:137
+msgctxt "Empty customer orders table message"
+msgid "No orders found."
+msgstr "無訂單"
+
+#: templates/dashboard/customer/detail.html:146
+msgctxt "Customer notes card title"
+msgid "Customer notes"
+msgstr ""
+
+#: templates/dashboard/customer/detail.html:159
+msgctxt "Customer without notes message"
+msgid "There are no notes associated with this customer"
+msgstr ""
+
+#: templates/dashboard/customer/detail.html:166
+msgctxt "Customer notes card action"
+msgid "Add note"
+msgstr "增加備註"
+
+#: templates/dashboard/customer/detail.html:180
+msgctxt "Customer default shipping address card title"
+msgid "Default shipping address"
+msgstr "預設運送地址"
+
+#: templates/dashboard/customer/detail.html:187
+msgctxt "Customer without default shipping address message"
+msgid "No default shipping address."
+msgstr "沒有預設運送地址"
+
+#: templates/dashboard/customer/detail.html:200
+msgctxt "Customer default billing address card title"
+msgid "Default billing address"
+msgstr "預設帳單地址"
+
+#: templates/dashboard/customer/detail.html:208
+msgctxt "Customer without default billing address message"
+msgid "No default billing address."
+msgstr ""
+
+#: templates/dashboard/customer/form.html:10
+msgctxt "Dashboard add customer"
+msgid "Add new customer"
+msgstr ""
+
+#: templates/dashboard/customer/form.html:12
+#: templates/dashboard/search/results.html:89
+msgctxt "Dashboard customer"
+msgid "Customer"
+msgstr "客戶"
+
+#: templates/dashboard/customer/form.html:36
+msgctxt "Dashboard add customer action"
+msgid "Add customer"
+msgstr ""
+
+#: templates/dashboard/customer/form.html:47
+msgctxt "Customer details header"
+msgid "Customer details"
+msgstr ""
+
+#: templates/dashboard/customer/form.html:70
+#: templates/dashboard/group/detail.html:91
+#: templates/dashboard/staff/detail.html:82
+msgctxt "Dashboard add action"
+msgid "Add"
+msgstr "增加"
+
+#: templates/dashboard/customer/list.html:18
+msgctxt "Customer list add button text"
+msgid "Add customer"
+msgstr ""
+
+#: templates/dashboard/customer/list.html:42
+msgctxt "Customers table header"
+msgid "Name"
+msgstr "名字"
+
+#: templates/dashboard/customer/list.html:45
+msgctxt "Customers table header"
+msgid "Email"
+msgstr "電子信箱"
+
+#: templates/dashboard/customer/list.html:48
+msgctxt "Customers table header"
+msgid "Location"
+msgstr "地址"
+
+#: templates/dashboard/customer/list.html:88
+msgctxt "Empty customers table message"
+msgid "No customers found."
+msgstr "沒有客戶"
+
+#: templates/dashboard/customer/modal/add_note.html:11
+#: templates/dashboard/order/modal/add_note.html:11
+msgctxt "Modal add note title"
+msgid "Add note"
+msgstr "增加備註"
+
+#: templates/dashboard/customer/modal/add_note.html:19
+#: templates/dashboard/order/modal/add_note.html:19
+msgctxt "Modal add note primary action"
+msgid "Save note"
+msgstr "儲存備註"
+
+#: templates/dashboard/customer/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Header of modal used for removing customer's account "
+msgid "Remove customer %(customer)s"
+msgstr ""
+
+#: templates/dashboard/customer/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Modal remove collection text"
+msgid ""
+"Are you sure you want to remove customer <strong>%(customer)s</strong>? "
+"Please note that this procedure will remove customer's account, but "
+"customer's orders and addresses associated with them will persist for the "
+"financial records."
+msgstr ""
+
+#: templates/dashboard/customer/modal/confirm_promote.html:12
+msgctxt "Dashboard confirmation modal"
+msgid "Promote to staff member"
+msgstr "新增為管理人員"
+
+#: templates/dashboard/customer/modal/confirm_promote.html:17
+#, python-format
+msgctxt "Modal promote to staff member text"
+msgid "Are you sure you want to promote %(customer)s to staff member?"
+msgstr ""
+
+#: templates/dashboard/customer/modal/confirm_promote.html:24
+msgctxt "Dashboard promote action"
+msgid "Promote"
+msgstr ""
+
+#: templates/dashboard/customer/zero_page.html:5
+msgid "No customers found."
+msgstr "沒有客戶"
+
+#: templates/dashboard/customer/zero_page.html:8
+msgid ""
+"\n"
+"    Customer accounts will appear here once users register in the shop.\n"
+"  "
+msgstr ""
+
+#: templates/dashboard/discount/sale/form.html:10
+msgctxt "Sale (discount) page title"
+msgid "Add new sale"
+msgstr ""
+
+#: templates/dashboard/discount/sale/form.html:12
+#: templates/dashboard/discount/sale/form.html:43
+#: templates/dashboard/discount/sale/list.html:18
+msgctxt "Dashboard sales (discounts) list."
+msgid "Sales"
+msgstr "促銷"
+
+#: templates/dashboard/discount/sale/form.html:32
+msgctxt "Sale (discount) action"
+msgid "Remove sale"
+msgstr ""
+
+#: templates/dashboard/discount/sale/form.html:56
+msgctxt "Sale (discount) breadcrumbs"
+msgid "Add new sale"
+msgstr ""
+
+#: templates/dashboard/discount/sale/list.html:9
+msgid "Sales"
+msgstr "促銷"
+
+#: templates/dashboard/discount/sale/list.html:28
+msgctxt "Sale (discount) list add button text"
+msgid "Add sale"
+msgstr ""
+
+#: templates/dashboard/discount/sale/list.html:44
+msgctxt "Sale (discount) table header"
+msgid "Name"
+msgstr "名字"
+
+#: templates/dashboard/discount/sale/list.html:47
+msgctxt "Sale (discount) table header"
+msgid "Discount"
+msgstr ""
+
+#: templates/dashboard/discount/sale/list.html:74
+msgctxt "Empty sales table message"
+msgid "No sales found"
+msgstr ""
+
+#: templates/dashboard/discount/sale/modal/confirm_delete.html:12
+msgctxt "Remove sale (discount) text"
+msgid "Remove sale"
+msgstr ""
+
+#: templates/dashboard/discount/sale/modal/confirm_delete.html:17
+#, python-format
+msgctxt "Remove sale (discount) text"
+msgid "Are you sure you want to remove <strong>%(sale)s</strong>?"
+msgstr ""
+
+#: templates/dashboard/discount/sale/zero_page.html:5
+msgid "No sales found."
+msgstr ""
+
+#: templates/dashboard/discount/sale/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Sales are used to create discounts on particular products or whole categories.<br>\n"
+"    You can create sales by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+
+#: templates/dashboard/discount/voucher/form.html:10
+msgctxt "Voucher page title"
+msgid "Add new voucher"
+msgstr ""
+
+#: templates/dashboard/discount/voucher/form.html:32
+msgctxt "Voucher action"
+msgid "Remove voucher"
+msgstr ""
+
+#: templates/dashboard/discount/voucher/form.html:56
+msgctxt "Voucher breadcrumbs"
+msgid "Add new voucher"
+msgstr ""
+
+#: templates/dashboard/discount/voucher/list.html:29
+msgctxt "Voucher list add button text"
+msgid "Add voucher"
+msgstr ""
+
+#: templates/dashboard/discount/voucher/list.html:45
+msgctxt "Voucher table header"
+msgid "Name"
+msgstr "名字"
+
+#: templates/dashboard/discount/voucher/list.html:48
+msgctxt "Voucher table header"
+msgid "Discount"
+msgstr ""
+
+#: templates/dashboard/discount/voucher/list.html:52
+msgctxt "Voucher table header"
+msgid "Apply to"
+msgstr ""
+
+#: templates/dashboard/discount/voucher/list.html:55
+msgctxt "Voucher table header"
+msgid "Start date"
+msgstr "開始日期"
+
+#: templates/dashboard/discount/voucher/list.html:58
+msgctxt "Voucher table header"
+msgid "End date"
+msgstr "結束日期"
+
+#: templates/dashboard/discount/voucher/list.html:61
+msgctxt "Voucher table header"
+msgid "Used"
+msgstr ""
+
+#: templates/dashboard/discount/voucher/list.html:64
+msgctxt "Voucher table header"
+msgid "Limit"
+msgstr ""
+
+#: templates/dashboard/discount/voucher/list.html:114
+msgctxt "Empty vouchers table message"
+msgid "No vouchers found"
+msgstr ""
+
+#: templates/dashboard/discount/voucher/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Remove voucher text"
+msgid "Remove voucher %(voucher)s"
+msgstr ""
+
+#: templates/dashboard/discount/voucher/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Remove voucher text"
+msgid "Are you sure you want to remove voucher <strong>%(voucher)s</strong>?"
+msgstr ""
+
+#: templates/dashboard/discount/voucher/zero_page.html:5
+msgid "No vouchers found."
+msgstr ""
+
+#: templates/dashboard/discount/voucher/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Vouchers allows creating promotional codes for all purchases, specific products or shipping.<br>\n"
+"    You can create vouchers by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+
+#: templates/dashboard/group/detail.html:10
+msgctxt "Dashboard add group"
+msgid "Add new group"
+msgstr "增加新群組"
+
+#: templates/dashboard/group/detail.html:12
+msgctxt "Dashboard group"
+msgid "Group"
+msgstr "群組"
+
+#: templates/dashboard/group/detail.html:38
+msgctxt "Dashboard add new group"
+msgid "Add new group"
+msgstr "增加新群組"
+
+#: templates/dashboard/group/detail.html:54
+msgctxt "Group form action"
+msgid "Remove group"
+msgstr "移除群組"
+
+#: templates/dashboard/group/list.html:18
+msgctxt "Group list add button text"
+msgid "Add group"
+msgstr "增加新群組"
+
+#: templates/dashboard/group/list.html:42
+msgctxt "Dashboard groups list table header name"
+msgid "Name"
+msgstr "名字"
+
+#: templates/dashboard/group/list.html:45
+msgctxt "Dashboard groups list table header permissions"
+msgid "Permissions"
+msgstr "權限"
+
+#: templates/dashboard/group/list.html:74
+msgctxt "Empty group table message"
+msgid "No groups found."
+msgstr "沒有發現群組"
+
+#: templates/dashboard/group/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Modal remove group text"
+msgid "Remove group <strong>%(group)s</strong>?"
+msgstr "刪除群組<strong>%(group)s</strong>？"
+
+#: templates/dashboard/group/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Modal remove group text"
+msgid ""
+"Are you sure you want to remove group %(group)s? <br> Users might lose "
+"permissions related to this group."
+msgstr ""
+
+#: templates/dashboard/group/zero_page.html:5
+msgid "No groups found."
+msgstr "沒有發現群組"
+
+#: templates/dashboard/group/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Groups are designed to manage staff member roles and their permission.<br>\n"
+"    You can create groups by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+
+#: templates/dashboard/includes/_collection_availability.html:5
+msgctxt "Collection availability status"
+msgid "Published"
+msgstr "已發布"
+
+#: templates/dashboard/includes/_collection_availability.html:7
+msgctxt "Collection availability status"
+msgid "Not Published"
+msgstr ""
+
+#: templates/dashboard/includes/_filters.html:10
+msgctxt "Dashboard card title"
+msgid "Filters"
+msgstr "篩選"
+
+#: templates/dashboard/includes/_filters.html:43
+msgctxt "Category page filters"
+msgid "Clear"
+msgstr "清空"
+
+#: templates/dashboard/includes/_filters.html:47
+msgctxt "Category price filter"
+msgid "Filter"
+msgstr "篩選"
+
+#: templates/dashboard/includes/_google_preview.html:5
+msgctxt "Title of the box showing preview from the search engine perspective"
+msgid "Search engine listing preview"
+msgstr ""
+
+#: templates/dashboard/includes/_menu_items.html:8
+msgctxt "Title of the menu items list"
+msgid "Menu items"
+msgstr ""
+
+#: templates/dashboard/includes/_menu_items.html:24
+msgctxt "Menu items list table header name"
+msgid "Name"
+msgstr "名字"
+
+#: templates/dashboard/includes/_menu_items.html:27
+msgctxt "Menu items list table header points to"
+msgid "Points to"
+msgstr ""
+
+#: templates/dashboard/includes/_menu_items.html:52
+msgctxt "Menu item edit action"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/includes/_menu_items.html:55
+msgctxt "Menu item list action link"
+msgid "Remove"
+msgstr "刪除"
+
+#: templates/dashboard/includes/_menu_items.html:62
+msgctxt "Empty list of menu items"
+msgid "No menu items"
+msgstr ""
+
+#: templates/dashboard/includes/_page_availability.html:5
+msgctxt "Page availability status"
+msgid "Published"
+msgstr "已發布"
+
+#: templates/dashboard/includes/_page_availability.html:9
+#: templates/dashboard/includes/_page_availability.html:19
+msgctxt "Page availability status"
+msgid "Hidden"
+msgstr ""
+
+#: templates/dashboard/includes/_page_availability.html:13
+#, python-format
+msgctxt "Page availability status"
+msgid ""
+"\n"
+"      Hidden (will become visible on %(date)s)\n"
+"    "
+msgstr ""
+
+#: templates/dashboard/index.html:15 templates/dashboard/index.html:69
+#: templates/dashboard/index.html:133
+#, python-format
+msgctxt "Dashboard homepage summary header title"
+msgid "Showing last %(counter)s results"
+msgstr ""
+
+#: templates/dashboard/index.html:16
+msgctxt "Dashboard homepage table title"
+msgid "Preauthorized payments"
+msgstr "預先授權付款"
+
+#: templates/dashboard/index.html:25
+msgctxt "Preauthorized payments table header"
+msgid "Order"
+msgstr "訂單"
+
+#: templates/dashboard/index.html:28
+msgctxt "Preauthorized payments table header"
+msgid "Date"
+msgstr "日期"
+
+#: templates/dashboard/index.html:31
+msgctxt "Preauthorized payments table header"
+msgid "Customer"
+msgstr "客戶"
+
+#: templates/dashboard/index.html:34
+msgctxt "Preauthorized payments table header"
+msgid "Amount"
+msgstr "金額"
+
+#: templates/dashboard/index.html:48
+msgid "Guest"
+msgstr "訪客"
+
+#: templates/dashboard/index.html:61
+msgctxt "Empty Preauthorized payments table message"
+msgid "No preauthorized payments."
+msgstr "沒有預先授權付款"
+
+#: templates/dashboard/index.html:70
+msgctxt "Dashboard homepage table title"
+msgid "Orders ready for shipment"
+msgstr "訂單準備配送"
+
+#: templates/dashboard/index.html:83 templates/dashboard/order/list.html:48
+msgctxt "Orders table header"
+msgid "Customer"
+msgstr "客戶"
+
+#: templates/dashboard/index.html:86 templates/dashboard/order/list.html:51
+msgctxt "Orders table header"
+msgid "Placed on"
+msgstr ""
+
+#: templates/dashboard/index.html:89 templates/dashboard/order/list.html:54
+msgctxt "Orders table header"
+msgid "Payment status"
+msgstr "付款狀態"
+
+#: templates/dashboard/index.html:92 templates/dashboard/order/list.html:57
+msgctxt "Orders table header"
+msgid "Total"
+msgstr ""
+
+#: templates/dashboard/index.html:105
+#: templates/dashboard/order/detail.html:210
+#: templates/dashboard/order/list.html:70
+msgctxt "Anonymous user account value"
+msgid "Guest"
+msgstr "訪客"
+
+#: templates/dashboard/index.html:126
+msgctxt "Empty order table message"
+msgid "No orders are ready for shipment."
+msgstr ""
+
+#: templates/dashboard/index.html:134
+msgctxt "Dashboard homepage table title"
+msgid "Products with low stock"
+msgstr ""
+
+#: templates/dashboard/index.html:143
+msgctxt "Low stock product list"
+msgid "Product name"
+msgstr "產品名稱"
+
+#: templates/dashboard/index.html:146
+msgctxt "Low stock product list"
+msgid "Stock left"
+msgstr "庫存僅剩"
+
+#: templates/dashboard/index.html:167
+msgctxt "Empty low stock table message"
+msgid "No products are low in stock."
+msgstr ""
+
+#: templates/dashboard/menu/detail.html:7 templates/dashboard/menu/list.html:9
+msgctxt "Menu list page title"
+msgid "Navigation"
+msgstr ""
+
+#: templates/dashboard/menu/detail.html:49
+msgctxt "Menu detail view action"
+msgid "Edit menu"
+msgstr ""
+
+#: templates/dashboard/menu/detail.html:52
+msgctxt "Menu detail view action"
+msgid "Remove menu"
+msgstr ""
+
+#: templates/dashboard/menu/form.html:8
+msgctxt "Menu form page title"
+msgid "Edit menu"
+msgstr ""
+
+#: templates/dashboard/menu/form.html:10 templates/dashboard/menu/form.html:21
+msgctxt "Menu form page title"
+msgid "Add new menu"
+msgstr ""
+
+#: templates/dashboard/menu/form.html:39
+msgctxt "Menu detail breadcrumbs"
+msgid "Add new menu"
+msgstr ""
+
+#: templates/dashboard/menu/item/detail.html:7
+msgctxt "Menu item list page title"
+msgid "Menu items"
+msgstr ""
+
+#: templates/dashboard/menu/item/detail.html:73
+msgctxt "Menu item field"
+msgid "Points to"
+msgstr ""
+
+#: templates/dashboard/menu/item/detail.html:86
+msgctxt "Menu item detail view action"
+msgid "Edit menu item"
+msgstr ""
+
+#: templates/dashboard/menu/item/detail.html:89
+msgctxt "Menu item detail view action"
+msgid "Remove menu item"
+msgstr ""
+
+#: templates/dashboard/menu/item/form.html:8
+msgctxt "Menu item page title"
+msgid "Edit menu item"
+msgstr ""
+
+#: templates/dashboard/menu/item/form.html:10
+#: templates/dashboard/menu/item/form.html:21
+msgctxt "Menu item page title"
+msgid "Add new menu item"
+msgstr ""
+
+#: templates/dashboard/menu/item/form.html:12
+msgctxt "Dashboard menu items list"
+msgid "Menu items"
+msgstr ""
+
+#: templates/dashboard/menu/item/form.html:54
+msgctxt "Menu form page title"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/menu/item/form.html:60
+msgctxt "Menu form page title"
+msgid "Add new menu item"
+msgstr ""
+
+#: templates/dashboard/menu/item/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Remove menu item modal title"
+msgid "Remove menu item %(menu_item)s"
+msgstr ""
+
+#: templates/dashboard/menu/item/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Remove menu item modal title"
+msgid ""
+"Are you sure you want to remove menu item <strong>%(menu_item)s</strong> "
+"from %(menu)s menu?"
+msgstr ""
+
+#: templates/dashboard/menu/item/modal/confirm_delete.html:24
+#: templates/dashboard/menu/modal/confirm_delete.html:24
+msgctxt "Remove menu modal text about descendant menu items"
+msgid "The following menu items will be removed:"
+msgstr ""
+
+#: templates/dashboard/menu/list.html:21
+msgctxt "Menu list add button text"
+msgid "Add menu"
+msgstr ""
+
+#: templates/dashboard/menu/list.html:47
+msgctxt "Menu list table header Menu name"
+msgid "Menu name"
+msgstr ""
+
+#: templates/dashboard/menu/list.html:71
+msgctxt "Empty menu list message"
+msgid "No menus found."
+msgstr ""
+
+#: templates/dashboard/menu/list.html:84
+msgid "Storefront Menus"
+msgstr ""
+
+#: templates/dashboard/menu/list.html:98
+#: templates/dashboard/product/form.html:135
+#: templates/dashboard/product/product_attribute/form.html:80
+#: templates/dashboard/product/product_attribute/values/form.html:82
+#: templates/dashboard/product/product_image/form.html:83
+#: templates/dashboard/product/product_variant/form.html:110
+#: templates/dashboard/shipping/country/form.html:84
+#: templates/dashboard/shipping/form.html:81
+#: templates/dashboard/sites/authorization_keys/form.html:75
+msgctxt "Dashboard update action"
+msgid "Save"
+msgstr "儲存"
+
+#: templates/dashboard/menu/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Remove menu modal title"
+msgid "Remove menu %(menu)s"
+msgstr ""
+
+#: templates/dashboard/menu/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Remove menu modal title"
+msgid "Are you sure you want to remove menu <strong>%(menu)s</strong>?"
+msgstr ""
+
+#: templates/dashboard/menu/zero_page.html:5
+msgid "No menus found."
+msgstr ""
+
+#: templates/dashboard/menu/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Menus are used to organize the navigation bar displayed in the storefront.<br>\n"
+"    You can create menus by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+
+#: templates/dashboard/order/address_form.html:7
+msgctxt ""
+msgid "Edit address"
+msgstr "編輯地址"
+
+#: templates/dashboard/order/address_form.html:39
+#: templates/dashboard/order/detail.html:216
+msgctxt ""
+msgid "Shipping address"
+msgstr "配送地址"
+
+#: templates/dashboard/order/address_form.html:41
+#: templates/dashboard/order/detail.html:234
+msgctxt ""
+msgid "Billing address"
+msgstr "帳單地址"
+
+#: templates/dashboard/order/detail.html:33
+msgctxt "Order detail action"
+msgid "Cancel Order"
+msgstr "取消訂單"
+
+#: templates/dashboard/order/detail.html:40
+msgctxt "Order detail action"
+msgid "Remove draft order"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:48
+msgctxt "Order detail action"
+msgid "Print"
+msgstr "列印"
+
+#: templates/dashboard/order/detail.html:82
+msgctxt "Order detail tab"
+msgid "Details"
+msgstr "詳情"
+
+#: templates/dashboard/order/detail.html:90
+#: templates/dashboard/order/detail.html:564
+msgctxt "Order detail tab"
+msgid "Payments"
+msgstr "付款"
+
+#: templates/dashboard/order/detail.html:98
+#: templates/dashboard/order/detail.html:620
+msgctxt "Order detail tab"
+msgid "History"
+msgstr "歷史"
+
+#: templates/dashboard/order/detail.html:111
+msgctxt "Order summary card header"
+msgid "Payments"
+msgstr "付款"
+
+#: templates/dashboard/order/detail.html:117
+msgctxt "Payment status not available"
+msgid "N/A"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:127
+msgctxt "Order summary card header"
+msgid "Outstanding balance"
+msgstr "未付清餘額"
+
+#: templates/dashboard/order/detail.html:140
+msgctxt "Order summary card header"
+msgid "Preauthorized amount"
+msgstr "預先授權金額"
+
+#: templates/dashboard/order/detail.html:146
+msgctxt "Preauthorized amount not available"
+msgid "N/A"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:152
+msgctxt "Order summary card header"
+msgid "Captured amount"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:166
+msgctxt "Order summary card action"
+msgid "Capture"
+msgstr "選取"
+
+#: templates/dashboard/order/detail.html:170
+msgctxt "Order summary card action"
+msgid "Refund"
+msgstr "退款"
+
+#: templates/dashboard/order/detail.html:175
+msgctxt "Order summary card action"
+msgid "Release"
+msgstr "釋放"
+
+#: templates/dashboard/order/detail.html:180
+msgctxt "Order detail action"
+msgid "Mark as paid"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:192
+msgctxt "Order details summary header"
+msgid "Customer"
+msgstr "客戶"
+
+#: templates/dashboard/order/detail.html:196
+msgctxt "Order customer details action title"
+msgid "Edit customer details"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:197
+#: templates/dashboard/order/detail.html:220
+#: templates/dashboard/order/detail.html:238
+#: templates/dashboard/product/product_image/list.html:82
+#: templates/dashboard/product/product_image/list.html:127
+msgctxt "Dashboard edit action"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/order/detail.html:228
+msgctxt "Missing shipping address message"
+msgid "No shipping address"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:245
+msgctxt "Order billing address same as shipping address"
+msgid "Same as shipping address"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:250
+msgctxt "Missing billing address message"
+msgid "No billing address"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:263
+#, python-format
+msgctxt "Order table title"
+msgid "Order draft #%(order)s"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:267
+#, python-format
+msgctxt "Order table title"
+msgid "Order #%(order)s"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:273
+msgctxt "Order placed on date"
+msgid "Placed on"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:283
+#: templates/dashboard/order/detail.html:480
+#: templates/dashboard/order/pdf/packing_slip.html:64
+msgctxt "Order table header"
+msgid "Item"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:286
+msgctxt "Order table header"
+msgid "Price"
+msgstr "價格"
+
+#: templates/dashboard/order/detail.html:289
+#: templates/dashboard/order/detail.html:483
+#: templates/dashboard/order/pdf/packing_slip.html:70
+msgctxt "Order table header"
+msgid "Quantity"
+msgstr "庫存"
+
+#: templates/dashboard/order/detail.html:292
+msgctxt "Order table header"
+msgid "Total"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:307
+#: templates/dashboard/order/fulfillment.html:85
+#, python-format
+msgctxt "Order table text"
+msgid "SKU: %(sku)s"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:323
+#: templates/dashboard/order/detail.html:324
+msgctxt "Order table row action"
+msgid "Change quantity"
+msgstr "修改庫存"
+
+#: templates/dashboard/order/detail.html:328
+#: templates/dashboard/order/detail.html:329
+msgctxt "Order table row action"
+msgid "Remove line"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:350
+msgctxt "Order totals action"
+msgid "Edit shipping"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:352
+#: templates/dashboard/order/detail.html:361
+#, python-format
+msgctxt "Order totals header"
+msgid "Shipping (%(shipping_name)s)"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:356
+#: templates/dashboard/order/detail.html:365
+msgctxt "Order totals header"
+msgid "Shipping"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:371
+msgctxt "Order total taxes"
+msgid "Taxes (included)"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:373
+msgctxt "Order total taxes"
+msgid "Taxes"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:381
+#: templates/dashboard/order/detail.html:405
+#, python-format
+msgctxt "Order totals header"
+msgid "Discount (%(voucher)s)"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:385
+#: templates/dashboard/order/detail.html:409
+msgctxt "Order totals header"
+msgid "Discount"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:392
+msgctxt "Order totals action"
+msgid "Edit voucher"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:393
+msgctxt "Order detail action"
+msgid "Edit voucher"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:398
+msgctxt "Order totals action"
+msgid "Edit discount"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:399
+msgctxt "Order detail action"
+msgid "Edit discount"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:414
+msgctxt "Order totals header"
+msgid "Grand total"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:437
+msgctxt "Order summary card action title"
+msgid "Fulfill order"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:438
+msgctxt "Order summary card action"
+msgid "Fulfill"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:442
+msgctxt "Order summary card action title"
+msgid "Add product to order"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:443
+msgctxt "Order summary card action"
+msgid "Add product"
+msgstr "新增產品"
+
+#: templates/dashboard/order/detail.html:448
+msgctxt "Order summary card action title"
+msgid "Create order"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:449
+msgctxt "Order summary card action"
+msgid "Create order"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:456
+msgctxt "Order detail action"
+msgid "Invoice"
+msgstr "發票"
+
+#: templates/dashboard/order/detail.html:459
+msgctxt "Order detail action"
+msgid "View on site"
+msgstr "在網站中查看"
+
+#: templates/dashboard/order/detail.html:469
+#, python-format
+msgctxt "Fulfillment table title"
+msgid "Fulfillment #%(fulfillment)s"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:501
+#, python-format
+msgctxt "Fulfillment table text"
+msgid "Tracking number: %(tracking)s"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:513
+msgctxt "Fulfillment summary card action title"
+msgid "Cancel fulfillment"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:514
+msgctxt "Fulfillment summary card action"
+msgid "Cancel"
+msgstr "取消"
+
+#: templates/dashboard/order/detail.html:517
+msgctxt "Fulfillment summary card action title"
+msgid "Edit tracking number"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:519
+msgctxt "Fulfillment summary card action"
+msgid "Edit tracking"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:521
+msgctxt "Fulfillment summary card action"
+msgid "Add tracking"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:526
+msgctxt "Order detail action"
+msgid "Packing Slips"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:535
+msgctxt "Order notes card title"
+msgid "Order notes"
+msgstr "訂單備註"
+
+#: templates/dashboard/order/detail.html:548
+msgctxt "Empty order notes card message"
+msgid "There are no notes associated with this order."
+msgstr "訂單無備註"
+
+#: templates/dashboard/order/detail.html:555
+msgctxt "Order notes card action"
+msgid "Add note"
+msgstr "新增備註"
+
+#: templates/dashboard/order/detail.html:571
+msgctxt "Payment history table header"
+msgid "Transaction ID"
+msgstr "交易編號"
+
+#: templates/dashboard/order/detail.html:574
+msgctxt "Payment history table header"
+msgid "Date"
+msgstr "日期"
+
+#: templates/dashboard/order/detail.html:577
+msgctxt "Payment history table header"
+msgid "Payment status"
+msgstr "付款狀態"
+
+#: templates/dashboard/order/detail.html:580
+msgctxt "Payment history table header"
+msgid "Fraud status"
+msgstr "詐欺狀態"
+
+#: templates/dashboard/order/detail.html:583
+msgctxt "Payment history table header"
+msgid "Amount"
+msgstr "金額"
+
+#: templates/dashboard/order/detail.html:591
+#, python-format
+msgctxt "Payment item column data"
+msgid "#%(payment_id)s"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:615
+msgctxt "Empty payment history table message"
+msgid "No payments made for this order."
+msgstr "訂單未付款"
+
+#: templates/dashboard/order/fulfillment.html:11
+#: templates/dashboard/order/fulfillment.html:42
+msgctxt "Dashboard order fulfillment"
+msgid "Fulfill"
+msgstr ""
+
+#: templates/dashboard/order/fulfillment.html:58
+msgctxt "Fulfill order title"
+msgid "Fulfill order"
+msgstr ""
+
+#: templates/dashboard/order/fulfillment.html:67
+#: templates/dashboard/order/modal/cancel_line.html:25
+msgctxt "Modal remove order line table header"
+msgid "Item"
+msgstr ""
+
+#: templates/dashboard/order/fulfillment.html:70
+#: templates/dashboard/order/modal/cancel_line.html:34
+msgctxt "Modal remove order line table header"
+msgid "Quantity"
+msgstr "庫存"
+
+#: templates/dashboard/order/fulfillment.html:105
+#, python-format
+msgctxt "Fulfill order table quantity unfulfilled"
+msgid "of %(quantity_unfulfilled)s"
+msgstr ""
+
+#: templates/dashboard/order/fulfillment.html:136
+msgctxt "Dashboard update action"
+msgid "Fulfill"
+msgstr ""
+
+#: templates/dashboard/order/list.html:20
+msgctxt "Order list add button text"
+msgid "Add order"
+msgstr ""
+
+#: templates/dashboard/order/list.html:99
+msgctxt "Empty order list message"
+msgid "No orders found."
+msgstr "無訂單"
+
+#: templates/dashboard/order/modal/add_variant_to_order.html:11
+#, python-format
+msgctxt "Modal order add variant title"
+msgid "Add product to %(order)s"
+msgstr ""
+
+#: templates/dashboard/order/modal/add_variant_to_order.html:22
+msgctxt "Modal order add variant primary action"
+msgid "Add"
+msgstr "新增"
+
+#: templates/dashboard/order/modal/cancel_fulfillment.html:11
+#, python-format
+msgctxt "Modal cancel fulfillment title"
+msgid "Cancel fulfillment #%(fulfillment)s"
+msgstr ""
+
+#: templates/dashboard/order/modal/cancel_fulfillment.html:18
+#, python-format
+msgctxt "Modal cancel fulfillment text"
+msgid "Are you sure you want cancel fulfillment #%(fulfillment)s?"
+msgstr ""
+
+#: templates/dashboard/order/modal/cancel_fulfillment.html:26
+msgctxt "Modal cancel fulfillment cancel action"
+msgid "Abort"
+msgstr ""
+
+#: templates/dashboard/order/modal/cancel_fulfillment.html:30
+msgctxt "Modal cancel fulfillment primary action"
+msgid "Cancel Fulfillment"
+msgstr ""
+
+#: templates/dashboard/order/modal/cancel_line.html:12
+msgctxt "Modal remove order line title"
+msgid "Remove order line"
+msgstr ""
+
+#: templates/dashboard/order/modal/cancel_line.html:17
+msgctxt "Modal remove order line text"
+msgid "Are you sure you want remove this order line?"
+msgstr ""
+
+#: templates/dashboard/order/modal/cancel_line.html:28
+msgctxt "Modal remove order line table header"
+msgid "SKU"
+msgstr "庫存單位"
+
+#: templates/dashboard/order/modal/cancel_line.html:31
+msgctxt "Modal remove order line table header"
+msgid "Price"
+msgstr "價格"
+
+#: templates/dashboard/order/modal/cancel_line.html:37
+msgctxt "Modal remove order line table header"
+msgid "Total"
+msgstr ""
+
+#: templates/dashboard/order/modal/cancel_order.html:11
+msgctxt "Modal cancel order title"
+msgid "Cancel order"
+msgstr ""
+
+#: templates/dashboard/order/modal/cancel_order.html:16
+#, python-format
+msgctxt "Modal cancel order text"
+msgid "Are you sure you want cancel order %(order)s?"
+msgstr ""
+
+#: templates/dashboard/order/modal/cancel_order.html:24
+msgctxt "Modal cancel order cancel action"
+msgid "Abort"
+msgstr ""
+
+#: templates/dashboard/order/modal/cancel_order.html:28
+msgctxt "Modal cancel order primary action"
+msgid "Cancel Order"
+msgstr "取消訂單"
+
+#: templates/dashboard/order/modal/capture.html:13
+msgctxt "Modal capture payment title"
+msgid "Capture payment"
+msgstr ""
+
+#: templates/dashboard/order/modal/capture.html:19
+msgctxt "Modal capture payment title"
+msgid "Before this action:"
+msgstr ""
+
+#: templates/dashboard/order/modal/capture.html:21
+msgctxt "Modal capture payment list title"
+msgid "Order total:"
+msgstr ""
+
+#: templates/dashboard/order/modal/capture.html:24
+msgctxt "Modal capture payment list title"
+msgid "Taxes (included):"
+msgstr ""
+
+#: templates/dashboard/order/modal/capture.html:27
+msgctxt "Modal capture payment list title"
+msgid "Captured amount:"
+msgstr "選取數量"
+
+#: templates/dashboard/order/modal/capture.html:35
+msgctxt "Modal capture payment primary action"
+msgid "Capture"
+msgstr "選取"
+
+#: templates/dashboard/order/modal/change_quantity.html:11
+msgctxt "Modal change quantity title"
+msgid "Change quantity"
+msgstr "修改庫存"
+
+#: templates/dashboard/order/modal/create_order.html:11
+msgctxt "Modal create order title"
+msgid "Create order"
+msgstr ""
+
+#: templates/dashboard/order/modal/create_order.html:16
+#, python-format
+msgctxt "Modal create order text"
+msgid ""
+"Are you sure you want create order %(order)s? Once the order has been "
+"created, you will not be able to make changes."
+msgstr ""
+
+#: templates/dashboard/order/modal/create_order.html:26
+msgctxt "Modal create order primary action"
+msgid "Create"
+msgstr "創建"
+
+#: templates/dashboard/order/modal/edit_customer.html:11
+msgctxt "Modal edit customer title"
+msgid "Edit customer details"
+msgstr ""
+
+#: templates/dashboard/order/modal/edit_customer.html:17
+msgctxt "Modal edit customer text"
+msgid ""
+"Connect an order with an account of an existing customer or provide a "
+"contact email address."
+msgstr ""
+
+#: templates/dashboard/order/modal/edit_customer.html:34
+msgctxt "Dashboard edit draft order remove action"
+msgid "Remove customer from order"
+msgstr ""
+
+#: templates/dashboard/order/modal/edit_customer.html:40
+msgctxt "Modal edit customer primary action"
+msgid "Update"
+msgstr "更新"
+
+#: templates/dashboard/order/modal/edit_discount.html:11
+msgctxt "Modal edit discount title"
+msgid "Edit discount"
+msgstr ""
+
+#: templates/dashboard/order/modal/edit_discount.html:21
+msgctxt "Modal edit discount primary action"
+msgid "Update"
+msgstr "更新"
+
+#: templates/dashboard/order/modal/edit_shipping.html:11
+msgctxt "Modal edit shipping title"
+msgid "Edit shipping"
+msgstr ""
+
+#: templates/dashboard/order/modal/edit_shipping.html:23
+msgctxt "Dashboard edit draft order remove action"
+msgid "Remove shipping from order"
+msgstr ""
+
+#: templates/dashboard/order/modal/edit_shipping.html:29
+msgctxt "Modal edit shipping primary action"
+msgid "Update"
+msgstr "更新"
+
+#: templates/dashboard/order/modal/edit_voucher.html:11
+msgctxt "Modal edit voucher title"
+msgid "Edit voucher"
+msgstr ""
+
+#: templates/dashboard/order/modal/edit_voucher.html:23
+msgctxt "Dashboard edit draft order remove action"
+msgid "Remove voucher from order"
+msgstr ""
+
+#: templates/dashboard/order/modal/edit_voucher.html:29
+msgctxt "Modal edit voucher primary action"
+msgid "Update"
+msgstr "更新"
+
+#: templates/dashboard/order/modal/fulfillment_tracking.html:12
+msgctxt "Modal change fulfillment tracking title"
+msgid "Edit tracking"
+msgstr ""
+
+#: templates/dashboard/order/modal/fulfillment_tracking.html:14
+msgctxt "Modal change fulfillment tracking title"
+msgid "Add tracking"
+msgstr ""
+
+#: templates/dashboard/order/modal/fulfillment_tracking.html:27
+msgctxt "Modal change fulfillment tracking primary action"
+msgid "Update"
+msgstr "更新"
+
+#: templates/dashboard/order/modal/fulfillment_tracking.html:29
+msgctxt "Modal change fulfillment tracking primary action"
+msgid "Save"
+msgstr "儲存"
+
+#: templates/dashboard/order/modal/mark_as_paid.html:12
+msgctxt "Modal mark order as paid title"
+msgid "Mark order as paid"
+msgstr ""
+
+#: templates/dashboard/order/modal/mark_as_paid.html:17
+msgctxt "Modal mark order as paid text"
+msgid "Are you sure you want mark order as paid?"
+msgstr ""
+
+#: templates/dashboard/order/modal/mark_as_paid.html:18
+msgctxt "Modal mark order as paid text"
+msgid "Total received:"
+msgstr ""
+
+#: templates/dashboard/order/modal/mark_as_paid.html:23
+msgctxt "Modal mark order as paid cancel action"
+msgid "Abort"
+msgstr ""
+
+#: templates/dashboard/order/modal/mark_as_paid.html:27
+msgctxt "Modal mark order as paid primary action"
+msgid "Mark as paid"
+msgstr ""
+
+#: templates/dashboard/order/modal/refund.html:14
+msgctxt "Modal refund payment title"
+msgid "Refund payment"
+msgstr ""
+
+#: templates/dashboard/order/modal/refund.html:20
+msgctxt "Modal refund payment title"
+msgid "Before this action:"
+msgstr ""
+
+#: templates/dashboard/order/modal/refund.html:22
+msgctxt "Modal refund payment list title"
+msgid "Order total:"
+msgstr ""
+
+#: templates/dashboard/order/modal/refund.html:25
+msgctxt "Modal refund payment list title"
+msgid "Taxes (included):"
+msgstr ""
+
+#: templates/dashboard/order/modal/refund.html:28
+msgctxt "Modal refund payment list title"
+msgid "Captured amount:"
+msgstr "選取數量"
+
+#: templates/dashboard/order/modal/refund.html:36
+msgctxt "Modal refund payment primary action"
+msgid "Refund"
+msgstr "退款"
+
+#: templates/dashboard/order/modal/release.html:11
+msgctxt "Modal release payment text"
+msgid "Release payment"
+msgstr "釋放付款"
+
+#: templates/dashboard/order/modal/release.html:17
+msgctxt "Modal release payment text"
+msgid "Do you want to release the payment?"
+msgstr "您要釋放該付款嗎？"
+
+#: templates/dashboard/order/modal/release.html:22
+msgctxt "Modal release payment primary action"
+msgid "Release"
+msgstr "釋放"
+
+#: templates/dashboard/order/modal/remove_order.html:13
+msgctxt "Modal remove order title"
+msgid "Remove draft order"
+msgstr ""
+
+#: templates/dashboard/order/modal/remove_order.html:18
+#, python-format
+msgctxt "Modal remove order text"
+msgid "Are you sure you want remove draft order %(order)s?"
+msgstr ""
+
+#: templates/dashboard/order/modal/remove_order.html:25
+msgctxt "Modal remove order cancel action"
+msgid "Abort"
+msgstr ""
+
+#: templates/dashboard/order/modal/remove_order.html:29
+msgctxt "Modal remove order primary action"
+msgid "Remove draft order"
+msgstr ""
+
+#: templates/dashboard/order/pdf/invoice.html:8
+msgctxt "Invoice title"
+msgid "Invoice for Order"
+msgstr "訂單發票"
+
+#: templates/dashboard/order/pdf/invoice.html:17
+msgctxt "Invoice header"
+msgid "Order"
+msgstr "訂單"
+
+#: templates/dashboard/order/pdf/invoice.html:21
+msgctxt "Order invoice"
+msgid "Invoice"
+msgstr "發票"
+
+#: templates/dashboard/order/pdf/invoice.html:27
+msgctxt "Invoice shipping address"
+msgid "Shipping address"
+msgstr "配送地址"
+
+#: templates/dashboard/order/pdf/invoice.html:32
+msgctxt "Invoice billing address"
+msgid "Billing address"
+msgstr "帳單地址"
+
+#: templates/dashboard/order/pdf/invoice.html:53
+msgctxt "Invoice ordered items header"
+msgid "Items Ordered"
+msgstr ""
+
+#: templates/dashboard/order/pdf/invoice.html:60
+msgctxt "Shipment order table header"
+msgid "Item"
+msgstr ""
+
+#: templates/dashboard/order/pdf/invoice.html:64
+msgctxt "Shipment order table header"
+msgid "SKU"
+msgstr "庫存單位"
+
+#: templates/dashboard/order/pdf/invoice.html:67
+msgctxt "Shipment order table header"
+msgid "Tax rate"
+msgstr ""
+
+#: templates/dashboard/order/pdf/invoice.html:70
+msgctxt "Shipment order table header"
+msgid "Gross price"
+msgstr ""
+
+#: templates/dashboard/order/pdf/invoice.html:73
+msgctxt "Shipment order table header"
+msgid "Quantity"
+msgstr "庫存"
+
+#: templates/dashboard/order/pdf/invoice.html:76
+msgctxt "Shipment order table header"
+msgid "Total"
+msgstr ""
+
+#: templates/dashboard/order/pdf/invoice.html:90
+#, python-format
+msgctxt "Order line tax rate value"
+msgid ""
+"\n"
+"              %(tax_rate)s %%\n"
+"            "
+msgstr ""
+
+#: templates/dashboard/order/pdf/invoice.html:113
+msgctxt "Order subtotal net price"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/dashboard/order/pdf/invoice.html:121
+msgctxt "Order total shipping price header"
+msgid "Shipping"
+msgstr ""
+
+#: templates/dashboard/order/pdf/invoice.html:129
+msgctxt "Order total taxes header"
+msgid "Total taxes (included)"
+msgstr ""
+
+#: templates/dashboard/order/pdf/invoice.html:138
+msgctxt "Order voucher header"
+msgid "Discount"
+msgstr ""
+
+#: templates/dashboard/order/pdf/invoice.html:149
+msgctxt "Order total price header"
+msgid "Grand total"
+msgstr ""
+
+#: templates/dashboard/order/pdf/packing_slip.html:16
+msgctxt "Packing slip header"
+msgid "Order ID:"
+msgstr "訂單編號"
+
+#: templates/dashboard/order/pdf/packing_slip.html:20
+msgctxt "Packing slips header"
+msgid "Packing Slips"
+msgstr ""
+
+#: templates/dashboard/order/pdf/packing_slip.html:26
+msgctxt "Packing slip shipping details"
+msgid "Shipping Details"
+msgstr "配送詳情"
+
+#: templates/dashboard/order/pdf/packing_slip.html:30
+msgctxt "Packing slip shipping details"
+msgid "Billing Details"
+msgstr "帳單詳情"
+
+#: templates/dashboard/order/pdf/packing_slip.html:40
+msgctxt "Packing slip shipping address"
+msgid "Shipping address"
+msgstr "配送地址"
+
+#: templates/dashboard/order/pdf/packing_slip.html:49
+msgctxt "Packing slip billing address"
+msgid "Billing address"
+msgstr "帳單地址"
+
+#: templates/dashboard/order/pdf/packing_slip.html:58
+msgctxt "Order invoice"
+msgid "Items Ordered"
+msgstr ""
+
+#: templates/dashboard/order/pdf/packing_slip.html:67
+msgctxt "Order table header"
+msgid "SKU"
+msgstr "庫存單位"
+
+#: templates/dashboard/order/zero_page.html:5
+msgid "No orders found."
+msgstr "無訂單"
+
+#: templates/dashboard/order/zero_page.html:8
+msgid ""
+"\n"
+"    Orders will appear here after customers complete the checkout.\n"
+"  "
+msgstr ""
+
+#: templates/dashboard/page/detail.html:8 templates/dashboard/page/list.html:8
+msgctxt "Pages list page title"
+msgid "Pages"
+msgstr ""
+
+#: templates/dashboard/page/detail.html:17
+msgctxt "Pages form breadcrumbs"
+msgid "Pages"
+msgstr ""
+
+#: templates/dashboard/page/detail.html:43
+msgctxt "Page URL"
+msgid "Page URL"
+msgstr ""
+
+#: templates/dashboard/page/detail.html:50
+msgctxt "Page action"
+msgid "Edit page"
+msgstr ""
+
+#: templates/dashboard/page/detail.html:53
+msgctxt "Page action"
+msgid "Remove page"
+msgstr ""
+
+#: templates/dashboard/page/detail.html:57
+msgctxt "Page action"
+msgid "View on site"
+msgstr "在網站中查看"
+
+#: templates/dashboard/page/form.html:8
+msgctxt "Page form page title"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/page/form.html:10
+msgctxt "Page form page title"
+msgid "Add new page"
+msgstr ""
+
+#: templates/dashboard/page/form.html:26
+msgctxt "Dashboard pages list"
+msgid "Pages"
+msgstr ""
+
+#: templates/dashboard/page/form.html:41
+msgctxt "Page form breadcrumbs"
+msgid "Add new page"
+msgstr ""
+
+#: templates/dashboard/page/form.html:48
+msgctxt "Page form breadcrumbs"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/page/form.html:82 templates/dashboard/page/form.html:85
+msgid "Cancel"
+msgstr "取消"
+
+#: templates/dashboard/page/form.html:83
+msgid "Save"
+msgstr "儲存"
+
+#: templates/dashboard/page/form.html:86
+msgid "Create"
+msgstr "創建"
+
+#: templates/dashboard/page/list.html:18
+msgctxt "Page list add button text"
+msgid "Add page"
+msgstr ""
+
+#: templates/dashboard/page/list.html:27
+msgid "Pages"
+msgstr ""
+
+#: templates/dashboard/page/list.html:42
+msgctxt "Static pages table header name"
+msgid "Title"
+msgstr ""
+
+#: templates/dashboard/page/list.html:45
+msgctxt "Static pages table header url"
+msgid "URL"
+msgstr ""
+
+#: templates/dashboard/page/list.html:48
+msgctxt "Pages table header"
+msgid "Visibility"
+msgstr ""
+
+#: templates/dashboard/page/list.html:78
+msgctxt "Empty pages list message"
+msgid "No pages found."
+msgstr ""
+
+#: templates/dashboard/page/modal_delete.html:12
+#, python-format
+msgctxt "Modal remove page text"
+msgid "Remove page %(page)s"
+msgstr ""
+
+#: templates/dashboard/page/modal_delete.html:19
+#, python-format
+msgctxt "Modal remove page text"
+msgid "Are you sure you want to remove page <strong>%(page)s</strong>?"
+msgstr ""
+
+#: templates/dashboard/page/zero_page.html:5
+msgid "No pages found."
+msgstr ""
+
+#: templates/dashboard/page/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Pages allows to create custom static pages such as \"About us\" that will be displayed at particular url.<br>\n"
+"    You can create pages by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+
+#: templates/dashboard/product/detail.html:19
+#: templates/dashboard/product/product_variant/detail.html:20
+msgctxt "Product form breadcrumbs"
+msgid "Products"
+msgstr "產品"
+
+#: templates/dashboard/product/detail.html:55
+msgctxt "Product field"
+msgid "Published"
+msgstr "已發布"
+
+#: templates/dashboard/product/detail.html:57
+msgctxt "Product field"
+msgid "Draft"
+msgstr "草稿"
+
+#: templates/dashboard/product/detail.html:78
+msgctxt "Product action"
+msgid "Edit product"
+msgstr "編輯產品"
+
+#: templates/dashboard/product/detail.html:81
+msgctxt "Product action"
+msgid "Remove product"
+msgstr "刪除產品"
+
+#: templates/dashboard/product/detail.html:85
+msgctxt "Product action"
+msgid "View on site"
+msgstr "在網站中查看"
+
+#: templates/dashboard/product/detail.html:92
+msgid "Variant"
+msgstr "複合式"
+
+#: templates/dashboard/product/detail.html:103
+msgid "SKU"
+msgstr "庫存單位"
+
+#: templates/dashboard/product/detail.html:104
+msgid "Name"
+msgstr "名字"
+
+#: templates/dashboard/product/detail.html:105
+msgid "Status"
+msgstr "狀態"
+
+#: templates/dashboard/product/detail.html:108
+msgid "Gross price"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:110
+msgid "Net price"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:113
+msgid "Margin"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:139
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/product/detail.html:144
+msgctxt "Dashboard product details page"
+msgid "No variants found"
+msgstr "沒有產品變種"
+
+#: templates/dashboard/product/detail.html:160
+#: templates/dashboard/product/product_variant/detail.html:79
+msgctxt "Product pricing card header"
+msgid "Pricing"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:164
+#, python-format
+msgctxt "Product pricing card header subtitle"
+msgid "Taxes are charged (%(tax_rate)s tax rate)"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:168
+msgctxt "Product pricing card header subtitle"
+msgid "Taxes are not charged"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:179
+#: templates/dashboard/product/product_variant/detail.html:89
+msgctxt "Product field"
+msgid "Gross sale price"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:181
+#: templates/dashboard/product/product_variant/detail.html:91
+msgctxt "Product field"
+msgid "Net sale price"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:192
+#: templates/dashboard/product/product_variant/detail.html:102
+msgctxt "Product field"
+msgid "Gross discounted price"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:194
+#: templates/dashboard/product/product_variant/detail.html:104
+msgctxt "Product field"
+msgid "Net discounted price"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:205
+#: templates/dashboard/product/product_variant/detail.html:115
+msgctxt "Product field"
+msgid "Gross purchase cost"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:207
+#: templates/dashboard/product/product_variant/detail.html:117
+msgctxt "Product field"
+msgid "Net purchase cost"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:216
+#: templates/dashboard/product/product_variant/detail.html:130
+msgctxt "Product field"
+msgid "Margin"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:239
+#: templates/dashboard/product/product_variant/detail.html:148
+msgctxt "Product variant inventory card header"
+msgid "Inventory"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:248
+#: templates/dashboard/product/product_variant/detail.html:157
+msgctxt "Dashboard variant details view"
+msgid "Number in stock"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:256
+#: templates/dashboard/product/product_variant/detail.html:165
+msgctxt "Dashboard variant details view"
+msgid "Allocated"
+msgstr "已分配"
+
+#: templates/dashboard/product/detail.html:269
+#: templates/dashboard/product/product_image/list.html:7
+#: templates/dashboard/product/product_image/list.html:41
+msgid "Images"
+msgstr "圖片"
+
+#: templates/dashboard/product/detail.html:280
+msgid "Edit images"
+msgstr "編輯圖片"
+
+#: templates/dashboard/product/form.html:8
+msgctxt "Dashboard products list"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/product/form.html:10
+msgctxt "Product form page title"
+msgid "Add new product"
+msgstr "新增產品"
+
+#: templates/dashboard/product/form.html:43
+msgctxt "Product form breadcrumbs"
+msgid "Add new product"
+msgstr "新增產品"
+
+#: templates/dashboard/product/form.html:50
+msgctxt "Product form breadcrumbs"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/product/form.html:113
+#: templates/dashboard/product/product_variant/form.html:76
+msgid "Attributes"
+msgstr "屬性"
+
+#: templates/dashboard/product/form.html:116
+#, python-format
+msgid ""
+"\n"
+"                    Product Type: %(product_type_name)s\n"
+"                  "
+msgstr ""
+
+#: templates/dashboard/product/list.html:22
+#: templates/dashboard/product/list.html:26
+msgctxt "Product list add button text"
+msgid "Add product"
+msgstr "新增產品"
+
+#: templates/dashboard/product/list.html:63
+msgctxt "Products list table header"
+msgid "Name"
+msgstr "名字"
+
+#: templates/dashboard/product/list.html:66
+msgctxt "Products list table header"
+msgid "Price"
+msgstr "價格"
+
+#: templates/dashboard/product/list.html:103
+msgctxt "Empty product list message"
+msgid "No products found."
+msgstr "沒有產品"
+
+#: templates/dashboard/product/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Modal remove product text"
+msgid "Remove product %(product)s"
+msgstr "刪除產品%(product)s"
+
+#: templates/dashboard/product/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Modal remove product text"
+msgid "Are you sure you want to remove product <strong>%(product)s</strong>?"
+msgstr "您確定要删除產品<strong>%(product)s</strong>？"
+
+#: templates/dashboard/product/modal/select_type.html:11
+msgctxt "Modal select product types title"
+msgid "Product type"
+msgstr ""
+
+#: templates/dashboard/product/modal/select_type.html:19
+msgctxt "Dashboard add action"
+msgid "Create"
+msgstr "創建"
+
+#: templates/dashboard/product/product_attribute/detail.html:18
+msgctxt "Attribute detail breadcrumbs"
+msgid "Attributes"
+msgstr "屬性"
+
+#: templates/dashboard/product/product_attribute/detail.html:49
+msgctxt "Attribute detail action"
+msgid "Edit attribute"
+msgstr "編輯屬性"
+
+#: templates/dashboard/product/product_attribute/detail.html:52
+msgctxt "Attribute detail action"
+msgid "Remove attribute"
+msgstr "刪除屬性"
+
+#: templates/dashboard/product/product_attribute/detail.html:61
+msgid "Attribute values"
+msgstr "屬性值"
+
+#: templates/dashboard/product/product_attribute/detail.html:78
+msgid "Display name"
+msgstr "顯示名稱"
+
+#: templates/dashboard/product/product_attribute/detail.html:98
+#: templates/dashboard/shipping/detail.html:100
+msgctxt "Attribute choice value edit action"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/product/product_attribute/detail.html:101
+msgctxt "Attribute choice value edit action"
+msgid "Remove"
+msgstr "刪除"
+
+#: templates/dashboard/product/product_attribute/detail.html:108
+msgctxt "Empty list of attribute values"
+msgid "No attribute values"
+msgstr ""
+
+#: templates/dashboard/product/product_attribute/form.html:8
+#: templates/dashboard/product/product_attribute/values/form.html:8
+msgctxt "Dashboard attributes list"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/product/product_attribute/form.html:10
+#: templates/dashboard/product/product_attribute/values/form.html:10
+msgctxt "Attribute detail page title"
+msgid "Add new attribute"
+msgstr "新增屬性"
+
+#: templates/dashboard/product/product_attribute/form.html:45
+#: templates/dashboard/product/product_attribute/values/form.html:47
+#: templates/dashboard/shipping/country/form.html:49
+msgctxt "Attribute detail breadcrumbs"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/product/product_attribute/form.html:51
+#: templates/dashboard/product/product_attribute/values/form.html:53
+msgctxt "Attribute detail breadcrumbs"
+msgid "Add new attribute"
+msgstr "新增屬性"
+
+#: templates/dashboard/product/product_attribute/list.html:18
+msgctxt "Attribute list add button text"
+msgid "Add attribute"
+msgstr "新增屬性"
+
+#: templates/dashboard/product/product_attribute/list.html:44
+msgctxt "Dashboard attributes list table header name"
+msgid "Name"
+msgstr "名字"
+
+#: templates/dashboard/product/product_attribute/list.html:47
+msgctxt "Dashboard attributes list table header values"
+msgid "Values"
+msgstr "值"
+
+#: templates/dashboard/product/product_attribute/list.html:74
+msgctxt "Empty attribute list message"
+msgid "No attributes found."
+msgstr "沒有屬性"
+
+#: templates/dashboard/product/product_attribute/modal/attribute_confirm_delete.html:12
+#, python-format
+msgctxt "Modal remove attribute text"
+msgid "Remove attribute %(attribute)s"
+msgstr "删除屬性%(attribute)s"
+
+#: templates/dashboard/product/product_attribute/modal/attribute_confirm_delete.html:19
+#, python-format
+msgctxt "Modal remove attribute text"
+msgid ""
+"Are you sure you want to remove attribute <strong>%(attribute)s</strong>?"
+msgstr "您確定要删除屬性<strong>%(attribute)s</strong>？"
+
+#: templates/dashboard/product/product_attribute/values/form.html:70
+msgctxt "Attribute values form title"
+msgid "Attribute values"
+msgstr "屬性值"
+
+#: templates/dashboard/product/product_attribute/values/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Modal delete attribute text"
+msgid "Delete attribute choice value %(value)s"
+msgstr "删除屬性可選值%(value)s"
+
+#: templates/dashboard/product/product_attribute/values/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Modal delete attribute text"
+msgid ""
+"Are you sure you want to remove attribute choice value "
+"<strong>%(value)s</strong>?"
+msgstr ""
+
+#: templates/dashboard/product/product_attribute/zero_page.html:5
+#: templates/dashboard/product/product_variant/form.html:82
+msgid "No attributes found."
+msgstr "沒有屬性"
+
+#: templates/dashboard/product/product_attribute/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Attributes are used to define custom properties of products and variants, that can be used for filtering purposes in the storefront.<br>\n"
+"    You can add attributes by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+
+#: templates/dashboard/product/product_image/form.html:8
+msgctxt "Image form text"
+msgid "Edit - Image"
+msgstr "編輯 - 圖片"
+
+#: templates/dashboard/product/product_image/form.html:10
+msgctxt "Image form text"
+msgid "Add image"
+msgstr "新增圖片"
+
+#: templates/dashboard/product/product_image/form.html:38
+msgctxt "Image form text"
+msgid "Image"
+msgstr "圖片"
+
+#: templates/dashboard/product/product_image/form.html:43
+msgctxt "Image form text"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/product/product_image/form.html:49
+msgctxt "Image form breadcrumbs"
+msgid "Add image"
+msgstr "新增圖片"
+
+#: templates/dashboard/product/product_image/form.html:52
+#, python-format
+msgctxt "Image form breadcrumbs"
+msgid "Add image for %(product)s"
+msgstr "為產品%(product)s新增圖片"
+
+#: templates/dashboard/product/product_image/list.html:19
+msgctxt "Add image button text"
+msgid "Add image"
+msgstr "新增圖片"
+
+#: templates/dashboard/product/product_image/list.html:73
+msgctxt "Image card text"
+msgid "No description"
+msgstr "無描述"
+
+#: templates/dashboard/product/product_image/list.html:87
+#: templates/dashboard/product/product_image/list.html:131
+msgctxt "Dashboard remove action"
+msgid "Remove"
+msgstr "刪除"
+
+#: templates/dashboard/product/product_image/list.html:101
+msgctxt "Image gallery upload box text"
+msgid "Drop images here to upload"
+msgstr "將圖片拖曳到這裡上傳"
+
+#: templates/dashboard/product/product_image/list.html:120
+msgctxt "Empty image gallery message"
+msgid "No description"
+msgstr "無描述"
+
+#: templates/dashboard/product/product_image/modal/confirm_delete.html:12
+msgctxt "Modal remove image text"
+msgid "Remove product image"
+msgstr "刪除產品圖片"
+
+#: templates/dashboard/product/product_image/modal/confirm_delete.html:20
+msgctxt "Modal remove image text"
+msgid "Are you sure you want to remove product image?"
+msgstr "您確定要刪除產品圖片？"
+
+#: templates/dashboard/product/product_image/versatile_image.html:7
+msgid "Primary Point of Interest"
+msgstr ""
+
+#: templates/dashboard/product/product_image/versatile_image.html:10
+msgctxt "Image form text"
+msgid "Pick the most relevant part of the image using the red circle."
+msgstr ""
+
+#: templates/dashboard/product/product_type/form.html:10
+msgctxt "Product type page title"
+msgid "Add new product type"
+msgstr ""
+
+#: templates/dashboard/product/product_type/form.html:41
+msgctxt "Product type breadcrumbs"
+msgid "Add new product type"
+msgstr ""
+
+#: templates/dashboard/product/product_type/form.html:57
+msgctxt "Product type action"
+msgid "Remove product type"
+msgstr ""
+
+#: templates/dashboard/product/product_type/form.html:95
+msgid "Taxes"
+msgstr ""
+
+#: templates/dashboard/product/product_type/form.html:124
+msgctxt "Product type help text"
+msgid ""
+"Product Type is a template used for creating new products. It also controls "
+"which attributes can be used during product creation process."
+msgstr ""
+
+#: templates/dashboard/product/product_type/list.html:18
+msgctxt "Product type list add button text"
+msgid "Add product type"
+msgstr "新增產品類別"
+
+#: templates/dashboard/product/product_type/list.html:44
+msgctxt "Dashboard product types list table header name"
+msgid "Name"
+msgstr "名字"
+
+#: templates/dashboard/product/product_type/list.html:48
+msgctxt "Product type item list text"
+msgid "Product attributes"
+msgstr "產品屬性"
+
+#: templates/dashboard/product/product_type/list.html:51
+msgctxt "Product type item list text"
+msgid "Variant attributes"
+msgstr "產品變種屬性"
+
+#: templates/dashboard/product/product_type/list.html:89
+msgctxt "Empty product type list message"
+msgid "No product types found."
+msgstr "無產品類別"
+
+#: templates/dashboard/product/product_type/modal/confirm_delete.html:13
+#, python-format
+msgctxt "Modal remove product type text"
+msgid "Remove product type %(product_type)s"
+msgstr ""
+
+#: templates/dashboard/product/product_type/modal/confirm_delete.html:21
+#, python-format
+msgctxt "Modal remove product type text"
+msgid ""
+"Are you sure you want to remove product type "
+"<strong>%(product_type)s</strong>?"
+msgstr ""
+
+#: templates/dashboard/product/product_type/modal/confirm_delete.html:27
+#, python-format
+msgctxt "Modal remove product type text"
+msgid "There are %(product_count)s products in product type."
+msgstr ""
+
+#: templates/dashboard/product/product_type/modal/confirm_delete.html:31
+msgctxt "Modal remove product type text"
+msgid "There are no products in this product type."
+msgstr ""
+
+#: templates/dashboard/product/product_type/zero_page.html:5
+msgid "No product types found."
+msgstr "無產品類別"
+
+#: templates/dashboard/product/product_type/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Product types are templates used to create new products. They allow assigning custom attributes to the products of the same type.<br>\n"
+"    You can add product types by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+
+#: templates/dashboard/product/product_variant/detail.html:52
+msgctxt "Dashboard variant details view"
+msgid "SKU"
+msgstr "庫存單位"
+
+#: templates/dashboard/product/product_variant/detail.html:63
+msgctxt "Dashboard action"
+msgid "Edit variant"
+msgstr "編輯產品變種"
+
+#: templates/dashboard/product/product_variant/detail.html:66
+msgctxt "Dashboard action"
+msgid "Remove variant"
+msgstr "刪除產品變種"
+
+#: templates/dashboard/product/product_variant/detail.html:177
+msgctxt "Dashboard variant details view"
+msgid "Variant Images"
+msgstr ""
+
+#: templates/dashboard/product/product_variant/detail.html:185
+msgid "No images"
+msgstr "沒有圖片"
+
+#: templates/dashboard/product/product_variant/detail.html:193
+msgctxt "Dashboard action"
+msgid "Select images"
+msgstr "選擇圖片"
+
+#: templates/dashboard/product/product_variant/form.html:8
+msgctxt "Variant form page title"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/product/product_variant/form.html:10
+msgctxt "Variant form page title"
+msgid "Add variant"
+msgstr "新增產品變種"
+
+#: templates/dashboard/product/product_variant/form.html:47
+msgctxt "Variant form breadcrumbs"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/product/product_variant/form.html:53
+msgctxt "Variant form breadcrumbs"
+msgid "Add variant"
+msgstr "新增產品變種"
+
+#: templates/dashboard/product/product_variant/form.html:56
+#, python-format
+msgctxt "Variant form breadcrumbs"
+msgid "Add variant for %(product)s"
+msgstr "新增產品變種%(product)s"
+
+#: templates/dashboard/product/product_variant/modal/confirm_delete.html:13
+#, python-format
+msgctxt "Dashboard confirmation modal"
+msgid ""
+"\n"
+"  Remove variant %(variant)s\n"
+msgstr ""
+
+#: templates/dashboard/product/product_variant/modal/confirm_delete.html:21
+#, python-format
+msgctxt "Dashboard confirmation modal"
+msgid ""
+"\n"
+"        Are you sure you want to remove variant <strong>%(variant)s</strong> of product %(product)s?\n"
+"      "
+msgstr ""
+
+#: templates/dashboard/product/product_variant/modal/confirm_delete.html:27
+msgctxt "Dashboard confirmation modal"
+msgid ""
+"This is the only variant of this product. If you remove it, the product will"
+" become unavailable."
+msgstr "這是該產品的唯一產品變種。如果您刪除了它，該產品將不可用。"
+
+#: templates/dashboard/product/product_variant/modal/select_images.html:14
+msgctxt "Dashboard variant images modal"
+msgid "Select variant images"
+msgstr "選擇產品變種圖片"
+
+#: templates/dashboard/product/product_variant/modal/select_images.html:24
+msgctxt "Dashboard modal action"
+msgid "Save"
+msgstr "儲存"
+
+#: templates/dashboard/product/zero_page.html:5
+msgid "No products found."
+msgstr "沒有產品"
+
+#: templates/dashboard/product/zero_page.html:10
+#, python-format
+msgid ""
+"\n"
+"      You can create products by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"    "
+msgstr ""
+
+#: templates/dashboard/product/zero_page.html:14
+#, python-format
+msgid ""
+"\n"
+"      In order to create products, you have to first <a href=\"%(product_type_url)s\">add a product type </a>.\n"
+"    "
+msgstr ""
+
+#: templates/dashboard/search/results.html:9 templates/search/results.html:6
+msgctxt "Search page title"
+msgid "Search results"
+msgstr "搜尋結果"
+
+#: templates/dashboard/search/results.html:14
+msgctxt "Dashboard search"
+msgid "Search results"
+msgstr "搜尋結果"
+
+#: templates/dashboard/search/results.html:25
+msgctxt "Search results list products"
+msgid "Products"
+msgstr "產品"
+
+#: templates/dashboard/search/results.html:47
+msgctxt "Search results list orders"
+msgid "Orders"
+msgstr "訂單"
+
+#: templates/dashboard/search/results.html:54
+#, python-format
+msgctxt "Dashboard order"
+msgid "Order #%(order_number)s"
+msgstr "訂單 #%(order_number)s"
+
+#: templates/dashboard/search/results.html:60
+#, python-format
+msgctxt "Dashboard customer"
+msgid "Customer: %(email)s"
+msgstr "客戶：%(email)s"
+
+#: templates/dashboard/search/results.html:65
+#, python-format
+msgctxt "Dashboard order info"
+msgid "Placed on: %(placed)s"
+msgstr ""
+
+#: templates/dashboard/search/results.html:76
+msgctxt "Search results list users"
+msgid "Users"
+msgstr ""
+
+#: templates/dashboard/search/results.html:83
+#, python-format
+msgctxt "Dashboard user"
+msgid "User %(full_name)s"
+msgstr "用戶%(full_name)s"
+
+#: templates/dashboard/search/results.html:100
+#, python-format
+msgctxt "No Search result message"
+msgid "No results for query \"%(query)s\"."
+msgstr "以下查詢沒有结果“%(query)s”"
+
+#: templates/dashboard/shipping/country/form.html:8
+msgctxt "Dashboard price per country edit page"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/shipping/country/form.html:10
+msgctxt "Shipping price per country edit page title"
+msgid "Add new shipping price per country"
+msgstr ""
+
+#: templates/dashboard/shipping/country/form.html:31
+msgctxt "Dashboard attributes list"
+msgid "Shipping methods"
+msgstr "配送方式"
+
+#: templates/dashboard/shipping/country/form.html:55
+msgctxt "Attribute detail breadcrumbs"
+msgid "Add new price for country"
+msgstr ""
+
+#: templates/dashboard/shipping/country/form.html:72
+msgctxt "Shipping method price for country form title"
+msgid "Shipping method price for country "
+msgstr ""
+
+#: templates/dashboard/shipping/detail.html:21
+msgctxt "Shipping method form breadcrumbs"
+msgid "Shipping methods"
+msgstr "配送方式"
+
+#: templates/dashboard/shipping/detail.html:47
+msgctxt "Shipping method field"
+msgid "Description"
+msgstr "描述"
+
+#: templates/dashboard/shipping/detail.html:59
+msgctxt "Shipping method action"
+msgid "Edit shipping method"
+msgstr "編輯配送方式"
+
+#: templates/dashboard/shipping/detail.html:62
+msgctxt "Shipping method action"
+msgid "Remove shipping method"
+msgstr "刪除配送方式"
+
+#: templates/dashboard/shipping/detail.html:73
+msgctxt "Title of the per-country shipping price list"
+msgid "Price per country"
+msgstr ""
+
+#: templates/dashboard/shipping/detail.html:86
+msgctxt "Header of the per-country shipping price list"
+msgid "Country"
+msgstr "國家"
+
+#: templates/dashboard/shipping/detail.html:89
+msgctxt "Header of the per-country shipping price list"
+msgid "Price"
+msgstr "價格"
+
+#: templates/dashboard/shipping/detail.html:103
+msgctxt "Attribute choice value remove action"
+msgid "Remove"
+msgstr "刪除"
+
+#: templates/dashboard/shipping/detail.html:109
+msgctxt "Empty list of per-country shipping prices"
+msgid "No shipping prices"
+msgstr "無運費"
+
+#: templates/dashboard/shipping/form.html:9
+msgctxt "Dashboard shipping methods"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/shipping/form.html:12
+#: templates/dashboard/shipping/form.html:25
+msgctxt "Shipping method form page title"
+msgid "Add new method"
+msgstr "新增配送方式"
+
+#: templates/dashboard/shipping/form.html:33
+msgctxt "Dashboard shipping method"
+msgid "Shipping methods"
+msgstr "配送方式"
+
+#: templates/dashboard/shipping/form.html:49
+msgctxt "Shipping method form page title"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/shipping/form.html:55
+msgctxt "Shipping method form breadcrumbs"
+msgid "Add new method"
+msgstr "新增配送方式"
+
+#: templates/dashboard/shipping/list.html:27
+msgctxt "Shipping method list add button text"
+msgid "Add method"
+msgstr "新增配送方式"
+
+#: templates/dashboard/shipping/list.html:43
+msgctxt "Shipping methods table header"
+msgid "Name"
+msgstr "名字"
+
+#: templates/dashboard/shipping/list.html:47
+msgctxt "Shipping methods table header"
+msgid "Price range"
+msgstr "價格範圍"
+
+#: templates/dashboard/shipping/list.html:50
+msgctxt "Shipping methods table header"
+msgid "Countries"
+msgstr "國家"
+
+#: templates/dashboard/shipping/list.html:84
+msgctxt "Empty shipping list message"
+msgid "No shipping methods found."
+msgstr ""
+
+#: templates/dashboard/shipping/modal/confirm_delete.html:13
+#, python-format
+msgctxt "Dashboard confirmation modal"
+msgid ""
+"\n"
+"Remove shipping method %(shipping_method)s\n"
+msgstr ""
+"\n"
+"删除配送方式%(shipping_method)s\n"
+
+#: templates/dashboard/shipping/modal/confirm_delete.html:20
+#, python-format
+msgctxt "Dashboard confirmation modal"
+msgid ""
+"\n"
+"      Are you sure you want to remove shipping method <strong>%(shipping_method)s</strong>?\n"
+"    "
+msgstr ""
+
+#: templates/dashboard/shipping/modal/country_confirm_delete.html:12
+#, python-format
+msgctxt "Modal remove shipping method country title"
+msgid "Remove shipping %(country)s"
+msgstr ""
+
+#: templates/dashboard/shipping/modal/country_confirm_delete.html:19
+#, python-format
+msgctxt "Modal remove shipping method country text"
+msgid "Are you sure you want to remove shipping <strong>%(country)s</strong>?"
+msgstr ""
+
+#: templates/dashboard/shipping/zero_page.html:5
+msgid "No shipping methods found."
+msgstr ""
+
+#: templates/dashboard/shipping/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Shipping methods allows defining shipping methods that are available in the shop.<br>\n"
+"    You can add shipping methods by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+
+#: templates/dashboard/sites/authorization_keys/form.html:8
+msgctxt "Dashboard authorization key list"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/sites/authorization_keys/form.html:10
+msgctxt "Add new authorization key page title"
+msgid "Add new authorization key"
+msgstr "新增授權密鑰"
+
+#: templates/dashboard/sites/authorization_keys/form.html:29
+msgctxt "Dashboard site setting detail"
+msgid "Site settings"
+msgstr "站點設置"
+
+#: templates/dashboard/sites/authorization_keys/form.html:40
+msgctxt "Authorization key breadcrumbs"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/sites/authorization_keys/form.html:46
+msgctxt "Authorization key breadcrumbs"
+msgid "Add new authorization key"
+msgstr "新增授權密鑰"
+
+#: templates/dashboard/sites/authorization_keys/form.html:63
+msgctxt "Authorization key form title"
+msgid "Authorization key"
+msgstr "授權密鑰"
+
+#: templates/dashboard/sites/detail.html:33
+msgctxt "Site settings field"
+msgid "Domain"
+msgstr "域名"
+
+#: templates/dashboard/sites/detail.html:43
+msgctxt "Site settings field"
+msgid "Header text"
+msgstr "抬頭文字"
+
+#: templates/dashboard/sites/detail.html:53
+msgctxt "Site settings field"
+msgid "Description"
+msgstr "描述"
+
+#: templates/dashboard/sites/detail.html:63
+msgctxt "Site settings action"
+msgid "Edit site settings"
+msgstr "編輯站點設置"
+
+#: templates/dashboard/sites/detail.html:72
+msgctxt "Title of the authorization keys list"
+msgid "Authorization keys"
+msgstr "授權密鑰"
+
+#: templates/dashboard/sites/detail.html:85
+msgctxt "Header of authorization keys list"
+msgid "Name"
+msgstr "名字"
+
+#: templates/dashboard/sites/detail.html:88
+msgctxt "Header of authorization keys list"
+msgid "Key"
+msgstr "密鑰"
+
+#: templates/dashboard/sites/detail.html:99
+msgctxt "Authorization key edit action"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/sites/detail.html:102
+msgctxt "Authorization key remove action"
+msgid "Remove"
+msgstr "刪除"
+
+#: templates/dashboard/sites/detail.html:108
+msgctxt "Empty list of authorization keys"
+msgid "No authorization keys"
+msgstr "無授權碼"
+
+#: templates/dashboard/sites/form.html:9
+#: templates/dashboard/taxes/form.html:10
+msgctxt "Site settings page title"
+msgid "Add new site settings"
+msgstr "新增站點設置"
+
+#: templates/dashboard/sites/form.html:22
+msgctxt "Dashboard attributes list"
+msgid "Site settings"
+msgstr "站點設置"
+
+#: templates/dashboard/sites/form.html:27
+msgctxt "Dashboard site settings"
+msgid "Edit"
+msgstr "編輯"
+
+#: templates/dashboard/sites/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Modal delete authorization key text"
+msgid "Delete authorization key %(key)s"
+msgstr "刪除授權碼%(key)s"
+
+#: templates/dashboard/sites/modal/confirm_delete.html:19
+#, python-format
+msgctxt "Modal delete authorization key text"
+msgid ""
+"Are you sure you want to remove authorization key <strong>%(key)s</strong>?"
+msgstr ""
+
+#: templates/dashboard/staff/detail.html:10
+msgctxt "Dashboard add staff member"
+msgid "Add new staff member"
+msgstr ""
+
+#: templates/dashboard/staff/detail.html:12
+msgctxt "Dashboard staff"
+msgid "Staff"
+msgstr "員工"
+
+#: templates/dashboard/staff/detail.html:28
+msgctxt "Dashboard staff list"
+msgid "Staff"
+msgstr "員工"
+
+#: templates/dashboard/staff/detail.html:36
+msgctxt "Dashboard add staff member action"
+msgid "Add staff member"
+msgstr "新增員工"
+
+#: templates/dashboard/staff/detail.html:49
+msgctxt "Staff member form action"
+msgid "Remove staff member"
+msgstr "刪除員工"
+
+#: templates/dashboard/staff/detail.html:64
+msgctxt "Staff member details header"
+msgid "Staff member details"
+msgstr "員工詳情"
+
+#: templates/dashboard/staff/list.html:8
+#: templates/dashboard/staff/list.html:30
+msgctxt "Dashboard staff members list"
+msgid "Staff"
+msgstr "員工"
+
+#: templates/dashboard/staff/list.html:19
+msgctxt "Staff members list add button text"
+msgid "Add staff member"
+msgstr "新增員工"
+
+#: templates/dashboard/staff/list.html:44
+msgctxt "Staff members table header"
+msgid "Name"
+msgstr "名字"
+
+#: templates/dashboard/staff/list.html:47
+msgctxt "Staff members table header"
+msgid "Email"
+msgstr "電子信箱"
+
+#: templates/dashboard/staff/list.html:50
+msgctxt "Staff members table header"
+msgid "Location"
+msgstr "地址"
+
+#: templates/dashboard/staff/list.html:90
+msgctxt "Empty staff table message"
+msgid "No staff members found."
+msgstr ""
+
+#: templates/dashboard/staff/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Modal remove group text"
+msgid "Remove staff member <strong>%(staff)s</strong>"
+msgstr ""
+
+#: templates/dashboard/staff/modal/confirm_delete.html:19
+msgctxt "Modal remove group text"
+msgid "Are you sure you want to remove staff member?"
+msgstr ""
+
+#: templates/dashboard/staff/zero_page.html:5
+msgid "No staff members found."
+msgstr ""
+
+#: templates/dashboard/staff/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Staff members are users who have access to the dashboard.<br>\n"
+"    You can create staff members by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button or by using option \"Promote to staff\" in the customer details view.\n"
+"  "
+msgstr ""
+
+#: templates/dashboard/taxes/details.html:18
+msgctxt "Tax details breadcrumbs"
+msgid "Taxes"
+msgstr ""
+
+#: templates/dashboard/taxes/details.html:40
+#, python-format
+msgctxt "Country tax rates list title"
+msgid "Tax rates in %(country_name)s"
+msgstr ""
+
+#: templates/dashboard/taxes/details.html:50
+msgctxt "Country tax rates list header"
+msgid "Name"
+msgstr "名字"
+
+#: templates/dashboard/taxes/details.html:53
+msgctxt "Country tax rates list header"
+msgid "Value"
+msgstr ""
+
+#: templates/dashboard/taxes/details.html:62
+#, python-format
+msgctxt "Order line tax rate value"
+msgid ""
+"\n"
+"                      %(tax_rate)s %%\n"
+"                    "
+msgstr ""
+
+#: templates/dashboard/taxes/details.html:69
+msgctxt "Empty country tax rates list"
+msgid "No tax rates"
+msgstr ""
+
+#: templates/dashboard/taxes/form.html:23
+#: templates/dashboard/taxes/list.html:7
+#: templates/dashboard/taxes/list.html:15
+msgctxt "Dashboard taxes list"
+msgid "Taxes"
+msgstr ""
+
+#: templates/dashboard/taxes/form.html:28
+msgctxt "Dashboard configure taxes settings"
+msgid "Configure taxes"
+msgstr ""
+
+#: templates/dashboard/taxes/form.html:42
+msgctxt "Dashboard site taxes settings form title"
+msgid "Taxes"
+msgstr ""
+
+#: templates/dashboard/taxes/form.html:46
+msgid "Dashboard"
+msgstr "後台"
+
+#: templates/dashboard/taxes/form.html:54
+msgctxt "Dashboard site taxes settings form help text"
+msgid ""
+"\n"
+"                    If selected, taxes will be calculated using below formula:\n"
+"                  "
+msgstr ""
+
+#: templates/dashboard/taxes/form.html:59
+msgctxt "Dashboard site taxes settings form help text"
+msgid ""
+"\n"
+"                    tax_amount = (tax_rate * price) / (1 + tax_rate)\n"
+"                  "
+msgstr ""
+
+#: templates/dashboard/taxes/form.html:64
+#, python-format
+msgctxt "Dashboard site taxes settings form help text"
+msgid ""
+"\n"
+"                    For example: product with price 4.00 € and 19%% VAT will have net price calculated to 3.36 € and tax to 0.64 € (rounded)\n"
+"                  "
+msgstr ""
+
+#: templates/dashboard/taxes/form.html:71
+msgid "Storefront"
+msgstr ""
+
+#: templates/dashboard/taxes/form.html:79
+msgctxt "Dashboard site taxes settings form help text"
+msgid ""
+"\n"
+"                    If selected, prices displayed for customers in the storefront will be gross and taxes will be calculated at checkout.\n"
+"                  "
+msgstr ""
+
+#: templates/dashboard/taxes/form.html:91
+msgctxt "Dashboard site taxes settings form help text"
+msgid ""
+"\n"
+"                    If selected, standard tax rate will be charged on a shipping price.\n"
+"                  "
+msgstr ""
+
+#: templates/dashboard/taxes/form.html:112
+msgctxt "Taxes help text"
+msgid ""
+"Taxes are charged according to the rates applicable in the country to which "
+"the order is delivered. For now, only rates in European Union are handled."
+msgstr ""
+
+#: templates/dashboard/taxes/list.html:29
+msgctxt "Taxes table header"
+msgid "Country code"
+msgstr ""
+
+#: templates/dashboard/taxes/list.html:33
+msgctxt "Taxes table header"
+msgid "Country name"
+msgstr ""
+
+#: templates/dashboard/taxes/list.html:61
+msgctxt "Empty taxes message"
+msgid "No taxes found."
+msgstr ""
+
+#: templates/dashboard/taxes/list.html:76
+msgctxt "Taxes site settings title"
+msgid "Configuration"
+msgstr "配置"
+
+#: templates/dashboard/taxes/list.html:81
+msgctxt "Site settings field"
+msgid "All products prices are entered with tax included"
+msgstr ""
+
+#: templates/dashboard/taxes/list.html:85
+msgctxt "Include taxes in prices setting description"
+msgid "Yes"
+msgstr ""
+
+#: templates/dashboard/taxes/list.html:87
+msgctxt "Include taxes in prices setting description"
+msgid "No"
+msgstr ""
+
+#: templates/dashboard/taxes/list.html:95
+msgctxt "Site settings field"
+msgid "Show gross prices to customers in the storefront"
+msgstr ""
+
+#: templates/dashboard/taxes/list.html:99
+msgctxt "Show customers gross prices setting description"
+msgid "Yes"
+msgstr ""
+
+#: templates/dashboard/taxes/list.html:101
+msgctxt "Show customers gross prices setting description"
+msgid "No"
+msgstr ""
+
+#: templates/dashboard/taxes/list.html:109
+msgctxt "Site settings field"
+msgid "Charge taxes on shipping rates"
+msgstr ""
+
+#: templates/dashboard/taxes/list.html:113
+msgctxt "Charge taxes on shipping rates setting description"
+msgid "Yes"
+msgstr ""
+
+#: templates/dashboard/taxes/list.html:115
+msgctxt "Charge taxes on shipping rates setting description"
+msgid "No"
+msgstr ""
+
+#: templates/dashboard/taxes/list.html:124
+msgctxt "Site settings configure taxes action"
+msgid "Configure taxes"
+msgstr ""
+
+#: templates/dashboard/taxes/list.html:127
+msgctxt "Site settings fetch tax rates action"
+msgid "Fetch tax rates"
+msgstr ""
+
+#: templates/dashboard/taxes/zero_page.html:4
+msgid "No taxes found."
+msgstr ""
+
+#: templates/dashboard/taxes/zero_page.html:6
+msgid ""
+"\n"
+"    Taxes define tax rates used in European Union countries and needs to be fetched manually.<br>\n"
+"    To enable fetching taxes, please provide your access key to <a href=\"https://vatlayer.com/\">vatlayer</a> API in settings file.\n"
+"  "
+msgstr ""
+
+#: templates/home.html:12
+msgctxt "Homepage title"
+msgid "Promo & Sale"
+msgstr "優惠 & 促銷"
+
+#: templates/home.html:13
+msgctxt "Homepage title"
+msgid "from the Northpole"
+msgstr "來自北極"
+
+#: templates/home.html:15 templates/home.html:30 templates/home.html:42
+msgctxt "Homepage action"
+msgid "Shop now"
+msgstr "現在購買"
+
+#: templates/home.html:29
+msgctxt "Homepage title"
+msgid "Size & Colours"
+msgstr "尺寸 & 顏色"
+
+#: templates/home.html:41
+msgctxt "Homepage title"
+msgid "Digital Downloads"
+msgstr ""
+
+#: templates/home.html:50
+msgctxt "Homepage title"
+msgid "Featured products"
+msgstr "主打產品"
+
+#: templates/materializecssform/field.html:32
+#: templates/materializecssform/field.html:59
+#: templates/materializecssform/field.html:86
+#: templates/materializecssform/field.html:109
+#: templates/materializecssform/field.html:135
+#: templates/materializecssform/field.html:160
+#: templates/materializecssform/field.html:180
+#: templates/materializecssform/field.html:194
+#: templates/materializecssform/field.html:228
+#: templates/materializecssform/field.html:257
+#: templates/materializecssform/field.html:283
+#: templates/materializecssform/field.html:316
+#: templates/materializecssform/field.html:344
+#: templates/materializecssform/field.html:370
+msgctxt "Dashboard form labels"
+msgid "(optional)"
+msgstr "可選"
+
+#: templates/materializecssform/field.html:200
+#: templates/materializecssform/field.html:234
+msgid "File"
+msgstr "文件"
+
+#: templates/materializecssform/field.html:349
+#, python-format
+msgctxt ""
+"Message showing how many chars were used out of maximum field's length"
+msgid ""
+"\n"
+"          %(current_chars_count)s</span> of %(max_chars_count)s characters used\n"
+"        "
+msgstr ""
+
+#: templates/order/_ordered_items_table.html:14
+msgctxt "Order details address title"
+msgid "Shipping address"
+msgstr "配送地址"
+
+#: templates/order/_ordered_items_table.html:21
+msgctxt "Order details address title"
+msgid "Billing address"
+msgstr "帳單地址"
+
+#: templates/order/_ordered_items_table.html:32
+#: templates/order/_ordered_items_table.html:168
+msgctxt "Order details column title"
+msgid "Product"
+msgstr "產品"
+
+#: templates/order/_ordered_items_table.html:37
+#: templates/order/_ordered_items_table.html:173
+msgctxt "Order details column title"
+msgid "Quantity"
+msgstr "庫存"
+
+#: templates/order/_ordered_items_table.html:42
+msgctxt "Order details column title"
+msgid "Price"
+msgstr "價格"
+
+#: templates/order/_ordered_items_table.html:80
+msgctxt "Order details subtotal row text"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/order/_ordered_items_table.html:97
+msgctxt "Order details shipment row text"
+msgid "Shipping"
+msgstr ""
+
+#: templates/order/_ordered_items_table.html:129
+msgctxt "Order details taxes text"
+msgid "Taxes (included)"
+msgstr ""
+
+#: templates/order/_ordered_items_table.html:131
+msgctxt "Order details taxes text"
+msgid "Taxes"
+msgstr ""
+
+#: templates/order/_ordered_items_table.html:145
+msgctxt "Order details total text"
+msgid "Total"
+msgstr ""
+
+#: templates/order/_ordered_items_table.html:159
+#, python-format
+msgctxt "Order details fulfillment title"
+msgid "Fulfillment #%(fulfillment)s"
+msgstr ""
+
+#: templates/order/_ordered_items_table.html:196
+msgctxt "Fulfillment tracking number details"
+msgid "Tracking number"
+msgstr ""
+
+#: templates/order/checkout_success.html:8
+#: templates/order/checkout_success_anonymous.html:8
+msgctxt "Checkout success page title"
+msgid "Thank you"
+msgstr ""
+
+#: templates/order/checkout_success.html:16
+#: templates/order/checkout_success_anonymous.html:16
+#, python-format
+msgctxt "Checkout title"
+msgid "Thank you for your <a href=\"%(order_url)s\">order</a>!"
+msgstr "感謝您的<a href=\"%(order_url)s\">訂單 </a>！"
+
+#: templates/order/checkout_success.html:20
+#: templates/order/checkout_success_anonymous.html:20
+#, python-format
+msgctxt "Checkout text"
+msgid ""
+"We've sent a confirmation email with details to <span>%(email)s</span>.<br> "
+"In case of any problems or questions please contact us."
+msgstr ""
+
+#: templates/order/checkout_success.html:29
+#: templates/order/checkout_success_anonymous.html:58
+msgctxt "Checkout secondary action"
+msgid "Continue shopping"
+msgstr "繼續購物"
+
+#: templates/order/checkout_success_anonymous.html:27
+msgctxt "Checkout text"
+msgid ""
+"It looks like you already are our customer! <br> Please log in to connect "
+"order with your account."
+msgstr "您已經註冊！<br>請直接登入。"
+
+#: templates/order/checkout_success_anonymous.html:37
+msgctxt "Checkout title"
+msgid "Why not to create an account"
+msgstr "請創建帳號"
+
+#: templates/order/checkout_success_anonymous.html:38
+msgid ""
+"Make your shopping experience even better! Save your shipping and payment "
+"details for faster checkout."
+msgstr "為了提升您的購物體驗，請保存您的配送地址和付款方式。"
+
+#: templates/order/checkout_success_anonymous.html:47
+msgctxt "Checkout primary action"
+msgid "Create an account"
+msgstr "創建帳號"
+
+#: templates/order/details.html:8
+#, python-format
+msgctxt "Order details page title"
+msgid "Order %(order)s"
+msgstr "訂單%(order)s"
+
+#: templates/order/details.html:28 templates/order/payment/details.html:22
+#, python-format
+msgctxt "Order details breadcrumb"
+msgid "Order %(order)s"
+msgstr "訂單%(order)s"
+
+#: templates/order/details.html:49
+#, python-format
+msgctxt "Order detail text"
+msgid "Order %(order)s: %(order_status)s"
+msgstr "訂單%(order)s：%(order_status)s"
+
+#: templates/order/details.html:56
+msgctxt "Order details link text"
+msgid "Payment details"
+msgstr "付款詳情"
+
+#: templates/order/details.html:60
+msgctxt "Order details primary action"
+msgid "Pay for order"
+msgstr "支付訂單"
+
+#: templates/order/details.html:67
+msgctxt "Order notes list"
+msgid "Notes"
+msgstr ""
+
+#: templates/order/details.html:72
+#, python-format
+msgid ""
+"\n"
+"                  %(date)s by you\n"
+"                "
+msgstr ""
+
+#: templates/order/details.html:76
+msgctxt "Order note author is staff"
+msgid "staff"
+msgstr ""
+
+#: templates/order/details.html:77
+#, python-format
+msgid ""
+"\n"
+"                  %(date)s by <span class=\"text-muted\">%(author)s</span>\n"
+"                "
+msgstr ""
+
+#: templates/order/details.html:81
+#, python-format
+msgid ""
+"\n"
+"                  %(date)s by %(author)s\n"
+"                "
+msgstr ""
+
+#: templates/order/details.html:86
+#, python-format
+msgid ""
+"\n"
+"                %(date)s by anonymous customer\n"
+"              "
+msgstr ""
+
+#: templates/order/payment.html:8
+#, python-format
+msgctxt "Payment details page title"
+msgid "Pay for order %(order)s"
+msgstr "支付訂單%(order)s"
+
+#: templates/order/payment.html:28
+#, python-format
+msgctxt "Payment details breadcrumb"
+msgid "Order %(order)s"
+msgstr "訂單%(order)s"
+
+#: templates/order/payment.html:44
+msgctxt "Payment details title"
+msgid "Payment pending"
+msgstr "等待付款"
+
+#: templates/order/payment.html:48
+msgctxt "Payment pending text"
+msgid ""
+"We are currently waiting for an external service to authorize your payment "
+"for this order."
+msgstr "正在等待外部服務授權您的訂單付款"
+
+#: templates/order/payment.html:52
+msgctxt "Payment status text"
+msgid "Current status:"
+msgstr "當前狀態"
+
+#: templates/order/payment.html:58
+msgctxt "Payment pending text"
+msgid ""
+"Unless you are absolutely sure that the process will not complete (for "
+"example you have closed the browser window before paying), you should wait "
+"before attempting a new payment. Please be warned that if you try again and "
+"the previous transaction succeeds you might end up being charged twice."
+msgstr ""
+
+#: templates/order/payment.html:67
+msgctxt "Payment pending action"
+msgid "I understand, allow me to pay again"
+msgstr "我知道了，讓我再次付款"
+
+#: templates/order/payment.html:72
+#, python-format
+msgctxt "Payment details title"
+msgid "Pay for order %(order)s"
+msgstr "支付訂單%(order)s"
+
+#: templates/order/payment.html:81
+msgctxt "Payment details primary action"
+msgid "Proceed to payment"
+msgstr "進行付款"
+
+#: templates/order/payment.html:86
+msgctxt "Payment details text"
+msgid "You've authorized transaction. Order is in processing"
+msgstr "您已授權交易，訂單處理中"
+
+#: templates/order/payment/default.html:12
+msgctxt "Payment form (Stripe) secondary action"
+msgid "Change payment method"
+msgstr "修改付款方式"
+
+#: templates/order/payment/default.html:19
+msgctxt "Payment form primary action"
+msgid "Make payment"
+msgstr ""
+
+#: templates/order/payment/details.html:4
+msgctxt "Payment form page title"
+msgid "Payment"
+msgstr "付款"
+
+#: templates/order/payment/details.html:28
+msgctxt "Payment form breadcrumb"
+msgid "Payment"
+msgstr "付款"
+
+#: templates/order/payment/details.html:39
+msgctxt "Payment form title"
+msgid "Payment"
+msgstr "付款"
+
+#: templates/page/details.html:41
+msgctxt "Unavailable page detail text"
+msgid ""
+"\n"
+"        <strong>Warning!</strong>\n"
+"        You are previewing a page that is not visible.\n"
+"      "
+msgstr ""
+
+#: templates/page/details.html:48
+#, python-format
+msgctxt "Unpublished page details text"
+msgid ""
+"<strong>Warning!</strong> You are previewing a page that will become visible"
+" on <strong>%(date)s</strong>."
+msgstr ""
+
+#: templates/product/_filters.html:14
+#: templates/product/product_list_base.html:50
+msgctxt "Filter heading title"
+msgid "Filters"
+msgstr "過濾"
+
+#: templates/product/_filters.html:17
+msgctxt "Product list page filters"
+msgid "Clear filters"
+msgstr "清理篩選"
+
+#: templates/product/_filters.html:63
+msgctxt "Product price filter"
+msgid "from"
+msgstr "從"
+
+#: templates/product/_filters.html:65
+msgctxt "Product price filter"
+msgid "to"
+msgstr "到"
+
+#: templates/product/_filters.html:71
+msgctxt "Apply filters button"
+msgid "Update"
+msgstr "更新"
+
+#. Translators: Layout may break if character length is different than four.
+#: templates/product/_items.html:29
+msgctxt "Sale (discount) label for item in product list"
+msgid "Sale"
+msgstr "銷售"
+
+#: templates/product/_price_range.html:6
+msgctxt "product price range"
+msgid "from"
+msgstr "從"
+
+#: templates/product/details.html:61
+#, python-format
+msgctxt "Product details text"
+msgid ""
+"<strong>Warning!</strong> You are previewing a product that will become "
+"visible on <strong>%(date)s</strong>."
+msgstr ""
+
+#: templates/product/details.html:121
+msgctxt "Product details link text"
+msgid "Edit in dashboard"
+msgstr "在後台中編輯"
+
+#: templates/product/details.html:147
+#, python-format
+msgctxt "Product details page vat rate value"
+msgid "including %(tax_rate)s%% VAT"
+msgstr ""
+
+#: templates/product/details.html:151
+#, python-format
+msgctxt "Product details page vat rate value"
+msgid "excluding %(tax_rate)s%% VAT"
+msgstr ""
+
+#: templates/product/details.html:175
+msgctxt "Product details primary action"
+msgid "Add to cart"
+msgstr "加到購物車"
+
+#: templates/product/details.html:187
+msgctxt "Product details text"
+msgid "This product is currently <strong>unavailable</strong>."
+msgstr ""
+
+#: templates/product/details.html:191
+msgctxt "Product details title"
+msgid "Description"
+msgstr "描述"
+
+#: templates/product/product_list_base.html:58
+msgid "Sort by: <b>name</b>"
+msgstr ""
+
+#: templates/product/product_list_base.html:62
+msgid "Sort by: <b>price</b>"
+msgstr ""
+
+#: templates/product/product_list_base.html:81
+msgctxt "Product list filters"
+msgid "Sort by"
+msgstr "排序"
+
+#: templates/product/product_list_base.html:87
+msgctxt "sort by option"
+msgid "ascending"
+msgstr "升序"
+
+#: templates/product/product_list_base.html:93
+msgctxt "sort by option"
+msgid "descending"
+msgstr "降序"
+
+#: templates/product/product_list_base.html:144
+#: templates/search/results.html:34
+msgctxt "Search without results text"
+msgid "Sorry, no matches found for your request."
+msgstr "沒有找到任何相關的商品"
+
+#: templates/product/product_list_base.html:145
+#: templates/search/results.html:35
+msgctxt "Search without results text"
+msgid "Try again or shop new arrivals."
+msgstr "再次嚐試"
+
+#: templates/search/results.html:32
+msgid "Search:"
+msgstr "搜尋"
+
+#: templates/templated_email/account/account_delete.email:4
+msgctxt "Account delete reset e-mail subject"
+msgid "Delete your account"
+msgstr ""
+
+#: templates/templated_email/account/account_delete.email:8
+#, python-format
+msgctxt "Account delete reset e-mail text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
+"Click the link below to delete your account.\n"
+"\n"
+"Please note that this action is permanent and cannot be reversed.\n"
+msgstr ""
+
+#: templates/templated_email/account/account_delete.email:21
+#, python-format
+msgctxt "Account delete reset e-mail text"
+msgid ""
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:4
+msgctxt "Password reset e-mail subject"
+msgid "Password reset e-mail"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:8
+#, python-format
+msgctxt "Password reset e-mail text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:19
+#, python-format
+msgctxt "Password reset e-mail text"
+msgid ""
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/promote_customer.email:2
+#, python-format
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/promote_customer.email:5
+#, python-format
+msgctxt "Promote customer to staff member confirmation e-mail text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"You're receiving this e-mail because you have been promoted to staff member at %(domain)s."
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/promote_customer.email:10
+msgctxt "Promote customer to staff member confirmation e-mail text"
+msgid ""
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:2
+#, python-format
+msgctxt "Set password for staff member e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:5
+#, python-format
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"You're receiving this e-mail because you have to set password for your staff member account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:14
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment confirmation email subject"
+msgid "A shipment from order %(order)s is on the way"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:10
+msgctxt "Fulfillment confirmation email text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"Thank you for your order. Below is the list of shipped products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:16
+#, python-format
+msgctxt "Fulfillment confirmation email text"
+msgid "You can track your shipment with %(tracking_number)s code."
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:25
+#, python-format
+msgctxt "Fulfillment confirmation email text"
+msgid ""
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:6
+msgctxt "Order confirmation e-mail subject"
+msgid "Order details"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:10
+#, python-format
+msgctxt "Order confirmation e-mail text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"Thank you for your order. Below is the list of ordered products. To see your payment details please visit:\n"
+"%(url)s"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:18
+msgctxt "Order confirmation e-mail table header"
+msgid "Order summary"
+msgstr "訂單摘要"
+
+#: templates/templated_email/order/confirm_order.email:19
+msgctxt "Order confirmation e-mail table header"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:20
+msgctxt "Order confirmation e-mail table header"
+msgid "Shipping"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:21
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes (included)"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:21
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:22
+msgctxt "Order confirmation e-mail table header"
+msgid "Discount:"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:23
+msgctxt "Order confirmation e-mail table header"
+msgid "Total"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:25
+msgctxt "Order confirmation e-mail billing address"
+msgid "Billing address"
+msgstr "帳單地址"
+
+#: templates/templated_email/order/confirm_order.email:28
+msgctxt "Order confirmation e-mail shipping address"
+msgid "Shipping address"
+msgstr "配送地址"
+
+#: templates/templated_email/order/confirm_order.email:29
+msgctxt "Order confirmation e-mail text"
+msgid "No shipping required"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:31
+#, python-format
+msgctxt "Order confirmation e-mail text"
+msgid ""
+"\n"
+"This is an automatically generated e-mail, please do not reply.\n"
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
+msgstr ""
+
+#: templates/templated_email/order/note/confirm_note.email:4
+msgctxt "Note confirmation email subject"
+msgid "New note has been added to your order"
+msgstr ""
+
+#: templates/templated_email/order/note/confirm_note.email:8
+#, python-format
+msgctxt "Note confirmation email text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"A new note has been added to your order. To see details please visit:\n"
+"%(url)s\n"
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
+msgstr ""
+
+#: templates/templated_email/order/payment/confirm_payment.email:4
+msgctxt "Payment confirmation subject"
+msgid "Payment details"
+msgstr "付款詳情"
+
+#: templates/templated_email/order/payment/confirm_payment.email:8
+#, python-format
+msgctxt "Payment confirmation email text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"Thank you for your payment. To see your payment details please visit:\n"
+"%(url)s\n"
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment update email subject"
+msgid "Shipping update for order %(order)s"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:10
+msgctxt "Fulfillment update email text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:16
+#, python-format
+msgctxt "Fulfillment update email text"
+msgid "You can track your shipment with %(tracking_number)s code."
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:25
+#, python-format
+msgctxt "Fulfillment update email text"
+msgid ""
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
+msgstr ""

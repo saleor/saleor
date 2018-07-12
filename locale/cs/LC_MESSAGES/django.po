@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-15 08:35-0500\n"
+"POT-Creation-Date: 2018-06-25 05:21-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Filip Pytloun <filip@pytloun.cz>, 2018\n"
 "Language-Team: Czech (https://www.transifex.com/mirumee/teams/34782/cs/)\n"
@@ -121,7 +121,7 @@ msgstr "Stát"
 #: saleor/account/i18n.py:35
 msgctxt "Address field"
 msgid "Suburb"
-msgstr ""
+msgstr "Předměstí"
 
 #: saleor/account/i18n.py:36
 msgctxt "Address field"
@@ -246,38 +246,47 @@ msgstr ""
 msgid "The phone number entered is not valid."
 msgstr "Zadané telefonní číslo není správné."
 
-#: saleor/account/views.py:32
+#: saleor/account/views.py:31
 msgid "You have been successfully logged out."
 msgstr "Byl jste úspěšně odhlášen."
 
-#: saleor/account/views.py:46
+#: saleor/account/views.py:45
 msgid "User has been created"
 msgstr "Uživatel byl vytvořen"
 
-#: saleor/account/views.py:96
+#: saleor/account/views.py:95
 msgctxt "Storefront message"
 msgid "Password successfully changed."
 msgstr "Heslo úspěšně změněno"
 
-#: saleor/account/views.py:109
+#: saleor/account/views.py:108
 msgctxt "Storefront message"
 msgid "Address successfully updated."
 msgstr "Adresa úspěšně aktualizována."
 
-#: saleor/account/views.py:124
+#: saleor/account/views.py:123
 msgctxt "Storefront message"
 msgid "Address successfully removed"
 msgstr "Adresa úspěšně smazána"
 
-#: saleor/account/views.py:140
+#: saleor/account/views.py:137
 msgctxt "Storefront message, when user requested his account removed"
 msgid "Please check your inbox for a confirmation e-mail."
+msgstr "Byl Vám zaslán potvrzující e-mail, prosím zkontrolujte Vaši poštu."
+
+#: saleor/account/views.py:152
+msgctxt "Account deleted"
+msgid ""
+"Your account was deleted successfully. In case of any trouble or questions "
+"feel free to contact us."
 msgstr ""
+"Účet byl úspěšně smazán. V případě jakýchkoli potíží nebo otázek nás "
+"neváhejte kontaktovat."
 
 #: saleor/checkout/__init__.py:15
 msgctxt "Type of address used to fulfill order"
 msgid "Billing"
-msgstr ""
+msgstr "Fakturace"
 
 #: saleor/checkout/__init__.py:19
 msgctxt "Type of address used to fulfill order"
@@ -309,10 +318,10 @@ msgstr "Jejda. Tento produkt se nám nepodařilo najít."
 msgctxt "Add to cart form error"
 msgid "Only %d remaining in stock."
 msgid_plural "Only %d remaining in stock."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
+msgstr[0] "Pouze %d kus skladem."
+msgstr[1] "Pouze %dkusy skladem."
+msgstr[2] "Pouze %dkusů skladem."
+msgstr[3] "Pouze %dkusů skladem."
 
 #: saleor/checkout/forms.py:165
 msgctxt "Country form field label"
@@ -397,7 +406,7 @@ msgstr "Tato nabídka je dostupná pouze pro vybranné zboží."
 #: saleor/checkout/utils.py:748
 msgctxt "Voucher not applicable"
 msgid "Voucher expired in meantime. Order placement aborted."
-msgstr ""
+msgstr "Voucher mezitím vypršel. Odeslání objednávky bylo přerušeno."
 
 #: saleor/checkout/views/discount.py:62
 msgctxt "Checkout warning"
@@ -437,17 +446,17 @@ msgstr "ubytování"
 #: saleor/core/i18n.py:11
 msgctxt "VAT rate type"
 msgid "admission to cultural events"
-msgstr ""
+msgstr "vstup na kulturní akce"
 
 #: saleor/core/i18n.py:13
 msgctxt "VAT rate type"
 msgid "admission to entertainment events"
-msgstr ""
+msgstr "vstup na zábavní akce"
 
 #: saleor/core/i18n.py:15
 msgctxt "VAT rate type"
 msgid "admission to sporting events"
-msgstr ""
+msgstr "vstup na sportovní akce"
 
 #: saleor/core/i18n.py:17
 msgctxt "VAT rate type"
@@ -527,32 +536,32 @@ msgstr "farmaceutické zboží"
 #: saleor/core/i18n.py:35
 msgctxt "VAT rate type"
 msgid "property renovations"
-msgstr ""
+msgstr "rekonstrukce nemovitostí"
 
 #: saleor/core/i18n.py:36
 msgctxt "VAT rate type"
 msgid "restaurants"
-msgstr ""
+msgstr "restaurace"
 
 #: saleor/core/i18n.py:37
 msgctxt "VAT rate type"
 msgid "social housing"
-msgstr ""
+msgstr "sociální bydlení"
 
 #: saleor/core/i18n.py:38
 msgctxt "VAT rate type"
 msgid "standard"
-msgstr ""
+msgstr "Standard"
 
 #: saleor/core/i18n.py:39
 msgctxt "VAT rate type"
 msgid "water"
-msgstr ""
+msgstr "voda"
 
 #: saleor/core/i18n.py:40
 msgctxt "VAT rate type"
 msgid "wine"
-msgstr ""
+msgstr "víno"
 
 #: saleor/core/views.py:38
 msgctxt "Impersonation message"
@@ -760,7 +769,7 @@ msgstr "Může editovat objednávky"
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
-msgstr "Plnění #%s"
+msgstr "Zpracování #%s"
 
 #: saleor/order/signals.py:15
 msgctxt "Order status history entry"
@@ -911,87 +920,91 @@ msgctxt "Search form label"
 msgid "Query"
 msgstr "Vyhledávání"
 
-#: saleor/settings.py:59
+#: saleor/settings.py:61
 msgid "Bulgarian"
 msgstr "Bulharština"
 
-#: saleor/settings.py:60
+#: saleor/settings.py:62
+msgid "Czech"
+msgstr "Čeština"
+
+#: saleor/settings.py:63
 msgid "German"
 msgstr "Němčina"
 
-#: saleor/settings.py:61
+#: saleor/settings.py:64
 msgid "English"
 msgstr "Angličtina"
 
-#: saleor/settings.py:62
+#: saleor/settings.py:65
 msgid "Spanish"
 msgstr "Španělština"
 
-#: saleor/settings.py:63
+#: saleor/settings.py:66
 msgid "Persian (Iran)"
 msgstr "Perština"
 
-#: saleor/settings.py:64
+#: saleor/settings.py:67
 msgid "French"
 msgstr "Francouzština"
 
-#: saleor/settings.py:65
+#: saleor/settings.py:68
 msgid "Hungarian"
 msgstr "Maďarština"
 
-#: saleor/settings.py:66
+#: saleor/settings.py:69
 msgid "Italian"
 msgstr "Italština"
 
-#: saleor/settings.py:67
+#: saleor/settings.py:70
 msgid "Japanese"
 msgstr "Japonština"
 
-#: saleor/settings.py:68
+#: saleor/settings.py:71
 msgid "Korean"
 msgstr ""
 
-#: saleor/settings.py:69
+#: saleor/settings.py:72
 msgid "Norwegian"
 msgstr ""
 
-#: saleor/settings.py:70
+#: saleor/settings.py:73
 msgid "Dutch"
 msgstr ""
 
-#: saleor/settings.py:71
+#: saleor/settings.py:74
 msgid "Polish"
 msgstr "Polština"
 
-#: saleor/settings.py:72
+#: saleor/settings.py:75
 msgid "Portuguese (Brazil)"
 msgstr ""
 
-#: saleor/settings.py:73
+#: saleor/settings.py:76
 msgid "Romanian"
 msgstr ""
 
-#: saleor/settings.py:74
+#: saleor/settings.py:77
 msgid "Russian"
 msgstr ""
 
-#: saleor/settings.py:75
+#: saleor/settings.py:78
 msgid "Slovak"
 msgstr "Slovenština"
 
-#: saleor/settings.py:76
+#: saleor/settings.py:79
 msgid "Turkish"
 msgstr ""
 
-#: saleor/settings.py:77
+#: saleor/settings.py:80
 msgid "Ukrainian"
 msgstr ""
 
-#: saleor/settings.py:78
+#: saleor/settings.py:81
 msgid "Vietnamese"
 msgstr ""
 
-#: saleor/settings.py:79
+#: saleor/settings.py:82
 msgid "Chinese"
 msgstr ""
 
@@ -1020,22 +1033,25 @@ msgctxt "Eror page not found"
 msgid "Page not found"
 msgstr "Stránka nebyla nalezena"
 
-#: templates/account/account_delete.html:8
-msgctxt "Account deleted page title"
-msgid "Account deleted"
-msgstr ""
+#: templates/account/account_delete_prompt.html:8
+msgctxt "Account deletetion confirmation page title"
+msgid "Are you sure?"
+msgstr "Jste si jistý?"
 
-#: templates/account/account_delete.html:16
-msgctxt "Message displayed to the user after his account was deleted"
+#: templates/account/account_delete_prompt.html:16
+msgctxt "Message displayed to the user requesting for his account deletetion"
 msgid "Sorry to see you go!"
-msgstr ""
+msgstr "Je nám líto, že odcházíte!"
 
-#: templates/account/account_delete.html:18
-msgctxt "Message displayed to the user after his account was deleted"
-msgid ""
-"Your account was deleted successfully. In case of any problems or questions "
-"please contact us."
-msgstr ""
+#: templates/account/account_delete_prompt.html:22
+msgctxt "Message displayed to the user requesting for his account deletetion"
+msgid "Are you sure you want to delete your account?"
+msgstr "Opravdu chcete smazat účet?"
+
+#: templates/account/account_delete_prompt.html:27
+msgctxt "Confirm account deletion button"
+msgid "Delete account"
+msgstr "Smazat účet"
 
 #: templates/account/address_delete.html:6
 msgctxt "Remove address form action"
@@ -1131,7 +1147,7 @@ msgstr "Adresář"
 #: templates/account/details.html:47
 msgctxt "User profile tab"
 msgid "Settings"
-msgstr ""
+msgstr "Nastavení"
 
 #: templates/account/details.html:59
 msgctxt "Recent orders column title"
@@ -1185,11 +1201,14 @@ msgid ""
 "                  If you'd like to remove your account, please click on the button below and a confirmation email will be sent to you.\n"
 "                "
 msgstr ""
+"\n"
+"                  Pokud chcete účet zrušit, klikněte prosím na níže uvedené tlačítko. Bude Vám zaslán potvrzující e-mail.\n"
+"                "
 
 #: templates/account/details.html:165
 msgctxt "Remove account form action"
 msgid "Remove Account"
-msgstr ""
+msgstr "Odstranit účet"
 
 #: templates/account/login.html:5
 msgctxt "Login page title"
@@ -1465,7 +1484,7 @@ msgstr "Ve Vašem košíku nejsou žádné produkty."
 #: templates/cart_dropdown.html:67 templates/checkout/index.html:89
 msgctxt "Empty cart link"
 msgid "Check out our sales"
-msgstr "Zkoukněte naše slevy"
+msgstr "Podívejte se na náš sortiment"
 
 #: templates/category/index.html:7
 msgctxt "Category breadcrumbs home"
@@ -2258,7 +2277,7 @@ msgstr "Upravit zákazníka"
 #: templates/dashboard/customer/detail.html:78
 msgctxt "Customer action"
 msgid "Remove customer"
-msgstr ""
+msgstr "Odstranit zákazníka"
 
 #: templates/dashboard/customer/detail.html:83
 msgctxt "Customer impersonate action"
@@ -2399,7 +2418,7 @@ msgstr "Uložit poznámku"
 #, python-format
 msgctxt "Header of modal used for removing customer's account "
 msgid "Remove customer %(customer)s"
-msgstr ""
+msgstr "Odstranit zákazníka %(customer)s"
 
 #: templates/dashboard/customer/modal/confirm_delete.html:19
 #, python-format
@@ -2410,6 +2429,9 @@ msgid ""
 "customer's orders and addresses associated with them will persist for the "
 "financial records."
 msgstr ""
+"Opravdu chcete odebrat zákazníka <strong>%(customer)s</strong>? Vezměte "
+"prosím na vědomí, že tento postup odstraní účet zákazníka, ale zákaznické "
+"objednávky a adresy s ním spojené budou přetrvávat u finančních záznamů."
 
 #: templates/dashboard/customer/modal/confirm_promote.html:12
 msgctxt "Dashboard confirmation modal"
@@ -2510,26 +2532,30 @@ msgid ""
 "    You can create sales by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
+"\n"
+"Sleva se používá pro zvýhodnění konkrétního produktu nebo celé kategorie. <br>\n"
+"\n"
+"Pomocí tlačítka <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> můžete vytvářet slevy."
 
 #: templates/dashboard/discount/voucher/form.html:10
 msgctxt "Voucher page title"
 msgid "Add new voucher"
-msgstr ""
+msgstr "Přidat nový voucher"
 
 #: templates/dashboard/discount/voucher/form.html:32
 msgctxt "Voucher action"
 msgid "Remove voucher"
-msgstr ""
+msgstr "Odebrat voucher"
 
 #: templates/dashboard/discount/voucher/form.html:56
 msgctxt "Voucher breadcrumbs"
 msgid "Add new voucher"
-msgstr ""
+msgstr "Přidat nový voucher"
 
 #: templates/dashboard/discount/voucher/list.html:29
 msgctxt "Voucher list add button text"
 msgid "Add voucher"
-msgstr ""
+msgstr "Přidat voucher"
 
 #: templates/dashboard/discount/voucher/list.html:45
 msgctxt "Voucher table header"
@@ -2544,48 +2570,48 @@ msgstr "Sleva"
 #: templates/dashboard/discount/voucher/list.html:52
 msgctxt "Voucher table header"
 msgid "Apply to"
-msgstr ""
+msgstr "Použít"
 
 #: templates/dashboard/discount/voucher/list.html:55
 msgctxt "Voucher table header"
 msgid "Start date"
-msgstr ""
+msgstr "Datum zahájení"
 
 #: templates/dashboard/discount/voucher/list.html:58
 msgctxt "Voucher table header"
 msgid "End date"
-msgstr ""
+msgstr "Datum ukončení"
 
 #: templates/dashboard/discount/voucher/list.html:61
 msgctxt "Voucher table header"
 msgid "Used"
-msgstr ""
+msgstr "Použito"
 
 #: templates/dashboard/discount/voucher/list.html:64
 msgctxt "Voucher table header"
 msgid "Limit"
-msgstr ""
+msgstr "Limit"
 
 #: templates/dashboard/discount/voucher/list.html:114
 msgctxt "Empty vouchers table message"
 msgid "No vouchers found"
-msgstr ""
+msgstr "Nebyly nalezeny žádné vouchery"
 
 #: templates/dashboard/discount/voucher/modal/confirm_delete.html:12
 #, python-format
 msgctxt "Remove voucher text"
 msgid "Remove voucher %(voucher)s"
-msgstr ""
+msgstr "Odebrat voucher %(voucher)s"
 
 #: templates/dashboard/discount/voucher/modal/confirm_delete.html:19
 #, python-format
 msgctxt "Remove voucher text"
 msgid "Are you sure you want to remove voucher <strong>%(voucher)s</strong>?"
-msgstr ""
+msgstr "Opravdu chcete odstranit voucher <strong>%(voucher)s</strong>?"
 
 #: templates/dashboard/discount/voucher/zero_page.html:5
 msgid "No vouchers found."
-msgstr ""
+msgstr "Nebyly nalezeny žádné vouchery"
 
 #: templates/dashboard/discount/voucher/zero_page.html:8
 #, python-format
@@ -2595,31 +2621,34 @@ msgid ""
 "    You can create vouchers by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
+"\n"
+"    Poukázky umožňují vytvářet propagační kódy pro všechny nákupy, konkrétní produkty nebo přepravu.<br>\n"
+"Můžete vytvářet poukázky pomocí tlačítek <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span>"
 
 #: templates/dashboard/group/detail.html:10
 msgctxt "Dashboard add group"
 msgid "Add new group"
-msgstr ""
+msgstr "Přidat novou skupinu"
 
 #: templates/dashboard/group/detail.html:12
 msgctxt "Dashboard group"
 msgid "Group"
-msgstr ""
+msgstr "Skupina"
 
 #: templates/dashboard/group/detail.html:38
 msgctxt "Dashboard add new group"
 msgid "Add new group"
-msgstr ""
+msgstr "Přidat novou skupinu"
 
 #: templates/dashboard/group/detail.html:54
 msgctxt "Group form action"
 msgid "Remove group"
-msgstr ""
+msgstr "Odstranit skupinu"
 
 #: templates/dashboard/group/list.html:18
 msgctxt "Group list add button text"
 msgid "Add group"
-msgstr ""
+msgstr "Přidat skupinu"
 
 #: templates/dashboard/group/list.html:42
 msgctxt "Dashboard groups list table header name"
@@ -2629,18 +2658,18 @@ msgstr "Jméno"
 #: templates/dashboard/group/list.html:45
 msgctxt "Dashboard groups list table header permissions"
 msgid "Permissions"
-msgstr ""
+msgstr "Oprávnění"
 
 #: templates/dashboard/group/list.html:74
 msgctxt "Empty group table message"
 msgid "No groups found."
-msgstr ""
+msgstr "Nebyly nalezeny žádné skupiny."
 
 #: templates/dashboard/group/modal/confirm_delete.html:12
 #, python-format
 msgctxt "Modal remove group text"
 msgid "Remove group <strong>%(group)s</strong>?"
-msgstr ""
+msgstr "Odstranit skupinu <strong>%(group)s</strong>?"
 
 #: templates/dashboard/group/modal/confirm_delete.html:19
 #, python-format
@@ -2649,10 +2678,12 @@ msgid ""
 "Are you sure you want to remove group %(group)s? <br> Users might lose "
 "permissions related to this group."
 msgstr ""
+"Opravdu chcete odebrat skupinu %(group)s? <br>Uživatelé mohou ztratit "
+"oprávnění týkající se této skupiny."
 
 #: templates/dashboard/group/zero_page.html:5
 msgid "No groups found."
-msgstr ""
+msgstr "Nebyly nalezeny žádné skupiny."
 
 #: templates/dashboard/group/zero_page.html:8
 #, python-format
@@ -2662,6 +2693,10 @@ msgid ""
 "    You can create groups by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
+"\n"
+"  Skupiny jsou navrženy tak, aby řídily role členů a jejich oprávnění.<br>\n"
+"Skupiny můžete vytvářet pomocí tlačítka<span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span>\n"
+"  "
 
 #: templates/dashboard/includes/_collection_availability.html:5
 msgctxt "Collection availability status"
@@ -2671,32 +2706,32 @@ msgstr "Zveřejněno"
 #: templates/dashboard/includes/_collection_availability.html:7
 msgctxt "Collection availability status"
 msgid "Not Published"
-msgstr ""
+msgstr "Nezveřejněno"
 
 #: templates/dashboard/includes/_filters.html:10
 msgctxt "Dashboard card title"
 msgid "Filters"
-msgstr ""
+msgstr "Filtry"
 
 #: templates/dashboard/includes/_filters.html:43
 msgctxt "Category page filters"
 msgid "Clear"
-msgstr ""
+msgstr "Vymazat"
 
 #: templates/dashboard/includes/_filters.html:47
 msgctxt "Category price filter"
 msgid "Filter"
-msgstr ""
+msgstr "Filtr"
 
 #: templates/dashboard/includes/_google_preview.html:5
 msgctxt "Title of the box showing preview from the search engine perspective"
 msgid "Search engine listing preview"
-msgstr ""
+msgstr "Náhled zobrazení vyhledávačů"
 
 #: templates/dashboard/includes/_menu_items.html:8
 msgctxt "Title of the menu items list"
 msgid "Menu items"
-msgstr ""
+msgstr "Položky nabídky"
 
 #: templates/dashboard/includes/_menu_items.html:24
 msgctxt "Menu items list table header name"
@@ -2706,7 +2741,7 @@ msgstr "Jméno"
 #: templates/dashboard/includes/_menu_items.html:27
 msgctxt "Menu items list table header points to"
 msgid "Points to"
-msgstr ""
+msgstr "Ukazovat na"
 
 #: templates/dashboard/includes/_menu_items.html:52
 msgctxt "Menu item edit action"
@@ -2721,7 +2756,7 @@ msgstr "Odstranit"
 #: templates/dashboard/includes/_menu_items.html:62
 msgctxt "Empty list of menu items"
 msgid "No menu items"
-msgstr ""
+msgstr "Žádné položky nabídky"
 
 #: templates/dashboard/includes/_page_availability.html:5
 msgctxt "Page availability status"
@@ -2732,7 +2767,7 @@ msgstr "Zveřejněno"
 #: templates/dashboard/includes/_page_availability.html:19
 msgctxt "Page availability status"
 msgid "Hidden"
-msgstr ""
+msgstr "Skrytý"
 
 #: templates/dashboard/includes/_page_availability.html:13
 #, python-format
@@ -2742,6 +2777,9 @@ msgid ""
 "      Hidden (will become visible on %(date)s)\n"
 "    "
 msgstr ""
+"\n"
+"     Skryté (bude viditelné pro %(date)s)\n"
+"    "
 
 #: templates/dashboard/index.html:15 templates/dashboard/index.html:69
 #: templates/dashboard/index.html:133
@@ -2753,7 +2791,7 @@ msgstr "Zobrazení nejnovejších %(counter)s výsledků"
 #: templates/dashboard/index.html:16
 msgctxt "Dashboard homepage table title"
 msgid "Preauthorized payments"
-msgstr ""
+msgstr "Předschválené platby"
 
 #: templates/dashboard/index.html:25
 msgctxt "Preauthorized payments table header"
@@ -2777,17 +2815,17 @@ msgstr "Množství"
 
 #: templates/dashboard/index.html:48
 msgid "Guest"
-msgstr ""
+msgstr "Host"
 
 #: templates/dashboard/index.html:61
 msgctxt "Empty Preauthorized payments table message"
 msgid "No preauthorized payments."
-msgstr ""
+msgstr "Žádné předschválené platby."
 
 #: templates/dashboard/index.html:70
 msgctxt "Dashboard homepage table title"
 msgid "Orders ready for shipment"
-msgstr ""
+msgstr "Objednávky připraveny k odeslání "
 
 #: templates/dashboard/index.html:83 templates/dashboard/order/list.html:48
 msgctxt "Orders table header"
@@ -2814,32 +2852,32 @@ msgstr "Celkem"
 #: templates/dashboard/order/list.html:70
 msgctxt "Anonymous user account value"
 msgid "Guest"
-msgstr ""
+msgstr "Host"
 
 #: templates/dashboard/index.html:126
 msgctxt "Empty order table message"
 msgid "No orders are ready for shipment."
-msgstr ""
+msgstr "K odeslání nejsou připraveny žádné objednávky"
 
 #: templates/dashboard/index.html:134
 msgctxt "Dashboard homepage table title"
 msgid "Products with low stock"
-msgstr ""
+msgstr "Docházející produkty"
 
 #: templates/dashboard/index.html:143
 msgctxt "Low stock product list"
 msgid "Product name"
-msgstr ""
+msgstr "Jméno produktu"
 
 #: templates/dashboard/index.html:146
 msgctxt "Low stock product list"
 msgid "Stock left"
-msgstr ""
+msgstr "Zbývající zásoby"
 
 #: templates/dashboard/index.html:167
 msgctxt "Empty low stock table message"
 msgid "No products are low in stock."
-msgstr ""
+msgstr "Žádné zboží není skladem."
 
 #: templates/dashboard/menu/detail.html:7 templates/dashboard/menu/list.html:9
 msgctxt "Menu list page title"
@@ -2849,63 +2887,63 @@ msgstr "Navigace"
 #: templates/dashboard/menu/detail.html:49
 msgctxt "Menu detail view action"
 msgid "Edit menu"
-msgstr ""
+msgstr "Upravit nabídku"
 
 #: templates/dashboard/menu/detail.html:52
 msgctxt "Menu detail view action"
 msgid "Remove menu"
-msgstr ""
+msgstr "Odstranit nabídku"
 
 #: templates/dashboard/menu/form.html:8
 msgctxt "Menu form page title"
 msgid "Edit menu"
-msgstr ""
+msgstr "Upravit nabídku"
 
 #: templates/dashboard/menu/form.html:10 templates/dashboard/menu/form.html:21
 msgctxt "Menu form page title"
 msgid "Add new menu"
-msgstr ""
+msgstr "Přidat novou nabídku"
 
 #: templates/dashboard/menu/form.html:39
 msgctxt "Menu detail breadcrumbs"
 msgid "Add new menu"
-msgstr ""
+msgstr "Přidat novou nabídku"
 
 #: templates/dashboard/menu/item/detail.html:7
 msgctxt "Menu item list page title"
 msgid "Menu items"
-msgstr ""
+msgstr "Položky nabídky"
 
 #: templates/dashboard/menu/item/detail.html:73
 msgctxt "Menu item field"
 msgid "Points to"
-msgstr ""
+msgstr "Ukazovat na"
 
 #: templates/dashboard/menu/item/detail.html:86
 msgctxt "Menu item detail view action"
 msgid "Edit menu item"
-msgstr ""
+msgstr "Upravit položku nabídky"
 
 #: templates/dashboard/menu/item/detail.html:89
 msgctxt "Menu item detail view action"
 msgid "Remove menu item"
-msgstr ""
+msgstr "Odstranit položky nabídky"
 
 #: templates/dashboard/menu/item/form.html:8
 msgctxt "Menu item page title"
 msgid "Edit menu item"
-msgstr ""
+msgstr "Upravit položku nabídky"
 
 #: templates/dashboard/menu/item/form.html:10
 #: templates/dashboard/menu/item/form.html:21
 msgctxt "Menu item page title"
 msgid "Add new menu item"
-msgstr ""
+msgstr "Přidat novou položku nabídky"
 
 #: templates/dashboard/menu/item/form.html:12
 msgctxt "Dashboard menu items list"
 msgid "Menu items"
-msgstr ""
+msgstr "Položky nabídky"
 
 #: templates/dashboard/menu/item/form.html:54
 msgctxt "Menu form page title"
@@ -2915,13 +2953,13 @@ msgstr "Upravit"
 #: templates/dashboard/menu/item/form.html:60
 msgctxt "Menu form page title"
 msgid "Add new menu item"
-msgstr ""
+msgstr "Přidat novou položku nabídky"
 
 #: templates/dashboard/menu/item/modal/confirm_delete.html:12
 #, python-format
 msgctxt "Remove menu item modal title"
 msgid "Remove menu item %(menu_item)s"
-msgstr ""
+msgstr "Odstranit položku nabídky %(menu_item)s"
 
 #: templates/dashboard/menu/item/modal/confirm_delete.html:19
 #, python-format
@@ -2930,31 +2968,33 @@ msgid ""
 "Are you sure you want to remove menu item <strong>%(menu_item)s</strong> "
 "from %(menu)s menu?"
 msgstr ""
+"Opravdu chcete odstranit položku <strong>%(menu_item)s</strong> z nabídky "
+"%(menu)s?"
 
 #: templates/dashboard/menu/item/modal/confirm_delete.html:24
 #: templates/dashboard/menu/modal/confirm_delete.html:24
 msgctxt "Remove menu modal text about descendant menu items"
 msgid "The following menu items will be removed:"
-msgstr ""
+msgstr "Následující položky nabídky budou odstraněny:"
 
 #: templates/dashboard/menu/list.html:21
 msgctxt "Menu list add button text"
 msgid "Add menu"
-msgstr ""
+msgstr "Přidat nabídku"
 
 #: templates/dashboard/menu/list.html:47
 msgctxt "Menu list table header Menu name"
 msgid "Menu name"
-msgstr ""
+msgstr "Jméno nabídky"
 
 #: templates/dashboard/menu/list.html:71
 msgctxt "Empty menu list message"
 msgid "No menus found."
-msgstr ""
+msgstr "Nebyly nalezeny žádné nabídky."
 
 #: templates/dashboard/menu/list.html:84
 msgid "Storefront Menus"
-msgstr ""
+msgstr "Obchod nabídka "
 
 #: templates/dashboard/menu/list.html:98
 #: templates/dashboard/product/form.html:135
@@ -2967,23 +3007,24 @@ msgstr ""
 #: templates/dashboard/sites/authorization_keys/form.html:75
 msgctxt "Dashboard update action"
 msgid "Save"
-msgstr ""
+msgstr "Uložit"
 
 #: templates/dashboard/menu/modal/confirm_delete.html:12
 #, python-format
 msgctxt "Remove menu modal title"
 msgid "Remove menu %(menu)s"
-msgstr ""
+msgstr "Odstranit nabídku %(menu)s"
 
 #: templates/dashboard/menu/modal/confirm_delete.html:19
 #, python-format
 msgctxt "Remove menu modal title"
 msgid "Are you sure you want to remove menu <strong>%(menu)s</strong>?"
 msgstr ""
+"Jste si jistý, že chcete odstranit nabídku  <strong>%(menu)s</strong>?"
 
 #: templates/dashboard/menu/zero_page.html:5
 msgid "No menus found."
-msgstr ""
+msgstr "Nebyly nalezeny žádné nabídky."
 
 #: templates/dashboard/menu/zero_page.html:8
 #, python-format
@@ -2993,6 +3034,10 @@ msgid ""
 "    You can create menus by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
+"\n"
+"   Nabídky se používají k uspořádání navigační lišty zobrazené v prodejně.<br>\n"
+"   Nabídky můžete vytvářet pomocí tlačítka <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span>\n"
+"  "
 
 #: templates/dashboard/order/address_form.html:7
 msgctxt ""
@@ -3014,17 +3059,17 @@ msgstr "Fakturační adresa"
 #: templates/dashboard/order/detail.html:33
 msgctxt "Order detail action"
 msgid "Cancel Order"
-msgstr ""
+msgstr "Zrušit objednávku"
 
 #: templates/dashboard/order/detail.html:40
 msgctxt "Order detail action"
 msgid "Remove draft order"
-msgstr ""
+msgstr "Odstranění pořadí návrhů"
 
 #: templates/dashboard/order/detail.html:48
 msgctxt "Order detail action"
 msgid "Print"
-msgstr ""
+msgstr "Tisk"
 
 #: templates/dashboard/order/detail.html:82
 msgctxt "Order detail tab"
@@ -3035,18 +3080,18 @@ msgstr "Detaily"
 #: templates/dashboard/order/detail.html:564
 msgctxt "Order detail tab"
 msgid "Payments"
-msgstr ""
+msgstr "Platby"
 
 #: templates/dashboard/order/detail.html:98
 #: templates/dashboard/order/detail.html:620
 msgctxt "Order detail tab"
 msgid "History"
-msgstr ""
+msgstr "Historie"
 
 #: templates/dashboard/order/detail.html:111
 msgctxt "Order summary card header"
 msgid "Payments"
-msgstr ""
+msgstr "Platby"
 
 #: templates/dashboard/order/detail.html:117
 msgctxt "Payment status not available"
@@ -3056,12 +3101,12 @@ msgstr ""
 #: templates/dashboard/order/detail.html:127
 msgctxt "Order summary card header"
 msgid "Outstanding balance"
-msgstr ""
+msgstr "Nevyrovnané zůstatky"
 
 #: templates/dashboard/order/detail.html:140
 msgctxt "Order summary card header"
 msgid "Preauthorized amount"
-msgstr ""
+msgstr "Paušální částka"
 
 #: templates/dashboard/order/detail.html:146
 msgctxt "Preauthorized amount not available"
@@ -3071,27 +3116,27 @@ msgstr ""
 #: templates/dashboard/order/detail.html:152
 msgctxt "Order summary card header"
 msgid "Captured amount"
-msgstr ""
+msgstr "Získaná částka"
 
 #: templates/dashboard/order/detail.html:166
 msgctxt "Order summary card action"
 msgid "Capture"
-msgstr ""
+msgstr "Získat"
 
 #: templates/dashboard/order/detail.html:170
 msgctxt "Order summary card action"
 msgid "Refund"
-msgstr ""
+msgstr "Vrácení platby"
 
 #: templates/dashboard/order/detail.html:175
 msgctxt "Order summary card action"
 msgid "Release"
-msgstr ""
+msgstr "Uvolnit"
 
 #: templates/dashboard/order/detail.html:180
 msgctxt "Order detail action"
 msgid "Mark as paid"
-msgstr ""
+msgstr "Označit jako zaplacené"
 
 #: templates/dashboard/order/detail.html:192
 msgctxt "Order details summary header"
@@ -3101,7 +3146,7 @@ msgstr "Zákazník"
 #: templates/dashboard/order/detail.html:196
 msgctxt "Order customer details action title"
 msgid "Edit customer details"
-msgstr ""
+msgstr "Upravit podrobnosti o zákaznících"
 
 #: templates/dashboard/order/detail.html:197
 #: templates/dashboard/order/detail.html:220
@@ -3115,29 +3160,29 @@ msgstr "Upravit"
 #: templates/dashboard/order/detail.html:228
 msgctxt "Missing shipping address message"
 msgid "No shipping address"
-msgstr ""
+msgstr "Žádná dodací adresa"
 
 #: templates/dashboard/order/detail.html:245
 msgctxt "Order billing address same as shipping address"
 msgid "Same as shipping address"
-msgstr ""
+msgstr "Stejné jako dodací adresa"
 
 #: templates/dashboard/order/detail.html:250
 msgctxt "Missing billing address message"
 msgid "No billing address"
-msgstr ""
+msgstr "Žádná fakturační adresa"
 
 #: templates/dashboard/order/detail.html:263
 #, python-format
 msgctxt "Order table title"
 msgid "Order draft #%(order)s"
-msgstr ""
+msgstr "Koncept objednávky #%(order)s"
 
 #: templates/dashboard/order/detail.html:267
 #, python-format
 msgctxt "Order table title"
 msgid "Order #%(order)s"
-msgstr ""
+msgstr "Objednávka #%(order)s"
 
 #: templates/dashboard/order/detail.html:273
 msgctxt "Order placed on date"
@@ -3179,25 +3224,25 @@ msgstr ""
 #: templates/dashboard/order/detail.html:324
 msgctxt "Order table row action"
 msgid "Change quantity"
-msgstr ""
+msgstr "Změnit množství"
 
 #: templates/dashboard/order/detail.html:328
 #: templates/dashboard/order/detail.html:329
 msgctxt "Order table row action"
 msgid "Remove line"
-msgstr ""
+msgstr "Odstranit řádek"
 
 #: templates/dashboard/order/detail.html:350
 msgctxt "Order totals action"
 msgid "Edit shipping"
-msgstr ""
+msgstr "Upravit dopravu"
 
 #: templates/dashboard/order/detail.html:352
 #: templates/dashboard/order/detail.html:361
 #, python-format
 msgctxt "Order totals header"
 msgid "Shipping (%(shipping_name)s)"
-msgstr ""
+msgstr "Doprava (%(shipping_name)s)"
 
 #: templates/dashboard/order/detail.html:356
 #: templates/dashboard/order/detail.html:365
@@ -3220,7 +3265,7 @@ msgstr "DPH"
 #, python-format
 msgctxt "Order totals header"
 msgid "Discount (%(voucher)s)"
-msgstr ""
+msgstr "Sleva (%(voucher)s)"
 
 #: templates/dashboard/order/detail.html:385
 #: templates/dashboard/order/detail.html:409
@@ -3231,27 +3276,27 @@ msgstr "Sleva"
 #: templates/dashboard/order/detail.html:392
 msgctxt "Order totals action"
 msgid "Edit voucher"
-msgstr ""
+msgstr "Upravit voucher"
 
 #: templates/dashboard/order/detail.html:393
 msgctxt "Order detail action"
 msgid "Edit voucher"
-msgstr ""
+msgstr "Upravit voucher"
 
 #: templates/dashboard/order/detail.html:398
 msgctxt "Order totals action"
 msgid "Edit discount"
-msgstr ""
+msgstr "Upravit slevu"
 
 #: templates/dashboard/order/detail.html:399
 msgctxt "Order detail action"
 msgid "Edit discount"
-msgstr ""
+msgstr "Upravit slevu"
 
 #: templates/dashboard/order/detail.html:414
 msgctxt "Order totals header"
 msgid "Grand total"
-msgstr ""
+msgstr "Celkový součet"
 
 #: templates/dashboard/order/detail.html:437
 msgctxt "Order summary card action title"
@@ -3266,27 +3311,27 @@ msgstr "Zpracovat"
 #: templates/dashboard/order/detail.html:442
 msgctxt "Order summary card action title"
 msgid "Add product to order"
-msgstr ""
+msgstr "Přidat produkt k objednávce"
 
 #: templates/dashboard/order/detail.html:443
 msgctxt "Order summary card action"
 msgid "Add product"
-msgstr ""
+msgstr "Přidat produkt"
 
 #: templates/dashboard/order/detail.html:448
 msgctxt "Order summary card action title"
 msgid "Create order"
-msgstr ""
+msgstr "Vytvořit objednávku"
 
 #: templates/dashboard/order/detail.html:449
 msgctxt "Order summary card action"
 msgid "Create order"
-msgstr ""
+msgstr "Vytvořit objednávku"
 
 #: templates/dashboard/order/detail.html:456
 msgctxt "Order detail action"
 msgid "Invoice"
-msgstr ""
+msgstr "Faktura"
 
 #: templates/dashboard/order/detail.html:459
 msgctxt "Order detail action"
@@ -3297,7 +3342,7 @@ msgstr "Zobrazit na stránce"
 #, python-format
 msgctxt "Fulfillment table title"
 msgid "Fulfillment #%(fulfillment)s"
-msgstr ""
+msgstr "Zpracování #%(fulfillment)s"
 
 #: templates/dashboard/order/detail.html:501
 #, python-format
@@ -3333,7 +3378,7 @@ msgstr "Přidat sledování"
 #: templates/dashboard/order/detail.html:526
 msgctxt "Order detail action"
 msgid "Packing Slips"
-msgstr "Poštovní štítky"
+msgstr "Poštovní štítek"
 
 #: templates/dashboard/order/detail.html:535
 msgctxt "Order notes card title"
@@ -3368,7 +3413,7 @@ msgstr "Stav platby"
 #: templates/dashboard/order/detail.html:580
 msgctxt "Payment history table header"
 msgid "Fraud status"
-msgstr ""
+msgstr "Stav podvodu"
 
 #: templates/dashboard/order/detail.html:583
 msgctxt "Payment history table header"
@@ -3423,7 +3468,7 @@ msgstr "Zpracovat"
 #: templates/dashboard/order/list.html:20
 msgctxt "Order list add button text"
 msgid "Add order"
-msgstr ""
+msgstr "Přidat objednávku"
 
 #: templates/dashboard/order/list.html:99
 msgctxt "Empty order list message"
@@ -3434,7 +3479,7 @@ msgstr "Nenalezeny žádné objednávky."
 #, python-format
 msgctxt "Modal order add variant title"
 msgid "Add product to %(order)s"
-msgstr ""
+msgstr "Přidat produkt do %(order)s"
 
 #: templates/dashboard/order/modal/add_variant_to_order.html:22
 msgctxt "Modal order add variant primary action"
@@ -3445,38 +3490,38 @@ msgstr "Přidat"
 #, python-format
 msgctxt "Modal cancel fulfillment title"
 msgid "Cancel fulfillment #%(fulfillment)s"
-msgstr ""
+msgstr "Zrušit zpracování #%(fulfillment)s"
 
 #: templates/dashboard/order/modal/cancel_fulfillment.html:18
 #, python-format
 msgctxt "Modal cancel fulfillment text"
 msgid "Are you sure you want cancel fulfillment #%(fulfillment)s?"
-msgstr ""
+msgstr "Opravdu chcete zrušit zpracování  #%(fulfillment)s?"
 
 #: templates/dashboard/order/modal/cancel_fulfillment.html:26
 msgctxt "Modal cancel fulfillment cancel action"
 msgid "Abort"
-msgstr ""
+msgstr "Přerušit"
 
 #: templates/dashboard/order/modal/cancel_fulfillment.html:30
 msgctxt "Modal cancel fulfillment primary action"
 msgid "Cancel Fulfillment"
-msgstr ""
+msgstr "Zrušit zpracování"
 
 #: templates/dashboard/order/modal/cancel_line.html:12
 msgctxt "Modal remove order line title"
 msgid "Remove order line"
-msgstr ""
+msgstr "Odstraňte řádek objednávky"
 
 #: templates/dashboard/order/modal/cancel_line.html:17
 msgctxt "Modal remove order line text"
 msgid "Are you sure you want remove this order line?"
-msgstr ""
+msgstr "Opravdu chcete odstranit tento řádek objednávky?"
 
 #: templates/dashboard/order/modal/cancel_line.html:28
 msgctxt "Modal remove order line table header"
 msgid "SKU"
-msgstr ""
+msgstr "SKU"
 
 #: templates/dashboard/order/modal/cancel_line.html:31
 msgctxt "Modal remove order line table header"
@@ -3491,63 +3536,63 @@ msgstr "Celkem"
 #: templates/dashboard/order/modal/cancel_order.html:11
 msgctxt "Modal cancel order title"
 msgid "Cancel order"
-msgstr ""
+msgstr "Zrušit objednávku"
 
 #: templates/dashboard/order/modal/cancel_order.html:16
 #, python-format
 msgctxt "Modal cancel order text"
 msgid "Are you sure you want cancel order %(order)s?"
-msgstr ""
+msgstr "Opravdu chcete zrušit objednávku %(order)s?"
 
 #: templates/dashboard/order/modal/cancel_order.html:24
 msgctxt "Modal cancel order cancel action"
 msgid "Abort"
-msgstr ""
+msgstr "Přerušit"
 
 #: templates/dashboard/order/modal/cancel_order.html:28
 msgctxt "Modal cancel order primary action"
 msgid "Cancel Order"
-msgstr ""
+msgstr "Zrušit objednávku"
 
 #: templates/dashboard/order/modal/capture.html:13
 msgctxt "Modal capture payment title"
 msgid "Capture payment"
-msgstr ""
+msgstr "Získat platbu"
 
 #: templates/dashboard/order/modal/capture.html:19
 msgctxt "Modal capture payment title"
 msgid "Before this action:"
-msgstr ""
+msgstr "Před touto akcí:"
 
 #: templates/dashboard/order/modal/capture.html:21
 msgctxt "Modal capture payment list title"
 msgid "Order total:"
-msgstr ""
+msgstr "Celkový počet objednávek:"
 
 #: templates/dashboard/order/modal/capture.html:24
 msgctxt "Modal capture payment list title"
 msgid "Taxes (included):"
-msgstr ""
+msgstr "Daně (v ceně):"
 
 #: templates/dashboard/order/modal/capture.html:27
 msgctxt "Modal capture payment list title"
 msgid "Captured amount:"
-msgstr ""
+msgstr "Zachycené množství:"
 
 #: templates/dashboard/order/modal/capture.html:35
 msgctxt "Modal capture payment primary action"
 msgid "Capture"
-msgstr ""
+msgstr "Získat"
 
 #: templates/dashboard/order/modal/change_quantity.html:11
 msgctxt "Modal change quantity title"
 msgid "Change quantity"
-msgstr ""
+msgstr "Změňit množství"
 
 #: templates/dashboard/order/modal/create_order.html:11
 msgctxt "Modal create order title"
 msgid "Create order"
-msgstr ""
+msgstr "Vytvořit objednávku"
 
 #: templates/dashboard/order/modal/create_order.html:16
 #, python-format
@@ -3556,6 +3601,8 @@ msgid ""
 "Are you sure you want create order %(order)s? Once the order has been "
 "created, you will not be able to make changes."
 msgstr ""
+"Opravdu chcete vytvořit objednávku %(order)s? Po vytvoření objednávky "
+"nebudete moci provádět změny."
 
 #: templates/dashboard/order/modal/create_order.html:26
 msgctxt "Modal create order primary action"
@@ -3565,7 +3612,7 @@ msgstr "Vytvořit"
 #: templates/dashboard/order/modal/edit_customer.html:11
 msgctxt "Modal edit customer title"
 msgid "Edit customer details"
-msgstr ""
+msgstr "Upravit podrobnosti o zákaznících"
 
 #: templates/dashboard/order/modal/edit_customer.html:17
 msgctxt "Modal edit customer text"
@@ -3573,11 +3620,13 @@ msgid ""
 "Connect an order with an account of an existing customer or provide a "
 "contact email address."
 msgstr ""
+"Připojte objednávku k účtu stávajícího zákazníka nebo zadejte kontaktní "
+"e-mailovou adresu."
 
 #: templates/dashboard/order/modal/edit_customer.html:34
 msgctxt "Dashboard edit draft order remove action"
 msgid "Remove customer from order"
-msgstr ""
+msgstr "Odstranit zákazníka z objednávky"
 
 #: templates/dashboard/order/modal/edit_customer.html:40
 msgctxt "Modal edit customer primary action"
@@ -3587,7 +3636,7 @@ msgstr "Aktualizovat"
 #: templates/dashboard/order/modal/edit_discount.html:11
 msgctxt "Modal edit discount title"
 msgid "Edit discount"
-msgstr ""
+msgstr "Upravit slevu"
 
 #: templates/dashboard/order/modal/edit_discount.html:21
 msgctxt "Modal edit discount primary action"
@@ -3597,12 +3646,12 @@ msgstr "Aktualizovat"
 #: templates/dashboard/order/modal/edit_shipping.html:11
 msgctxt "Modal edit shipping title"
 msgid "Edit shipping"
-msgstr ""
+msgstr "Upravit zásilku"
 
 #: templates/dashboard/order/modal/edit_shipping.html:23
 msgctxt "Dashboard edit draft order remove action"
 msgid "Remove shipping from order"
-msgstr ""
+msgstr "Odstranění dopravy z objednávky"
 
 #: templates/dashboard/order/modal/edit_shipping.html:29
 msgctxt "Modal edit shipping primary action"
@@ -3612,12 +3661,12 @@ msgstr "Aktualizovat"
 #: templates/dashboard/order/modal/edit_voucher.html:11
 msgctxt "Modal edit voucher title"
 msgid "Edit voucher"
-msgstr ""
+msgstr "Upravit voucher"
 
 #: templates/dashboard/order/modal/edit_voucher.html:23
 msgctxt "Dashboard edit draft order remove action"
 msgid "Remove voucher from order"
-msgstr ""
+msgstr "Odstranit voucher z objednávky"
 
 #: templates/dashboard/order/modal/edit_voucher.html:29
 msgctxt "Modal edit voucher primary action"
@@ -3642,103 +3691,103 @@ msgstr "Aktualizovat"
 #: templates/dashboard/order/modal/fulfillment_tracking.html:29
 msgctxt "Modal change fulfillment tracking primary action"
 msgid "Save"
-msgstr ""
+msgstr "Uložit"
 
 #: templates/dashboard/order/modal/mark_as_paid.html:12
 msgctxt "Modal mark order as paid title"
 msgid "Mark order as paid"
-msgstr ""
+msgstr "Označte objednávku jako zaplacenou"
 
 #: templates/dashboard/order/modal/mark_as_paid.html:17
 msgctxt "Modal mark order as paid text"
 msgid "Are you sure you want mark order as paid?"
-msgstr ""
+msgstr "Opravdu chcete označit objednávku jako zaplacenou?"
 
 #: templates/dashboard/order/modal/mark_as_paid.html:18
 msgctxt "Modal mark order as paid text"
 msgid "Total received:"
-msgstr ""
+msgstr "Celkem přijatých:"
 
 #: templates/dashboard/order/modal/mark_as_paid.html:23
 msgctxt "Modal mark order as paid cancel action"
 msgid "Abort"
-msgstr ""
+msgstr "Přerušit"
 
 #: templates/dashboard/order/modal/mark_as_paid.html:27
 msgctxt "Modal mark order as paid primary action"
 msgid "Mark as paid"
-msgstr ""
+msgstr "Označit jako zaplacené"
 
 #: templates/dashboard/order/modal/refund.html:14
 msgctxt "Modal refund payment title"
 msgid "Refund payment"
-msgstr ""
+msgstr "Vrácení platby"
 
 #: templates/dashboard/order/modal/refund.html:20
 msgctxt "Modal refund payment title"
 msgid "Before this action:"
-msgstr ""
+msgstr "Před touto akcí:"
 
 #: templates/dashboard/order/modal/refund.html:22
 msgctxt "Modal refund payment list title"
 msgid "Order total:"
-msgstr ""
+msgstr "Celkový počet objednávek:"
 
 #: templates/dashboard/order/modal/refund.html:25
 msgctxt "Modal refund payment list title"
 msgid "Taxes (included):"
-msgstr ""
+msgstr "Daně (v ceně):"
 
 #: templates/dashboard/order/modal/refund.html:28
 msgctxt "Modal refund payment list title"
 msgid "Captured amount:"
-msgstr ""
+msgstr "Zachycené množství:"
 
 #: templates/dashboard/order/modal/refund.html:36
 msgctxt "Modal refund payment primary action"
 msgid "Refund"
-msgstr ""
+msgstr "Vrácení platby"
 
 #: templates/dashboard/order/modal/release.html:11
 msgctxt "Modal release payment text"
 msgid "Release payment"
-msgstr ""
+msgstr "Uvolnit platbu"
 
 #: templates/dashboard/order/modal/release.html:17
 msgctxt "Modal release payment text"
 msgid "Do you want to release the payment?"
-msgstr ""
+msgstr "Chcete provést platbu?"
 
 #: templates/dashboard/order/modal/release.html:22
 msgctxt "Modal release payment primary action"
 msgid "Release"
-msgstr ""
+msgstr "Uvolnit"
 
 #: templates/dashboard/order/modal/remove_order.html:13
 msgctxt "Modal remove order title"
 msgid "Remove draft order"
-msgstr ""
+msgstr "Odstranění pořadí návrhů"
 
 #: templates/dashboard/order/modal/remove_order.html:18
 #, python-format
 msgctxt "Modal remove order text"
 msgid "Are you sure you want remove draft order %(order)s?"
-msgstr ""
+msgstr "Opravdu chcete odstranit návrh objednávky %(order)s?"
 
 #: templates/dashboard/order/modal/remove_order.html:25
 msgctxt "Modal remove order cancel action"
 msgid "Abort"
-msgstr ""
+msgstr "Přerušit"
 
 #: templates/dashboard/order/modal/remove_order.html:29
 msgctxt "Modal remove order primary action"
 msgid "Remove draft order"
-msgstr ""
+msgstr "Odstranění pořadí návrhů"
 
 #: templates/dashboard/order/pdf/invoice.html:8
 msgctxt "Invoice title"
 msgid "Invoice for Order"
-msgstr ""
+msgstr "Faktura za objednávku"
 
 #: templates/dashboard/order/pdf/invoice.html:17
 msgctxt "Invoice header"
@@ -3748,7 +3797,7 @@ msgstr "Objednávka"
 #: templates/dashboard/order/pdf/invoice.html:21
 msgctxt "Order invoice"
 msgid "Invoice"
-msgstr ""
+msgstr "Faktura"
 
 #: templates/dashboard/order/pdf/invoice.html:27
 msgctxt "Invoice shipping address"
@@ -3763,7 +3812,7 @@ msgstr "Fakturační adresa"
 #: templates/dashboard/order/pdf/invoice.html:53
 msgctxt "Invoice ordered items header"
 msgid "Items Ordered"
-msgstr ""
+msgstr "Objednané položky "
 
 #: templates/dashboard/order/pdf/invoice.html:60
 msgctxt "Shipment order table header"
@@ -3773,17 +3822,17 @@ msgstr "Položka"
 #: templates/dashboard/order/pdf/invoice.html:64
 msgctxt "Shipment order table header"
 msgid "SKU"
-msgstr ""
+msgstr "SKU"
 
 #: templates/dashboard/order/pdf/invoice.html:67
 msgctxt "Shipment order table header"
 msgid "Tax rate"
-msgstr ""
+msgstr "Sazba daně"
 
 #: templates/dashboard/order/pdf/invoice.html:70
 msgctxt "Shipment order table header"
 msgid "Gross price"
-msgstr ""
+msgstr "Hrubá cena"
 
 #: templates/dashboard/order/pdf/invoice.html:73
 msgctxt "Shipment order table header"
@@ -3817,7 +3866,7 @@ msgstr "Dopravné"
 #: templates/dashboard/order/pdf/invoice.html:129
 msgctxt "Order total taxes header"
 msgid "Total taxes (included)"
-msgstr ""
+msgstr "Celkové daně (včetně)"
 
 #: templates/dashboard/order/pdf/invoice.html:138
 msgctxt "Order voucher header"
@@ -3827,27 +3876,27 @@ msgstr "Sleva"
 #: templates/dashboard/order/pdf/invoice.html:149
 msgctxt "Order total price header"
 msgid "Grand total"
-msgstr ""
+msgstr "Celkový součet"
 
 #: templates/dashboard/order/pdf/packing_slip.html:16
 msgctxt "Packing slip header"
 msgid "Order ID:"
-msgstr ""
+msgstr "ID objednávky:"
 
 #: templates/dashboard/order/pdf/packing_slip.html:20
 msgctxt "Packing slips header"
 msgid "Packing Slips"
-msgstr "Poštovní štítky"
+msgstr "Poštovní štítek"
 
 #: templates/dashboard/order/pdf/packing_slip.html:26
 msgctxt "Packing slip shipping details"
 msgid "Shipping Details"
-msgstr ""
+msgstr "Podrobnosti o dopravě"
 
 #: templates/dashboard/order/pdf/packing_slip.html:30
 msgctxt "Packing slip shipping details"
 msgid "Billing Details"
-msgstr ""
+msgstr "Fakturační údaje"
 
 #: templates/dashboard/order/pdf/packing_slip.html:40
 msgctxt "Packing slip shipping address"
@@ -3862,12 +3911,12 @@ msgstr "Fakturační adresa"
 #: templates/dashboard/order/pdf/packing_slip.html:58
 msgctxt "Order invoice"
 msgid "Items Ordered"
-msgstr ""
+msgstr "Objednané položky "
 
 #: templates/dashboard/order/pdf/packing_slip.html:67
 msgctxt "Order table header"
 msgid "SKU"
-msgstr ""
+msgstr "SKU"
 
 #: templates/dashboard/order/zero_page.html:5
 msgid "No orders found."
@@ -3879,6 +3928,9 @@ msgid ""
 "    Orders will appear here after customers complete the checkout.\n"
 "  "
 msgstr ""
+"\n"
+"  Objednávky se zobrazí poté, co zákazníci dokončí nákup.\n"
+"  "
 
 #: templates/dashboard/page/detail.html:8 templates/dashboard/page/list.html:8
 msgctxt "Pages list page title"
@@ -3893,17 +3945,17 @@ msgstr "Stránky"
 #: templates/dashboard/page/detail.html:43
 msgctxt "Page URL"
 msgid "Page URL"
-msgstr ""
+msgstr "Adresa URL stránky"
 
 #: templates/dashboard/page/detail.html:50
 msgctxt "Page action"
 msgid "Edit page"
-msgstr ""
+msgstr "Upravit stránku"
 
 #: templates/dashboard/page/detail.html:53
 msgctxt "Page action"
 msgid "Remove page"
-msgstr ""
+msgstr "Odstranit stránku"
 
 #: templates/dashboard/page/detail.html:57
 msgctxt "Page action"
@@ -3918,7 +3970,7 @@ msgstr "Upravit"
 #: templates/dashboard/page/form.html:10
 msgctxt "Page form page title"
 msgid "Add new page"
-msgstr ""
+msgstr "Přidat novou stránku"
 
 #: templates/dashboard/page/form.html:26
 msgctxt "Dashboard pages list"
@@ -3928,7 +3980,7 @@ msgstr "Stránky"
 #: templates/dashboard/page/form.html:41
 msgctxt "Page form breadcrumbs"
 msgid "Add new page"
-msgstr ""
+msgstr "Přidat novou stránku"
 
 #: templates/dashboard/page/form.html:48
 msgctxt "Page form breadcrumbs"
@@ -3941,7 +3993,7 @@ msgstr "Zrušit"
 
 #: templates/dashboard/page/form.html:83
 msgid "Save"
-msgstr ""
+msgstr "Uložit"
 
 #: templates/dashboard/page/form.html:86
 msgid "Create"
@@ -3950,7 +4002,7 @@ msgstr "Vytvořit"
 #: templates/dashboard/page/list.html:18
 msgctxt "Page list add button text"
 msgid "Add page"
-msgstr ""
+msgstr "Přidat stranu"
 
 #: templates/dashboard/page/list.html:27
 msgid "Pages"
@@ -3959,7 +4011,7 @@ msgstr "Stránky"
 #: templates/dashboard/page/list.html:42
 msgctxt "Static pages table header name"
 msgid "Title"
-msgstr ""
+msgstr "Titul"
 
 #: templates/dashboard/page/list.html:45
 msgctxt "Static pages table header url"
@@ -3974,23 +4026,23 @@ msgstr "Viditelnost"
 #: templates/dashboard/page/list.html:78
 msgctxt "Empty pages list message"
 msgid "No pages found."
-msgstr ""
+msgstr "Nebyly nalezeny žádné stránky."
 
 #: templates/dashboard/page/modal_delete.html:12
 #, python-format
 msgctxt "Modal remove page text"
 msgid "Remove page %(page)s"
-msgstr ""
+msgstr "Odstranit stránku %(page)s"
 
 #: templates/dashboard/page/modal_delete.html:19
 #, python-format
 msgctxt "Modal remove page text"
 msgid "Are you sure you want to remove page <strong>%(page)s</strong>?"
-msgstr ""
+msgstr "Opravdu chcete odstranit stránku <strong>%(page)s</strong>?"
 
 #: templates/dashboard/page/zero_page.html:5
 msgid "No pages found."
-msgstr ""
+msgstr "Nebyly nalezeny žádné stránky."
 
 #: templates/dashboard/page/zero_page.html:8
 #, python-format
@@ -4000,6 +4052,10 @@ msgid ""
 "    You can create pages by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
+"\n"
+"   Stránky umožňují vytvářet vlastní statické stránky, například \"O nás\", které sezobrazí na konkrétní adrese URL. <br>\n"
+" Stránky můžete vytvářet pomocí tlačítka<span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> \n"
+"  "
 
 #: templates/dashboard/product/detail.html:19
 #: templates/dashboard/product/product_variant/detail.html:20
@@ -4020,12 +4076,12 @@ msgstr "Rozepsáno"
 #: templates/dashboard/product/detail.html:78
 msgctxt "Product action"
 msgid "Edit product"
-msgstr ""
+msgstr "Upravit produkt"
 
 #: templates/dashboard/product/detail.html:81
 msgctxt "Product action"
 msgid "Remove product"
-msgstr ""
+msgstr "Odstranit produkt"
 
 #: templates/dashboard/product/detail.html:85
 msgctxt "Product action"
@@ -4034,11 +4090,11 @@ msgstr "Zobrazit na stránce"
 
 #: templates/dashboard/product/detail.html:92
 msgid "Variant"
-msgstr ""
+msgstr "Varianta"
 
 #: templates/dashboard/product/detail.html:103
 msgid "SKU"
-msgstr ""
+msgstr "SKU"
 
 #: templates/dashboard/product/detail.html:104
 msgid "Name"
@@ -4050,15 +4106,15 @@ msgstr "Stav"
 
 #: templates/dashboard/product/detail.html:108
 msgid "Gross price"
-msgstr ""
+msgstr "Hrubá cena"
 
 #: templates/dashboard/product/detail.html:110
 msgid "Net price"
-msgstr ""
+msgstr "Čistá cena"
 
 #: templates/dashboard/product/detail.html:113
 msgid "Margin"
-msgstr ""
+msgstr "Marže"
 
 #: templates/dashboard/product/detail.html:139
 msgid "Edit"
@@ -4067,94 +4123,94 @@ msgstr "Upravit"
 #: templates/dashboard/product/detail.html:144
 msgctxt "Dashboard product details page"
 msgid "No variants found"
-msgstr ""
+msgstr "Nebyly nalezeny žádné varianty"
 
 #: templates/dashboard/product/detail.html:160
 #: templates/dashboard/product/product_variant/detail.html:79
 msgctxt "Product pricing card header"
 msgid "Pricing"
-msgstr ""
+msgstr "Ceny"
 
 #: templates/dashboard/product/detail.html:164
 #, python-format
 msgctxt "Product pricing card header subtitle"
 msgid "Taxes are charged (%(tax_rate)s tax rate)"
-msgstr ""
+msgstr "Daně jsou účtovány (%(tax_rate)ssazba daně)"
 
 #: templates/dashboard/product/detail.html:168
 msgctxt "Product pricing card header subtitle"
 msgid "Taxes are not charged"
-msgstr ""
+msgstr "Daně nejsou účtovány"
 
 #: templates/dashboard/product/detail.html:179
 #: templates/dashboard/product/product_variant/detail.html:89
 msgctxt "Product field"
 msgid "Gross sale price"
-msgstr ""
+msgstr "Hrubá prodejní cena"
 
 #: templates/dashboard/product/detail.html:181
 #: templates/dashboard/product/product_variant/detail.html:91
 msgctxt "Product field"
 msgid "Net sale price"
-msgstr ""
+msgstr "Čistá prodejní cena"
 
 #: templates/dashboard/product/detail.html:192
 #: templates/dashboard/product/product_variant/detail.html:102
 msgctxt "Product field"
 msgid "Gross discounted price"
-msgstr ""
+msgstr "Hrubá zlevněná cena"
 
 #: templates/dashboard/product/detail.html:194
 #: templates/dashboard/product/product_variant/detail.html:104
 msgctxt "Product field"
 msgid "Net discounted price"
-msgstr ""
+msgstr "Čistá zlevněná cena"
 
 #: templates/dashboard/product/detail.html:205
 #: templates/dashboard/product/product_variant/detail.html:115
 msgctxt "Product field"
 msgid "Gross purchase cost"
-msgstr ""
+msgstr "Hrubé nákupní náklady"
 
 #: templates/dashboard/product/detail.html:207
 #: templates/dashboard/product/product_variant/detail.html:117
 msgctxt "Product field"
 msgid "Net purchase cost"
-msgstr ""
+msgstr "Čisté nákupní náklady"
 
 #: templates/dashboard/product/detail.html:216
 #: templates/dashboard/product/product_variant/detail.html:130
 msgctxt "Product field"
 msgid "Margin"
-msgstr ""
+msgstr "Marže"
 
 #: templates/dashboard/product/detail.html:239
 #: templates/dashboard/product/product_variant/detail.html:148
 msgctxt "Product variant inventory card header"
 msgid "Inventory"
-msgstr ""
+msgstr "Inventář"
 
 #: templates/dashboard/product/detail.html:248
 #: templates/dashboard/product/product_variant/detail.html:157
 msgctxt "Dashboard variant details view"
 msgid "Number in stock"
-msgstr ""
+msgstr "Počet na skladě"
 
 #: templates/dashboard/product/detail.html:256
 #: templates/dashboard/product/product_variant/detail.html:165
 msgctxt "Dashboard variant details view"
 msgid "Allocated"
-msgstr ""
+msgstr "Přidělen"
 
 #: templates/dashboard/product/detail.html:269
 #: templates/dashboard/product/product_image/list.html:7
 #: templates/dashboard/product/product_image/list.html:41
 msgid "Images"
-msgstr ""
+msgstr "Obrázek"
 
 #: templates/dashboard/product/detail.html:280
 msgid "Edit images"
-msgstr ""
+msgstr "Upravit obrázek"
 
 #: templates/dashboard/product/form.html:8
 msgctxt "Dashboard products list"
@@ -4164,12 +4220,12 @@ msgstr "Upravit"
 #: templates/dashboard/product/form.html:10
 msgctxt "Product form page title"
 msgid "Add new product"
-msgstr ""
+msgstr "Přidat nový produkt"
 
 #: templates/dashboard/product/form.html:43
 msgctxt "Product form breadcrumbs"
 msgid "Add new product"
-msgstr ""
+msgstr "Přidat nový produkt"
 
 #: templates/dashboard/product/form.html:50
 msgctxt "Product form breadcrumbs"
@@ -4188,12 +4244,15 @@ msgid ""
 "                    Product Type: %(product_type_name)s\n"
 "                  "
 msgstr ""
+"\n"
+"                    Typ produktu: %(product_type_name)s\n"
+"                  "
 
 #: templates/dashboard/product/list.html:22
 #: templates/dashboard/product/list.html:26
 msgctxt "Product list add button text"
 msgid "Add product"
-msgstr ""
+msgstr "Přidat produkt"
 
 #: templates/dashboard/product/list.html:63
 msgctxt "Products list table header"
@@ -4208,24 +4267,24 @@ msgstr "Cena"
 #: templates/dashboard/product/list.html:103
 msgctxt "Empty product list message"
 msgid "No products found."
-msgstr ""
+msgstr "Nenašli se žádné produkty."
 
 #: templates/dashboard/product/modal/confirm_delete.html:12
 #, python-format
 msgctxt "Modal remove product text"
 msgid "Remove product %(product)s"
-msgstr ""
+msgstr "Odebrat produkt %(product)s"
 
 #: templates/dashboard/product/modal/confirm_delete.html:19
 #, python-format
 msgctxt "Modal remove product text"
 msgid "Are you sure you want to remove product <strong>%(product)s</strong>?"
-msgstr ""
+msgstr "Opravdu chcete odebrat produkt <strong>%(product)s</strong>?"
 
 #: templates/dashboard/product/modal/select_type.html:11
 msgctxt "Modal select product types title"
 msgid "Product type"
-msgstr ""
+msgstr "Typ produktu"
 
 #: templates/dashboard/product/modal/select_type.html:19
 msgctxt "Dashboard add action"
@@ -4240,20 +4299,20 @@ msgstr "Atributy"
 #: templates/dashboard/product/product_attribute/detail.html:49
 msgctxt "Attribute detail action"
 msgid "Edit attribute"
-msgstr ""
+msgstr "Upravit atribut"
 
 #: templates/dashboard/product/product_attribute/detail.html:52
 msgctxt "Attribute detail action"
 msgid "Remove attribute"
-msgstr ""
+msgstr "Odstranit atribut"
 
 #: templates/dashboard/product/product_attribute/detail.html:61
 msgid "Attribute values"
-msgstr ""
+msgstr "Hodnoty atributů"
 
 #: templates/dashboard/product/product_attribute/detail.html:78
 msgid "Display name"
-msgstr ""
+msgstr "Zobrazovaný název"
 
 #: templates/dashboard/product/product_attribute/detail.html:98
 #: templates/dashboard/shipping/detail.html:100
@@ -4269,7 +4328,7 @@ msgstr "Odstranit"
 #: templates/dashboard/product/product_attribute/detail.html:108
 msgctxt "Empty list of attribute values"
 msgid "No attribute values"
-msgstr ""
+msgstr "Žádné hodnoty atributu"
 
 #: templates/dashboard/product/product_attribute/form.html:8
 #: templates/dashboard/product/product_attribute/values/form.html:8
@@ -4281,7 +4340,7 @@ msgstr "Upravit"
 #: templates/dashboard/product/product_attribute/values/form.html:10
 msgctxt "Attribute detail page title"
 msgid "Add new attribute"
-msgstr ""
+msgstr "Přidat nový atribut"
 
 #: templates/dashboard/product/product_attribute/form.html:45
 #: templates/dashboard/product/product_attribute/values/form.html:47
@@ -4294,12 +4353,12 @@ msgstr "Upravit"
 #: templates/dashboard/product/product_attribute/values/form.html:53
 msgctxt "Attribute detail breadcrumbs"
 msgid "Add new attribute"
-msgstr ""
+msgstr "Přidat nový atribut"
 
 #: templates/dashboard/product/product_attribute/list.html:18
 msgctxt "Attribute list add button text"
 msgid "Add attribute"
-msgstr ""
+msgstr "Přidat atribut"
 
 #: templates/dashboard/product/product_attribute/list.html:44
 msgctxt "Dashboard attributes list table header name"
@@ -4309,36 +4368,36 @@ msgstr "Jméno"
 #: templates/dashboard/product/product_attribute/list.html:47
 msgctxt "Dashboard attributes list table header values"
 msgid "Values"
-msgstr ""
+msgstr "Hodnoty"
 
 #: templates/dashboard/product/product_attribute/list.html:74
 msgctxt "Empty attribute list message"
 msgid "No attributes found."
-msgstr ""
+msgstr "Nenalezeny žádné atributy."
 
 #: templates/dashboard/product/product_attribute/modal/attribute_confirm_delete.html:12
 #, python-format
 msgctxt "Modal remove attribute text"
 msgid "Remove attribute %(attribute)s"
-msgstr ""
+msgstr "Odstranit atribut %(attribute)s"
 
 #: templates/dashboard/product/product_attribute/modal/attribute_confirm_delete.html:19
 #, python-format
 msgctxt "Modal remove attribute text"
 msgid ""
 "Are you sure you want to remove attribute <strong>%(attribute)s</strong>?"
-msgstr ""
+msgstr "Opravdu chcete odstranit atribut <strong>%(attribute)s</strong>?"
 
 #: templates/dashboard/product/product_attribute/values/form.html:70
 msgctxt "Attribute values form title"
 msgid "Attribute values"
-msgstr ""
+msgstr "Hodnoty atributů"
 
 #: templates/dashboard/product/product_attribute/values/modal/confirm_delete.html:12
 #, python-format
 msgctxt "Modal delete attribute text"
 msgid "Delete attribute choice value %(value)s"
-msgstr ""
+msgstr "Odstranit hodnotu výběru atributu %(value)s"
 
 #: templates/dashboard/product/product_attribute/values/modal/confirm_delete.html:19
 #, python-format
@@ -4347,11 +4406,12 @@ msgid ""
 "Are you sure you want to remove attribute choice value "
 "<strong>%(value)s</strong>?"
 msgstr ""
+"Opravdu chcete odstranit hodnotu výběru atributu <strong>%(value)s</strong>?"
 
 #: templates/dashboard/product/product_attribute/zero_page.html:5
 #: templates/dashboard/product/product_variant/form.html:82
 msgid "No attributes found."
-msgstr ""
+msgstr "Nenalezeny žádné atributy."
 
 #: templates/dashboard/product/product_attribute/zero_page.html:8
 #, python-format
@@ -4361,21 +4421,25 @@ msgid ""
 "    You can add attributes by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
+"\n"
+"   Atributy se používají k definování vlastních vlastností produktů a variant, které lze použít pro účely filtrování v obchodě.<br>\n"
+"  Pomocí tlačítek můžete přidávat atributy. <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> \n"
+"  "
 
 #: templates/dashboard/product/product_image/form.html:8
 msgctxt "Image form text"
 msgid "Edit - Image"
-msgstr ""
+msgstr "Upravit - obrázek"
 
 #: templates/dashboard/product/product_image/form.html:10
 msgctxt "Image form text"
 msgid "Add image"
-msgstr ""
+msgstr "Přidat obrázek"
 
 #: templates/dashboard/product/product_image/form.html:38
 msgctxt "Image form text"
 msgid "Image"
-msgstr ""
+msgstr "Obrázek"
 
 #: templates/dashboard/product/product_image/form.html:43
 msgctxt "Image form text"
@@ -4385,23 +4449,23 @@ msgstr "Upravit"
 #: templates/dashboard/product/product_image/form.html:49
 msgctxt "Image form breadcrumbs"
 msgid "Add image"
-msgstr ""
+msgstr "Přidat obrázek"
 
 #: templates/dashboard/product/product_image/form.html:52
 #, python-format
 msgctxt "Image form breadcrumbs"
 msgid "Add image for %(product)s"
-msgstr ""
+msgstr "Přidat obrázek pro %(product)s"
 
 #: templates/dashboard/product/product_image/list.html:19
 msgctxt "Add image button text"
 msgid "Add image"
-msgstr ""
+msgstr "Přidat obrázek"
 
 #: templates/dashboard/product/product_image/list.html:73
 msgctxt "Image card text"
 msgid "No description"
-msgstr ""
+msgstr "Bez popisu"
 
 #: templates/dashboard/product/product_image/list.html:87
 #: templates/dashboard/product/product_image/list.html:131
@@ -4412,46 +4476,46 @@ msgstr "Odstranit"
 #: templates/dashboard/product/product_image/list.html:101
 msgctxt "Image gallery upload box text"
 msgid "Drop images here to upload"
-msgstr ""
+msgstr "Nahrát obrázky"
 
 #: templates/dashboard/product/product_image/list.html:120
 msgctxt "Empty image gallery message"
 msgid "No description"
-msgstr ""
+msgstr "Bez popisu"
 
 #: templates/dashboard/product/product_image/modal/confirm_delete.html:12
 msgctxt "Modal remove image text"
 msgid "Remove product image"
-msgstr ""
+msgstr "Odstranit obrázky produktu"
 
 #: templates/dashboard/product/product_image/modal/confirm_delete.html:20
 msgctxt "Modal remove image text"
 msgid "Are you sure you want to remove product image?"
-msgstr ""
+msgstr "Opravdu chcete odstranit obrázky produktu?"
 
 #: templates/dashboard/product/product_image/versatile_image.html:7
 msgid "Primary Point of Interest"
-msgstr ""
+msgstr "Primární bod zájmu"
 
 #: templates/dashboard/product/product_image/versatile_image.html:10
 msgctxt "Image form text"
 msgid "Pick the most relevant part of the image using the red circle."
-msgstr ""
+msgstr "Vyberte nejvíce relevantní část obrázku pomocí červeného kruhu."
 
 #: templates/dashboard/product/product_type/form.html:10
 msgctxt "Product type page title"
 msgid "Add new product type"
-msgstr ""
+msgstr "Přidat nový typ produktu"
 
 #: templates/dashboard/product/product_type/form.html:41
 msgctxt "Product type breadcrumbs"
 msgid "Add new product type"
-msgstr ""
+msgstr "Přidat nový typ produktu"
 
 #: templates/dashboard/product/product_type/form.html:57
 msgctxt "Product type action"
 msgid "Remove product type"
-msgstr ""
+msgstr "Odstranit typ produktu"
 
 #: templates/dashboard/product/product_type/form.html:95
 msgid "Taxes"
@@ -4463,11 +4527,13 @@ msgid ""
 "Product Type is a template used for creating new products. It also controls "
 "which attributes can be used during product creation process."
 msgstr ""
+"Typ produktu je šablona používaná k vytváření nových produktů. Rovněž řídí, "
+"které atributy lze použít během procesu vytváření produktu."
 
 #: templates/dashboard/product/product_type/list.html:18
 msgctxt "Product type list add button text"
 msgid "Add product type"
-msgstr ""
+msgstr "Přidat typ produktu"
 
 #: templates/dashboard/product/product_type/list.html:44
 msgctxt "Dashboard product types list table header name"
@@ -4477,23 +4543,23 @@ msgstr "Jméno"
 #: templates/dashboard/product/product_type/list.html:48
 msgctxt "Product type item list text"
 msgid "Product attributes"
-msgstr ""
+msgstr "Vlastnosti produktu"
 
 #: templates/dashboard/product/product_type/list.html:51
 msgctxt "Product type item list text"
 msgid "Variant attributes"
-msgstr ""
+msgstr "Atributy variant"
 
 #: templates/dashboard/product/product_type/list.html:89
 msgctxt "Empty product type list message"
 msgid "No product types found."
-msgstr ""
+msgstr "Nebyly nalezeny žádné typy produktů."
 
 #: templates/dashboard/product/product_type/modal/confirm_delete.html:13
 #, python-format
 msgctxt "Modal remove product type text"
 msgid "Remove product type %(product_type)s"
-msgstr ""
+msgstr "Odstranit typ produktu %(product_type)s"
 
 #: templates/dashboard/product/product_type/modal/confirm_delete.html:21
 #, python-format
@@ -4502,21 +4568,22 @@ msgid ""
 "Are you sure you want to remove product type "
 "<strong>%(product_type)s</strong>?"
 msgstr ""
+"Opravdu chcete odstranit typ produktu <strong>%(product_type)s</strong>?"
 
 #: templates/dashboard/product/product_type/modal/confirm_delete.html:27
 #, python-format
 msgctxt "Modal remove product type text"
 msgid "There are %(product_count)s products in product type."
-msgstr ""
+msgstr "Existují produkty %(product_count)stypu výrobku."
 
 #: templates/dashboard/product/product_type/modal/confirm_delete.html:31
 msgctxt "Modal remove product type text"
 msgid "There are no products in this product type."
-msgstr ""
+msgstr "V tomto typu produktu nejsou žádné produkty."
 
 #: templates/dashboard/product/product_type/zero_page.html:5
 msgid "No product types found."
-msgstr ""
+msgstr "Nebyly nalezeny žádné typy produktů."
 
 #: templates/dashboard/product/product_type/zero_page.html:8
 #, python-format
@@ -4526,35 +4593,39 @@ msgid ""
 "    You can add product types by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
+"\n"
+"  Typy produktů jsou šablony používané k vytváření nových produktů. Umožňují přiřadit vlastní atributy výrobkům stejného typu.<br>\n"
+"Typy produktů můžete přidat pomocí tlačítka.<span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span>\n"
+"  "
 
 #: templates/dashboard/product/product_variant/detail.html:52
 msgctxt "Dashboard variant details view"
 msgid "SKU"
-msgstr ""
+msgstr "SKU"
 
 #: templates/dashboard/product/product_variant/detail.html:63
 msgctxt "Dashboard action"
 msgid "Edit variant"
-msgstr ""
+msgstr "Upravit variantu"
 
 #: templates/dashboard/product/product_variant/detail.html:66
 msgctxt "Dashboard action"
 msgid "Remove variant"
-msgstr ""
+msgstr "Odebrat variantu"
 
 #: templates/dashboard/product/product_variant/detail.html:177
 msgctxt "Dashboard variant details view"
 msgid "Variant Images"
-msgstr ""
+msgstr "Obrázky variant"
 
 #: templates/dashboard/product/product_variant/detail.html:185
 msgid "No images"
-msgstr ""
+msgstr "Žádné obrázky"
 
 #: templates/dashboard/product/product_variant/detail.html:193
 msgctxt "Dashboard action"
 msgid "Select images"
-msgstr ""
+msgstr "Vyberte obrázky"
 
 #: templates/dashboard/product/product_variant/form.html:8
 msgctxt "Variant form page title"
@@ -4564,7 +4635,7 @@ msgstr "Upravit"
 #: templates/dashboard/product/product_variant/form.html:10
 msgctxt "Variant form page title"
 msgid "Add variant"
-msgstr ""
+msgstr "Přidat variantu"
 
 #: templates/dashboard/product/product_variant/form.html:47
 msgctxt "Variant form breadcrumbs"
@@ -4574,13 +4645,13 @@ msgstr "Upravit"
 #: templates/dashboard/product/product_variant/form.html:53
 msgctxt "Variant form breadcrumbs"
 msgid "Add variant"
-msgstr ""
+msgstr "Přidat variantu"
 
 #: templates/dashboard/product/product_variant/form.html:56
 #, python-format
 msgctxt "Variant form breadcrumbs"
 msgid "Add variant for %(product)s"
-msgstr ""
+msgstr "Přidat variantu pro %(product)s"
 
 #: templates/dashboard/product/product_variant/modal/confirm_delete.html:13
 #, python-format
@@ -4589,6 +4660,8 @@ msgid ""
 "\n"
 "  Remove variant %(variant)s\n"
 msgstr ""
+"\n"
+"  Odebrat variantu %(variant)s\n"
 
 #: templates/dashboard/product/product_variant/modal/confirm_delete.html:21
 #, python-format
@@ -4598,6 +4671,9 @@ msgid ""
 "        Are you sure you want to remove variant <strong>%(variant)s</strong> of product %(product)s?\n"
 "      "
 msgstr ""
+"\n"
+"        Opravdu chcete odstranit variantu<strong>%(variant)s</strong> produktu%(product)s?\n"
+"      "
 
 #: templates/dashboard/product/product_variant/modal/confirm_delete.html:27
 msgctxt "Dashboard confirmation modal"
@@ -4605,20 +4681,22 @@ msgid ""
 "This is the only variant of this product. If you remove it, the product will"
 " become unavailable."
 msgstr ""
+"Toto je jediná varianta tohoto produktu. Pokud jej odeberete, produkt nebude"
+" k dispozici."
 
 #: templates/dashboard/product/product_variant/modal/select_images.html:14
 msgctxt "Dashboard variant images modal"
 msgid "Select variant images"
-msgstr ""
+msgstr "Vyberte varianty obrázků"
 
 #: templates/dashboard/product/product_variant/modal/select_images.html:24
 msgctxt "Dashboard modal action"
 msgid "Save"
-msgstr ""
+msgstr "Uložit"
 
 #: templates/dashboard/product/zero_page.html:5
 msgid "No products found."
-msgstr ""
+msgstr "Nenašli se žádné produkty."
 
 #: templates/dashboard/product/zero_page.html:10
 #, python-format
@@ -4627,6 +4705,9 @@ msgid ""
 "      You can create products by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "    "
 msgstr ""
+"\n"
+"     Pomocí tlačítka <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> můžete vytvářet produkty.\n"
+"    "
 
 #: templates/dashboard/product/zero_page.html:14
 #, python-format
@@ -4635,16 +4716,19 @@ msgid ""
 "      In order to create products, you have to first <a href=\"%(product_type_url)s\">add a product type </a>.\n"
 "    "
 msgstr ""
+"\n"
+"    Chcete-li vytvořit produkty, musíte nejprve <a href=\"%(product_type_url)s\">přidat typ produktu</a>.\n"
+"    "
 
 #: templates/dashboard/search/results.html:9 templates/search/results.html:6
 msgctxt "Search page title"
 msgid "Search results"
-msgstr ""
+msgstr "Výsledky vyhledávání"
 
 #: templates/dashboard/search/results.html:14
 msgctxt "Dashboard search"
 msgid "Search results"
-msgstr ""
+msgstr "Výsledky vyhledávání"
 
 #: templates/dashboard/search/results.html:25
 msgctxt "Search results list products"
@@ -4660,36 +4744,36 @@ msgstr "Objednávky"
 #, python-format
 msgctxt "Dashboard order"
 msgid "Order #%(order_number)s"
-msgstr ""
+msgstr "Objednávka #%(order_number)s"
 
 #: templates/dashboard/search/results.html:60
 #, python-format
 msgctxt "Dashboard customer"
 msgid "Customer: %(email)s"
-msgstr ""
+msgstr "Zákazník: %(email)s"
 
 #: templates/dashboard/search/results.html:65
 #, python-format
 msgctxt "Dashboard order info"
 msgid "Placed on: %(placed)s"
-msgstr ""
+msgstr "Umístěno na: %(placed)s"
 
 #: templates/dashboard/search/results.html:76
 msgctxt "Search results list users"
 msgid "Users"
-msgstr ""
+msgstr "Uživatelé"
 
 #: templates/dashboard/search/results.html:83
 #, python-format
 msgctxt "Dashboard user"
 msgid "User %(full_name)s"
-msgstr ""
+msgstr "Uživatel %(full_name)s"
 
 #: templates/dashboard/search/results.html:100
 #, python-format
 msgctxt "No Search result message"
 msgid "No results for query \"%(query)s\"."
-msgstr ""
+msgstr "Žádné výsledky pro dotaz \"%(query)s\"."
 
 #: templates/dashboard/shipping/country/form.html:8
 msgctxt "Dashboard price per country edit page"
@@ -4699,7 +4783,7 @@ msgstr "Upravit"
 #: templates/dashboard/shipping/country/form.html:10
 msgctxt "Shipping price per country edit page title"
 msgid "Add new shipping price per country"
-msgstr ""
+msgstr "Přidejte novou cenu za dopravu v zemi"
 
 #: templates/dashboard/shipping/country/form.html:31
 msgctxt "Dashboard attributes list"
@@ -4709,12 +4793,12 @@ msgstr "Způsoby dopravy"
 #: templates/dashboard/shipping/country/form.html:55
 msgctxt "Attribute detail breadcrumbs"
 msgid "Add new price for country"
-msgstr ""
+msgstr "Přidejte novou cenu pro zemi"
 
 #: templates/dashboard/shipping/country/form.html:72
 msgctxt "Shipping method price for country form title"
 msgid "Shipping method price for country "
-msgstr ""
+msgstr "Cena poštovného pro zemi"
 
 #: templates/dashboard/shipping/detail.html:21
 msgctxt "Shipping method form breadcrumbs"
@@ -4729,17 +4813,17 @@ msgstr "Popis"
 #: templates/dashboard/shipping/detail.html:59
 msgctxt "Shipping method action"
 msgid "Edit shipping method"
-msgstr ""
+msgstr "Upravit metodu odeslání"
 
 #: templates/dashboard/shipping/detail.html:62
 msgctxt "Shipping method action"
 msgid "Remove shipping method"
-msgstr ""
+msgstr "Odebrat způsob odeslání"
 
 #: templates/dashboard/shipping/detail.html:73
 msgctxt "Title of the per-country shipping price list"
 msgid "Price per country"
-msgstr ""
+msgstr "Cena za zemi"
 
 #: templates/dashboard/shipping/detail.html:86
 msgctxt "Header of the per-country shipping price list"
@@ -4759,7 +4843,7 @@ msgstr "Odstranit"
 #: templates/dashboard/shipping/detail.html:109
 msgctxt "Empty list of per-country shipping prices"
 msgid "No shipping prices"
-msgstr ""
+msgstr "Žádné ceny poštovného"
 
 #: templates/dashboard/shipping/form.html:9
 msgctxt "Dashboard shipping methods"
@@ -4770,7 +4854,7 @@ msgstr "Upravit"
 #: templates/dashboard/shipping/form.html:25
 msgctxt "Shipping method form page title"
 msgid "Add new method"
-msgstr ""
+msgstr "Přidat novou metodu"
 
 #: templates/dashboard/shipping/form.html:33
 msgctxt "Dashboard shipping method"
@@ -4785,12 +4869,12 @@ msgstr "Upravit"
 #: templates/dashboard/shipping/form.html:55
 msgctxt "Shipping method form breadcrumbs"
 msgid "Add new method"
-msgstr ""
+msgstr "Přidat novou metodu"
 
 #: templates/dashboard/shipping/list.html:27
 msgctxt "Shipping method list add button text"
 msgid "Add method"
-msgstr ""
+msgstr "Přidat metodu"
 
 #: templates/dashboard/shipping/list.html:43
 msgctxt "Shipping methods table header"
@@ -4800,17 +4884,17 @@ msgstr "Jméno"
 #: templates/dashboard/shipping/list.html:47
 msgctxt "Shipping methods table header"
 msgid "Price range"
-msgstr ""
+msgstr "Cenové rozpětí"
 
 #: templates/dashboard/shipping/list.html:50
 msgctxt "Shipping methods table header"
 msgid "Countries"
-msgstr ""
+msgstr "Země"
 
 #: templates/dashboard/shipping/list.html:84
 msgctxt "Empty shipping list message"
 msgid "No shipping methods found."
-msgstr ""
+msgstr "Nebyly nalezeny žádné způsoby odeslání."
 
 #: templates/dashboard/shipping/modal/confirm_delete.html:13
 #, python-format
@@ -4819,6 +4903,8 @@ msgid ""
 "\n"
 "Remove shipping method %(shipping_method)s\n"
 msgstr ""
+"\n"
+"Odstranit způsob dopravy  %(shipping_method)s\n"
 
 #: templates/dashboard/shipping/modal/confirm_delete.html:20
 #, python-format
@@ -4828,22 +4914,25 @@ msgid ""
 "      Are you sure you want to remove shipping method <strong>%(shipping_method)s</strong>?\n"
 "    "
 msgstr ""
+"\n"
+"      Opravdu chcete odstranit způsob dopravy <strong>%(shipping_method)s</strong>?\n"
+"    "
 
 #: templates/dashboard/shipping/modal/country_confirm_delete.html:12
 #, python-format
 msgctxt "Modal remove shipping method country title"
 msgid "Remove shipping %(country)s"
-msgstr ""
+msgstr "Odstranit dopravu %(country)s"
 
 #: templates/dashboard/shipping/modal/country_confirm_delete.html:19
 #, python-format
 msgctxt "Modal remove shipping method country text"
 msgid "Are you sure you want to remove shipping <strong>%(country)s</strong>?"
-msgstr ""
+msgstr "Opravdu chcete odstranit dopravu <strong>%(country)s</strong>?"
 
 #: templates/dashboard/shipping/zero_page.html:5
 msgid "No shipping methods found."
-msgstr ""
+msgstr "Nebyly nalezeny žádné způsoby odeslání."
 
 #: templates/dashboard/shipping/zero_page.html:8
 #, python-format
@@ -4853,6 +4942,10 @@ msgid ""
 "    You can add shipping methods by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
+"\n"
+"   Způsoby odeslání umožňují definovat způsoby dopravy, které jsou k dispozici v obchodě.<br>\n"
+"  Pomocí tlačítka <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> můžete přidat metodu dodání.\n"
+"  "
 
 #: templates/dashboard/sites/authorization_keys/form.html:8
 msgctxt "Dashboard authorization key list"
@@ -4862,7 +4955,7 @@ msgstr "Upravit"
 #: templates/dashboard/sites/authorization_keys/form.html:10
 msgctxt "Add new authorization key page title"
 msgid "Add new authorization key"
-msgstr ""
+msgstr "Přidat nový autorizační klíč"
 
 #: templates/dashboard/sites/authorization_keys/form.html:29
 msgctxt "Dashboard site setting detail"
@@ -4877,22 +4970,22 @@ msgstr "Upravit"
 #: templates/dashboard/sites/authorization_keys/form.html:46
 msgctxt "Authorization key breadcrumbs"
 msgid "Add new authorization key"
-msgstr ""
+msgstr "Přidat nový autorizační klíč"
 
 #: templates/dashboard/sites/authorization_keys/form.html:63
 msgctxt "Authorization key form title"
 msgid "Authorization key"
-msgstr ""
+msgstr "Autorizační klíč"
 
 #: templates/dashboard/sites/detail.html:33
 msgctxt "Site settings field"
 msgid "Domain"
-msgstr ""
+msgstr "Doména"
 
 #: templates/dashboard/sites/detail.html:43
 msgctxt "Site settings field"
 msgid "Header text"
-msgstr ""
+msgstr "Text záhlaví"
 
 #: templates/dashboard/sites/detail.html:53
 msgctxt "Site settings field"
@@ -4902,12 +4995,12 @@ msgstr "Popis"
 #: templates/dashboard/sites/detail.html:63
 msgctxt "Site settings action"
 msgid "Edit site settings"
-msgstr ""
+msgstr "Upravte nastavení webu"
 
 #: templates/dashboard/sites/detail.html:72
 msgctxt "Title of the authorization keys list"
 msgid "Authorization keys"
-msgstr ""
+msgstr "Autorizační klíče"
 
 #: templates/dashboard/sites/detail.html:85
 msgctxt "Header of authorization keys list"
@@ -4917,7 +5010,7 @@ msgstr "Jméno"
 #: templates/dashboard/sites/detail.html:88
 msgctxt "Header of authorization keys list"
 msgid "Key"
-msgstr ""
+msgstr "Klíč"
 
 #: templates/dashboard/sites/detail.html:99
 msgctxt "Authorization key edit action"
@@ -4932,13 +5025,13 @@ msgstr "Odstranit"
 #: templates/dashboard/sites/detail.html:108
 msgctxt "Empty list of authorization keys"
 msgid "No authorization keys"
-msgstr ""
+msgstr "Žádné autorizační klíče"
 
 #: templates/dashboard/sites/form.html:9
 #: templates/dashboard/taxes/form.html:10
 msgctxt "Site settings page title"
 msgid "Add new site settings"
-msgstr ""
+msgstr "Přidat nové nastavení webu"
 
 #: templates/dashboard/sites/form.html:22
 msgctxt "Dashboard attributes list"
@@ -4954,55 +5047,55 @@ msgstr "Upravit"
 #, python-format
 msgctxt "Modal delete authorization key text"
 msgid "Delete authorization key %(key)s"
-msgstr ""
+msgstr "Smazat autorizační klíč %(key)s"
 
 #: templates/dashboard/sites/modal/confirm_delete.html:19
 #, python-format
 msgctxt "Modal delete authorization key text"
 msgid ""
 "Are you sure you want to remove authorization key <strong>%(key)s</strong>?"
-msgstr ""
+msgstr "Opravdu chcete smazat autorizační klíč %(key)s?"
 
 #: templates/dashboard/staff/detail.html:10
 msgctxt "Dashboard add staff member"
 msgid "Add new staff member"
-msgstr ""
+msgstr "Přidat nové člena personálu"
 
 #: templates/dashboard/staff/detail.html:12
 msgctxt "Dashboard staff"
 msgid "Staff"
-msgstr ""
+msgstr "Zaměstnanec"
 
 #: templates/dashboard/staff/detail.html:28
 msgctxt "Dashboard staff list"
 msgid "Staff"
-msgstr ""
+msgstr "Zaměstnanec"
 
 #: templates/dashboard/staff/detail.html:36
 msgctxt "Dashboard add staff member action"
 msgid "Add staff member"
-msgstr ""
+msgstr "Přidat člena personálu"
 
 #: templates/dashboard/staff/detail.html:49
 msgctxt "Staff member form action"
 msgid "Remove staff member"
-msgstr ""
+msgstr "Odstranit člena personálu"
 
 #: templates/dashboard/staff/detail.html:64
 msgctxt "Staff member details header"
 msgid "Staff member details"
-msgstr ""
+msgstr "Podrobnosti o zaměstnanci"
 
 #: templates/dashboard/staff/list.html:8
 #: templates/dashboard/staff/list.html:30
 msgctxt "Dashboard staff members list"
 msgid "Staff"
-msgstr ""
+msgstr "Zaměstnanec"
 
 #: templates/dashboard/staff/list.html:19
 msgctxt "Staff members list add button text"
 msgid "Add staff member"
-msgstr ""
+msgstr "Přidat člena personálu"
 
 #: templates/dashboard/staff/list.html:44
 msgctxt "Staff members table header"
@@ -5022,22 +5115,22 @@ msgstr "Lokalita"
 #: templates/dashboard/staff/list.html:90
 msgctxt "Empty staff table message"
 msgid "No staff members found."
-msgstr ""
+msgstr "Žádný člen personálu nebyl nalezen."
 
 #: templates/dashboard/staff/modal/confirm_delete.html:12
 #, python-format
 msgctxt "Modal remove group text"
 msgid "Remove staff member <strong>%(staff)s</strong>"
-msgstr ""
+msgstr "Odstranit člena personálu <strong>%(staff)s</strong>"
 
 #: templates/dashboard/staff/modal/confirm_delete.html:19
 msgctxt "Modal remove group text"
 msgid "Are you sure you want to remove staff member?"
-msgstr ""
+msgstr "Opravdu chcete odstranit člena personálu?"
 
 #: templates/dashboard/staff/zero_page.html:5
 msgid "No staff members found."
-msgstr ""
+msgstr "Žádný člen personálu nebyl nalezen."
 
 #: templates/dashboard/staff/zero_page.html:8
 #, python-format
@@ -5047,6 +5140,10 @@ msgid ""
 "    You can create staff members by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button or by using option \"Promote to staff\" in the customer details view.\n"
 "  "
 msgstr ""
+"\n"
+" Zaměstnanci jsou uživatelé, kteří mají přístup k řídicímu panelu.<br>\n"
+"   Zaměstnance můžete vytvořit pomocí <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> tlačítka nebo pomocí možnosti ''Povýšit na zaměstnance'' v zobrazení detailů zákazníka.\n"
+"  "
 
 #: templates/dashboard/taxes/details.html:18
 msgctxt "Tax details breadcrumbs"
@@ -5057,7 +5154,7 @@ msgstr "DPH"
 #, python-format
 msgctxt "Country tax rates list title"
 msgid "Tax rates in %(country_name)s"
-msgstr ""
+msgstr "Daňové sazby v  %(country_name)s"
 
 #: templates/dashboard/taxes/details.html:50
 msgctxt "Country tax rates list header"
@@ -5067,7 +5164,7 @@ msgstr "Jméno"
 #: templates/dashboard/taxes/details.html:53
 msgctxt "Country tax rates list header"
 msgid "Value"
-msgstr ""
+msgstr "Hodnota"
 
 #: templates/dashboard/taxes/details.html:62
 #, python-format
@@ -5081,7 +5178,7 @@ msgstr ""
 #: templates/dashboard/taxes/details.html:69
 msgctxt "Empty country tax rates list"
 msgid "No tax rates"
-msgstr ""
+msgstr "Žádné daňové sazby"
 
 #: templates/dashboard/taxes/form.html:23
 #: templates/dashboard/taxes/list.html:7
@@ -5093,7 +5190,7 @@ msgstr "DPH"
 #: templates/dashboard/taxes/form.html:28
 msgctxt "Dashboard configure taxes settings"
 msgid "Configure taxes"
-msgstr ""
+msgstr "Nakonfigurujte daně"
 
 #: templates/dashboard/taxes/form.html:42
 msgctxt "Dashboard site taxes settings form title"
@@ -5111,6 +5208,9 @@ msgid ""
 "                    If selected, taxes will be calculated using below formula:\n"
 "                  "
 msgstr ""
+"\n"
+"                Pokud je zvoleno, budou daně vypočítány pomocí vzorce níže:\n"
+"                  "
 
 #: templates/dashboard/taxes/form.html:59
 msgctxt "Dashboard site taxes settings form help text"
@@ -5128,10 +5228,13 @@ msgid ""
 "                    For example: product with price 4.00 € and 19%% VAT will have net price calculated to 3.36 € and tax to 0.64 € (rounded)\n"
 "                  "
 msgstr ""
+"\n"
+"                  Například: produkt s cenou 4,00 € a 19 %% DPH bude mít čistou cenu vypočtenou na 3,36 € a daň na 0,64 € (zaokrouhleno)\n"
+"                  "
 
 #: templates/dashboard/taxes/form.html:71
 msgid "Storefront"
-msgstr ""
+msgstr "Obchod"
 
 #: templates/dashboard/taxes/form.html:79
 msgctxt "Dashboard site taxes settings form help text"
@@ -5140,6 +5243,9 @@ msgid ""
 "                    If selected, prices displayed for customers in the storefront will be gross and taxes will be calculated at checkout.\n"
 "                  "
 msgstr ""
+"\n"
+"                  Pokud je vybráno, budou ceny zobrazené pro zákazníky v prodejně hrubé a daně budou vypočteny při pokladně.\n"
+"                  "
 
 #: templates/dashboard/taxes/form.html:91
 msgctxt "Dashboard site taxes settings form help text"
@@ -5148,6 +5254,9 @@ msgid ""
 "                    If selected, standard tax rate will be charged on a shipping price.\n"
 "                  "
 msgstr ""
+"\n"
+"                 Pokud je vybrána, standardní sazba daně bude účtována za cenu přepravy.\n"
+"                  "
 
 #: templates/dashboard/taxes/form.html:112
 msgctxt "Taxes help text"
@@ -5155,21 +5264,23 @@ msgid ""
 "Taxes are charged according to the rates applicable in the country to which "
 "the order is delivered. For now, only rates in European Union are handled."
 msgstr ""
+"Daně jsou účtovány podle sazby platné v zemi, do které je objednávka "
+"doručena. Prozatím jsou v Evropské unii vyřizovány pouze sazby."
 
 #: templates/dashboard/taxes/list.html:29
 msgctxt "Taxes table header"
 msgid "Country code"
-msgstr ""
+msgstr "Kód země"
 
 #: templates/dashboard/taxes/list.html:33
 msgctxt "Taxes table header"
 msgid "Country name"
-msgstr ""
+msgstr "Jméno země"
 
 #: templates/dashboard/taxes/list.html:61
 msgctxt "Empty taxes message"
 msgid "No taxes found."
-msgstr ""
+msgstr "Nebyly nalezeny žádné daně."
 
 #: templates/dashboard/taxes/list.html:76
 msgctxt "Taxes site settings title"
@@ -5179,61 +5290,61 @@ msgstr "Nastavení"
 #: templates/dashboard/taxes/list.html:81
 msgctxt "Site settings field"
 msgid "All products prices are entered with tax included"
-msgstr ""
+msgstr "Ceny všech produktů jsou uvedeny včetně daně"
 
 #: templates/dashboard/taxes/list.html:85
 msgctxt "Include taxes in prices setting description"
 msgid "Yes"
-msgstr ""
+msgstr "Ano"
 
 #: templates/dashboard/taxes/list.html:87
 msgctxt "Include taxes in prices setting description"
 msgid "No"
-msgstr ""
+msgstr "Ne"
 
 #: templates/dashboard/taxes/list.html:95
 msgctxt "Site settings field"
 msgid "Show gross prices to customers in the storefront"
-msgstr ""
+msgstr "Ukázat hrubé ceny zákazníkům v obchodě"
 
 #: templates/dashboard/taxes/list.html:99
 msgctxt "Show customers gross prices setting description"
 msgid "Yes"
-msgstr ""
+msgstr "Ano"
 
 #: templates/dashboard/taxes/list.html:101
 msgctxt "Show customers gross prices setting description"
 msgid "No"
-msgstr ""
+msgstr "Ne"
 
 #: templates/dashboard/taxes/list.html:109
 msgctxt "Site settings field"
 msgid "Charge taxes on shipping rates"
-msgstr ""
+msgstr "Poplatky za přepravu"
 
 #: templates/dashboard/taxes/list.html:113
 msgctxt "Charge taxes on shipping rates setting description"
 msgid "Yes"
-msgstr ""
+msgstr "Ano"
 
 #: templates/dashboard/taxes/list.html:115
 msgctxt "Charge taxes on shipping rates setting description"
 msgid "No"
-msgstr ""
+msgstr "Ne"
 
 #: templates/dashboard/taxes/list.html:124
 msgctxt "Site settings configure taxes action"
 msgid "Configure taxes"
-msgstr ""
+msgstr "Nakonfigurujte daně"
 
 #: templates/dashboard/taxes/list.html:127
 msgctxt "Site settings fetch tax rates action"
 msgid "Fetch tax rates"
-msgstr ""
+msgstr "Načíst daňové sazby"
 
 #: templates/dashboard/taxes/zero_page.html:4
 msgid "No taxes found."
-msgstr ""
+msgstr "Nebyly nalezeny žádné daně."
 
 #: templates/dashboard/taxes/zero_page.html:6
 msgid ""
@@ -5242,36 +5353,40 @@ msgid ""
 "    To enable fetching taxes, please provide your access key to <a href=\"https://vatlayer.com/\">vatlayer</a> API in settings file.\n"
 "  "
 msgstr ""
+"\n"
+"  Daně definují daňové sazby používané v zemích Evropské unie a musí být vybírány ručně.<br>\n"
+"   Chcete-li povolit načítání daní, uveďte prosím klíč <a href=\"https://vatlayer.com/\"> vatlayer </a> API v souboru nastavení.\n"
+"  "
 
 #: templates/home.html:12
 msgctxt "Homepage title"
 msgid "Promo & Sale"
-msgstr ""
+msgstr "Propagace a prodej"
 
 #: templates/home.html:13
 msgctxt "Homepage title"
 msgid "from the Northpole"
-msgstr ""
+msgstr "od severního pólu"
 
 #: templates/home.html:15 templates/home.html:30 templates/home.html:42
 msgctxt "Homepage action"
 msgid "Shop now"
-msgstr ""
+msgstr "Koupit teď"
 
 #: templates/home.html:29
 msgctxt "Homepage title"
 msgid "Size & Colours"
-msgstr ""
+msgstr "Velikost & Barvy"
 
 #: templates/home.html:41
 msgctxt "Homepage title"
 msgid "Digital Downloads"
-msgstr ""
+msgstr "Digitální stahování"
 
 #: templates/home.html:50
 msgctxt "Homepage title"
 msgid "Featured products"
-msgstr ""
+msgstr "Populární produkty"
 
 #: templates/materializecssform/field.html:32
 #: templates/materializecssform/field.html:59
@@ -5289,12 +5404,12 @@ msgstr ""
 #: templates/materializecssform/field.html:370
 msgctxt "Dashboard form labels"
 msgid "(optional)"
-msgstr ""
+msgstr "(volitelný)"
 
 #: templates/materializecssform/field.html:200
 #: templates/materializecssform/field.html:234
 msgid "File"
-msgstr ""
+msgstr "Soubor"
 
 #: templates/materializecssform/field.html:349
 #, python-format
@@ -5305,6 +5420,9 @@ msgid ""
 "          %(current_chars_count)s</span> of %(max_chars_count)s characters used\n"
 "        "
 msgstr ""
+"\n"
+"          %(current_chars_count)s</span> of %(max_chars_count)spoužitých znaků\n"
+"        "
 
 #: templates/order/_ordered_items_table.html:14
 msgctxt "Order details address title"
@@ -5362,25 +5480,25 @@ msgstr "Celkem"
 #, python-format
 msgctxt "Order details fulfillment title"
 msgid "Fulfillment #%(fulfillment)s"
-msgstr ""
+msgstr "Zpracování #%(fulfillment)s"
 
 #: templates/order/_ordered_items_table.html:196
 msgctxt "Fulfillment tracking number details"
 msgid "Tracking number"
-msgstr ""
+msgstr "Sledovací číslo"
 
 #: templates/order/checkout_success.html:8
 #: templates/order/checkout_success_anonymous.html:8
 msgctxt "Checkout success page title"
 msgid "Thank you"
-msgstr ""
+msgstr "Děkuji Vám!"
 
 #: templates/order/checkout_success.html:16
 #: templates/order/checkout_success_anonymous.html:16
 #, python-format
 msgctxt "Checkout title"
 msgid "Thank you for your <a href=\"%(order_url)s\">order</a>!"
-msgstr ""
+msgstr "Děkujeme za Vaši <a href=\"%(order_url)s\">objednávku</a>!"
 
 #: templates/order/checkout_success.html:20
 #: templates/order/checkout_success_anonymous.html:20
@@ -5390,12 +5508,15 @@ msgid ""
 "We've sent a confirmation email with details to <span>%(email)s</span>.<br> "
 "In case of any problems or questions please contact us."
 msgstr ""
+"Zaslali jsme potvrzovací e-mail s podrobnostmi na adresu "
+"<span>%(email)s</span>. <br>V případě jakýchkoli problémů nebo otázek nás "
+"prosím kontaktujte. "
 
 #: templates/order/checkout_success.html:29
 #: templates/order/checkout_success_anonymous.html:58
 msgctxt "Checkout secondary action"
 msgid "Continue shopping"
-msgstr ""
+msgstr "Pokračovat v nákupu "
 
 #: templates/order/checkout_success_anonymous.html:27
 msgctxt "Checkout text"
@@ -5403,17 +5524,20 @@ msgid ""
 "It looks like you already are our customer! <br> Please log in to connect "
 "order with your account."
 msgstr ""
+"Vypadá to, že už jste našim zákazníkem! <br>! Přihlaste se prosím a připojte"
+" objednávku k účtu. "
 
 #: templates/order/checkout_success_anonymous.html:37
 msgctxt "Checkout title"
 msgid "Why not to create an account"
-msgstr ""
+msgstr "Vytvořte si účet"
 
 #: templates/order/checkout_success_anonymous.html:38
 msgid ""
 "Make your shopping experience even better! Save your shipping and payment "
 "details for faster checkout."
 msgstr ""
+"Pro příjemnější a rychlejší nakup si uložte své přepravní a platební údaje."
 
 #: templates/order/checkout_success_anonymous.html:47
 msgctxt "Checkout primary action"
@@ -5424,34 +5548,34 @@ msgstr "Vytvořit účet"
 #, python-format
 msgctxt "Order details page title"
 msgid "Order %(order)s"
-msgstr ""
+msgstr "Objednávka %(order)s"
 
 #: templates/order/details.html:28 templates/order/payment/details.html:22
 #, python-format
 msgctxt "Order details breadcrumb"
 msgid "Order %(order)s"
-msgstr ""
+msgstr "Objednávka %(order)s"
 
 #: templates/order/details.html:49
 #, python-format
 msgctxt "Order detail text"
 msgid "Order %(order)s: %(order_status)s"
-msgstr ""
+msgstr "objednávka %(order)s: %(order_status)s"
 
 #: templates/order/details.html:56
 msgctxt "Order details link text"
 msgid "Payment details"
-msgstr ""
+msgstr "Platební údaje"
 
 #: templates/order/details.html:60
 msgctxt "Order details primary action"
 msgid "Pay for order"
-msgstr ""
+msgstr "Zaplatit objednávku"
 
 #: templates/order/details.html:67
 msgctxt "Order notes list"
 msgid "Notes"
-msgstr ""
+msgstr "Poznámky"
 
 #: templates/order/details.html:72
 #, python-format
@@ -5460,11 +5584,14 @@ msgid ""
 "                  %(date)s by you\n"
 "                "
 msgstr ""
+"\n"
+"                  %(date)s Vámi\n"
+"                "
 
 #: templates/order/details.html:76
 msgctxt "Order note author is staff"
 msgid "staff"
-msgstr ""
+msgstr "personál"
 
 #: templates/order/details.html:77
 #, python-format
@@ -5473,6 +5600,9 @@ msgid ""
 "                  %(date)s by <span class=\"text-muted\">%(author)s</span>\n"
 "                "
 msgstr ""
+"\n"
+"                  %(date)s od <span class=\"text-muted\">%(author)s</span>\n"
+"                "
 
 #: templates/order/details.html:81
 #, python-format
@@ -5481,6 +5611,9 @@ msgid ""
 "                  %(date)s by %(author)s\n"
 "                "
 msgstr ""
+"\n"
+"                  %(date)s od %(author)s\n"
+"                "
 
 #: templates/order/details.html:86
 #, python-format
@@ -5489,23 +5622,26 @@ msgid ""
 "                %(date)s by anonymous customer\n"
 "              "
 msgstr ""
+"\n"
+"                %(date)sod anonymního zákazníka\n"
+"              "
 
 #: templates/order/payment.html:8
 #, python-format
 msgctxt "Payment details page title"
 msgid "Pay for order %(order)s"
-msgstr ""
+msgstr "Zaplatit objednávku %(order)s"
 
 #: templates/order/payment.html:28
 #, python-format
 msgctxt "Payment details breadcrumb"
 msgid "Order %(order)s"
-msgstr ""
+msgstr "Objednávka %(order)s"
 
 #: templates/order/payment.html:44
 msgctxt "Payment details title"
 msgid "Payment pending"
-msgstr ""
+msgstr "Nevyřízená platba"
 
 #: templates/order/payment.html:48
 msgctxt "Payment pending text"
@@ -5513,11 +5649,13 @@ msgid ""
 "We are currently waiting for an external service to authorize your payment "
 "for this order."
 msgstr ""
+"V současné době čekáme na externí službu, která povolí platbu za tuto "
+"objednávku."
 
 #: templates/order/payment.html:52
 msgctxt "Payment status text"
 msgid "Current status:"
-msgstr ""
+msgstr "Aktuální stav:"
 
 #: templates/order/payment.html:58
 msgctxt "Payment pending text"
@@ -5527,37 +5665,41 @@ msgid ""
 "before attempting a new payment. Please be warned that if you try again and "
 "the previous transaction succeeds you might end up being charged twice."
 msgstr ""
+"Pokud si nejste zcela jisti, že byl proces dokončen (například jste zavřeli "
+"okno prohlížeče před platbou), vyčkejte před dalším pokusem o provedení "
+"platby. Upozorňujeme Vás, že pokud byla předchozí platba úspěšná, mohlo by "
+"dojít ke dvojí úhradě."
 
 #: templates/order/payment.html:67
 msgctxt "Payment pending action"
 msgid "I understand, allow me to pay again"
-msgstr ""
+msgstr "Rozumím, a přeji si provést platbu znovu"
 
 #: templates/order/payment.html:72
 #, python-format
 msgctxt "Payment details title"
 msgid "Pay for order %(order)s"
-msgstr ""
+msgstr "Zaplatit objednávku %(order)s"
 
 #: templates/order/payment.html:81
 msgctxt "Payment details primary action"
 msgid "Proceed to payment"
-msgstr ""
+msgstr "Přejít k pokladně"
 
 #: templates/order/payment.html:86
 msgctxt "Payment details text"
 msgid "You've authorized transaction. Order is in processing"
-msgstr ""
+msgstr "Platba byla schválena. Objednávka se zpracovává"
 
 #: templates/order/payment/default.html:12
 msgctxt "Payment form (Stripe) secondary action"
 msgid "Change payment method"
-msgstr ""
+msgstr "Změnit způsob platby"
 
 #: templates/order/payment/default.html:19
 msgctxt "Payment form primary action"
 msgid "Make payment"
-msgstr ""
+msgstr "Zaplatit"
 
 #: templates/order/payment/details.html:4
 msgctxt "Payment form page title"
@@ -5582,6 +5724,10 @@ msgid ""
 "        You are previewing a page that is not visible.\n"
 "      "
 msgstr ""
+"\n"
+"        <strong>Upozornění!</strong>\n"
+"       Prohlížíte stránku, která není viditelná.\n"
+"      "
 
 #: templates/page/details.html:48
 #, python-format
@@ -5590,27 +5736,29 @@ msgid ""
 "<strong>Warning!</strong> You are previewing a page that will become visible"
 " on <strong>%(date)s</strong>."
 msgstr ""
+"<strong>Upozornění!</strong> Zobrazíte náhled stránky, na které se bude "
+"zobrazovat <strong>%(date)s</strong>."
 
 #: templates/product/_filters.html:14
 #: templates/product/product_list_base.html:50
 msgctxt "Filter heading title"
 msgid "Filters"
-msgstr ""
+msgstr "Filtry"
 
 #: templates/product/_filters.html:17
 msgctxt "Product list page filters"
 msgid "Clear filters"
-msgstr ""
+msgstr "Vymazat filtry"
 
 #: templates/product/_filters.html:63
 msgctxt "Product price filter"
 msgid "from"
-msgstr ""
+msgstr "od"
 
 #: templates/product/_filters.html:65
 msgctxt "Product price filter"
 msgid "to"
-msgstr ""
+msgstr "do"
 
 #: templates/product/_filters.html:71
 msgctxt "Apply filters button"
@@ -5626,7 +5774,7 @@ msgstr "Sleva"
 #: templates/product/_price_range.html:6
 msgctxt "product price range"
 msgid "from"
-msgstr ""
+msgstr "od"
 
 #: templates/product/details.html:61
 #, python-format
@@ -5635,33 +5783,35 @@ msgid ""
 "<strong>Warning!</strong> You are previewing a product that will become "
 "visible on <strong>%(date)s</strong>."
 msgstr ""
+"<strong>Upozornění!</strong> Prohlížíte si produkt, který se bude zobrazovat"
+" <strong>%(date)s</strong>."
 
 #: templates/product/details.html:121
 msgctxt "Product details link text"
 msgid "Edit in dashboard"
-msgstr ""
+msgstr "Úpravy na řídicím panelu"
 
 #: templates/product/details.html:147
 #, python-format
 msgctxt "Product details page vat rate value"
 msgid "including %(tax_rate)s%% VAT"
-msgstr ""
+msgstr "včetně %(tax_rate)s%% DPH"
 
 #: templates/product/details.html:151
 #, python-format
 msgctxt "Product details page vat rate value"
 msgid "excluding %(tax_rate)s%% VAT"
-msgstr ""
+msgstr "nezahrnuje %(tax_rate)s%% DPH"
 
 #: templates/product/details.html:175
 msgctxt "Product details primary action"
 msgid "Add to cart"
-msgstr ""
+msgstr "Do košíku"
 
 #: templates/product/details.html:187
 msgctxt "Product details text"
 msgid "This product is currently <strong>unavailable</strong>."
-msgstr ""
+msgstr "Tento produkt je momentálně <strong>nedostupný</strong>."
 
 #: templates/product/details.html:191
 msgctxt "Product details title"
@@ -5670,11 +5820,11 @@ msgstr "Popis"
 
 #: templates/product/product_list_base.html:58
 msgid "Sort by: <b>name</b>"
-msgstr ""
+msgstr "Řadit podle: <b>jména</b>"
 
 #: templates/product/product_list_base.html:62
 msgid "Sort by: <b>price</b>"
-msgstr ""
+msgstr "Řadit podle: <b>ceny</b>"
 
 #: templates/product/product_list_base.html:81
 msgctxt "Product list filters"
@@ -5684,33 +5834,33 @@ msgstr "Řadit podle"
 #: templates/product/product_list_base.html:87
 msgctxt "sort by option"
 msgid "ascending"
-msgstr ""
+msgstr "vzestupně"
 
 #: templates/product/product_list_base.html:93
 msgctxt "sort by option"
 msgid "descending"
-msgstr ""
+msgstr "sestupně"
 
 #: templates/product/product_list_base.html:144
 #: templates/search/results.html:34
 msgctxt "Search without results text"
 msgid "Sorry, no matches found for your request."
-msgstr ""
+msgstr "Je nám líto, pro váš požadavek nebyly nalezeny žádné výsledky."
 
 #: templates/product/product_list_base.html:145
 #: templates/search/results.html:35
 msgctxt "Search without results text"
 msgid "Try again or shop new arrivals."
-msgstr ""
+msgstr "Zkuste to znovu nebo si prohlédněte nabídku našich produktů"
 
 #: templates/search/results.html:32
 msgid "Search:"
-msgstr ""
+msgstr "Vyhledávání:"
 
 #: templates/templated_email/account/account_delete.email:4
 msgctxt "Account delete reset e-mail subject"
 msgid "Delete your account"
-msgstr ""
+msgstr "Smazání účtu"
 
 #: templates/templated_email/account/account_delete.email:8
 #, python-format
@@ -5724,6 +5874,13 @@ msgid ""
 "\n"
 "Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
+"\n"
+"Vážený zákazníku, \n"
+"\n"
+"Obdržel jste tento e-mail, protože Vy nebo někdo jiný požádal o smazání Vašeho uživatelského účtu na.%(domain)s.\n"
+"Kliknutím na odkaz níže odstraníte svůj účet.\n"
+"\n"
+"Upozorňujeme, že smazání účtu je trvalé a nevratné.\n"
 
 #: templates/templated_email/account/account_delete.email:21
 #, python-format
@@ -5733,11 +5890,14 @@ msgid ""
 "Sincerely,\n"
 "%(site_name)s\n"
 msgstr ""
+"\n"
+"S přátelským pozdravem,\n"
+"%(site_name)s\n"
 
 #: templates/templated_email/account/password_reset.email:4
 msgctxt "Password reset e-mail subject"
 msgid "Password reset e-mail"
-msgstr ""
+msgstr "E-mail s obnovením hesla"
 
 #: templates/templated_email/account/password_reset.email:8
 #, python-format
@@ -5749,6 +5909,11 @@ msgid ""
 "You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
 "It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
 msgstr ""
+"\n"
+"Vážený zákazníku,\n"
+"\n"
+"Obdržel jste tento e-mail, protože Vy něbo někdo jiný požádal o heslo k Vašemu uživatelskému účtu, registrovaného %(domain)s\n"
+"Tento e-mail můžete bezpečně ignorovat, pokud jste o obnovení hesla nežádal. Kliknutím na odkaz níže obnovíte své heslo\n"
 
 #: templates/templated_email/account/password_reset.email:19
 #, python-format
@@ -5758,11 +5923,14 @@ msgid ""
 "Sincerely,\n"
 "%(site_name)s\n"
 msgstr ""
+"\n"
+"S přátelským pozdravem,\n"
+"%(site_name)s\n"
 
 #: templates/templated_email/dashboard/staff/promote_customer.email:2
 #, python-format
 msgid "Hello from %(site_name)s!"
-msgstr ""
+msgstr "Zdravíme z %(site_name)s!"
 
 #: templates/templated_email/dashboard/staff/promote_customer.email:5
 #, python-format
@@ -5773,6 +5941,10 @@ msgid ""
 "\n"
 "You're receiving this e-mail because you have been promoted to staff member at %(domain)s."
 msgstr ""
+"\n"
+"Dobrý den, \n"
+"\n"
+"Obdržel jste tento e-mail protože jste se stal členem týmu %(domain)s."
 
 #: templates/templated_email/dashboard/staff/promote_customer.email:10
 msgctxt "Promote customer to staff member confirmation e-mail text"
@@ -5780,12 +5952,14 @@ msgid ""
 "\n"
 "This is an automatically generated email, please do not reply.\n"
 msgstr ""
+"\n"
+"Toto je automaticky generovaný e-mail, prosím neodpovídejte.\n"
 
 #: templates/templated_email/dashboard/staff/set_password.email:2
 #, python-format
 msgctxt "Set password for staff member e-mail title"
 msgid "Hello from %(site_name)s!"
-msgstr ""
+msgstr "Zdravíme z %(site_name)s!"
 
 #: templates/templated_email/dashboard/staff/set_password.email:5
 #, python-format
@@ -5797,6 +5971,11 @@ msgid ""
 "You're receiving this e-mail because you have to set password for your staff member account at %(domain)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
+"\n"
+"Dobrý den, \n"
+"\n"
+"Obdržel/a jste tento e-mail s žádostí o nastavení hesla pro Váš zaměstnanecký účet na %(domain)s.\n"
+"Kliknutím na odkaz níže obnovíte své heslo.\n"
 
 #: templates/templated_email/dashboard/staff/set_password.email:14
 msgctxt "Set password for staff member e-mail text"
@@ -5804,12 +5983,14 @@ msgid ""
 "\n"
 "This is an automatically generated email, please do not reply.\n"
 msgstr ""
+"\n"
+"Toto je automaticky generovaný e-mail, prosím neodpovídejte.\n"
 
 #: templates/templated_email/order/confirm_fulfillment.email:4
 #, python-format
 msgctxt "Fulfillment confirmation email subject"
 msgid "A shipment from order %(order)s is on the way"
-msgstr ""
+msgstr "Vaše objednávka %(order)s je na cestě"
 
 #: templates/templated_email/order/confirm_fulfillment.email:10
 msgctxt "Fulfillment confirmation email text"
@@ -5819,13 +6000,16 @@ msgid ""
 "\n"
 "Thank you for your order. Below is the list of shipped products.\n"
 msgstr ""
+"\n"
+"Dobrý den, \n"
+"\n"
+"Děkujeme za Vaší objednávku. Pro rekapitulaci níže zasíláme seznam objednaných produktů\n"
 
 #: templates/templated_email/order/confirm_fulfillment.email:16
-#: templates/templated_email/source/confirm_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment confirmation email text"
 msgid "You can track your shipment with %(tracking_number)s code."
-msgstr ""
+msgstr "Vaši zásilku můžete sledovat pod tímto kódem:%(tracking_number)s"
 
 #: templates/templated_email/order/confirm_fulfillment.email:25
 #, python-format
@@ -5837,11 +6021,16 @@ msgid ""
 "Sincerely,\n"
 "%(site_name)s\n"
 msgstr ""
+"\n"
+"Toto je automaticky generovaný e-mail, prosím neopovídejte.\n"
+"\n"
+"S přátelským pozdravem,\n"
+"%(site_name)s\n"
 
 #: templates/templated_email/order/confirm_order.email:6
 msgctxt "Order confirmation e-mail subject"
 msgid "Order details"
-msgstr ""
+msgstr "Detail objednávky"
 
 #: templates/templated_email/order/confirm_order.email:10
 #, python-format
@@ -5853,11 +6042,16 @@ msgid ""
 "Thank you for your order. Below is the list of ordered products. To see your payment details please visit:\n"
 "%(url)s"
 msgstr ""
+"\n"
+"Dobrý den, \n"
+"\n"
+"Děkujeme za Vaši objednávku. Níže je seznam objednaných produktů. Chcete-li zobrazit platební údaje, navštivte:\n"
+"%(url)s"
 
 #: templates/templated_email/order/confirm_order.email:18
 msgctxt "Order confirmation e-mail table header"
 msgid "Order summary"
-msgstr ""
+msgstr "Přehled objednávky"
 
 #: templates/templated_email/order/confirm_order.email:19
 msgctxt "Order confirmation e-mail table header"
@@ -5882,7 +6076,7 @@ msgstr "DPH"
 #: templates/templated_email/order/confirm_order.email:22
 msgctxt "Order confirmation e-mail table header"
 msgid "Discount:"
-msgstr ""
+msgstr "Sleva:"
 
 #: templates/templated_email/order/confirm_order.email:23
 msgctxt "Order confirmation e-mail table header"
@@ -5890,22 +6084,19 @@ msgid "Total"
 msgstr "Celkem"
 
 #: templates/templated_email/order/confirm_order.email:25
-#: templates/templated_email/source/confirm_order.mjml:29
 msgctxt "Order confirmation e-mail billing address"
 msgid "Billing address"
 msgstr "Fakturační adresa"
 
 #: templates/templated_email/order/confirm_order.email:28
-#: templates/templated_email/source/confirm_order.mjml:30
 msgctxt "Order confirmation e-mail shipping address"
 msgid "Shipping address"
 msgstr "Dodací adresa"
 
 #: templates/templated_email/order/confirm_order.email:29
-#: templates/templated_email/source/confirm_order.mjml:42
 msgctxt "Order confirmation e-mail text"
 msgid "No shipping required"
-msgstr ""
+msgstr "Není požadována žádná přeprava"
 
 #: templates/templated_email/order/confirm_order.email:31
 #, python-format
@@ -5917,11 +6108,15 @@ msgid ""
 "Sincerely,\n"
 "%(site_name)s\n"
 msgstr ""
+"\n"
+"Jedná se o automaticky generovaný e-mail, prosím neodpovídejte.\n"
+"S přátelským pozdravem,\n"
+"%(site_name)s\n"
 
 #: templates/templated_email/order/note/confirm_note.email:4
 msgctxt "Note confirmation email subject"
 msgid "New note has been added to your order"
-msgstr ""
+msgstr "Do objednávky byla přidána nová poznámka"
 
 #: templates/templated_email/order/note/confirm_note.email:8
 #, python-format
@@ -5938,11 +6133,20 @@ msgid ""
 "Sincerely,\n"
 "%(site_name)s\n"
 msgstr ""
+"\n"
+"Vážený zákazníku, \n"
+"\n"
+"Do vaší objednávky byla přidána nová poznámka. Podrobnosti naleznete na adrese:\n"
+"%(url)s\n"
+"Toto je automaticky generovaný e-mail, prosím neodpovídejte.\n"
+"\n"
+"S přátelským pozdravem,\n"
+"%(site_name)s\n"
 
 #: templates/templated_email/order/payment/confirm_payment.email:4
 msgctxt "Payment confirmation subject"
 msgid "Payment details"
-msgstr ""
+msgstr "Platební údaje"
 
 #: templates/templated_email/order/payment/confirm_payment.email:8
 #, python-format
@@ -5959,12 +6163,22 @@ msgid ""
 "Sincerely,\n"
 "%(site_name)s\n"
 msgstr ""
+"\n"
+"Vážený zákazníku,\n"
+"\n"
+"Děkujeme za Vaší platbu. Pro zobrazení podrobností navštivte:\n"
+"%(url)s\n"
+"\n"
+"Tento e-mail je automaticky generován, prosím neodpovídejte\n"
+"\n"
+"S přátelským pozdravem,\n"
+"%(site_name)s\n"
 
 #: templates/templated_email/order/update_fulfillment.email:4
 #, python-format
 msgctxt "Fulfillment update email subject"
 msgid "Shipping update for order %(order)s"
-msgstr ""
+msgstr "Aktuální informace o dopravě objednávky %(order)s"
 
 #: templates/templated_email/order/update_fulfillment.email:10
 msgctxt "Fulfillment update email text"
@@ -5974,13 +6188,16 @@ msgid ""
 "\n"
 "Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
 msgstr ""
+"\n"
+"Dobrý den, \n"
+"\n"
+"Vaše objednávka byla předána dopravci. Zásilku můžete sledovat pod sledovacím číslem \n"
 
 #: templates/templated_email/order/update_fulfillment.email:16
-#: templates/templated_email/source/update_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid "You can track your shipment with %(tracking_number)s code."
-msgstr ""
+msgstr "Vaši zásilku můžete sledovat pod tímto kódem:%(tracking_number)s"
 
 #: templates/templated_email/order/update_fulfillment.email:25
 #, python-format
@@ -5992,183 +6209,8 @@ msgid ""
 "Sincerely,\n"
 "%(site_name)s\n"
 msgstr ""
-
-#: templates/templated_email/source/account_delete.mjml:13
-msgctxt "Account delete e-mail text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/source/account_delete.mjml:16
-#, python-format
-msgctxt "Account delete e-mail text"
-msgid ""
-"You're receiving this e-mail because you or someone else has requested a "
-"deletion of your user account at %(domain)s.<br/> Click the link below to "
-"delete your account. Please note that this action is permanent and cannot be"
-" reversed."
-msgstr ""
-
-#: templates/templated_email/source/confirm_fulfillment.mjml:13
-msgctxt "Fulfillment confirmation email text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/source/confirm_fulfillment.mjml:16
-msgctxt "Fulfillment confirmation email text"
-msgid "Thank you for your order. Below is the list of shipped products."
-msgstr ""
-
-#: templates/templated_email/source/confirm_note.mjml:13
-msgctxt "Note confirmation e-mail text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/source/confirm_note.mjml:16
-#, python-format
-msgctxt "Note confirmation e-mail text"
-msgid ""
-"A new note has been added to your order. To see details please visit: <a "
-"href=\"%(url)s\">%(url)s</a>"
-msgstr ""
-
-#: templates/templated_email/source/confirm_order.mjml:14
-msgctxt "Order confirmation e-mail text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/source/confirm_order.mjml:17
-#, python-format
-msgctxt "Order confirmation e-mail text"
-msgid ""
-"Thank you for your order. Below is the list of ordered products. To see your"
-" payment details please visit: <a href=\"%(url)s\">%(url)s</a>"
-msgstr ""
-
-#: templates/templated_email/source/confirm_payment.mjml:13
-msgctxt "Payment confirmation e-mail text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/source/confirm_payment.mjml:16
-#, python-format
-msgctxt "Payment confirmation e-mail text"
-msgid ""
-"Thank you for your payment. To see your payment details please visit: <a "
-"href=\"%(url)s\">%(url)s</a>"
-msgstr ""
-
-#: templates/templated_email/source/partials/_order_lines.mjml:11
-msgctxt "E-mail order lines summary table"
-msgid "Subtotal"
-msgstr "Mezisoučet"
-
-#: templates/templated_email/source/partials/_order_lines.mjml:19
-msgctxt "E-mail order lines summary table"
-msgid "Shipping"
-msgstr "Dopravné"
-
-#: templates/templated_email/source/partials/_order_lines.mjml:28
-msgctxt "E-mail order lines summary table"
-msgid "Taxes (included)"
-msgstr "DPH (zahrnuto)"
-
-#: templates/templated_email/source/partials/_order_lines.mjml:30
-msgctxt "E-mail order lines summary table"
-msgid "Taxes"
-msgstr "DPH"
-
-#: templates/templated_email/source/partials/_order_lines.mjml:40
-msgctxt "E-mail order lines summary table"
-msgid "Discount"
-msgstr "Sleva"
-
-#: templates/templated_email/source/partials/_order_lines.mjml:49
-msgctxt "E-mail order lines summary table"
-msgid "Total"
-msgstr "Celkem"
-
-#: templates/templated_email/source/partials/_order_lines.mjml:58
-msgctxt "Ordered item name"
-msgid "Item"
-msgstr "Položka"
-
-#: templates/templated_email/source/partials/_order_lines.mjml:59
-msgctxt "Quantity ordered of a product"
-msgid "Quantity"
-msgstr "Množství"
-
-#: templates/templated_email/source/partials/_order_lines.mjml:60
-msgctxt "Unit price of a product"
-msgid "Per unit"
-msgstr ""
-
-#: templates/templated_email/source/partials/_order_lines.mjml:61
-msgctxt "Ordered item subtotal (unit price * quantity)"
-msgid "Subtotal"
-msgstr "Mezisoučet"
-
-#: templates/templated_email/source/password_reset.mjml:13
-msgctxt "Password reset e-mail text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/source/password_reset.mjml:16
-#, python-format
-msgctxt "Password reset e-mail text"
-msgid ""
-"You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.<br/> It can be safely ignored "
-"if you did not request a password reset. Click the link below to reset your "
-"password."
-msgstr ""
-
-#: templates/templated_email/source/promote_customer.mjml:13
-msgctxt "Promote customer to staff member confirmation e-mail text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/source/promote_customer.mjml:16
-#, python-format
-msgctxt "Promote customer to staff member confirmation e-mail text"
-msgid ""
-"You're receiving this e-mail because you have been promoted to staff member "
-"at %(domain)s.<br/> To access dashboard please visit: <a "
-"href=\"%(url)s\">%(url)s</a>"
-msgstr ""
-
-#: templates/templated_email/source/set_password.mjml:13
-msgctxt "Set password for staff member e-mail text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/source/set_password.mjml:16
-#, python-format
-msgctxt "Set password for staff member e-mail text"
-msgid ""
-"You're receiving this e-mail because you have to set password for your staff"
-" member account at %(domain)s.<br/> Click the link below to set up your "
-"password."
-msgstr ""
-
-#: templates/templated_email/source/shared/footer.mjml:4
-msgctxt "Base email text"
-msgid "This is an automatically generated email, please do not reply."
-msgstr ""
-
-#: templates/templated_email/source/shared/footer.mjml:13
-#, python-format
-msgctxt "Base email footer"
-msgid "Sincerely, %(site_name)s"
-msgstr ""
-
-#: templates/templated_email/source/update_fulfillment.mjml:13
-msgctxt "Fulfillment update email text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/source/update_fulfillment.mjml:16
-msgctxt "Fulfillment update email text"
-msgid ""
-"Your shipping status has been updated. Below is the list of ordered products"
-" that have been updated with new tracking number."
-msgstr ""
+"\n"
+"Toto je automaticky generovaný e-mail, prosím neodpovídejte.\n"
+"\n"
+"S přátelským pozdravem,\n"
+"%(site_name)s\n"

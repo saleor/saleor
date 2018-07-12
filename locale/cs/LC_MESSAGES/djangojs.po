@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-04 04:15-0500\n"
+"POT-Creation-Date: 2018-06-25 05:21-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Filip Pytloun <filip@pytloun.cz>, 2018\n"
 "Language-Team: Czech (https://www.transifex.com/mirumee/teams/34782/cs/)\n"
@@ -21,220 +21,220 @@ msgstr ""
 #: saleor/static/dashboard/js/components/bulk-actions.js:89
 msgid "item selected"
 msgid_plural "items selected"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
+msgstr[0] "vybraná položka"
+msgstr[1] "vybrané položky"
+msgstr[2] "vybrané položky"
+msgstr[3] "vybrané položky"
 
 #: saleor/static/dashboard/js/components/datepicker.js:4
 msgctxt "Datepicker option"
 msgid "Next month"
-msgstr ""
+msgstr "Příští měsíc"
 
 #: saleor/static/dashboard/js/components/datepicker.js:5
 msgctxt "Datepicker option"
 msgid "Previous month"
-msgstr ""
+msgstr "Předchozí měsíc"
 
 #: saleor/static/dashboard/js/components/datepicker.js:8
 msgctxt "Datepicker option"
 msgid "Select a month"
-msgstr ""
+msgstr "Vyberte měsíc"
 
 #: saleor/static/dashboard/js/components/datepicker.js:9
 msgctxt "Datepicker option"
 msgid "Select a year"
-msgstr ""
+msgstr "Vyberte rok"
 
 #: saleor/static/dashboard/js/components/datepicker.js:13
 msgctxt "Datepicker month"
 msgid "January"
-msgstr ""
+msgstr "Leden"
 
 #: saleor/static/dashboard/js/components/datepicker.js:14
 msgctxt "Datepicker month"
 msgid "February"
-msgstr ""
+msgstr "Únor"
 
 #: saleor/static/dashboard/js/components/datepicker.js:15
 msgctxt "Datepicker month"
 msgid "March"
-msgstr ""
+msgstr "Březen"
 
 #: saleor/static/dashboard/js/components/datepicker.js:16
 msgctxt "Datepicker month"
 msgid "April"
-msgstr ""
+msgstr "Duben"
 
 #: saleor/static/dashboard/js/components/datepicker.js:17
 msgctxt "Datepicker month"
 msgid "May"
-msgstr ""
+msgstr "Květen"
 
 #: saleor/static/dashboard/js/components/datepicker.js:18
 msgctxt "Datepicker month"
 msgid "June"
-msgstr ""
+msgstr "Červen"
 
 #: saleor/static/dashboard/js/components/datepicker.js:19
 msgctxt "Datepicker month"
 msgid "July"
-msgstr ""
+msgstr "Červenec"
 
 #: saleor/static/dashboard/js/components/datepicker.js:20
 msgctxt "Datepicker month"
 msgid "August"
-msgstr ""
+msgstr "Srpen"
 
 #: saleor/static/dashboard/js/components/datepicker.js:21
 msgctxt "Datepicker month"
 msgid "September"
-msgstr ""
+msgstr "Záři"
 
 #: saleor/static/dashboard/js/components/datepicker.js:22
 msgctxt "Datepicker month"
 msgid "October"
-msgstr ""
+msgstr "Říjen"
 
 #: saleor/static/dashboard/js/components/datepicker.js:23
 msgctxt "Datepicker month"
 msgid "November"
-msgstr ""
+msgstr "Listopad"
 
 #: saleor/static/dashboard/js/components/datepicker.js:24
 msgctxt "Datepicker month"
 msgid "December"
-msgstr ""
+msgstr "Prosinec"
 
 #: saleor/static/dashboard/js/components/datepicker.js:26
 msgctxt "Datepicker month shortcut"
 msgid "Jan"
-msgstr ""
+msgstr "Leden"
 
 #: saleor/static/dashboard/js/components/datepicker.js:27
 msgctxt "Datepicker month shortcut"
 msgid "Feb"
-msgstr ""
+msgstr "Únor"
 
 #: saleor/static/dashboard/js/components/datepicker.js:28
 msgctxt "Datepicker month shortcut"
 msgid "Mar"
-msgstr ""
+msgstr "Březen"
 
 #: saleor/static/dashboard/js/components/datepicker.js:29
 msgctxt "Datepicker month shortcut"
 msgid "Apr"
-msgstr ""
+msgstr "Duben"
 
 #: saleor/static/dashboard/js/components/datepicker.js:30
 msgctxt "Datepicker month shortcut"
 msgid "May"
-msgstr ""
+msgstr "Květen"
 
 #: saleor/static/dashboard/js/components/datepicker.js:31
 msgctxt "Datepicker month shortcut"
 msgid "Jun"
-msgstr ""
+msgstr "Červen"
 
 #: saleor/static/dashboard/js/components/datepicker.js:32
 msgctxt "Datepicker month shortcut"
 msgid "Jul"
-msgstr ""
+msgstr "Červenec"
 
 #: saleor/static/dashboard/js/components/datepicker.js:33
 msgctxt "Datepicker month shortcut"
 msgid "Aug"
-msgstr ""
+msgstr "Srpen"
 
 #: saleor/static/dashboard/js/components/datepicker.js:34
 msgctxt "Datepicker month shortcut"
 msgid "Sep"
-msgstr ""
+msgstr "Září"
 
 #: saleor/static/dashboard/js/components/datepicker.js:35
 msgctxt "Datepicker month shortcut"
 msgid "Oct"
-msgstr ""
+msgstr "Říjen"
 
 #: saleor/static/dashboard/js/components/datepicker.js:36
 msgctxt "Datepicker month shortcut"
 msgid "Nov"
-msgstr ""
+msgstr "Listopad"
 
 #: saleor/static/dashboard/js/components/datepicker.js:37
 msgctxt "Datepicker month shortcut"
 msgid "Dec"
-msgstr ""
+msgstr "Prosinec"
 
 #: saleor/static/dashboard/js/components/datepicker.js:39
 msgctxt "Datepicker weekday"
 msgid "Sunday"
-msgstr ""
+msgstr "Neděle"
 
 #: saleor/static/dashboard/js/components/datepicker.js:40
 msgctxt "Datepicker weekday"
 msgid "Monday"
-msgstr ""
+msgstr "Pondělí"
 
 #: saleor/static/dashboard/js/components/datepicker.js:41
 msgctxt "Datepicker weekday"
 msgid "Tuesday"
-msgstr ""
+msgstr "Úterý"
 
 #: saleor/static/dashboard/js/components/datepicker.js:42
 msgctxt "Datepicker weekday"
 msgid "Wednesday"
-msgstr ""
+msgstr "Středa"
 
 #: saleor/static/dashboard/js/components/datepicker.js:43
 msgctxt "Datepicker weekday"
 msgid "Thursday"
-msgstr ""
+msgstr "Čtvrtek"
 
 #: saleor/static/dashboard/js/components/datepicker.js:44
 msgctxt "Datepicker weekday"
 msgid "Friday"
-msgstr ""
+msgstr "Pátek"
 
 #: saleor/static/dashboard/js/components/datepicker.js:45
 msgctxt "Datepicker weekday"
 msgid "Saturday"
-msgstr ""
+msgstr "Sobota"
 
 #: saleor/static/dashboard/js/components/datepicker.js:47
 msgctxt "Datepicker weekday shortcut"
 msgid "Sun"
-msgstr ""
+msgstr "Ne"
 
 #: saleor/static/dashboard/js/components/datepicker.js:48
 msgctxt "Datepicker weekday shortcut"
 msgid "Mon"
-msgstr ""
+msgstr "Po"
 
 #: saleor/static/dashboard/js/components/datepicker.js:49
 msgctxt "Datepicker weekday shortcut"
 msgid "Tue"
-msgstr ""
+msgstr "Út"
 
 #: saleor/static/dashboard/js/components/datepicker.js:50
 msgctxt "Datepicker weekday shortcut"
 msgid "Wed"
-msgstr ""
+msgstr "St"
 
 #: saleor/static/dashboard/js/components/datepicker.js:51
 msgctxt "Datepicker weekday shortcut"
 msgid "Thu"
-msgstr ""
+msgstr "Čt"
 
 #: saleor/static/dashboard/js/components/datepicker.js:52
 msgctxt "Datepicker weekday shortcut"
 msgid "Fri"
-msgstr ""
+msgstr "Pá"
 
 #: saleor/static/dashboard/js/components/datepicker.js:53
 msgctxt "Datepicker weekday shortcut"
 msgid "Sat"
-msgstr ""
+msgstr "So"
 
 #: saleor/static/dashboard/js/components/datepicker.js:57
 msgctxt "Sunday shortcut"
@@ -274,86 +274,86 @@ msgstr ""
 #: saleor/static/dashboard/js/components/datepicker.js:64
 msgctxt "Datepicker option"
 msgid "Today"
-msgstr ""
+msgstr "Dnes"
 
 #: saleor/static/dashboard/js/components/datepicker.js:65
 msgctxt "Datepicker option"
 msgid "Clear"
-msgstr ""
+msgstr "Vymazat"
 
 #: saleor/static/dashboard/js/components/datepicker.js:66
 msgctxt "Datepicker option"
 msgid "Close"
-msgstr ""
+msgstr "Zavřít"
 
 #: saleor/static/dashboard/js/components/editor.js:24
 msgctxt "Rich text editor option"
 msgid "Bold text"
-msgstr ""
+msgstr "Tučně"
 
 #: saleor/static/dashboard/js/components/editor.js:28
 msgctxt "Rich text editor option"
 msgid "Italic text"
-msgstr ""
+msgstr "Kursivou"
 
 #: saleor/static/dashboard/js/components/editor.js:32
 msgctxt "Rich text editor option"
 msgid "Header"
-msgstr ""
+msgstr "Záhlaví"
 
 #: saleor/static/dashboard/js/components/editor.js:39
 msgctxt "Rich text editor option"
 msgid "Subheader"
-msgstr ""
+msgstr "Zápatí"
 
 #: saleor/static/dashboard/js/components/editor.js:46
 msgctxt "Rich text editor option"
 msgid "Quote"
-msgstr ""
+msgstr "Citovat"
 
 #: saleor/static/dashboard/js/components/editor.js:51
 msgctxt "Rich text editor option"
 msgid "Link"
-msgstr ""
+msgstr "Odkaz"
 
 #: saleor/static/dashboard/js/components/editor.js:58
 msgctxt "Rich text editor option"
 msgid "Image (converts selected text to an image tag)"
-msgstr ""
+msgstr "Obrázek (převede vybraný text na štítek obrázku)"
 
 #: saleor/static/dashboard/js/components/editor.js:63
 msgctxt "Rich text editor option"
 msgid "Left align"
-msgstr ""
+msgstr "Zarovnání vlevo"
 
 #: saleor/static/dashboard/js/components/editor.js:68
 msgctxt "Rich text editor option"
 msgid "Center align"
-msgstr ""
+msgstr "Zarovnání na střed"
 
 #: saleor/static/dashboard/js/components/editor.js:73
 msgctxt "Rich text editor option"
 msgid "Right align"
-msgstr ""
+msgstr "Zarovnání vpravo"
 
 #: saleor/static/dashboard/js/components/editor.js:78
 msgctxt "Rich text editor option"
 msgid "Justify"
-msgstr ""
+msgstr "Zdůvodnění"
 
 #: saleor/static/dashboard/js/components/editor.js:83
 msgctxt "Rich text editor option"
 msgid "Remove formatting"
-msgstr ""
+msgstr "Odebrat formátování"
 
 #: saleor/static/dashboard/js/components/google-preview.js:46
 msgid ""
 "Your input might be a little too short, think of something more descriptive"
-msgstr ""
+msgstr "Váš vstup může být příliš krátký, přemýšlejte o něčem popisném"
 
 #: saleor/static/dashboard/js/components/google-preview.js:50
 msgid "Your input fits between the recommended lengths"
-msgstr ""
+msgstr "Váš vstup odpovídá doporučeným délkám"
 
 #: saleor/static/js/components/variantPicker/QuantityInput.js:21
 msgctxt "Add to cart form field label"
@@ -363,4 +363,4 @@ msgstr "Množství"
 #: saleor/static/js/components/variantPicker/VariantPicker.js:166
 msgctxt "Product details primary action"
 msgid "Add to cart"
-msgstr ""
+msgstr "Do košíku"

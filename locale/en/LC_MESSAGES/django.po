@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-25 05:21-0500\n"
+"POT-Creation-Date: 2018-07-03 06:24-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -757,7 +757,7 @@ msgctxt "Permission description"
 msgid "Can edit orders"
 msgstr ""
 
-#: saleor/order/models.py:228
+#: saleor/order/models.py:230
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
@@ -5272,7 +5272,7 @@ msgctxt "Homepage title"
 msgid "Digital Downloads"
 msgstr ""
 
-#: templates/home.html:50
+#: templates/home.html:51
 msgctxt "Homepage title"
 msgid "Featured products"
 msgstr ""
