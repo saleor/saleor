@@ -3,7 +3,7 @@ from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 from tests.utils import get_graphql_content
 
 from saleor.core.permissions import MODELS_PERMISSIONS
-from saleor.graphql.core.utils import clean_seo_fields
+from saleor.graphql.core.utils import clean_seo_fields, snake_to_camel_case
 
 
 def test_shop_endpoint(settings, admin_api_client):
@@ -46,3 +46,8 @@ def test_clean_seo_fields():
     clean_seo_fields(data)
     assert data['seo_title'] == title
     assert data['seo_description'] == description
+
+
+def test_snake_to_camel_case():
+    assert snake_to_camel_case('test_camel_case') == 'testCamelCase'
+    assert snake_to_camel_case('testCamel_case') == 'testCamelCase'

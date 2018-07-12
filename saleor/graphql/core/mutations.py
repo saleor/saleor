@@ -12,6 +12,7 @@ from ..account.types import User
 from ..file_upload.types import Upload
 from ..utils import get_node, get_nodes
 from .types import Error
+from .utils import snake_to_camel_case
 
 registry = get_global_registry()
 
@@ -179,6 +180,7 @@ class ModelMutation(BaseMutation):
                 if field in cls._meta.exclude:
                     continue
                 for message in message_dict[field]:
+                    field = snake_to_camel_case(field)
                     cls.add_error(errors, field, message)
         return errors
 
