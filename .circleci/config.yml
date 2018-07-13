@@ -30,10 +30,11 @@ jobs:
       - deploy:
           name: Push Docker image
           command: |
-            docker login -e $DOCKERCLOUD_EMAIL -u $DOCKERCLOUD_USER -p $DOCKERCLOUD_PASS
+            docker login -u $DOCKERCLOUD_USER -p $DOCKERCLOUD_PASS
             docker tag mirumee/saleor:latest mirumee/saleor:$CIRCLE_SHA1
             docker push mirumee/saleor:$CIRCLE_SHA1
             docker push mirumee/saleor:latest
+            apk add --no-cache curl
             curl -u $DEMO_DEPLOY_KEY: \
               -d build_parameters[CIRCLE_JOB]=deploy \
               https://circleci.com/api/v1.1/project/github/mirumee/saleor-demo/tree/master
