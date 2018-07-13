@@ -43,7 +43,7 @@ WORKDIR /app
 
 RUN useradd --system saleor && \
     mkdir /app/media /app/static && \
-    chown -R saleor:saleor /app/media /app/static
+    chown -R saleor:saleor /app/
 
 USER saleor
 
