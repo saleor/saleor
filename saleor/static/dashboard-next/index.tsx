@@ -67,21 +67,19 @@ render(
         <MessageManager>
           <CssBaseline />
           <AuthProvider>
-          {({ isAuthenticated, logout }) => {
-            return (
-              isAuthenticated ? (
-                <AppRoot logout={ logout }>
-                  <Switch>
-                    <Route path="/categories" component={CategorySection} />
-                    <Route path="/pages" component={PageSection} />
-                    <Route path="/products" component={ProductSection} />
-                  </Switch>
-                </AppRoot>
-              ) : (
-                <Route component={Auth} />
-              )
+          {({ isAuthenticated }) => (
+            isAuthenticated ? (
+              <AppRoot>
+                <Switch>
+                  <Route path="/categories" component={CategorySection} />
+                  <Route path="/pages" component={PageSection} />
+                  <Route path="/products" component={ProductSection} />
+                </Switch>
+              </AppRoot>
+            ) : (
+              <Route component={Auth} />
             )
-          }}
+          )}
         </AuthProvider>
         </MessageManager>
       </MuiThemeProvider>

@@ -11,6 +11,7 @@ import Typography from "@material-ui/core/Typography";
 import MenuIcon from "@material-ui/icons/Menu";
 import * as React from "react";
 
+import { UserContext } from "./auth";
 import Navigator from "./components/Navigator";
 import i18n from "./i18n";
 
@@ -91,15 +92,11 @@ const ResponsiveDrawer = decorate<ResponsiveDrawerProps>(
   )
 );
 
-interface AppRootProps {
-  logout: () => void;
-}
-
 interface AppRootState {
   open: boolean;
 }
 
-export const AppRoot = decorate<AppRootProps>(
+export const AppRoot = decorate(
   class InnerAppRoot extends React.Component<
     WithStyles<
       | "root"
@@ -111,7 +108,7 @@ export const AppRoot = decorate<AppRootProps>(
       | "content"
       | "contentShift"
       | "toolBar"
-    > & AppRootProps,
+    >,
     AppRootState
   > {
     state = { open: false };
@@ -121,90 +118,96 @@ export const AppRoot = decorate<AppRootProps>(
     };
 
     render() {
-      const { children, classes, logout } = this.props;
+      const { children, classes } = this.props;
       const { open } = this.state;
 
       return (
-        <Navigator>
-          {navigate => (
-            <div className={classes.appFrame}>
-              <AppBar className={classes.appBar}>
-                <Toolbar disableGutters className={classes.toolBar}>
-                  <Hidden mdUp>
-                    <IconButton
-                      color="inherit"
-                      aria-label="open drawer"
-                      onClick={() =>
-                        this.setState(({ open }) => ({
-                          open: !open
-                        }))
-                      }
-                      className={classes.menuButton}
-                    >
-                      <MenuIcon />
-                    </IconButton>
-                  </Hidden>
-                  <Typography
-                    noWrap
-                    variant="title"
-                    color="inherit"
-                    dangerouslySetInnerHTML={{
-                      __html: i18n.t("<strong>Saleor</strong> Dashboard")
-                    }}
-                  />
-                </Toolbar>
-              </AppBar>
-              <ResponsiveDrawer onClose={this.closeDrawer} open={open}>
-                <List component="nav">
-                  <ListItem
-                    button
-                    onClick={() => {
-                      this.closeDrawer();
-                      navigate("/");
-                    }}
-                  >
-                    <ListItemText primary={i18n.t("Home")} />
-                  </ListItem>
-                  <ListItem
-                    button
-                    onClick={() => {
-                      this.closeDrawer();
-                      navigate("/categories/");
-                    }}
-                  >
-                    <ListItemText primary={i18n.t("Categories")} />
-                  </ListItem>
-                  <ListItem
-                    button
-                    onClick={() => {
-                      this.closeDrawer();
-                      navigate("/pages/");
-                    }}
-                  >
-                    <ListItemText primary={i18n.t("Pages")} />
-                  </ListItem>
-                  <ListItem
-                    button
-                    onClick={() => {
-                      this.closeDrawer();
-                      navigate("/products/");
-                    }}
-                  >
-                    <ListItemText primary={i18n.t("Products")} />
-                  </ListItem>
-                  <ListItem
-                    button
-                    onClick={() => logout()}
-                  >
-                    {/* FIXME: move logout button to appropriate place */}
-                    <ListItemText primary={i18n.t("Logout")} />
-                  </ListItem>
-                </List>
-              </ResponsiveDrawer>
-              <main className={classes.content}>{children}</main>
-            </div>
-          )}
-        </Navigator>
+        <UserContext.Consumer>
+          {({ logout }) => {
+            return (
+              <Navigator>
+                {navigate => (
+                  <div className={classes.appFrame}>
+                    <AppBar className={classes.appBar}>
+                      <Toolbar disableGutters className={classes.toolBar}>
+                        <Hidden mdUp>
+                          <IconButton
+                            color="inherit"
+                            aria-label="open drawer"
+                            onClick={() =>
+                              this.setState(({ open }) => ({
+                                open: !open
+                              }))
+                            }
+                            className={classes.menuButton}
+                          >
+                            <MenuIcon />
+                          </IconButton>
+                        </Hidden>
+                        <Typography
+                          noWrap
+                          variant="title"
+                          color="inherit"
+                          dangerouslySetInnerHTML={{
+                            __html: i18n.t("<strong>Saleor</strong> Dashboard")
+                          }}
+                        />
+                      </Toolbar>
+                    </AppBar>
+                    <ResponsiveDrawer onClose={this.closeDrawer} open={open}>
+                      <List component="nav">
+                        <ListItem
+                          button
+                          onClick={() => {
+                            this.closeDrawer();
+                            navigate("/");
+                          }}
+                        >
+                          <ListItemText primary={i18n.t("Home")} />
+                        </ListItem>
+                        <ListItem
+                          button
+                          onClick={() => {
+                            this.closeDrawer();
+                            navigate("/categories/");
+                          }}
+                        >
+                          <ListItemText primary={i18n.t("Categories")} />
+                        </ListItem>
+                        <ListItem
+                          button
+                          onClick={() => {
+                            this.closeDrawer();
+                            navigate("/pages/");
+                          }}
+                        >
+                          <ListItemText primary={i18n.t("Pages")} />
+                        </ListItem>
+                        <ListItem
+                          button
+                          onClick={() => {
+                            this.closeDrawer();
+                            navigate("/products/");
+                          }}
+                        >
+                          <ListItemText primary={i18n.t("Products")} />
+                        </ListItem>
+                        <ListItem
+                          button
+                          onClick={() => logout()}
+                        >
+                          {/* FIXME: move logout button to appropriate place */}
+                          <ListItemText primary={i18n.t("Logout")} />
+                        </ListItem>
+                      </List>
+                    </ResponsiveDrawer>
+                    <main className={classes.content}>{children}</main>
+                  </div>
+                )}
+              </Navigator>
+            )
+          }}
+        </UserContext.Consumer>
       );
     }
   }

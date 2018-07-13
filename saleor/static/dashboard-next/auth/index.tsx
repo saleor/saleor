@@ -7,8 +7,16 @@ const Component: React.StatelessComponent<RouteComponentProps<any>> = ({
   location,
   match
 }) => {
-  return <LoginPage onAccept={setAuthToken} />;
+  return <LoginPage />;
 };
+
+interface UserContext {
+  user?: any;
+  login?: (username: string, password: string) => void;
+  logout?: () => void;
+}
+
+export const UserContext = React.createContext<UserContext>({});
 
 export const getAuthToken = () => localStorage.getItem("dashboardAuth");
 
