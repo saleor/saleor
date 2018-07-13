@@ -3,7 +3,10 @@ from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
 
+from graphene_file_upload import Upload
+
 from ....product import models
+from ....product.utils.attributes import get_name_from_attributes
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import Decimal, Error, SeoInput
 from ...core.utils import clean_seo_fields
@@ -294,7 +297,7 @@ class ProductVariantInput(graphene.InputObjectType):
     quantity = graphene.Int(
         description='The total quantity of this variant available for sale.')
     track_inventory = graphene.Boolean(
-        required=True,
+        required=False,
         description="""Determines if the inventory of this variant should
         be tracked. If false, the quantity won't change when customers
         buy this item.""")
@@ -333,9 +336,13 @@ class ProductVariantCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
+    def save(cls, info, instance, cleaned_input):
+        instance.name = get_name_from_attributes(instance)
+        instance.save()
+
+    @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('product.manage_products')
-
 
 class ProductVariantUpdate(ProductVariantCreate):
     class Arguments:
