@@ -3,6 +3,8 @@ from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
 
+from graphene_file_upload import Upload
+
 from ....product import models
 from ....product.utils.attributes import get_name_from_attributes
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -356,7 +358,6 @@ class ProductVariantCreate(ModelMutation):
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('product.manage_products')
-
 
 class ProductVariantUpdate(ProductVariantCreate):
     class Arguments:
