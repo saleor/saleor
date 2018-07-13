@@ -90,6 +90,7 @@ class ModelMutation(BaseMutation):
         As a result of this method, the `errors` argument is updated with an
         Error object to be returned in mutation result.
         """
+        field = snake_to_camel_case(field)
         errors.append(Error(field=field, message=message))
 
     @classmethod
@@ -174,7 +175,6 @@ class ModelMutation(BaseMutation):
                 if field in cls._meta.exclude:
                     continue
                 for message in message_dict[field]:
-                    field = snake_to_camel_case(field)
                     cls.add_error(errors, field, message)
         return errors
 
