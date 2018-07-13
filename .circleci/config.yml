@@ -30,12 +30,22 @@ jobs:
       - deploy:
           name: Push Docker image
           command: |
-            if [ "${CIRCLE_TAG}" == demo* ]; then
-              docker login -e $DOCKERCLOUD_EMAIL -u $DOCKERCLOUD_USER -p $DOCKERCLOUD_PASS
-              docker tag mirumee/saleor:latest mirumee/saleor:$CIRCLE_SHA1
-              docker push mirumee/saleor:$CIRCLE_SHA1
-              docker push mirumee/saleor:latest
-              curl -u $DEMO_DEPLOY_KEY: \
-                -d build_parameters[CIRCLE_JOB]=deploy \
-                https://circleci.com/api/v1.1/project/github/mirumee/saleor-demo/tree/master
-            fi
+            docker login -e $DOCKERCLOUD_EMAIL -u $DOCKERCLOUD_USER -p $DOCKERCLOUD_PASS
+            docker tag mirumee/saleor:latest mirumee/saleor:$CIRCLE_SHA1
+            docker push mirumee/saleor:$CIRCLE_SHA1
+            docker push mirumee/saleor:latest
+            curl -u $DEMO_DEPLOY_KEY: \
+              -d build_parameters[CIRCLE_JOB]=deploy \
+              https://circleci.com/api/v1.1/project/github/mirumee/saleor-demo/tree/master
+
+
+workflows:
+  version: 2
+  build-demo:
+    jobs:
+        - build:
+            filters:
+              branches:
+                ignore: /.*/
+              tags:
+                only: /demo.*/
