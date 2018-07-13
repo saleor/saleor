@@ -2,16 +2,31 @@ import * as React from "react";
 
 import { MutationFn } from "../../../../node_modules/react-apollo";
 import {
+  TokenAuthMutation,
+  TokenAuthMutationVariables,
   UserFragment,
   VerifyTokenMutation,
   VerifyTokenMutationVariables
 } from "../gql-types";
-import { getAuthToken, removeAuthToken } from "./index";
-import { tokenVerifyMutation, TypedVerifyTokenMutation } from "./mutations";
+import {
+  getAuthToken,
+  removeAuthToken,
+  setAuthToken,
+  UserContext
+} from "./index";
+import {
+  tokenAuthMutation,
+  tokenVerifyMutation,
+  TypedTokenAuthMutation,
+  TypedVerifyTokenMutation
+} from "./mutations";
 
 interface AuthProviderProps {
+  authenticate: MutationFn<TokenAuthMutation, TokenAuthMutationVariables>;
+  authResult: any;
   children: any;
   verifyToken: MutationFn<VerifyTokenMutation, VerifyTokenMutationVariables>;
+  verifyResult: any;
 }
 
 interface AuthProviderState {
@@ -27,24 +42,35 @@ class AuthProvider extends React.Component<
     this.state = { user: undefined };
   }
 
+  componentWillReceiveProps(props) {
+    if (props.authResult.called && !props.authResult.loading) {
+      this.setState({ user: props.authResult.data.tokenCreate.user });
+      setAuthToken(props.authResult.data.tokenCreate.token);
+    }
+  }
+
   componentDidMount() {
-    const { verifyToken } = this.props;
     const { user } = this.state;
     const token = getAuthToken();
     if (!!token && !user) {
-      verifyToken({ variables: { token } })
+      this.props
+        .verifyToken({ variables: { token } })
         .then(response => {
           if (response) {
-            this.setState({ user: response.data.tokenVerify.user })
+            this.setState({ user: response.data.tokenVerify.user });
           }
         })
         .catch(error => {
-          this.clearUser();
+          this.logout();
         });
     }
   }
 
-  clearUser = () => {
+  login = (email: string, password: string) => {
+    this.props.authenticate({ variables: { email, password } });
+  };
+
+  logout = () => {
     this.setState({ user: undefined });
     removeAuthToken();
   };
@@ -54,43 +80,46 @@ class AuthProvider extends React.Component<
   };
 
   render() {
-    const { children } = this.props;
+    const { authResult, verifyResult } = this.props;
     const { user } = this.state;
     const isAuthenticated = !!user;
-
-    if (typeof children === "function") {
-      return children({ isAuthenticated, logout: this.clearUser });
-    }
-    if (React.Children.count(children) > 0) {
-      return React.Children.only(children);
-    }
-    return null;
+    const loading = authResult.loading || verifyResult.loading;
+    return (
+      <UserContext.Provider
+        value={{ user, login: this.login, logout: this.logout }}
+      >
+        {loading ? (
+          // FIXME: render loading state
+          <div>Loading</div>
+        ) : (
+          this.props.children({ isAuthenticated, logout: this.logout })
+        )}
+      </UserContext.Provider>
+    );
   }
 }
 
 const AuthProviderOperations: React.StatelessComponent<any> = ({
-  children,
-  logout
+  children
 }) => (
-  <TypedVerifyTokenMutation mutation={tokenVerifyMutation}>
-    {(verifyToken, { loading, data, error }) => (
-      <AuthProvider verifyToken={verifyToken}>
-        {({ isAuthenticated, logout }) => {
-          if (loading) {
-            // FIXME: "Show more serious loading state here"
-            return <div>Loading...</div>
-          }
-          if (typeof children === "function") {
-            return children({ isAuthenticated, logout });
-          }
-          if (React.Children.count(children) > 0) {
-            return React.Children.only(children);
-          }
-          return null;
-        }}
-      </AuthProvider>
+  <TypedTokenAuthMutation mutation={tokenAuthMutation}>
+    {(authenticate, tokenAuthResult) => (
+      <TypedVerifyTokenMutation mutation={tokenVerifyMutation}>
+        {(verifyToken, verifyTokenResult) => (
+          <AuthProvider
+            authenticate={authenticate}
+            authResult={tokenAuthResult}
+            verifyToken={verifyToken}
+            verifyResult={verifyTokenResult}
+          >
+            {({ isAuthenticated }) => {
+              return children({ isAuthenticated });
+            }}
+          </AuthProvider>
+        )}
+      </TypedVerifyTokenMutation>
     )}
-  </TypedVerifyTokenMutation>
+  </TypedTokenAuthMutation>
 );
 
 export default AuthProviderOperations;

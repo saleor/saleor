@@ -4,7 +4,7 @@ import * as React from "react";
 import Form, { FormProps } from "../../components/Form";
 import LoginCard from "../../components/LoginCard";
 import { TokenAuthMutationVariables } from "../../gql-types";
-import { tokenAuthMutation, TypedTokenAuthMutation } from "../mutations";
+import { UserContext } from "../index";
 
 const decorate = withStyles(theme => ({
   root: {
@@ -17,50 +17,13 @@ const decorate = withStyles(theme => ({
   }
 }));
 
-interface TokenAuthProviderProps {
-  children:
-    | ((
-        authorize: (email: string, password: string) => void
-      ) => React.ReactElement<any>)
-    | React.ReactNode;
-  onAccept(token: string);
-}
-
-const TokenAuthProvider: React.StatelessComponent<TokenAuthProviderProps> = ({
-  children,
-  onAccept
-}) => (
-  <TypedTokenAuthMutation mutation={tokenAuthMutation}>
-    {(mutate, { called, data, error, loading }) => {
-      if (called && !loading && !error) {
-        const { token } = data.tokenCreate;
-        onAccept(token);
-        // FIXME: set user in AuthProvider's state
-      }
-      if (typeof children === "function") {
-        return children((email, password) =>
-          mutate({ variables: { email, password } })
-        );
-      }
-      if (React.Children.count(children) > 0) {
-        return React.Children.only(children);
-      }
-      return null;
-    }}
-  </TypedTokenAuthMutation>
-);
-
 const LoginForm: React.ComponentType<
   FormProps<TokenAuthMutationVariables>
 > = Form;
 
-interface LoginPageProps {
-  onAccept(token: string);
-}
-
-const LoginPage = decorate<LoginPageProps>(({ classes, onAccept }) => (
-  <TokenAuthProvider onAccept={onAccept}>
-    {login => (
+const LoginPage = decorate(({ classes }) => (
+  <UserContext.Consumer>
+    {({ login }) => (
       <LoginForm
         initial={{ email: "", password: "" }}
         onSubmit={data => login(data.email, data.password)}
@@ -77,7 +40,7 @@ const LoginPage = decorate<LoginPageProps>(({ classes, onAccept }) => (
         )}
       </LoginForm>
     )}
-  </TokenAuthProvider>
+  </UserContext.Consumer>
 ));
 
 export default LoginPage;
