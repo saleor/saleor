@@ -332,6 +332,73 @@ def test_view_checkout_summary_with_invalid_voucher_code(
     assert response.context['cart'].voucher_code is None
 
 
+def test_view_checkout_place_order_with_expired_voucher_code(
+        client, request_cart_with_item, shipping_method, address, voucher):
+
+    cart = request_cart_with_item
+
+    # add shipping information to the cart
+    cart.shipping_address = address
+    cart.email = 'test@example.com'
+    cart.shipping_method = (
+        shipping_method.price_per_country.first())
+
+    # set voucher to be expired
+    yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    voucher.end_date = yesterday
+    voucher.save()
+
+    # put the voucher code to cart
+    cart.voucher_code = voucher.code
+
+    # save the cart
+    cart.save()
+
+    checkout_url = reverse('checkout:summary')
+
+    # place order
+    data = {'address': 'shipping_address'}
+    response = client.post(checkout_url, data, follow=True)
+
+    # order should not have been placed
+    assert response.request['PATH_INFO'] == checkout_url
+
+    # ensure the voucher was removed
+    cart.refresh_from_db()
+    assert not cart.voucher_code
+
+
+def test_view_checkout_place_order_with_item_out_of_stock(
+        client, request_cart_with_item,
+        shipping_method, address, voucher, variant):
+
+    cart = request_cart_with_item
+
+    # add shipping information to the cart
+    cart.shipping_address = address
+    cart.email = 'test@example.com'
+    cart.shipping_method = (
+        shipping_method.price_per_country.first())
+
+    # save the cart
+    cart.save()
+
+    # make the variant be out of stock
+    variant.quantity = 0
+    variant.save()
+
+    checkout_url = reverse('checkout:summary')
+    cart_url = reverse('cart:index')
+
+    # place order
+    data = {'address': 'shipping_address'}
+    response = client.post(checkout_url, data, follow=True)
+
+    # order should have been aborted,
+    # and user should have been redirected to its cart
+    assert response.request['PATH_INFO'] == cart_url
+
+
 def test_view_checkout_summary_remove_voucher(
         client, request_cart_with_item, shipping_method, voucher, address):
     request_cart_with_item.shipping_address = address
