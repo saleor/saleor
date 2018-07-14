@@ -82,6 +82,26 @@ def test_view_checkout_shipping_address(client, request_cart_with_item):
     assert request_cart_with_item.email == 'test@example.com'
 
 
+def test_view_checkout_shipping_address_with_invalid_data(
+        client, request_cart_with_item):
+    url = reverse('checkout:shipping-address')
+    data = {
+        'email': 'test@example.com',
+        'first_name': 'John',
+        'last_name': 'Doe',
+        'street_address_1': 'Aleje Jerozolimskie 2',
+        'street_address_2': '',
+        'city': 'Warszawa',
+        'city_area': '',
+        'country_area': '',
+        'postal_code': '00-37412',
+        'phone': '+48536984008',
+        'country': 'PL'}
+
+    response = client.post(url, data, follow=True)
+    assert response.request['PATH_INFO'] == url
+
+
 def test_view_checkout_shipping_address_authorized_user(
         authorized_client, customer_user, request_cart_with_item):
     request_cart_with_item.user = customer_user
@@ -263,14 +283,17 @@ def test_view_checkout_summary_without_address(request_cart_with_item, client):
     response = client.get(url)
 
     assert response.status_code == 302
-    redirect_url = reverse('checkout:shipping-method')
+    redirect_url = reverse('checkout:shipping-address')
     assert get_redirect_location(response) == redirect_url
 
 
 def test_view_checkout_summary_without_shipping_method(
-        request_cart_with_item, client):
-    url = reverse('checkout:summary')
+        request_cart_with_item, client, address):
+    request_cart_with_item.shipping_address = address
+    request_cart_with_item.email = 'test@example.com'
+    request_cart_with_item.save()
 
+    url = reverse('checkout:summary')
     response = client.get(url)
 
     assert response.status_code == 302
@@ -388,7 +411,7 @@ def test_view_checkout_place_order_with_item_out_of_stock(
     variant.save()
 
     checkout_url = reverse('checkout:summary')
-    cart_url = reverse('cart:index')
+    redirect_url = reverse('cart:index')
 
     # place order
     data = {'address': 'shipping_address'}
@@ -396,7 +419,32 @@ def test_view_checkout_place_order_with_item_out_of_stock(
 
     # order should have been aborted,
     # and user should have been redirected to its cart
-    assert response.request['PATH_INFO'] == cart_url
+    assert response.request['PATH_INFO'] == redirect_url
+
+
+def test_view_checkout_place_order_without_shipping_address(
+        client, request_cart_with_item, shipping_method):
+
+    cart = request_cart_with_item
+
+    # add shipping information to the cart
+    cart.email = 'test@example.com'
+    cart.shipping_method = (
+        shipping_method.price_per_country.first())
+
+    # save the cart
+    cart.save()
+
+    checkout_url = reverse('checkout:summary')
+    redirect_url = reverse('checkout:shipping-address')
+
+    # place order
+    data = {'address': 'shipping_address'}
+    response = client.post(checkout_url, data, follow=True)
+
+    # order should have been aborted,
+    # and user should have been redirected to its cart
+    assert response.request['PATH_INFO'] == redirect_url
 
 
 def test_view_checkout_summary_remove_voucher(
