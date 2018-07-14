@@ -155,7 +155,8 @@ def request_cart(cart, monkeypatch):
 
 
 @pytest.fixture
-def request_cart_with_item(variant, request_cart):
+def request_cart_with_item(product, request_cart):
+    variant = product.variants.get()
     add_variant_to_cart(request_cart, variant)
     return request_cart
 

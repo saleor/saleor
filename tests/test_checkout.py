@@ -393,9 +393,10 @@ def test_view_checkout_place_order_with_expired_voucher_code(
 
 def test_view_checkout_place_order_with_item_out_of_stock(
         client, request_cart_with_item,
-        shipping_method, address, voucher, variant):
+        shipping_method, address, voucher, product):
 
     cart = request_cart_with_item
+    variant = product.variants.get()
 
     # add shipping information to the cart
     cart.shipping_address = address
