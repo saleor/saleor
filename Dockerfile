@@ -22,8 +22,8 @@ RUN npm install
 ADD ./saleor/static /app/saleor/static/
 ADD ./templates /app/templates/
 RUN \
-  npm run build-assets && \
-  npm run build-emails
+  npm run build-assets --production && \
+  npm run build-emails --production
 
 ### Final image
 FROM python:3.6-slim
