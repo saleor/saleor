@@ -232,8 +232,7 @@ INSTALLED_APPS = [
     'django_celery_results',
     'impersonate',
     'phonenumber_field',
-    'captcha',
-    'raven.contrib.django.raven_compat']
+    'captcha']
 
 if DEBUG:
     MIDDLEWARE.append(
@@ -507,6 +506,7 @@ RECAPTCHA_PRIVATE_KEY = os.environ.get('RECAPTCHA_PRIVATE_KEY')
 #  Sentry
 SENTRY_DSN = os.environ.get('SENTRY_DSN')
 if SENTRY_DSN:
+    INSTALLED_APPS.append('raven.contrib.django.raven_compat')
     RAVEN_CONFIG = {
         'dsn': SENTRY_DSN,
         'release': __version__}
