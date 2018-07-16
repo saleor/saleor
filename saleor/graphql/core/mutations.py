@@ -121,24 +121,16 @@ class ModelMutation(BaseMutation):
                 # e.g. graphene.IdList(graphene.ID, type=Product).
 
                 # handle list of IDs field
-                if value is not None and isinstance(
-                    field.type, graphene.List) and (
-                        field.type.of_type == graphene.ID):
-                    try:
-                        instances = get_nodes(value) if value else []
-                        cleaned_input[field_name] = instances
-                    except Exception as e:
-                        cls.add_error(
-                            field=field_name, message=str(e), errors=errors)
+                if value is not None and (
+                    isinstance(field.type, graphene.List)) and (
+                    field.type.of_type == graphene.ID):
+                    instances = get_nodes(value) if value else []
+                    cleaned_input[field_name] = instances
 
                 # handle ID field
                 elif value is not None and field.type == graphene.ID:
-                    try:
-                        instance = get_node(info, value)
-                        cleaned_input[field_name] = instance
-                    except Exception as e:
-                        cls.add_error(
-                            field=field_name, message=str(e), errors=errors)
+                    instance = get_node(info, value)
+                    cleaned_input[field_name] = instance
 
                 # handle uploaded files
                 elif value is not None and cls._check_type(field, Upload):
@@ -217,6 +209,17 @@ class ModelMutation(BaseMutation):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         instance.save()
+
+    @classmethod
+    def get_instance(cls, info, id, errors, only_type=None, field='Error'):
+        instance = None
+        try:
+            instance = get_node(info, id, only_type)
+        except Exception as e:
+            cls.add_error(
+                field=field, message=str(e), errors=errors)
+        return instance
+
 
     @classmethod
     def mutate(cls, root, info, **data):
