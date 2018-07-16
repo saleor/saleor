@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 from django.conf import settings
+from django.db.models import Case, F, When
 from django.shortcuts import reverse
 from django.urls import translate_url
 from prices import Money
@@ -16,7 +17,7 @@ from saleor.core.utils import (
 from saleor.core.utils.text import get_cleaner, strip_html
 from saleor.discount.models import Sale, Voucher
 from saleor.order.models import Order
-from saleor.product.models import Product, ProductImage
+from saleor.product.models import Product, ProductImage, ProductVariant
 from saleor.shipping.models import ShippingMethod
 
 type_schema = {
@@ -145,6 +146,11 @@ def test_create_products_by_type(
         how_many=how_many, create_images=True)
     assert Product.objects.all().count() == how_many
     assert mock_create_thumbnails.called
+    assert ProductVariant.objects.annotate(
+        base_price=Case(
+            When(price_override__lt=0, then='price_override'),
+            default='product__price')).\
+        filter(base_price__lt=F('cost_price')).count() == 0
 
 
 def test_create_fake_order(db, monkeypatch, product_image):
