@@ -30,7 +30,8 @@ class AddressInput(graphene.InputObjectType):
 
 
 class OrderLineInput(graphene.InputObjectType):
-    variant_id = graphene.ID(description='Product variant ID.')
+    variant_id = graphene.ID(
+        description='Product variant ID.', name='variantId')
     quantity = graphene.Int(
         description='Number of variant items ordered.')
 
@@ -39,7 +40,7 @@ class DraftOrderInput(InputObjectType):
     billing_address = AddressInput(
         description='Billing address of the customer.')
     user = graphene.ID(
-        descripton='Customer associated with the draft order.')
+        descripton='Customer associated with the draft order.', name='user')
     user_email = graphene.String(description='Email address of the customer.')
     discount = Decimal(description='Discount amount for the order.')
     lines = graphene.List(
@@ -49,9 +50,10 @@ class DraftOrderInput(InputObjectType):
     shipping_address = AddressInput(
         description='Shipping address of the customer.')
     shipping_method = graphene.ID(
-        description='ID of a selected shipping method.')
+        description='ID of a selected shipping method.', name='shippingMethod')
     voucher = graphene.ID(
-        description='ID of the voucher associated with the order')
+        description='ID of the voucher associated with the order',
+        name='voucher')
 
 
 def check_lines_quantity(variants, quantities):
@@ -91,7 +93,9 @@ class DraftOrderCreate(ModelMutation):
         lines = input.pop('lines', None)
         if lines:
             variant_ids = [line.get('variant_id') for line in lines]
-            variants = get_nodes(ids=variant_ids, graphene_type=ProductVariant)
+            variants = cls.get_instances(
+                ids=variant_ids, graphene_type=ProductVariant, errors=errors,
+                field='variants')
             quantities = [line.get('quantity') for line in lines]
             line_errors = check_lines_quantity(variants, quantities)
             if line_errors:

@@ -9,15 +9,21 @@ class MenuInput(graphene.InputObjectType):
 
 
 class MenuItemInput(graphene.InputObjectType):
-    menu = graphene.ID(description='Menu to which item belongs to.')
+    menu = graphene.ID(
+        description='Menu to which item belongs to.', name='menu')
     name = graphene.String(description='Name of the menu item.')
-    parent = graphene.ID(description='''
+    parent = graphene.ID(
+        description='''
         ID of the parent menu. If empty, menu will be top level
-        menu.''')
+        menu.''',
+        name='parent')
     url = graphene.String(description='URL of the pointed item.')
-    category = graphene.ID(description='Category to which item points.')
-    collection = graphene.ID(description='Collection to which item points.')
-    page = graphene.ID(description='Page to which item points.')
+    category = graphene.ID(
+        description='Category to which item points.', name='category')
+    collection = graphene.ID(
+        description='Collection to which item points.', name='collection')
+    page = graphene.ID(
+        description='Page to which item points.', name='page')
 
 
 class MenuCreate(ModelMutation):
