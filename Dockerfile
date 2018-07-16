@@ -11,8 +11,12 @@ RUN \
 ADD requirements.txt /app/
 RUN pip install -r /app/requirements.txt
 
+
 ### Build static assets
 FROM node:8.6.0 as build-nodejs
+
+ARG STATIC_URL
+
 # Install node_modules
 ADD webpack.config.js app.json package.json package-lock.json /app/
 WORKDIR /app
@@ -22,16 +26,19 @@ RUN npm install
 ADD ./saleor/static /app/saleor/static/
 ADD ./templates /app/templates/
 RUN \
+  STATIC_URL=${STATIC_URL} \
   npm run build-assets --production && \
   npm run build-emails --production
+
 
 ### Final image
 FROM python:3.6-slim
 
 ARG AWS_ACCESS_KEY_ID
+ARG AWS_LOCATION
+ARG AWS_MEDIA_BUCKET_NAME
 ARG AWS_SECRET_ACCESS_KEY
 ARG AWS_STORAGE_BUCKET_NAME
-ARG AWS_MEDIA_BUCKET_NAME
 ARG STATIC_URL
 
 RUN \
@@ -56,10 +63,11 @@ USER saleor
 
 RUN SECRET_KEY=dummy \
     AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+    AWS_LOCATION=${AWS_LOCATION} \
     AWS_MEDIA_BUCKET_NAME=${AWS_MEDIA_BUCKET_NAME} \
     AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
     AWS_STORAGE_BUCKET_NAME=${AWS_STORAGE_BUCKET_NAME} \
-    STATIC_URL=${STATIC_URL}} \
+    STATIC_URL=${STATIC_URL} \
     python3 manage.py collectstatic --no-input
 EXPOSE 8000
 ENV PORT 8000
