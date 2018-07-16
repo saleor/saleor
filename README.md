@@ -31,7 +31,7 @@ Want to see Saleor in action?
 
 Or launch the demo on a free Heroku instance.
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy) [![Join the chat at https://gitter.im/mirumee/saleor](https://badges.gitter.im/mirumee/saleor.svg)](https://gitter.im/mirumee/saleor?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Login credentials: `admin@example.com`/`admin`
 
