@@ -17,9 +17,10 @@ jobs:
           command: |
             docker build \
               --build-arg AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+              --build-arg AWS_LOCATION=$AWS_LOCATION \
+              --build-arg AWS_MEDIA_BUCKET_NAME=$AWS_MEDIA_BUCKET_NAME \
               --build-arg AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
               --build-arg AWS_STORAGE_BUCKET_NAME=$AWS_STORAGE_BUCKET_NAME \
-              --build-arg AWS_MEDIA_BUCKET_NAME=$AWS_MEDIA_BUCKET_NAME \
               --build-arg STATIC_URL=$STATIC_URL \
               --cache-from=mirumee/saleor:latest -t mirumee/saleor:latest .
       - run:
