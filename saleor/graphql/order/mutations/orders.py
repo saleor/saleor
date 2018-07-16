@@ -66,8 +66,9 @@ class OrderUpdate(DraftOrderUpdate):
 
 
 class OrderAddNoteInput(graphene.InputObjectType):
-    order = graphene.ID(description='ID of the order.')
-    user = graphene.ID(description='ID of the user who added note.')
+    order = graphene.ID(description='ID of the order.', name='order')
+    user = graphene.ID(
+        description='ID of the user who added note.', name='user')
     content = graphene.String(description='Note content.')
 
 
