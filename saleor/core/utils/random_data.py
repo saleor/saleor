@@ -310,7 +310,8 @@ def create_variant(product, **kwargs):
         variant.cost_price = (variant.base_price * Decimal(
             fake.random_int(10, 99) / 100)).quantize()
     if variant.attributes:
-        variant.name = get_name_from_attributes(variant)
+        attributes = variant.product.product_type.variant_attributes.all()
+        variant.name = get_name_from_attributes(variant, attributes)
     variant.save()
     return variant
 
