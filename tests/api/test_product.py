@@ -1258,7 +1258,6 @@ def test_product_type_update_changes_variant_name(
     attribute = product.product_type.variant_attributes.first()
     value = attribute.values.first().name
     assert variant.name == value
-    assert not variant.name == 'test name'
 
 
 def test_update_variants_changed_does_nothing_with_no_attributes():
