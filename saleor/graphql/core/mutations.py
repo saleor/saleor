@@ -12,6 +12,7 @@ from ...account import models
 from ..account.types import User
 from ..utils import get_node, get_nodes
 from .types import Error
+from .utils import snake_to_camel_case
 
 registry = get_global_registry()
 
@@ -89,6 +90,7 @@ class ModelMutation(BaseMutation):
         As a result of this method, the `errors` argument is updated with an
         Error object to be returned in mutation result.
         """
+        field = snake_to_camel_case(field)
         errors.append(Error(field=field, message=message))
 
     @classmethod
