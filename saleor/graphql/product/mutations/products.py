@@ -1,9 +1,8 @@
 import graphene
 from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
-from graphql_jwt.decorators import permission_required
-
 from graphene_file_upload import Upload
+from graphql_jwt.decorators import permission_required
 
 from ....product import models
 from ....product.utils.attributes import get_name_from_attributes
@@ -28,6 +27,23 @@ def update_variants_names(instance, saved_attributes):
     attributes = instance.variant_attributes.all()
     for variant in variants_to_be_updated:
         variant.name = get_name_from_attributes(variant, attributes)
+        variant.save()
+
+
+def update_variants_names(instance, saved_attributes):
+    initial_attributes = set(instance.variant_attributes.all())
+    attributes_changed = initial_attributes.intersection(saved_attributes)
+    if not attributes_changed:
+        return
+    variants_to_be_updated = models.ProductVariant.objects.filter(
+        product__in=instance.products.all(),
+        product__product_type__variant_attributes__in=attributes_changed)
+    variants_to_be_updated = variants_to_be_updated.prefetch_related(
+        'product__product_type__variant_attributes__values').all()
+    attributes = instance.variant_attributes.all()
+    for variant in variants_to_be_updated:
+        variant.name = get_name_from_attributes(
+            variant, attributes=attributes)
         variant.save()
 
 
