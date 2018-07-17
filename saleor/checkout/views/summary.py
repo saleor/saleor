@@ -28,6 +28,7 @@ def handle_order_placement(request, cart):
     except InsufficientStock:
         return redirect('cart:index')
 
+    # happens when a voucher is now invalid
     if not order:
         msg = pgettext('Checkout warning', 'Please review your checkout.')
         messages.warning(request, msg)
