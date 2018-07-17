@@ -2,6 +2,7 @@ import itertools
 import os
 import random
 import unicodedata
+from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
@@ -301,10 +302,12 @@ def create_variant(product, **kwargs):
     defaults = {
         'product': product,
         'quantity': fake.random_int(1, 50),
-        'cost_price': fake.money(),
         'quantity_allocated': fake.random_int(1, 50)}
     defaults.update(kwargs)
     variant = ProductVariant(**defaults)
+    if 'cost_price' not in kwargs:
+        variant.cost_price = (variant.base_price * Decimal(
+            fake.random_int(10, 99) / 100)).quantize()
     if variant.attributes:
         variant.name = get_name_from_attributes(variant)
     variant.save()
