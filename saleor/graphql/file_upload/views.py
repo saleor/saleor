@@ -1,12 +1,27 @@
-from graphene_django.views import GraphQLView
 import json
 import graphene
+from django.shortcuts import render
+from graphene_django.views import GraphQLView
 
 # This class is modified verion of the `ModifiedGraphQLView` class from
 # `graphene-file-upload` (https://github.com/lmcgartland/graphene-file-upload).
 
 
+DEFAULT_QUERY = '''# Welcome to Saleor GraphQL API!
+#
+# Type queries into this side of the screen, and you will
+# see intelligent typeaheads aware of the current GraphQL type schema and
+# live syntax and validation errors highlighted within the text.
+
+'''
+
+
 class FileUploadGraphQLView(GraphQLView):
+
+    def render_graphiql(self, request, **data):
+        if not data['query']:
+            data['query'] = DEFAULT_QUERY
+        return render(request, self.graphiql_template, data)
 
     @staticmethod
     def get_graphql_params(request, data):
