@@ -4,12 +4,12 @@ import graphene
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from graphene.types.mutation import MutationOptions
 from graphene_django.registry import get_global_registry
-from graphene_file_upload import Upload
 from graphql_jwt import ObtainJSONWebToken, Verify
 from graphql_jwt.exceptions import GraphQLJWTError, PermissionDenied
 
 from ...account import models
 from ..account.types import User
+from ..file_upload.types import Upload
 from ..utils import get_node, get_nodes
 from .types import Error
 
