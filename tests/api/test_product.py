@@ -1118,7 +1118,6 @@ def test_remove_products_to_collection(
         'products']['totalCount'] == no_products_before - len(product_ids)
 
 
-
 def test_assign_variant_image(admin_api_client, user_api_client, product_with_image):
     query = """
     mutation assignVariantImageMutation($variantId: ID!, $imageId: ID!) {
@@ -1208,3 +1207,49 @@ def test_unassign_variant_image(admin_api_client, user_api_client, product_with_
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     assert_no_permission(response)
+
+
+def test_product_type_update_changes_variant_name(
+        admin_api_client, product_type, product):
+    query = """
+    mutation updateProductType(
+        $id: ID!,
+        $hasVariants: Boolean!,
+        $isShippingRequired: Boolean!,
+        $variantAttributes: [ID],
+        ) {
+            productTypeUpdate(
+            id: $id,
+            input: {
+                hasVariants: $hasVariants,
+                isShippingRequired: $isShippingRequired,
+                variantAttributes: $variantAttributes}) {
+                productType {
+                    id
+                }
+              }
+            }
+    """
+    has_variants = True
+    require_shipping = False
+    product_type_id = graphene.Node.to_global_id(
+        'ProductType', product_type.id)
+
+    variant_attributes = product_type.variant_attributes.all()
+    variant_attributes_ids = [
+        graphene.Node.to_global_id('ProductAttribute', att.id) for att in
+        variant_attributes]
+    variables = json.dumps({
+        'id': product_type_id,
+        'hasVariants': has_variants,
+        'isShippingRequired': require_shipping,
+        'variantAttributes': variant_attributes_ids})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    product.refresh_from_db()
+    variant = product.variants.first()
+    attribute = product.product_type.variant_attributes.first()
+    value = attribute.values.first().name
+    assert variant.name == value
