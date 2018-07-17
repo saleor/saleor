@@ -253,26 +253,6 @@ def test_view_product_bulk_update_unpublish(admin_client, product_list):
     response = admin_client.post(url, data)
 
 
-def test_product_variant_form(product):
-    variant = product.variants.first()
-    variant.name = ''
-    variant.save()
-    example_size = 'Small Size'
-    data = {'attribute-size': example_size, 'sku': '1111', 'quantity': 2}
-    form = ProductVariantForm(data, instance=variant)
-    assert form.is_valid()
-    form.save()
-    variant.refresh_from_db()
-    assert variant.name == example_size
-
-    assert response.status_code == 302
-    assert get_redirect_location(response) == reverse('dashboard:product-list')
-
-    for p in product_list:
-        p.refresh_from_db()
-        assert not p.is_published
-
-
 def test_view_ajax_products_list(admin_client, product):
     url = reverse('dashboard:ajax-products')
 
