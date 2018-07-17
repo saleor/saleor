@@ -14,7 +14,7 @@ from saleor.dashboard.order.utils import (
     fulfill_order_line, remove_customer_from_order, save_address_in_order,
     update_order_with_user_addresses)
 from saleor.discount.utils import increase_voucher_usage
-from saleor.order import OrderStatus
+from saleor.order import FulfillmentStatus, OrderStatus
 from saleor.order.models import Order, OrderLine, OrderNote
 from saleor.order.utils import add_variant_to_order, change_order_line_quantity
 from saleor.product.models import ProductVariant
@@ -1115,3 +1115,60 @@ def test_view_mark_order_as_paid(admin_client, order_with_lines):
     assert order_with_lines.is_fully_paid()
     assert order_with_lines.history.filter(
         content='Order manually marked as paid').exists()
+
+
+def test_view_fulfill_order_lines(admin_client, order_with_lines):
+    url = reverse(
+        'dashboard:fulfill-order-lines',
+        kwargs={'order_pk': order_with_lines.pk})
+    data = {
+        'csrfmiddlewaretoken': 'hello',
+        'form-INITIAL_FORMS': '0',
+        'form-MAX_NUM_FORMS': '1000',
+        'form-MIN_NUM_FORMS': '0',
+        'form-TOTAL_FORMS': order_with_lines.lines.count(),
+        'send_mail': 'on',
+        'tracking_number': ''}
+    for i, line in enumerate(order_with_lines):
+        data['form-{}-order_line'.format(i)] = line.pk
+        data['form-{}-quantity'.format(i)] = line.quantity_unfulfilled
+
+    response = admin_client.post(url, data)
+    assert response.status_code == 302
+    assert get_redirect_location(response) == reverse(
+        'dashboard:order-details', kwargs={'order_pk': order_with_lines.pk})
+    order_with_lines.refresh_from_db()
+    for line in order_with_lines:
+        assert line.quantity_unfulfilled == 0
+
+
+def test_render_fulfillment_page(admin_client, order_with_lines):
+    url = reverse(
+        'dashboard:fulfill-order-lines',
+        kwargs={'order_pk': order_with_lines.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+
+def test_view_cancel_fulfillment(admin_client, fulfilled_order):
+    fulfillment = fulfilled_order.fulfillments.first()
+    url = reverse(
+        'dashboard:fulfillment-cancel',
+        kwargs={
+            'order_pk': fulfilled_order.pk,
+            'fulfillment_pk': fulfillment.pk})
+
+    response = admin_client.post(url, {'csrfmiddlewaretoken': 'hello'})
+    assert response.status_code == 302
+    assert get_redirect_location(response) == reverse(
+        'dashboard:order-details', kwargs={'order_pk': fulfilled_order.pk})
+    fulfillment.refresh_from_db()
+    assert fulfillment.status == FulfillmentStatus.CANCELED
+
+
+def test_render_cancel_fulfillment_page(admin_client, fulfilled_order):
+    url = reverse(
+        'dashboard:fulfill-order-lines',
+        kwargs={'order_pk': fulfilled_order.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
