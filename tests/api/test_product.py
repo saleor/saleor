@@ -1,4 +1,5 @@
 import json
+from unittest.mock import MagicMock, Mock
 
 import graphene
 import pytest
@@ -9,6 +10,7 @@ from prices import Money
 from tests.utils import (
     create_image, create_pdf_file_with_image_ext, get_graphql_content)
 
+from saleor.graphql.product.mutations.products import update_variants_names
 from saleor.product.models import (
     Category, Collection, Product, ProductAttribute, ProductType, ProductImage)
 
@@ -1253,3 +1255,10 @@ def test_product_type_update_changes_variant_name(
     attribute = product.product_type.variant_attributes.first()
     value = attribute.values.first().name
     assert variant.name == value
+
+
+def test_update_variants_changed_does_nothing_with_no_attributes():
+    product_type = MagicMock(spec=ProductType)
+    product_type.variant_attributes.all = Mock(return_value=[])
+    saved_attributes = []
+    assert update_variants_names(product_type, saved_attributes) is None
