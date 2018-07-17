@@ -343,12 +343,14 @@ def product(product_type, default_category):
         cost_price=Money('1.00', 'USD'), quantity=10, quantity_allocated=1)
     return product
 
+
 @pytest.fixture
 def variant(product):
     product_variant = ProductVariant.objects.create(
         product=product, sku='SKU_A', cost_price=Money(1, 'USD'), quantity=5,
         quantity_allocated=3)
     return product_variant
+
 
 @pytest.fixture
 def product_without_shipping(default_category):
