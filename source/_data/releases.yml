@@ -9,10 +9,10 @@
         - feature:
             title: Architecture changes (Stable core)
             description: Moving storefront and dashboard to separate apps.
-      right:
         - feature:
             title: Avalara integration
             description: Integration with Avalara for tax calculations.
+      right:
         - feature:
             title: CSV export
             description: Exporting products, orders and customers to CSV files.
@@ -28,12 +28,21 @@
     features:
       left:
         - feature:
-            title: Dashboard 2.0
-            description: New, dynamic UX - a modern and intuitive way of managing your shop.
-      right:
+            title: Dashboard 2.0 - product management
+            description: A refreshed version of product management views implemented as a single-page application.
+- release:
+    title: <span>June</span> Release
+    image: /images/done.svg
+    link: https://github.com/mirumee/saleor/releases/tag/v2018.06
+    features:
+      left:
         - feature:
-            title: GraphQL API
-            description: Comprehensive API to access and modify all Saleor's models.
+            title: ""
+            type: list
+            description:
+              - GraphQL API (beta)
+              - Sentry integration
+              - New languages - Czech, Chinese (Taiwan)
 - release:
     title: <span>May</span> Release
     image: /images/done.svg
