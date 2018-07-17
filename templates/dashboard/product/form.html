@@ -71,6 +71,9 @@
                 <div class="row">
                   {{ product_form.description|materializecss }}
                 </div>
+                <div class="row attribute-select-or-create">
+                  {{ product_form.vendor|materializecss }}
+                </div>
                 <span class="card-title">Availability</span>
                 <div class="row">
                   <div class="col s12 m3">
@@ -93,6 +96,9 @@
                 {% if not product.product_type.has_variants %}
                   <div class="row">
                     {{ variant_form.sku|materializecss }}
+                  </div>
+                  <div class="row">
+                    {{ variant_form.barcode|materializecss:"input-field s12" }}
                   </div>
                   <div class="row">
                     {{ variant_form.quantity|materializecss }}

@@ -41,6 +41,9 @@
               <div class="product-header__title">
                 <span class="card-title">
                   {{ product }}
+                  {% if no_variants %}
+                    {% include 'dashboard/product/product_variant/_variant_title.html' with variant=only_variant %}
+                  {% endif %}
                 </span>
               </div>
               <div class="product-header__switch">
@@ -101,6 +104,7 @@
               <thead>
                 <tr>
                   <th>{% trans "SKU" %}</th>
+                  <th>{% trans "Barcode" %}</th>
                   <th>{% trans "Name" %}</th>
                   <th>{% trans "Status" %}</th>
                   <th class="right-align">
@@ -120,6 +124,7 @@
                 {% for variant in variants %}
                   <tr data-action-go="{% url "dashboard:variant-details" product_pk=product.pk variant_pk=variant.pk %}">
                     <td>{{ variant.sku }}</td>
+                    <td>{{ variant.barcode|default:'-' }}</td>
                     <td>{{ variant }}</td>
                     <td class="wide">{% render_variant_availability_status variant %}</td>
                     <td class="right-align">

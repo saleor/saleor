@@ -307,6 +307,14 @@
                       {% blocktrans trimmed with sku=line.product_sku context "Order table text" %}
                         SKU: {{ sku }}
                       {% endblocktrans %}
+
+                      {% with barcode=line.variant.barcode %}
+                        {% if barcode %}
+                          {% blocktrans trimmed context "Order table text: barcode" %}
+                          <br/>Barcode: {{ barcode }}
+                          {% endblocktrans %}
+                        {% endif %}
+                      {% endwith %}
                     </span>
                   </td>
                   <td class="right-align">

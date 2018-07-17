@@ -1,0 +1,8 @@
+{% load i18n %}
+
+<p>
+  {% trans "SKU" context "Dashboard variant details" %} {{ variant.sku }}
+  {% if variant.barcode %}
+    <br/>{% trans "Barcode" context "Dashboard variant details" %} {{ variant.barcode }}
+  {% endif %}
+</p>

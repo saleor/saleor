@@ -3,7 +3,8 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
-from django.core.validators import MinValueValidator, RegexValidator
+from django.core import validators
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
 from django.urls import reverse
@@ -23,6 +24,15 @@ from ..core.models import SortableModel
 from ..core.utils.taxes import DEFAULT_TAX_RATE_NAME, apply_tax_to_price
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel
+
+
+class ProductVendor(models.Model):
+    name = models.CharField(
+        max_length=64, validators=[validators.MaxLengthValidator(64)],
+        unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Category(MPTTModel, SeoModel):
@@ -97,6 +107,9 @@ class ProductQuerySet(models.QuerySet):
 class Product(SeoModel):
     product_type = models.ForeignKey(
         ProductType, related_name='products', on_delete=models.CASCADE)
+    vendor = models.ForeignKey(
+        ProductVendor, related_name='products',
+        on_delete=models.SET_NULL, null=True, blank=True)
     name = models.CharField(max_length=128)
     description = models.TextField()
     category = models.ForeignKey(
@@ -177,6 +190,8 @@ class Product(SeoModel):
 
 class ProductVariant(models.Model):
     sku = models.CharField(max_length=32, unique=True)
+    barcode = models.CharField(
+        max_length=32, unique=True, null=True, blank=True)
     name = models.CharField(max_length=255, blank=True)
     price_override = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,

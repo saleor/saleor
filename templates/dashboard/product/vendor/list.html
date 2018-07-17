@@ -1,0 +1,66 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load materializecss %}
+{% load staticfiles %}
+{% load utils %}
+
+{% block title %}
+  {% trans "Vendors" context "Dashboard vendor list" %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-vendors{% endblock %}
+
+{% block menu_vendors_class %}active{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs">
+    <li class="visible-s">
+      {% trans "Vendors" context "Dashboard vendor list" %}
+    </li>
+  </ul>
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col s12 l9">
+      {% if vendors %}
+        <div class="card">
+          <div class="data-table-container">
+            <table class="bordered highlight data-table data-table-description">
+              <thead>
+                <tr>
+                  {% trans "Name" context "Dashboard vendor list table header name" as label %}
+                  {% sorting_header 'name' label is_wide=True %}
+                  {% if perms.product.edit_properties %}
+                    <th></th>
+                  {% endif %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for vendor in vendors %}
+                  <tr>
+                    <td>
+                      {{ vendor.name }}
+                    </td>
+                    {% if perms.product.edit_properties %}
+                      <td class="right-align">
+                        <a href="{% url 'dashboard:product-vendor-edit' pk=vendor.pk %}" class="btn-flat waves-effect">
+                          {% trans 'Edit' context 'Vendor edit action' %}
+                        </a>
+                        <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:product-vendor-delete' pk=vendor.pk %}">
+                          {% trans 'Delete' context 'Vendor delete action' %}
+                        </a>
+                      </td>
+                    {% endif %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% else %}
+        {% include 'dashboard/product/vendor/zero_page.html' %}
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

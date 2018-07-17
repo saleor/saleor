@@ -1,0 +1,10 @@
+{% extends 'dashboard/base_zero_page.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "No vendors found." %}{% endblock %}
+{% block content %}
+  {% blocktrans %}
+    Vendors are used to help managing products, they can only be created from the product form.<br>
+  {% endblocktrans %}
+{% endblock %}
