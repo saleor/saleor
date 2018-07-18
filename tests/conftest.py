@@ -577,9 +577,10 @@ def payment_input(order_with_lines):
 
 
 @pytest.fixture()
-def sale(db, default_category):
+def sale(db, default_category, collection):
     sale = Sale.objects.create(name="Sale", value=5)
     sale.categories.add(default_category)
+    sale.collections.add(collection)
     return sale
 
 
