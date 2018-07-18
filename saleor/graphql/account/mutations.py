@@ -8,9 +8,9 @@ from graphql_jwt.decorators import permission_required
 
 from ...account import emails, models
 from ...core.permissions import MODELS_PERMISSIONS, get_permissions
+from ..account.types import AddressInput
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import Error
-from ..order.mutations.draft_orders import AddressInput
 from ..utils import get_node
 
 
@@ -26,9 +26,13 @@ def send_user_password_reset_email(user, site):
 
 
 class UserInput(graphene.InputObjectType):
+    default_billing_address = AddressInput(
+        description='Billing address of the customer.')
     email = graphene.String(
         description='The unique email address of the user.')
     note = graphene.String(description='A note about the user.')
+    default_shipping_address = AddressInput(
+        description='Shipping address of the customer.')
 
 
 class UserCreateInput(UserInput):
@@ -67,6 +71,37 @@ class CustomerCreate(ModelMutation):
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('account.manage_users')
+
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        default_shipping_address = input.pop('default_shipping_address', None)
+        default_billing_address = input.pop('default_billing_address', None)
+        cleaned_input = super().clean_input(info, instance, input, errors)
+
+        if default_shipping_address:
+            default_shipping_address = models.Address(**default_shipping_address)
+            cls.clean_instance(default_shipping_address, errors)
+            cleaned_input['default_shipping_address'] = default_shipping_address
+        if default_billing_address:
+            default_billing_address = models.Address(**default_billing_address)
+            cls.clean_instance(default_billing_address, errors)
+            cleaned_input['default_billing_address'] = default_billing_address
+
+        return cleaned_input
+
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        default_shipping_address = cleaned_input.get('default_shipping_address')
+        if default_shipping_address:
+            default_shipping_address.save()
+            instance.default_shipping_address = default_shipping_address
+        default_billing_address = cleaned_input.get('default_billing_address')
+        if default_billing_address:
+            default_billing_address.save()
+            instance.default_billing_address = default_billing_address
+        super().save(info, instance, cleaned_input)
+        instance.save(update_fields=['default_billing_address', 'default_shipping_address'])
 
 
 class CustomerUpdate(CustomerCreate):
