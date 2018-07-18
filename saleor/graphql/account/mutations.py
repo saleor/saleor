@@ -16,9 +16,6 @@ class StaffInput(UserInput):
     permissions = graphene.List(
         graphene.String,
         description='List of permission code names to assign to this user.')
-    groups = graphene.List(
-        graphene.ID,
-        description='List of IDs of permission groups to assign the user to.')
 
 
 class CustomerCreate(ModelMutation):
