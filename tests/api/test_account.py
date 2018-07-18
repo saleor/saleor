@@ -7,7 +7,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
-from .utils import assert_no_permission
+from .utils import assert_no_permission, convert_dict_keys_to_camel_case
 
 from saleor.account.models import Address
 from saleor.graphql.account.mutations import SetPassword
@@ -138,7 +138,7 @@ def test_query_user(admin_api_client, customer_user):
     assert address['postalCode'] == user_address.postal_code
     assert address['country'] == user_address.country.code
     assert address['countryArea'] == user_address.country_area
-    assert address['phone'] == user_address.phone.raw_input
+    assert address['phone'] == user_address.phone.as_e164
 
 
 def test_query_users(admin_api_client, user_api_client):
@@ -222,10 +222,16 @@ def test_who_can_see_user(
 
 @patch('saleor.account.emails.send_password_reset_email.delay')
 def test_customer_create(
-        send_password_reset_mock, admin_api_client, user_api_client):
+        send_password_reset_mock, admin_api_client, user_api_client, address):
     query = """
-    mutation CreateCustomer($email: String, $note: String, $send_mail: Boolean) {
-        customerCreate(input: {email: $email, note: $note, sendPasswordEmail: $send_mail}) {
+    mutation CreateCustomer(
+        $email: String, $note: String, $shipping: AddressInput,
+        $send_mail: Boolean) {
+        customerCreate(
+        input: {
+            email: $email, note: $note, defaultShippingAddress: $shipping,
+            sendPasswordEmail: $send_mail
+        }) {
             errors {
                 field
                 message
@@ -242,8 +248,11 @@ def test_customer_create(
     """
     email = 'api_user@example.com'
     note = 'Test user'
+    address_data = convert_dict_keys_to_camel_case(address.as_data())
 
-    variables = json.dumps({'email': email, 'note': note, 'send_mail': True})
+    variables = json.dumps({
+        'email': email, 'note': note, 'shipping': address_data,
+        'send_mail': True})
 
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
@@ -252,6 +261,11 @@ def test_customer_create(
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
+
+    User = get_user_model()
+    customer = User.objects.get(email=email)
+
+    assert customer.default_shipping_address == address
     assert 'errors' not in content
     data = content['data']['customerCreate']
     assert data['errors'] == []
