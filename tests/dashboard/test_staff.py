@@ -12,16 +12,15 @@ from saleor.settings import DEFAULT_FROM_EMAIL
 
 
 def test_staff_form_not_valid(db):
-    data = {'groups': 1}
+    data = {'permissions': 1}
     form = StaffForm(data=data)
     assert not form.is_valid()
 
 
-def test_staff_form_create_valid(
-        admin_client, staff_user, staff_group):
+def test_staff_form_create_valid(admin_client, staff_user):
     assert staff_user.groups.count() == 0
     url = reverse('dashboard:staff-details', kwargs={'pk': staff_user.pk})
-    data = {'email': 'staff@example.com', 'groups': staff_group.pk}
+    data = {'email': 'staff@example.com', 'permissions': 1}
     admin_client.post(url, data)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.groups.count() == 1
@@ -29,7 +28,7 @@ def test_staff_form_create_valid(
 
 def test_staff_form_create_not_valid(admin_client, staff_user):
     url = reverse('dashboard:staff-details', kwargs={'pk': staff_user.pk})
-    data = {'groups': 1}
+    data = {'permissions': 1}
     admin_client.post(url, data)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.groups.count() == 0
@@ -86,9 +85,7 @@ def test_staff_create_email_with_set_link_password(
     user_count = User.objects.count()
     mail_outbox_count = len(mail.outbox)
     url = reverse('dashboard:staff-create')
-    data = {
-        'email': 'staff3@example.com', 'groups': staff_group.pk,
-        'is_staff': True}
+    data = {'email': 'staff3@example.com', 'is_staff': True}
     response = admin_client.post(url, data)
 
     assert User.objects.count() == user_count + 1
@@ -118,11 +115,9 @@ def test_send_set_password_email(staff_user, site_settings):
     assert absolute_generated_link in sended_message
 
 
-def test_create_staff_and_set_password(admin_client, staff_group):
+def test_create_staff_and_set_password(admin_client):
     url = reverse('dashboard:staff-create')
-    data = {
-        'email': 'staff3@example.com', 'groups': staff_group.pk,
-        'is_staff': True}
+    data = {'email': 'staff3@example.com', 'is_staff': True}
     response = admin_client.post(url, data)
     assert response.status_code == 302
     new_user = User.objects.get(email='staff3@example.com')
@@ -142,9 +137,9 @@ def test_create_staff_and_set_password(admin_client, staff_group):
     assert new_user.has_usable_password()
 
 
-def test_create_staff_from_customer(admin_client, staff_group, customer_user):
+def test_create_staff_from_customer(admin_client, customer_user):
     url = reverse('dashboard:staff-create')
-    data = {'email': customer_user.email, 'groups': staff_group.pk}
+    data = {'email': customer_user.email}
     admin_client.post(url, data)
     customer_user.refresh_from_db()
     assert customer_user.is_staff

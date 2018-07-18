@@ -35,38 +35,6 @@ def test_staff_cant_view_staff_create(staff_client):
     assert response.status_code == 302
 
 
-def test_admin_can_view_groups_list(admin_client):
-    response = admin_client.get(reverse('dashboard:group-list'))
-    assert response.status_code == 200
-
-
-def test_staff_cant_view_groups_list(staff_client):
-    response = staff_client.get(reverse('dashboard:group-list'))
-    assert response.status_code == 302
-
-
-def test_admin_can_view_group_details(admin_client, staff_group):
-    response = admin_client.get(reverse('dashboard:group-details',
-                                        args=[staff_group.pk]))
-    assert response.status_code == 200
-
-
-def test_staff_cant_view_group_details(staff_client, staff_group):
-    response = staff_client.get(reverse('dashboard:group-details',
-                                        args=[staff_group.pk]))
-    assert response.status_code == 302
-
-
-def test_admin_can_view_group_create(admin_client):
-    response = admin_client.get(reverse('dashboard:group-create'))
-    assert response.status_code == 200
-
-
-def test_staff_cant_view_group_create(staff_client):
-    response = staff_client.get(reverse('dashboard:group-create'))
-    assert response.status_code == 302
-
-
 def test_admin_can_view_product_types_list(admin_client):
     response = admin_client.get(reverse('dashboard:product-type-list'))
     assert response.status_code == 200
@@ -709,44 +677,6 @@ def test_staff_group_member_can_view_detail_create_and_delete_staff_members(
     assert response.status_code == 200
     response = staff_client.get(reverse('dashboard:staff-details',
                                         args=[staff_user.pk]))
-    assert response.status_code == 200
-
-
-def test_staff_group_member_can_view_group_list_and_details(
-        staff_client, staff_user, staff_group, permission_view_group):
-    assert not staff_user.has_perm('account.view_group')
-    response = staff_client.get(reverse('dashboard:group-list'))
-    assert response.status_code == 302
-    staff_group.permissions.add(permission_view_group)
-    staff_user.groups.add(staff_group)
-    staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm('account.view_group')
-    response = staff_client.get(reverse('dashboard:group-list'))
-    assert response.status_code == 200
-
-
-def test_staff_with_permission_can_create_and_delete_group(
-        staff_client, staff_user, staff_group, permission_edit_group):
-    assert not staff_user.has_perm('account.edit_group')
-    response = staff_client.get(reverse('dashboard:group-delete',
-                                        args=[staff_group.pk]))
-    assert response.status_code == 302
-    response = staff_client.get(reverse('dashboard:group-details',
-                                        args=[staff_group.pk]))
-    assert response.status_code == 302
-    response = staff_client.get(reverse('dashboard:group-create'))
-    assert response.status_code == 302
-    staff_group.permissions.add(permission_edit_group)
-    staff_user.groups.add(staff_group)
-    staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm('account.edit_group')
-    response = staff_client.get(reverse('dashboard:group-details',
-                                        args=[staff_group.pk]))
-    assert response.status_code == 200
-    response = staff_client.get(reverse('dashboard:group-delete',
-                                        args=[staff_group.pk]))
-    assert response.status_code == 200
-    response = staff_client.get(reverse('dashboard:group-create'))
     assert response.status_code == 200
 
 

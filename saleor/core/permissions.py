@@ -3,8 +3,6 @@ from django.contrib.auth.models import Permission
 MODELS_PERMISSIONS = [
     'account.view_user',
     'account.edit_user',
-    'account.view_group',
-    'account.edit_group',
     'account.view_staff',
     'account.edit_staff',
     'account.impersonate_user',
@@ -27,8 +25,7 @@ MODELS_PERMISSIONS = [
     'shipping.view_shipping',
     'shipping.edit_shipping',
     'site.edit_settings',
-    'site.view_settings',
-]
+    'site.view_settings']
 
 
 def get_permissions(permissions=None):

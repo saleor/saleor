@@ -300,8 +300,8 @@ def test_staff_create(
         admin_api_client, user_api_client, staff_group, permission_view_user,
         permission_view_product):
     query = """
-    mutation CreateStaff($email: String, $permissions: [String], $groups: [ID]) {
-        staffCreate(input: {email: $email, permissions: $permissions, groups: $groups}) {
+    mutation CreateStaff($email: String, $permissions: [String]) {
+        staffCreate(input: {email: $email, permissions: $permissions}) {
             errors {
                 field
                 message
@@ -313,14 +313,6 @@ def test_staff_create(
                 isActive
                 permissions {
                     code
-                }
-                groups {
-                    edges {
-                        node {
-                            id
-                            name
-                        }
-                    }
                 }
             }
         }
@@ -336,11 +328,9 @@ def test_staff_create(
 
     email = 'api_user@example.com'
     staff_group.permissions.add(permission_view_user)
-    group_id = graphene.Node.to_global_id('Group', staff_group.id)
 
     variables = json.dumps({
-        'email': email, 'groups': [group_id],
-        'permissions': [permission_view_product_codename]})
+        'email': email, 'permissions': [permission_view_product_codename]})
 
     # check unauthorized access
     response = user_api_client.post(
@@ -359,15 +349,12 @@ def test_staff_create(
     permissions = data['user']['permissions']
     assert permissions[0]['code'] == permission_view_user_codename
     assert permissions[1]['code'] == permission_view_product_codename
-    groups = data['user']['groups']['edges']
-    assert len(groups) == 1
-    assert groups[0]['node']['name'] == staff_group.name
 
 
 def test_staff_update(admin_api_client, staff_user, user_api_client):
     query = """
-    mutation UpdateStaff($id: ID!, $permissions: [String], $groups: [ID]) {
-        staffUpdate(id: $id, input: {permissions: $permissions, groups: $groups}) {
+    mutation UpdateStaff($id: ID!, $permissions: [String]) {
+        staffUpdate(id: $id, input: {permissions: $permissions}) {
             errors {
                 field
                 message
@@ -376,19 +363,12 @@ def test_staff_update(admin_api_client, staff_user, user_api_client):
                 permissions {
                     code
                 }
-                groups {
-                    edges {
-                        node {
-                            id
-                        }
-                    }
-                }
             }
         }
     }
     """
     id = graphene.Node.to_global_id('User', staff_user.id)
-    variables = json.dumps({'id': id, 'permissions': [], 'groups': []})
+    variables = json.dumps({'id': id, 'permissions': []})
 
     # check unauthorized access
     response = user_api_client.post(
@@ -402,7 +382,6 @@ def test_staff_update(admin_api_client, staff_user, user_api_client):
     data = content['data']['staffUpdate']
     assert data['errors'] == []
     assert data['user']['permissions'] == []
-    assert data['user']['groups']['edges'] == []
 
 
 def test_set_password(user_api_client, customer_user):

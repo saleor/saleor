@@ -1,9 +1,9 @@
-from django.contrib.auth.models import Group
 from django.utils.translation import npgettext, pgettext_lazy
 from django_filters import ModelMultipleChoiceFilter, OrderingFilter
 
 from ...account.models import User
 from ..customer.filters import UserFilter
+from ...core.permissions import get_permissions
 
 SORT_BY_FIELDS = (
     ('email', 'email'),
@@ -20,10 +20,10 @@ SORT_BY_FIELDS_LABELS = {
 
 
 class StaffFilter(UserFilter):
-    groups = ModelMultipleChoiceFilter(
-        label=pgettext_lazy('Staff list filter label', 'Groups'),
-        name='groups',
-        queryset=Group.objects.all())
+    permissions = ModelMultipleChoiceFilter(
+        label=pgettext_lazy('Staff list filter label', 'Permissions'),
+        name='user_permissions',
+        queryset=get_permissions())
     sort_by = OrderingFilter(
         label=pgettext_lazy('Staff list filter label', 'Sort by'),
         fields=SORT_BY_FIELDS,

@@ -3,7 +3,7 @@ from io import BytesIO
 from unittest.mock import MagicMock, Mock
 
 import pytest
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -256,11 +256,6 @@ def default_category(db):  # pylint: disable=W0613
 @pytest.fixture
 def non_default_category(db):  # pylint: disable=W0613
     return Category.objects.create(name='Not default', slug='not-default')
-
-
-@pytest.fixture
-def staff_group():
-    return Group.objects.create(name='test')
 
 
 @pytest.fixture
@@ -598,16 +593,6 @@ def permission_view_staff():
 @pytest.fixture
 def permission_edit_staff():
     return Permission.objects.get(codename='edit_staff')
-
-
-@pytest.fixture
-def permission_view_group():
-    return Permission.objects.get(codename='view_group')
-
-
-@pytest.fixture
-def permission_edit_group():
-    return Permission.objects.get(codename='edit_group')
 
 
 @pytest.fixture
