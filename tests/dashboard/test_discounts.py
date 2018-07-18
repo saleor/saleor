@@ -54,7 +54,8 @@ def test_view_sale_add(admin_client, default_category, collection):
         'name': 'Free products',
         'type': DiscountValueType.PERCENTAGE,
         'value': 100,
-        'categories': [default_category.id]}
+        'categories': [default_category.id],
+        'collections': [collection.id]}
 
     response = admin_client.post(url, data)
 
@@ -63,7 +64,7 @@ def test_view_sale_add(admin_client, default_category, collection):
     sale = Sale.objects.first()
     assert sale.name == data['name']
     assert default_category in sale.categories.all()
-    assert collection in sale.categories.all()
+    assert collection in sale.collections.all()
 
 
 def test_view_sale_add_requires_product_or_category(
