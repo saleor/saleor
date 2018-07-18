@@ -3,16 +3,34 @@ import graphene
 from django.shortcuts import render
 from graphene_django.views import GraphQLView
 
+from ...product.models import Product
+
+
 # This class is modified verion of the `ModifiedGraphQLView` class from
 # `graphene-file-upload` (https://github.com/lmcgartland/graphene-file-upload).
 
 
 DEFAULT_QUERY = '''# Welcome to Saleor GraphQL API!
 #
-# Type queries into this side of the screen, and you will
-# see intelligent typeaheads aware of the current GraphQL type schema and
-# live syntax and validation errors highlighted within the text.
+# This explorer lets you browse data from the demo store using
+# GraphQL queries.
+#
+# Type queries into this side of the screen, and you will see
+# intelligent typeaheads aware of the current GraphQL type schema
+# and live syntax and validation errors highlighted within the text.
+#
+# An example query to fetch a product might look like:
+#
 
+{
+  product(id: "%(product_id)s") {
+    name
+    price {
+      amount
+      currency
+    }
+  }
+}
 '''
 
 
@@ -20,7 +38,9 @@ class FileUploadGraphQLView(GraphQLView):
 
     def render_graphiql(self, request, **data):
         if not data['query']:
-            data['query'] = DEFAULT_QUERY
+            product = Product.objects.order_by('?').first()
+            product_id = graphene.relay.node.to_global_id('Product', product.pk)
+            data['query'] = DEFAULT_QUERY % {'product_id': product_id}
         return render(request, self.graphiql_template, data)
 
     @staticmethod
