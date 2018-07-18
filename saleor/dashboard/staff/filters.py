@@ -4,6 +4,8 @@ from django_filters import ModelMultipleChoiceFilter, OrderingFilter
 from ...account.models import User
 from ...core.permissions import get_permissions
 from ..customer.filters import UserFilter
+from ..forms import PermissionMultipleChoiceField
+
 
 SORT_BY_FIELDS = (
     ('email', 'email'),
@@ -19,9 +21,13 @@ SORT_BY_FIELDS_LABELS = {
         'Customer list sorting option', 'location')}
 
 
+class PermissionMultipleChoiceFilter(ModelMultipleChoiceFilter):
+    field_class = PermissionMultipleChoiceField
+
+
 class StaffFilter(UserFilter):
-    permissions = ModelMultipleChoiceFilter(
-        label=pgettext_lazy('Staff list filter label', 'Permissions'),
+    user_permissions = PermissionMultipleChoiceFilter(
+        label=pgettext_lazy('Group list filter label', 'Permissions'),
         name='user_permissions',
         queryset=get_permissions())
     sort_by = OrderingFilter(
