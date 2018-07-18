@@ -4,9 +4,9 @@ from decimal import Decimal
 from unittest.mock import Mock
 
 import pytest
+
 from django.urls import reverse
 from prices import Money, TaxedMoney
-
 from saleor.dashboard.order.utils import get_voucher_discount_for_order
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import Sale, Voucher
@@ -48,7 +48,7 @@ def test_voucher_shipping_add(admin_client):
     assert voucher.limit == Money('59.99', 'USD')
 
 
-def test_view_sale_add(admin_client, default_category):
+def test_view_sale_add(admin_client, default_category, collection):
     url = reverse('dashboard:sale-add')
     data = {
         'name': 'Free products',
@@ -63,6 +63,7 @@ def test_view_sale_add(admin_client, default_category):
     sale = Sale.objects.first()
     assert sale.name == data['name']
     assert default_category in sale.categories.all()
+    assert collection in sale.categories.all()
 
 
 def test_view_sale_add_requires_product_or_category(

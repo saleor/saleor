@@ -18,6 +18,13 @@ def decrease_voucher_usage(voucher):
     voucher.save(update_fields=['used'])
 
 
+def are_product_collections_on_sale(product, sale):
+    """Checks if any collection is on sale."""
+    discounted_collections = set(sale.collections.all())
+    product_collections = set(product.collections.all())
+    return set(product_collections).intersection(discounted_collections)
+
+
 def is_category_on_sale(category, sale):
     """Check if category is descendant of one of categories on sale."""
     discounted_categories = set(sale.categories.all())
@@ -31,7 +38,8 @@ def get_product_discount_on_sale(sale, product):
     discounted_products = {p.pk for p in sale.products.all()}
     is_product_on_sale = (
         product.pk in discounted_products or
-        is_category_on_sale(product.category, sale))
+        is_category_on_sale(product.category, sale) or
+        are_product_collections_on_sale(product, sale))
     if is_product_on_sale:
         return sale.get_discount()
     raise NotApplicable(
