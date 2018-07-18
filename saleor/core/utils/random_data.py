@@ -492,7 +492,8 @@ def create_users(how_many=10):
 
 def create_orders(how_many=10):
     taxes = get_taxes_for_country(Country(settings.DEFAULT_COUNTRY))
-    discounts = Sale.objects.prefetch_related('products', 'categories')
+    discounts = Sale.objects.prefetch_related(
+        'products', 'categories', 'collections')
     for dummy in range(how_many):
         order = create_fake_order(discounts, taxes)
         yield 'Order: %s' % (order,)

@@ -38,7 +38,10 @@ class SaleForm(forms.ModelForm):
                 'Discounted products'),
             'categories': pgettext_lazy(
                 'Discounted categories',
-                'Discounted categories')}
+                'Discounted categories'),
+            'collections': pgettext_lazy(
+                'Discounted collections',
+                'Discounted collections')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -55,11 +58,12 @@ class SaleForm(forms.ModelForm):
                 'Sale cannot exceed 100%'))
         products = cleaned_data.get('products')
         categories = cleaned_data.get('categories')
-        if not products and not categories:
+        collections = cleaned_data.get('collections')
+        if not any([products, categories, collections]):
             raise forms.ValidationError(pgettext_lazy(
                 'Sale (discount) error',
-                'A single sale must point to at least one product and/or '
-                'category.'))
+                'A single sale must point to at least one product, collection'
+                'and/or category.'))
         return cleaned_data
 
 
