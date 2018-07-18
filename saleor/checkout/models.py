@@ -27,6 +27,7 @@ class CartQueryset(models.QuerySet):
         """
         return self.prefetch_related(
             'lines__variant__product__category',
+            'lines__variant__product__collections',
             'lines__variant__product__images',
             'lines__variant__product__product_type__product_attributes__values')  # noqa
 

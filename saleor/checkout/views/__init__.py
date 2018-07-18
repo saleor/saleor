@@ -111,6 +111,7 @@ def cart_index(request, cart):
         'variant__product__product_type',
         'variant__product__category')
     lines = lines.prefetch_related(
+        'variant__product__collections',
         'variant__product__images',
         'variant__product__product_type__variant_attributes')
     for line in lines:
