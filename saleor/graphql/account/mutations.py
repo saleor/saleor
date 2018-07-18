@@ -30,9 +30,13 @@ SHIPPING_ADDRESS_FIELD = 'default_shipping_address'
 
 
 class UserInput(graphene.InputObjectType):
+    default_billing_address = AddressInput(
+        description='Billing address of the customer.')
     email = graphene.String(
         description='The unique email address of the user.')
     note = graphene.String(description='A note about the user.')
+    default_shipping_address = AddressInput(
+        description='Shipping address of the customer.')
 
 
 class CustomerInput(UserInput):
