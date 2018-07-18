@@ -3,31 +3,18 @@ from django.utils.translation import pgettext_lazy
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
 
-from saleor.account.models import Address
-from saleor.core.exceptions import InsufficientStock
-from saleor.core.utils.taxes import ZERO_TAXED_MONEY
-from saleor.graphql.core.mutations import (
+from ....account.models import Address
+from ....core.exceptions import InsufficientStock
+from ....core.utils.taxes import ZERO_TAXED_MONEY
+from ....graphql.core.mutations import (
     BaseMutation, ModelDeleteMutation, ModelMutation)
-from saleor.graphql.core.types import Decimal, Error
-from saleor.graphql.order.types import Order
-from saleor.graphql.product.types import ProductVariant
-from saleor.graphql.utils import get_node, get_nodes
-from saleor.order import OrderStatus, models
-from saleor.order.utils import add_variant_to_order, recalculate_order
-
-
-class AddressInput(graphene.InputObjectType):
-    first_name = graphene.String(description='Given name.')
-    last_name = graphene.String(description='Family name.')
-    company_name = graphene.String(description='Company or organization.')
-    street_address_1 = graphene.String(description='Address.')
-    street_address_2 = graphene.String(description='Address.')
-    city = graphene.String(description='City.')
-    city_area = graphene.String(description='District.')
-    postal_code = graphene.String(description='Postal code.')
-    country = graphene.String(description='Country.')
-    country_area = graphene.String(description='State or province.')
-    phone = graphene.String(description='Phone number.')
+from ....graphql.core.types import Decimal, Error
+from ....graphql.order.types import Order
+from ....graphql.product.types import ProductVariant
+from ....graphql.utils import get_node, get_nodes
+from ....order import OrderStatus, models
+from ....order.utils import add_variant_to_order, recalculate_order
+from ...account.types import AddressInput
 
 
 class OrderLineInput(graphene.InputObjectType):

@@ -136,7 +136,7 @@ def test_query_user(admin_api_client, customer_user):
     assert address['postalCode'] == user_address.postal_code
     assert address['country'] == user_address.country.code
     assert address['countryArea'] == user_address.country_area
-    assert address['phone'] == user_address.phone.raw_input
+    assert address['phone'] == user_address.phone.as_e164
 
 
 def test_query_users(admin_api_client, user_api_client):
@@ -219,11 +219,14 @@ def test_who_can_see_user(
     model = get_user_model()
     assert content['data']['users']['totalCount'] == model.objects.count()
 
-
-def test_customer_create(admin_api_client, user_api_client):
+from .utils import convert_dict_keys_to_camel_case
+def test_customer_create(admin_api_client, user_api_client, address):
     query = """
-    mutation CreateCustomer($email: String, $note: String) {
-        customerCreate(input: {email: $email, note: $note}) {
+    mutation CreateCustomer(
+    $email: String, $note: String, $shipping: AddressInput) {
+        customerCreate(
+        input: {email: $email, note: $note,
+        defaultShippingAddress: $shipping}) {
             errors {
                 field
                 message
@@ -240,8 +243,10 @@ def test_customer_create(admin_api_client, user_api_client):
     """
     email = 'api_user@example.com'
     note = 'Test user'
+    address_data = convert_dict_keys_to_camel_case(address.as_data())
 
-    variables = json.dumps({'email': email, 'note': note})
+    variables = json.dumps(
+        {'email': email, 'note': note, 'shipping': address_data})
 
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
@@ -250,6 +255,11 @@ def test_customer_create(admin_api_client, user_api_client):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
+
+    User = get_user_model()
+    customer = User.objects.get(email=email)
+
+    assert customer.default_shipping_address == address
     assert 'errors' not in content
     data = content['data']['customerCreate']
     assert data['errors'] == []
