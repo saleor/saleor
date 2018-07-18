@@ -5,7 +5,7 @@
 [![Build Status](https://travis-ci.org/mirumee/saleor.svg?branch=master)](https://travis-ci.org/mirumee/saleor)
 [![codecov.io](http://codecov.io/github/mirumee/saleor/coverage.svg?branch=master)](http://codecov.io/github/mirumee/saleor?branch=master)
 [![Join the chat at https://gitter.im/mirumee/saleor](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/mirumee/saleor?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/fold_left.svg?style=social&label=Follow%20%40getsaleor)](https://twitter.com/getsaleor)
+[![Twitter URL](.github/badges/twitter.svg)](https://twitter.com/getsaleor) 
 
 Saleor is a high-performance e-commerce solution created with Python and Django.
 
