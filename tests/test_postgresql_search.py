@@ -185,11 +185,10 @@ def test_orders_search_results_restricted_to_users_with_permission(
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 def test_show_orders_search_result_to_user_with_permission_granted(
-        orders_with_addresses, staff_client, staff_user, staff_group,
+        orders_with_addresses, staff_client, staff_user,
         permission_view_order):
     assert not staff_user.has_perm(ORDER_RESULTS_PERMISSION)
-    staff_group.permissions.add(permission_view_order)
-    staff_user.groups.add(staff_group)
+    staff_user.user_permissions.add(permission_view_order)
     _, orders, _ = search_dashboard(staff_client, ORDER_PHRASE_WITH_RESULT)
     assert 1 == len(orders)
 
@@ -242,10 +241,9 @@ def test_users_search_results_restricted_to_staff_with_permission(
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 def test_show_users_search_result_when_access_granted(
-        users_with_addresses, staff_client, staff_user, staff_group,
+        users_with_addresses, staff_client, staff_user,
         permission_view_user):
     assert not staff_user.has_perm(USER_RESULTS_PERMISSION)
-    staff_group.permissions.add(permission_view_user)
-    staff_user.groups.add(staff_group)
+    staff_user.user_permissions.add(permission_view_user)
     _, _, users = search_dashboard(staff_client, USER_PHRASE_WITH_RESULT)
     assert 1 == len(users)

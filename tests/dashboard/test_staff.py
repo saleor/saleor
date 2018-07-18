@@ -12,26 +12,29 @@ from saleor.settings import DEFAULT_FROM_EMAIL
 
 
 def test_staff_form_not_valid(db):
-    data = {'permissions': 1}
+    data = {'user_permissions': 1}
     form = StaffForm(data=data)
     assert not form.is_valid()
 
 
-def test_staff_form_create_valid(admin_client, staff_user):
-    assert staff_user.groups.count() == 0
+def test_staff_form_create_valid(
+        admin_client, staff_user, permission_view_product):
+    assert staff_user.user_permissions.count() == 0
     url = reverse('dashboard:staff-details', kwargs={'pk': staff_user.pk})
-    data = {'email': 'staff@example.com', 'permissions': 1}
+    data = {
+        'email': 'staff@example.com',
+        'user_permissions': permission_view_product.pk}
     admin_client.post(url, data)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.groups.count() == 1
+    assert staff_user.user_permissions.count() == 1
 
 
 def test_staff_form_create_not_valid(admin_client, staff_user):
     url = reverse('dashboard:staff-details', kwargs={'pk': staff_user.pk})
-    data = {'permissions': 1}
+    data = {'user_permissions': 1}
     admin_client.post(url, data)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.groups.count() == 0
+    assert staff_user.user_permissions.count() == 0
 
 
 def test_admin_cant_change_his_permissions(admin_client, admin_user):
@@ -80,8 +83,7 @@ def test_delete_staff_with_orders(admin_client, staff_user, order):
     assert response['Location'] == reverse('dashboard:staff-list')
 
 
-def test_staff_create_email_with_set_link_password(
-        admin_client, staff_group):
+def test_staff_create_email_with_set_link_password(admin_client):
     user_count = User.objects.count()
     mail_outbox_count = len(mail.outbox)
     url = reverse('dashboard:staff-create')
@@ -109,7 +111,9 @@ def test_send_set_password_email(staff_user, site_settings):
     assert len(mail.outbox) == 1
     generated_link = reverse(
         'account:reset-password-confirm',
-        kwargs={'uidb64': ctx['uid'], 'token': ctx['token']})
+        kwargs={
+            'uidb64': ctx['uid'],
+            'token': ctx['token']})
     absolute_generated_link = build_absolute_uri(generated_link)
     sended_message = mail.outbox[0].body
     assert absolute_generated_link in sended_message
@@ -127,7 +131,9 @@ def test_create_staff_and_set_password(admin_client):
     response = admin_client.get(
         reverse(
             'account:reset-password-confirm',
-            kwargs={'uidb64': uid, 'token': token}))
+            kwargs={
+                'uidb64': uid,
+                'token': token}))
     assert response.status_code == 302
     post_data = {'new_password1': 'password', 'new_password2': 'password'}
     response = admin_client.post(response['Location'], post_data)

@@ -5,8 +5,8 @@ from django.db import connection
 
 from ...utils import create_superuser
 from ...utils.random_data import (
-    add_address_to_admin, create_collections_by_schema,
-    create_menus, create_orders, create_page, create_product_sales,
+    add_address_to_admin, create_collections_by_schema, create_menus,
+    create_orders, create_page, create_product_sales,
     create_products_by_schema, create_shipping_methods, create_users,
     create_vouchers, set_featured_products)
 
