@@ -445,6 +445,14 @@ class ProductImageCreate(ModelMutation):
         model = models.ProductImage
 
     @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        cleaned_input = super().clean_input(info, instance, input, errors)
+        uploaded_image = cleaned_input['image']
+        if not uploaded_image.content_type.startswith('image'):
+            cls.add_error(errors, 'image', 'Invalid file type')
+        return cleaned_input
+
+    @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('product.edit_product')
 
@@ -460,6 +468,14 @@ class ProductImageUpdate(ModelMutation):
     class Meta:
         description = 'Updates a product image.'
         model = models.ProductImage
+
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        cleaned_input = super().clean_input(info, instance, input, errors)
+        uploaded_image = cleaned_input['image']
+        if not uploaded_image.content_type.startswith('image'):
+            cls.add_error(errors, 'image', 'Invalid file type')
+        return cleaned_input
 
     @classmethod
     def user_is_allowed(cls, user, input):
