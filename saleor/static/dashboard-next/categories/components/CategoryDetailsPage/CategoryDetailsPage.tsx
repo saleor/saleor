@@ -1,4 +1,4 @@
-import IconButton from "@material-ui/core/IconButton";
+import Button from "@material-ui/core/Button";
 import { withStyles } from "@material-ui/core/styles";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
@@ -83,21 +83,24 @@ const CategoryDetailsPage = decorate<CategoryDetailsPageProps>(
           <>
             <Container width="md">
               <PageHeader
-                onBack={!isRoot ? onBack : undefined}
+                onBack={isRoot ? undefined : onBack}
                 title={
-                  !isRoot
-                    ? category
+                  isRoot
+                    ? i18n.t("Categories")
+                    : category
                       ? category.name
                       : undefined
-                    : i18n.t("Categories")
                 }
               >
-                {!!onAddProduct &&
-                  isRoot && (
-                    <IconButton onClick={onAddProduct}>
-                      <AddIcon />
-                    </IconButton>
-                  )}
+                {isRoot && (
+                  <Button
+                    color="secondary"
+                    variant="contained"
+                    onClick={onAddCategory}
+                  >
+                    {i18n.t("Add category")} <AddIcon />
+                  </Button>
+                )}
               </PageHeader>
               <div className={classes.root}>
                 {!isRoot && (

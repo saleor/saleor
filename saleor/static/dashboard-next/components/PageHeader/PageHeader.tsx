@@ -1,7 +1,5 @@
-import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import ArrowBackIcon from "@material-ui/icons/ArrowBack";
 import * as React from "react";
 
 import ExtendedPageHeader from "../ExtendedPageHeader";
@@ -11,8 +9,7 @@ const decorate = withStyles(
   theme => ({
     title: {
       flex: 1,
-      paddingBottom: theme.spacing.unit * 2,
-      paddingTop: theme.spacing.unit * 2
+      paddingBottom: theme.spacing.unit * 2
     }
   }),
   { name: "PageHeader" }

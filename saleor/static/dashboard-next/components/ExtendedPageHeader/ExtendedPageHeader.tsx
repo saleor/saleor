@@ -1,16 +1,11 @@
-import ArrowBackIcon from "@material-ui/icons/ArrowBack";
-import CloseIcon from "@material-ui/icons/Close";
 import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
+import ArrowBackIcon from "@material-ui/icons/ArrowBack";
 import * as React from "react";
-
-import Skeleton from "../Skeleton";
 
 const decorate = withStyles(theme => ({
   action: {
-    flex: "0 0 auto",
-    marginRight: theme.spacing.unit * -2
+    flex: "0 0 auto"
   },
   grid: {
     padding: theme.spacing.unit * 2
@@ -18,12 +13,15 @@ const decorate = withStyles(theme => ({
   menuButton: {
     flex: "0 0 auto",
     marginLeft: theme.spacing.unit * -2,
-    marginRight: theme.spacing.unit * 3
+    marginRight: theme.spacing.unit * 3,
+    marginTop: -theme.spacing.unit * 2
   },
-  root: theme.mixins.gutters({
+  root: {
     alignItems: "center",
-    display: "flex"
-  }),
+    display: "flex",
+    marginBottom: theme.spacing.unit * 3,
+    marginTop: theme.spacing.unit * 3
+  },
   subtitle: {
     alignItems: "center" as "center",
     display: "flex",
@@ -31,8 +29,7 @@ const decorate = withStyles(theme => ({
   },
   title: {
     flex: 1,
-    paddingBottom: theme.spacing.unit * 2,
-    paddingTop: theme.spacing.unit * 2
+    paddingBottom: theme.spacing.unit * 2
   }
 }));
 

@@ -1,3 +1,4 @@
+import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import blue from "@material-ui/core/colors/blue";
@@ -10,6 +11,7 @@ import * as React from "react";
 import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
+import CardTitle from "../../../components/CardTitle";
 
 interface AddressType {
   city: string;
@@ -73,16 +75,21 @@ const OrderCustomer = decorate<OrderCustomerProps>(
     onShippingAddressEdit
   }) => (
     <Card>
-      <PageHeader title={i18n.t("Customer")}>
-        {editCustomer && (
-          <IconButton
-            disabled={!onCustomerEditClick}
-            onClick={onCustomerEditClick}
-          >
-            <EditIcon />
-          </IconButton>
-        )}
-      </PageHeader>
+      <CardTitle
+        title={i18n.t("Customer")}
+        toolbar={
+          !!editCustomer && (
+            <Button
+              color="secondary"
+              variant="flat"
+              disabled={!onCustomerEditClick}
+              onClick={onCustomerEditClick}
+            >
+              {i18n.t("Edit")}
+            </Button>
+          )
+        }
+      />
       <CardContent>
         {client === undefined || client === null ? (
           <>
@@ -107,14 +114,21 @@ const OrderCustomer = decorate<OrderCustomerProps>(
       </CardContent>
       <hr className={classes.hr} />
 
-      <PageHeader title={i18n.t("Shipping Address")}>
-        <IconButton
-          onClick={onShippingAddressEdit}
-          disabled={!onShippingAddressEdit && client === undefined}
-        >
-          <EditIcon />
-        </IconButton>
-      </PageHeader>
+      <CardTitle
+        title={i18n.t("Shipping Address")}
+        toolbar={
+          !!editCustomer && (
+            <Button
+              color="secondary"
+              variant="flat"
+              onClick={onShippingAddressEdit}
+              disabled={!onShippingAddressEdit && client === undefined}
+            >
+              {i18n.t("Edit")}
+            </Button>
+          )
+        }
+      />
       <CardContent>
         {client === undefined || client === null ? (
           <>
@@ -147,14 +161,21 @@ const OrderCustomer = decorate<OrderCustomerProps>(
       </CardContent>
       <hr className={classes.hr} />
 
-      <PageHeader title={i18n.t("Billing Address")}>
-        <IconButton
-          onClick={onShippingAddressEdit}
-          disabled={!onShippingAddressEdit && client === undefined}
-        >
-          <EditIcon />
-        </IconButton>
-      </PageHeader>
+      <CardTitle
+        title={i18n.t("Billing Address")}
+        toolbar={
+          !!editCustomer && (
+            <Button
+              color="secondary"
+              variant="flat"
+              onClick={onBillingAddressEdit}
+              disabled={!onBillingAddressEdit && client === undefined}
+            >
+              {i18n.t("Edit")}
+            </Button>
+          )
+        }
+      />
       <CardContent>
         {client === undefined || client === null ? (
           <>

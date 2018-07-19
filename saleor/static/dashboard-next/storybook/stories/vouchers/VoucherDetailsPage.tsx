@@ -12,6 +12,7 @@ storiesOf("Views / Vouchers / Voucher details", module)
   .addDecorator(Decorator)
   .add("default", () => (
     <VoucherDetailsPage
+      onBack={() => {}}
       currency="USD"
       voucher={vouchers[0]}
       onVoucherDelete={() => {}}
@@ -20,4 +21,4 @@ storiesOf("Views / Vouchers / Voucher details", module)
       productSearchResults={products("")}
     />
   ))
-  .add("when loading", () => <VoucherDetailsPage disabled />);
+  .add("when loading", () => <VoucherDetailsPage disabled onBack={() => {}} />);

@@ -1,8 +1,6 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
-import IconButton from "@material-ui/core/IconButton";
+import Button from "@material-ui/core/Button";
 import { withStyles } from "@material-ui/core/styles";
-import DeleteIcon from "@material-ui/icons/Delete";
-import VisibilityIcon from "@material-ui/icons/Visibility";
 import * as React from "react";
 
 import ActionDialog from "../../../components/ActionDialog";
@@ -113,15 +111,14 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
                       title={collection ? collection.name : undefined}
                       onBack={onBack}
                     >
-                      <IconButton disabled={disabled} onClick={onShow}>
-                        <VisibilityIcon />
-                      </IconButton>
-                      <IconButton
+                      <Button
+                        color="secondary"
+                        variant="flat"
                         disabled={disabled}
-                        onClick={toggleRemoveDialog}
+                        onClick={onShow}
                       >
-                        <DeleteIcon />
-                      </IconButton>
+                        {i18n.t("Show on storefront")}
+                      </Button>
                     </PageHeader>
                     <div className={classes.root}>
                       <div>
@@ -144,6 +141,9 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
                         />
                         <div className={classes.cardSpacer} />
                         <SeoForm
+                          helperText={i18n.t(
+                            "Add search engine title and description to make this collection easier to find"
+                          )}
                           description={data.seoDescription}
                           descriptionPlaceholder={
                             collection && collection.seoDescription
@@ -169,6 +169,7 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
                       </div>
                     </div>
                     <SaveButtonBar
+                      onDelete={toggleRemoveDialog}
                       onSave={submit}
                       disabled={disabled || !onSubmit || !hasChanged}
                       state={saveButtonBarState}

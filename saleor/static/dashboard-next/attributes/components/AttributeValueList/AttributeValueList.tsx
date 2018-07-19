@@ -1,3 +1,4 @@
+import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
@@ -6,13 +7,12 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import AddIcon from "@material-ui/icons/Add";
 import CloseIcon from "@material-ui/icons/Close";
 import * as React from "react";
 import Skeleton from "../../../components/Skeleton";
 
+import CardTitle from "../../../components/CardTitle";
 import { EditableTableCell } from "../../../components/EditableTableCell/EditableTableCell";
-import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
 
 interface AttributeValueListProps {
@@ -73,11 +73,19 @@ const AttributeValueList = decorate<AttributeValueListProps>(
       } as any);
     return (
       <Card className={classes.root}>
-        <PageHeader title={i18n.t("Attribute values")}>
-          <IconButton disabled={disabled} onClick={handleAdd}>
-            <AddIcon />
-          </IconButton>
-        </PageHeader>
+        <CardTitle
+          title={i18n.t("Attribute values")}
+          toolbar={
+            <Button
+              color="secondary"
+              variant="flat"
+              disabled={disabled}
+              onClick={handleAdd}
+            >
+              {i18n.t("Add value")}
+            </Button>
+          }
+        />
         <Table>
           <TableHead>
             <TableRow>

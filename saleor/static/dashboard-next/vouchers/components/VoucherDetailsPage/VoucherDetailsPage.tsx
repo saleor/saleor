@@ -1,7 +1,5 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
-import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
-import DeleteIcon from "@material-ui/icons/Delete";
 import * as CRC from "crc-32";
 import * as React from "react";
 
@@ -151,16 +149,7 @@ const VoucherDetailsPage = decorate<VoucherDetailsPageProps>(
                       : undefined
                   }
                   onBack={onBack}
-                >
-                  <IconButton
-                    disabled={disabled || !onVoucherDelete}
-                    onClick={
-                      !!onVoucherDelete ? toggleVoucherDeleteDialog : undefined
-                    }
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </PageHeader>
+                />
                 <div className={classes.root}>
                   <div>
                     <VoucherDetails
@@ -196,6 +185,8 @@ const VoucherDetailsPage = decorate<VoucherDetailsPageProps>(
                   </div>
                 </div>
                 <SaveButtonBar
+                  onCancel={onBack}
+                  onDelete={toggleVoucherDeleteDialog}
                   onSave={submit}
                   state={saveButtonBarState}
                   disabled={disabled || !hasChanged}
@@ -203,21 +194,24 @@ const VoucherDetailsPage = decorate<VoucherDetailsPageProps>(
               </Container>
             )}
           </Form>
-          <ActionDialog
-            open={openedVoucherDeleteDialog}
-            onClose={toggleVoucherDeleteDialog}
-            onConfirm={onVoucherDelete}
-            title={i18n.t("Remove voucher")}
-            variant="delete"
-          >
-            <DialogContentText
-              dangerouslySetInnerHTML={{
-                __html: i18n.t(
-                  "Are you sure you want to remove <strong>{{ name }}</strong>?"
-                )
-              }}
-            />
-          </ActionDialog>
+          {voucher !== undefined && (
+            <ActionDialog
+              open={openedVoucherDeleteDialog}
+              onClose={toggleVoucherDeleteDialog}
+              onConfirm={onVoucherDelete}
+              title={i18n.t("Remove voucher")}
+              variant="delete"
+            >
+              <DialogContentText
+                dangerouslySetInnerHTML={{
+                  __html: i18n.t(
+                    "Are you sure you want to remove <strong>{{ name }}</strong>?",
+                    { name: voucher.name }
+                  )
+                }}
+              />
+            </ActionDialog>
+          )}
         </>
       )}
     </Toggle>

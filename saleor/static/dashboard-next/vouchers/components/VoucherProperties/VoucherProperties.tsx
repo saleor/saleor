@@ -8,9 +8,9 @@ import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 import { VoucherType } from "../..";
+import CardTitle from "../../../components/CardTitle";
 import ControlledCheckbox from "../../../components/ControlledCheckbox";
 import FormSpacer from "../../../components/FormSpacer";
-import PageHeader from "../../../components/PageHeader";
 import PriceField from "../../../components/PriceField";
 import SingleAutocompleteSelectField from "../../../components/SingleAutocompleteSelectField";
 import i18n from "../../../i18n";
@@ -89,7 +89,7 @@ const VoucherProperties = decorate<VoucherPropertiesProps>(
     onChange
   }) => (
     <Card classes={{ root: classes.card }}>
-      <PageHeader title={i18n.t("Voucher type")} />
+      <CardTitle title={i18n.t("Voucher type")} />
       <FormControl
         component="fieldset"
         required

@@ -40,12 +40,13 @@ export const SingleSelectField = decorate<SingleSelectFieldProps>(
     hint,
     selectProps
   }) => {
-    const choicesByKey: { [key: string]: string } = disabled
-      ? {}
-      : choices.reduce((prev, curr) => {
-          prev[curr.value] = curr.label;
-          return prev;
-        }, {});
+    const choicesByKey: { [key: string]: string } =
+      choices === undefined
+        ? {}
+        : choices.reduce((prev, curr) => {
+            prev[curr.value] = curr.label;
+            return prev;
+          }, {});
 
     return (
       <FormControl

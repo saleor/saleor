@@ -1,14 +1,12 @@
+import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import DeleteIcon from "@material-ui/icons/Delete";
-import EditIcon from "@material-ui/icons/Edit";
 import * as React from "react";
 
+import CardTitle from "../../../components/CardTitle";
 import DateFormatter from "../../../components/DateFormatter";
-import ExtendedPageHeader from "../../../components/ExtendedPageHeader";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import i18n from "../../../i18n";
@@ -28,8 +26,7 @@ interface CustomerDetailsProps {
 
 const decorate = withStyles(theme => ({
   date: {
-    position: "relative" as "relative",
-    top: -theme.spacing.unit * 4
+    marginBottom: theme.spacing.unit * 2
   },
   header: {
     flex: 1,
@@ -54,39 +51,41 @@ const decorate = withStyles(theme => ({
 const CustomerDetails = decorate<CustomerDetailsProps>(
   ({ classes, customer, onDelete, onEdit }) => (
     <Card className={classes.root}>
-      <ExtendedPageHeader
-        title={
-          <div className={classes.header}>
-            {customer ? (
-              <>
-                <Typography variant="title" className={classes.title}>
-                  {i18n.t("User details")}
-                </Typography>
-                <StatusLabel
-                  className={classes.status}
-                  status={customer.isActive ? "success" : "error"}
-                  label={
-                    customer.isActive ? i18n.t("Active") : i18n.t("Inactive")
-                  }
-                />
-              </>
-            ) : (
-              <Skeleton style={{ width: "10rem" }} />
-            )}
-          </div>
+      <CardTitle
+        title={i18n.t("User details")}
+        toolbar={
+          <>
+            <Button
+              color="secondary"
+              variant="flat"
+              disabled={!customer}
+              onClick={onEdit}
+            >
+              {i18n.t("Edit customer")}
+            </Button>
+            <Button
+              color="secondary"
+              variant="flat"
+              disabled={!customer}
+              onClick={onDelete}
+            >
+              {i18n.t("Remove customer")}
+            </Button>
+          </>
         }
       >
-        {!!onEdit && (
-          <IconButton onClick={onEdit} disabled={!customer}>
-            <EditIcon />
-          </IconButton>
+        {customer ? (
+          <Typography component="span">
+            <StatusLabel
+              className={classes.status}
+              status={customer.isActive ? "success" : "error"}
+              label={customer.isActive ? i18n.t("Active") : i18n.t("Inactive")}
+            />
+          </Typography>
+        ) : (
+          <Skeleton style={{ width: "10rem" }} />
         )}
-        {!!onDelete && (
-          <IconButton onClick={onDelete} disabled={!customer}>
-            <DeleteIcon />
-          </IconButton>
-        )}
-      </ExtendedPageHeader>
+      </CardTitle>
       <CardContent>
         {customer ? (
           <>

@@ -1,5 +1,4 @@
 import { createMuiTheme } from "@material-ui/core/styles";
-import { darken } from "@material-ui/core/styles/colorManipulator";
 
 const createShadow = (pv, pb, ps, uv, ub, us, av, ab, as) =>
   [
@@ -9,27 +8,111 @@ const createShadow = (pv, pb, ps, uv, ub, us, av, ab, as) =>
   ].join(",");
 
 const primary = "#2bb673";
+const primaryLighter = "#5AB378";
 const secondary = "#03a9f4";
+const error = "#CD5E5E";
 
 export default createMuiTheme({
   overrides: {
-    MuiTableCell: {
+    MuiButton: {
+      label: {
+        fontWeight: 600
+      },
       root: {
-        paddingLeft: 0,
-        "&:first-child": {
-          paddingLeft: 24 + "px"
+        "& svg": {
+          marginLeft: 8
+        },
+        borderRadius: 8
+      }
+    },
+    MuiCard: {
+      root: {
+        borderRadius: 8
+      }
+    },
+    MuiInput: {
+      root: {
+        color: "#616161",
+        fontSize: "0.875rem"
+      },
+      underline: {
+        "&:after": {
+          borderBottomColor: primaryLighter
         }
+      }
+    },
+    MuiInputLabel: {
+      formControl: {
+        width: "100%"
+      },
+      root: {
+        color: [[primaryLighter], "!important"] as any
+      },
+      shrink: {
+        // Negates x0.75 scale
+        width: "133%"
+      }
+    },
+    MuiSwitch: {
+      bar: {
+        "$colorPrimary$checked + &": {
+          backgroundColor: primaryLighter
+        },
+        backgroundColor: error,
+        borderRadius: 12,
+        height: 24,
+        marginTop: -12,
+        opacity: [["1"], "!important"] as any,
+        width: 48
+      },
+      checked: {
+        transform: "translateX(24px)"
+      },
+      icon: {
+        backgroundColor: "#ffffff",
+        boxShadow: "none",
+        marginLeft: 4
+      },
+      iconChecked: {
+        boxShadow: "none"
+      }
+    },
+    MuiTableCell: {
+      body: {
+        color: "#616161"
+      },
+      head: {
+        color: "#616161",
+        fontSize: ".875rem",
+        fontWeight: 600
+      },
+      root: {
+        "&:first-child": {
+          paddingLeft: 24 + "px",
+          textAlign: "left" as "left"
+        },
+        "&:last-child": {
+          textAlign: "right" as "right"
+        },
+        paddingLeft: 0,
+        textAlign: "center" as "center"
       }
     }
   },
   palette: {
+    error: {
+      main: error
+    },
     primary: {
       contrastText: "#ffffff",
-      main: primary
+      main: primaryLighter
     },
     secondary: {
       contrastText: "#ffffff",
       main: secondary
+    },
+    text: {
+      primary: "#616161"
     }
   },
   shadows: [

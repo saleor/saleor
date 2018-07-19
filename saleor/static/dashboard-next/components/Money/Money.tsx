@@ -1,4 +1,3 @@
-import { withStyles } from "@material-ui/core/styles";
 import Typography, { TypographyProps } from "@material-ui/core/Typography";
 import * as React from "react";
 
@@ -8,26 +7,21 @@ interface MoneyProps {
   typographyProps?: TypographyProps;
 }
 
-const decorate = withStyles(theme => ({
-  currency: {
-    color: theme.palette.grey[500]
+export const Money: React.StatelessComponent<MoneyProps> = ({
+  amount,
+  currency,
+  typographyProps
+}) => {
+  const money =
+    currency === "%"
+      ? [amount, currency].join(" ")
+      : amount.toLocaleString(navigator.language, {
+          currency,
+          style: "currency"
+        });
+  if (typographyProps) {
+    return <Typography {...typographyProps}>{money}</Typography>;
   }
-}));
-const Money = decorate<MoneyProps>(
-  ({ classes, amount, currency, typographyProps }) => (
-    <Typography {...typographyProps}>
-      {amount.toFixed(2)}{" "}
-      <span
-        className={[
-          classes.currency,
-          typographyProps && typographyProps.className
-            ? typographyProps.className
-            : ""
-        ].join(" ")}
-      >
-        {currency}
-      </span>
-    </Typography>
-  )
-);
+  return <>{money}</>;
+};
 export default Money;

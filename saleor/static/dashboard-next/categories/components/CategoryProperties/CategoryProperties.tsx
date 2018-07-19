@@ -1,12 +1,10 @@
+import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import IconButton from "@material-ui/core/IconButton";
 import Typography from "@material-ui/core/Typography";
-import DeleteIcon from "@material-ui/icons/Delete";
-import EditIcon from "@material-ui/icons/Edit";
 import * as React from "react";
 
-import PageHeader from "../../../components/PageHeader";
+import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 
@@ -22,18 +20,19 @@ const CategoryProperties: React.StatelessComponent<CategoryPropertiesProps> = ({
   onEdit
 }) => (
   <Card>
-    <PageHeader title={i18n.t("Details")}>
-      {!!onEdit && (
-        <IconButton onClick={onEdit}>
-          <EditIcon />
-        </IconButton>
-      )}
-      {!!onDelete && (
-        <IconButton onClick={onDelete}>
-          <DeleteIcon />
-        </IconButton>
-      )}
-    </PageHeader>
+    <CardTitle
+      title={i18n.t("Details")}
+      toolbar={
+        <>
+          <Button variant="flat" color="secondary" onClick={onEdit}>
+            {i18n.t("Edit category")}
+          </Button>
+          <Button variant="flat" color="secondary" onClick={onDelete}>
+            {i18n.t("Remove category")}
+          </Button>
+        </>
+      }
+    />
     <CardContent>
       {description === undefined ? (
         <Skeleton />
