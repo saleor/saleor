@@ -29,9 +29,9 @@ class Page(SeoModel):
 
     class Meta:
         ordering = ('slug',)
-        permissions = (
-            ('edit_page',
-             pgettext_lazy('Permission description', 'Can edit pages')))
+        permissions = ((
+            'edit_page',
+            pgettext_lazy('Permission description', 'Can edit pages')),)
 
     def __str__(self):
         return self.title

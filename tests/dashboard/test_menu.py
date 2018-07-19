@@ -12,17 +12,7 @@ from ..utils import get_redirect_location
 
 def test_assign_menu_form(admin_user, menu, site_settings):
     data = {'top_menu': menu.pk, 'bottom_menu': ''}
-    form = AssignMenuForm(data=data, user=admin_user, instance=site_settings)
-    assert not form.fields['top_menu'].disabled
-    assert not form.fields['bottom_menu'].disabled
-    assert form.is_valid()
-
-
-def test_assign_menu_form_no_permission(staff_user, menu, site_settings):
-    data = {'top_menu': menu.pk, 'bottom_menu': ''}
-    form = AssignMenuForm(data=data, user=staff_user, instance=site_settings)
-    assert form.fields['top_menu'].disabled
-    assert form.fields['bottom_menu'].disabled
+    form = AssignMenuForm(data=data, instance=site_settings)
     assert form.is_valid()
 
 

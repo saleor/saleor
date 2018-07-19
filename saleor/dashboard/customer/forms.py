@@ -25,11 +25,6 @@ class CustomerDeleteForm(forms.Form):
             raise forms.ValidationError(pgettext_lazy(
                 'Edit customer details in order form error',
                 'Only superuser can delete his own account.'))
-        can_edit_staff_users = self.user.has_perm('account.edit_staff')
-        if not can_edit_staff_users:
-            raise forms.ValidationError(pgettext_lazy(
-                'Edit customer details in order form error',
-                'You have insufficient permissions, to edit staff users.'))
         return data
 
 
