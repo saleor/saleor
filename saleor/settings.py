@@ -319,7 +319,9 @@ OPENEXCHANGERATES_API_KEY = os.environ.get('OPENEXCHANGERATES_API_KEY')
 
 # VAT configuration
 # Enabling vat requires valid vatlayer access key.
+# If you are subscribed to a paid vatlayer plan, you can enable HTTPS.
 VATLAYER_ACCESS_KEY = os.environ.get('VATLAYER_ACCESS_KEY')
+VATLAYER_USE_HTTPS = get_bool_from_env('VATLAYER_USE_HTTPS', False)
 
 ACCOUNT_ACTIVATION_DAYS = 3
 

@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
@@ -15,6 +17,8 @@ from ...core.utils.taxes import get_taxes_for_country
 from ...dashboard.taxes.filters import TaxFilter
 from ...dashboard.taxes.forms import TaxesConfigurationForm
 from ...dashboard.views import staff_member_required
+
+logger = logging.getLogger(__name__)
 
 
 @staff_member_required
@@ -63,10 +67,12 @@ def fetch_tax_rates(request):
         msg = pgettext_lazy(
             'Dashboard message', 'Tax rates updated successfully')
         messages.success(request, msg)
-    except ImproperlyConfigured:
+    except ImproperlyConfigured as exc:
+        logger.exception(exc)
         msg = pgettext_lazy(
             'Dashboard message',
-            'Could not fetch tax rates. You have not supplied a valid API '
-            'Access Key')
+            'Could not fetch tax rates. '
+            'Make sure you have supplied a valid API Access Key.<br/>'
+            'Check the server logs for more information about this error.')
         messages.warning(request, msg)
     return redirect('dashboard:taxes')
