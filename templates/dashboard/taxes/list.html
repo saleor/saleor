@@ -68,7 +68,7 @@
     <div class="col s12 l3" id="filters">
       {% if not is_empty %}{% filters filter_set %}{% endif %}
     </div>
-    {% if perms.site.edit_settings %}
+    {% if perms.site.manage_settings %}
       <div class="col s12 l3">
         <div class="card">
           <div class="card-content">

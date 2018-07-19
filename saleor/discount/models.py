@@ -64,7 +64,7 @@ class Voucher(models.Model):
 
     class Meta:
         permissions = (
-            ('edit_voucher',
+            ('manage_vouchers',
              pgettext_lazy('Permission description', 'Can edit vouchers')),)
 
     def __str__(self):
@@ -149,7 +149,7 @@ class Sale(models.Model):
     class Meta:
         app_label = 'discount'
         permissions = (
-            ('edit_sale',
+            ('manage_sales',
              pgettext_lazy('Permission description', 'Can edit sales')),)
 
     def __repr__(self):

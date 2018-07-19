@@ -11,7 +11,7 @@
 {% block body_class %}body-page{% endblock %}
 
 {% block header_extra %}
-  {% if perms.page.edit_page %}
+  {% if perms.page.manage_pages %}
     <div class="btn-fab-fixed">
       <a class="btn-fab-default waves-effect waves-light"
         href="{% url 'dashboard:page-add' %}"

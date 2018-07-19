@@ -21,7 +21,7 @@ class ShippingMethod(models.Model):
 
     class Meta:
         permissions = ((
-            'edit_shipping',
+            'manage_shipping',
             pgettext_lazy(
                  'Permission description', 'Can edit shipping method')),)
 

@@ -36,7 +36,7 @@
     <div class="col s12 l8">
       <div class="card">
         <div class="card-content">
-          {% if perms.product.edit_product %}
+          {% if perms.product.manage_products %}
             <div class="product-header">
               <div class="product-header__title">
                 <span class="card-title">
@@ -73,7 +73,7 @@
           </p>
         </div>
         <div class="card-action">
-          {% if perms.product.edit_product %}
+          {% if perms.product.manage_products %}
             <a href="{% url "dashboard:product-update" product.pk %}" class="btn-flat waves-effect">
               {% trans "Edit product" context "Product action" %}
             </a>
@@ -91,7 +91,7 @@
           <div class="card-content">
             <span class="card-title">{% trans "Variant" %}</span>
           </div>
-          {% if perms.product.edit_product %}
+          {% if perms.product.manage_products %}
             <div class="data-table-header-action">
               <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-flat waves-effect">{% trans "Add" %}</a>
             </div>
@@ -111,7 +111,7 @@
                     {% endif %}
                   </th>
                   <th class="right-align">{% trans "Margin" %}</th>
-                  {% if perms.product.edit_product %}
+                  {% if perms.product.manage_products %}
                     <th></th>
                   {% endif %}
                 </tr>
@@ -135,7 +135,7 @@
                         -
                       {% endif %}
                     </td>
-                    {% if perms.product.edit_product %}
+                    {% if perms.product.manage_products %}
                       <td><a href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}" class="btn-flat waves-effect">{% trans "Edit" %}</a></td>
                     {% endif %}
                   </tr>
@@ -275,7 +275,7 @@
                 {% endfor %}
               </div>
             </div>
-            {% if perms.product.edit_product %}
+            {% if perms.product.manage_products %}
               <div class="card-action">
                 <a href="{% url 'dashboard:product-image-list' product.pk %}" class="btn-flat waves-effect">{% trans "Edit images" %}</a>
               </div>

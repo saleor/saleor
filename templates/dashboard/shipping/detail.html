@@ -53,7 +53,7 @@
             {% endif %}
           </div>
         </div>
-        {% if perms.shipping.edit_shipping %}
+        {% if perms.shipping.manage_shipping %}
         <div class="card-action">
           <a class="btn-flat waves-effect" href="{% url 'dashboard:shipping-method-update' shipping_method.pk %}">
             {% trans "Edit shipping method" context "Shipping method action" %}

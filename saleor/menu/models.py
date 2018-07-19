@@ -13,7 +13,7 @@ class Menu(models.Model):
 
     class Meta:
         permissions = (
-            ('edit_menu',
+            ('manage_menus',
              pgettext_lazy('Permission description', 'Can edit menus')),)
 
     def __str__(self):

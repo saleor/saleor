@@ -259,28 +259,18 @@ def non_default_category(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def permission_edit_product():
-    return Permission.objects.get(codename='edit_product')
+def permission_manage_sales():
+    return Permission.objects.get(codename='manage_sales')
 
 
 @pytest.fixture
-def permission_edit_category():
-    return Permission.objects.get(codename='edit_category')
+def permission_manage_vouchers():
+    return Permission.objects.get(codename='manage_vouchers')
 
 
 @pytest.fixture
-def permission_edit_sale():
-    return Permission.objects.get(codename='edit_sale')
-
-
-@pytest.fixture
-def permission_edit_voucher():
-    return Permission.objects.get(codename='edit_voucher')
-
-
-@pytest.fixture
-def permission_edit_order():
-    return Permission.objects.get(codename='edit_order')
+def permission_manage_orders():
+    return Permission.objects.get(codename='manage_orders')
 
 
 @pytest.fixture
@@ -562,28 +552,28 @@ def authorization_key(db, site_settings):
 
 
 @pytest.fixture
-def permission_edit_staff():
-    return Permission.objects.get(codename='edit_staff')
+def permission_manage_staff():
+    return Permission.objects.get(codename='manage_staff')
 
 
 @pytest.fixture
-def permission_edit_properties():
-    return Permission.objects.get(codename='edit_properties')
+def permission_manage_products():
+    return Permission.objects.get(codename='manage_products')
 
 
 @pytest.fixture
-def permission_edit_shipping():
-    return Permission.objects.get(codename='edit_shipping')
+def permission_manage_shipping():
+    return Permission.objects.get(codename='manage_shipping')
 
 
 @pytest.fixture
-def permission_edit_user():
-    return Permission.objects.get(codename='edit_user')
+def permission_manage_users():
+    return Permission.objects.get(codename='manage_users')
 
 
 @pytest.fixture
-def permission_edit_settings():
-    return Permission.objects.get(codename='edit_settings')
+def permission_manage_settings():
+    return Permission.objects.get(codename='manage_settings')
 
 
 @pytest.fixture
@@ -592,8 +582,8 @@ def permission_impersonate_user():
 
 
 @pytest.fixture
-def permission_edit_menu():
-    return Permission.objects.get(codename='edit_menu')
+def permission_manage_menus():
+    return Permission.objects.get(codename='manage_menus')
 
 
 @pytest.fixture

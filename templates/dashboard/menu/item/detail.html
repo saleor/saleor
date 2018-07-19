@@ -80,7 +80,7 @@
             </div>
           </div>
         </div>
-        {% if perms.product.edit_menu %}
+        {% if perms.product.manage_menus %}
         <div class="card-action">
           <a class="btn-flat waves-effect" href="{% url "dashboard:menu-item-edit" menu_pk=menu.pk item_pk=menu_item.pk %}">
             {% trans "Edit menu item" context "Menu item detail view action" %}
