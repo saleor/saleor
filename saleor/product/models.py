@@ -112,8 +112,8 @@ class Product(SeoModel):
         permissions = ((
             'manage_products', pgettext_lazy(
                 'Permission description',
-                'View, create, and modify products, collections, '
-                'and categories. Access to inventory and inventory '
+                'Capability to view, create, and modify products, collections,'
+                ' and categories. Access to inventory and inventory '
                 'management.')),)
 
     def __iter__(self):

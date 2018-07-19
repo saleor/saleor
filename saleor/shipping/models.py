@@ -23,7 +23,8 @@ class ShippingMethod(models.Model):
         permissions = ((
             'manage_shipping', pgettext_lazy(
                 'Permission description',
-                'Create, modify, and delete shipping methods.')),)
+                'Capability to view, create, modify, and delete shipping '
+                'methods.')),)
 
     def __str__(self):
         return self.name

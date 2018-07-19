@@ -130,11 +130,11 @@ class User(PermissionsMixin, AbstractBaseUser):
             ('manage_users',
              pgettext_lazy(
                  'Permission description',
-                 'View, create, modify, and delete customers.')),
+                 'Capability to view, create, modify, and delete customers.')),
             ('manage_staff', pgettext_lazy(
                 'Permission description',
-                'View, create, modify and delete staff users.')),
-            ('impersonate_user',
+                'Capability to view, create, modify and delete staff users.')),
+            ('impersonate_users',
              pgettext_lazy(
                  'Permission description',
                  'Capability to impersonate the customers.')))

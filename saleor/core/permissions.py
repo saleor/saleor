@@ -3,7 +3,7 @@ from django.contrib.auth.models import Permission
 MODELS_PERMISSIONS = [
     'account.manage_users',
     'account.manage_staff',
-    'account.impersonate_user',
+    'account.impersonate_users',
     'discount.manage_discounts',
     'menu.manage_menus',
     'order.manage_orders',
