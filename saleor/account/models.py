@@ -127,9 +127,9 @@ class User(PermissionsMixin, AbstractBaseUser):
 
     class Meta:
         permissions = (
-            ('edit_user',
+            ('manage_users',
              pgettext_lazy('Permission description', 'Can edit users')),
-            ('edit_staff',
+            ('manage_staff',
              pgettext_lazy('Permission description', 'Can edit staff')),
             ('impersonate_user',
              pgettext_lazy('Permission description', 'Can impersonate users')))

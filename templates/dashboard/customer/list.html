@@ -13,7 +13,7 @@
 {% block menu_customers_class %}active{% endblock %}
 
 {% block header_extra %}
-  {% if perms.account.edit_staff %}
+  {% if perms.account.manage_staff %}
     <div class="btn-fab-fixed">
       <a href="{% url 'dashboard:customer-create' %}" class="btn-fab-default waves-effect waves-light" title="{% trans "Add customer" context "Customer list add button text" %}" >
         <svg data-src="{% static "dashboard/images/add.svg" %}" />

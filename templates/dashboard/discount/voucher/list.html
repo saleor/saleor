@@ -24,7 +24,7 @@
 {% block menu_discounts_class %} active{% endblock %}
 
 {% block header_extra %}
-  {% if perms.discount.edit_voucher %}
+  {% if perms.discount.manage_vouchers %}
     <div class="btn-fab-fixed">
       <a href="{% url 'dashboard:voucher-add' %}" class="btn-fab-default waves-effect waves-light" title="{% trans "Add voucher" context "Voucher list add button text" %}">
         <svg data-src="{% static "dashboard/images/add.svg" %}" />
@@ -67,7 +67,7 @@
               </thead>
               {% for voucher in vouchers %}
                 <tbody>
-                  <tr data-action-go="{% if perms.voucher.edit_voucher %}{% url 'dashboard:voucher-update' pk=voucher.pk %}{% endif %}">
+                  <tr data-action-go="{% if perms.voucher.manage_vouchers %}{% url 'dashboard:voucher-update' pk=voucher.pk %}{% endif %}">
                     <td>
                       {{ voucher }}
                     </td>

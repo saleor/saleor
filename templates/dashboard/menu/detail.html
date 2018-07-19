@@ -43,7 +43,7 @@
             {{ menu.name }}
           </span>
         </div>
-        {% if perms.product.edit_menu %}
+        {% if perms.product.manage_menus %}
         <div class="card-action">
           <a class="btn-flat waves-effect" href="{% url "dashboard:menu-edit" pk=menu.pk %}">
             {% trans "Edit menu" context "Menu detail view action" %}

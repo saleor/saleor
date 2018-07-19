@@ -13,7 +13,7 @@
 {% block menu_orders_class %}active{% endblock %}
 
 {% block header_extra %}
-  {% if perms.order.edit_order %}
+  {% if perms.order.manage_orders %}
     <div class="btn-fab-fixed">
       <form method="POST" action="{% url "dashboard:order-create" %}">
       {% csrf_token %}

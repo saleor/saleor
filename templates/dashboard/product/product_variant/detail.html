@@ -57,7 +57,7 @@
             </div>
           </div>
         </div>
-        {% if perms.product.edit_product %}
+        {% if perms.product.manage_products %}
           <div class="card-action">
             <a class="btn-flat waves-effect" href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}">
               {% trans "Edit variant" context "Dashboard action" %}
@@ -187,7 +187,7 @@
                 {% endfor %}
               </div>
             </div>
-            {% if perms.product.edit_product %}
+            {% if perms.product.manage_products %}
               <div class="card-action">
                 <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:variant-images' product_pk=product.pk variant_pk=variant.pk %}">
                   {% trans "Select images" context "Dashboard action" %}

@@ -26,7 +26,7 @@
     <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="24" width="24" />
   </a>
   <ul id="context-menu" class="dropdown-content">
-    {% if perms.order.edit_order %}
+    {% if perms.order.manage_orders %}
       {% if order.can_cancel %}
         <li>
           <a href="#base-modal" data-href="{% url "dashboard:order-cancel" order_pk=order.pk %}" class="modal-trigger-custom">
@@ -158,7 +158,7 @@
             </tbody>
           </table>
         </div>
-        {% if perms.order.edit_order and not order.is_draft %}
+        {% if perms.order.manage_orders and not order.is_draft %}
           {% if can_capture or can_refund or can_release or can_mark_as_paid %}
             <div class="data-table-action">
               {% if can_capture %}
@@ -190,7 +190,7 @@
             <div class="card-content card-border">
               <span class="card-title black-text">
                 {% trans "Customer" context "Order details summary header" %}
-                {% if perms.order.edit_order and order.is_draft  %}
+                {% if perms.order.manage_orders and order.is_draft  %}
                   <span class="right">
                     <a href="#base-modal" data-href="{% url "dashboard:order-customer-edit" order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom"
                        title="{% trans "Edit customer details" context "Order customer details action title" %}">
@@ -214,7 +214,7 @@
               <div class="card-content card-border">
                 <span class="card-title black-text">
                   {% trans "Shipping address" context "" %}
-                  {% if perms.order.edit_order %}
+                  {% if perms.order.manage_orders %}
                     <span class="right">
                       <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}" class="btn-flat waves-effect">
                         {% trans "Edit" context "Dashboard edit action" %}
@@ -232,7 +232,7 @@
             <div class="card-content">
               <span class="card-title black-text">
                   {% trans "Billing address" context "" %}
-                  {% if perms.order.edit_order %}
+                  {% if perms.order.manage_orders %}
                     <span class="right">
                       <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}" class="btn-flat waves-effect">
                         {% trans "Edit" context "Dashboard edit action" %}
@@ -313,7 +313,7 @@
                     {% price line.unit_price order.display_gross_prices %}
                   </td>
                   <td class="right-align">
-                    {% if perms.order.edit_order and order.is_draft %}
+                    {% if perms.order.manage_orders and order.is_draft %}
                       <a class="dropdown-button" href="#" data-activates="line-actions-{{ line.pk }}" data-constrainwidth="false">
                         {{ line.quantity }}
                         <svg data-src="{% static "dashboard/images/arrow-drop-down.svg" %}" width="24" height="24" />
@@ -345,7 +345,7 @@
                     {% trans "Subtotal" context "Order subtotal" %}
                   </p>
                   <p>
-                    {% if perms.order.edit_order and order.is_draft %}
+                    {% if perms.order.manage_orders and order.is_draft %}
                       <a href="#base-modal" data-href="{% url 'dashboard:order-shipping-edit' order_pk=order.pk %}"
                          class="modal-trigger-custom" title="{% trans "Edit shipping" context "Order totals action" %}">
                         {% if order.shipping_method_name %}
@@ -375,7 +375,7 @@
                   </p>
                   {% if order.is_draft or order.discount_amount %}
                     <p>
-                      {% if perms.order.edit_order and order.is_draft  %}
+                      {% if perms.order.manage_orders and order.is_draft  %}
                         <a class="dropdown-button" href="#" data-activates="discount-menu" data-constrainwidth="false">
                           {% if order.discount_name %}
                             {% blocktrans trimmed with voucher=order.discount_name context "Order totals header" %}
@@ -430,9 +430,9 @@
             </tbody>
           </table>
         </div>
-        {% if perms.order.edit_order %}
+        {% if perms.order.manage_orders %}
           <div class="data-table-action">
-            {% if perms.order.edit_order %}
+            {% if perms.order.manage_orders %}
               {% if order.is_open %}
                 <a href="{% url 'dashboard:fulfill-order-lines' order_pk=order.pk %}" class="btn-flat waves-effect" title="{% trans "Fulfill order" context "Order summary card action title" %}">
                   {% trans "Fulfill" context "Order summary card action" %}
@@ -507,7 +507,7 @@
               </tbody>
             </table>
           </div>
-          {% if perms.order.edit_order and fulfillment.can_edit %}
+          {% if perms.order.manage_orders and fulfillment.can_edit %}
             <div class="data-table-action">
               <a href="#base-modal" data-href="{% url 'dashboard:fulfillment-cancel' order_pk=order.pk fulfillment_pk=fulfillment.pk %}"
                  class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Cancel fulfillment" context "Fulfillment summary card action title" %}">
@@ -549,7 +549,7 @@
             </p>
           {% endif %}
         </div>
-        {% if perms.order.edit_order %}
+        {% if perms.order.manage_orders %}
           <div class="card-action">
             <a data-href="{% url "dashboard:order-add-note" order_pk=order.pk %}" class="modal-trigger-custom btn-flat waves-effect" href="#base-modal">
               {% trans "Add note" context "Order notes card action" %}

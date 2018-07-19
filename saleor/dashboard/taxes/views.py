@@ -41,7 +41,7 @@ def tax_details(request, country_code):
 
 
 @staff_member_required
-@permission_required('site.edit_settings')
+@permission_required('site.manage_settings')
 def configure_taxes(request):
     site_settings = request.site.settings
     taxes_form = TaxesConfigurationForm(
@@ -56,7 +56,7 @@ def configure_taxes(request):
 
 
 @staff_member_required
-@permission_required('site.edit_settings')
+@permission_required('site.manage_settings')
 def fetch_tax_rates(request):
     try:
         call_command('get_vat_rates')

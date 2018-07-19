@@ -16,7 +16,7 @@
 
 {% block header_extra %}
   {% if product_types %}
-    {% if perms.product.edit_product %}
+    {% if perms.product.manage_products %}
       <div class="btn-fab-fixed">
         {% if product_types|length > 1 %}
         <a data-href="{% url "dashboard:product-add-select-type" %}" class="btn-fab-default waves-effect waves-light modal-trigger-custom" href="#base-modal" title="{% trans "Add product" context "Product list add button text" %}">

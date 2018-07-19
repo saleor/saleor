@@ -23,7 +23,7 @@
 
 {% block header_extra %}
   {% if collection.pk %}
-    {% if perms.product.edit_product %}
+    {% if perms.product.manage_products %}
       <a class="dropdown-button right" href="#" data-activates="collection-delete" data-constrainwidth="false">
         <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="24" width="24" />
       </a>
