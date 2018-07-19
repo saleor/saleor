@@ -9,7 +9,7 @@ from ..forms import PermissionMultipleChoiceField
 class StaffForm(forms.ModelForm):
     user_permissions = PermissionMultipleChoiceField(
         queryset=get_permissions(),
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.CheckboxSelectMultiple, required=False,
         label=pgettext_lazy(
             'Label above the permissions choicefield', 'Permissions'))
 
