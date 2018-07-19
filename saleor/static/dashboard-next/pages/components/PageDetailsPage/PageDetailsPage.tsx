@@ -1,4 +1,3 @@
-import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
 import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
@@ -74,13 +73,7 @@ const PageDetailsPage = decorate<PageDetailsPageProps>(
           {(opened, { toggle: togglePageDeleteDialog }) => (
             <Container width="md">
               <>
-                <PageHeader onBack={onBack} title={title}>
-                  {!!onDelete && (
-                    <IconButton onClick={togglePageDeleteDialog}>
-                      <DeleteIcon />
-                    </IconButton>
-                  )}
-                </PageHeader>
+                <PageHeader onBack={onBack} title={title} />
                 <div className={classes.root}>
                   <div>
                     <PageContent
@@ -104,17 +97,18 @@ const PageDetailsPage = decorate<PageDetailsPageProps>(
                 <SaveButtonBar
                   disabled={disabled || !onSubmit || !hasChanged}
                   state={saveButtonBarState}
+                  onCancel={onBack}
+                  onDelete={togglePageDeleteDialog}
                   onSave={submit}
                 />
-                {!!onDelete &&
-                  !disabled && (
-                    <PageDeleteDialog
-                      opened={opened}
-                      onConfirm={onDelete}
-                      onClose={togglePageDeleteDialog}
-                      title={page.title}
-                    />
-                  )}
+                {!disabled && (
+                  <PageDeleteDialog
+                    opened={opened}
+                    onConfirm={onDelete}
+                    onClose={togglePageDeleteDialog}
+                    title={page.title}
+                  />
+                )}
               </>
             </Container>
           )}

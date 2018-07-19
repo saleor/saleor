@@ -1,4 +1,4 @@
-import IconButton from "@material-ui/core/IconButton";
+import Button from "@material-ui/core/Button";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
@@ -49,9 +49,14 @@ const VoucherListPage: React.StatelessComponent<VoucherListPageProps> = ({
 }) => (
   <Container width="md">
     <PageHeader title={i18n.t("Vouchers")}>
-      <IconButton onClick={onAdd} disabled={disabled}>
-        <AddIcon />
-      </IconButton>
+      <Button
+        color="secondary"
+        variant="contained"
+        onClick={onAdd}
+        disabled={disabled}
+      >
+        {i18n.t("Add voucher")} <AddIcon />
+      </Button>
     </PageHeader>
     <VoucherList
       currency={currency}

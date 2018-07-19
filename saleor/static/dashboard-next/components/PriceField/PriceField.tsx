@@ -21,6 +21,9 @@ interface PriceRangeFieldProps {
 }
 
 const decorate = withStyles(theme => ({
+  currencySymbol: {
+    fontSize: "0.875rem"
+  },
   inputContainer: {
     display: "grid",
     gridTemplateColumns: "1fr 2rem 1fr"
@@ -128,7 +131,9 @@ export const PriceField = decorate<PriceFieldProps>(
         value={value || ""}
         endAdornment={
           currencySymbol ? (
-            <InputAdornment position="end">{currencySymbol}</InputAdornment>
+            <InputAdornment position="end" className={classes.currencySymbol}>
+              {currencySymbol}
+            </InputAdornment>
           ) : (
             <span />
           )

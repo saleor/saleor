@@ -1,4 +1,4 @@
-import IconButton from "@material-ui/core/IconButton";
+import Button from "@material-ui/core/Button";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
@@ -48,9 +48,14 @@ const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
   return (
     <Container width="md">
       <PageHeader title={i18n.t("Orders")}>
-        <IconButton disabled={disabled} onClick={onAdd}>
-          <AddIcon />
-        </IconButton>
+        <Button
+          color="secondary"
+          variant="contained"
+          disabled={disabled}
+          onClick={onAdd}
+        >
+          {i18n.t("Add order")} <AddIcon />
+        </Button>
       </PageHeader>
       <OrderList
         dateNow={dateNow}

@@ -6,4 +6,4 @@ import Decorator from "../../Decorator";
 
 storiesOf("Generics / Money", module)
   .addDecorator(Decorator)
-  .add("default", () => <Money amount={14} currency="$" />);
+  .add("default", () => <Money amount={14} currency="EUR" />);

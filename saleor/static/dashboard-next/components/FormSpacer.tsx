@@ -7,7 +7,7 @@ interface FormSpacerProps {
 
 const decorate = withStyles(theme => ({
   spacer: {
-    marginTop: theme.spacing.unit * 2
+    marginTop: theme.spacing.unit * 3
   }
 }));
 export const FormSpacer = decorate<FormSpacerProps>(({ classes, children }) => (

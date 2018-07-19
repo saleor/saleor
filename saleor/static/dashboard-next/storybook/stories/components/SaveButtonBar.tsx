@@ -5,6 +5,8 @@ import SaveButtonBar from "../../../components/SaveButtonBar";
 import Decorator from "../../Decorator";
 
 const callbacks = {
+  onCancel: () => {},
+  onDelete: () => {},
   onSave: () => {}
 };
 

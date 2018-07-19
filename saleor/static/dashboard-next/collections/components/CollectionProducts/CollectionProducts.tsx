@@ -1,5 +1,5 @@
+import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
-import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
@@ -7,10 +7,9 @@ import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
-import PageHeader from "../../../components/PageHeader";
+import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import TablePagination from "../../../components/TablePagination";
@@ -61,11 +60,19 @@ const CollectionProducts = decorate<CollectionProductsProps>(
     onProductClick
   }) => (
     <Card className={classes.root}>
-      <PageHeader title={i18n.t("Products")}>
-        <IconButton disabled={disabled} onClick={onProductAdd}>
-          <AddIcon />
-        </IconButton>
-      </PageHeader>
+      <CardTitle
+        title={i18n.t("Products")}
+        toolbar={
+          <Button
+            color="secondary"
+            variant="flat"
+            disabled={disabled}
+            onClick={onProductAdd}
+          >
+            {i18n.t("Add product")}
+          </Button>
+        }
+      />
       <Table>
         <TableHead>
           <TableRow>

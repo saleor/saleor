@@ -1,5 +1,3 @@
-import Avatar from "@material-ui/core/Avatar";
-import blue from "@material-ui/core/colors/blue";
 import { withStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
@@ -7,12 +5,15 @@ import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import Cached from "@material-ui/icons/Cached";
 import * as React from "react";
 
 import { ListProps } from "../..";
+import TableCellAvatar from "../../components/TableCellAvatar";
 import i18n from "../../i18n";
+import { MoneyType } from "../../products";
+import Money from "../Money";
 import Skeleton from "../Skeleton";
+import StatusLabel from "../StatusLabel";
 import TablePagination from "../TablePagination";
 
 const decorate = withStyles(theme => ({
@@ -22,8 +23,10 @@ const decorate = withStyles(theme => ({
     width: theme.spacing.unit * 5
   },
   link: {
-    color: blue[500],
-    cursor: "pointer"
+    cursor: "pointer" as "pointer"
+  },
+  textLeft: {
+    textAlign: "left" as "left"
   }
 }));
 
@@ -35,6 +38,10 @@ interface ProductListProps extends ListProps {
       name: string;
     };
     thumbnailUrl: string;
+    availability: {
+      available: boolean;
+    };
+    price: MoneyType;
   }>;
 }
 
@@ -51,15 +58,19 @@ export const ProductList = decorate<ProductListProps>(
     <Table>
       <TableHead>
         <TableRow>
-          <TableCell className={classes.avatarCell} />
-          <TableCell>{i18n.t("Name", { context: "object" })}</TableCell>
+          <TableCell />
+          <TableCell className={classes.textLeft}>
+            {i18n.t("Name", { context: "object" })}
+          </TableCell>
           <TableCell>{i18n.t("Type", { context: "object" })}</TableCell>
+          <TableCell>{i18n.t("Published", { context: "object" })}</TableCell>
+          <TableCell>{i18n.t("Price", { context: "object" })}</TableCell>
         </TableRow>
       </TableHead>
       <TableFooter>
         <TableRow>
           <TablePagination
-            colSpan={3}
+            colSpan={5}
             hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
             onNextPage={onNextPage}
             hasPreviousPage={
@@ -70,12 +81,14 @@ export const ProductList = decorate<ProductListProps>(
         </TableRow>
       </TableFooter>
       <TableBody>
-        {products === undefined || products === null ? (
+        {products === undefined ? (
           <TableRow>
-            <TableCell className={classes.avatarCell}>
-              <Avatar>
-                <Cached />
-              </Avatar>
+            <TableCellAvatar />
+            <TableCell>
+              <Skeleton />
+            </TableCell>
+            <TableCell>
+              <Skeleton />
             </TableCell>
             <TableCell>
               <Skeleton />
@@ -84,13 +97,11 @@ export const ProductList = decorate<ProductListProps>(
               <Skeleton />
             </TableCell>
           </TableRow>
-        ) : products.length > 0 ? (
+        ) : products !== null && products.length > 0 ? (
           products.map(product => (
             <TableRow key={product.id}>
-              <TableCell className={classes.avatarCell}>
-                <Avatar src={product.thumbnailUrl} />
-              </TableCell>
-              <TableCell>
+              <TableCellAvatar thumbnail={product.thumbnailUrl} />
+              <TableCell className={classes.textLeft}>
                 <span
                   onClick={onRowClick ? onRowClick(product.id) : undefined}
                   className={onRowClick ? classes.link : ""}
@@ -99,12 +110,40 @@ export const ProductList = decorate<ProductListProps>(
                 </span>
               </TableCell>
               <TableCell>{product.productType.name}</TableCell>
+              <TableCell>
+                {product.availability &&
+                product.availability.available !== undefined ? (
+                  <StatusLabel
+                    label={
+                      product.availability.available
+                        ? i18n.t("Published")
+                        : i18n.t("Not published")
+                    }
+                    status={
+                      product.availability.available ? "success" : "error"
+                    }
+                  />
+                ) : (
+                  <Skeleton />
+                )}
+              </TableCell>
+              <TableCell>
+                {product.price &&
+                product.price.amount !== undefined &&
+                product.price.currency ? (
+                  <Money
+                    amount={product.price.amount}
+                    currency={product.price.currency}
+                  />
+                ) : (
+                  <Skeleton />
+                )}
+              </TableCell>
             </TableRow>
           ))
         ) : (
           <TableRow>
-            <TableCell className={classes.avatarCell} />
-            <TableCell colSpan={2}>{i18n.t("No products found")}</TableCell>
+            <TableCell colSpan={5}>{i18n.t("No products found")}</TableCell>
           </TableRow>
         )}
       </TableBody>

@@ -1,6 +1,5 @@
 import Card from "@material-ui/core/Card";
-import blue from "@material-ui/core/colors/blue";
-import IconButton from "@material-ui/core/IconButton";
+import Button from "@material-ui/core/Button";
 import { withStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
@@ -33,7 +32,7 @@ interface CustomerListPageProps extends PageListProps {
 
 const decorate = withStyles(theme => ({
   link: {
-    color: blue[500],
+    color: theme.palette.secondary.main,
     cursor: "pointer"
   }
 }));
@@ -50,9 +49,14 @@ const CustomerListPage = decorate<CustomerListPageProps>(
   }) => (
     <Container width="md">
       <PageHeader title={i18n.t("Customers")}>
-        <IconButton disabled={disabled} onClick={onAdd}>
-          <AddIcon />
-        </IconButton>
+        <Button
+          color="secondary"
+          variant="contained"
+          disabled={disabled}
+          onClick={onAdd}
+        >
+          {i18n.t("Add customer")} <AddIcon />
+        </Button>
       </PageHeader>
       <Card>
         <Table>

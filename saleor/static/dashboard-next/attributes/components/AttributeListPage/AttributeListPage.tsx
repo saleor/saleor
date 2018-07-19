@@ -1,4 +1,4 @@
-import IconButton from "@material-ui/core/IconButton";
+import Button from "@material-ui/core/Button";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
@@ -31,9 +31,14 @@ const AttributeListPage: React.StatelessComponent<AttributeListPageProps> = ({
 }) => (
   <Container width="md">
     <PageHeader title={i18n.t("Attributes")}>
-      <IconButton disabled={disabled} onClick={onAdd}>
-        <AddIcon />
-      </IconButton>
+      <Button
+        color="secondary"
+        variant="contained"
+        disabled={disabled}
+        onClick={onAdd}
+      >
+        {i18n.t("Add attribute")} <AddIcon />
+      </Button>
     </PageHeader>
     <AttributeList
       attributes={attributes}
