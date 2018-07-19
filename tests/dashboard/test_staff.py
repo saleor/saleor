@@ -31,7 +31,7 @@ def test_staff_form_create_valid(
 
 def test_staff_form_create_not_valid(admin_client, staff_user):
     url = reverse('dashboard:staff-details', kwargs={'pk': staff_user.pk})
-    data = {'user_permissions': 1}
+    data = {'csrf': 'examplecsfr'}
     admin_client.post(url, data)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.user_permissions.count() == 0
@@ -143,9 +143,12 @@ def test_create_staff_and_set_password(admin_client):
     assert new_user.has_usable_password()
 
 
-def test_create_staff_from_customer(admin_client, customer_user):
+def test_create_staff_from_customer(
+        admin_client, customer_user, permission_view_product):
     url = reverse('dashboard:staff-create')
-    data = {'email': customer_user.email}
+    data = {
+        'email': customer_user.email,
+        'user_permissions': permission_view_product.pk}
     admin_client.post(url, data)
     customer_user.refresh_from_db()
     assert customer_user.is_staff
