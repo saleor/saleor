@@ -40,8 +40,7 @@ def test_view_delete_customer(admin_client, admin_user, customer_user):
 
 
 def test_form_delete_customer(
-        staff_user, customer_user, admin_user, permission_edit_staff,
-        staff_group):
+        staff_user, customer_user, admin_user, permission_edit_staff):
     data = {'csrf': 'example-data'}
     form = CustomerDeleteForm(data, instance=customer_user, user=staff_user)
     assert form.is_valid()
@@ -60,8 +59,7 @@ def test_form_delete_customer(
         data, instance=another_staff_user, user=staff_user)
     assert not form.is_valid()
 
-    staff_group.permissions.add(permission_edit_staff)
-    staff_user.groups.add(staff_group)
+    staff_user.user_permissions.add(permission_edit_staff)
     staff_user = User.objects.get(pk=staff_user.pk)
     form = CustomerDeleteForm({}, instance=another_staff_user, user=staff_user)
     assert form.is_valid()

@@ -1,13 +1,12 @@
 import graphene
 import graphql_jwt
-from graphene_django.fields import DjangoConnectionField
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql_jwt.decorators import permission_required
 
 from .account.mutations import (
     CustomerCreate, CustomerUpdate, SetPassword, StaffCreate, StaffUpdate)
-from .account.resolvers import resolve_user, resolve_users, resolve_groups
-from .account.types import Group, User
+from .account.resolvers import resolve_user, resolve_users
+from .account.types import User
 from .menu.resolvers import resolve_menus, resolve_menu_items
 from .menu.types import Menu, MenuItem
 # FIXME: sorting import by putting below line at the beginning breaks app
@@ -86,9 +85,6 @@ class Query(graphene.ObjectType):
         Collection, query=graphene.String(
             description=DESCRIPTIONS['collection']),
         description='List of the shop\'s collections.')
-    groups = DjangoConnectionField(
-        Group, query=graphene.String(description=DESCRIPTIONS['group']),
-        description='List of shop\'s permission groups.')
     menu = graphene.Field(
         Menu, id=graphene.Argument(graphene.ID),
         description='Lookup a menu by ID.')
@@ -180,9 +176,6 @@ class Query(graphene.ObjectType):
 
     def resolve_users(self, info, query=None, **kwargs):
         return resolve_users(info, query=query)
-
-    def resolve_groups(self, info, query=None, **kwargs):
-        return resolve_groups(info, query)
 
     def resolve_menu(self, info, id):
         return get_node(info, id, only_type=Menu)

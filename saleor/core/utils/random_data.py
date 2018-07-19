@@ -5,7 +5,6 @@ import unicodedata
 from decimal import Decimal
 
 from django.conf import settings
-from django.contrib.auth.models import Group, Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.template.defaultfilters import slugify
@@ -537,19 +536,6 @@ def create_vouchers():
         yield 'Voucher #%d' % voucher.id
     else:
         yield 'Value voucher already exists'
-
-
-def create_fake_group():
-    group, _ = Group.objects.get_or_create(name='Products Manager')
-    group.permissions.add(Permission.objects.get(codename='edit_product'))
-    group.permissions.add(Permission.objects.get(codename='view_product'))
-    group.save()
-    return group
-
-
-def create_groups():
-    group = create_fake_group()
-    return 'Group: %s' % (group.name,)
 
 
 def set_featured_products(how_many=8):

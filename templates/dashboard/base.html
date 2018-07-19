@@ -172,26 +172,17 @@
               </ul>
             </li>
             {% endif %}
-            {% if perms.account.view_group or perms.account.edit_group %}
+            {% if perms.account.view_staff or perms.account.edit_staff %}
               <li class="side-nav-section">
                 <p>
                   {% trans "Staff management" context "Management section" %}
                 </p>
                 <ul>
-                  {% if perms.account.view_staff %}
-                    <li class="{% block menu_staff_class %}{% endblock %}">
-                      <a href="{% url 'dashboard:staff-list' %}">
-                        {% trans "Staff members" context "Dashboard staff members list" %}
-                      </a>
-                    </li>
-                  {% endif %}
-                  {% if perms.account.view_group %}
-                    <li class="{% block menu_groups_class %}{% endblock %}">
-                      <a href="{% url 'dashboard:group-list' %}">
-                        {% trans "Groups" context "Dashboard groups list" %}
-                      </a>
-                    </li>
-                  {% endif %}
+                  <li class="{% block menu_staff_class %}{% endblock %}">
+                    <a href="{% url 'dashboard:staff-list' %}">
+                      {% trans "Staff members" context "Dashboard staff members list" %}
+                    </a>
+                  </li>
                 </ul>
               </li>
             {% endif %}
