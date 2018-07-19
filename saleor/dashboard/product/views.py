@@ -22,7 +22,7 @@ from .filters import ProductAttributeFilter, ProductFilter, ProductTypeFilter
 
 
 @staff_member_required
-@permission_required('product.view_product')
+@permission_required('product.edit_product')
 def product_list(request):
     products = Product.objects.prefetch_related('images')
     products = products.order_by('name')
@@ -40,7 +40,7 @@ def product_list(request):
 
 
 @staff_member_required
-@permission_required('product.view_product')
+@permission_required('product.edit_product')
 def product_details(request, pk):
     products = Product.objects.prefetch_related('variants', 'images').all()
     product = get_object_or_404(products, pk=pk)
@@ -202,7 +202,7 @@ def ajax_products_list(request):
     Response format is that of a Select2 JS widget.
     """
     queryset = (
-        Product.objects.all() if request.user.has_perm('product.view_product')
+        Product.objects.all() if request.user.has_perm('product.edit_product')
         else Product.objects.available_products())
     search_query = request.GET.get('q', '')
     if search_query:
@@ -213,7 +213,7 @@ def ajax_products_list(request):
 
 
 @staff_member_required
-@permission_required('product.view_properties')
+@permission_required('product.edit_properties')
 def product_type_list(request):
     types = ProductType.objects.all().prefetch_related(
         'product_attributes', 'variant_attributes').order_by('name')
@@ -290,7 +290,7 @@ def product_type_delete(request, pk):
 
 
 @staff_member_required
-@permission_required('product.view_product')
+@permission_required('product.edit_product')
 def variant_details(request, product_pk, variant_pk):
     product = get_object_or_404(Product, pk=product_pk)
     variant = get_object_or_404(product.variants.all(), pk=variant_pk)
@@ -378,7 +378,7 @@ def variant_delete(request, product_pk, variant_pk):
 
 
 @staff_member_required
-@permission_required('product.view_product')
+@permission_required('product.edit_product')
 def variant_images(request, product_pk, variant_pk):
     product = get_object_or_404(Product, pk=product_pk)
     qs = product.variants.prefetch_related('images')
@@ -424,7 +424,7 @@ def ajax_available_variants_list(request):
 
 
 @staff_member_required
-@permission_required('product.view_product')
+@permission_required('product.edit_product')
 def product_images(request, product_pk):
     products = Product.objects.prefetch_related('images')
     product = get_object_or_404(products, pk=product_pk)
@@ -527,7 +527,7 @@ def ajax_upload_image(request, product_pk):
 
 
 @staff_member_required
-@permission_required('product.view_properties')
+@permission_required('product.edit_properties')
 def attribute_list(request):
     attributes = (ProductAttribute.objects.prefetch_related('values')
                   .order_by('name'))
@@ -545,7 +545,7 @@ def attribute_list(request):
 
 
 @staff_member_required
-@permission_required('product.view_properties')
+@permission_required('product.edit_properties')
 def attribute_details(request, pk):
     attributes = ProductAttribute.objects.prefetch_related('values').all()
     attribute = get_object_or_404(attributes, pk=pk)

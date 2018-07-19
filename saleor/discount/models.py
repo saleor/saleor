@@ -64,8 +64,6 @@ class Voucher(models.Model):
 
     class Meta:
         permissions = (
-            ('view_voucher',
-             pgettext_lazy('Permission description', 'Can view vouchers')),
             ('edit_voucher',
              pgettext_lazy('Permission description', 'Can edit vouchers')))
 
@@ -151,8 +149,6 @@ class Sale(models.Model):
     class Meta:
         app_label = 'discount'
         permissions = (
-            ('view_sale',
-             pgettext_lazy('Permission description', 'Can view sales')),
             ('edit_sale',
              pgettext_lazy('Permission description', 'Can edit sales')))
 

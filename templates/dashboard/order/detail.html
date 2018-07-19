@@ -430,7 +430,7 @@
             </tbody>
           </table>
         </div>
-        {% if perms.order.edit_order or perms.order.view_order %}
+        {% if perms.order.edit_order %}
           <div class="data-table-action">
             {% if perms.order.edit_order %}
               {% if order.is_open %}
@@ -451,7 +451,7 @@
                 {% endif %}
               </span>
             {% endif %}
-            {% if not order.is_draft and perms.order.view_order %}
+            {% if not order.is_draft %}
               <a href="{% url 'dashboard:order-invoice' order_pk=order.pk %}" class="btn-flat waves-effect" target="_blank">
                 {% trans "Invoice" context "Order detail action" %}
               </a>

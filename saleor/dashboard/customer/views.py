@@ -17,7 +17,7 @@ from .forms import CustomerDeleteForm, CustomerForm, CustomerNoteForm
 
 
 @staff_member_required
-@permission_required('account.view_user')
+@permission_required('account.edit_user')
 def customer_list(request):
     customers = (
         User.objects
@@ -38,7 +38,7 @@ def customer_list(request):
 
 
 @staff_member_required
-@permission_required('account.view_user')
+@permission_required('account.edit_user')
 def customer_details(request, pk):
     queryset = User.objects.prefetch_related(
         'orders', 'addresses', 'notes').select_related(
@@ -84,7 +84,7 @@ def customer_edit(request, pk=None):
 
 
 @staff_member_required
-@permission_required('account.view_user')
+@permission_required('account.edit_user')
 def ajax_users_list(request):
     queryset = User.objects.select_related('default_billing_address')
     search_query = request.GET.get('q', '')

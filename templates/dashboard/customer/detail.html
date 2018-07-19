@@ -113,7 +113,7 @@
               </thead>
               <tbody>
                 {% for order in customer_orders %}
-                  <tr data-action-go="{% if perms.order.view_order %}{% url 'dashboard:order-details' order_pk=order.pk %}{% endif %}">
+                  <tr data-action-go="{% if perms.order.edit_order %}{% url 'dashboard:order-details' order_pk=order.pk %}{% endif %}">
                     <td>
                       {{ order }}
                     </td>

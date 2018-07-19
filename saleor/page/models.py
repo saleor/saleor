@@ -30,8 +30,6 @@ class Page(SeoModel):
     class Meta:
         ordering = ('slug',)
         permissions = (
-            ('view_page',
-             pgettext_lazy('Permission description', 'Can view pages')),
             ('edit_page',
              pgettext_lazy('Permission description', 'Can edit pages')))
 

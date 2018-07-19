@@ -41,8 +41,6 @@ class Category(MPTTModel, SeoModel):
     class Meta:
         app_label = 'product'
         permissions = (
-            ('view_category',
-             pgettext_lazy('Permission description', 'Can view categories')),
             ('edit_category',
              pgettext_lazy('Permission description', 'Can edit categories')))
 
@@ -118,13 +116,8 @@ class Product(SeoModel):
     class Meta:
         app_label = 'product'
         permissions = (
-            ('view_product',
-             pgettext_lazy('Permission description', 'Can view products')),
             ('edit_product',
              pgettext_lazy('Permission description', 'Can edit products')),
-            ('view_properties',
-             pgettext_lazy(
-                 'Permission description', 'Can view product properties')),
             ('edit_properties',
              pgettext_lazy(
                  'Permission description', 'Can edit product properties')))

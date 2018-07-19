@@ -13,7 +13,7 @@ from .forms import ShippingMethodCountryForm, ShippingMethodForm
 
 
 @staff_member_required
-@permission_required('shipping.view_shipping')
+@permission_required('shipping.edit_shipping')
 def shipping_method_list(request):
     methods = ShippingMethod.objects.prefetch_related(
         'price_per_country').order_by('name')
@@ -57,7 +57,7 @@ def shipping_method_edit(request, pk):
 
 
 @staff_member_required
-@permission_required('shipping.view_shipping')
+@permission_required('shipping.edit_shipping')
 def shipping_method_details(request, pk):
     shipping_methods = ShippingMethod.objects.prefetch_related(
         'price_per_country').all()

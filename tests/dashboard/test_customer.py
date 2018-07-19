@@ -5,6 +5,22 @@ from saleor.dashboard.customer.forms import (
     CustomerDeleteForm, CustomerNoteForm)
 
 
+def test_customers_list(admin_client):
+    response = admin_client.get(reverse('dashboard:customers'))
+    assert response.status_code == 200
+
+
+def test__customer_detail_view(admin_client, customer_user):
+    response = admin_client.get(
+        reverse('dashboard:customer-details', args=[customer_user.pk]))
+    assert response.status_code == 200
+
+
+def test_customer_create(admin_client):
+    response = admin_client.get(reverse('dashboard:customer-create'))
+    assert response.status_code == 200
+
+
 def test_add_note_to_customer(admin_user, customer_user):
     customer = customer_user
     note = CustomerNote(customer=customer, user=admin_user)

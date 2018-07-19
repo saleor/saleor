@@ -16,7 +16,7 @@ from .forms import CollectionForm
 
 
 @staff_member_required
-@permission_required('product.view_product')
+@permission_required('product.edit_product')
 def collection_list(request):
     collections = Collection.objects.prefetch_related('products').all()
     collection_filter = CollectionFilter(request.GET, queryset=collections)
