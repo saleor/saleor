@@ -116,14 +116,7 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
                   <PageHeader
                     title={productType ? productType.name : undefined}
                     onBack={onBack}
-                  >
-                    <IconButton
-                      disabled={disabled}
-                      onClick={toggleDeleteDialog}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </PageHeader>
+                  />
                   <div className={classes.root}>
                     <div>
                       <ProductTypeDetails
@@ -157,6 +150,8 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
                     </div>
                   </div>
                   <SaveButtonBar
+                    onCancel={onBack}
+                    onDelete={toggleDeleteDialog}
                     onSave={submit}
                     disabled={disabled || !hasChanged}
                     state={saveButtonBarState}

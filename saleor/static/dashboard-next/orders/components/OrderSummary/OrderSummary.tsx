@@ -19,6 +19,7 @@ import i18n from "../../../i18n";
 import OrderProducts, {
   OrderProductsProps
 } from "../OrderProducts/OrderProducts";
+import CardTitle from "../../../components/CardTitle";
 
 interface MoneyType {
   amount: number;
@@ -107,21 +108,29 @@ const OrderSummary = decorate<OrderSummaryProps>(
     const isDraft = status === OrderStatus.DRAFT;
     return (
       <Card>
-        <PageHeader title={i18n.t("Order Summary")}>
-          {isDraft && (
-            <IconButton disabled={!onProductAdd} onClick={onProductAdd}>
-              <AddIcon />
-            </IconButton>
-          )}
-        </PageHeader>
-        {status && (
-          <CardContent className={classes.statusBar}>
+        <CardTitle
+          title={i18n.t("Order Summary")}
+          toolbar={
+            isDraft && (
+              <Button
+                color="secondary"
+                variant="flat"
+                disabled={!onProductAdd}
+                onClick={onProductAdd}
+              >
+                {i18n.t("Add product")}
+              </Button>
+            )
+          }
+        >
+          {status && (
             <StatusLabel
               status={orderStatus.status}
               label={orderStatus.localized}
+              typographyProps={{ variant: "body1" }}
             />
-          </CardContent>
-        )}
+          )}
+        </CardTitle>
         <OrderProducts
           isDraft={isDraft}
           net={net}

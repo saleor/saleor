@@ -5,7 +5,6 @@ import InputLabel from "@material-ui/core/InputLabel";
 import * as React from "react";
 
 interface RichTextEditorProps {
-  defaultValue?: string;
   disabled?: boolean;
   error?: boolean;
   fullWidth?: boolean;
@@ -17,7 +16,6 @@ interface RichTextEditorProps {
 }
 
 export const RichTextEditor: React.StatelessComponent<RichTextEditorProps> = ({
-  defaultValue,
   disabled,
   error,
   fullWidth,
@@ -28,16 +26,12 @@ export const RichTextEditor: React.StatelessComponent<RichTextEditorProps> = ({
   value
 }) => (
   <FormControl style={fullWidth ? { width: "100%" } : {}} error={error}>
-    {label && (
-      <InputLabel shrink={!!(value || defaultValue)}>{label}</InputLabel>
-    )}
+    {label && <InputLabel shrink={!!value}>{label}</InputLabel>}
     <Input
       disabled={disabled}
       multiline
-      rows={10}
       name={name}
-      {...(value ? { value } : {})}
-      {...(defaultValue ? { defaultValue } : {})}
+      value={value}
       onChange={onChange}
       fullWidth={fullWidth}
     />
