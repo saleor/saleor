@@ -32,7 +32,7 @@ class Page(SeoModel):
         permissions = ((
             'manage_pages', pgettext_lazy(
                 'Permission description',
-                'Create, modify, and delete pages.')),)
+                'Capability to create, modify, and delete pages.')),)
 
     def __str__(self):
         return self.title

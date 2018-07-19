@@ -76,7 +76,7 @@
           <a href="#base-modal" data-href="{% url 'dashboard:customer-delete' pk=customer.pk %}" class="modal-trigger-custom btn-flat waves-effect">
             {% trans "Remove customer" context "Customer action" %}
           </a>
-          {% if perms.account.impersonate_user %}
+          {% if perms.account.impersonate_users %}
             <a href="{% url 'impersonate-start' uid=customer.pk %}" class="btn-flat waves-effect">
               {% trans 'Impersonate customer' context 'Customer impersonate action' %}
             </a>
