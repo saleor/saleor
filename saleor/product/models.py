@@ -112,8 +112,7 @@ class Product(SeoModel):
         permissions = ((
             'manage_products', pgettext_lazy(
                 'Permission description',
-                'Manage products. Access to inventory '
-                'and inventory management.')),)
+                'Manage products.')),)
 
     def __iter__(self):
         if not hasattr(self, '__variants'):

@@ -97,9 +97,7 @@ class Order(models.Model):
         ordering = ('-pk',)
         permissions = ((
             'manage_orders',
-            pgettext_lazy(
-                'Permission description',
-                'Manage orders, fulfillments and order notifications.')),)
+            pgettext_lazy('Permission description', 'Manage orders.')),)
 
     def save(self, *args, **kwargs):
         if not self.token:
