@@ -322,7 +322,11 @@ PAYMENT_VARIANTS = {
     'default': ('payments.dummy.DummyProvider', {})}
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
-SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+
+# Do not use cached session if locmem cache backend is used but fallback to use
+# default django.contrib.sessions.backends.db instead
+if not CACHES['default']['BACKEND'].endswith('LocMemCache'):
+    SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 CHECKOUT_PAYMENT_CHOICES = [
     ('default', 'Dummy provider')]
