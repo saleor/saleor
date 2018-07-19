@@ -9,7 +9,8 @@ from django.urls import reverse
 from prices import Money, TaxedMoney
 from saleor.dashboard.order.utils import get_voucher_discount_for_order
 from saleor.discount import DiscountValueType, VoucherType
-from saleor.discount.models import Sale, Voucher
+from saleor.discount.models import Sale, Voucher, NotApplicable
+from saleor.product.models import Collection
 
 
 def test_sales_list(admin_client, sale):
@@ -55,7 +56,8 @@ def test_view_sale_add(admin_client, default_category, collection):
         'type': DiscountValueType.PERCENTAGE,
         'value': 100,
         'categories': [default_category.id],
-        'collections': [collection.id]}
+        'collections': [collection.id],
+        'start_date': '2018-01-01'}
 
     response = admin_client.post(url, data)
 
@@ -67,34 +69,28 @@ def test_view_sale_add(admin_client, default_category, collection):
     assert collection in sale.collections.all()
 
 
-def test_view_sale_add_requires_product_or_category(
-        admin_client, default_category, product):
+def test_view_sale_add_requires_product_category_or_collection(
+        admin_client, default_category, product, collection):
+    initial_sales_count = Sale.objects.count()
     url = reverse('dashboard:sale-add')
     data = {
         'name': 'Free products',
         'type': DiscountValueType.PERCENTAGE,
-        'value': 100}
+        'value': 100,
+        'start_date': '2018-01-01'}
 
     response = admin_client.post(url, data)
 
     assert response.status_code == 200
-    assert Sale.objects.count() == 0
-
-    data_with_category = data.copy()
-    data_with_category.update({'categories': [default_category.id]})
-
-    response = admin_client.post(url, data_with_category)
-
-    assert response.status_code == 302
-    assert Sale.objects.count() == 1
-
-    data_with_product = data.copy()
-    data_with_product.update({'products': [product.id]})
-
-    response = admin_client.post(url, data_with_product)
-
-    assert response.status_code == 302
-    assert Sale.objects.count() == 2
+    assert Sale.objects.count() == initial_sales_count
+    products_data = [
+        {'categories': [default_category.id]},
+        {'products': [product.id]}, {'collections': [collection.pk]}]
+    for count, proper_data in enumerate(products_data):
+        proper_data.update(data)
+        response = admin_client.post(url, proper_data)
+        assert response.status_code == 302
+        assert Sale.objects.count() == 1 + initial_sales_count + count
 
 
 @pytest.mark.parametrize(
@@ -112,18 +108,6 @@ def test_value_voucher_order_discount(
     order = Mock(get_subtotal=Mock(return_value=subtotal), voucher=voucher)
     discount = get_voucher_discount_for_order(order)
     assert discount == Money(expected_value, 'USD')
-
-
-def test_value_voucher_order_discount_not_applicable_returns_zero(settings):
-    voucher = Voucher(
-        code='unique', type=VoucherType.VALUE,
-        discount_value_type=DiscountValueType.FIXED,
-        discount_value=10,
-        limit=Money(100, 'USD'))
-    subtotal = TaxedMoney(net=Money(10, 'USD'), gross=Money(10, 'USD'))
-    order = Mock(get_subtotal=Mock(return_value=subtotal), voucher=voucher)
-    discount = get_voucher_discount_for_order(order)
-    assert discount == Money(0, 'USD')
 
 
 @pytest.mark.parametrize(
@@ -159,35 +143,41 @@ def test_shipping_voucher_checkout_discount_not_applicable_returns_zero():
         get_subtotal=Mock(return_value=price),
         shipping_price=price,
         voucher=voucher)
-    discount = get_voucher_discount_for_order(order)
-    assert discount == Money(0, 'USD')
+    with pytest.raises(NotApplicable):
+        get_voucher_discount_for_order(order)
 
 
-def test_product_voucher_checkout_discount_not_applicable_returns_zero(
-        monkeypatch):
-    monkeypatch.setattr(
-        'saleor.dashboard.order.utils.get_product_variants_and_prices',
-        lambda order, product: [])
+def test_product_voucher_checkout_discount_raises_not_applicable(
+        order_with_lines, product_with_images):
+    discounted_product = product_with_images
     voucher = Voucher(
         code='unique', type=VoucherType.PRODUCT,
         discount_value_type=DiscountValueType.FIXED,
         discount_value=10)
-    order = Mock(voucher=voucher)
-    discount = get_voucher_discount_for_order(order)
-    assert discount == Money(0, 'USD')
+    voucher.save()
+    voucher.products.add(discounted_product)
+    order_with_lines.voucher = voucher
+    order_with_lines.save()
+    # Offer is valid only for products listed in voucher
+    with pytest.raises(NotApplicable):
+        get_voucher_discount_for_order(order_with_lines)
 
 
-def test_category_voucher_checkout_discount_not_applicable(monkeypatch):
-    monkeypatch.setattr(
-        'saleor.dashboard.order.utils.get_category_variants_and_prices',
-        lambda order, product: [])
+def test_category_voucher_checkout_discount_raises_not_applicable(
+        monkeypatch, order_with_lines):
+    discounted_collection = Collection.objects.create(
+        name='Discounted', slug='discou')
     voucher = Voucher(
         code='unique', type=VoucherType.CATEGORY,
         discount_value_type=DiscountValueType.FIXED,
         discount_value=10)
-    order = Mock(voucher=voucher)
-    discount = get_voucher_discount_for_order(order)
-    assert discount == Money(0, 'USD')
+    voucher.save()
+    voucher.collections.add(discounted_collection)
+    order_with_lines.voucher = voucher
+    order_with_lines.save()
+    # Discount should be valid only for items in the discounted collections
+    with pytest.raises(NotApplicable):
+        get_voucher_discount_for_order(order_with_lines)
 
 
 def test_ajax_voucher_list(admin_client, voucher):

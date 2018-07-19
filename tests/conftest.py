@@ -112,6 +112,14 @@ def cart(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def cart_with_item(cart, product):
+    variant = product.variants.get()
+    add_variant_to_cart(cart, variant, 3)
+    cart.save()
+    return cart
+
+
+@pytest.fixture
 def cart_with_voucher(cart, product, voucher):
     variant = product.variants.get()
     add_variant_to_cart(cart, variant, 3)

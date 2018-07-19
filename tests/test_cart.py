@@ -287,13 +287,12 @@ def test_cart_counter(monkeypatch):
     assert ret == {'cart_counter': 4}
 
 
-def test_get_product_variants_and_prices():
-    variant = Mock(product_id=1, id=1, get_price=Mock(return_value=10))
-    cart = MagicMock(spec=Cart)
-    cart.__iter__ = Mock(
-        return_value=iter([Mock(quantity=1, variant=variant)]))
-    variants = list(utils.get_product_variants_and_prices(cart, variant))
-    assert variants == [(variant, 10)]
+def test_get_prices_of_discounted_products(cart_with_item):
+    discounted_line = cart_with_item.lines.first()
+    discounted_product = discounted_line.variant.product
+    prices = utils.get_prices_of_discounted_products(
+        cart_with_item, [discounted_product])
+    assert prices == [discounted_line.get_total()]
 
 
 def test_contains_unavailable_variants():
@@ -588,12 +587,14 @@ def test_cart_line_state(product, request_cart_with_item):
     assert line.quantity == 2
 
 
-def test_get_category_variants_and_prices(
-        default_category, product, request_cart_with_item):
-    result = list(utils.get_category_variants_and_prices(
-        request_cart_with_item, default_category))
-    variant = product.variants.get()
-    assert result[0][0] == variant
+def test_get_prices_of_products_in_discounted_collections(
+        collection, product, cart_with_item):
+    discounted_line = cart_with_item.lines.first()
+    assert discounted_line.variant.product == product
+    product.collections.add(collection)
+    result = utils.get_prices_of_products_in_discounted_collections(
+        cart_with_item, [collection])
+    assert result == [discounted_line.get_total()]
 
 
 def test_update_view_must_be_ajax(customer_user, rf):

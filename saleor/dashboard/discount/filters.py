@@ -18,7 +18,7 @@ SORT_BY_FIELDS_LABELS_VOUCHER = {
     'name': pgettext_lazy('Voucher list sorting option', 'name'),
     'discount_value': pgettext_lazy(
         'Voucher list sorting option', 'discount_value'),
-    'apply_to': pgettext_lazy('Voucher list sorting option', 'apply_to'),
+    'countries': pgettext_lazy('Voucher list sorting option', 'countries'),
     'start_date': pgettext_lazy('Voucher list sorting option', 'start_date'),
     'end_date': pgettext_lazy('Voucher list sorting option', 'end_date'),
     'used': pgettext_lazy('Voucher list sorting option', 'used'),

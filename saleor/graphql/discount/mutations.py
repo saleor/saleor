@@ -3,18 +3,18 @@ import graphene
 from ...discount import VoucherType, models
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import Decimal
-from .types import ApplyToEnum, DiscountValueTypeEnum, VoucherTypeEnum
+from .types import DiscountValueTypeEnum, VoucherTypeEnum
 
 
 def validate_voucher(voucher_data):
     voucher_type = voucher_data.get('type')
     errors = []
     if voucher_type == VoucherType.PRODUCT:
-        if not voucher_data.get('product'):
-            errors.append(('product', 'This field is required.'))
+        if not voucher_data.get('products'):
+            errors.append(('products', 'This field is required.'))
     elif voucher_type == VoucherType.CATEGORY:
-        if not voucher_data.get('category'):
-            errors.append(('category', 'This field is required.'))
+        if not voucher_data.get('collections'):
+            errors.append(('collections', 'This field is required.'))
     return errors
 
 
@@ -30,10 +30,15 @@ class VoucherInput(graphene.InputObjectType):
     discount_value_type = DiscountValueTypeEnum(
         description='Choices: fixed or percentage.')
     discount_value = Decimal(description='Value of the voucher.')
-    product = graphene.ID(description='Product related to the discount.')
-    category = graphene.ID(description='Category related to the discount.')
-    apply_to = ApplyToEnum(description='Single item or all matching products.')
+    products = graphene.List(
+        graphene.ID, description='Products discounted by the voucher.')
+    collections = graphene.List(
+        graphene.ID, description='Collections discounted by the voucher.')
     limit = Decimal(description='Limit value of the discount.')
+    countries = graphene.List(
+        graphene.String,
+        description='Country codes that can be used with '
+                    'the shipping voucher')
 
 
 class VoucherCreate(ModelMutation):
