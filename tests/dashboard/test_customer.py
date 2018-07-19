@@ -10,7 +10,7 @@ def test_customers_list(admin_client):
     assert response.status_code == 200
 
 
-def test__customer_detail_view(admin_client, customer_user):
+def test_customer_detail_view(admin_client, customer_user):
     response = admin_client.get(
         reverse('dashboard:customer-details', args=[customer_user.pk]))
     assert response.status_code == 200
