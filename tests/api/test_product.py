@@ -6,7 +6,8 @@ from django.shortcuts import reverse
 from django.utils.text import slugify
 from graphql_relay import to_global_id
 from prices import Money
-from tests.utils import create_image, get_graphql_content
+from tests.utils import (
+    create_image, create_pdf_file_with_image_ext, get_graphql_content)
 
 from saleor.product.models import (
     Category, Collection, Product, ProductAttribute, ProductType)
@@ -829,6 +830,37 @@ def test_product_image_create_mutation(admin_api_client, product):
     assert product.images.first().image.name == file_name
 
 
+def test_invalid_product_image_create_mutation(admin_api_client, product):
+    query = """
+    mutation createProductImage($image: Upload!, $product: ID!) {
+        productImageCreate(input: {image: $image, product: $product}) {
+            productImage {
+                id
+                image
+                url
+                sortOrder
+            }
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+    image_file, image_name = create_pdf_file_with_image_ext()
+    variables = {
+        'product': graphene.Node.to_global_id('Product', product.id),
+        'image': image_name}
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = admin_api_client.post_multipart(reverse('api'), body)
+    content = get_graphql_content(response)
+    assert content['data']['productImageCreate']['errors'] == [{
+        'field': 'image',
+        'message': 'Invalid file type'}]
+    product.refresh_from_db()
+    assert product.images.count() == 0
+
+
 def test_product_image_update_mutation(admin_api_client, product_with_image):
     product = product_with_image
     query = """
@@ -854,6 +886,42 @@ def test_product_image_update_mutation(admin_api_client, product_with_image):
     assert 'errors' not in content
     data = content['data']['productImageUpdate']
     assert data['productImage']['alt'] == alt
+
+
+def test_invalid_product_image_update_mutation(
+        admin_api_client, product_with_image):
+    product = product_with_image
+    query = """
+    mutation updateProductImage($image: Upload!, $alt: String, $product: ID!, $id: ID!) {
+        productImageUpdate(id: $id, input: {image: $image, alt: $alt, product: $product}) {
+            productImage {
+                image
+            }
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+    image_obj = product_with_image.images.first()
+    image = image_obj.image
+    new_image_file, new_image_name = create_pdf_file_with_image_ext()
+    variables = {
+        'product': graphene.Node.to_global_id('Product', product.id),
+        'image': new_image_name,
+        'id': graphene.Node.to_global_id('ProductImage', image_obj.id),
+    }
+    body = get_multipart_request_body(
+        query, variables, new_image_file, new_image_name)
+    response = admin_api_client.post_multipart(reverse('api'), body)
+    content = get_graphql_content(response)
+    assert content['data']['productImageUpdate']['errors'] == [{
+        'field': 'image',
+        'message': 'Invalid file type'}]
+    product_with_image.refresh_from_db()
+    assert product_with_image.images.count() == 1
+    assert product_with_image.images.first().image == image
 
 
 def test_product_image_delete(admin_api_client, product_with_image):
