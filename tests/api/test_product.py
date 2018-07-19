@@ -864,8 +864,8 @@ def test_invalid_product_image_create_mutation(admin_api_client, product):
 def test_product_image_update_mutation(admin_api_client, product_with_image):
     product = product_with_image
     query = """
-    mutation updateProductImage($image: Upload!, $alt: String, $product: ID!) {
-        productImageCreate(input: {image: $image, alt: $alt, product: $product}) {
+    mutation updateProductImage($imageId: ID!, $image: Upload!, $alt: String, $product: ID!) {
+        productImageUpdate(id: $imageId, input: {image: $image, alt: $alt, product: $product}) {
             productImage {
                 alt
             }
@@ -878,12 +878,13 @@ def test_product_image_update_mutation(admin_api_client, product_with_image):
     alt = 'damage alt'
     variables = {
         'product': graphene.Node.to_global_id('Product', product.id),
-        'image': image.name, 'alt': alt}
+        'image': image.name, 'alt': alt,
+        'imageId': graphene.Node.to_global_id('ProductImage', image_obj.id)}
     body = get_multipart_request_body(query, variables, image.file, image.name)
     response = admin_api_client.post_multipart(reverse('api'), body)
     content = get_graphql_content(response)
     assert 'errors' not in content
-    data = content['data']['productImageCreate']
+    data = content['data']['productImageUpdate']
     assert data['productImage']['alt'] == alt
 
 
