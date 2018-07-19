@@ -99,8 +99,8 @@ class Order(models.Model):
             'manage_orders',
             pgettext_lazy(
                 'Permission description',
-                'Create, view, modify, and delete orders, fullfillments, and '
-                'order notifications.')),)
+                'Capability to view, create, and modify orders, '
+                'fullfillments, and order notifications.')),)
 
     def save(self, *args, **kwargs):
         if not self.token:
