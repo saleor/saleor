@@ -96,33 +96,27 @@
                 {% trans "Home" context "Dashboard homepage" %}
               </a>
             </li>
-            {% if perms.product.manage_products or perms.product.manage_products %}
+            {% if perms.product.manage_products %}
             <li class="side-nav-section" id="first">
               <p>
                 {% trans "Catalogue" context "Dashboard catalogue" %}
               </p>
               <ul>
-                {% if perms.product.manage_products %}
                   <li class="{% block menu_products_class %}{% endblock %}">
                     <a href="{% url 'dashboard:product-list' %}">
                       {% trans "Products" context "Dashboard products list" %}
                     </a>
                   </li>
-                {% endif %}
-                {% if perms.product.manage_products %}
                   <li class="{% block menu_categories_class %}{% endblock %}">
                     <a href="{% url 'dashboard:category-list' %}">
                       {% trans "Categories" context "Dashboard categories list" %}
                     </a>
                   </li>
-                {% endif %}
-                {% if perms.product.manage_products %}
                 <li class="{% block menu_collections_class %}{% endblock %}">
                   <a href="{% url 'dashboard:collection-list' %}">
                     {% trans "Collections" context "Dashboard side navigation link" %}
                   </a>
                 </li>
-                {% endif %}
               </ul>
             </li>
             {% endif %}
