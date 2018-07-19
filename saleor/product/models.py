@@ -38,12 +38,6 @@ class Category(MPTTModel, SeoModel):
     objects = models.Manager()
     tree = TreeManager()
 
-    class Meta:
-        app_label = 'product'
-        permissions = ((
-            'manage_products',
-            pgettext_lazy('Permission description', 'Can edit categories')),)
-
     def __str__(self):
         return self.name
 
@@ -117,10 +111,8 @@ class Product(SeoModel):
         app_label = 'product'
         permissions = (
             ('manage_products',
-             pgettext_lazy('Permission description', 'Can edit products')),
-            ('manage_products',
              pgettext_lazy(
-                 'Permission description', 'Can edit product properties')))
+                 'Permission description', 'Can edit product properties')),)
 
     def __iter__(self):
         if not hasattr(self, '__variants'):
