@@ -12,6 +12,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='shippingmethod',
-            options={'permissions': (('manage_shipping', 'Capability to view, create, modify, and delete shipping methods.'),)},
+            options={'permissions': (('manage_shipping', 'Manage shipping.'),)},
         ),
     ]

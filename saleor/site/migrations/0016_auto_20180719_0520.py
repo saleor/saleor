@@ -12,6 +12,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='sitesettings',
-            options={'permissions': (('manage_settings', 'Capability to view and modify the settings section.'),)},
+            options={'permissions': (('manage_settings', 'Manage settings.'),)},
         ),
     ]
