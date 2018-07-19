@@ -4,15 +4,14 @@ import { withStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import ControlledCheckbox from "../../../components//ControlledCheckbox";
-import PageHeader from "../../../components/PageHeader";
+import CardTitle from "../../../components/CardTitle";
+import ControlledSwitch from "../../../components/ControlledSwitch";
 import i18n from "../../../i18n";
 
 interface ProductAvailabilityFormProps {
   data: {
     available: boolean;
     availableOn: string;
-    chargeTaxes: boolean;
     featured: boolean;
   };
   errors: { [key: string]: string };
@@ -23,21 +22,28 @@ interface ProductAvailabilityFormProps {
 const decorate = withStyles(theme => ({
   date: {
     marginTop: theme.spacing.unit
+  },
+  pullDown: {
+    position: "relative" as "relative",
+    top: theme.spacing.unit * 1.5
+  },
+  pullUp: {
+    marginTop: -theme.spacing.unit * 2
   }
 }));
 export const ProductAvailabilityForm = decorate<ProductAvailabilityFormProps>(
   ({
     classes,
-    data: { available, availableOn, chargeTaxes, featured },
+    data: { available, availableOn, featured },
     errors,
     loading,
     onChange
   }) => (
     <Card>
-      <PageHeader title={i18n.t("Status")} />
+      <CardTitle title={i18n.t("Availability")} />
       <CardContent>
-        <div>
-          <ControlledCheckbox
+        <div className={classes.pullUp}>
+          <ControlledSwitch
             name="available"
             label={i18n.t("Published in storefront")}
             checked={available}
@@ -46,39 +52,33 @@ export const ProductAvailabilityForm = decorate<ProductAvailabilityFormProps>(
           />
         </div>
         {available && (
-          <TextField
-            error={!!errors.availableOn}
-            disabled={loading}
-            label={i18n.t("Publish product on")}
-            name="availableOn"
-            type="date"
-            helperText={errors.availableOn}
-            value={availableOn ? availableOn : ""}
-            onChange={onChange}
-            className={classes.date}
-            InputLabelProps={{
-              shrink: true
-            }}
-          />
+          <>
+            <TextField
+              error={!!errors.availableOn}
+              disabled={loading}
+              label={i18n.t("Publish product on")}
+              name="availableOn"
+              type="date"
+              fullWidth={true}
+              helperText={errors.availableOn}
+              value={availableOn ? availableOn : ""}
+              onChange={onChange}
+              className={classes.date}
+              InputLabelProps={{
+                shrink: true
+              }}
+            />
+            <div className={classes.pullDown}>
+              <ControlledSwitch
+                name="featured"
+                label={i18n.t("Feature on Homepage")}
+                checked={featured}
+                onChange={onChange}
+                disabled={loading}
+              />
+            </div>
+          </>
         )}
-        <div>
-          <ControlledCheckbox
-            name="featured"
-            label={i18n.t("Feature this product on homepage")}
-            checked={featured}
-            onChange={onChange}
-            disabled={loading}
-          />
-        </div>
-        <div>
-          <ControlledCheckbox
-            name="chargeTaxes"
-            label={i18n.t("Charge taxes")}
-            checked={chargeTaxes}
-            onChange={onChange}
-            disabled={loading}
-          />
-        </div>
       </CardContent>
     </Card>
   )

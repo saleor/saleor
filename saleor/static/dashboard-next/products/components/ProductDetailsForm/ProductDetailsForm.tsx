@@ -4,40 +4,33 @@ import { withStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import { FormSpacer } from "../../../components/FormSpacer";
-import PriceField from "../../../components/PriceField";
+import CardTitle from "../../../components/CardTitle";
+import FormSpacer from "../../../components/FormSpacer";
 import { RichTextEditor } from "../../../components/RichTextEditor";
 import i18n from "../../../i18n";
 
 interface ProductDetailsFormProps {
-  currencySymbol?: string;
-  description?: string;
+  data: {
+    description: string;
+    name: string;
+  };
   disabled?: boolean;
   errors: { [key: string]: string };
-  name?: string;
-  price?: number;
   onChange(event: any);
 }
 
 const decorate = withStyles(theme => ({
   root: {
     display: "grid",
-    gridTemplateColumns: `1fr ${theme.spacing.unit}px 8rem`
+    gridColumnGap: theme.spacing.unit * 2 + "px",
+    gridTemplateColumns: `3fr 1fr`
   }
 }));
 
 export const ProductDetailsForm = decorate<ProductDetailsFormProps>(
-  ({
-    classes,
-    currencySymbol,
-    description,
-    disabled,
-    errors,
-    name,
-    onChange,
-    price
-  }) => (
+  ({ classes, data, disabled, errors, onChange }) => (
     <Card>
+      <CardTitle title={i18n.t("General information")} />
       <CardContent>
         <div className={classes.root}>
           <TextField
@@ -49,20 +42,8 @@ export const ProductDetailsForm = decorate<ProductDetailsFormProps>(
             label={i18n.t("Name")}
             name="name"
             rows={5}
-            value={name}
+            value={data.name}
             onChange={onChange}
-          />
-          <span />
-          <PriceField
-            error={!!errors.price}
-            name="price"
-            hint={errors.price}
-            currencySymbol={currencySymbol}
-            disabled={disabled}
-            key="priceInput"
-            label={i18n.t("Price")}
-            onChange={onChange}
-            value={price}
           />
         </div>
         <FormSpacer />
@@ -78,7 +59,7 @@ export const ProductDetailsForm = decorate<ProductDetailsFormProps>(
           key="descriptionInput"
           label={i18n.t("Description")}
           name="description"
-          value={description}
+          value={data.description}
           onChange={onChange}
         />
       </CardContent>
