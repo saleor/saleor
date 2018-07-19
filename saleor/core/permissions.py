@@ -10,8 +10,6 @@ MODELS_PERMISSIONS = [
     'order.manage_orders',
     'page.manage_pages',
     'product.manage_products',
-    'product.manage_products',
-    'product.manage_products',
     'shipping.manage_shipping',
     'site.manage_settings']
 
