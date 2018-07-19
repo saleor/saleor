@@ -202,7 +202,8 @@ def ajax_products_list(request):
     Response format is that of a Select2 JS widget.
     """
     queryset = (
-        Product.objects.all() if request.user.has_perm('product.manage_products')
+        Product.objects.all()
+        if request.user.has_perm('product.manage_products')
         else Product.objects.available_products())
     search_query = request.GET.get('q', '')
     if search_query:
