@@ -107,4 +107,4 @@ class ShippingPriceDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.manage_pages')
+        return user.has_perm('shipping.manage_shipping')

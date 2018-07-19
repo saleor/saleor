@@ -42,7 +42,7 @@ class CategoryCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('category.manage_products')
+        return user.has_perm('product.manage_products')
 
 
 class CategoryUpdate(CategoryCreate):
@@ -68,7 +68,7 @@ class CategoryDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('category.manage_products')
+        return user.has_perm('product.manage_products')
 
 
 class CollectionInput(graphene.InputObjectType):
