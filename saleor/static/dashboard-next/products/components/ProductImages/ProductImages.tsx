@@ -1,16 +1,13 @@
+import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import GridListTile from "@material-ui/core/GridListTile";
-import GridListTileBar from "@material-ui/core/GridListTileBar";
-import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import AddIcon from "@material-ui/icons/Add";
-import ModeEditIcon from "@material-ui/icons/ModeEdit";
+import AddPhotoIcon from "@material-ui/icons/AddAPhoto";
 import * as React from "react";
 import { SortableContainer, SortableElement } from "react-sortable-hoc";
 
-import PageHeader from "../../../components/PageHeader";
+import CardTitle from "../../../components/CardTitle";
 import i18n from "../../../i18n";
 
 interface ProductImagesProps {
@@ -43,55 +40,76 @@ interface ImageListContainerProps {
 }
 
 const decorate = withStyles(theme => ({
-  root: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gridColumnGap: `${theme.spacing.unit * 2}px`,
-    gridRowGap: `${theme.spacing.unit * 2}px`,
-    [theme.breakpoints.down("sm")]: {
-      gridTemplateColumns: "repeat(2, 1fr)"
-    }
-  },
   card: {
     marginTop: theme.spacing.unit * 2,
     [theme.breakpoints.down("sm")]: {
       marginTop: 0
     }
   },
-  gridElement: {
-    cursor: "move",
-    userSelect: "none" as "none",
-    "& img": {
-      height: 20 * theme.spacing.unit,
-      pointerEvents: "none" as "none",
-      width: 20 * theme.spacing.unit
-    }
+  fileField: {
+    display: "none"
   },
   icon: {
     color: "rgba(255, 255, 255, 0.54)"
   },
-  fileField: {
-    display: "none"
+  image: {
+    cursor: "move",
+    height: "100%",
+    maxHeight: theme.spacing.unit * 15,
+    maxWidth: theme.spacing.unit * 15,
+    userSelect: "none" as "none",
+    width: "100%"
+  },
+  imageContainer: {
+    border: "1px solid #eaeaea",
+    borderRadius: theme.spacing.unit,
+    padding: theme.spacing.unit * 2
+  },
+  noPhotosIcon: {
+    height: theme.spacing.unit * 8,
+    margin: "0 auto",
+    width: theme.spacing.unit * 8
+  },
+  noPhotosIconContainer: {
+    margin: `${theme.spacing.unit * 5}px 0`,
+    textAlign: "center" as "center"
+  },
+  noPhotosIconText: {
+    fontSize: "1rem",
+    fontWeight: 600 as 600,
+    marginTop: theme.spacing.unit
+  },
+  root: {
+    display: "grid",
+    gridColumnGap: `${theme.spacing.unit * 2}px`,
+    gridRowGap: `${theme.spacing.unit * 2}px`,
+    gridTemplateColumns: "repeat(4, 1fr)",
+    [theme.breakpoints.down("sm")]: {
+      gridTemplateColumns: "repeat(2, 1fr)"
+    }
   }
 }));
 
 const ImageListElement = SortableElement(
   decorate<ImageListElementProps>(({ classes, onImageEdit, tile }) => (
-    <GridListTile key={tile.id} component="div" className={classes.gridElement}>
-      <img src={tile.url} alt={tile.alt} />
-      <GridListTileBar
-        title={tile.alt || i18n.t("No description")}
-        actionIcon={
-          onImageEdit ? (
-            <IconButton className={classes.icon} onClick={onImageEdit}>
-              <ModeEditIcon />
-            </IconButton>
-          ) : (
-            ""
-          )
-        }
-      />
-    </GridListTile>
+    <div className={classes.imageContainer}>
+      <img className={classes.image} src={tile.url} alt={tile.alt} />
+    </div>
+    // <GridListTile key={tile.id} component="div" className={classes.gridElement}>
+    //   <img src={tile.url} alt={tile.alt} />
+    //   <GridListTileBar
+    //     title={tile.alt || i18n.t("No description")}
+    //     actionIcon={
+    //       onImageEdit ? (
+    //         <IconButton className={classes.icon} onClick={onImageEdit}>
+    //           <ModeEditIcon />
+    //         </IconButton>
+    //       ) : (
+    //         ""
+    //       )
+    //     }
+    //   />
+    // </GridListTile>
   ))
 );
 
@@ -125,25 +143,34 @@ const ProductImages = decorate<ProductImagesProps>(
     onImageUpload
   }) => (
     <Card className={classes.card}>
-      <PageHeader title={i18n.t("Images")}>
-        <IconButton onClick={e => this.upload.click()} disabled={loading}>
-          <AddIcon />
-        </IconButton>
-        <input
-          className={classes.fileField}
-          id="fileUpload"
-          onChange={onImageUpload}
-          type="file"
-          ref={ref => (this.upload = ref)}
-        />
-      </PageHeader>
+      <CardTitle
+        title={i18n.t("Images")}
+        toolbar={
+          <>
+            <Button
+              onClick={e => this.upload.click()}
+              disabled={loading}
+              variant="flat"
+              color="secondary"
+            >
+              {i18n.t("Upload image")}
+            </Button>
+            <input
+              className={classes.fileField}
+              id="fileUpload"
+              onChange={onImageUpload}
+              type="file"
+              ref={ref => (this.upload = ref)}
+            />
+          </>
+        }
+      />
       <CardContent>
-        {images === undefined || images === null ? (
+        {images === undefined ? (
           <div className={classes.root}>
-            <GridListTile className={classes.gridElement} component="div">
+            <div className={classes.imageContainer}>
               <img src={placeholderImage} />
-              <GridListTileBar title={i18n.t("Loading...")} />
-            </GridListTile>
+            </div>
           </div>
         ) : images.length > 0 ? (
           <ImageListContainer
@@ -154,7 +181,12 @@ const ProductImages = decorate<ProductImagesProps>(
             onImageEdit={onImageEdit}
           />
         ) : (
-          <Typography>{i18n.t("No images available")}</Typography>
+          <div className={classes.noPhotosIconContainer}>
+            <AddPhotoIcon className={classes.noPhotosIcon} />
+            <Typography className={classes.noPhotosIconText}>
+              {i18n.t("Drop images to upload")}
+            </Typography>
+          </div>
         )}
       </CardContent>
     </Card>

@@ -2,7 +2,6 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import * as placeholderImage from "../../../../images/placeholder255x255.png";
-import { categories } from "../../../categories/fixtures";
 import ProductUpdatePage from "../../../products/components/ProductUpdatePage";
 import { product as productFixture } from "../../../products/fixtures";
 import Decorator from "../../Decorator";
@@ -23,6 +22,26 @@ storiesOf("Views / Products / Product edit", module)
       images={product.images.edges.map(edge => edge.node)}
       variants={product.variants.edges.map(edge => edge.node)}
       productCollections={product.collections.edges.map(edge => edge.node)}
+      onAttributesEdit={() => {}}
+      onDelete={() => {}}
+      onProductShow={() => {}}
+      onVariantAdd={() => {}}
+      onVariantShow={() => {}}
+    />
+  ))
+  .add("when product has no images", () => (
+    <ProductUpdatePage
+      errors={[]}
+      onBack={() => {}}
+      onSubmit={() => {}}
+      product={product}
+      collections={product.collections.edges.map(edge => edge.node)}
+      categories={[product.category]}
+      placeholderImage={placeholderImage}
+      images={[]}
+      variants={product.variants.edges.map(edge => edge.node)}
+      productCollections={product.collections.edges.map(edge => edge.node)}
+      onAttributesEdit={() => {}}
       onDelete={() => {}}
       onProductShow={() => {}}
       onVariantAdd={() => {}}
@@ -36,6 +55,7 @@ storiesOf("Views / Products / Product edit", module)
       onBack={() => {}}
       onSubmit={() => {}}
       disabled={true}
+      onAttributesEdit={() => {}}
       placeholderImage={placeholderImage}
     />
   ));
