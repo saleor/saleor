@@ -26,7 +26,7 @@ def get_voucher_type_forms(voucher, data):
             data or None, instance=voucher, prefix=VoucherType.VALUE),
         VoucherType.PRODUCT: forms.ProductVoucherForm(
             data or None, instance=voucher, prefix=VoucherType.PRODUCT),
-        VoucherType.CATEGORY: forms.CategoryVoucherForm(
+        VoucherType.CATEGORY: forms.CollectionVoucherForm(
             data or None, instance=voucher, prefix=VoucherType.CATEGORY)}
 
 
@@ -90,7 +90,7 @@ def sale_delete(request, pk):
 @staff_member_required
 @permission_required('discount.manage_discounts')
 def voucher_list(request):
-    vouchers = (Voucher.objects.select_related('product', 'category')
+    vouchers = (Voucher.objects.prefetch_related('products', 'collections')
                 .order_by('name'))
     voucher_filter = VoucherFilter(request.GET, queryset=vouchers)
     vouchers = get_paginator_items(

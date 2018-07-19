@@ -2,7 +2,7 @@ import graphene
 from graphene import relay
 
 from ...discount import (
-    DiscountValueType, VoucherApplyToProduct, VoucherType, models)
+    DiscountValueType, VoucherType, models)
 from ..core.types.common import CountableDjangoObjectType
 
 
@@ -43,8 +43,3 @@ class VoucherTypeEnum(graphene.Enum):
 class DiscountValueTypeEnum(graphene.Enum):
     FIXED = DiscountValueType.FIXED
     PERCENTAGE = DiscountValueType.PERCENTAGE
-
-
-class ApplyToEnum(graphene.Enum):
-    ONE_PRODUCT = VoucherApplyToProduct.ONE_PRODUCT
-    ALL_PRODUCTS = VoucherApplyToProduct.ALL_PRODUCTS
