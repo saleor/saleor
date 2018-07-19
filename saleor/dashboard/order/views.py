@@ -424,7 +424,7 @@ def order_shipping_edit(request, order_pk):
         status = 400
     ctx = {'order': order, 'form': form}
     return TemplateResponse(
-        request, 'dashboard/order/modal/manage_shipping.html', ctx,
+        request, 'dashboard/order/modal/edit_shipping.html', ctx,
         status=status)
 
 
@@ -475,7 +475,7 @@ def order_voucher_edit(request, order_pk):
         status = 400
     ctx = {'order': order, 'form': form}
     return TemplateResponse(
-        request, 'dashboard/order/modal/manage_vouchers.html', ctx,
+        request, 'dashboard/order/modal/edit_voucher.html', ctx,
         status=status)
 
 

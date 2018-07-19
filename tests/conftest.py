@@ -259,13 +259,8 @@ def non_default_category(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def permission_manage_sales():
-    return Permission.objects.get(codename='manage_sales')
-
-
-@pytest.fixture
-def permission_manage_vouchers():
-    return Permission.objects.get(codename='manage_vouchers')
+def permission_manage_discounts():
+    return Permission.objects.get(codename='manage_discounts')
 
 
 @pytest.fixture

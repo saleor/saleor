@@ -109,10 +109,12 @@ class Product(SeoModel):
 
     class Meta:
         app_label = 'product'
-        permissions = (
-            ('manage_products',
-             pgettext_lazy(
-                 'Permission description', 'Can edit product properties')),)
+        permissions = ((
+            'manage_products', pgettext_lazy(
+                'Permission description',
+                'View, create, and modify products, collections, '
+                'and categories. Access to inventory and inventory '
+                'management.')),)
 
     def __iter__(self):
         if not hasattr(self, '__variants'):

@@ -178,104 +178,104 @@ def test_staff_can_view_category_delete(
 
 
 def test_staff_can_view_sale_list(
-        staff_client, staff_user, permission_manage_sales):
-    assert not staff_user.has_perm('discount.manage_sales')
+        staff_client, staff_user, permission_manage_discounts):
+    assert not staff_user.has_perm('discount.manage_discounts')
     response = staff_client.get(reverse('dashboard:sale-list'))
     assert response.status_code == 302
-    staff_user.user_permissions.add(permission_manage_sales)
+    staff_user.user_permissions.add(permission_manage_discounts)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm('discount.manage_sales')
+    assert staff_user.has_perm('discount.manage_discounts')
     response = staff_client.get(reverse('dashboard:sale-list'))
     assert response.status_code == 200
 
 
 def test_staff_can_view_sale_update(
-        staff_client, staff_user, permission_manage_sales, sale):
-    assert not staff_user.has_perm('discount.manage_sales')
+        staff_client, staff_user, permission_manage_discounts, sale):
+    assert not staff_user.has_perm('discount.manage_discounts')
     response = staff_client.get(
         reverse('dashboard:sale-update', args=[sale.pk]))
     assert response.status_code == 302
-    staff_user.user_permissions.add(permission_manage_sales)
+    staff_user.user_permissions.add(permission_manage_discounts)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm('discount.manage_sales')
+    assert staff_user.has_perm('discount.manage_discounts')
     response = staff_client.get(
         reverse('dashboard:sale-update', args=[sale.pk]))
     assert response.status_code == 200
 
 
 def test_staff_can_view_sale_add(
-        staff_client, staff_user, permission_manage_sales, sale):
-    assert not staff_user.has_perm('discount.manage_sales')
+        staff_client, staff_user, permission_manage_discounts, sale):
+    assert not staff_user.has_perm('discount.manage_discounts')
     response = staff_client.get(reverse('dashboard:sale-add'))
     assert response.status_code == 302
-    staff_user.user_permissions.add(permission_manage_sales)
+    staff_user.user_permissions.add(permission_manage_discounts)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm('discount.manage_sales')
+    assert staff_user.has_perm('discount.manage_discounts')
     response = staff_client.get(reverse('dashboard:sale-add'))
     assert response.status_code == 200
 
 
 def test_staff_can_view_sale_delete(
-        staff_client, staff_user, permission_manage_sales, sale):
-    assert not staff_user.has_perm('discount.manage_sales')
+        staff_client, staff_user, permission_manage_discounts, sale):
+    assert not staff_user.has_perm('discount.manage_discounts')
     response = staff_client.get(
         reverse('dashboard:sale-delete', args=[sale.pk]))
     assert response.status_code == 302
-    staff_user.user_permissions.add(permission_manage_sales)
+    staff_user.user_permissions.add(permission_manage_discounts)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm('discount.manage_sales')
+    assert staff_user.has_perm('discount.manage_discounts')
     response = staff_client.get(
         reverse('dashboard:sale-delete', args=[sale.pk]))
     assert response.status_code == 200
 
 
 def test_staff_can_view_voucher_list(
-        staff_client, staff_user, permission_manage_vouchers):
-    assert not staff_user.has_perm('discount.manage_vouchers')
+        staff_client, staff_user, permission_manage_discounts):
+    assert not staff_user.has_perm('discount.manage_discounts')
     response = staff_client.get(reverse('dashboard:voucher-list'))
     assert response.status_code == 302
-    staff_user.user_permissions.add(permission_manage_vouchers)
+    staff_user.user_permissions.add(permission_manage_discounts)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm('discount.manage_vouchers')
+    assert staff_user.has_perm('discount.manage_discounts')
     response = staff_client.get(reverse('dashboard:voucher-list'))
     assert response.status_code == 200
 
 
 def test_staff_can_view_voucher_update(
-        staff_client, staff_user, permission_manage_vouchers, voucher):
-    assert not staff_user.has_perm('discount.manage_vouchers')
+        staff_client, staff_user, permission_manage_discounts, voucher):
+    assert not staff_user.has_perm('discount.manage_discounts')
     response = staff_client.get(
         reverse('dashboard:voucher-update', args=[voucher.pk]))
     assert response.status_code == 302
-    staff_user.user_permissions.add(permission_manage_vouchers)
+    staff_user.user_permissions.add(permission_manage_discounts)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm('discount.manage_vouchers')
+    assert staff_user.has_perm('discount.manage_discounts')
     response = staff_client.get(
         reverse('dashboard:voucher-update', args=[voucher.pk]))
     assert response.status_code == 200
 
 
 def test_staff_can_view_voucher_add(
-        staff_client, staff_user, permission_manage_vouchers):
-    assert not staff_user.has_perm('discount.manage_vouchers')
+        staff_client, staff_user, permission_manage_discounts):
+    assert not staff_user.has_perm('discount.manage_discounts')
     response = staff_client.get(reverse('dashboard:voucher-add'))
     assert response.status_code == 302
-    staff_user.user_permissions.add(permission_manage_vouchers)
+    staff_user.user_permissions.add(permission_manage_discounts)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm('discount.manage_vouchers')
+    assert staff_user.has_perm('discount.manage_discounts')
     response = staff_client.get(reverse('dashboard:voucher-add'))
     assert response.status_code == 200
 
 
 def test_staff_can_view_voucher_delete(
-        staff_client, staff_user, permission_manage_vouchers, voucher):
-    assert not staff_user.has_perm('discount.manage_vouchers')
+        staff_client, staff_user, permission_manage_discounts, voucher):
+    assert not staff_user.has_perm('discount.manage_discounts')
     response = staff_client.get(
         reverse('dashboard:voucher-delete', args=[voucher.pk]))
     assert response.status_code == 302
-    staff_user.user_permissions.add(permission_manage_vouchers)
+    staff_user.user_permissions.add(permission_manage_discounts)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm('discount.manage_vouchers')
+    assert staff_user.has_perm('discount.manage_discounts')
     response = staff_client.get(
         reverse('dashboard:voucher-delete', args=[voucher.pk]))
     assert response.status_code == 200
