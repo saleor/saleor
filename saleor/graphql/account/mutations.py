@@ -30,7 +30,7 @@ class CustomerCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('account.edit_user')
+        return user.has_perm('account.manage_users')
 
 
 class CustomerUpdate(CustomerCreate):
