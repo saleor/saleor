@@ -120,26 +120,22 @@
               </ul>
             </li>
             {% endif %}
-            {% if perms.discount.manage_sales or perms.discount.manage_vouchers %}
+            {% if perms.discount.manage_discounts %}
             <li class="side-nav-section">
               <p>
                 {% trans "Discounts" context "Dashboard discounts list" %}
               </p>
               <ul>
-                {% if perms.discount.manage_sales %}
-                  <li class="{% block menu_sales_class %}{% endblock %}">
-                    <a href="{% url 'dashboard:sale-list' %}">
-                      {% trans "Sales" context "Dashboard sales (discounts) list" %}
-                    </a>
-                  </li>
-                {% endif %}
-                {% if perms.discount.manage_vouchers %}
-                  <li class="{% block menu_vouchers_class %}{% endblock %}">
-                    <a href="{% url 'dashboard:voucher-list' %}">
-                      {% trans "Vouchers" context "Dashboard vouchers list" %}
-                    </a>
-                  </li>
-                {% endif %}
+                <li class="{% block menu_sales_class %}{% endblock %}">
+                  <a href="{% url 'dashboard:sale-list' %}">
+                    {% trans "Sales" context "Dashboard sales (discounts) list" %}
+                  </a>
+                </li>
+                <li class="{% block menu_vouchers_class %}{% endblock %}">
+                  <a href="{% url 'dashboard:voucher-list' %}">
+                    {% trans "Vouchers" context "Dashboard vouchers list" %}
+                  </a>
+                </li>
               </ul>
             </li>
             {% endif %}

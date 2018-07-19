@@ -26,8 +26,9 @@ class SiteSettings(models.Model):
 
     class Meta:
         permissions = ((
-            'manage_settings',
-            pgettext_lazy('Permission description', 'Can edit site settings')),)
+            'manage_settings', pgettext_lazy(
+                'Permission description',
+                'View and modify the settings section.')),)
 
     def __str__(self):
         return self.site.name

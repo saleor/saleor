@@ -62,11 +62,6 @@ class Voucher(models.Model):
 
     objects = VoucherQueryset.as_manager()
 
-    class Meta:
-        permissions = (
-            ('manage_vouchers',
-             pgettext_lazy('Permission description', 'Can edit vouchers')),)
-
     def __str__(self):
         if self.name:
             return self.name
@@ -148,9 +143,10 @@ class Sale(models.Model):
 
     class Meta:
         app_label = 'discount'
-        permissions = (
-            ('manage_sales',
-             pgettext_lazy('Permission description', 'Can edit sales')),)
+        permissions = ((
+            'manage_discounts', pgettext_lazy(
+                'Permission description',
+                'View, create, modify, and delete sales and vouchers.')),)
 
     def __repr__(self):
         return 'Sale(name=%r, value=%r, type=%s)' % (

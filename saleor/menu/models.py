@@ -12,9 +12,10 @@ class Menu(models.Model):
     name = models.CharField(max_length=128)
 
     class Meta:
-        permissions = (
-            ('manage_menus',
-             pgettext_lazy('Permission description', 'Can edit menus')),)
+        permissions = ((
+            'manage_menus', pgettext_lazy(
+                'Permission description',
+                'Create, view, modify, and delete menus.')),)
 
     def __str__(self):
         return self.name
