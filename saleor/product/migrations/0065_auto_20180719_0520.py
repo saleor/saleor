@@ -16,6 +16,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterModelOptions(
             name='product',
-            options={'permissions': (('manage_products', 'Capability to view, create, and modify products, collections, and categories. Access to inventory and inventory management.'),)},
+            options={'permissions': (('manage_products', 'Manage products. Access to inventory and inventory management.'),)},
         ),
     ]

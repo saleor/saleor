@@ -127,17 +127,15 @@ class User(PermissionsMixin, AbstractBaseUser):
 
     class Meta:
         permissions = (
-            ('manage_users',
-             pgettext_lazy(
-                 'Permission description',
-                 'Capability to view, create, modify, and delete customers.')),
-            ('manage_staff', pgettext_lazy(
-                'Permission description',
-                'Capability to view, create, modify and delete staff users.')),
-            ('impersonate_users',
-             pgettext_lazy(
-                 'Permission description',
-                 'Capability to impersonate the customers.')))
+            (
+                'manage_users', pgettext_lazy(
+                    'Permission description', 'Manage customers.')),
+            (
+                'manage_staff', pgettext_lazy(
+                    'Permission description', 'Manage staff.')),
+            (
+                'impersonate_users', pgettext_lazy(
+                    'Permission description', 'Impersonate customers.')))
 
     def get_full_name(self):
         return self.email

@@ -145,9 +145,7 @@ class Sale(models.Model):
         app_label = 'discount'
         permissions = ((
             'manage_discounts', pgettext_lazy(
-                'Permission description',
-                'Capability to view, create, modify, and delete sales and '
-                'vouchers.')),)
+                'Permission description', 'Manage sales and vouchers.')),)
 
     def __repr__(self):
         return 'Sale(name=%r, value=%r, type=%s)' % (

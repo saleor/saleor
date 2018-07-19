@@ -31,8 +31,7 @@ class Page(SeoModel):
         ordering = ('slug',)
         permissions = ((
             'manage_pages', pgettext_lazy(
-                'Permission description',
-                'Capability to create, modify, and delete pages.')),)
+                'Permission description', 'Manage pages.')),)
 
     def __str__(self):
         return self.title

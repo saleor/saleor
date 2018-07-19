@@ -14,8 +14,7 @@ class Menu(models.Model):
     class Meta:
         permissions = ((
             'manage_menus', pgettext_lazy(
-                'Permission description',
-                'Capability to view, create, modify, and delete menus.')),)
+                'Permission description', 'Manage menus.')),)
 
     def __str__(self):
         return self.name

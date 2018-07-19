@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='sale',
-            options={'permissions': (('manage_discounts', 'Capability to view, create, modify, and delete sales and vouchers.'),)},
+            options={'permissions': (('manage_discounts', 'Manage sales and vouchers.'),)},
         ),
         migrations.AlterModelOptions(
             name='voucher',

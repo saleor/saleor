@@ -12,6 +12,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='menu',
-            options={'permissions': (('manage_menus', 'Capability to view, create, modify, and delete menus.'),)},
+            options={'permissions': (('manage_menus', 'Manage menus.'),)},
         ),
     ]
