@@ -1,8 +1,9 @@
+import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
-import IconButton from "@material-ui/core/IconButton";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
+import { MoneyType } from "../..";
 import { PageListProps } from "../../..";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
@@ -17,6 +18,10 @@ interface ProductListCardProps extends PageListProps {
       name: string;
     };
     thumbnailUrl: string;
+    availability: {
+      available: boolean;
+    };
+    price: MoneyType;
   }>;
 }
 
@@ -32,10 +37,10 @@ export const ProductListCard: React.StatelessComponent<
   onRowClick
 }) => (
   <Container width="md">
-    <PageHeader title={i18n.t("Product list")}>
-      <IconButton onClick={onAdd}>
-        <AddIcon />
-      </IconButton>
+    <PageHeader title={i18n.t("Products")}>
+      <Button onClick={onAdd} color="secondary" variant="contained">
+        {i18n.t("Add product")} <AddIcon />
+      </Button>
     </PageHeader>
     <Card>
       <ProductList

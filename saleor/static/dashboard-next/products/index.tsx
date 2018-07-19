@@ -80,7 +80,6 @@ export interface AttributeValueType {
 export interface MoneyType {
   amount: number;
   currency: string;
-  localized: string;
 }
 
 export interface ProductImageType {

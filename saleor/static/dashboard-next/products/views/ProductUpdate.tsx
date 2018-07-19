@@ -3,6 +3,7 @@ import { arrayMove } from "react-sortable-hoc";
 
 import { ApolloError } from "apollo-client";
 import * as placeholderImg from "../../../images/placeholder255x255.png";
+import { attributesListUrl } from "../../attributes";
 import { categoryShowUrl } from "../../categories";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
@@ -108,6 +109,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                                 ? product.variants.edges.map(edge => edge.node)
                                 : undefined
                             }
+                            onAttributesEdit={() => navigate(attributesListUrl)}
                             onBack={() => {
                               navigate(productListUrl);
                             }}

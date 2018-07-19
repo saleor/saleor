@@ -12,7 +12,6 @@ export const fragmentMoney = gql`
   fragment Money on Money {
     amount
     currency
-    localized
   }
 `;
 
@@ -120,6 +119,7 @@ export const fragmentProduct = gql`
     productType {
       id
       name
+      hasVariants
     }
     url
   }
@@ -193,6 +193,7 @@ export const TypedProductListQuery = Query as React.ComponentType<
 >;
 
 export const productListQuery = gql`
+  ${fragmentMoney}
   query ProductList($first: Int, $after: String, $last: Int, $before: String) {
     products(before: $before, after: $after, first: $first, last: $last) {
       edges {
@@ -200,6 +201,12 @@ export const productListQuery = gql`
           id
           name
           thumbnailUrl
+          availability {
+            available
+          }
+          price {
+            ...Money
+          }
           productType {
             id
             name
