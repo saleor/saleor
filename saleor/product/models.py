@@ -40,9 +40,9 @@ class Category(MPTTModel, SeoModel):
 
     class Meta:
         app_label = 'product'
-        permissions = (
-            ('edit_category',
-             pgettext_lazy('Permission description', 'Can edit categories')))
+        permissions = ((
+            'edit_category',
+            pgettext_lazy('Permission description', 'Can edit categories')),)
 
     def __str__(self):
         return self.name

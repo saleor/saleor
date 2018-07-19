@@ -20,10 +20,10 @@ class ShippingMethod(models.Model):
     description = models.TextField(blank=True, default='')
 
     class Meta:
-        permissions = (
-            ('edit_shipping',
-             pgettext_lazy(
-                 'Permission description', 'Can edit shipping method')))
+        permissions = ((
+            'edit_shipping',
+            pgettext_lazy(
+                 'Permission description', 'Can edit shipping method')),)
 
     def __str__(self):
         return self.name
