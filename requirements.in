@@ -55,3 +55,4 @@ uwsgi>=2.0.0 ; platform_system != "Windows"
 celery[redis]
 weasyprint>=0.42.2
 django-debug-toolbar
+django-debug-toolbar-request-history
