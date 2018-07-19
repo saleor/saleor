@@ -891,8 +891,8 @@ def test_invalid_product_image_update_mutation(
         admin_api_client, product_with_image):
     product = product_with_image
     query = """
-    mutation updateProductImage($image: Upload!, $alt: String, $product: ID!) {
-        productImageCreate(input: {image: $image, alt: $alt, product: $product}) {
+    mutation updateProductImage($image: Upload!, $alt: String, $product: ID!, $id: ID!) {
+        productImageUpdate(id: $id, input: {image: $image, alt: $alt, product: $product}) {
             productImage {
                 image
             }
@@ -908,12 +908,14 @@ def test_invalid_product_image_update_mutation(
     new_image_file, new_image_name = create_pdf_file_with_image_ext()
     variables = {
         'product': graphene.Node.to_global_id('Product', product.id),
-        'image': new_image_name}
+        'image': new_image_name,
+        'id': graphene.Node.to_global_id('ProductImage', image_obj.id),
+    }
     body = get_multipart_request_body(
         query, variables, new_image_file, new_image_name)
     response = admin_api_client.post_multipart(reverse('api'), body)
     content = get_graphql_content(response)
-    assert content['data']['productImageCreate']['errors'] == [{
+    assert content['data']['productImageUpdate']['errors'] == [{
         'field': 'image',
         'message': 'Invalid file type'}]
     product_with_image.refresh_from_db()
