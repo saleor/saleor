@@ -12,6 +12,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='page',
-            options={'ordering': ('slug',), 'permissions': (('manage_pages', 'Capability to create, modify, and delete pages.'),)},
+            options={'ordering': ('slug',), 'permissions': (('manage_pages', 'Manage pages.'),)},
         ),
     ]

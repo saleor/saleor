@@ -12,6 +12,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='user',
-            options={'permissions': (('manage_users', 'Capability to view, create, modify, and delete customers.'), ('manage_staff', 'Capability to view, create, modify and delete staff users.'), ('impersonate_users', 'Capability to impersonate the customers.'))},
+            options={'permissions': (('manage_users', 'Manage customers.'), ('manage_staff', 'Manage staff.'), ('impersonate_users', 'Impersonate customers.'))},
         ),
     ]

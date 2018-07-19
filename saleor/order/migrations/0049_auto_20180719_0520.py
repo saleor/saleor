@@ -12,6 +12,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='order',
-            options={'ordering': ('-pk',), 'permissions': (('manage_orders', 'Capability to view, create, and modify orders, fullfillments, and order notifications.'),)},
+            options={'ordering': ('-pk',), 'permissions': (('manage_orders', 'Manage orders, fulfillments and order notifications.'),)},
         ),
     ]
