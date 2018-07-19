@@ -31,7 +31,7 @@ class PageCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('page.edit_page')
+        return user.has_perm('page.manage_pages')
 
     @classmethod
     def clean_input(cls, info, instance, input, errors):
@@ -61,4 +61,4 @@ class PageDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('page.edit_page')
+        return user.has_perm('page.manage_pages')
