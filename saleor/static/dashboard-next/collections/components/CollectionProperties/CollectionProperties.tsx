@@ -4,9 +4,9 @@ import { withStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
+import CardTitle from "../../../components/CardTitle";
 import ControlledCheckbox from "../../../components/ControlledCheckbox";
 import FormSpacer from "../../../components/FormSpacer";
-import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
 
 interface CollectionPropertiesProps {
@@ -31,7 +31,7 @@ const decorate = withStyles(theme => ({
 const CollectionProperties = decorate<CollectionPropertiesProps>(
   ({ classes, collection, data, disabled, onChange }) => (
     <Card className={classes.root}>
-      <PageHeader title={i18n.t("Properties")} />
+      <CardTitle title={i18n.t("Properties")} />
       <CardContent>
         <ControlledCheckbox
           checked={data.isPublished}

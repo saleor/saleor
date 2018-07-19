@@ -17,6 +17,7 @@ import Money from "../../../components/Money";
 import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
+import TableCellAvatar from "../../../components/TableCellAvatar";
 
 interface TaxedMoneyType {
   gross: {
@@ -163,9 +164,7 @@ const OrderProducts = decorate<OrderProductsProps>(
                   </IconButton>
                 </TableCell>
               ) : (
-                <TableCell className={classes.avatarCell}>
-                  <Avatar src={product.thumbnailUrl} />
-                </TableCell>
+                <TableCellAvatar thumbnail={product.thumbnailUrl} />
               )}
               <TableCell>
                 <span
@@ -231,7 +230,11 @@ const OrderProducts = decorate<OrderProductsProps>(
           <TableCell className={classes.textRight}>
             <div className={classes.flexBox}>
               {subtotal ? (
-                <Money amount={subtotal.amount} currency={subtotal.currency} />
+                <Money
+                  amount={subtotal.amount}
+                  currency={subtotal.currency}
+                  typographyProps={{ component: "p" }}
+                />
               ) : (
                 <Skeleton />
               )}
@@ -239,12 +242,17 @@ const OrderProducts = decorate<OrderProductsProps>(
                 <Money
                   amount={shippingMethod.price.amount}
                   currency={shippingMethod.price.currency}
+                  typographyProps={{ component: "p" }}
                 />
               ) : (
                 <Skeleton />
               )}
               {total ? (
-                <Money amount={total.amount} currency={total.currency} />
+                <Money
+                  amount={total.amount}
+                  currency={total.currency}
+                  typographyProps={{ component: "p" }}
+                />
               ) : (
                 <Skeleton />
               )}
@@ -265,7 +273,11 @@ const OrderProducts = decorate<OrderProductsProps>(
             <TableCell className={classes.textRight}>
               <div className={classes.flexBox}>
                 {paid ? (
-                  <Money amount={paid.amount} currency={paid.currency} />
+                  <Money
+                    amount={paid.amount}
+                    currency={paid.currency}
+                    typographyProps={{ component: "p" }}
+                  />
                 ) : (
                   <Skeleton />
                 )}
@@ -273,12 +285,17 @@ const OrderProducts = decorate<OrderProductsProps>(
                   <Money
                     amount={-refunded.amount}
                     currency={refunded.currency}
+                    typographyProps={{ component: "p" }}
                   />
                 ) : (
                   <Skeleton />
                 )}
                 {net ? (
-                  <Money amount={net.amount} currency={net.currency} />
+                  <Money
+                    amount={net.amount}
+                    currency={net.currency}
+                    typographyProps={{ component: "p" }}
+                  />
                 ) : (
                   <Skeleton />
                 )}

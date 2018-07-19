@@ -1,15 +1,14 @@
+import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
-import IconButton from "@material-ui/core/IconButton";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 import ListSubheader from "@material-ui/core/ListSubheader";
-import AddIcon from "@material-ui/icons/Add";
 import Folder from "@material-ui/icons/Folder";
 import * as React from "react";
 
-import PageHeader from "../../../components/PageHeader";
+import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 
@@ -31,13 +30,14 @@ const CategoryList: React.StatelessComponent<CategoryListProps> = ({
 }) => (
   <Card>
     {displayTitle && (
-      <PageHeader title={i18n.t("Categories")}>
-        {!!onAdd && (
-          <IconButton onClick={onAdd}>
-            <AddIcon />
-          </IconButton>
-        )}
-      </PageHeader>
+      <CardTitle
+        title={i18n.t("Categories")}
+        toolbar={
+          <Button color="secondary" variant="flat" onClick={onAdd}>
+            {i18n.t("Add category")}
+          </Button>
+        }
+      />
     )}
     <List>
       {categories === undefined || categories === null ? (

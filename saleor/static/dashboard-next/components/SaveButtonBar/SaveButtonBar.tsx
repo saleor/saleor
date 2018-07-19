@@ -3,7 +3,6 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import gray from "@material-ui/core/colors/grey";
 import { withStyles } from "@material-ui/core/styles";
 import CheckIcon from "@material-ui/icons/Check";
-import CloseIcon from "@material-ui/icons/Close";
 import * as React from "react";
 import i18n from "../../i18n";
 
@@ -16,10 +15,27 @@ export type SaveButtonBarState =
 interface SaveButtonBarProps {
   disabled?: boolean;
   state?: SaveButtonBarState;
+  labels?: {
+    cancel?: string;
+    delete?: string;
+    save?: string;
+  };
+  onCancel?: () => void;
+  onDelete?: () => void;
   onSave(event: any);
 }
 
 const decorate = withStyles(theme => ({
+  cancelButton: {
+    marginRight: theme.spacing.unit * 2
+  },
+  deleteButton: {
+    "&:hover": {
+      backgroundColor: theme.palette.error.dark
+    },
+    backgroundColor: theme.palette.error.main,
+    color: theme.palette.error.contrastText
+  },
   root: {
     borderTop: `1px ${gray[300]} solid`,
     display: "flex",
@@ -37,6 +53,9 @@ const decorate = withStyles(theme => ({
     marginRight: theme.spacing.unit
   },
   buttonProgress: {
+    "& svg": {
+      margin: 0
+    },
     color: theme.palette.primary.main,
     marginBottom: -theme.spacing.unit * 1.5,
     marginLeft: -theme.spacing.unit * 0.5,
@@ -66,7 +85,16 @@ const decorate = withStyles(theme => ({
   }
 }));
 export const SaveButtonBar = decorate<SaveButtonBarProps>(
-  ({ classes, disabled, state, onSave, ...props }) => {
+  ({
+    classes,
+    disabled,
+    labels,
+    state,
+    onCancel,
+    onDelete,
+    onSave,
+    ...props
+  }) => {
     let buttonClassName;
     let buttonLabel;
     switch (state) {
@@ -84,12 +112,30 @@ export const SaveButtonBar = decorate<SaveButtonBarProps>(
         break;
       default:
         buttonClassName = "";
-        buttonLabel = i18n.t("Save");
+        buttonLabel = labels && labels.save ? labels.save : i18n.t("Save");
         break;
     }
     return (
       <div className={classes.root}>
+        {!!onDelete && (
+          <Button
+            variant="contained"
+            onClick={onDelete}
+            className={classes.deleteButton}
+          >
+            {labels && labels.delete ? labels.delete : i18n.t("Remove")}
+          </Button>
+        )}
         <div className={classes.spacer} />
+        {!!onCancel && (
+          <Button
+            className={classes.cancelButton}
+            variant="flat"
+            onClick={onCancel}
+          >
+            {labels && labels.cancel ? labels.cancel : i18n.t("Cancel")}
+          </Button>
+        )}
         <Button
           variant="contained"
           onClick={onSave}

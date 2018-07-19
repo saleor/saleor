@@ -15,10 +15,11 @@ import PrintIcon from "@material-ui/icons/Print";
 import * as React from "react";
 
 import { transformFulfillmentStatus } from "../..";
-import PageHeader from "../../../components/PageHeader";
+import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel/StatusLabel";
 import i18n from "../../../i18n";
+import TableCellAvatar from "../../../components/TableCellAvatar";
 
 interface OrderFulfillmentProps {
   id?: string;
@@ -53,8 +54,8 @@ const decorate = withStyles(
     statusBar: {
       paddingTop: 0
     },
-    textRight: {
-      textAlign: "right" as "right"
+    textLeft: {
+      textAlign: [["left"], "!important"] as any
     }
   }),
   { name: "OrderFulfillment" }
@@ -71,52 +72,51 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
     onPackingSlipClick
   }) => (
     <Card className={classes.root}>
-      <PageHeader
+      <CardTitle
         title={id ? i18n.t("Fulfillment #{{ id }}", { id }) : undefined}
+        toolbar={
+          status !== "cancelled" && (
+            <Button
+              color="secondary"
+              variant="flat"
+              disabled={!onPackingSlipClick}
+              onClick={onPackingSlipClick}
+            >
+              {i18n.t("Packing slip")}
+            </Button>
+          )
+        }
       >
-        {status !== "cancelled" && (
-          <IconButton
-            disabled={!onPackingSlipClick}
-            onClick={onPackingSlipClick}
-          >
-            <PrintIcon />
-          </IconButton>
-        )}
-      </PageHeader>
-      {status && (
-        <CardContent className={classes.statusBar}>
+        {status && (
           <StatusLabel
             status={transformFulfillmentStatus(status).status}
             label={transformFulfillmentStatus(status).localized}
+            typographyProps={{ variant: "body1" }}
           />
-        </CardContent>
-      )}
+        )}
+      </CardTitle>
       <Table>
         <TableHead>
           <TableRow>
             <TableCell />
-            <TableCell>{i18n.t("Product")}</TableCell>
+            <TableCell className={classes.textLeft}>
+              {i18n.t("Product")}
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {products ? (
             products.map(productLine => (
               <TableRow key={productLine.product.id}>
-                <TableCell className={classes.avatarCell}>
-                  <Avatar src={productLine.product.thumbnailUrl} />
-                </TableCell>
-                <TableCell>
+                <TableCellAvatar thumbnail={productLine.product.thumbnailUrl} />
+                <TableCell className={classes.textLeft}>
                   {productLine.product.name} x {productLine.quantity}
                 </TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell className={classes.avatarCell}>
-                <Avatar>
-                  <Cached />
-                </Avatar>
-              </TableCell>
+              <TableCellAvatar />
               <TableCell>
                 <Skeleton />
               </TableCell>

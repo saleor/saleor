@@ -71,11 +71,7 @@ const AttributeDetailsPage = decorate<AttributeDetailsPageProps>(
                 <PageHeader
                   title={attribute ? attribute.name : undefined}
                   onBack={onBack}
-                >
-                  <IconButton disabled={disabled} onClick={toggleDeleteDialog}>
-                    <DeleteIcon />
-                  </IconButton>
-                </PageHeader>
+                />
                 <div className={classes.root}>
                   <div>
                     <AttributeDetails
@@ -92,6 +88,8 @@ const AttributeDetailsPage = decorate<AttributeDetailsPageProps>(
                   </div>
                 </div>
                 <SaveButtonBar
+                  onCancel={onBack}
+                  onDelete={toggleDeleteDialog}
                   state={saveButtonBarState}
                   disabled={disabled || !hasChanged}
                   onSave={submit}

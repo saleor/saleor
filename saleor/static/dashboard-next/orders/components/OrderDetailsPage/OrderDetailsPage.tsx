@@ -160,7 +160,7 @@ const decorate = withStyles(theme => ({
   root: {
     display: "grid",
     gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "3fr 1fr"
+    gridTemplateColumns: "2.25fr 1fr"
   }
 }));
 class OrderDetailsPageComponent extends React.Component<

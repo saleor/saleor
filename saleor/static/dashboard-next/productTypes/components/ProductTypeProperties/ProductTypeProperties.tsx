@@ -3,9 +3,9 @@ import CardContent from "@material-ui/core/CardContent";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
+import CardTitle from "../../../components/CardTitle";
 import ControlledCheckbox from "../../../components/ControlledCheckbox";
 import FormSpacer from "../../../components/FormSpacer";
-import PageHeader from "../../../components/PageHeader";
 import SingleSelectField from "../../../components/SingleSelectField";
 import i18n from "../../../i18n";
 
@@ -24,7 +24,7 @@ const decorate = withStyles(theme => ({ root: {} }));
 const ProductTypeProperties = decorate<ProductTypePropertiesProps>(
   ({ classes, data, disabled, taxRates, onChange }) => (
     <Card>
-      <PageHeader title={i18n.t("Properties")} />
+      <CardTitle title={i18n.t("Properties")} />
       <CardContent>
         <ControlledCheckbox
           checked={data.hasVariants}
@@ -33,7 +33,6 @@ const ProductTypeProperties = decorate<ProductTypePropertiesProps>(
           name="hasVariants"
           onChange={onChange}
         />
-        <FormSpacer />
         <ControlledCheckbox
           checked={data.isShippingRequired}
           disabled={disabled}
