@@ -50,15 +50,15 @@ class MenuItemForm(forms.ModelForm):
             Collection.objects.all(), Category.objects.all(),
             Page.objects.all()],
         fetch_data_url=reverse_lazy('dashboard:ajax-menu-links'), min_input=0,
-        required=False)
+        required=False,
+        label=pgettext_lazy('Menu item object to link', 'Link'))
 
     class Meta:
         model = MenuItem
         fields = ('name', 'url')
         labels = {
             'name': pgettext_lazy('Menu item name', 'Name'),
-            'url': pgettext_lazy('Menu item url', 'URL'),
-            'linked_object': pgettext_lazy('Menu item object to link', 'Link')}
+            'url': pgettext_lazy('Menu item url', 'URL')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
