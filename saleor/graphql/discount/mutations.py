@@ -94,6 +94,8 @@ class SaleInput(graphene.InputObjectType):
         graphene.ID, description='Products related to the discount.')
     categories = graphene.List(
         graphene.ID, description='Categories related to the discount.')
+    collections = graphene.List(
+        graphene.ID, description='Collections related to the discount.')
 
 
 class SaleCreate(ModelMutation):
