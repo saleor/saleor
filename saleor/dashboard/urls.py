@@ -5,7 +5,6 @@ from .category.urls import urlpatterns as category_urls
 from .collection.urls import urlpatterns as collection_urls
 from .customer.urls import urlpatterns as customer_urls
 from .discount.urls import urlpatterns as discount_urls
-from .group.urls import urlpatterns as groups_urls
 from .menu.urls import urlpatterns as menu_urls
 from .order.urls import urlpatterns as order_urls
 from .page.urls import urlpatterns as page_urls
@@ -25,7 +24,6 @@ urlpatterns = [
     url(r'^products/', include(product_urls)),
     url(r'^customers/', include(customer_urls)),
     url(r'^staff/', include(staff_urls)),
-    url(r'^groups/', include(groups_urls)),
     url(r'^discounts/', include(discount_urls)),
     url(r'^settings/', include(site_urls)),
     url(r'^menu/', include(menu_urls)),

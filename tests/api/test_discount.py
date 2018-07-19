@@ -14,7 +14,7 @@ from .utils import assert_no_permission
 
 
 def test_voucher_permissions(
-        staff_api_client, staff_group, staff_user, permission_view_voucher):
+        staff_api_client, staff_user, permission_view_voucher):
     query = """
     query vouchers{
         vouchers(first: 1) {
@@ -33,8 +33,7 @@ def test_voucher_permissions(
     assert content['errors'][0]['message'] == message
 
     # Give staff user proper permissions
-    staff_group.permissions.add(permission_view_voucher)
-    staff_user.groups.add(staff_group)
+    staff_user.user_permissions.add(permission_view_voucher)
 
     # Query again
     response = staff_api_client.post(reverse('api'), {'query': query})

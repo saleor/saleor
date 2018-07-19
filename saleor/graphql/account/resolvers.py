@@ -23,9 +23,3 @@ def resolve_users(info, query):
 @permission_required(['account.view_user'])
 def resolve_user(info, id):
     return get_node(info, id, only_type=User)
-
-
-@staff_member_required
-def resolve_groups(info, query):
-    qs = auth_models.Group.objects.prefetch_related('permissions')
-    return filter_by_query_param(qs, query, GROUP_SEARCH_FIELDS)

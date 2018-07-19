@@ -2,9 +2,17 @@ from django import forms
 from django.utils.translation import pgettext_lazy
 
 from ...account.models import User
+from ...core.permissions import get_permissions
+from ..forms import PermissionMultipleChoiceField
 
 
 class StaffForm(forms.ModelForm):
+    user_permissions = PermissionMultipleChoiceField(
+        queryset=get_permissions(),
+        widget=forms.CheckboxSelectMultiple, required=False,
+        label=pgettext_lazy(
+            'Label above the permissions choicefield', 'Permissions'))
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
@@ -14,11 +22,9 @@ class StaffForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['email', 'groups', 'is_active']
+        fields = ['email', 'user_permissions', 'is_active']
         labels = {
             'email': pgettext_lazy(
                 'Email', 'Email'),
-            'groups': pgettext_lazy(
-                'Groups', 'Groups'),
             'is_active': pgettext_lazy(
                 'User active toggle', 'User is active')}
