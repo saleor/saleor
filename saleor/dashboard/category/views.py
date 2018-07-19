@@ -15,7 +15,7 @@ from .forms import CategoryForm
 
 
 @staff_member_required
-@permission_required('product.view_category')
+@permission_required('product.edit_category')
 def category_list(request):
     categories = Category.tree.root_nodes().order_by('name')
     category_filter = CategoryFilter(request.GET, queryset=categories)
@@ -80,7 +80,7 @@ def category_edit(request, root_pk=None):
 
 
 @staff_member_required
-@permission_required('product.view_category')
+@permission_required('product.edit_category')
 def category_details(request, pk):
     root = get_object_or_404(Category, pk=pk)
     path = root.get_ancestors(include_self=True) if root else []

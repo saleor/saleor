@@ -42,7 +42,7 @@ from .utils import (
 
 
 @staff_member_required
-@permission_required('order.view_order')
+@permission_required('order.edit_order')
 def order_list(request):
     orders = Order.objects.prefetch_related('payments', 'lines', 'user')
     order_filter = OrderFilter(request.GET, queryset=orders)
@@ -113,7 +113,7 @@ def remove_draft_order(request, order_pk):
 
 
 @staff_member_required
-@permission_required('order.view_order')
+@permission_required('order.edit_order')
 def order_details(request, order_pk):
     qs = Order.objects.select_related(
         'user', 'shipping_address', 'billing_address').prefetch_related(
@@ -523,7 +523,7 @@ def order_voucher_remove(request, order_pk):
 
 
 @staff_member_required
-@permission_required('order.view_order')
+@permission_required('order.edit_order')
 def order_invoice(request, order_pk):
     orders = Order.objects.confirmed().prefetch_related(
         'user', 'shipping_address', 'billing_address', 'voucher')

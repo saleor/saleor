@@ -18,7 +18,7 @@ from .forms import AssignMenuForm, MenuForm, MenuItemForm, ReorderMenuItemsForm
 
 
 @staff_member_required
-@permission_required('menu.view_menu')
+@permission_required('menu.edit_menu')
 def menu_list(request):
     menus = Menu.objects.all()
     menu_filter = MenuFilter(request.GET, queryset=menus)
@@ -76,7 +76,7 @@ def menu_edit(request, pk):
 
 
 @staff_member_required
-@permission_required('menu.view_menu')
+@permission_required('menu.edit_menu')
 def menu_details(request, pk):
     menu = get_object_or_404(Menu, pk=pk)
     menu_items = menu.items.filter(parent=None).prefetch_related(
@@ -181,7 +181,7 @@ def menu_item_delete(request, menu_pk, item_pk):
 
 
 @staff_member_required
-@permission_required('menu.view_menu')
+@permission_required('menu.edit_menu')
 def menu_item_details(request, menu_pk, item_pk):
     menu = get_object_or_404(Menu, pk=menu_pk)
     menu_item = get_object_or_404(menu.items.all(), pk=item_pk)
@@ -218,7 +218,7 @@ def ajax_reorder_menu_items(request, menu_pk, root_pk=None):
 
 
 @staff_member_required
-@permission_required('menu.view_menu')
+@permission_required('menu.edit_menu')
 def ajax_menu_links(request):
     """Return available menu links filtered by request GET parameters.
 

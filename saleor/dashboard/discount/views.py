@@ -31,7 +31,7 @@ def get_voucher_type_forms(voucher, data):
 
 
 @staff_member_required
-@permission_required('discount.view_sale')
+@permission_required('discount.edit_sale')
 def sale_list(request):
     sales = Sale.objects.prefetch_related('products').order_by('name')
     sale_filter = SaleFilter(request.GET, queryset=sales)
@@ -88,7 +88,7 @@ def sale_delete(request, pk):
 
 
 @staff_member_required
-@permission_required('discount.view_voucher')
+@permission_required('discount.edit_voucher')
 def voucher_list(request):
     vouchers = (Voucher.objects.select_related('product', 'category')
                 .order_by('name'))
@@ -171,7 +171,7 @@ def voucher_delete(request, pk):
 
 
 @staff_member_required
-@permission_required('discount.view_voucher')
+@permission_required('discount.edit_voucher')
 def ajax_voucher_list(request):
     queryset = Voucher.objects.active(date=date.today())
 

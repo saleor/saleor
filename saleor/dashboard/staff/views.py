@@ -16,7 +16,7 @@ from .utils import remove_staff_member
 
 
 @staff_member_required
-@permission_required('account.view_staff')
+@permission_required('account.edit_staff')
 def staff_list(request):
     staff_members = User.objects.filter(is_staff=True).prefetch_related(
         'default_billing_address').order_by('email')

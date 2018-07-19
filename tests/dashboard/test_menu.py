@@ -48,21 +48,6 @@ def test_view_menu_list_assign_new_menu_to_settings(
     assert not site_settings.bottom_menu
 
 
-def test_view_menu_list_assign_new_menu_to_settings_no_edit_permission(
-        staff_client, menu, site_settings, permission_view_menu,
-        staff_user):
-    staff_user.user_permissions.add(permission_view_menu)
-
-    url = reverse('dashboard:menu-list')
-    data = {'top_menu': menu.pk, 'bottom_menu': ''}
-    response = staff_client.post(url, data=data)
-    assert response.status_code == 200
-
-    site_settings.refresh_from_db()
-    assert not site_settings.top_menu
-    assert not site_settings.bottom_menu
-
-
 def test_view_menu_list(admin_client, menu):
     url = reverse('dashboard:menu-list')
 
