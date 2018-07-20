@@ -85,6 +85,7 @@ def test_sale_query(
                         type
                         name
                         value
+                        startDate
                     }
                 }
             }
@@ -97,6 +98,7 @@ def test_sale_query(
     assert data['type'] == sale.type.upper()
     assert data['name'] == sale.name
     assert data['value'] == sale.value
+    assert data['startDate'] == sale.start_date.isoformat()
 
 
 def test_create_voucher(user_api_client, admin_api_client):
@@ -319,39 +321,26 @@ def test_sale_delete_mutation(user_api_client, admin_api_client, sale):
     with pytest.raises(sale._meta.model.DoesNotExist):
         sale.refresh_from_db()
 
-# FIXME
-# def test_validate_voucher(voucher, admin_api_client, product):
-#     query = """
-#     mutation  voucherUpdate(
-#         $products: [ProductInput], $id: ID!, $type: VoucherTypeEnum) {
-#             voucherUpdate(
-#             id: $id, input: {products: $products, type: $type}) {
-#                 errors {
-#                     field
-#                     message
-#                 }
-#                 voucher {
-#                     products {
-#                         edges {
-#                             node {
-#                                 name
-#                             }
-#                         }
-#                     }
-#                 }
-#             }
-#         }
-#     """
 
-#     assert not voucher.products.all()
-#     product_id = graphene.Node.to_global_id('Product', product.id)
-#     variables = json.dumps({
-#         'type': VoucherTypeEnum.PRODUCT.name,
-#         'id': graphene.Node.to_global_id('Voucher', voucher.id),
-#         'products': [{'name': 1, 'productID': product_id}]})
-#     response = admin_api_client.post(
-#         reverse('api'), {'query': query, 'variables': variables})
-#     content = get_graphql_content(response)
-#     data = content['data']['voucherUpdate']['errors'][0]
-#     assert data['field'] == 'products'
-#     assert data['message'] == 'This field is required.'
+def test_validate_voucher(voucher, admin_api_client, product):
+    query = """
+    mutation  voucherUpdate(
+        $id: ID!, $type: VoucherTypeEnum) {
+            voucherUpdate(
+            id: $id, input: {type: $type}) {
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    variables = json.dumps({
+        'type': VoucherTypeEnum.PRODUCT.name,
+        'id': graphene.Node.to_global_id('Voucher', voucher.id)})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['voucherUpdate']['errors'][0]
+    assert data['field'] == 'products'
+    assert data['message'] == 'This field is required.'

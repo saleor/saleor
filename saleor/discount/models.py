@@ -44,13 +44,15 @@ class Voucher(models.Model):
     used = models.PositiveIntegerField(default=0, editable=False)
     start_date = models.DateField(default=date.today)
     end_date = models.DateField(null=True, blank=True)
-
+    # this field indicates if discount should be applied per order or
+    # individually to every item
+    apply_once_per_order = models.BooleanField(default=False)
     discount_value_type = models.CharField(
         max_length=10, choices=DiscountValueType.CHOICES,
         default=DiscountValueType.FIXED)
     discount_value = models.DecimalField(
         max_digits=12, decimal_places=settings.DEFAULT_DECIMAL_PLACES)
-
+    apply_once_per_customer = models.BooleanField(default=False)
     # not mandatory fields, usage depends on type
     countries = CountryField(multiple=True, blank=True)
     min_amount_spent = MoneyField(
@@ -58,6 +60,7 @@ class Voucher(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, null=True, blank=True)
     products = models.ManyToManyField('product.Product', blank=True)
     collections = models.ManyToManyField('product.Collection', blank=True)
+    categories = models.ManyToManyField('product.Category', blank=True)
 
     objects = VoucherQueryset.as_manager()
 
@@ -73,18 +76,29 @@ class Voucher(models.Model):
                 'Voucher type',
                 '%(discount)s off shipping') % {'discount': discount}
         if self.type == VoucherType.PRODUCT:
-            return pgettext(
-                'Voucher type',
-                '%(discount)s off %(product_num)d products') % {
-                    'discount': discount,
-                    'product_num': len(self.products.all())}
-        # TODO its collections now
+            products = len(self.products.all())
+            if products:
+                return pgettext(
+                    'Voucher type',
+                    '%(discount)s off %(product_num)d products') % {
+                        'discount': discount,
+                        'product_num': products}
+        if self.type == VoucherType.COLLECTION:
+            collections = len(self.collections.all())
+            if collections:
+                return pgettext(
+                    'Voucher type',
+                    '%(discount)s off %(collections_num)d collections') % {
+                        'discount': discount,
+                        'collections_num': collections}
         if self.type == VoucherType.CATEGORY:
-            return pgettext(
-                'Voucher type',
-                '%(discount)s off %(collections_num)d collections') % {
-                    'discount': discount,
-                    'collections_num': len(self.collections.all())}
+            categories = len(self.categories.all())
+            if categories:
+                return pgettext(
+                    'Voucher type',
+                    '%(discount)s off %(categories_num)d categories') % {
+                        'discount': discount,
+                        'categories_num': categories}
         return pgettext(
             'Voucher type', '%(discount)s off') % {'discount': discount}
 
@@ -122,6 +136,12 @@ class Voucher(models.Model):
                 min_amount_spent=min_amount_spent)
 
 
+class SaleQueryset(models.QuerySet):
+    def active(self, date):
+        return self.filter(
+            end_date__gte=date, start_date__lte=date)
+
+
 class Sale(models.Model):
     name = models.CharField(max_length=255)
     type = models.CharField(
@@ -135,6 +155,8 @@ class Sale(models.Model):
     collections = models.ManyToManyField('product.Collection', blank=True)
     start_date = models.DateField(default=date.today)
     end_date = models.DateField(null=True, blank=True)
+
+    objects = SaleQueryset.as_manager()
 
     class Meta:
         app_label = 'discount'
