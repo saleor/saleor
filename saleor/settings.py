@@ -538,4 +538,4 @@ if SENTRY_DSN:
 
 
 SERIALIZATION_MODULES = {
-    'json': 'saleor.core.utils.json'}
+    'json': 'saleor.core.utils.json_serializer'}

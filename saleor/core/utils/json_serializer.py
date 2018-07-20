@@ -1,9 +1,9 @@
-from django.core.serializers.json import DjangoJSONEncoder, Serializer
-
+from django.core.serializers.json import (
+    DjangoJSONEncoder, Serializer as JsonSerializer)
 from prices import Money
 
 
-class Serializer(Serializer):
+class Serializer(JsonSerializer):
     def _init_options(self):
         super()._init_options()
         self.json_kwargs['cls'] = CustomJsonEncoder
