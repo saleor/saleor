@@ -1,13 +1,14 @@
 import json
-from django.contrib.auth.tokens import default_token_generator
 
 import graphene
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
-from .utils import assert_no_permission
 
 from saleor.graphql.account.mutations import SetPassword
+
+from .utils import assert_no_permission, convert_dict_keys_to_camel_case
 
 
 def test_create_token_mutation(admin_client, staff_user):
@@ -219,7 +220,6 @@ def test_who_can_see_user(
     model = get_user_model()
     assert content['data']['users']['totalCount'] == model.objects.count()
 
-from .utils import convert_dict_keys_to_camel_case
 def test_customer_create(admin_api_client, user_api_client, address):
     query = """
     mutation CreateCustomer(
