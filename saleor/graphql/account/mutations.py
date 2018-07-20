@@ -1,9 +1,13 @@
 import graphene
 from django.contrib.auth.tokens import default_token_generator
+from graphql_jwt.decorators import permission_required
 
 from ...account import models
 from ...core.permissions import MODELS_PERMISSIONS, get_permissions
-from ..core.mutations import ModelMutation
+from ..core.mutations import BaseMutation, ModelMutation, ModelDeleteMutation
+from ..order.mutations.draft_orders import AddressInput
+from .types import Address, User
+from ..utils import get_node, get_nodes
 
 
 class UserInput(graphene.InputObjectType):
@@ -130,3 +134,56 @@ class SetPassword(ModelMutation):
     def save(cls, info, instance, cleaned_input):
         instance.set_password(cleaned_input['password'])
         instance.save()
+
+
+class AddressCreate(BaseMutation):
+    class Arguments:
+        user_id = graphene.ID(
+            description='ID of a user to create address for', required=True)
+        address = AddressInput(
+            description='Fields required to create address', required=True)
+
+    address = graphene.Field(Address, description='Created address')
+
+    class Meta:
+        description = 'Creates user address'
+
+    @permission_required('account.edit_user')
+    def mutate(self, info, user_id, address):
+        user = get_node(info, user_id, only_type=User)
+        address_obj = models.Address(**address)
+        address_obj.save()
+        user.addresses.add(address_obj)
+        user.save()
+        return AddressCreate(address=address_obj)
+
+
+class AddressUpdate(ModelMutation):
+    class Arguments:
+        id = graphene.ID(
+            description='ID of address to update', required=True)
+        input = AddressInput(
+            description='Fields required to update address', required=True)
+
+    class Meta:
+        description = 'Updates address'
+        model = models.Address
+        exclude = ['user_addresses']
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('account.edit_user')
+
+
+class AddressDelete(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of address to delete.')
+
+    class Meta:
+        description = 'Deletes an address'
+        model = models.Address
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('account.edit_user')
