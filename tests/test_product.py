@@ -3,6 +3,7 @@ import json
 from unittest.mock import patch
 
 import pytest
+from django.core import serializers
 from django.urls import reverse
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
@@ -589,3 +590,11 @@ def test_variant_base_price(product):
     variant.save()
 
     assert variant.base_price == variant.price_override
+
+
+def test_product_json_serialization(product):
+    product.price = Money('10.00', 'USD')
+    product.save()
+    data = json.loads(serializers.serialize(
+        "json", models.Product.objects.all()))
+    assert data[0]['fields']['price'] == '10.00 USD'
