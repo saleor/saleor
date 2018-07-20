@@ -65,7 +65,7 @@ class Address(models.Model):
         if isinstance(data['country'], Country):
             data['country'] = data['country'].code
         if isinstance(data['phone'], PhoneNumber):
-            data['phone'] = data['phone'].as_international
+            data['phone'] = data['phone'].as_e164
         return data
 
     def get_copy(self):
