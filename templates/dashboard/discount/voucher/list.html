@@ -55,8 +55,8 @@
                   {% trans "Used" context "Voucher table header" as label %}
                   {% sorting_header 'used' label is_wide=True %}
 
-                  {% trans "Limit" context "Voucher table header" as label %}
-                  {% sorting_header 'limit' label is_wide=True %}
+                  {% trans "Min amount spent" context "Voucher table header" as label %}
+                  {% sorting_header 'min_amount_spent' label is_wide=True %}
                 </tr>
               </thead>
               {% for voucher in vouchers %}
@@ -82,8 +82,8 @@
                       {% endif %}
                     </td>
                     <td class="right-align">
-                      {% if voucher.limit %}
-                        {% price voucher.limit %}
+                      {% if voucher.min_amount_spent %}
+                        {% price voucher.min_amount_spent %}
                       {% else %}
                         -
                       {% endif %}

@@ -15,15 +15,21 @@ from saleor.discount.utils import (
 from saleor.product.models import Product, ProductVariant
 
 
-@pytest.mark.parametrize('limit, value', [
+def get_min_amount_spent(min_amount_spent):
+    if min_amount_spent is not None:
+        return Money(min_amount_spent, 'USD')
+    return None
+
+
+@pytest.mark.parametrize('min_amount_spent, value', [
     (Money(5, 'USD'), Money(10, 'USD')),
     (Money(10, 'USD'), Money(10, 'USD'))])
-def test_valid_voucher_limit(settings, limit, value):
+def test_valid_voucher_min_amount_spent(settings, min_amount_spent, value):
     voucher = Voucher(
         code='unique', type=VoucherType.SHIPPING,
         discount_value_type=DiscountValueType.FIXED,
-        discount_value=Money(10, 'USD'), limit=limit)
-    voucher.validate_limit(TaxedMoney(net=value, gross=value))
+        discount_value=Money(10, 'USD'), min_amount_spent=min_amount_spent)
+    voucher.validate_min_amount_spent(TaxedMoney(net=value, gross=value))
 
 
 @pytest.mark.integration
@@ -65,7 +71,7 @@ def test_voucher_queryset_active(voucher):
         date=date.today() - timedelta(days=1))
     assert len(active_vouchers) == 0
 
-#FIXME What is this test?
+# FIXME What is this test?
 # @pytest.mark.parametrize(
 #     'prices, discount_value, discount_type, expected_value', [
 #         (
@@ -141,18 +147,19 @@ def test_decrease_voucher_usage():
 
 
 @pytest.mark.parametrize(
-    'total, limit, discount_value, discount_value_type, expected_value', [
+    'total, min_amount_spent, discount_value, discount_value_type, expected_value', [
         (20, 15, 50, DiscountValueType.PERCENTAGE, 10),
         (20, None, 50, DiscountValueType.PERCENTAGE, 10),
         (20, 15, 5, DiscountValueType.FIXED, 5),
         (20, None, 5, DiscountValueType.FIXED, 5)])
 def test_get_value_voucher_discount(
-        total, limit, discount_value, discount_value_type, expected_value):
+        total, min_amount_spent, discount_value, discount_value_type,
+        expected_value):
     voucher = Voucher(
         code='unique', type=VoucherType.VALUE,
         discount_value_type=discount_value_type,
         discount_value=discount_value,
-        limit=Money(limit, 'USD') if limit is not None else None)
+        min_amount_spent=get_min_amount_spent(min_amount_spent))
     voucher.save()
     total_price = TaxedMoney(
         net=Money(total, 'USD'), gross=Money(total, 'USD'))
@@ -161,19 +168,20 @@ def test_get_value_voucher_discount(
 
 
 @pytest.mark.parametrize(
-    'total, limit, shipping_price, discount_value, discount_value_type, expected_value', [  # noqa
+    'total, min_amount_spent, shipping_price, discount_value, '
+    'discount_value_type, expected_value', [
         (20, 15, 10, 50, DiscountValueType.PERCENTAGE, 5),
         (20, None, 10, 50, DiscountValueType.PERCENTAGE, 5),
         (20, 15, 10, 5, DiscountValueType.FIXED, 5),
         (20, None, 10, 5, DiscountValueType.FIXED, 5)])
 def test_get_shipping_voucher_discount(
-        total, limit, shipping_price, discount_value, discount_value_type,
-        expected_value):
+        total, min_amount_spent, shipping_price, discount_value,
+        discount_value_type, expected_value):
     voucher = Voucher(
         code='unique', type=VoucherType.VALUE,
         discount_value_type=discount_value_type,
         discount_value=discount_value,
-        limit=Money(limit, 'USD') if limit is not None else None)
+        min_amount_spent=get_min_amount_spent(min_amount_spent))
     voucher.save()
     total = TaxedMoney(
         net=Money(total, 'USD'), gross=Money(total, 'USD'))
@@ -184,7 +192,7 @@ def test_get_shipping_voucher_discount(
 
 
 @pytest.mark.parametrize(
-    'prices, discount_value_type, discount_value, voucher_type, expected_value', [  # noqa
+    'prices, discount_value_type, discount_value, voucher_type, ''expected_value', [  # noqa
         ([5, 10, 15], DiscountValueType.PERCENTAGE, 10, VoucherType.PRODUCT, 3),
         ([5, 10, 15], DiscountValueType.FIXED, 2, VoucherType.PRODUCT, 2),
         ([5, 10, 15], DiscountValueType.FIXED, 2, VoucherType.CATEGORY, 2)])

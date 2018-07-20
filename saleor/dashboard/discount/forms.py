@@ -12,7 +12,7 @@ from ...discount import DiscountValueType
 from ...discount.models import Sale, Voucher
 from ...product.models import Product
 from ...shipping.models import ShippingMethodCountry
-from ..forms import AjaxSelect2ChoiceField, AjaxSelect2MultipleChoiceField
+from ..forms import AjaxSelect2MultipleChoiceField
 
 
 class SaleForm(forms.ModelForm):
@@ -70,7 +70,7 @@ class VoucherForm(forms.ModelForm):
 
     class Meta:
         model = Voucher
-        exclude = ['limit', 'countries', 'products', 'collections', 'used']
+        exclude = ['min_amount_spent', 'countries', 'products', 'collections', 'used']
         labels = {
             'type': pgettext_lazy(
                 'Discount type',
@@ -124,7 +124,7 @@ def country_choices():
 
 class ShippingVoucherForm(forms.ModelForm):
 
-    limit = MoneyField(
+    min_amount_spent = MoneyField(
         min_value=ZERO_MONEY, required=False,
         currency=settings.DEFAULT_CURRENCY,
         label=pgettext_lazy(
@@ -139,7 +139,7 @@ class ShippingVoucherForm(forms.ModelForm):
 
     class Meta:
         model = Voucher
-        fields = ['countries', 'limit']
+        fields = ['countries', 'min_amount_spent']
 
     def save(self, commit=True):
         return super().save(commit)
@@ -147,7 +147,7 @@ class ShippingVoucherForm(forms.ModelForm):
 
 class ValueVoucherForm(forms.ModelForm):
 
-    limit = MoneyField(
+    min_amount_spent = MoneyField(
         min_value=ZERO_MONEY, required=False,
         currency=settings.DEFAULT_CURRENCY,
         label=pgettext_lazy(
@@ -156,7 +156,7 @@ class ValueVoucherForm(forms.ModelForm):
 
     class Meta:
         model = Voucher
-        fields = ['limit']
+        fields = ['min_amount_spent']
 
     def save(self, commit=True):
         self.instance.category = None
@@ -170,16 +170,16 @@ class CommonVoucherForm(forms.ModelForm):
     use_required_attribute = False
 
     def save(self, commit=True):
-        self.instance.limit = None
+        self.instance.min_amount_spent = None
         return super().save(commit)
 
 
 class ProductVoucherForm(CommonVoucherForm):
-    product = AjaxSelect2ChoiceField(
+    products = AjaxSelect2MultipleChoiceField(
         queryset=Product.objects.all(),
         fetch_data_url=reverse_lazy('dashboard:ajax-products'),
         required=True,
-        label=pgettext_lazy('Product', 'Product'))
+        label=pgettext_lazy('Product', 'Products'))
 
     class Meta:
         model = Voucher

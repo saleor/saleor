@@ -17,13 +17,14 @@ from . import DiscountValueType, VoucherType
 class NotApplicable(ValueError):
     """Exception raised when a discount is not applicable to a checkout.
 
-    If the error is raised because the order value is too low the minimum
-    price limit will be available as the `limit` attribute.
+    The error is raised if the order value is below the minimum required
+    price.
+    Minimum price will be available as the `min_amount_spent` attribute.
     """
 
-    def __init__(self, msg, limit=None):
+    def __init__(self, msg, min_amount_spent=None):
         super().__init__(msg)
-        self.limit = limit
+        self.min_amount_spent = min_amount_spent
 
 
 class VoucherQueryset(models.QuerySet):
@@ -52,7 +53,7 @@ class Voucher(models.Model):
 
     # not mandatory fields, usage depends on type
     countries = CountryField(multiple=True, blank=True)
-    limit = MoneyField(
+    min_amount_spent = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, null=True, blank=True)
     products = models.ManyToManyField('product.Product', blank=True)
@@ -110,13 +111,15 @@ class Voucher(models.Model):
             return gross_price
         return gross_price - gross_after_discount
 
-    def validate_limit(self, value):
-        limit = self.limit or value.gross
-        if value.gross < limit:
+    def validate_min_amount_spent(self, value):
+        min_amount_spent = self.min_amount_spent
+        if min_amount_spent and value.gross < min_amount_spent:
             msg = pgettext(
                 'Voucher not applicable',
                 'This offer is only valid for orders over %(amount)s.')
-            raise NotApplicable(msg % {'amount': amount(limit)}, limit=limit)
+            raise NotApplicable(msg % {
+                'amount': amount(min_amount_spent)},
+                min_amount_spent=min_amount_spent)
 
 
 class Sale(models.Model):
