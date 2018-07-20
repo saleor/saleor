@@ -4,10 +4,10 @@ from graphql_jwt.decorators import permission_required
 
 from ...account import models
 from ...core.permissions import MODELS_PERMISSIONS, get_permissions
-from ..core.mutations import BaseMutation, ModelMutation, ModelDeleteMutation
+from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..order.mutations.draft_orders import AddressInput
+from ..utils import get_node
 from .types import Address, User
-from ..utils import get_node, get_nodes
 
 
 class UserInput(graphene.InputObjectType):
