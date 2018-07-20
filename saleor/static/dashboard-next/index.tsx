@@ -67,20 +67,20 @@ render(
         <MessageManager>
           <CssBaseline />
           <AuthProvider>
-          {({ isAuthenticated }) => (
-            isAuthenticated ? (
-              <AppRoot>
-                <Switch>
-                  <Route path="/categories" component={CategorySection} />
-                  <Route path="/pages" component={PageSection} />
-                  <Route path="/products" component={ProductSection} />
-                </Switch>
-              </AppRoot>
-            ) : (
-              <Route component={Auth} />
-            )
-          )}
-        </AuthProvider>
+            {({ isAuthenticated }) => (
+              isAuthenticated ? (
+                <AppRoot>
+                  <Switch>
+                    <Route path="/categories" component={CategorySection} />
+                    <Route path="/pages" component={PageSection} />
+                    <Route path="/products" component={ProductSection} />
+                  </Switch>
+                </AppRoot>
+              ) : (
+                <Route component={Auth} />
+              )
+            )}
+          </AuthProvider>
         </MessageManager>
       </MuiThemeProvider>
     </BrowserRouter>
@@ -126,6 +126,7 @@ export type PartialMutationProviderRenderProps<
   TVariables extends {} = {}
 > = (
   props: {
+    called?: boolean;
     data: TData;
     loading: boolean;
     error?: ApolloError;

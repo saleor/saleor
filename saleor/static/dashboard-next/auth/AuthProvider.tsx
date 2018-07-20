@@ -1,32 +1,41 @@
 import * as React from "react";
 
-import { MutationFn } from "../../../../node_modules/react-apollo";
-import {
-  TokenAuthMutation,
-  TokenAuthMutationVariables,
-  UserFragment,
-  VerifyTokenMutation,
-  VerifyTokenMutationVariables
-} from "../gql-types";
+import { UserFragment } from "../gql-types";
 import {
   getAuthToken,
   removeAuthToken,
   setAuthToken,
   UserContext
 } from "./index";
-import {
-  tokenAuthMutation,
-  tokenVerifyMutation,
-  TypedTokenAuthMutation,
-  TypedVerifyTokenMutation
-} from "./mutations";
+
+import TokenAuthProvider from "./containers/TokenAuth";
+import TokenVerifyProvider from "./containers/TokenVerify";
+
+const AuthProviderOperations: React.StatelessComponent<any> = ({
+  children,
+  onError
+}) => {
+  return (
+    <TokenAuthProvider onError={onError}>
+      {tokenAuth => (
+        <TokenVerifyProvider onError={onError}>
+          {tokenVerify => (
+            <AuthProvider tokenAuth={tokenAuth} tokenVerify={tokenVerify}>
+              {({ isAuthenticated }) => {
+                return children({ isAuthenticated });
+              }}
+            </AuthProvider>
+          )}
+        </TokenVerifyProvider>
+      )}
+    </TokenAuthProvider>
+  );
+};
 
 interface AuthProviderProps {
-  authenticate: MutationFn<TokenAuthMutation, TokenAuthMutationVariables>;
-  authResult: any;
   children: any;
-  verifyToken: MutationFn<VerifyTokenMutation, VerifyTokenMutationVariables>;
-  verifyResult: any;
+  tokenAuth: any;
+  tokenVerify: any;
 }
 
 interface AuthProviderState {
@@ -42,32 +51,32 @@ class AuthProvider extends React.Component<
     this.state = { user: undefined };
   }
 
-  componentWillReceiveProps(props) {
-    if (props.authResult.called && !props.authResult.loading) {
-      this.setState({ user: props.authResult.data.tokenCreate.user });
-      setAuthToken(props.authResult.data.tokenCreate.token);
+  componentWillReceiveProps(props: AuthProviderProps) {
+    const { tokenAuth, tokenVerify } = props;
+    if (tokenAuth.error || tokenVerify.error) {
+      this.logout();
+    }
+    if (tokenAuth.data) {
+      this.setState({ user: tokenAuth.data.tokenCreate.user });
+      setAuthToken(tokenAuth.data.tokenCreate.token);
+    }
+    if (tokenVerify.data) {
+      this.setState({ user: tokenVerify.data.tokenVerify.user });
     }
   }
 
   componentDidMount() {
     const { user } = this.state;
+    const { tokenVerify } = this.props;
     const token = getAuthToken();
     if (!!token && !user) {
-      this.props
-        .verifyToken({ variables: { token } })
-        .then(response => {
-          if (response) {
-            this.setState({ user: response.data.tokenVerify.user });
-          }
-        })
-        .catch(error => {
-          this.logout();
-        });
+      tokenVerify.mutate({ variables: { token } });
     }
   }
 
   login = (email: string, password: string) => {
-    this.props.authenticate({ variables: { email, password } });
+    const { tokenAuth } = this.props;
+    tokenAuth.mutate({ variables: { email, password } });
   };
 
   logout = () => {
@@ -75,51 +84,20 @@ class AuthProvider extends React.Component<
     removeAuthToken();
   };
 
-  setUser = (user: UserFragment) => {
-    this.setState({ user });
-  };
-
   render() {
-    const { authResult, verifyResult } = this.props;
+    const { children, tokenAuth, tokenVerify } = this.props;
     const { user } = this.state;
     const isAuthenticated = !!user;
-    const loading = authResult.loading || verifyResult.loading;
+    const loading = tokenAuth.loading || tokenVerify.loading;
     return (
       <UserContext.Provider
         value={{ user, login: this.login, logout: this.logout }}
       >
-        {loading ? (
-          // FIXME: render loading state
-          <div>Loading</div>
-        ) : (
-          this.props.children({ isAuthenticated, logout: this.logout })
-        )}
+        {/* FIXME: render lodaing state properly */}
+        { loading ? <div>Loading...</div> : children({ isAuthenticated }) }
       </UserContext.Provider>
     );
   }
 }
-
-const AuthProviderOperations: React.StatelessComponent<any> = ({
-  children
-}) => (
-  <TypedTokenAuthMutation mutation={tokenAuthMutation}>
-    {(authenticate, tokenAuthResult) => (
-      <TypedVerifyTokenMutation mutation={tokenVerifyMutation}>
-        {(verifyToken, verifyTokenResult) => (
-          <AuthProvider
-            authenticate={authenticate}
-            authResult={tokenAuthResult}
-            verifyToken={verifyToken}
-            verifyResult={verifyTokenResult}
-          >
-            {({ isAuthenticated }) => {
-              return children({ isAuthenticated });
-            }}
-          </AuthProvider>
-        )}
-      </TypedVerifyTokenMutation>
-    )}
-  </TypedTokenAuthMutation>
-);
 
 export default AuthProviderOperations;

@@ -11,9 +11,9 @@ const Component: React.StatelessComponent<RouteComponentProps<any>> = ({
 };
 
 interface UserContext {
-  user?: any;
   login?: (username: string, password: string) => void;
   logout?: () => void;
+  user?: any;
 }
 
 export const UserContext = React.createContext<UserContext>({});
