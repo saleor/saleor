@@ -17,7 +17,7 @@ from .forms import CustomerDeleteForm, CustomerForm, CustomerNoteForm
 
 
 @staff_member_required
-@permission_required('account.view_user')
+@permission_required('account.manage_users')
 def customer_list(request):
     customers = (
         User.objects
@@ -38,7 +38,7 @@ def customer_list(request):
 
 
 @staff_member_required
-@permission_required('account.view_user')
+@permission_required('account.manage_users')
 def customer_details(request, pk):
     queryset = User.objects.prefetch_related(
         'orders', 'addresses', 'notes').select_related(
@@ -53,7 +53,7 @@ def customer_details(request, pk):
 
 
 @staff_member_required
-@permission_required('account.edit_user')
+@permission_required('account.manage_users')
 def customer_create(request):
     customer = User()
     form = CustomerForm(request.POST or None, instance=customer)
@@ -69,7 +69,7 @@ def customer_create(request):
 
 
 @staff_member_required
-@permission_required('account.edit_user')
+@permission_required('account.manage_users')
 def customer_edit(request, pk=None):
     customer = get_object_or_404(User, pk=pk)
     form = CustomerForm(request.POST or None, instance=customer)
@@ -84,7 +84,7 @@ def customer_edit(request, pk=None):
 
 
 @staff_member_required
-@permission_required('account.view_user')
+@permission_required('account.manage_users')
 def ajax_users_list(request):
     queryset = User.objects.select_related('default_billing_address')
     search_query = request.GET.get('q', '')
@@ -100,7 +100,7 @@ def ajax_users_list(request):
 
 
 @staff_member_required
-@permission_required('account.edit_user')
+@permission_required('account.manage_users')
 def customer_add_note(request, customer_pk):
     customer = get_object_or_404(User, pk=customer_pk)
     note = CustomerNote(customer=customer, user=request.user)
@@ -120,7 +120,7 @@ def customer_add_note(request, customer_pk):
 
 
 @staff_member_required
-@permission_required('account.edit_user')
+@permission_required('account.manage_users')
 def customer_delete(request, pk):
     customer = get_object_or_404(User, pk=pk)
     form = CustomerDeleteForm(

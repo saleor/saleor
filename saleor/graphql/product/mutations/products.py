@@ -42,7 +42,7 @@ class CategoryCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('category.edit_category')
+        return user.has_perm('product.manage_products')
 
 
 class CategoryUpdate(CategoryCreate):
@@ -68,7 +68,7 @@ class CategoryDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('category.edit_category')
+        return user.has_perm('product.manage_products')
 
 
 class CollectionInput(graphene.InputObjectType):
@@ -96,7 +96,7 @@ class CollectionCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('collection.edit_collection')
+        return user.has_perm('product.manage_products')
 
     @classmethod
     def clean_input(cls, info, instance, input, errors):
@@ -129,7 +129,7 @@ class CollectionDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('collection.edit_collection')
+        return user.has_perm('product.manage_products')
 
 
 class CollectionAddProducts(BaseMutation):
@@ -148,7 +148,7 @@ class CollectionAddProducts(BaseMutation):
     class Meta:
         description = 'Adds products to a collection.'
 
-    @permission_required('collection.edit_collection')
+    @permission_required('product.manage_products')
     def mutate(self, info, collection_id, products):
         collection = get_node(info, collection_id, only_type=Collection)
         products = get_nodes(products, Product)
@@ -170,7 +170,7 @@ class CollectionRemoveProducts(BaseMutation):
     class Meta:
         description = 'Remove products from a collection.'
 
-    @permission_required('collection.edit_collection')
+    @permission_required('product.manage_products')
     def mutate(self, info, collection_id, products):
         collection = get_node(info, collection_id, only_type=Collection)
         products = get_nodes(products, Product)
@@ -252,7 +252,7 @@ class ProductCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_product')
+        return user.has_perm('product.manage_products')
 
 
 class ProductUpdate(ProductCreate):
@@ -278,7 +278,7 @@ class ProductDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_product')
+        return user.has_perm('product.manage_products')
 
 
 class ProductVariantInput(graphene.InputObjectType):
@@ -334,7 +334,7 @@ class ProductVariantCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_product')
+        return user.has_perm('product.manage_products')
 
 
 class ProductVariantUpdate(ProductVariantCreate):
@@ -361,7 +361,7 @@ class ProductVariantDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_product')
+        return user.has_perm('product.manage_products')
 
 
 class ProductTypeInput(graphene.InputObjectType):
@@ -398,7 +398,7 @@ class ProductTypeCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_properties')
+        return user.has_perm('product.manage_products')
 
 
 class ProductTypeUpdate(ProductTypeCreate):
@@ -425,7 +425,7 @@ class ProductTypeDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_properties')
+        return user.has_perm('product.manage_products')
 
 
 class ProductImageInput(graphene.InputObjectType):
@@ -454,7 +454,7 @@ class ProductImageCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_product')
+        return user.has_perm('product.manage_products')
 
 
 class ProductImageUpdate(ProductImageCreate):
@@ -487,7 +487,7 @@ class ProductImageReorder(BaseMutation):
         description='Product image which sort order will be altered.')
 
     @classmethod
-    @permission_required('product.edit_product')
+    @permission_required('product.manage_products')
     def mutate(cls, root, info, product_id, images_ids):
         product = get_node(info, product_id, Product)
         if len(images_ids) != product.images.count():
@@ -514,4 +514,4 @@ class ProductImageDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_product')
+        return user.has_perm('product.manage_products')

@@ -18,13 +18,11 @@
 {% endblock %}
 
 {% block header_extra %}
-  {% if perms.product.edit_category %}
-    <div class="btn-fab-fixed">
-      <a href="{% url 'dashboard:category-add' %}" class="btn-fab-default waves-effect waves-light" title="{% trans 'Add category' context 'Category list add button text' %}">
-        <svg data-src="{% static 'dashboard/images/add.svg' %}"/>
-      </a>
-    </div>
-  {% endif %}
+  <div class="btn-fab-fixed">
+    <a href="{% url 'dashboard:category-add' %}" class="btn-fab-default waves-effect waves-light" title="{% trans 'Add category' context 'Category list add button text' %}">
+      <svg data-src="{% static 'dashboard/images/add.svg' %}"/>
+    </a>
+  </div>
 {% endblock %}
 
 {% block breadcrumbs %}

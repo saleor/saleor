@@ -16,13 +16,6 @@ class AssignMenuForm(forms.ModelForm):
         model = SiteSettings
         fields = ('top_menu', 'bottom_menu')
 
-    def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user')
-        super().__init__(*args, **kwargs)
-        user_can_edit_menus = self.user.has_perm('menu.edit_menu')
-        self.fields['top_menu'].disabled = not user_can_edit_menus
-        self.fields['bottom_menu'].disabled = not user_can_edit_menus
-
 
 class MenuForm(forms.ModelForm):
     """Add or update menu."""

@@ -213,22 +213,22 @@ class Query(graphene.ObjectType):
     def resolve_product_types(self, info, **kwargs):
         return resolve_product_types()
 
-    @permission_required('discount.view_sale')
+    @permission_required('discount.manage_discounts')
     def resolve_sale(self, info, id):
         return get_node(info, id, only_type=Sale)
 
-    @permission_required('discount.view_sale')
+    @permission_required('discount.manage_discounts')
     def resolve_sales(self, info, query=None, **kwargs):
         return resolve_sales(info, query)
 
     def resolve_product_variant(self, info, id):
         return get_node(info, id, only_type=ProductVariant)
 
-    @permission_required('discount.view_voucher')
+    @permission_required('discount.manage_discounts')
     def resolve_voucher(self, info, id):
         return get_node(info, id, only_type=Voucher)
 
-    @permission_required('discount.view_voucher')
+    @permission_required('discount.manage_discounts')
     def resolve_vouchers(self, info, query=None, **kwargs):
         return resolve_vouchers(info, query)
 

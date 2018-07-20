@@ -95,11 +95,9 @@ class Order(models.Model):
 
     class Meta:
         ordering = ('-pk',)
-        permissions = (
-            ('view_order',
-             pgettext_lazy('Permission description', 'Can view orders')),
-            ('edit_order',
-             pgettext_lazy('Permission description', 'Can edit orders')))
+        permissions = ((
+            'manage_orders',
+            pgettext_lazy('Permission description', 'Manage orders.')),)
 
     def save(self, *args, **kwargs):
         if not self.token:

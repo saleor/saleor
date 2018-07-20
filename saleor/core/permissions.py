@@ -1,31 +1,16 @@
 from django.contrib.auth.models import Permission
 
 MODELS_PERMISSIONS = [
-    'account.view_user',
-    'account.edit_user',
-    'account.view_staff',
-    'account.edit_staff',
-    'account.impersonate_user',
-    'discount.view_sale',
-    'discount.edit_sale',
-    'discount.view_voucher',
-    'discount.edit_voucher',
-    'menu.view_menu',
-    'menu.edit_menu',
-    'order.view_order',
-    'order.edit_order',
-    'page.view_page',
-    'page.edit_page',
-    'product.view_category',
-    'product.edit_category',
-    'product.view_product',
-    'product.edit_product',
-    'product.view_properties',
-    'product.edit_properties',
-    'shipping.view_shipping',
-    'shipping.edit_shipping',
-    'site.edit_settings',
-    'site.view_settings']
+    'account.manage_users',
+    'account.manage_staff',
+    'account.impersonate_users',
+    'discount.manage_discounts',
+    'menu.manage_menus',
+    'order.manage_orders',
+    'page.manage_pages',
+    'product.manage_products',
+    'shipping.manage_shipping',
+    'site.manage_settings']
 
 
 def get_permissions(permissions=None):

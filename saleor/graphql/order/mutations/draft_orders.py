@@ -127,7 +127,7 @@ class DraftOrderCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('order.edit_order')
+        return user.has_perm('order.manage_orders')
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -173,7 +173,7 @@ class DraftOrderDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('order.edit_order')
+        return user.has_perm('order.manage_orders')
 
 
 def check_for_draft_order_errors(order):
@@ -216,7 +216,7 @@ class DraftOrderComplete(BaseMutation):
         Order, description='Completed order.')
 
     @classmethod
-    @permission_required('order.edit_order')
+    @permission_required('order.manage_orders')
     def mutate(cls, root, info, id):
         order = get_node(info, id, only_type=Order)
         errors = check_for_draft_order_errors(order)

@@ -48,7 +48,7 @@ class VoucherCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('discount.edit_voucher')
+        return user.has_perm('discount.manage_discounts')
 
     @classmethod
     def clean_input(cls, info, instance, input, errors):
@@ -83,7 +83,7 @@ class VoucherDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('discount.edit_voucher')
+        return user.has_perm('discount.manage_discounts')
 
 
 class SaleInput(graphene.InputObjectType):
@@ -110,7 +110,7 @@ class SaleCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('discount.edit_sale')
+        return user.has_perm('discount.manage_discounts')
 
 
 class SaleUpdate(ModelMutation):
@@ -127,7 +127,7 @@ class SaleUpdate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('discount.edit_sale')
+        return user.has_perm('discount.manage_discounts')
 
 
 class SaleDelete(ModelDeleteMutation):
@@ -141,4 +141,4 @@ class SaleDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('discount.edit_sale')
+        return user.has_perm('discount.manage_discounts')
