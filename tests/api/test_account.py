@@ -283,10 +283,13 @@ def test_customer_create(
     assert 'token' in call_context
 
 
-def test_customer_update(admin_api_client, customer_user, user_api_client):
+def test_customer_update(
+        admin_api_client, customer_user, user_api_client, address):
     query = """
-    mutation UpdateCustomer($id: ID!, $note: String) {
-        customerUpdate(id: $id, input: {note: $note}) {
+    mutation UpdateCustomer(
+    $id: ID!, $note: String, $billing: AddressInput) {
+        customerUpdate(id: $id, input: {note: $note, 
+        defaultBillingAddress: $billing}) {
             errors {
                 field
                 message
@@ -304,7 +307,8 @@ def test_customer_update(admin_api_client, customer_user, user_api_client):
 
     id = graphene.Node.to_global_id('User', customer_user.id)
     note = 'Test update note'
-    variables = json.dumps({'id': id, 'note': note})
+    address_data = convert_dict_keys_to_camel_case(address.as_data())
+    variables = json.dumps({'id': id, 'note': note, 'billing': address_data})
 
     # check unauthorized access
     response = user_api_client.post(
@@ -314,6 +318,11 @@ def test_customer_update(admin_api_client, customer_user, user_api_client):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
+
+    User = get_user_model()
+    customer = User.objects.get(email=customer_user.email)
+
+    assert customer.default_billing_address == address
     assert 'errors' not in content
     data = content['data']['customerUpdate']
     assert data['errors'] == []
