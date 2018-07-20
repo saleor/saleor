@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 from django.contrib.auth.tokens import default_token_generator
 
 import graphene
@@ -414,3 +415,148 @@ def test_set_password(user_api_client, customer_user):
 
     customer_user.refresh_from_db()
     assert customer_user.check_password(password)
+
+
+@patch('saleor.account.emails.send_password_reset_email.delay')
+def test_create_user_password_reset_email(
+        send_password_reset_mock, admin_api_client):
+    query = """
+    mutation CreateCustomer($email: String, $note: String, $send_mail: Boolean) {
+        customerCreate(input: {email: $email, note: $note, sendPasswordEmail: $send_mail}) {
+            errors {
+                field
+                message
+            }
+            user {
+                id
+                email
+                isStaff
+                isActive
+                note
+            }
+        }
+    }
+    """
+    email = 'api_user@example.com'
+    note = 'Test user'
+
+    variables = json.dumps({'email': email, 'note': note, 'send_mail': True})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['customerCreate']
+    assert data['errors'] == []
+    assert data['user']['email'] == email
+    assert data['user']['note'] == note
+    assert data['user']['isStaff'] is False
+    assert data['user']['isActive'] is True
+    send_password_reset_mock.assert_called_once()
+    args, kwargs = send_password_reset_mock.call_args
+    call_context = args[0]
+    call_email = args[1]
+    assert call_email == email
+    assert 'token' in call_context
+
+
+@patch('saleor.account.emails.send_password_reset_email.delay')
+def test_create_staff_password_reset_email(
+        send_password_reset_mock, admin_api_client, permission_manage_users,
+        permission_manage_products, staff_user):
+    query = """
+    mutation CreateStaff($email: String, $permissions: [String], $send_mail: Boolean) {
+        staffCreate(input: {email: $email, permissions: $permissions, sendPasswordEmail: $send_mail}) {
+            errors {
+                field
+                message
+            }
+            user {
+                id
+                email
+                isStaff
+                isActive
+                permissions {
+                    code
+                }
+            }
+        }
+    }
+    """
+
+    permission_manage_products_codename = '%s.%s' % (
+        permission_manage_products.content_type.app_label,
+        permission_manage_products.codename)
+
+    email = 'api_user@example.com'
+    staff_user.user_permissions.add(permission_manage_users)
+    variables = json.dumps({
+        'email': email, 'permissions': [permission_manage_products_codename],
+        'send_mail': True})
+
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['staffCreate']
+    assert data['errors'] == []
+    assert data['user']['email'] == email
+    send_password_reset_mock.assert_called_once()
+    args, kwargs = send_password_reset_mock.call_args
+    call_context = args[0]
+    call_email = args[1]
+    assert call_email == email
+    assert 'token' in call_context
+
+
+@patch('saleor.account.emails.send_password_reset_email.delay')
+def test_password_reset_email(
+        send_password_reset_mock, admin_api_client, customer_user):
+    query = """
+    mutation ResetPassword($email: String!) {
+        passwordReset(email: $email) {
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+    email = customer_user.email
+    variables = json.dumps({'email': email})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['passwordReset']
+    assert data is None
+    send_password_reset_mock.assert_called_once()
+    args, kwargs = send_password_reset_mock.call_args
+    call_context = args[0]
+    call_email = args[1]
+    assert call_email == email
+    assert 'token' in call_context
+
+
+@patch('saleor.account.emails.send_password_reset_email.delay')
+def test_password_reset_email_non_existing_user(
+        send_password_reset_mock, admin_api_client, customer_user):
+    query = """
+    mutation ResetPassword($email: String!) {
+        passwordReset(email: $email) {
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+    email = 'not_exists@example.com'
+    variables = json.dumps({'email': email})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['passwordReset']
+    assert data['errors'] == [{
+        'field': 'email', 'message': "User with this email doesn't exist"}]
+    send_password_reset_mock.assert_not_called()
