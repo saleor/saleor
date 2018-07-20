@@ -34,7 +34,8 @@ class VoucherInput(graphene.InputObjectType):
         graphene.ID, description='Products discounted by the voucher.')
     collections = graphene.List(
         graphene.ID, description='Collections discounted by the voucher.')
-    limit = Decimal(description='Limit value of the discount.')
+    min_amount_spent = Decimal(
+        description='Min purchase amount required to apply the voucher.')
     countries = graphene.List(
         graphene.String,
         description='Country codes that can be used with '

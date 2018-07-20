@@ -620,11 +620,6 @@ def get_cart_data_for_checkout(cart, discounts, taxes):
         'cart_total': total}
 
 
-def _get_value_voucher_discount_for_cart(voucher, cart):
-    """Calculate discount value for a voucher of value type."""
-    return get_value_voucher_discount(voucher, cart.get_subtotal())
-
-
 def _get_shipping_voucher_discount_for_cart(voucher, cart):
     """Calculate discount value for a voucher of shipping type."""
     if not cart.is_shipping_required():
@@ -672,12 +667,10 @@ def get_voucher_discount_for_cart(voucher, cart):
     Raise NotApplicable if voucher of given type cannot be applied.
     """
     if voucher.type == VoucherType.VALUE:
-        return _get_value_voucher_discount_for_cart(voucher, cart)
+        return get_value_voucher_discount(voucher, cart.get_subtotal())
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_cart(voucher, cart)
-    if voucher.type == VoucherType.PRODUCT:
-        return _get_products_voucher_discount(cart, voucher)
-    if voucher.type == VoucherType.CATEGORY:
+    if voucher.type in (VoucherType.PRODUCT, VoucherType.CATEGORY):
         return _get_products_voucher_discount(cart, voucher)
     raise NotImplementedError('Unknown discount type')
 

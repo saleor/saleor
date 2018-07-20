@@ -504,18 +504,18 @@ def test_note_in_created_order_empty_note(request_cart_with_item, address):
 
 
 @pytest.mark.parametrize(
-    'total, discount_value, discount_type, limit, discount_amount', [
+    'total, discount_value, discount_type, min_amount_spent, discount_amount', [
         ('100', 10, DiscountValueType.FIXED, None, 10),
         ('100.05', 10, DiscountValueType.PERCENTAGE, 100, 10)])
 def test_get_discount_for_cart_value_voucher(
-        total, discount_value, discount_type, limit,
+        total, discount_value, discount_type, min_amount_spent,
         discount_amount):
     voucher = Voucher(
         code='unique',
         type=VoucherType.VALUE,
         discount_value_type=discount_type,
         discount_value=discount_value,
-        limit=Money(limit, 'USD') if limit is not None else None)
+        min_amount_spent=Money(min_amount_spent, 'USD') if min_amount_spent is not None else None)
     subtotal = TaxedMoney(net=Money(total, 'USD'), gross=Money(total, 'USD'))
     cart = Mock(get_subtotal=Mock(return_value=subtotal))
     discount = get_voucher_discount_for_cart(voucher, cart)
@@ -528,12 +528,12 @@ def test_get_discount_for_cart_value_voucher_not_applicable():
         type=VoucherType.VALUE,
         discount_value_type=DiscountValueType.FIXED,
         discount_value=10,
-        limit=Money(100, 'USD'))
+        min_amount_spent=Money(100, 'USD'))
     subtotal = TaxedMoney(net=Money(10, 'USD'), gross=Money(10, 'USD'))
     cart = Mock(get_subtotal=Mock(return_value=subtotal))
     with pytest.raises(NotApplicable) as e:
         get_voucher_discount_for_cart(voucher, cart)
-    assert e.value.limit == Money(100, 'USD')
+    assert e.value.min_amount_spent == Money(100, 'USD')
 
 
 @pytest.mark.parametrize(
@@ -561,14 +561,14 @@ def test_get_discount_for_cart_shipping_voucher(
         discount_value_type=discount_type,
         discount_value=discount_value,
         countries=countries,
-        limit=None)
+        min_amount_spent=None)
     discount = get_voucher_discount_for_cart(voucher, cart)
     assert discount == Money(expected_value, 'USD')
 
 
 @pytest.mark.parametrize(
     'is_shipping_required, shipping_method, discount_value, discount_type,'
-    'countries, limit, subtotal, error_msg', [
+    'countries, min_amount_spent, subtotal, error_msg', [
         (True, Mock(country_code='PL'), 10, DiscountValueType.FIXED,
          ['US'], None, Money(10, 'USD'),
          'This offer is not valid in your country.'),
@@ -583,7 +583,7 @@ def test_get_discount_for_cart_shipping_voucher(
          'This offer is only valid for orders over $5.00.')])
 def test_get_discount_for_cart_shipping_voucher_not_applicable(
         is_shipping_required, shipping_method, discount_value,
-        discount_type, countries, limit, subtotal, error_msg):
+        discount_type, countries, min_amount_spent, subtotal, error_msg):
     subtotal_price = TaxedMoney(net=subtotal, gross=subtotal)
     cart = Mock(
         get_subtotal=Mock(return_value=subtotal_price),
@@ -593,7 +593,7 @@ def test_get_discount_for_cart_shipping_voucher_not_applicable(
         code='unique', type=VoucherType.SHIPPING,
         discount_value_type=discount_type,
         discount_value=discount_value,
-        limit=Money(limit, 'USD') if limit is not None else None,
+        min_amount_spent=Money(min_amount_spent, 'USD') if min_amount_spent is not None else None,
         countries=countries)
     with pytest.raises(NotApplicable) as e:
         get_voucher_discount_for_cart(voucher, cart)
@@ -642,7 +642,7 @@ def test_cart_voucher_form_invalid_voucher_code(
 
 def test_cart_voucher_form_voucher_not_applicable(
         voucher, request_cart_with_item):
-    voucher.limit = 200
+    voucher.min_amount_spent = 200
     voucher.save()
     form = CartVoucherForm(
         {'voucher': voucher.code}, instance=request_cart_with_item)
@@ -758,7 +758,7 @@ def test_recalculate_cart_discount(cart_with_voucher, voucher):
 def test_recalculate_cart_discount_voucher_not_applicable(
         cart_with_voucher, voucher):
     cart = cart_with_voucher
-    voucher.limit = 100
+    voucher.min_amount_spent = 100
     voucher.save()
 
     recalculate_cart_discount(cart_with_voucher, None, None)

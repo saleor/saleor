@@ -66,13 +66,13 @@ def calculate_discounted_price(product, price, discounts):
 
 def get_value_voucher_discount(voucher, total_price):
     """Calculate discount value for a voucher of value type."""
-    voucher.validate_limit(total_price)
+    voucher.validate_min_amount_spent(total_price)
     return voucher.get_discount_amount_for(total_price)
 
 
 def get_shipping_voucher_discount(voucher, total_price, shipping_price):
     """Calculate discount value for a voucher of shipping type."""
-    voucher.validate_limit(total_price)
+    voucher.validate_min_amount_spent(total_price)
     return voucher.get_discount_amount_for(shipping_price)
 
 

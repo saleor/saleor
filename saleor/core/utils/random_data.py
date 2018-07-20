@@ -531,7 +531,7 @@ def create_vouchers():
             'name': 'Big order discount',
             'discount_value_type': DiscountValueType.FIXED,
             'discount_value': 25,
-            'limit': 200})
+            'min_amount_spent': 200})
     if created:
         yield 'Voucher #%d' % voucher.id
     else:
