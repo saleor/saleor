@@ -74,18 +74,22 @@ def remove_unavailable_variants(cart):
             add_variant_to_cart(cart, line.variant, quantity, replace=True)
 
 
+def get_variant_prices_from_lines(lines):
+    return [
+        line.variant.get_price()
+        for line in lines
+        for item in range(line.quantity)]
+
+
 def get_prices_of_discounted_products(lines, discounted_products):
     """Get variants and unit prices from cart lines matching the product."""
     # If there's no discounted_products,
     # it means that all products are discounted
-    if not discounted_products:
-        return [line.get_total() for line in lines]
-
-    prices = [
-        line.get_total()
-        for line in lines
-        if line.variant.product in discounted_products]
-    return prices
+    if discounted_products:
+        lines = (
+            line for line in lines
+            if line.variant.product in discounted_products)
+    return get_variant_prices_from_lines(lines)
 
 
 def get_prices_of_products_in_discounted_collections(
@@ -97,15 +101,32 @@ def get_prices_of_products_in_discounted_collections(
     """
     # If there's no discounted collections,
     # it means that all of them are discounted
-    if not discounted_collections:
-        return [line.get_total() for line in lines]
+    if discounted_collections:
+        discounted_collections = set(discounted_collections)
+        lines = (
+            line for line in lines
+            if line.variant and
+            set(line.variant.product.collections.all()).intersection(
+                discounted_collections))
+    return get_variant_prices_from_lines(lines)
 
-    discounted_collections = set(discounted_collections)
-    prices = [
-        line.get_total() for line in lines
-        if line.variant and
-        set(line.variant.product.collections.all()) & discounted_collections]
-    return prices
+
+def get_prices_of_products_in_discounted_categories(
+        lines, discounted_categories):
+    """Get variants and unit prices from cart lines matching the category.
+
+    Product is assumed to be in the category if it belongs to any of its
+    descendant subcategories.
+    """
+    # If there's no discounted collections,
+    # it means that all of them are discounted
+    if discounted_categories:
+        discounted_categories = set(discounted_categories)
+        lines = (
+            line for line in lines
+            if line.variant and
+            line.variant.product.category in discounted_categories)
+    return get_variant_prices_from_lines(lines)
 
 
 def check_product_availability_and_warn(request, cart):
@@ -650,9 +671,12 @@ def _get_products_voucher_discount(order_or_cart, voucher):
     if voucher.type == VoucherType.PRODUCT:
         prices = get_prices_of_discounted_products(
             order_or_cart.lines.all(), voucher.products.all())
-    else:
+    elif voucher.type == VoucherType.COLLECTION:
         prices = get_prices_of_products_in_discounted_collections(
             order_or_cart.lines.all(), voucher.collections.all())
+    elif voucher.type == VoucherType.CATEGORY:
+        prices = get_prices_of_products_in_discounted_categories(
+            order_or_cart.lines.all(), voucher.categories.all())
     if not prices:
         msg = pgettext(
             'Voucher not applicable',
@@ -670,7 +694,8 @@ def get_voucher_discount_for_cart(voucher, cart):
         return get_value_voucher_discount(voucher, cart.get_subtotal())
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_cart(voucher, cart)
-    if voucher.type in (VoucherType.PRODUCT, VoucherType.CATEGORY):
+    if voucher.type in (
+            VoucherType.PRODUCT, VoucherType.COLLECTION, VoucherType.CATEGORY):
         return _get_products_voucher_discount(cart, voucher)
     raise NotImplementedError('Unknown discount type')
 

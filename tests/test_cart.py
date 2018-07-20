@@ -292,7 +292,10 @@ def test_get_prices_of_discounted_products(cart_with_item):
     discounted_product = discounted_line.variant.product
     prices = utils.get_prices_of_discounted_products(
         cart_with_item, [discounted_product])
-    assert prices == [discounted_line.get_total()]
+    excepted_value = [
+        discounted_line.variant.get_price()
+        for item in range(discounted_line.quantity)]
+    assert list(prices) == excepted_value
 
 
 def test_contains_unavailable_variants():
@@ -432,23 +435,23 @@ def test_view_empty_cart(client, request_cart):
     assert response.status_code == 200
 
 
-def test_view_cart_without_taxes(client, sale, request_cart_with_item):
+def test_view_cart_without_taxes(client, request_cart_with_item):
     response = client.get(reverse('cart:index'))
     response_cart_line = response.context[0]['cart_lines'][0]
     cart_line = request_cart_with_item.lines.first()
     assert not response_cart_line['get_total'].tax.amount
-    assert not response_cart_line['get_total'] == cart_line.get_total()
+    assert response_cart_line['get_total'] == cart_line.get_total()
     assert response.status_code == 200
 
 
 def test_view_cart_with_taxes(
-        settings, client, sale, request_cart_with_item, vatlayer):
+        settings, client, request_cart_with_item, vatlayer):
     settings.DEFAULT_COUNTRY = 'PL'
     response = client.get(reverse('cart:index'))
     response_cart_line = response.context[0]['cart_lines'][0]
     cart_line = request_cart_with_item.lines.first()
     assert response_cart_line['get_total'].tax.amount
-    assert not response_cart_line['get_total'] == cart_line.get_total(
+    assert response_cart_line['get_total'] == cart_line.get_total(
         taxes=vatlayer)
     assert response.status_code == 200
 
@@ -594,7 +597,9 @@ def test_get_prices_of_products_in_discounted_collections(
     product.collections.add(collection)
     result = utils.get_prices_of_products_in_discounted_collections(
         cart_with_item, [collection])
-    assert result == [discounted_line.get_total()]
+    assert list(result) == [
+        discounted_line.variant.get_price()
+        for item in range(discounted_line.quantity)]
 
 
 def test_update_view_must_be_ajax(customer_user, rf):

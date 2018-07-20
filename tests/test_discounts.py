@@ -1,5 +1,4 @@
 from datetime import date, timedelta
-from unittest.mock import Mock
 
 import pytest
 from prices import Money, TaxedMoney
@@ -71,50 +70,54 @@ def test_voucher_queryset_active(voucher):
         date=date.today() - timedelta(days=1))
     assert len(active_vouchers) == 0
 
-# FIXME What is this test?
-# @pytest.mark.parametrize(
-#     'prices, discount_value, discount_type, expected_value', [
-#         (
-#             [10], 10, DiscountValueType.FIXED, 10),
-#         (
-#             [5], 10, DiscountValueType.FIXED, 5),
-#         (
-#             [5, 5], 10, DiscountValueType.FIXED, 10),
-#         (
-#             [2, 3], 10, DiscountValueType.FIXED, 5),
 
-#         (
-#             [10, 10], 5, DiscountValueType.FIXED, 10),
-#         (
-#             [5, 2], 5, DiscountValueType.FIXED, 7),
-#         (
-#             [10, 10, 10], 5, DiscountValueType.FIXED, 15),
+@pytest.mark.parametrize(
+    'prices, discount_value, discount_type, '
+    'apply_once_per_order, expected_value', [
+        (
+            [10], 10, DiscountValueType.FIXED, True, 10),
+        (
+            [5], 10, DiscountValueType.FIXED, True, 5),
+        (
+            [5, 5], 10, DiscountValueType.FIXED, True, 10),
+        (
+            [2, 3], 10, DiscountValueType.FIXED, True, 5),
 
-#         ([10], 10, DiscountValueType.PERCENTAGE, 1),
-#         ([10, 10], 10, DiscountValueType.PERCENTAGE, 2)])
-# def test_products_voucher_checkout_discount_not(
-#         settings, monkeypatch, prices, discount_value, discount_type,
-#         expected_value, cart_with_item):
-#     voucher = Voucher(
-#         code='unique', type=VoucherType.PRODUCT,
-#         discount_value_type=discount_type,
-#         discount_value=discount_value)
-#     voucher.save()
-#     checkout = cart_with_item
-#     discount = get_voucher_discount_for_cart(voucher, checkout)
-#     assert discount == Money(expected_value, 'USD')
+        (
+            [10, 10], 5, DiscountValueType.FIXED, False, 10),
+        (
+            [5, 2], 5, DiscountValueType.FIXED, False, 7),
+        (
+            [10, 10, 10], 5, DiscountValueType.FIXED, False, 15)])
+def test_products_voucher_checkout_discount_not(
+        settings, monkeypatch, prices, discount_value, discount_type,
+        expected_value, apply_once_per_order, cart_with_item):
+    monkeypatch.setattr(
+        'saleor.checkout.utils.get_prices_of_discounted_products',
+        lambda lines, discounted_products: (
+            TaxedMoney(net=Money(price, 'USD'), gross=Money(price, 'USD'))
+            for price in prices))
+    voucher = Voucher(
+        code='unique', type=VoucherType.PRODUCT,
+        discount_value_type=discount_type,
+        discount_value=discount_value,
+        apply_once_per_order=apply_once_per_order)
+    voucher.save()
+    checkout = cart_with_item
+    discount = get_voucher_discount_for_cart(voucher, checkout)
+    assert discount == Money(expected_value, 'USD')
 
 
 def test_sale_applies_to_correct_products(product_type, default_category):
     product = Product.objects.create(
         name='Test Product', price=Money(10, 'USD'), description='',
-        pk=10, product_type=product_type, category=default_category)
+        pk=111, product_type=product_type, category=default_category)
     variant = ProductVariant.objects.create(product=product, sku='firstvar')
     product2 = Product.objects.create(
         name='Second product', price=Money(15, 'USD'), description='',
         product_type=product_type, category=default_category)
     sec_variant = ProductVariant.objects.create(
-        product=product2, sku='secvar', pk=10)
+        product=product2, sku='secvar', pk=111)
     sale = Sale.objects.create(
         name='Test sale', value=3, type=DiscountValueType.FIXED)
     sale.products.add(product)
@@ -192,10 +195,10 @@ def test_get_shipping_voucher_discount(
 
 
 @pytest.mark.parametrize(
-    'prices, discount_value_type, discount_value, voucher_type, ''expected_value', [  # noqa
+    'prices, discount_value_type, discount_value, voucher_type, expected_value', [  # noqa
         ([5, 10, 15], DiscountValueType.PERCENTAGE, 10, VoucherType.PRODUCT, 3),
         ([5, 10, 15], DiscountValueType.FIXED, 2, VoucherType.PRODUCT, 2),
-        ([5, 10, 15], DiscountValueType.FIXED, 2, VoucherType.CATEGORY, 2)])
+        ([5, 10, 15], DiscountValueType.FIXED, 2, VoucherType.COLLECTION, 2)])
 def test_get_voucher_discount_all_products(
         prices, discount_value_type, discount_value, voucher_type,
         expected_value):
@@ -205,7 +208,7 @@ def test_get_voucher_discount_all_products(
     voucher = Voucher(
         code='unique', type=voucher_type,
         discount_value_type=discount_value_type,
-        discount_value=discount_value)
+        discount_value=discount_value, apply_once_per_order=True)
     voucher.save()
     discount = get_products_voucher_discount(voucher, prices)
     assert discount == Money(expected_value, 'USD')

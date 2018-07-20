@@ -2,6 +2,7 @@ import itertools
 import os
 import random
 import unicodedata
+from datetime import date
 from decimal import Decimal
 
 from django.conf import settings
@@ -491,7 +492,7 @@ def create_users(how_many=10):
 
 def create_orders(how_many=10):
     taxes = get_taxes_for_country(Country(settings.DEFAULT_COUNTRY))
-    discounts = Sale.objects.prefetch_related(
+    discounts = Sale.objects.active(date.today()).prefetch_related(
         'products', 'categories', 'collections')
     for dummy in range(how_many):
         order = create_fake_order(discounts, taxes)

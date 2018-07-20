@@ -1,4 +1,5 @@
 import logging
+from datetime import date
 
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -33,7 +34,7 @@ def google_analytics(get_response):
 def discounts(get_response):
     """Assign active discounts to `request.discounts`."""
     def middleware(request):
-        discounts = Sale.objects.prefetch_related(
+        discounts = Sale.objects.active(date.today()).prefetch_related(
             'products', 'categories', 'collections')
         request.discounts = discounts
         return get_response(request)

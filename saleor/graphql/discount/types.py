@@ -29,12 +29,15 @@ class Sale(CountableDjangoObjectType):
         filter_fields = {
             'name': ['icontains'],
             'type': ['icontains'],
-            'value': ['gte', 'lte']}
+            'value': ['gte', 'lte'],
+            'start_date': ['exact'],
+            'end_date': ['exact']}
         model = models.Sale
 
 
 class VoucherTypeEnum(graphene.Enum):
     PRODUCT = VoucherType.PRODUCT
+    COLLECTION = VoucherType.COLLECTION
     CATEGORY = VoucherType.CATEGORY
     SHIPPING = VoucherType.SHIPPING
     VALUE = VoucherType.VALUE

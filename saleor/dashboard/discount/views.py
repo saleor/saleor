@@ -26,7 +26,9 @@ def get_voucher_type_forms(voucher, data):
             data or None, instance=voucher, prefix=VoucherType.VALUE),
         VoucherType.PRODUCT: forms.ProductVoucherForm(
             data or None, instance=voucher, prefix=VoucherType.PRODUCT),
-        VoucherType.CATEGORY: forms.CollectionVoucherForm(
+        VoucherType.COLLECTION: forms.CollectionVoucherForm(
+            data or None, instance=voucher, prefix=VoucherType.COLLECTION),
+        VoucherType.CATEGORY: forms.CategoryVoucherForm(
             data or None, instance=voucher, prefix=VoucherType.CATEGORY)}
 
 

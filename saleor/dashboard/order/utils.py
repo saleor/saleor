@@ -4,14 +4,13 @@ from django.template.loader import get_template
 
 from ...checkout import AddressType
 from ...checkout.utils import (
-    _get_products_voucher_discount, get_prices_of_discounted_products,
+    _get_products_voucher_discount,
     get_prices_of_products_in_discounted_collections)
 from ...core.utils.taxes import ZERO_MONEY
 from ...discount import VoucherType
 from ...discount.models import NotApplicable
 from ...discount.utils import (
-    get_products_voucher_discount, get_shipping_voucher_discount,
-    get_value_voucher_discount)
+    get_shipping_voucher_discount, get_value_voucher_discount)
 from ...product.utils import decrease_stock
 
 INVOICE_TEMPLATE = 'dashboard/order/pdf/invoice.html'
@@ -90,7 +89,8 @@ def get_voucher_discount_for_order(order):
     if order.voucher.type == VoucherType.SHIPPING:
         return get_shipping_voucher_discount(
             order.voucher, order.get_subtotal(), order.shipping_price)
-    if order.voucher.type in (VoucherType.PRODUCT, VoucherType.CATEGORY):
+    if order.voucher.type in (
+            VoucherType.PRODUCT, VoucherType.COLLECTION, VoucherType.CATEGORY):
         return _get_products_voucher_discount(order, order.voucher)
     raise NotImplementedError('Unknown discount type')
 

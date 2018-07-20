@@ -164,11 +164,11 @@ def test_product_voucher_checkout_discount_raises_not_applicable(
 
 
 def test_category_voucher_checkout_discount_raises_not_applicable(
-        monkeypatch, order_with_lines):
+        order_with_lines):
     discounted_collection = Collection.objects.create(
         name='Discounted', slug='discou')
     voucher = Voucher(
-        code='unique', type=VoucherType.CATEGORY,
+        code='unique', type=VoucherType.COLLECTION,
         discount_value_type=DiscountValueType.FIXED,
         discount_value=10)
     voucher.save()

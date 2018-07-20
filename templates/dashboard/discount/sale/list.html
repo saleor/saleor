@@ -42,6 +42,12 @@
                   {% trans "Name" context "Sale (discount) table header" as label %}
                   {% sorting_header 'name' label is_wide=True %}
 
+                  {% trans "Start date" context "Sale (discount) table header" as label %}
+                  {% sorting_header 'start_date' label is_wide=True %}
+
+                  {% trans "End date" context "Sale (discount) table header" as label %}
+                  {% sorting_header 'end_date' label is_wide=True %}
+
                   {% trans "Discount" context "Sale (discount) table header" as label %}
                   {% sorting_header 'value' label is_wide=True %}
                 </tr>
@@ -51,6 +57,12 @@
                   <tr data-action-go="{% url 'dashboard:sale-update' pk=sale.pk %}">
                     <td>
                       {{ sale }}
+                    </td>
+                    <td>
+                      {{ sale.start_date }}
+                    </td>
+                    <td>
+                      {{ sale.end_date|default_if_none:"-" }}
                     </td>
                     <td>
                       {{ sale.value }}{{ sale.get_type_display }}

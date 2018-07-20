@@ -1,5 +1,6 @@
 import csv
 import gzip
+from datetime import date
 
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -195,7 +196,7 @@ def write_feed(file_obj):
     writer = csv.DictWriter(file_obj, ATTRIBUTES, dialect=csv.excel_tab)
     writer.writeheader()
     categories = Category.objects.all()
-    discounts = Sale.objects.all().prefetch_related('products',
+    discounts = Sale.objects.active(date.today()).prefetch_related('products',
                                                     'categories')
     attributes_dict = {a.slug: a.pk for a in ProductAttribute.objects.all()}
     attribute_values_dict = {smart_text(a.pk): smart_text(a) for a
