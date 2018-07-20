@@ -13,13 +13,6 @@ class StaffForm(forms.ModelForm):
         label=pgettext_lazy(
             'Label above the permissions choicefield', 'Permissions'))
 
-    def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
-        super().__init__(*args, **kwargs)
-        self.instance.is_staff = True
-        if self.user == self.instance:
-            self.fields['is_active'].disabled = True
-
     class Meta:
         model = User
         fields = ['email', 'user_permissions', 'is_active']
@@ -28,3 +21,10 @@ class StaffForm(forms.ModelForm):
                 'Email', 'Email'),
             'is_active': pgettext_lazy(
                 'User active toggle', 'User is active')}
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        self.instance.is_staff = True
+        if self.user == self.instance:
+            self.fields['is_active'].disabled = True

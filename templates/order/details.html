@@ -95,7 +95,7 @@
         <form method="post" class="form-group">
           {% csrf_token %}
           {% bootstrap_form note_form display_labels=False %}
-          <input type="submit" value="Submit" class="btn primary" />
+          <input type="submit" value="{% trans 'Submit note' context 'Customer panel - order details: add note submit button' %}" class="btn primary" />
         </form>
       {% endif %}
       </div>
