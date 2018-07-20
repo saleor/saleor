@@ -26,11 +26,14 @@ def send_user_password_reset_email(user, site):
 
 
 class UserInput(graphene.InputObjectType):
-    default_billing_address = AddressInput(
-        description='Billing address of the customer.')
     email = graphene.String(
         description='The unique email address of the user.')
     note = graphene.String(description='A note about the user.')
+
+
+class CustomerInput(UserInput):
+    default_billing_address = AddressInput(
+        description='Billing address of the customer.')
     default_shipping_address = AddressInput(
         description='Shipping address of the customer.')
 
@@ -79,9 +82,11 @@ class CustomerCreate(ModelMutation):
         cleaned_input = super().clean_input(info, instance, input, errors)
 
         if default_shipping_address:
-            default_shipping_address = models.Address(**default_shipping_address)
+            default_shipping_address = models.Address(
+                **default_shipping_address)
             cls.clean_instance(default_shipping_address, errors)
-            cleaned_input['default_shipping_address'] = default_shipping_address
+            cleaned_input[
+                'default_shipping_address'] = default_shipping_address
         if default_billing_address:
             default_billing_address = models.Address(**default_billing_address)
             cls.clean_instance(default_billing_address, errors)
@@ -89,10 +94,10 @@ class CustomerCreate(ModelMutation):
 
         return cleaned_input
 
-
     @classmethod
     def save(cls, info, instance, cleaned_input):
-        default_shipping_address = cleaned_input.get('default_shipping_address')
+        default_shipping_address = cleaned_input.get(
+            'default_shipping_address')
         if default_shipping_address:
             default_shipping_address.save()
             instance.default_shipping_address = default_shipping_address
@@ -101,20 +106,40 @@ class CustomerCreate(ModelMutation):
             default_billing_address.save()
             instance.default_billing_address = default_billing_address
         super().save(info, instance, cleaned_input)
-        instance.save(update_fields=['default_billing_address', 'default_shipping_address'])
 
 
 class CustomerUpdate(CustomerCreate):
     class Arguments:
         id = graphene.ID(
             description='ID of a customer to update.', required=True)
-        input = UserInput(
+        input = CustomerInput(
             description='Fields required to update a customer.', required=True)
 
     class Meta:
         description = 'Updates an existing customer.'
         exclude = ['password']
         model = models.User
+
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        default_shipping_address = input.pop('default_shipping_address', None)
+        default_billing_address = input.pop('default_billing_address', None)
+        cleaned_input = super().clean_input(info, instance, input, errors)
+
+        if default_shipping_address:
+            instance.default_shipping_address = models.Address(
+                **default_shipping_address)
+            cls.clean_instance(instance.default_shipping_address, errors)
+            cleaned_input[
+                'default_shipping_address'] = instance.default_shipping_address
+        if default_billing_address:
+            instance.default_billing_address = models.Address(
+                **default_billing_address)
+            cls.clean_instance(instance.default_billing_address, errors)
+            cleaned_input[
+                'default_billing_address'] = instance.default_billing_address
+
+        return cleaned_input
 
 
 class StaffCreate(ModelMutation):
