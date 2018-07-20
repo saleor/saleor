@@ -1,9 +1,23 @@
 import graphene
 from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import ObjectDoesNotExist
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from graphql_jwt.decorators import permission_required
 
-from ...account import models
+from ...account import emails, models
 from ...core.permissions import MODELS_PERMISSIONS, get_permissions
-from ..core.mutations import ModelMutation
+from ..core.mutations import BaseMutation, ModelMutation
+from ..core.types import Error
+
+
+def send_user_password_reset_email(user):
+    context = {
+        'email': user.email,
+        'uid': urlsafe_base64_encode(force_bytes(user.pk)).decode(),
+        'token': default_token_generator.make_token(user)
+    }
+    emails.send_password_reset_email.delay(context, user.email)
 
 
 class UserInput(graphene.InputObjectType):
@@ -12,21 +26,38 @@ class UserInput(graphene.InputObjectType):
     note = graphene.String(description='A note about the user.')
 
 
+class UserCreateInput(UserInput):
+    send_password_email = graphene.Boolean(
+        description='Send an email with a link to set a password')
+
+
 class StaffInput(UserInput):
     permissions = graphene.List(
         graphene.String,
         description='List of permission code names to assign to this user.')
 
 
+class StaffCreateInput(StaffInput):
+    send_password_email = graphene.Boolean(
+        description='Send an email with a link to set a password')
+
+
 class CustomerCreate(ModelMutation):
     class Arguments:
-        input = UserInput(
+        input = UserCreateInput(
             description='Fields required to create a customer.', required=True)
 
     class Meta:
         description = 'Creates a new customer.'
         exclude = ['password']
         model = models.User
+
+    @classmethod
+    def save(cls, info, user, cleaned_input):
+        user.save()
+        if cleaned_input.get('send_password_email'):
+            send_user_password_reset_email(user)
+            return cls.success_response(user)
 
     @classmethod
     def user_is_allowed(cls, user, input):
@@ -48,7 +79,7 @@ class CustomerUpdate(CustomerCreate):
 
 class StaffCreate(ModelMutation):
     class Arguments:
-        input = StaffInput(
+        input = StaffCreateInput(
             description='Fields required to create a staff user.',
             required=True)
 
@@ -82,6 +113,13 @@ class StaffCreate(ModelMutation):
                 permission_objs = get_permissions(cleaned_permissions)
                 cleaned_input['user_permissions'] = permission_objs
         return cleaned_input
+
+    @classmethod
+    def save(cls, info, user, cleaned_input):
+        user.save()
+        if cleaned_input.get('send_password_email'):
+            send_user_password_reset_email(user)
+            return cls.success_response(user)
 
 
 class StaffUpdate(StaffCreate):
@@ -130,3 +168,23 @@ class SetPassword(ModelMutation):
     def save(cls, info, instance, cleaned_input):
         instance.set_password(cleaned_input['password'])
         instance.save()
+
+
+class PasswordReset(BaseMutation):
+    class Arguments:
+        email = graphene.String(description='Email', required=True)
+
+    class Meta:
+        description = 'Sends password reset email'
+
+    @classmethod
+    @permission_required('account.manage_users')
+    def mutate(cls, root, info, email):
+        try:
+            user = models.User.objects.get(email=email)
+        except ObjectDoesNotExist:
+            return cls(
+                errors=[
+                    Error(field='email',
+                          message="User with this email doesn't exist")])
+        send_user_password_reset_email(user)
