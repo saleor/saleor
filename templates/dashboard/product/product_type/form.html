@@ -51,7 +51,7 @@
       <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="24" width="24" />
     </a>
     <ul id="context-menu" class="dropdown-content">
-      {% if perms.product.edit_properties %}
+      {% if perms.product.manage_products %}
       <li>
         <a href="#base-modal" data-href="{% url 'dashboard:product-type-delete' pk=product_type.pk %}" class="modal-trigger-custom">
           {% trans "Remove product type" context "Product type action" %}
@@ -99,7 +99,7 @@
               </div>
             </div>
           </div>
-          {% if perms.product.edit_properties %}
+          {% if perms.product.manage_products %}
           <div class="card-action right-align">
             <a href="{% url 'dashboard:product-type-list' %}" class="btn-flat waves-effect">
               {% trans "Cancel" context "Dashboard cancel action" %}

@@ -43,7 +43,6 @@
             {{ menu.name }}
           </span>
         </div>
-        {% if perms.product.edit_menu %}
         <div class="card-action">
           <a class="btn-flat waves-effect" href="{% url "dashboard:menu-edit" pk=menu.pk %}">
             {% trans "Edit menu" context "Menu detail view action" %}
@@ -52,7 +51,6 @@
             {% trans "Remove menu" context "Menu detail view action" %}
           </a>
         </div>
-        {% endif %}
       </div>
       {% include 'dashboard/includes/_menu_items.html' with menu=menu menu_items=menu_items %}
     </div>

@@ -46,7 +46,7 @@ def test_create_token_mutation(admin_client, staff_user):
 
 
 def test_token_create_user_data(
-        permission_view_order, staff_client, staff_user):
+        permission_manage_orders, staff_client, staff_user):
     query = """
     mutation {
         tokenCreate(email: "%(email)s", password: "%(password)s") {
@@ -62,7 +62,7 @@ def test_token_create_user_data(
     }
     """
 
-    permission = permission_view_order
+    permission = permission_manage_orders
     staff_user.user_permissions.add(permission)
     code = '.'.join([permission.content_type.name, permission.codename])
     name = permission.name
@@ -175,7 +175,7 @@ def test_query_users(admin_api_client, user_api_client):
 
 def test_who_can_see_user(
         staff_user, customer_user, staff_api_client, user_api_client,
-        permission_view_user):
+        permission_manage_users):
     query = """
     query User($id: ID!) {
         user(id: $id) {
@@ -205,7 +205,7 @@ def test_who_can_see_user(
     assert_no_permission(response)
 
     # Add permission and ensure staff can see user(s)
-    staff_user.user_permissions.add(permission_view_user)
+    staff_user.user_permissions.add(permission_manage_users)
     response = staff_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
@@ -294,8 +294,8 @@ def test_customer_update(admin_api_client, customer_user, user_api_client):
 
 
 def test_staff_create(
-        admin_api_client, user_api_client, permission_view_user,
-        permission_view_product, staff_user):
+        admin_api_client, user_api_client, permission_manage_users,
+        permission_manage_products, staff_user):
     query = """
     mutation CreateStaff($email: String, $permissions: [String]) {
         staffCreate(input: {email: $email, permissions: $permissions}) {
@@ -316,14 +316,14 @@ def test_staff_create(
     }
     """
 
-    permission_view_product_codename = '%s.%s' % (
-        permission_view_product.content_type.app_label,
-        permission_view_product.codename)
+    permission_manage_products_codename = '%s.%s' % (
+        permission_manage_products.content_type.app_label,
+        permission_manage_products.codename)
 
     email = 'api_user@example.com'
-    staff_user.user_permissions.add(permission_view_user)
+    staff_user.user_permissions.add(permission_manage_users)
     variables = json.dumps({
-        'email': email, 'permissions': [permission_view_product_codename]})
+        'email': email, 'permissions': [permission_manage_products_codename]})
 
     # check unauthorized access
     response = user_api_client.post(
@@ -340,7 +340,7 @@ def test_staff_create(
     assert data['user']['isStaff'] == True
     assert data['user']['isActive'] == True
     permissions = data['user']['permissions']
-    assert permissions[0]['code'] == permission_view_product_codename
+    assert permissions[0]['code'] == permission_manage_products_codename
 
 
 def test_staff_update(admin_api_client, staff_user, user_api_client):

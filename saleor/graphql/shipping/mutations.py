@@ -30,7 +30,7 @@ class ShippingMethodCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.edit_shipping')
+        return user.has_perm('shipping.manage_shipping')
 
 
 class ShippingMethodUpdate(ModelMutation):
@@ -47,7 +47,7 @@ class ShippingMethodUpdate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.edit_shipping')
+        return user.has_perm('shipping.manage_shipping')
 
 
 class ShippingMethodDelete(ModelDeleteMutation):
@@ -61,7 +61,7 @@ class ShippingMethodDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.edit_shipping')
+        return user.has_perm('shipping.manage_shipping')
 
 
 class ShippingPriceCreate(ModelMutation):
@@ -76,7 +76,7 @@ class ShippingPriceCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.edit_shipping')
+        return user.has_perm('shipping.manage_shipping')
 
 
 class ShippingPriceUpdate(ModelMutation):
@@ -93,7 +93,7 @@ class ShippingPriceUpdate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.edit_shipping')
+        return user.has_perm('shipping.manage_shipping')
 
 
 class ShippingPriceDelete(ModelDeleteMutation):
@@ -107,4 +107,4 @@ class ShippingPriceDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.edit_page')
+        return user.has_perm('shipping.manage_shipping')

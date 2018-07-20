@@ -12,17 +12,7 @@ from ..utils import get_redirect_location
 
 def test_assign_menu_form(admin_user, menu, site_settings):
     data = {'top_menu': menu.pk, 'bottom_menu': ''}
-    form = AssignMenuForm(data=data, user=admin_user, instance=site_settings)
-    assert not form.fields['top_menu'].disabled
-    assert not form.fields['bottom_menu'].disabled
-    assert form.is_valid()
-
-
-def test_assign_menu_form_no_permission(staff_user, menu, site_settings):
-    data = {'top_menu': menu.pk, 'bottom_menu': ''}
-    form = AssignMenuForm(data=data, user=staff_user, instance=site_settings)
-    assert form.fields['top_menu'].disabled
-    assert form.fields['bottom_menu'].disabled
+    form = AssignMenuForm(data=data, instance=site_settings)
     assert form.is_valid()
 
 
@@ -45,21 +35,6 @@ def test_view_menu_list_assign_new_menu_to_settings(
 
     site_settings.refresh_from_db()
     assert site_settings.top_menu == top_menu
-    assert not site_settings.bottom_menu
-
-
-def test_view_menu_list_assign_new_menu_to_settings_no_edit_permission(
-        staff_client, menu, site_settings, permission_view_menu,
-        staff_user):
-    staff_user.user_permissions.add(permission_view_menu)
-
-    url = reverse('dashboard:menu-list')
-    data = {'top_menu': menu.pk, 'bottom_menu': ''}
-    response = staff_client.post(url, data=data)
-    assert response.status_code == 200
-
-    site_settings.refresh_from_db()
-    assert not site_settings.top_menu
     assert not site_settings.bottom_menu
 
 
