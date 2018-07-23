@@ -451,7 +451,7 @@ def test_create_user_password_reset_email(
     assert data['user']['note'] == note
     assert data['user']['isStaff'] is False
     assert data['user']['isActive'] is True
-    send_password_reset_mock.assert_called_once()
+    assert send_password_reset_mock.call_count == 1
     args, kwargs = send_password_reset_mock.call_args
     call_context = args[0]
     call_email = args[1]
@@ -500,7 +500,7 @@ def test_create_staff_password_reset_email(
     data = content['data']['staffCreate']
     assert data['errors'] == []
     assert data['user']['email'] == email
-    send_password_reset_mock.assert_called_once()
+    assert send_password_reset_mock.call_count == 1
     args, kwargs = send_password_reset_mock.call_args
     call_context = args[0]
     call_email = args[1]
@@ -529,7 +529,7 @@ def test_password_reset_email(
     assert 'errors' not in content
     data = content['data']['passwordReset']
     assert data is None
-    send_password_reset_mock.assert_called_once()
+    assert send_password_reset_mock.call_count == 1
     args, kwargs = send_password_reset_mock.call_args
     call_context = args[0]
     call_email = args[1]
