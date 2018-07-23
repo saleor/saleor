@@ -80,6 +80,9 @@
           <a href="{% url "checkout:login" %}" class="btn primary float-right cart__submit">
             {% trans "Checkout" context "Cart primary action" %}
           </a>
+          <button class="btn primary float-right cart_clear" action="{% url 'cart:clear-cart' %}">
+            {% trans "Clear Cart" context "Clear Cart" %}
+          </button>
         </div>
       </div>
     {% else %}

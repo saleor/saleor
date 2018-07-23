@@ -195,6 +195,22 @@ def update_cart_line(request, cart, variant_id):
     return JsonResponse(response, status=status)
 
 
+@get_or_empty_db_cart()
+def clear_cart(request, cart):
+    """Clear cart"""
+    from ..utils import update_cart_quantity
+
+    lines = cart.lines.all()
+    for line in lines:
+        line.delete()
+
+    update_cart_quantity(cart)
+
+    response = {'numItems': 0}
+
+    return JsonResponse(response, status=200)
+
+
 @get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
 def cart_summary(request, cart):
     """Display a cart summary suitable for displaying on all pages."""

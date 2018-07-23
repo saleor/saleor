@@ -57,6 +57,19 @@ export default $(document).ready((e) => {
       }
     });
   });
+  $('.cart_clear').click((e) => {
+    $.ajax({
+      url: $('.cart_clear').attr('action'),
+      method: 'POST',
+      data: {},
+      success: (response) => {
+        $('.badge').html(response.numItems)
+        $.cookie('alert', 'true', {path: '/cart'});
+        location.reload();
+        deliveryAjax();
+      }
+    });
+  });
 
   // Cart quantity form
 
