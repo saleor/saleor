@@ -1,5 +1,6 @@
 from django.core.serializers.json import (
-    DjangoJSONEncoder, Serializer as JsonSerializer)
+    Deserializer as JsonDeserializer, DjangoJSONEncoder,
+    Serializer as JsonSerializer)
 from prices import Money
 
 
@@ -12,5 +13,8 @@ class Serializer(JsonSerializer):
 class CustomJsonEncoder(DjangoJSONEncoder):
     def default(self, obj):
         if isinstance(obj, Money):
-            return "{} {}".format(obj.amount, obj.currency)
+            return obj.amount
         return super().default(obj)
+
+
+Deserializer = JsonDeserializer
