@@ -2,6 +2,7 @@ import decimal
 
 import graphene
 from django_prices.templatetags import prices_i18n
+from django_prices_vatlayer import models as vatlayer_models
 from graphene.types import Scalar
 from graphene_django import DjangoObjectType
 from graphql.language import ast
@@ -30,8 +31,8 @@ class Decimal(Scalar):
 
 
 class CountryDisplay(graphene.ObjectType):
-    code = graphene.String(description='Country code.')
-    country = graphene.String(description='Country.')
+    code = graphene.String(description='Country code.', required=True)
+    country = graphene.String(description='Country.', required=True)
 
 
 class CountableDjangoObjectType(DjangoObjectType):
@@ -129,15 +130,83 @@ class TaxedMoneyRange(graphene.ObjectType):
 
 
 class Shop(graphene.ObjectType):
-    permissions = graphene.List(
-        PermissionDisplay, description='List of available permissions')
+    countries = graphene.List(
+        CountryDisplay, description='List of countries available in the shop.',
+        required=True)
+    currencies = graphene.List(
+        graphene.String, description='List of available currencies.',
+        required=True)
+    default_currency = graphene.String(
+        description='Default shop\'s currency.', required=True)
+    domain = graphene.Field(
+        lambda: Domain, required=True, description='Shop\'s domain data.')
     languages = graphene.List(
         LanguageDisplay,
-        description='List of the shops\'s supported languages')
+        description='List of the shops\'s supported languages.', required=True)
+    name = graphene.String(description='Shop\'s name.', required=True)
+    permissions = graphene.List(
+        PermissionDisplay, description='List of available permissions.',
+        required=True)
     phone_prefixes = graphene.List(
-        graphene.String, description='List of possible phone prefixes.')
-    countries = graphene.List(
-        CountryDisplay, description='List of countries available in the shop.')
+        graphene.String, description='List of possible phone prefixes.',
+        required=True)
+    tax_rates = graphene.List(
+        lambda: VAT, description='List of VAT tax rates configured in the shop.',
+        required=True)
+    tax_rate = graphene.Field(
+        lambda: VAT, description='VAT tax rates for a specific country.',
+        required=False, country_code=graphene.Argument(graphene.String))
 
     class Meta:
-        description = 'Represents a shop resources.'
+        description = '''
+        Represents a shop resource containing general shop\'s data
+        and configuration.'''
+
+    def resolve_tax_rates(self, info):
+        return vatlayer_models.VAT.objects.order_by('country_code')
+
+    def resolve_tax_rate(self, info, country_code):
+        return vatlayer_models.VAT.objects.filter(
+            country_code=country_code).first()
+
+
+class Domain(graphene.ObjectType):
+    host = graphene.String(
+        description='The host name of the domain.', required=True)
+    ssl_enabled = graphene.Boolean(
+        description='Inform if SSL is enabled.', required=True)
+    url = graphene.String(
+        description='Shop\'s absolute URL.', required=True)
+
+    class Meta:
+        description = 'Represents shop\'s domain.'
+
+
+class VAT(graphene.ObjectType):
+    country_code = graphene.String(description='Country code.', required=True)
+    standard_rate = graphene.Float(
+        description='Standard VAT rate in percent.')
+    reduced_rates = graphene.List(
+        lambda: ReducedRate,
+        description='Country\'s VAT rate exceptions for specific types of goods.')
+
+    class Meta:
+        description = 'Represents a VAT rate for a country.'
+
+    def resolve_standard_rate(self, info):
+        return self.data.get('standard_rate')
+
+    def resolve_reduced_rates(self, info):
+        reduced_rates = self.data.get('reduced_rates', {}) or {}
+        return [
+            ReducedRate(rate=rate, type=type)
+            for type, rate in reduced_rates.items()]
+
+
+class ReducedRate(graphene.ObjectType):
+    rate = graphene.Float(
+        description='Reduced VAT rate in percent.', required=True)
+    type = graphene.String(description='A type of goods.', required=True)
+
+    class Meta:
+        description = 'Represents a reduced VAT rate for a particular type of goods.'
