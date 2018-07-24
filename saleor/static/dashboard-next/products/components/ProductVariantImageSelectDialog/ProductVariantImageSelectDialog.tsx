@@ -11,36 +11,50 @@ import { withStyles, WithStyles } from "@material-ui/core/styles";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import * as React from "react";
 
-import i18n from "../../../i18n";
 import { ProductImageType } from "../..";
+import i18n from "../../../i18n";
 
 const decorate = withStyles(theme => ({
-  root: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gridColumnGap: `${theme.spacing.unit * 2}px`,
-    gridRowGap: `${theme.spacing.unit * 2}px`,
-    width: theme.breakpoints.values.lg,
-    maxWidth: "100%",
-    [theme.breakpoints.down("sm")]: {
-      gridTemplateColumns: "repeat(2, 1fr)"
-    }
-  },
   gridElement: {
     "& img": {
       width: "100%"
     }
   },
-  icon: {
-    color: "white"
+  image: {
+    height: "100%",
+    objectFit: "contain" as "contain",
+    userSelect: "none" as "none",
+    width: "100%"
   },
-  iconChecked: {
-    color: theme.palette.secondary.main
+  imageContainer: {
+    "&.selected": {
+      borderColor: theme.palette.primary.main
+    },
+    background: "#ffffff",
+    border: "1px solid #eaeaea",
+    borderRadius: theme.spacing.unit,
+    cursor: "pointer" as "pointer",
+    height: theme.spacing.unit * 21.5,
+    overflow: "hidden" as "hidden",
+    padding: theme.spacing.unit * 2,
+    position: "relative" as "relative",
+    transitionDuration: theme.transitions.duration.standard + "ms"
+  },
+  root: {
+    display: "grid",
+    gridColumnGap: `${theme.spacing.unit * 2}px`,
+    gridRowGap: `${theme.spacing.unit * 2}px`,
+    gridTemplateColumns: "repeat(3, 1fr)",
+    maxWidth: "100%",
+    width: theme.breakpoints.values.lg,
+    [theme.breakpoints.down("sm")]: {
+      gridTemplateColumns: "repeat(2, 1fr)"
+    }
   }
 }));
 
 interface ProductVariantImageSelectDialogProps {
-  images?: Array<ProductImageType>;
+  images?: ProductImageType[];
   selectedImages?: Array<{
     id: string;
   }>;
@@ -58,7 +72,7 @@ const ProductVariantImageSelectDialog = decorate<
 >(
   class ProductVariantImageSelectDialogComponent extends React.Component<
     ProductVariantImageSelectDialogProps &
-      WithStyles<"root" | "gridElement" | "icon" | "iconChecked">,
+      WithStyles<"root" | "gridElement" | "image" | "imageContainer">,
     ProductVariantImageSelectDialogState
   > {
     constructor(props) {
@@ -70,7 +84,7 @@ const ProductVariantImageSelectDialog = decorate<
       };
     }
 
-    handleConfirm = () => this.state.images;
+    handleConfirm = () => this.props.onConfirm(this.state.images);
     handleImageSelect = id => () =>
       this.state.images.indexOf(id) === -1
         ? this.setState(prevState => ({ images: [...prevState.images, id] }))
@@ -79,47 +93,34 @@ const ProductVariantImageSelectDialog = decorate<
           }));
 
     render() {
-      const {
-        children,
-        classes,
-        images,
-        open,
-        onConfirm,
-        onClose
-      } = this.props;
+      const { classes, images, open, onClose } = this.props;
       return (
         <Dialog open={open}>
           <DialogTitle>
             {i18n.t("Image selection", { context: "title" })}
           </DialogTitle>
           <DialogContent>
-            <DialogContentText>{i18n.t("Select images")}</DialogContentText>
             <div className={classes.root}>
               {images
-                .sort((prev, next) => (prev.sortOrder > next.sortOrder ? 1 : -1))
+                .sort(
+                  (prev, next) => (prev.sortOrder > next.sortOrder ? 1 : -1)
+                )
                 .map(tile => (
-                  <GridListTile
-                    key={tile.id}
-                    className={classes.gridElement}
-                    component="div"
+                  <div
+                    className={[
+                      classes.imageContainer,
+                      this.state.images.indexOf(tile.id) === -1
+                        ? undefined
+                        : "selected"
+                    ].join(" ")}
                     onClick={this.handleImageSelect(tile.id)}
                   >
-                    <img src={tile.url} alt={tile.alt} />
-                    <GridListTileBar
-                      title={tile.alt || i18n.t("No description")}
-                      actionIcon={
-                        <IconButton
-                          className={
-                            this.state.images.indexOf(tile.id) !== -1
-                              ? classes.iconChecked
-                              : classes.icon
-                          }
-                        >
-                          <CheckCircleIcon />
-                        </IconButton>
-                      }
+                    <img
+                      className={classes.image}
+                      src={tile.url}
+                      alt={tile.alt}
                     />
-                  </GridListTile>
+                  </div>
                 ))}
             </div>
           </DialogContent>

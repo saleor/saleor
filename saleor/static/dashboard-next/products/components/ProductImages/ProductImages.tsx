@@ -1,9 +1,12 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
+import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import AddPhotoIcon from "@material-ui/icons/AddAPhoto";
+import DeleteIcon from "@material-ui/icons/Delete";
+import EditIcon from "@material-ui/icons/Edit";
 import * as React from "react";
 import { SortableContainer, SortableElement } from "react-sortable-hoc";
 
@@ -53,17 +56,42 @@ const decorate = withStyles(theme => ({
     color: "rgba(255, 255, 255, 0.54)"
   },
   image: {
-    cursor: "move",
     height: "100%",
-    maxHeight: theme.spacing.unit * 15,
-    maxWidth: theme.spacing.unit * 15,
+    objectFit: "contain" as "contain",
     userSelect: "none" as "none",
     width: "100%"
   },
   imageContainer: {
+    "&:hover, &.dragged": {
+      "& $imageOverlay": {
+        display: "block" as "block"
+      }
+    },
+    background: "#ffffff",
     border: "1px solid #eaeaea",
     borderRadius: theme.spacing.unit,
-    padding: theme.spacing.unit * 2
+    height: theme.spacing.unit * 17.5,
+    overflow: "hidden" as "hidden",
+    padding: theme.spacing.unit * 2,
+    position: "relative" as "relative"
+  },
+  imageOverlay: {
+    background: "rgba(0, 0, 0, 0.6)",
+    cursor: "move",
+    display: "none" as "none",
+    height: theme.spacing.unit * 17.5,
+    left: 0,
+    padding: theme.spacing.unit * 2,
+    position: "absolute" as "absolute",
+    top: 0,
+    width: theme.spacing.unit * 17.5
+  },
+  imageOverlayToolbar: {
+    alignContent: "flex-end",
+    display: "flex" as "flex",
+    position: "relative" as "relative",
+    right: -theme.spacing.unit * 3,
+    top: -theme.spacing.unit * 2
   },
   noPhotosIcon: {
     height: theme.spacing.unit * 8,
@@ -80,36 +108,28 @@ const decorate = withStyles(theme => ({
     marginTop: theme.spacing.unit
   },
   root: {
-    display: "grid",
-    gridColumnGap: `${theme.spacing.unit * 2}px`,
-    gridRowGap: `${theme.spacing.unit * 2}px`,
-    gridTemplateColumns: "repeat(4, 1fr)",
-    [theme.breakpoints.down("sm")]: {
-      gridTemplateColumns: "repeat(2, 1fr)"
-    }
+    display: "grid" as "grid",
+    gridColumnGap: theme.spacing.unit * 2 + "px",
+    gridRowGap: theme.spacing.unit * 2 + "px",
+    gridTemplateColumns: "repeat(4, 1fr)"
   }
 }));
 
 const ImageListElement = SortableElement(
   decorate<ImageListElementProps>(({ classes, onImageEdit, tile }) => (
     <div className={classes.imageContainer}>
+      <div className={classes.imageOverlay}>
+        <div className={classes.imageOverlayToolbar}>
+          <IconButton color="secondary" onClick={onImageEdit}>
+            <EditIcon />
+          </IconButton>
+          <IconButton color="secondary">
+            <DeleteIcon />
+          </IconButton>
+        </div>
+      </div>
       <img className={classes.image} src={tile.url} alt={tile.alt} />
     </div>
-    // <GridListTile key={tile.id} component="div" className={classes.gridElement}>
-    //   <img src={tile.url} alt={tile.alt} />
-    //   <GridListTileBar
-    //     title={tile.alt || i18n.t("No description")}
-    //     actionIcon={
-    //       onImageEdit ? (
-    //         <IconButton className={classes.icon} onClick={onImageEdit}>
-    //           <ModeEditIcon />
-    //         </IconButton>
-    //       ) : (
-    //         ""
-    //       )
-    //     }
-    //   />
-    // </GridListTile>
   ))
 );
 
@@ -169,11 +189,13 @@ const ProductImages = decorate<ProductImagesProps>(
         {images === undefined ? (
           <div className={classes.root}>
             <div className={classes.imageContainer}>
-              <img src={placeholderImage} />
+              <img className={classes.image} src={placeholderImage} />
             </div>
           </div>
         ) : images.length > 0 ? (
           <ImageListContainer
+            distance={20}
+            helperClass="dragged"
             axis="xy"
             items={images}
             onSortEnd={onImageReorder}

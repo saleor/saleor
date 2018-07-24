@@ -48,6 +48,8 @@ export default createMuiTheme({
     },
     MuiInputLabel: {
       formControl: {
+        transform: "translate(0, 1.5px) scale(0.75)",
+        transformOrigin: "top left" as "top left",
         width: "100%"
       },
       root: {
@@ -101,6 +103,23 @@ export default createMuiTheme({
         },
         paddingLeft: 0,
         textAlign: "center" as "center"
+      }
+    },
+    MuiTableRow: {
+      footer: {
+        "$root$hover&:hover": {
+          background: "none"
+        }
+      },
+      head: {
+        "$root$hover&:hover": {
+          background: "none"
+        }
+      },
+      hover: {
+        "$root&:hover": {
+          backgroundColor: "rgba(90, 179, 120, .1)"
+        }
       }
     }
   },

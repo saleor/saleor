@@ -178,6 +178,7 @@ export const fragmentVariant = gql`
           node {
             id
             name
+            sku
           }
         }
       }
