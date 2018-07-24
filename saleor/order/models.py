@@ -322,6 +322,7 @@ class OrderHistoryEntry(models.Model):
 class OrderNote(BaseNote):
     order = models.ForeignKey(
         Order, related_name='notes', on_delete=models.CASCADE)
+    is_public = None
 
     class Meta:
         ordering = ('date', )

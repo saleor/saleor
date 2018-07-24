@@ -248,14 +248,10 @@ class OrderEditVoucherForm(forms.ModelForm):
 class OrderNoteForm(forms.ModelForm):
     class Meta:
         model = OrderNote
-        fields = ['content', 'is_public']
+        fields = ['content']
         widgets = {
             'content': forms.Textarea()}
-        labels = {
-            'content': pgettext_lazy('Order note', 'Note'),
-            'is_public': pgettext_lazy(
-                'Allow customers to see note toggle',
-                'Customer can see this note')}
+        labels = {'content': pgettext_lazy('Order note', 'Note')}
 
     def send_confirmation_email(self):
         if self.instance.order.get_user_current_email():
