@@ -443,3 +443,39 @@ def test_create_user_after_order(order, client):
     user = User.objects.filter(email='hello@mirumee.com').first()
     assert user is not None
     assert user.orders.filter(token=order.token).exists()
+
+
+def test_view_order_detals(order, client):
+    url = reverse('order:details', kwargs={'token': order.token})
+    response = client.get(url)
+    assert response.status_code == 200
+
+
+def test_add_order_note_view(order, authorized_client, customer_user):
+    order.user_email = customer_user.email
+    order.save()
+    url = reverse('order:details', kwargs={'token': order.token})
+    note_content = 'bla-bla note'
+    data = {'content': note_content}
+
+    response = authorized_client.post(url, data)
+
+    redirect_url = reverse('order:details', kwargs={'token': order.token})
+    assert get_redirect_location(response) == redirect_url
+    note = order.notes.first()
+    assert note.content == note_content
+
+
+def test_user_cant_view_staff_order_notes(
+       order, authorized_client, staff_user):
+    note_content = 'bla-bla note'
+    note = models.OrderNote(
+        user=staff_user, content=note_content, order=order)
+    note.save()
+
+    url = reverse('order:details', kwargs={'token': order.token})
+
+    response = authorized_client.get(url)
+
+    assert response.status_code == 200
+    assert note_content not in str(response.content)
