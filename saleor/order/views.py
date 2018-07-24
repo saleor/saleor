@@ -31,10 +31,10 @@ def details(request, token):
     orders = orders.select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)
-    notes = order.notes.filter(is_public=True)
+    user = request.user if request.user.is_authenticated else None
+    notes = order.notes.filter(user=user)
     ctx = {'order': order, 'notes': notes}
     if order.is_open():
-        user = request.user if request.user.is_authenticated else None
         note = OrderNote(order=order, user=user)
         note_form = OrderNoteForm(request.POST or None, instance=note)
         ctx.update({'note_form': note_form})
