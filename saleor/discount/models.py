@@ -52,7 +52,6 @@ class Voucher(models.Model):
         default=DiscountValueType.FIXED)
     discount_value = models.DecimalField(
         max_digits=12, decimal_places=settings.DEFAULT_DECIMAL_PLACES)
-    apply_once_per_customer = models.BooleanField(default=False)
     # not mandatory fields, usage depends on type
     countries = CountryField(multiple=True, blank=True)
     min_amount_spent = MoneyField(
