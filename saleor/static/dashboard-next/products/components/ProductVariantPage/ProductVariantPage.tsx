@@ -1,7 +1,4 @@
-import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
-import DeleteIcon from "@material-ui/icons/Delete";
-import * as CRC from "crc-32";
 import * as React from "react";
 
 import {
@@ -18,13 +15,13 @@ import SaveButtonBar, {
   SaveButtonBarState
 } from "../../../components/SaveButtonBar";
 import Toggle from "../../../components/Toggle";
+import i18n from "../../../i18n";
 import ProductVariantAttributes from "../ProductVariantAttributes";
 import ProductVariantDeleteDialog from "../ProductVariantDeleteDialog";
 import ProductVariantImages from "../ProductVariantImages";
 import ProductVariantImageSelectDialog from "../ProductVariantImageSelectDialog";
 import ProductVariantNavigation from "../ProductVariantNavigation";
 import ProductVariantPrice from "../ProductVariantPrice";
-import ProductVariantProduct from "../ProductVariantProduct";
 import ProductVariantStock from "../ProductVariantStock";
 
 interface ProductVariantPageProps {
@@ -58,6 +55,7 @@ interface ProductVariantPageProps {
           node: {
             id: string;
             name: string;
+            sku: string;
           };
         }>;
         totalCount: number;
@@ -71,6 +69,7 @@ interface ProductVariantPageProps {
   saveButtonBarState?: SaveButtonBarState;
   loading?: boolean;
   placeholderImage?: string;
+  header: string;
   onBack();
   onDelete();
   onSubmit(data: any);
@@ -85,7 +84,7 @@ const decorate = withStyles(theme => ({
     },
     display: "grid",
     gridGap: `${theme.spacing.unit * 2}px`,
-    gridTemplateColumns: "1fr 2fr",
+    gridTemplateColumns: "1fr 2.25fr",
     [theme.breakpoints.down("sm")]: {
       gridGap: `${theme.spacing.unit}px`,
       gridTemplateColumns: "1fr"
@@ -98,6 +97,7 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
     classes,
     errors: formErrors,
     loading,
+    header,
     placeholderImage,
     saveButtonBarState,
     variant,
@@ -109,7 +109,10 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
   }) => {
     const attributes = variant
       ? variant.attributes.reduce((prev, curr) => {
-          prev[curr.attribute.slug] = curr.value.slug;
+          prev[curr.attribute.slug] = {
+            label: curr.value.name,
+            value: curr.value.slug
+          };
           return prev;
         }, {})
       : {};
@@ -134,14 +137,7 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
             {(isImageSelectModalActive, { toggle: toggleImageSelectModal }) => (
               <>
                 <Container width="md">
-                  <PageHeader
-                    title={variant ? variant.name : undefined}
-                    onBack={onBack}
-                  >
-                    <IconButton onClick={toggleDeleteModal} disabled={loading}>
-                      <DeleteIcon />
-                    </IconButton>
-                  </PageHeader>
+                  <PageHeader title={header} onBack={onBack} />
                   <Form
                     initial={{
                       costPrice:
@@ -159,23 +155,14 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                     }}
                     errors={formErrors}
                     onSubmit={onSubmit}
-                    key={variant ? CRC.str(JSON.stringify(variant)) : "loading"}
+                    key={variant ? JSON.stringify(variant) : "novariant"}
                   >
                     {({ change, data, errors, hasChanged, submit }) => (
                       <>
                         <div className={classes.root}>
                           <div>
-                            <ProductVariantProduct
-                              product={variant ? variant.product : undefined}
-                              loading={loading}
-                              placeholderImage={placeholderImage}
-                            />
                             <ProductVariantNavigation
                               current={variant ? variant.id : undefined}
-                              loading={loading}
-                              productId={
-                                variant ? variant.product.id : undefined
-                              }
                               variants={
                                 variant
                                   ? variant.product.variants.edges.map(
@@ -196,8 +183,14 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                                 variant ? variant.attributes : undefined
                               }
                               data={data}
+                              disabled={loading}
                               onChange={change}
-                              loading={loading}
+                            />
+                            <ProductVariantImages
+                              disabled={loading}
+                              images={images}
+                              placeholderImage={placeholderImage}
+                              onImageAdd={toggleImageSelectModal}
                             />
                             <ProductVariantPrice
                               errors={errors}
@@ -221,17 +214,17 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                               loading={loading}
                               onChange={change}
                             />
-                            <ProductVariantImages
-                              images={images}
-                              placeholderImage={placeholderImage}
-                              onImageAdd={toggleImageSelectModal}
-                              loading={loading}
-                            />
                           </div>
                         </div>
                         <SaveButtonBar
                           disabled={loading || !onSubmit || !hasChanged}
+                          labels={{
+                            delete: i18n.t("Remove variant"),
+                            save: i18n.t("Save variant")
+                          }}
                           state={saveButtonBarState}
+                          onCancel={onBack}
+                          onDelete={toggleDeleteModal}
                           onSave={submit}
                         />
                       </>

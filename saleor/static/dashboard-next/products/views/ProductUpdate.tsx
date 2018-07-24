@@ -95,6 +95,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                             errors={errors}
                             saveButtonBarState={formSubmitState}
                             images={images}
+                            header={product ? product.name : undefined}
                             placeholderImage={placeholderImg}
                             product={product}
                             productCollections={
@@ -166,13 +167,10 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               }
                             }}
                             onVariantAdd={() => {}}
-                            onVariantShow={variantId => {
-                              if (product) {
-                                navigate(
-                                  productVariantEditUrl(product.id, variantId)
-                                );
-                              }
-                            }}
+                            onVariantShow={variantId => () =>
+                              navigate(
+                                productVariantEditUrl(product.id, variantId)
+                              )}
                             onImageUpload={event => {
                               if (product) {
                                 createProductImage.mutate({

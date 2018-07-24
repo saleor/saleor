@@ -1,8 +1,5 @@
 import DialogContentText from "@material-ui/core/DialogContentText";
-import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
-import DeleteIcon from "@material-ui/icons/Delete";
-import VisibilityIcon from "@material-ui/icons/Visibility";
 import * as React from "react";
 
 import { AttributeType, AttributeValueType, MoneyType } from "../../";
@@ -17,14 +14,12 @@ import SaveButtonBar, {
 import SeoForm from "../../../components/SeoForm";
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
-import ProductAttributesForm from "../ProductAttributesForm";
 import ProductAvailabilityForm from "../ProductAvailabilityForm";
-import ProductCategoryAndCollectionsForm from "../ProductCategoryAndCollectionsForm";
 import ProductDetailsForm from "../ProductDetailsForm";
 import ProductImages from "../ProductImages";
 import ProductOrganization from "../ProductOrganization";
-import ProductPrice from "../ProductPrice/ProductPrice";
 import ProductPricing from "../ProductPricing";
+import ProductStock from "../ProductStock";
 import ProductVariants from "../ProductVariants";
 
 interface ProductUpdateProps {
@@ -94,7 +89,9 @@ interface ProductUpdateProps {
     };
     url: string;
   };
+  header: string;
   saveButtonBarState?: SaveButtonBarState;
+  onVariantShow: (id: string) => () => void;
   onAttributesEdit: () => void;
   onBack?();
   onDelete?(id: string);
@@ -105,7 +102,6 @@ interface ProductUpdateProps {
   onSeoClick?();
   onSubmit?(data: any);
   onVariantAdd?();
-  onVariantShow?(id: string);
 }
 
 const decorate = withStyles(theme => ({
@@ -136,6 +132,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
     collections,
     errors: userErrors,
     images,
+    header,
     placeholderImage,
     product,
     productCollections,
@@ -154,6 +151,13 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
     onVariantShow
   }) => {
     const initialData = {
+      attributes:
+        product && product.attributes
+          ? product.attributes.map(a => ({
+              slug: a.attribute.slug,
+              value: a.value.slug
+            }))
+          : undefined,
       available: product ? product.isPublished : undefined,
       availableOn: product ? product.availableOn : "",
       category: product && product.category ? product.category.id : undefined,
@@ -167,14 +171,35 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
       name: product ? product.name : "",
       price:
         product && product.price ? product.price.amount.toString() : undefined,
+      productType:
+        product && product.productType && product.attributes
+          ? {
+              label: product.productType.name,
+              value: {
+                hasVariants: product.productType.hasVariants,
+                id: product.productType.id,
+                name: product.productType.name,
+                productAttributes: {
+                  edges: product.attributes.map(a => ({ node: a.attribute }))
+                }
+              }
+            }
+          : undefined,
       seoDescription: product ? product.seoDescription : "",
-      seoTitle: product && product.seoTitle ? product.seoTitle : ""
+      seoTitle: product && product.seoTitle ? product.seoTitle : "",
+      sku:
+        product && product.productType && product.productType.hasVariants
+          ? undefined
+          : variants && variants[0]
+            ? variants[0].sku
+            : undefined,
+      stockQuantity:
+        product && product.productType && product.productType.hasVariants
+          ? undefined
+          : variants && variants[0]
+            ? variants[0].stockQuantity
+            : undefined
     };
-    if (product && product.attributes) {
-      product.attributes.forEach(item => {
-        initialData[item.attribute.slug] = item.value.slug;
-      });
-    }
     return (
       <Toggle>
         {(openedDeleteDialog, { toggle: toggleDeleteDialog }) => (
@@ -186,24 +211,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
           >
             {({ change, data, errors, hasChanged, submit }) => (
               <Container width="md">
-                <PageHeader
-                  title={product ? product.name : undefined}
-                  onBack={onBack}
-                >
-                  {!!onProductShow && (
-                    <IconButton onClick={onProductShow} disabled={disabled}>
-                      <VisibilityIcon />
-                    </IconButton>
-                  )}
-                  {!!onDelete && (
-                    <IconButton
-                      onClick={toggleDeleteDialog}
-                      disabled={disabled}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  )}
-                </PageHeader>
+                <PageHeader title={header} onBack={onBack} />
                 {product &&
                   onDelete &&
                   product.name && (
@@ -258,13 +266,23 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
                       />
                     </div>
                     <div className={classes.cardContainer}>
-                      <ProductVariants
-                        variants={variants}
-                        fallbackPrice={product ? product.price : undefined}
-                        onAttributesEdit={onAttributesEdit}
-                        onRowClick={onVariantShow}
-                        onVariantAdd={onVariantAdd}
-                      />
+                      {product &&
+                      product.productType &&
+                      product.productType.hasVariants ? (
+                        <ProductVariants
+                          variants={variants}
+                          fallbackPrice={product ? product.price : undefined}
+                          onAttributesEdit={onAttributesEdit}
+                          onRowClick={onVariantShow}
+                          onVariantAdd={onVariantAdd}
+                        />
+                      ) : (
+                        <ProductStock
+                          data={data}
+                          disabled={disabled}
+                          onChange={change}
+                        />
+                      )}
                     </div>
                     <div className={classes.cardContainer}>
                       <SeoForm
@@ -284,7 +302,6 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
                   </div>
                   <div>
                     <ProductOrganization
-                      attributes={product ? product.attributes : undefined}
                       category={data.category}
                       categories={
                         categories !== undefined && categories !== null

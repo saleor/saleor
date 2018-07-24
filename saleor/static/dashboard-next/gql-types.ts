@@ -762,6 +762,7 @@ export interface VariantUpdateMutation {
               // The ID of the object.
               id: string,
               name: string,
+              sku: string,
             },
           } >,
         } | null,
@@ -1098,6 +1099,7 @@ export interface ProductVariantDetailsQuery {
             // The ID of the object.
             id: string,
             name: string,
+            sku: string,
           },
         } >,
       } | null,
@@ -1376,6 +1378,7 @@ export interface ProductVariantFragment {
           // The ID of the object.
           id: string,
           name: string,
+          sku: string,
         },
       } >,
     } | null,

@@ -8,21 +8,40 @@ import { AttributeType, AttributeValueType } from "../..";
 import CardTitle from "../../../components/CardTitle";
 import { FormSpacer } from "../../../components/FormSpacer";
 import MultiSelectField from "../../../components/MultiSelectField";
+import SingleAutocompleteSelectField from "../../../components/SingleAutocompleteSelectField";
 import SingleSelectField from "../../../components/SingleSelectField";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 
+interface ProductType {
+  hasVariants: boolean;
+  id: string;
+  name: string;
+  productAttributes: {
+    edges: Array<{ node: AttributeType }>;
+  };
+}
 interface ProductOrganizationProps {
   categories?: Array<{ value: string; label: string }>;
   collections?: Array<{ value: string; label: string }>;
-  attributes?: Array<{
-    attribute: AttributeType;
-    value: AttributeValueType;
-  }>;
   category: string;
   productCollections: string[];
   data: {
-    [key: string]: string;
+    attributes: Array<{
+      slug: string;
+      value: string;
+    }>;
+    productType: {
+      label: string;
+      value: {
+        hasVariants: boolean;
+        id: string;
+        name: string;
+        productAttributes: {
+          edges: Array<{ node: AttributeType }>;
+        };
+      };
+    };
   };
   disabled: boolean;
   errors: { [key: string]: string };
@@ -32,6 +51,7 @@ interface ProductOrganizationProps {
       name?: string;
     };
   };
+  productTypes?: ProductType[];
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
@@ -49,7 +69,6 @@ const decorate = withStyles(theme => ({
 }));
 const ProductOrganization = decorate<ProductOrganizationProps>(
   ({
-    attributes,
     category,
     categories,
     classes,
@@ -59,93 +78,158 @@ const ProductOrganization = decorate<ProductOrganizationProps>(
     errors,
     product,
     productCollections,
+    productTypes,
     onChange
-  }) => (
-    <Card>
-      <CardTitle title={i18n.t("Organize Product")} />
-      <CardContent>
-        {product &&
-        product.productType &&
-        product.productType.name !== undefined ? (
-          <SingleSelectField
-            disabled={true}
+  }) => {
+    const unrolledAttributes =
+      data.productType &&
+      data.productType.value &&
+      data.productType.value.productAttributes
+        ? data.productType.value.productAttributes.edges.map(edge => edge.node)
+        : [];
+    const getAttributeName = (slug: string) =>
+      unrolledAttributes.filter(a => a.slug === slug)[0].slug;
+    const getAttributeValue = (slug: string) =>
+      data.attributes.filter(a => a.slug === slug)[0].value;
+    const getAttributeValues = (slug: string) =>
+      unrolledAttributes.filter(a => a.slug === slug)[0].values;
+    const handleProductTypeSelect = (
+      event: React.ChangeEvent<{
+        name: string;
+        value: {
+          label: string;
+          value: ProductType;
+        };
+      }>
+    ) => {
+      onChange(event);
+      onChange({
+        ...event,
+        target: {
+          ...event.target,
+          name: "attributes",
+          value: event.target.value.value.productAttributes.edges.map(edge => ({
+            slug: edge.node.slug,
+            value: ""
+          }))
+        }
+      });
+    };
+    const handleProductAttributeValueSelect = (
+      event: React.ChangeEvent<{
+        name: string;
+        value: {
+          label: string;
+          value: string;
+        };
+      }>
+    ) =>
+      onChange({
+        ...event,
+        target: {
+          ...event.target,
+          name: "attributes",
+          value: data.attributes.map(
+            a =>
+              a.slug === event.target.name
+                ? { slug: a.slug, value: event.target.value }
+                : a
+          )
+        }
+      });
+    return (
+      <Card>
+        <CardTitle title={i18n.t("Organize Product")} />
+        <CardContent>
+          <SingleAutocompleteSelectField
+            name="productType"
+            disabled={!!product || disabled}
             label={i18n.t("Product Type")}
-            choices={[{ label: product.productType.name, value: "1" }]}
-            value={"1"}
-            onChange={() => {}}
+            choices={
+              product &&
+              product.productType &&
+              product.productType.name !== undefined
+                ? [{ label: product.productType.name, value: "1" }]
+                : productTypes
+                  ? productTypes.map(pt => ({ label: pt.name, value: pt }))
+                  : []
+            }
+            value={data.productType}
+            onChange={handleProductTypeSelect}
           />
-        ) : (
-          <Skeleton />
-        )}
-        <FormSpacer />
-        {product &&
-        product.productType &&
-        product.productType.hasVariants !== undefined ? (
+          <FormSpacer />
           <SingleSelectField
             disabled={true}
+            name="hasVariants"
             label={i18n.t("Is it configurable?")}
             choices={[
               { label: i18n.t("Yes"), value: "true" },
               { label: i18n.t("No"), value: "false" }
             ]}
-            value={product.productType.hasVariants + ""}
-            onChange={() => {}}
+            value={
+              product &&
+              product.productType &&
+              product.productType.hasVariants !== undefined
+                ? product.productType.hasVariants + ""
+                : data.productType
+                  ? data.productType.value.hasVariants + ""
+                  : false + ""
+            }
+            onChange={onChange}
           />
-        ) : (
-          <Skeleton />
-        )}
-        <Typography className={classes.cardSubtitle}>
-          {i18n.t("Attributes")}
-        </Typography>
-        {attributes ? (
-          attributes.map((item, index) => {
-            return (
-              <React.Fragment key={index}>
-                <SingleSelectField
-                  disabled={disabled}
-                  name={item.attribute.slug}
-                  label={item.attribute.name}
-                  onChange={onChange}
-                  value={data[item.attribute.slug]}
-                  choices={item.attribute.values.map(choice => ({
-                    label: choice.name,
-                    value: choice.slug
-                  }))}
-                  key={index}
-                />
-                <FormSpacer />
-              </React.Fragment>
-            );
-          })
-        ) : (
-          <Skeleton />
-        )}
-        <hr className={classes.hr} />
-        <SingleSelectField
-          disabled={disabled}
-          error={!!errors.category}
-          hint={errors.category}
-          label={i18n.t("Category")}
-          choices={disabled ? [] : categories}
-          name="category"
-          value={category}
-          onChange={onChange}
-        />
-        <FormSpacer />
-        <hr className={classes.hr} />
-        <MultiSelectField
-          disabled={disabled}
-          error={!!errors.collections}
-          hint={errors.collections}
-          label={i18n.t("Collections")}
-          choices={disabled ? [] : collections}
-          name="collections"
-          value={productCollections}
-          onChange={onChange}
-        />
-      </CardContent>
-    </Card>
-  )
+          <Typography className={classes.cardSubtitle}>
+            {i18n.t("Attributes")}
+          </Typography>
+          {data.attributes ? (
+            data.attributes.map((item, index) => {
+              return (
+                <React.Fragment key={index}>
+                  <SingleSelectField
+                    disabled={disabled}
+                    name={item.slug}
+                    label={getAttributeName(item.slug)}
+                    onChange={handleProductAttributeValueSelect}
+                    value={getAttributeValue(item.slug)}
+                    choices={getAttributeValues(item.slug).map(v => ({
+                      label: v.name,
+                      value: v.slug
+                    }))}
+                    key={index}
+                  />
+                  <FormSpacer />
+                </React.Fragment>
+              );
+            })
+          ) : (
+            <Skeleton />
+          )}
+          <hr className={classes.hr} />
+          <SingleSelectField
+            disabled={disabled}
+            error={!!errors.category}
+            hint={errors.category}
+            label={i18n.t("Category")}
+            choices={disabled ? [] : categories}
+            name="category"
+            value={category}
+            onChange={onChange}
+          />
+          <FormSpacer />
+          <hr className={classes.hr} />
+          <MultiSelectField
+            disabled={disabled}
+            error={!!errors.collections}
+            hint={errors.collections}
+            label={i18n.t("Collections")}
+            choices={disabled ? [] : collections}
+            name="collections"
+            value={productCollections}
+            onChange={onChange}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
 );
 ProductOrganization.displayName = "ProductOrganization";
 export default ProductOrganization;

@@ -40,6 +40,7 @@ const ProductPricing = decorate<ProductPricingProps>(
       <CardContent>
         <div className={classes.root}>
           <PriceField
+            disabled={disabled}
             label={i18n.t("Price")}
             name="price"
             value={data.price}

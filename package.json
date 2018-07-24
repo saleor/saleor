@@ -21,6 +21,7 @@
     "@material-ui/icons": "^1.1.0",
     "@types/storybook__addon-storyshots": "^3.4.3",
     "@types/storybook__react": "^3.0.8",
+    "@types/string-similarity": "^1.2.0",
     "apollo": "^0.2.2",
     "apollo-cache-inmemory": "^1.1.12",
     "apollo-client": "^2.2.8",
@@ -69,6 +70,7 @@
     "react-svg": "^2.2.11",
     "select2": "^4.0.5",
     "sortablejs": "^1.5.0-rc1",
+    "string-similarity": "^1.2.0",
     "svg-injector-2": "^2.0.35",
     "typescript": "^2.9.1",
     "universal-cookie": "^2.1.2"

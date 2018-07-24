@@ -42,7 +42,7 @@ const ProductPrice = decorate<ProductPriceProps>(
       <PageHeader title={i18n.t("Pricing")} />
       <Table className={classes.root}>
         <TableBody>
-          <TableRow>
+          <TableRow hover>
             <TableCell>{i18n.t("Purchase cost")}</TableCell>
             <TableCell className={classes.textRight}>
               {purchaseCost ? (
@@ -81,7 +81,7 @@ const ProductPrice = decorate<ProductPriceProps>(
               )}
             </TableCell>
           </TableRow>
-          <TableRow>
+          <TableRow hover>
             <TableCell>{i18n.t("Margin")}</TableCell>
             <TableCell className={classes.textRight}>
               {margin ? `${margin.start} % - ${margin.stop}%` : <Skeleton />}
