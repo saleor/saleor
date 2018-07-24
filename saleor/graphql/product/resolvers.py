@@ -49,7 +49,7 @@ def resolve_collections(info, query):
 def resolve_products(info, category_id, query):
     user = info.context.user
     queryset = products_visible_to_user(
-        user=user).prefetch_related('Category').distinct()
+        user=user).prefetch_related('category').distinct()
     queryset = filter_by_query_param(queryset, query, PRODUCT_SEARCH_FIELDS)
     if category_id is not None:
         category = get_node(info, category_id, only_type=Category)
