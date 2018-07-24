@@ -166,8 +166,6 @@ def order_add_note(request, order_pk):
         messages.success(request, msg)
         if not order.is_draft():
             order.history.create(content=msg, user=request.user)
-            if note.is_public:
-                form.send_confirmation_email()
     elif form.errors:
         status = 400
     ctx = {'order': order, 'form': form}
