@@ -1,12 +1,12 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import { withStyles } from "@material-ui/core/styles";
+import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import { debug } from "util";
 import { AttributeType, AttributeValueType } from "../..";
-import PageHeader from "../../../components/PageHeader";
-import SingleSelectField from "../../../components/SingleSelectField";
+import CardTitle from "../../../components/CardTitle";
+import SingleAutocompleteSelectField from "../../../components/SingleAutocompleteSelectField";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 
@@ -16,51 +16,66 @@ interface ProductVariantAttributesProps {
     value: AttributeValueType;
   }>;
   data: {
-    [key: string]: string;
+    [key: string]: {
+      label: string;
+      value: string;
+    };
   };
-  loading?: boolean;
+  disabled: boolean;
   onChange(event: any);
 }
 
 const decorate = withStyles(theme => ({
+  card: {
+    overflow: "visible" as "visible"
+  },
   grid: {
-    display: "grid",
-    gridGap: `${theme.spacing.unit * 2}px`,
-    gridTemplateColumns: "1fr 1fr",
     "& input": {
       width: "100%"
-    }
+    },
+    display: "grid",
+    gridGap: `${theme.spacing.unit * 2}px`,
+    gridTemplateColumns: "1fr 1fr"
   }
 }));
 
 const ProductVariantAttributes = decorate<ProductVariantAttributesProps>(
-  ({ attributes, classes, data, loading, onChange }) => (
-    <Card>
-      <PageHeader title={i18n.t("Attributes")} />
+  ({ attributes, classes, data, disabled, onChange }) => (
+    <Card className={classes.card}>
+      <CardTitle title={i18n.t("General Information")} />
       <CardContent className={classes.grid}>
-        {attributes ? (
+        {attributes === undefined ? (
+          <Skeleton />
+        ) : attributes.length > 0 ? (
           attributes.map(item => {
             const { attribute } = item;
             return (
-              <SingleSelectField
-                choices={
-                  attribute.values
-                    ? attribute.values.map(value => ({
-                        label: value.name,
-                        value: value.slug
-                      }))
-                    : []
-                }
-                onChange={onChange}
-                value={data[attribute.slug]}
-                label={attribute.name}
-                name={attribute.slug}
-                key={attribute.slug}
-              />
+              <>
+                <SingleAutocompleteSelectField
+                  choices={
+                    attribute.values
+                      ? attribute.values.map(value => ({
+                          label: value.name,
+                          value: value.slug
+                        }))
+                      : []
+                  }
+                  disabled={disabled}
+                  label={attribute.name}
+                  name={attribute.slug}
+                  value={data[attribute.slug]}
+                  onChange={onChange}
+                  custom
+                  key={attribute.slug}
+                />
+                <div />
+              </>
             );
           })
         ) : (
-          <Skeleton />
+          <Typography>
+            {i18n.t("This product type has no variant attributes.")}
+          </Typography>
         )}
       </CardContent>
     </Card>

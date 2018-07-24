@@ -12,6 +12,7 @@ storiesOf("Views / Products / Product variant details", module)
   .addDecorator(Decorator)
   .add("when loaded data", () => (
     <ProductVariantPage
+      header={variant.name || variant.sku}
       errors={[]}
       variant={variant}
       onBack={() => () => {}}
@@ -23,6 +24,7 @@ storiesOf("Views / Products / Product variant details", module)
   ))
   .add("when loading data", () => (
     <ProductVariantPage
+      header={undefined}
       errors={[]}
       loading={true}
       onBack={() => () => {}}

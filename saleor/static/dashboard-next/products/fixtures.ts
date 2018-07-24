@@ -571,20 +571,30 @@ export const variant = (placeholderImage: string) => ({
       edges: [
         {
           node: {
+            id: "var1",
+            name: "Extended Hard",
+            sku: "13-1337"
+          }
+        },
+        {
+          node: {
             id: "var2",
-            name: "Extended Soft"
+            name: "Extended Soft",
+            sku: "13-1338"
           }
         },
         {
           node: {
             id: "var3",
-            name: "Normal Hard"
+            name: "Normal Hard",
+            sku: "13-1339"
           }
         },
         {
           node: {
             id: "var4",
-            name: "Normal Soft"
+            name: "Normal Soft",
+            sku: "13-1340"
           }
         }
       ]

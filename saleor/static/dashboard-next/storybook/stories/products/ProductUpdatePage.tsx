@@ -16,6 +16,7 @@ storiesOf("Views / Products / Product edit", module)
       onBack={() => {}}
       onSubmit={() => {}}
       product={product}
+      header={product.name}
       collections={product.collections.edges.map(edge => edge.node)}
       categories={[product.category]}
       placeholderImage={placeholderImage}
@@ -26,7 +27,7 @@ storiesOf("Views / Products / Product edit", module)
       onDelete={() => {}}
       onProductShow={() => {}}
       onVariantAdd={() => {}}
-      onVariantShow={() => {}}
+      onVariantShow={() => () => {}}
     />
   ))
   .add("when product has no images", () => (
@@ -35,6 +36,7 @@ storiesOf("Views / Products / Product edit", module)
       onBack={() => {}}
       onSubmit={() => {}}
       product={product}
+      header={product.name}
       collections={product.collections.edges.map(edge => edge.node)}
       categories={[product.category]}
       placeholderImage={placeholderImage}
@@ -45,17 +47,44 @@ storiesOf("Views / Products / Product edit", module)
       onDelete={() => {}}
       onProductShow={() => {}}
       onVariantAdd={() => {}}
-      onVariantShow={() => {}}
+      onVariantShow={() => () => {}}
+    />
+  ))
+  .add("when product has no variants", () => (
+    <ProductUpdatePage
+      errors={[]}
+      onBack={() => {}}
+      onSubmit={() => {}}
+      product={
+        {
+          ...product,
+          productType: { ...product.productType, hasVariants: false }
+        } as any
+      }
+      header={product.name}
+      collections={product.collections.edges.map(edge => edge.node)}
+      categories={[product.category]}
+      placeholderImage={placeholderImage}
+      images={product.images.edges.map(edge => edge.node)}
+      variants={product.variants.edges.map(edge => edge.node)}
+      productCollections={product.collections.edges.map(edge => edge.node)}
+      onAttributesEdit={() => {}}
+      onDelete={() => {}}
+      onProductShow={() => {}}
+      onVariantAdd={() => {}}
+      onVariantShow={() => () => {}}
     />
   ))
   .add("when loading data", () => (
     <ProductUpdatePage
       errors={[]}
+      header={undefined}
       categories={[]}
       onBack={() => {}}
       onSubmit={() => {}}
       disabled={true}
-      onAttributesEdit={() => {}}
       placeholderImage={placeholderImage}
+      onAttributesEdit={() => {}}
+      onVariantShow={() => () => {}}
     />
   ));

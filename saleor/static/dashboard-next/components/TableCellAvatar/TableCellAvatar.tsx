@@ -4,7 +4,10 @@ import TableCell from "@material-ui/core/TableCell";
 import Cached from "@material-ui/icons/Cached";
 import * as React from "react";
 
+import NoPhoto from "../../icons/NoPhoto";
+
 interface TableCellAvatarProps {
+  className?: string;
   thumbnail?: string;
 }
 
@@ -23,15 +26,15 @@ const decorate = withStyles(theme => ({
   }
 }));
 const TableCellAvatar = decorate<TableCellAvatarProps>(
-  ({ classes, thumbnail }) => (
-    <TableCell className={classes.root}>
+  ({ classes, className, thumbnail }) => (
+    <TableCell className={[classes.root, className].join(" ")}>
       {thumbnail === undefined ? (
         <Avatar className={classes.avatar}>
           <Cached />
         </Avatar>
       ) : thumbnail === null ? (
         <Avatar className={classes.avatar}>
-          <Cached />
+          <NoPhoto />
         </Avatar>
       ) : (
         <Avatar className={classes.avatar} src={thumbnail} />

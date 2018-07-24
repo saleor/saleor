@@ -1,9 +1,6 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import blue from "@material-ui/core/colors/blue";
-import green from "@material-ui/core/colors/green";
-import red from "@material-ui/core/colors/red";
 import Hidden from "@material-ui/core/Hidden";
 import { withStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
@@ -18,8 +15,8 @@ import { MoneyType } from "../..";
 import CardTitle from "../../../components/CardTitle";
 import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
-import i18n from "../../../i18n";
 import StatusLabel from "../../../components/StatusLabel";
+import i18n from "../../../i18n";
 
 interface ProductVariantsProps {
   disabled?: boolean;
@@ -33,7 +30,7 @@ interface ProductVariantsProps {
   }>;
   fallbackPrice?: MoneyType;
   onAttributesEdit: () => void;
-  onRowClick?(id: string);
+  onRowClick: (id: string) => () => void;
   onVariantAdd?();
 }
 
@@ -95,7 +92,7 @@ export const ProductVariants = decorate<ProductVariantsProps>(
       </CardContent>
       <Table className={classes.denseTable}>
         <TableHead>
-          <TableRow>
+          <TableRow hover>
             <TableCell className={classes.textLeft}>{i18n.t("Name")}</TableCell>
             <TableCell>{i18n.t("Status")}</TableCell>
             <TableCell>{i18n.t("SKU")}</TableCell>
@@ -110,7 +107,7 @@ export const ProductVariants = decorate<ProductVariantsProps>(
           {variants === undefined ||
           variants === null ||
           fallbackPrice === undefined ? (
-            <TableRow>
+            <TableRow hover>
               <TableCell>
                 <Skeleton />
               </TableCell>
@@ -130,16 +127,12 @@ export const ProductVariants = decorate<ProductVariantsProps>(
             variants.map(variant => {
               const price = variant.priceOverride || fallbackPrice;
               return (
-                <TableRow key={variant.id}>
+                <TableRow hover key={variant.id}>
                   <TableCell
                     className={[classes.textLeft, classes.link].join(" ")}
-                    onClick={() => {
-                      if (onRowClick) {
-                        onRowClick(variant.id);
-                      }
-                    }}
+                    onClick={onRowClick(variant.id)}
                   >
-                    {variant.name}
+                    {variant.name || variant.sku}
                   </TableCell>
                   <TableCell>
                     <StatusLabel
@@ -161,7 +154,7 @@ export const ProductVariants = decorate<ProductVariantsProps>(
               );
             })
           ) : (
-            <TableRow>
+            <TableRow hover>
               <TableCell colSpan={2}>
                 {i18n.t("This product has no variants")}
               </TableCell>

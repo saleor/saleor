@@ -73,6 +73,9 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                         loading={disableFormSave}
                         placeholderImage={placeholderImg}
                         variant={variant}
+                        header={
+                          variant ? variant.name || variant.sku : undefined
+                        }
                         onBack={handleBack}
                         onDelete={() => deleteVariant.mutate(variantId)}
                         onImageSelect={() => {}}
@@ -85,7 +88,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                                 values: item.attribute.values
                               }))
                               .map(({ slug, values }) => {
-                                const valueSlug = data[slug];
+                                const valueSlug = data[slug].value;
                                 const value = values.filter(
                                   item => item.slug === valueSlug
                                 );

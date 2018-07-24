@@ -3,8 +3,7 @@ import CardContent from "@material-ui/core/CardContent";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { FormSpacer } from "../../../components/FormSpacer";
-import PageHeader from "../../../components/PageHeader";
+import CardTitle from "../../../components/CardTitle";
 import PriceField from "../../../components/PriceField";
 import i18n from "../../../i18n";
 
@@ -18,16 +17,16 @@ interface ProductVariantPriceProps {
 }
 
 const decorate = withStyles(theme => ({
+  grid: {
+    display: "grid",
+    gridColumnGap: `${theme.spacing.unit * 2}px`,
+    gridTemplateColumns: "1fr 1fr"
+  },
   root: {
     marginTop: theme.spacing.unit * 2,
     [theme.breakpoints.down("sm")]: {
       marginTop: theme.spacing.unit
     }
-  },
-  grid: {
-    display: "grid",
-    gridColumnGap: `${theme.spacing.unit * 2}px`,
-    gridTemplateColumns: "1fr 1fr"
   }
 }));
 const ProductVariantPrice = decorate<ProductVariantPriceProps>(
@@ -41,7 +40,7 @@ const ProductVariantPrice = decorate<ProductVariantPriceProps>(
     onChange
   }) => (
     <Card className={classes.root}>
-      <PageHeader title={i18n.t("Pricing")} />
+      <CardTitle title={i18n.t("Pricing")} />
       <CardContent>
         <div className={classes.grid}>
           <div>

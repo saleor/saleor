@@ -4,8 +4,7 @@ import { withStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import { FormSpacer } from "../../../components/FormSpacer";
-import PageHeader from "../../../components/PageHeader";
+import CardTitle from "../../../components/CardTitle";
 import i18n from "../../../i18n";
 
 interface ProductVariantStockProps {
@@ -18,18 +17,18 @@ interface ProductVariantStockProps {
 }
 
 const decorate = withStyles(theme => ({
+  grid: {
+    "& input": {
+      width: "100%"
+    },
+    display: "grid",
+    gridColumnGap: `${theme.spacing.unit * 2}px`,
+    gridTemplateColumns: "1fr 1fr"
+  },
   root: {
     marginTop: theme.spacing.unit * 2,
     [theme.breakpoints.down("sm")]: {
       marginTop: theme.spacing.unit
-    }
-  },
-  grid: {
-    display: "grid",
-    gridColumnGap: `${theme.spacing.unit * 2}px`,
-    gridTemplateColumns: "1fr 1fr",
-    "& input": {
-      width: "100%"
     }
   }
 }));
@@ -37,7 +36,7 @@ const decorate = withStyles(theme => ({
 const ProductVariantStock = decorate<ProductVariantStockProps>(
   ({ classes, errors, sku, stock, stockAllocated, loading, onChange }) => (
     <Card className={classes.root}>
-      <PageHeader title={i18n.t("Stock")} />
+      <CardTitle title={i18n.t("Stock")} />
       <CardContent>
         <div className={classes.grid}>
           <div>
@@ -45,7 +44,7 @@ const ProductVariantStock = decorate<ProductVariantStockProps>(
               error={!!errors.stock}
               name="stock"
               value={stock}
-              label={i18n.t("In stock")}
+              label={i18n.t("Inventory")}
               helperText={
                 errors.stock
                   ? errors.stock
@@ -64,7 +63,7 @@ const ProductVariantStock = decorate<ProductVariantStockProps>(
               helperText={errors.sku}
               name="sku"
               value={sku}
-              label={i18n.t("SKU")}
+              label={i18n.t("SKU (Stock Keeping Unit)")}
               onChange={onChange}
               disabled={loading}
               fullWidth
