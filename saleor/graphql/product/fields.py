@@ -1,6 +1,6 @@
 import graphene
 from django import forms
-from graphene_django.form_converter import convert_form_field
+from graphene_django.forms.converter import convert_form_field
 
 from .scalars import AttributeScalar
 
