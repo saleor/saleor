@@ -253,10 +253,6 @@ class OrderNoteForm(forms.ModelForm):
             'content': forms.Textarea()}
         labels = {'content': pgettext_lazy('Order note', 'Note')}
 
-    def send_confirmation_email(self):
-        if self.instance.order.get_user_current_email():
-            send_note_confirmation.delay(self.instance.order.pk)
-
 
 class ManagePaymentForm(forms.Form):
     amount = MoneyField(

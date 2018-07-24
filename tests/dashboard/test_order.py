@@ -639,16 +639,6 @@ def test_view_add_variant_to_order(admin_client, order_with_lines):
     assert line.quantity == line_quantity_before + added_quantity
 
 
-def test_note_form_sent_email(monkeypatch, order_with_lines):
-    mock_send_mail = Mock(return_value=None)
-    monkeypatch.setattr(
-        'saleor.dashboard.order.forms.send_note_confirmation', mock_send_mail)
-    note = OrderNote(order=order_with_lines, user=order_with_lines.user)
-    form = OrderNoteForm({'content': 'test_note'}, instance=note)
-    form.send_confirmation_email()
-    assert mock_send_mail.called_once()
-
-
 def test_fulfill_order_line(order_with_lines):
     order = order_with_lines
     line = order.lines.first()
