@@ -2,6 +2,7 @@ import gql from "graphql-tag";
 import { Query, QueryProps } from "react-apollo";
 
 import {
+  ProductCreateDataQuery,
   ProductDetailsQuery,
   ProductDetailsQueryVariables,
   ProductListQuery,
@@ -262,6 +263,54 @@ export const productVariantQuery = gql`
   query ProductVariantDetails($id: ID!) {
     productVariant(id: $id) {
       ...ProductVariant
+    }
+  }
+`;
+
+export const TypedProductCreateQuery = Query as React.ComponentType<
+  QueryProps<ProductCreateDataQuery>
+>;
+export const productCreateQuery = gql`
+  query ProductCreateData {
+    productTypes {
+      edges {
+        node {
+          id
+          name
+          hasVariants
+          productAttributes {
+            edges {
+              node {
+                id
+                slug
+                name
+                values {
+                  id
+                  sortOrder
+                  name
+                  slug
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    collections {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+    categories {
+      edges {
+        node {
+          id
+          name
+        }
+      }
     }
   }
 `;

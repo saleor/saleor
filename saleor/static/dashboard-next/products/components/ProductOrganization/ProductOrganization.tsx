@@ -91,7 +91,7 @@ const ProductOrganization = decorate<ProductOrganizationProps>(
         ? data.productType.value.productAttributes.edges.map(edge => edge.node)
         : [];
     const getAttributeName = (slug: string) =>
-      unrolledAttributes.filter(a => a.slug === slug)[0].slug;
+      unrolledAttributes.filter(a => a.slug === slug)[0].name;
     const getAttributeValue = (slug: string) => {
       if (unrolledAttributes && unrolledAttributes.length > 0) {
         const value = data.attributes.filter(a => a.slug === slug)[0];
