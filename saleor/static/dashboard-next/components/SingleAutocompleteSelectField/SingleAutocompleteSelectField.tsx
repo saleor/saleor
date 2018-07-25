@@ -114,14 +114,10 @@ const SingleAutocompleteSelectFieldComponent = decorate<
                     </MenuItem>
                   ) : (
                     <>
-                      {choices.map(suggestion => (
+                      {choices.map((suggestion, index) => (
                         <MenuItem
                           key={JSON.stringify(suggestion)}
-                          selected={
-                            selectedItem
-                              ? suggestion.value === selectedItem.value
-                              : false
-                          }
+                          selected={highlightedIndex === index}
                           component="div"
                           {...getItemProps({ item: suggestion })}
                         >

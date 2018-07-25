@@ -4,7 +4,7 @@ import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import { AttributeType, AttributeValueType } from "../..";
+import { AttributeType } from "../..";
 import CardTitle from "../../../components/CardTitle";
 import { FormSpacer } from "../../../components/FormSpacer";
 import MultiSelectField from "../../../components/MultiSelectField";
@@ -56,6 +56,9 @@ interface ProductOrganizationProps {
 }
 
 const decorate = withStyles(theme => ({
+  card: {
+    overflow: "visible" as "visible"
+  },
   cardSubtitle: {
     fontSize: "1rem",
     margin: `${theme.spacing.unit * 3}px 0`
@@ -89,8 +92,23 @@ const ProductOrganization = decorate<ProductOrganizationProps>(
         : [];
     const getAttributeName = (slug: string) =>
       unrolledAttributes.filter(a => a.slug === slug)[0].slug;
-    const getAttributeValue = (slug: string) =>
-      data.attributes.filter(a => a.slug === slug)[0].value;
+    const getAttributeValue = (slug: string) => {
+      if (unrolledAttributes && unrolledAttributes.length > 0) {
+        const value = data.attributes.filter(a => a.slug === slug)[0];
+        const matches = unrolledAttributes
+          .filter(a => a.slug === slug)[0]
+          .values.filter(v => v.slug === value.value);
+        const label = matches.length > 0 ? matches[0].name : value.value;
+        return {
+          label,
+          value
+        };
+      }
+      return {
+        label: "",
+        value: ""
+      };
+    };
     const getAttributeValues = (slug: string) =>
       unrolledAttributes.filter(a => a.slug === slug)[0].values;
     const handleProductTypeSelect = (
@@ -123,7 +141,7 @@ const ProductOrganization = decorate<ProductOrganizationProps>(
           value: string;
         };
       }>
-    ) =>
+    ) => {
       onChange({
         ...event,
         target: {
@@ -132,13 +150,14 @@ const ProductOrganization = decorate<ProductOrganizationProps>(
           value: data.attributes.map(
             a =>
               a.slug === event.target.name
-                ? { slug: a.slug, value: event.target.value }
+                ? { slug: a.slug, value: event.target.value.value }
                 : a
           )
         }
       });
+    };
     return (
-      <Card>
+      <Card className={classes.card}>
         <CardTitle title={i18n.t("Organize Product")} />
         <CardContent>
           <SingleAutocompleteSelectField
@@ -184,7 +203,7 @@ const ProductOrganization = decorate<ProductOrganizationProps>(
             data.attributes.map((item, index) => {
               return (
                 <React.Fragment key={index}>
-                  <SingleSelectField
+                  <SingleAutocompleteSelectField
                     disabled={disabled}
                     name={item.slug}
                     label={getAttributeName(item.slug)}
@@ -195,6 +214,7 @@ const ProductOrganization = decorate<ProductOrganizationProps>(
                       value: v.slug
                     }))}
                     key={index}
+                    custom
                   />
                   <FormSpacer />
                 </React.Fragment>
