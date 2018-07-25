@@ -51,6 +51,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                     pushMessage({
                       text: i18n.t("Image successfully uploaded")
                     });
+
                   const product = data ? data.product : undefined;
                   const allCollections =
                     data && data.collections
@@ -79,6 +80,27 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                         reorderProductImages,
                         updateProduct
                       }) => {
+                        const handleSubmit = data => {
+                          if (product) {
+                            updateProduct.mutate({
+                              attributes: data.attributes,
+                              availableOn:
+                                data.availableOn !== ""
+                                  ? data.availableOn
+                                  : null,
+                              category: data.category,
+                              chargeTaxes: data.chargeTaxes,
+                              collections: data.collections,
+                              description: data.description,
+                              id: product.id,
+                              isFeatured: data.featured,
+                              isPublished: data.available,
+                              name: data.name,
+                              price: data.price
+                            });
+                          }
+                        };
+
                         const disableFormSave =
                           createProductImage.loading ||
                           deleteProduct.loading ||
@@ -130,42 +152,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                                 });
                               }
                             }}
-                            onSubmit={data => {
-                              if (product) {
-                                const attributes = product.attributes
-                                  .map(item => ({
-                                    slug: item.attribute.slug,
-                                    values: item.attribute.values
-                                  }))
-                                  .map(({ slug, values }) => {
-                                    const valueSlug = data[slug];
-                                    const value = values.filter(
-                                      item => item.slug === valueSlug
-                                    );
-                                    return {
-                                      slug,
-                                      value: value ? value[0].name : valueSlug
-                                    };
-                                  });
-
-                                updateProduct.mutate({
-                                  attributes,
-                                  availableOn:
-                                    data.availableOn !== ""
-                                      ? data.availableOn
-                                      : null,
-                                  category: data.category,
-                                  chargeTaxes: data.chargeTaxes,
-                                  collections: data.collections,
-                                  description: data.description,
-                                  id: product.id,
-                                  isFeatured: data.featured,
-                                  isPublished: data.available,
-                                  name: data.name,
-                                  price: data.price
-                                });
-                              }
-                            }}
+                            onSubmit={handleSubmit}
                             onVariantAdd={() => {}}
                             onVariantShow={variantId => () =>
                               navigate(
