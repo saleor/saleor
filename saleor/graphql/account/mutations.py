@@ -141,7 +141,8 @@ class AddressCreateInput(AddressInput):
 
 class AddressCreate(ModelMutation):
     class Arguments:
-        input = AddressCreateInput(description='Fields required to create address', required=True)
+        input = AddressCreateInput(
+            description='Fields required to create address', required=True)
 
     class Meta:
         description = 'Creates user address'
