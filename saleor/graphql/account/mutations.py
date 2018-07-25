@@ -25,6 +25,10 @@ def send_user_password_reset_email(user, site):
     emails.send_password_reset_email.delay(context, user.email)
 
 
+BILLING_ADDRESS_FIELD = 'default_billing_address'
+SHIPPING_ADDRESS_FIELD = 'default_shipping_address'
+
+
 class UserInput(graphene.InputObjectType):
     email = graphene.String(
         description='The unique email address of the user.')
@@ -76,32 +80,46 @@ class CustomerCreate(ModelMutation):
         return user.has_perm('account.manage_users')
 
     @classmethod
+    def construct_address(
+            cls, address_field_name, address_input, user_instance, errors):
+        if not address_field_name in [
+                BILLING_ADDRESS_FIELD, SHIPPING_ADDRESS_FIELD]:
+            raise AssertionError(
+                'Wrong address_field_name: %s' % address_field_name)
+
+        address_instance = getattr(user_instance, address_field_name)
+        if not address_instance:
+            address_instance = models.Address()
+
+        cls.construct_instance(address_instance, address_input)
+        cls.clean_instance(address_instance, errors)
+        return address_instance
+
+    @classmethod
     def clean_input(cls, info, instance, input, errors):
-        default_shipping_address = input.pop('default_shipping_address', None)
-        default_billing_address = input.pop('default_billing_address', None)
+        shipping_address_input = input.pop(SHIPPING_ADDRESS_FIELD, None)
+        billing_address_input = input.pop(BILLING_ADDRESS_FIELD, None)
         cleaned_input = super().clean_input(info, instance, input, errors)
 
-        if default_shipping_address:
-            default_shipping_address = models.Address(
-                **default_shipping_address)
-            cls.clean_instance(default_shipping_address, errors)
-            cleaned_input[
-                'default_shipping_address'] = default_shipping_address
-        if default_billing_address:
-            default_billing_address = models.Address(**default_billing_address)
-            cls.clean_instance(default_billing_address, errors)
-            cleaned_input['default_billing_address'] = default_billing_address
+        if shipping_address_input:
+            shipping_address = cls.construct_address(
+                SHIPPING_ADDRESS_FIELD, shipping_address_input, instance, errors)
+            cleaned_input[SHIPPING_ADDRESS_FIELD] = shipping_address
+
+        if billing_address_input:
+            billing_address = cls.construct_address(
+                BILLING_ADDRESS_FIELD, billing_address_input, instance, errors)
+            cleaned_input[BILLING_ADDRESS_FIELD] = billing_address
 
         return cleaned_input
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
-        default_shipping_address = cleaned_input.get(
-            'default_shipping_address')
+        default_shipping_address = cleaned_input.get(SHIPPING_ADDRESS_FIELD)
         if default_shipping_address:
             default_shipping_address.save()
             instance.default_shipping_address = default_shipping_address
-        default_billing_address = cleaned_input.get('default_billing_address')
+        default_billing_address = cleaned_input.get(BILLING_ADDRESS_FIELD)
         if default_billing_address:
             default_billing_address.save()
             instance.default_billing_address = default_billing_address
@@ -119,27 +137,6 @@ class CustomerUpdate(CustomerCreate):
         description = 'Updates an existing customer.'
         exclude = ['password']
         model = models.User
-
-    @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        default_shipping_address = input.pop('default_shipping_address', None)
-        default_billing_address = input.pop('default_billing_address', None)
-        cleaned_input = super().clean_input(info, instance, input, errors)
-
-        if default_shipping_address:
-            instance.default_shipping_address = models.Address(
-                **default_shipping_address)
-            cls.clean_instance(instance.default_shipping_address, errors)
-            cleaned_input[
-                'default_shipping_address'] = instance.default_shipping_address
-        if default_billing_address:
-            instance.default_billing_address = models.Address(
-                **default_billing_address)
-            cls.clean_instance(instance.default_billing_address, errors)
-            cleaned_input[
-                'default_billing_address'] = instance.default_billing_address
-
-        return cleaned_input
 
 
 class StaffCreate(ModelMutation):
