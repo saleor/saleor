@@ -178,15 +178,6 @@ class CommonVoucherForm(forms.ModelForm):
 
     use_required_attribute = False
 
-    def save(self, commit=True):
-        self.instance.limit = None
-        # Apply to one with percentage discount is more complicated case.
-        # On which product we should apply it? On first, last or cheapest?
-        # Percentage case is limited to the whole order.
-        if self.instance.discount_value_type == DiscountValueType.PERCENTAGE:
-            self.instance.apply_once_per_order = True
-        return super().save(commit)
-
 
 class ProductVoucherForm(CommonVoucherForm):
     products = AjaxSelect2MultipleChoiceField(
