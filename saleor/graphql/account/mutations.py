@@ -29,6 +29,10 @@ BILLING_ADDRESS_FIELD = 'default_billing_address'
 SHIPPING_ADDRESS_FIELD = 'default_shipping_address'
 
 
+BILLING_ADDRESS_FIELD = 'default_billing_address'
+SHIPPING_ADDRESS_FIELD = 'default_shipping_address'
+
+
 class UserInput(graphene.InputObjectType):
     email = graphene.String(
         description='The unique email address of the user.')
@@ -120,7 +124,6 @@ class CustomerCreate(ModelMutation):
         if default_shipping_address:
             default_shipping_address.save()
             instance.default_shipping_address = default_shipping_address
-
         default_billing_address = cleaned_input.get(BILLING_ADDRESS_FIELD)
         if default_billing_address:
             default_billing_address.save()
@@ -143,27 +146,6 @@ class CustomerUpdate(CustomerCreate):
         description = 'Updates an existing customer.'
         exclude = ['password']
         model = models.User
-
-    @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        default_shipping_address = input.pop('default_shipping_address', None)
-        default_billing_address = input.pop('default_billing_address', None)
-        cleaned_input = super().clean_input(info, instance, input, errors)
-
-        if default_shipping_address:
-            instance.default_shipping_address = models.Address(
-                **default_shipping_address)
-            cls.clean_instance(instance.default_shipping_address, errors)
-            cleaned_input[
-                'default_shipping_address'] = instance.default_shipping_address
-        if default_billing_address:
-            instance.default_billing_address = models.Address(
-                **default_billing_address)
-            cls.clean_instance(instance.default_billing_address, errors)
-            cleaned_input[
-                'default_billing_address'] = instance.default_billing_address
-
-        return cleaned_input
 
 
 class StaffCreate(ModelMutation):
