@@ -618,7 +618,6 @@ def test_get_discount_for_cart_product_voucher_not_applicable(monkeypatch):
     assert str(e.value) == 'This offer is only valid for selected items.'
 
 
-# FIXME
 def test_get_discount_for_cart_collection_voucher_not_applicable(monkeypatch):
     monkeypatch.setattr(
         'saleor.checkout.utils.get_prices_of_products_in_discounted_collections',  # noqa

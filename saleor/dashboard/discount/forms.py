@@ -15,6 +15,13 @@ from ...product.models import Category, Product
 from ...shipping.models import ShippingMethodCountry
 from ..forms import AjaxSelect2MultipleChoiceField
 
+MinAmountSpent = MoneyField(
+    min_value=ZERO_MONEY, required=False,
+    currency=settings.DEFAULT_CURRENCY,
+    label=pgettext_lazy(
+        'Lowest value for order to be able to use the voucher',
+        'Apply only if the purchase value is greater than or equal to'))
+
 
 class SaleForm(forms.ModelForm):
     products = AjaxSelect2MultipleChoiceField(
@@ -132,13 +139,7 @@ def country_choices():
 
 
 class ShippingVoucherForm(forms.ModelForm):
-
-    min_amount_spent = MoneyField(
-        min_value=ZERO_MONEY, required=False,
-        currency=settings.DEFAULT_CURRENCY,
-        label=pgettext_lazy(
-            'Lowest value for order to be able to use the voucher',
-            'Apply only if the purchase value is greater than or equal to'))
+    min_amount_spent = MinAmountSpent
     countries = forms.MultipleChoiceField(
         choices=country_choices,
         required=False,
@@ -150,18 +151,9 @@ class ShippingVoucherForm(forms.ModelForm):
         model = Voucher
         fields = ['countries', 'min_amount_spent']
 
-    def save(self, commit=True):
-        return super().save(commit)
-
 
 class ValueVoucherForm(forms.ModelForm):
-
-    min_amount_spent = MoneyField(
-        min_value=ZERO_MONEY, required=False,
-        currency=settings.DEFAULT_CURRENCY,
-        label=pgettext_lazy(
-            'Lowest value for order to be able to use the voucher',
-            'Apply only if the purchase value is greater than or equal to'))
+    min_amount_spent = MinAmountSpent
 
     class Meta:
         model = Voucher
@@ -175,8 +167,17 @@ class ValueVoucherForm(forms.ModelForm):
 
 
 class CommonVoucherForm(forms.ModelForm):
-
     use_required_attribute = False
+    min_amount_spent = MinAmountSpent
+    apply_once_per_order = forms.BooleanField(
+        required=False,
+        label=pgettext_lazy(
+            'Field label, apply discount value only once per order',
+            'Only apply once per order'),
+        help_text=pgettext_lazy(
+            'Help text of checkbox for applying discount only once per order',
+            'If unchecked, discount value will be taken '
+            'off each suitable item in an order.'))
 
 
 class ProductVoucherForm(CommonVoucherForm):
