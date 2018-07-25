@@ -12,6 +12,20 @@ storiesOf("Views / Products / Create product", module)
   .addDecorator(Decorator)
   .add("default", () => (
     <ProductCreatePage
+      disabled={false}
+      errors={[]}
+      header="Add product"
+      collections={product.collections.edges.map(edge => edge.node)}
+      productTypes={productTypes}
+      categories={[product.category]}
+      onAttributesEdit={() => {}}
+      onBack={() => {}}
+      onSubmit={() => {}}
+    />
+  ))
+  .add("When loading", () => (
+    <ProductCreatePage
+      disabled={true}
       errors={[]}
       header="Add product"
       collections={product.collections.edges.map(edge => edge.node)}
