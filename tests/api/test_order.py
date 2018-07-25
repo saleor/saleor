@@ -46,12 +46,11 @@ def test_order_query(admin_api_client, fulfilled_order):
                                 fulfillmentOrder
                             }
                         }
-                        
                     }
                     history {
                         totalCount
                     }
-                    totalPrice {
+                    total {
                         net {
                             amount
                         }
@@ -146,7 +145,7 @@ def test_draft_order_create(
                         voucher {
                             code
                         }
-                        
+
                     }
                 }
         }

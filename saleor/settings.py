@@ -535,3 +535,7 @@ if SENTRY_DSN:
     RAVEN_CONFIG = {
         'dsn': SENTRY_DSN,
         'release': __version__}
+
+
+SERIALIZATION_MODULES = {
+    'json': 'saleor.core.utils.json_serializer'}

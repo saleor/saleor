@@ -53,7 +53,6 @@
               </div>
             </div>
           </div>
-          {% if perms.account.edit_user %}
           <div class="card-action right-align">
             {% if customer.pk %}
               <a href="{% url 'dashboard:customer-details' pk=customer.pk %}" class="btn-flat waves-effect">
@@ -71,7 +70,6 @@
               </button>
             {% endif %}
           </div>
-          {% endif %}
         </form>
       {% endif %}
     </div>

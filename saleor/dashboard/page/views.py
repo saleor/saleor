@@ -13,7 +13,7 @@ from .forms import PageForm
 
 
 @staff_member_required
-@permission_required('page.view_page')
+@permission_required('page.manage_pages')
 def page_list(request):
     pages = Page.objects.all()
     pages_filter = PageFilter(request.GET, queryset=pages)
@@ -27,14 +27,14 @@ def page_list(request):
 
 
 @staff_member_required
-@permission_required('page.edit_page')
+@permission_required('page.manage_pages')
 def page_update(request, pk):
     page = get_object_or_404(Page, pk=pk)
     return _page_edit(request, page)
 
 
 @staff_member_required
-@permission_required('page.edit_page')
+@permission_required('page.manage_pages')
 def page_add(request):
     page = Page()
     return _page_edit(request, page)
@@ -53,7 +53,7 @@ def _page_edit(request, page):
 
 
 @staff_member_required
-@permission_required('page.edit_page')
+@permission_required('page.manage_pages')
 def page_delete(request, pk):
     page = get_object_or_404(Page, pk=pk)
     if request.POST:
@@ -67,7 +67,7 @@ def page_delete(request, pk):
 
 
 @staff_member_required
-@permission_required('page.view_page')
+@permission_required('page.manage_pages')
 def page_details(request, pk):
     page = get_object_or_404(Page, pk=pk)
     ctx = {'page': page}

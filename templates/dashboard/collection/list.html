@@ -20,13 +20,11 @@
 {% endblock %}
 
 {% block header_extra %}
-  {% if perms.product.edit_product %}
-    <div class="btn-fab-fixed">
-      <a href="{% url 'dashboard:collection-add' %}" class="btn-fab-default waves-effect waves-light" title="{% trans "Add collection" context 'Collections list add button text' %}">
-        <svg data-src="{% static 'dashboard/images/add.svg' %}"/>
-      </a>
-    </div>
-  {% endif %}
+  <div class="btn-fab-fixed">
+    <a href="{% url 'dashboard:collection-add' %}" class="btn-fab-default waves-effect waves-light" title="{% trans "Add collection" context 'Collections list add button text' %}">
+      <svg data-src="{% static 'dashboard/images/add.svg' %}"/>
+    </a>
+  </div>
 {% endblock %}
 
 {% block content %}
@@ -50,7 +48,7 @@
               </thead>
               {% for node in collections %}
                 <tbody>
-                  <tr data-action-go="{% if perms.product.edit_product %}{% url 'dashboard:collection-update' node.pk %}{% endif %}">
+                  <tr data-action-go="{% url 'dashboard:collection-update' node.pk %}">
                     <td>
                       {{ node.name }}
                     </td>

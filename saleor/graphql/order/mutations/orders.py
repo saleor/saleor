@@ -85,7 +85,7 @@ class OrderAddNote(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('order.edit_order')
+        return user.has_perm('order.manage_orders')
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -110,7 +110,7 @@ class OrderCancel(BaseMutation):
         Order, description='Canceled order.')
 
     @classmethod
-    @permission_required('order.edit_order')
+    @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, restock):
         order = get_node(info, id, only_type=Order)
         cancel_order(order=order, restock=restock)
@@ -140,7 +140,7 @@ class OrderMarkAsPaid(BaseMutation):
         Order, description='Order marked as paid.')
 
     @classmethod
-    @permission_required('order.edit_order')
+    @permission_required('order.manage_orders')
     def mutate(cls, root, info, id):
         order = get_node(info, id, only_type=Order)
         if order.payments.exists():
@@ -180,7 +180,7 @@ class OrderCapture(BaseMutation):
         Order, description='Captured order.')
 
     @classmethod
-    @permission_required('order.edit_order')
+    @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, amount):
         order = get_node(info, id, only_type=Order)
         payment = order.get_last_payment()
@@ -208,7 +208,7 @@ class OrderRelease(BaseMutation):
         Order, description='A released order.')
 
     @classmethod
-    @permission_required('order.edit_order')
+    @permission_required('order.manage_orders')
     def mutate(cls, root, info, id):
         order = get_node(info, id, only_type=Order)
         payment = order.get_last_payment()
@@ -237,7 +237,7 @@ class OrderRefund(BaseMutation):
         Order, description='A refunded order.')
 
     @classmethod
-    @permission_required('order.edit_order')
+    @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, amount):
         order = get_node(info, id, only_type=Order)
         payment = order.get_last_payment()
