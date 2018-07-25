@@ -5,6 +5,7 @@
     "author": "Mirumee",
     "homepage": "https://getsaleor.com/",
     "main": "dist/index.js",
+    "browserslist": "last 2 versions",
     "dependencies": {
         "react": "^16.4.1",
         "react-dom": "^16.4.1",
@@ -12,7 +13,6 @@
         "react-router-dom": "^4.3.1"
     },
     "devDependencies": {
-        "autoprefixer": "^9.0.1",
         "babel-core": "^6.26.3",
         "babel-loader": "^7.1.5",
         "babel-preset-env": "^1.7.0",
@@ -27,6 +27,7 @@
         "node-sass": "^4.9.2",
         "postcss": "^7.0.1",
         "postcss-loader": "^2.1.6",
+        "postcss-preset-env": "^5.3.0",
         "style-loader": "^0.21.0",
         "sw-precache-webpack-plugin": "^0.11.5",
         "webapp-webpack-plugin": "^2.2.0",
@@ -39,7 +40,7 @@
     },
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "webpack-dev-server --open --watch --port 3000",
+        "start": "webpack-dev-server --open --watch --port 3000 --mode development",
         "build": "webpack -p --progress",
         "watch": "webpack -d --watch --progress --colors"
     }

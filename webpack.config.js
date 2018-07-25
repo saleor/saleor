@@ -1,17 +1,15 @@
 const path = require('path');
-const autoprefixer = require('autoprefixer');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const WebappWebpackPlugin = require('webapp-webpack-plugin');
 const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const PostcssPresetEnv = require('postcss-preset-env')
 
-const resolve = path.resolve.bind(path, __dirname);
 const sourceDir = path.join(__dirname, './src/');
 const distDir = path.join(__dirname, './dist/');
-
-const isProduction = process.argv.indexOf('-p') >= 0;
+const devMode = process.env.NODE_ENV !== 'production'
 
 module.exports = {
   watchOptions: {
@@ -41,31 +39,24 @@ module.exports = {
         },
       },
       {
-        test: /\.scss$/,
+        test: /\.css$/,
         use: [
-          MiniCssExtractPlugin.loader,
-          {
-            loader: 'css-loader',
-            options: {
-              sourceMap: true,
-              importLoaders: 2,
-            }
-          },
-          {
-            loader: 'postcss-loader',
-            options: {
-              sourceMap: true,
-              plugins: function () {
-                return [autoprefixer];
-              }
-            }
-          },
-          {
-            loader: 'sass-loader',
-            options: {
-              sourceMap: true
-            }
-          }
+          devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
+          { loader: 'css-loader', options: { importLoaders: 1 } },
+          { loader: 'postcss-loader', options: {
+            ident: 'postcss',
+            plugins: () => [
+              PostcssPresetEnv({
+                stage: 3,
+                features: {
+                  'nesting-rules': true,
+                  'color-mod-function': {
+                    unresolved: 'warn'
+                  }
+                }
+              })
+            ]
+          } }
         ]
       },
       {
@@ -95,18 +86,18 @@ module.exports = {
     ]
   },
   plugins: [
-    autoprefixer,
-    new CleanWebpackPlugin([resolve('dist')]),
+    new CleanWebpackPlugin([distDir]),
     new HtmlWebpackPlugin({
       template: `${sourceDir}index.html`,
       filename: `${distDir}index.html`
     }),
     new MiniCssExtractPlugin({
-      filename: 'css/[name].css',
-      chunkFilename: '[id].css'
+      filename: devMode ? '[name].css' : '[name].[hash].css',
+      chunkFilename: devMode ? '[id].css' : '[id].[hash].css'
     }),
+    // PWA plugins
     new WebappWebpackPlugin({
-      logo: resolve('src/images/logo.svg'),
+      logo: `${sourceDir}images/logo.svg`,
       prefix: 'images/favicons/',
       favicons: {
         appName: 'Get Saleor',

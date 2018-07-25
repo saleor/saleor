@@ -1,0 +1,14 @@
+:root {
+    --fontSize: 1rem;
+    --mainColor: color-mod(yellow blend(red 50%));
+    --secondaryColor: lab(32.5 38.5 -47.6 / 90%);
+}
+
+body {
+    background: var(--mainColor);
+    transition: 1s;
+
+    @nest #root & {
+        background: black;
+    }
+}
