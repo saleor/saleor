@@ -1,7 +1,7 @@
 from django.db.models import F
 from django.utils.translation import pgettext
 
-from ..core.utils.taxes import ZERO_TAXED_MONEY, ZERO_MONEY
+from ..core.utils.taxes import ZERO_MONEY, ZERO_TAXED_MONEY
 from .models import NotApplicable
 
 
@@ -43,7 +43,8 @@ def get_product_discount_on_sale(sale, product):
         return sale.get_discount()
     raise NotApplicable(
         pgettext(
-            'Voucher not applicable', 'Discount not applicable for this product'))
+            'Voucher not applicable',
+            'Discount not applicable for this product'))
 
 
 def get_product_discounts(product, discounts):

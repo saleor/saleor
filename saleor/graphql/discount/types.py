@@ -1,8 +1,7 @@
 import graphene
 from graphene import relay
 
-from ...discount import (
-    DiscountValueType, VoucherType, models)
+from ...discount import DiscountValueType, VoucherType, models
 from ..core.types.common import CountableDjangoObjectType
 
 

@@ -130,8 +130,8 @@ class Voucher(models.Model):
             msg = pgettext(
                 'Voucher not applicable',
                 'This offer is only valid for orders over %(amount)s.')
-            raise NotApplicable(msg % {
-                'amount': amount(min_amount_spent)},
+            raise NotApplicable(
+                msg % { 'amount': amount(min_amount_spent)},
                 min_amount_spent=min_amount_spent)
 
 
