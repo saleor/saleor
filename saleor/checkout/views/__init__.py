@@ -200,6 +200,9 @@ def clear_cart(request, cart):
     """Clear cart"""
     from ..utils import update_cart_quantity
 
+    if not request.is_ajax():
+        return redirect('cart:index')
+
     lines = cart.lines.all()
     for line in lines:
         line.delete()
