@@ -59,7 +59,7 @@ export default $(document).ready((e) => {
   });
   $('.cart__clear').click((e) => {
     $.ajax({
-      url: $('.cart_clear').attr('action'),
+      url: $('.cart__clear').attr('action'),
       method: 'POST',
       data: {},
       success: (response) => {
