@@ -131,7 +131,7 @@ class Voucher(models.Model):
                 'Voucher not applicable',
                 'This offer is only valid for orders over %(amount)s.')
             raise NotApplicable(
-                msg % { 'amount': amount(min_amount_spent)},
+                msg % {'amount': amount(min_amount_spent)},
                 min_amount_spent=min_amount_spent)
 
 

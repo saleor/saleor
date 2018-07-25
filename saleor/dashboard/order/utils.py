@@ -3,8 +3,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import get_template
 
 from ...checkout import AddressType
-from ...checkout.utils import (
-    _get_products_voucher_discount)
+from ...checkout.utils import _get_products_voucher_discount
 from ...core.utils.taxes import ZERO_MONEY
 from ...discount import VoucherType
 from ...discount.utils import (

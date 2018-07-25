@@ -75,6 +75,7 @@ def remove_unavailable_variants(cart):
 
 
 def get_variant_prices_from_lines(lines):
+    """Get's price of each individual item within the lines."""
     return [
         line.variant.get_price()
         for line in lines
@@ -82,7 +83,7 @@ def get_variant_prices_from_lines(lines):
 
 
 def get_prices_of_discounted_products(lines, discounted_products):
-    """Get variants and unit prices from cart lines matching the product."""
+    """Get prices of variants belonging to the discounted products."""
     # If there's no discounted_products,
     # it means that all products are discounted
     if discounted_products:
@@ -94,11 +95,7 @@ def get_prices_of_discounted_products(lines, discounted_products):
 
 def get_prices_of_products_in_discounted_collections(
         lines, discounted_collections):
-    """Get variants and unit prices from cart lines matching the category.
-
-    Product is assumed to be in the category if it belongs to any of its
-    descendant subcategories.
-    """
+    """Get prices of variants belonging to the discounted collections."""
     # If there's no discounted collections,
     # it means that all of them are discounted
     if discounted_collections:
@@ -113,10 +110,10 @@ def get_prices_of_products_in_discounted_collections(
 
 def get_prices_of_products_in_discounted_categories(
         lines, discounted_categories):
-    """Get variants and unit prices from cart lines matching the category.
+    """Get prices of variants belonging to the discounted categories.
 
-    Product is assumed to be in the category if it belongs to any of its
-    descendant subcategories.
+    Product must be assigned directly to the discounted category, assigning
+    product to child category won't work.
     """
     # If there's no discounted collections,
     # it means that all of them are discounted
@@ -667,7 +664,8 @@ def _get_shipping_voucher_discount_for_cart(voucher, cart):
 
 
 def _get_products_voucher_discount(order_or_cart, voucher):
-    """Calculate discount value for a voucher of product or category type."""
+    """Calculate products discount value for a voucher, depending on its type.
+    """
     if voucher.type == VoucherType.PRODUCT:
         prices = get_prices_of_discounted_products(
             order_or_cart.lines.all(), voucher.products.all())
