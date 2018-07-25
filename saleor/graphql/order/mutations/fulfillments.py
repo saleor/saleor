@@ -85,7 +85,7 @@ class FulfillmentCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('order.edit_order')
+        return user.has_perm('order.manage_orders')
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):
@@ -162,7 +162,7 @@ class FulfillmentCancel(BaseMutation):
         Fulfillment, description='A canceled fulfillment.')
 
     @classmethod
-    @permission_required('order.edit_order')
+    @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, input):
         restock = input.get('restock')
         fulfillment = get_node(info, id, only_type=Fulfillment)

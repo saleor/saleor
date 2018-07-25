@@ -13,13 +13,11 @@
 {% block menu_attributes_class %}active{% endblock %}
 
 {% block header_extra %}
-  {% if perms.product.edit_properties %}
   <div class="btn-fab-fixed">
     <a class="btn-fab-default waves-effect waves-light" href="{% url 'dashboard:product-attribute-add' %}" title="{% trans "Add attribute" context "Attribute list add button text" %}">
       <svg data-src="{% static "dashboard/images/add.svg" %}" />
     </a>
   </div>
-  {% endif %}
 {% endblock %}
 
 {% block breadcrumbs %}

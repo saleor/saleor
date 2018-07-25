@@ -22,14 +22,12 @@
 {% block menu_discounts_class %} active{% endblock %}
 
 {% block header_extra %}
-  {% if perms.discount.edit_sale %}
-    <div class="btn-fab-fixed">
-      <a href="{% url 'dashboard:sale-add' %}" class="btn-fab-default waves-effect waves-light"
-          title="{% trans "Add sale" context "Sale (discount) list add button text" %}">
-        <svg data-src="{% static "dashboard/images/add.svg" %}" />
-      </a>
-    </div>
-  {% endif %}
+  <div class="btn-fab-fixed">
+    <a href="{% url 'dashboard:sale-add' %}" class="btn-fab-default waves-effect waves-light"
+        title="{% trans "Add sale" context "Sale (discount) list add button text" %}">
+      <svg data-src="{% static "dashboard/images/add.svg" %}" />
+    </a>
+  </div>
 {% endblock %}
 
 {% block content %}
@@ -50,7 +48,7 @@
               </thead>
               <tbody>
                 {% for sale in sales %}
-                  <tr data-action-go="{% if perms.sale.edit_sale %}{% url 'dashboard:sale-update' pk=sale.pk %}{% endif %}">
+                  <tr data-action-go="{% url 'dashboard:sale-update' pk=sale.pk %}">
                     <td>
                       {{ sale }}
                     </td>

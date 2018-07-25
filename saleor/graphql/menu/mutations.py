@@ -32,7 +32,7 @@ class MenuCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('menu.edit_menu')
+        return user.has_perm('menu.manage_menus')
 
 
 class MenuUpdate(ModelMutation):
@@ -49,7 +49,7 @@ class MenuUpdate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('menu.edit_menu')
+        return user.has_perm('menu.manage_menus')
 
 
 class MenuDelete(ModelDeleteMutation):
@@ -63,7 +63,7 @@ class MenuDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('menu.edit_menu')
+        return user.has_perm('menu.manage_menus')
 
 
 class MenuItemCreate(ModelMutation):
@@ -80,7 +80,7 @@ class MenuItemCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('menu.edit_menu')
+        return user.has_perm('menu.manage_menus')
 
     @classmethod
     def clean_input(cls, info, instance, input, errors):
@@ -112,7 +112,7 @@ class MenuItemUpdate(MenuItemCreate):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('menu.edit_menu')
+        return user.has_perm('menu.manage_menus')
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):
@@ -135,4 +135,4 @@ class MenuItemDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('menu.edit_menu')
+        return user.has_perm('menu.manage_menus')

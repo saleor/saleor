@@ -43,7 +43,6 @@
             {{ attribute.name }}
           </span>
         </div>
-        {% if perms.product.edit_properties %}
         <div class="card-action">
           <a class="btn-flat waves-effect" href="{% url "dashboard:product-attribute-update" attribute.pk %}">
             {% trans "Edit attribute" context "Attribute detail action" %}
@@ -52,7 +51,6 @@
             {% trans "Remove attribute" context "Attribute detail action" %}
           </a>
         </div>
-        {% endif %}
       </div>
     </div>
     <div class="col s12 l9">
@@ -60,48 +58,38 @@
         <div class="card-content">
           <span class="card-title">{% trans "Attribute values" %}</span>
         </div>
-        {% if perms.product.edit_product %}
-          <div class="data-table-header-action">
-            <a href="{% url 'dashboard:product-attribute-value-add' attribute_pk=attribute.pk %}" class="btn-flat waves-effect">
-              {% trans "Add" %}
-            </a>
-          </div>
-        {% endif %}
+        <div class="data-table-header-action">
+          <a href="{% url 'dashboard:product-attribute-value-add' attribute_pk=attribute.pk %}" class="btn-flat waves-effect">
+            {% trans "Add" %}
+          </a>
+        </div>
         <div class="data-table-container">
           <table class="bordered highlight responsive data-table">
             <thead>
               <tr>
-                {% if perms.product.edit_properties %}
-                  <th class="data-table-icon"></th>
-                {% endif %}
+                <th class="data-table-icon"></th>
 
                 <th>{% trans "Display name" %}</th>
-                {% if perms.product.edit_product %}
-                  <th></th>
-                {% endif %}
+                <th></th>
               </tr>
             </thead>
             <tbody class="sortable-items" data-post-url="{% url 'dashboard:product-attribute-values-reorder' attribute_pk=attribute.pk %}" data-post-name="ordered_values">
               {% for value in values %}
                 <tr class="sortable-item" data-id="{{ value.pk }}">
-                  {% if perms.product.edit_properties %}
-                    <td class="data-table-icon ignore-link sortable__drag-area">
-                      <svg data-src="{% static "dashboard/images/reorder.svg" %}" height="20" width="20" fill="#000" />
-                    </td>
-                  {% endif %}
+                  <td class="data-table-icon ignore-link sortable__drag-area">
+                    <svg data-src="{% static "dashboard/images/reorder.svg" %}" height="20" width="20" fill="#000" />
+                  </td>
                   <td>
                     {{ value.name }}
                   </td>
-                  {% if perms.product.edit_product %}
-                    <td class="right-align">
-                      <a href="{% url 'dashboard:product-attribute-value-update' attribute_pk=attribute.pk value_pk=value.pk %}" class="btn-flat waves-effect">
-                        {% trans 'Edit' context 'Attribute choice value edit action' %}
-                      </a>
-                      <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:product-attribute-value-delete' attribute_pk=attribute.pk value_pk=value.pk %}">
-                        {% trans 'Remove' context 'Attribute choice value edit action' %}
-                      </a>
-                    </td>
-                  {% endif %}
+                  <td class="right-align">
+                    <a href="{% url 'dashboard:product-attribute-value-update' attribute_pk=attribute.pk value_pk=value.pk %}" class="btn-flat waves-effect">
+                      {% trans 'Edit' context 'Attribute choice value edit action' %}
+                    </a>
+                    <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:product-attribute-value-delete' attribute_pk=attribute.pk value_pk=value.pk %}">
+                      {% trans 'Remove' context 'Attribute choice value edit action' %}
+                    </a>
+                  </td>
                 </tr>
               {% empty %}
                 <tr>

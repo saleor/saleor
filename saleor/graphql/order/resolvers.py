@@ -12,7 +12,7 @@ ORDER_SEARCH_FIELDS = (
 def resolve_orders(info, query):
     user = info.context.user
     queryset = user.orders.confirmed().distinct()
-    if user.get_all_permissions() & {'order.view_order', 'order.edit_order'}:
+    if user.get_all_permissions() & {'order.manage_orders'}:
         queryset = models.Order.objects.all().distinct()
     queryset = filter_by_query_param(queryset, query, ORDER_SEARCH_FIELDS)
     return queryset.prefetch_related('lines')
@@ -24,5 +24,5 @@ def resolve_order(info, id):
     order = get_node(info, id, only_type=Order)
     user = info.context.user
     if (order.user == user or user.get_all_permissions() & {
-            'order.view_order', 'order.edit_order'}):
+            'order.manage_orders'}):
         return order
