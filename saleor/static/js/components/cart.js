@@ -59,14 +59,13 @@ export default $(document).ready((e) => {
   });
   $('.cart__clear').click((e) => {
     $.ajax({
-      url: $('.cart__clear').attr('action'),
+      url: $('.cart__clear').data('action'),
       method: 'POST',
       data: {},
       success: (response) => {
-        $('.badge').html(response.numItems)
+        $('.badge').html(response.numItems);
         $.cookie('alert', 'true', {path: '/cart'});
         location.reload();
-        deliveryAjax();
       }
     });
   });
