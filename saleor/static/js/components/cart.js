@@ -57,7 +57,7 @@ export default $(document).ready((e) => {
       }
     });
   });
-  $('.cart_clear').click((e) => {
+  $('.cart__clear').click((e) => {
     $.ajax({
       url: $('.cart_clear').attr('action'),
       method: 'POST',
