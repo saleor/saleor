@@ -1,13 +1,11 @@
 import graphene
 from django.contrib.auth.tokens import default_token_generator
-from graphql_jwt.decorators import permission_required
 
 from ...account import models
 from ...core.permissions import MODELS_PERMISSIONS, get_permissions
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..order.mutations.draft_orders import AddressInput
 from ..utils import get_node
-from .types import Address, User
 
 
 class UserInput(graphene.InputObjectType):
@@ -136,26 +134,38 @@ class SetPassword(ModelMutation):
         instance.save()
 
 
-class AddressCreate(BaseMutation):
-    class Arguments:
-        user_id = graphene.ID(
-            description='ID of a user to create address for', required=True)
-        address = AddressInput(
-            description='Fields required to create address', required=True)
+class AddressCreateInput(AddressInput):
+    user_id = graphene.ID(
+        description='ID of a user to create address for', required=True)
 
-    address = graphene.Field(Address, description='Created address')
+
+class AddressCreate(ModelMutation):
+    class Arguments:
+        input = AddressCreateInput(description='Fields required to create address', required=True)
 
     class Meta:
         description = 'Creates user address'
+        model = models.Address
 
-    @permission_required('account.edit_user')
-    def mutate(self, info, user_id, address):
-        user = get_node(info, user_id, only_type=User)
-        address_obj = models.Address(**address)
-        address_obj.save()
-        user.addresses.add(address_obj)
-        user.save()
-        return AddressCreate(address=address_obj)
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        user_id = input.get('user_id')
+        user = get_node(info, user_id)
+        cleaned_input = super().clean_input(info, instance, input, errors)
+        cleaned_input['user'] = user
+        return cleaned_input
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        super().save(info, instance, cleaned_input)
+        user = cleaned_input.get('user')
+        if user:
+            instance.user_addresses.add(user)
+            instance.save()
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('account.edit_user')
 
 
 class AddressUpdate(ModelMutation):

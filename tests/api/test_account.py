@@ -420,8 +420,8 @@ def test_set_password(user_api_client, customer_user):
 
 def test_create_address_mutation(admin_api_client, customer_user):
     query = """
-    mutation CreateUserAddress($user: ID!, $city: String!) {
-        addressCreate(userId: $user, address: {city: $city}) {
+    mutation CreateUserAddress($user: ID!, $city: String!, $country: String!) {
+        addressCreate(input: {userId: $user, city: $city, country: $country}) {
          errors {
             field
             message
@@ -429,19 +429,21 @@ def test_create_address_mutation(admin_api_client, customer_user):
          address {
             id
             city
+            country
          }
         }
     }
     """
     user_id = graphene.Node.to_global_id('User', customer_user.id)
     variables = json.dumps(
-        {'user': user_id, 'city': 'Dummy'})
+        {'user': user_id, 'city': 'Dummy', 'country': 'PL'})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert content['data']['addressCreate']['errors'] is None
+    assert content['data']['addressCreate']['errors'] == []
     address_response = content['data']['addressCreate']['address']
     assert address_response['city'] == 'Dummy'
+    assert address_response['country'] == 'PL'
     address_obj = Address.objects.get(city='Dummy')
     assert address_obj.user_addresses.first() == customer_user
 
