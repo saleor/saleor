@@ -196,8 +196,8 @@ def write_feed(file_obj):
     writer = csv.DictWriter(file_obj, ATTRIBUTES, dialect=csv.excel_tab)
     writer.writeheader()
     categories = Category.objects.all()
-    discounts = Sale.objects.active(date.today()).prefetch_related('products',
-                                                    'categories')
+    discounts = Sale.objects.active(date.today()).prefetch_related(
+        'products', 'categories')
     attributes_dict = {a.slug: a.pk for a in ProductAttribute.objects.all()}
     attribute_values_dict = {smart_text(a.pk): smart_text(a) for a
                              in AttributeChoiceValue.objects.all()}

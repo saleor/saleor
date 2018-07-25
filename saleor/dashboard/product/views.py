@@ -305,7 +305,8 @@ def variant_details(request, product_pk, variant_pk):
 
     images = variant.images.all()
     margin = get_margin_for_variant(variant)
-    discounted_price = variant.get_price(discounts=Sale.objects.active(date.today())).gross
+    discounted_price = variant.get_price(
+        discounts=Sale.objects.active(date.today())).gross
     ctx = {
         'images': images, 'product': product, 'variant': variant,
         'margin': margin, 'discounted_price': discounted_price}
