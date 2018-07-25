@@ -322,7 +322,7 @@ def test_sale_delete_mutation(user_api_client, admin_api_client, sale):
         sale.refresh_from_db()
 
 
-def test_validate_voucher(voucher, admin_api_client, product):
+def test_validate_voucher(voucher, admin_api_client):
     query = """
     mutation  voucherUpdate(
         $id: ID!, $type: VoucherTypeEnum) {
@@ -335,12 +335,19 @@ def test_validate_voucher(voucher, admin_api_client, product):
             }
         }
     """
-    variables = json.dumps({
-        'type': VoucherTypeEnum.PRODUCT.name,
-        'id': graphene.Node.to_global_id('Voucher', voucher.id)})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    data = content['data']['voucherUpdate']['errors'][0]
-    assert data['field'] == 'products'
-    assert data['message'] == 'This field is required.'
+    # apparently can't do so via pytest parametrize
+    # as it parses VoucherTypeEnum into str format
+    fields = (
+        (VoucherTypeEnum.CATEGORY, 'categories'),
+        (VoucherTypeEnum.PRODUCT, 'products'),
+        (VoucherTypeEnum.COLLECTION, 'collections'))
+    for voucher_type, field_name in fields:
+        variables = json.dumps({
+            'type': voucher_type.name,
+            'id': graphene.Node.to_global_id('Voucher', voucher.id)})
+        response = admin_api_client.post(
+            reverse('api'), {'query': query, 'variables': variables})
+        content = get_graphql_content(response)
+        data = content['data']['voucherUpdate']['errors'][0]
+        assert data['field'] == field_name
+        assert data['message'] == 'This field is required.'

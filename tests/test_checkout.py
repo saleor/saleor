@@ -13,13 +13,15 @@ from saleor.checkout.forms import CartVoucherForm
 from saleor.checkout.utils import (
     add_variant_to_cart, change_billing_address_in_cart,
     change_shipping_address_in_cart, create_order, get_cart_data_for_checkout,
-    get_taxes_for_cart, get_voucher_discount_for_cart, get_voucher_for_cart,
+    get_prices_of_products_in_discounted_categories, get_taxes_for_cart,
+    get_voucher_discount_for_cart, get_voucher_for_cart,
     recalculate_cart_discount, remove_voucher_from_cart)
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import (
     ZERO_MONEY, ZERO_TAXED_MONEY, get_taxes_for_country)
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
+from saleor.product.models import Category
 
 from .utils import compare_taxes, get_redirect_location
 
@@ -868,3 +870,21 @@ def test_change_address_in_cart_from_user_address_to_other(
     assert cart.shipping_address == other_address
     assert cart.billing_address == other_address
     assert Address.objects.filter(id=address_id).exists()
+
+
+def test_get_prices_of_products_in_discounted_categories(cart_with_item):
+    lines = cart_with_item.lines.all()
+    # There's no discounted categories, therefore all of them are discoutned
+    discounted_lines = get_prices_of_products_in_discounted_categories(
+        lines, [])
+    assert [
+        line.variant.get_price()
+        for line in lines
+        for item in range(line.quantity)] == discounted_lines
+
+    discounted_category = Category.objects.create(
+        name='discounted', slug='discounted')
+    discounted_lines = get_prices_of_products_in_discounted_categories(
+        lines, [discounted_category])
+    # None of the lines are belongs to the discounted category
+    assert not discounted_lines
