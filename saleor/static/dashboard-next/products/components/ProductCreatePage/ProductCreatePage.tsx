@@ -1,10 +1,8 @@
-import DialogContentText from "@material-ui/core/DialogContentText";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { AttributeType, AttributeValueType, MoneyType } from "../../";
+import { AttributeType } from "../../";
 import { UserError } from "../../../";
-import ActionDialog from "../../../components/ActionDialog";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
@@ -12,15 +10,11 @@ import SaveButtonBar, {
   SaveButtonBarState
 } from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
-import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
 import ProductAvailabilityForm from "../ProductAvailabilityForm";
 import ProductDetailsForm from "../ProductDetailsForm";
-import ProductImages from "../ProductImages";
 import ProductOrganization from "../ProductOrganization";
 import ProductPricing from "../ProductPricing";
-import ProductStock from "../ProductStock";
-import ProductVariants from "../ProductVariants";
 
 interface ProductCreatePageProps {
   errors: UserError[];
@@ -32,7 +26,7 @@ interface ProductCreatePageProps {
     id: string;
     name: string;
   }>;
-  disabled?: boolean;
+  disabled: boolean;
   productTypes?: Array<{
     id: string;
     name: string;
@@ -112,94 +106,90 @@ export const ProductCreatePage = decorate<ProductCreatePageProps>(
       stockQuantity: null
     };
     return (
-      <Toggle>
-        {(openedDeleteDialog, { toggle: toggleDeleteDialog }) => (
-          <Form onSubmit={onSubmit} errors={userErrors} initial={initialData}>
-            {({ change, data, errors, hasChanged, submit }) => (
-              <Container width="md">
-                <PageHeader title={header} onBack={onBack} />
-                <div className={classes.root}>
-                  <div>
-                    <ProductDetailsForm
-                      data={data}
-                      disabled={disabled}
-                      errors={errors}
-                      onChange={change}
-                    />
-                    <div className={classes.cardContainer}>
-                      <ProductPricing
-                        // FIXME: this should be fetched from API
-                        currency="USD"
-                        data={data}
-                        disabled={disabled}
-                        onChange={change}
-                      />
-                    </div>
-                    <div className={classes.cardContainer}>
-                      <SeoForm
-                        helperText={i18n.t(
-                          "Add search engine title and description to make this product easier to find"
-                        )}
-                        title={data.seoTitle}
-                        titlePlaceholder={data.name}
-                        description={data.seoDescription}
-                        descriptionPlaceholder={data.description}
-                        loading={disabled}
-                        onChange={change}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <ProductOrganization
-                      category={data.category}
-                      categories={
-                        categories !== undefined && categories !== null
-                          ? categories.map(category => ({
-                              label: category.name,
-                              value: category.id
-                            }))
-                          : []
-                      }
-                      errors={errors}
-                      productCollections={data.collections}
-                      collections={
-                        collections !== undefined && collections !== null
-                          ? collections.map(collection => ({
-                              label: collection.name,
-                              value: collection.id
-                            }))
-                          : []
-                      }
-                      productTypes={productTypes}
-                      data={data}
-                      disabled={disabled}
-                      onChange={change}
-                    />
-                    <div className={classes.cardContainer}>
-                      <ProductAvailabilityForm
-                        data={data}
-                        errors={errors}
-                        loading={disabled}
-                        onChange={change}
-                      />
-                    </div>
-                  </div>
-                </div>
-                <SaveButtonBar
-                  labels={{
-                    delete: i18n.t("Remove product"),
-                    save: i18n.t("Save product")
-                  }}
-                  onDelete={toggleDeleteDialog}
-                  onSave={submit}
-                  state={saveButtonBarState}
-                  disabled={disabled || !onSubmit || !hasChanged}
+      <Form onSubmit={onSubmit} errors={userErrors} initial={initialData}>
+        {({ change, data, errors, hasChanged, submit }) => (
+          <Container width="md">
+            <PageHeader title={header} onBack={onBack} />
+            <div className={classes.root}>
+              <div>
+                <ProductDetailsForm
+                  data={data}
+                  disabled={disabled}
+                  errors={errors}
+                  onChange={change}
                 />
-              </Container>
-            )}
-          </Form>
+                <div className={classes.cardContainer}>
+                  <ProductPricing
+                    // FIXME: this should be fetched from API
+                    currency="USD"
+                    data={data}
+                    disabled={disabled}
+                    onChange={change}
+                  />
+                </div>
+                <div className={classes.cardContainer}>
+                  <SeoForm
+                    helperText={i18n.t(
+                      "Add search engine title and description to make this product easier to find"
+                    )}
+                    title={data.seoTitle}
+                    titlePlaceholder={data.name}
+                    description={data.seoDescription}
+                    descriptionPlaceholder={data.description}
+                    loading={disabled}
+                    onChange={change}
+                  />
+                </div>
+              </div>
+              <div>
+                <ProductOrganization
+                  category={data.category}
+                  categories={
+                    categories !== undefined && categories !== null
+                      ? categories.map(category => ({
+                          label: category.name,
+                          value: category.id
+                        }))
+                      : []
+                  }
+                  errors={errors}
+                  productCollections={data.collections}
+                  collections={
+                    collections !== undefined && collections !== null
+                      ? collections.map(collection => ({
+                          label: collection.name,
+                          value: collection.id
+                        }))
+                      : []
+                  }
+                  productTypes={productTypes}
+                  data={data}
+                  disabled={disabled}
+                  onChange={change}
+                />
+                <div className={classes.cardContainer}>
+                  <ProductAvailabilityForm
+                    data={data}
+                    errors={errors}
+                    loading={disabled}
+                    onChange={change}
+                  />
+                </div>
+              </div>
+            </div>
+            <SaveButtonBar
+              labels={{
+                delete: i18n.t("Remove product"),
+                save: i18n.t("Save product")
+              }}
+              onCancel={onBack}
+              onSave={submit}
+              state={saveButtonBarState}
+              disabled={disabled || !onSubmit || !hasChanged}
+            />
+          </Container>
         )}
-      </Toggle>
+      </Form>
     );
   }
 );

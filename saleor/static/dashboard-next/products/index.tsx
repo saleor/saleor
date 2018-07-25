@@ -2,6 +2,7 @@ import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
+import ProductCreate from "./views/ProductCreate";
 import ProductListComponent from "./views/ProductList";
 import ProductUpdateComponent from "./views/ProductUpdate";
 import ProductVariantComponent from "./views/ProductVariant";
@@ -37,6 +38,7 @@ const ProductVariant: React.StatelessComponent<RouteComponentProps<any>> = ({
 const Component = ({ match }) => (
   <Switch>
     <Route exact path={match.url} component={ProductList} />
+    <Route exact path={`${match.url}/add/`} component={ProductCreate} />
     <Route exact path={`${match.url}/:id/`} component={ProductUpdate} />
     <Route
       exact
