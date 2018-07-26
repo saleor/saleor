@@ -4,8 +4,9 @@
     --border-width: 1px;
     --border-radius: 1rem;
     --spacer: 1rem;
+    --body-color: #000;
 
-    --font-family-sans-serif:      -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --font-family-sans-serif:      Catamaran, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --font-family-monospace:       monospace;
     --font-family-base:            var(--font-family-sans-serif);
 
@@ -35,3 +36,4 @@
     --headings-line-height:        1.2;
     --headings-color:              inherit;
 }
+

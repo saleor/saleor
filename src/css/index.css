@@ -1,3 +1,14 @@
-@import 'reset-css';
-@import 'variables.css';
+@import '~reset-css';
+@import '~typeface-catamaran';
+
+@import './variables.css';
 @import '../main.css';
+
+body {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-base);
+  line-height: var(--line-height-base);
+  color: var(--body-color);
+  text-align: left;
+}
