@@ -4,7 +4,7 @@ from graphene_django.filter import DjangoFilterConnectionField
 
 from ...product import models
 from ...product.templatetags.product_images import product_first_image
-from ...product.utils import products_visible_to_user
+from ...product.utils import products_with_details
 from ...product.utils.availability import get_availability
 from ...product.utils.costs import (
     get_margin_for_variant, get_product_costs_data)
@@ -197,7 +197,7 @@ class ProductType(CountableDjangoObjectType):
 
     def resolve_products(self, info):
         user = info.context.user
-        return products_visible_to_user(
+        return products_with_details(
             user=user).filter(product_type=self).distinct()
 
 
@@ -215,7 +215,7 @@ class Collection(CountableDjangoObjectType):
 
     def resolve_products(self, info, **kwargs):
         user = info.context.user
-        return products_visible_to_user(
+        return products_with_details(
             user=user).filter(collections=self).distinct()
 
 
