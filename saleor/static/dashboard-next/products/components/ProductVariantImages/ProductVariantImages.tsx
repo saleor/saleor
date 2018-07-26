@@ -74,11 +74,7 @@ export const ProductVariantImages = decorate<ProductVariantImagesProps>(
               .sort((prev, next) => (prev.sortOrder > next.sortOrder ? 1 : -1))
               .map(tile => (
                 <div className={classes.imageContainer}>
-                  <img
-                    className={classes.image}
-                    src={tile.url}
-                    alt={tile.alt}
-                  />
+                  <img className={classes.image} src={tile.url} />
                 </div>
               ))
           ) : (
