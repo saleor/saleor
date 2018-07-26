@@ -155,7 +155,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
         product && product.attributes
           ? product.attributes.map(a => ({
               slug: a.attribute.slug,
-              value: a.value.slug
+              value: a.value ? a.value.slug : null
             }))
           : undefined,
       available: product ? product.isPublished : undefined,

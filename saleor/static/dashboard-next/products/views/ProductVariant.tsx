@@ -16,6 +16,18 @@ interface ProductUpdateProps {
   productId: string;
 }
 
+interface FormData {
+  id: string;
+  attributes?: Array<{
+    slug: string;
+    value: string;
+  }>;
+  costPrice?: string;
+  priceOverride?: string;
+  stock?: number;
+  sku?: string;
+}
+
 export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
   variantId,
   productId
@@ -79,30 +91,12 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                         onBack={handleBack}
                         onDelete={() => deleteVariant.mutate(variantId)}
                         onImageSelect={() => {}}
-                        onSubmit={data => {
+                        onSubmit={(data: FormData) => {
                           if (variant) {
-                            // fix attributes
-                            const attributes = variant.attributes
-                              .map(item => ({
-                                slug: item.attribute.slug,
-                                values: item.attribute.values
-                              }))
-                              .map(({ slug, values }) => {
-                                const valueSlug = data[slug].value;
-                                const value = values.filter(
-                                  item => item.slug === valueSlug
-                                );
-                                return {
-                                  slug,
-                                  value:
-                                    value && value[0]
-                                      ? value[0].name
-                                      : valueSlug
-                                };
-                              });
-
                             updateVariant.mutate({
-                              attributes,
+                              attributes: data.attributes
+                                ? data.attributes
+                                : null,
                               costPrice: data.costPrice ? data.costPrice : null,
                               id: variantId,
                               priceOverride: data.priceOverride
