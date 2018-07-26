@@ -86,7 +86,6 @@ export interface MoneyType {
 
 export interface ProductImageType {
   id: string;
-  alt: string;
   sortOrder: number;
   url: string;
 }

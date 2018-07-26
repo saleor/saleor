@@ -58,6 +58,7 @@ function loadStories() {
   require("./stories/products/ProductImagePage");
   require("./stories/products/ProductListCard");
   require("./stories/products/ProductUpdatePage");
+  require("./stories/products/ProductVariantCreatePage");
   require("./stories/products/ProductVariantPage");
 
   // Orders

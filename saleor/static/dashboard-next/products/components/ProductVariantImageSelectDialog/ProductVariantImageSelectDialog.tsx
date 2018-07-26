@@ -2,13 +2,8 @@ import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import GridListTile from "@material-ui/core/GridListTile";
-import GridListTileBar from "@material-ui/core/GridListTileBar";
-import IconButton from "@material-ui/core/IconButton";
 import { withStyles, WithStyles } from "@material-ui/core/styles";
-import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import * as React from "react";
 
 import { ProductImageType } from "../..";
@@ -114,12 +109,9 @@ const ProductVariantImageSelectDialog = decorate<
                         : "selected"
                     ].join(" ")}
                     onClick={this.handleImageSelect(tile.id)}
+                    key={tile.id}
                   >
-                    <img
-                      className={classes.image}
-                      src={tile.url}
-                      alt={tile.alt}
-                    />
+                    <img className={classes.image} src={tile.url} />
                   </div>
                 ))}
             </div>

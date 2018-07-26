@@ -12,7 +12,7 @@ import TableCellAvatar from "../../../components/TableCellAvatar";
 import i18n from "../../../i18n";
 
 interface ProductVariantNavigationProps {
-  current: string;
+  current?: string;
   variants?: Array<{
     id: string;
     name: string;
@@ -20,7 +20,7 @@ interface ProductVariantNavigationProps {
     images?: {
       edges?: Array<{
         node?: {
-          image;
+          url: string;
         };
       }>;
     };
@@ -79,8 +79,8 @@ const ProductVariantNavigation = decorate<ProductVariantNavigationProps>(
                     variant.images.edges &&
                     variant.images.edges[0] &&
                     variant.images.edges[0].node &&
-                    variant.images.edges[0].node.image
-                      ? variant.images.edges[0].node.image
+                    variant.images.edges[0].node.url
+                      ? variant.images.edges[0].node.url
                       : null
                   }
                 />

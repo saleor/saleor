@@ -2,7 +2,27 @@ export const product = (placeholderImage: string) => ({
   id: "p10171",
   seoTitle: "Ergonomic Plastic Bacon",
   seoDescription: "Omnis rerum ea. Fugit dignissimos modi est rerum",
-  productType: { id: "pt76406", name: "Versatile", hasVariants: true },
+  productType: {
+    id: "pt76406",
+    name: "Versatile",
+    hasVariants: true,
+    variantAttributes: {
+      edges: [
+        {
+          node: {
+            id: "pta18161",
+            sortNumber: 0,
+            name: "Color",
+            slug: "color",
+            values: [
+              { id: "ptvav47282", sortNumber: 0, name: "Black", slug: "black" },
+              { id: "ptvav17253", sortNumber: 1, name: "White", slug: "white" }
+            ]
+          }
+        }
+      ]
+    }
+  },
   name: "Ergonomic Plastic Bacon",
   description:
     "Omnis rerum ea. Fugit dignissimos modi est rerum. Qui corrupti expedita et. Dolorem dolorum illo doloremque. Officia perspiciatis facilis ab maxime voluptatem eligendi ipsam. Quisquam impedit repudiandae eos. Id sit dolores adipisci qui omnis dolores qui. Illo deleniti mollitia perspiciatis.",
@@ -73,7 +93,21 @@ export const product = (placeholderImage: string) => ({
             localized: "678.78 USD"
           },
           stockQuantity: 48,
-          margin: 2
+          margin: 2,
+          images: {
+            edges: [
+              {
+                node: {
+                  url: placeholderImage
+                }
+              },
+              {
+                node: {
+                  url: placeholderImage
+                }
+              }
+            ]
+          }
         }
       },
       {
@@ -83,7 +117,16 @@ export const product = (placeholderImage: string) => ({
           name: "silver",
           priceOverride: null,
           stockQuantity: 14,
-          margin: 7
+          margin: 7,
+          images: {
+            edges: [
+              {
+                node: {
+                  url: placeholderImage
+                }
+              }
+            ]
+          }
         }
       }
     ]
@@ -102,7 +145,7 @@ export const product = (placeholderImage: string) => ({
       },
       {
         node: {
-          id: "UHJvZHVjdEltYWdlOjE=",
+          id: "UHJvZHVjdEltYWdlOaE=",
           sortOrder: 2,
           image: placeholderImage,
           alt: "Id sit dolores adipisci",
@@ -111,7 +154,7 @@ export const product = (placeholderImage: string) => ({
       },
       {
         node: {
-          id: "UHJvZHVjdEltYWdlOjV=",
+          id: "UPJvZHVjdEltYWdlOjV=",
           sortOrder: 1,
           image: placeholderImage,
           alt: "Id sit dolores adipisci",
@@ -120,7 +163,7 @@ export const product = (placeholderImage: string) => ({
       },
       {
         node: {
-          id: "UHJvZHVjdEltYWdlOjX=",
+          id: "UHJvZHVjdEltYHdlOjX=",
           sortOrder: 3,
           image: placeholderImage,
           alt: "Id sit dolores adipisci",
@@ -129,7 +172,7 @@ export const product = (placeholderImage: string) => ({
       },
       {
         node: {
-          id: "UHJvZHVjdElnYWdlOjX=",
+          id: "UHJvZHVjdIlnYWdlOjX=",
           sortOrder: 4,
           image: placeholderImage,
           alt: "Id sit dolores adipisci",
