@@ -1,28 +1,33 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import { withStyles } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import { AttributeType, AttributeValueType } from "../..";
+import { AttributeType } from "../..";
 import CardTitle from "../../../components/CardTitle";
+import { FormSpacer } from "../../../components/FormSpacer";
 import SingleAutocompleteSelectField from "../../../components/SingleAutocompleteSelectField";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 
 interface ProductVariantAttributesProps {
-  attributes?: Array<{
-    attribute: AttributeType;
-    value: AttributeValueType;
-  }>;
+  attributes: AttributeType[];
   data: {
-    [key: string]: {
-      label: string;
+    attributes: Array<{
+      slug: string;
       value: string;
-    };
+    }>;
   };
   disabled: boolean;
-  onChange(event: any);
+  onChange: (
+    event: React.ChangeEvent<{
+      name: string;
+      value: Array<{
+        slug: string;
+        value: string;
+      }>;
+    }>
+  ) => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -40,45 +45,87 @@ const decorate = withStyles(theme => ({
 }));
 
 const ProductVariantAttributes = decorate<ProductVariantAttributesProps>(
-  ({ attributes, classes, data, disabled, onChange }) => (
-    <Card className={classes.card}>
-      <CardTitle title={i18n.t("General Information")} />
-      <CardContent className={classes.grid}>
-        {attributes === undefined ? (
-          <Skeleton />
-        ) : attributes.length > 0 ? (
-          attributes.map(item => {
-            const { attribute } = item;
-            return (
-              <>
-                <SingleAutocompleteSelectField
-                  choices={
-                    attribute.values
-                      ? attribute.values.map(value => ({
-                          label: value.name,
-                          value: value.slug
-                        }))
-                      : []
+  ({ attributes, classes, data, disabled, onChange }) => {
+    return (
+      <Card className={classes.card}>
+        <CardTitle title={i18n.t("General Information")} />
+        <CardContent className={classes.grid}>
+          {attributes === undefined ? (
+            <Skeleton />
+          ) : (
+            attributes.map((item, index) => {
+              const getAttributeValue = (slug: string) => {
+                const valueMatches = attributes.filter(a => a.slug === slug);
+                if (valueMatches.length > 0) {
+                  const value = data.attributes.filter(a => a.slug === slug)[0]
+                    .value;
+                  const labelMatches = valueMatches[0].values.filter(
+                    v => v.slug === value
+                  );
+                  const label =
+                    labelMatches.length > 0 ? labelMatches[0].name : "";
+                  return {
+                    label,
+                    value
+                  };
+                }
+                return {
+                  label: "",
+                  value: ""
+                };
+              };
+              const getAttributeValues = (slug: string) => {
+                const matches = attributes.filter(a => a.slug === slug);
+                return matches.length > 0
+                  ? matches[0].values.map(v => ({
+                      label: v.name,
+                      value: v.slug
+                    }))
+                  : [];
+              };
+              const handleProductAttributeValueSelect = (
+                event: React.ChangeEvent<{
+                  name: string;
+                  value: {
+                    label: string;
+                    value: string;
+                  };
+                }>
+              ) =>
+                onChange({
+                  ...(event as any),
+                  target: {
+                    ...event.target,
+                    name: "attributes",
+                    value: data.attributes.map(
+                      a =>
+                        a.slug === event.target.name
+                          ? { slug: a.slug, value: event.target.value.value }
+                          : a
+                    )
                   }
-                  disabled={disabled}
-                  label={attribute.name}
-                  name={attribute.slug}
-                  value={data[attribute.slug]}
-                  onChange={onChange}
-                  custom
-                  key={attribute.slug}
-                />
-                <div />
-              </>
-            );
-          })
-        ) : (
-          <Typography>
-            {i18n.t("This product type has no variant attributes.")}
-          </Typography>
-        )}
-      </CardContent>
-    </Card>
-  )
+                });
+
+              return (
+                <React.Fragment key={index}>
+                  <SingleAutocompleteSelectField
+                    disabled={disabled}
+                    name={item.slug}
+                    label={item.name}
+                    onChange={handleProductAttributeValueSelect}
+                    value={getAttributeValue(item.slug)}
+                    choices={getAttributeValues(item.slug)}
+                    key={index}
+                    custom
+                  />
+                  <FormSpacer />
+                </React.Fragment>
+              );
+            })
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
 );
 export default ProductVariantAttributes;

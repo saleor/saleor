@@ -107,15 +107,6 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
     onSubmit,
     onVariantClick
   }) => {
-    const attributes = variant
-      ? variant.attributes.reduce((prev, curr) => {
-          prev[curr.attribute.slug] = {
-            label: curr.value.name,
-            value: curr.value.slug
-          };
-          return prev;
-        }, {})
-      : {};
     const variantImages = variant
       ? variant.images.edges.map(edge => edge.node.id)
       : [];
@@ -140,6 +131,13 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                   <PageHeader title={header} onBack={onBack} />
                   <Form
                     initial={{
+                      attributes:
+                        variant && variant.attributes
+                          ? variant.attributes.map(a => ({
+                              slug: a.attribute.slug,
+                              value: a.value.slug
+                            }))
+                          : [],
                       costPrice:
                         variant && variant.costPrice
                           ? variant.costPrice.amount.toString()
@@ -149,9 +147,7 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                           ? variant.priceOverride.amount.toString()
                           : null,
                       sku: variant && variant.sku,
-                      stock:
-                        variant && variant.quantity ? variant.quantity : "",
-                      ...attributes
+                      stock: variant && variant.quantity ? variant.quantity : ""
                     }}
                     errors={formErrors}
                     onSubmit={onSubmit}
@@ -180,7 +176,9 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                           <div>
                             <ProductVariantAttributes
                               attributes={
-                                variant ? variant.attributes : undefined
+                                variant && variant.attributes
+                                  ? variant.attributes.map(a => a.attribute)
+                                  : undefined
                               }
                               data={data}
                               disabled={loading}
