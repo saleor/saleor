@@ -11,9 +11,9 @@ import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 
 interface ProductVariantAttributesProps {
-  attributes: AttributeType[];
+  attributes?: AttributeType[];
   data: {
-    attributes: Array<{
+    attributes?: Array<{
       slug: string;
       value: string;
     }>;
@@ -63,7 +63,7 @@ const ProductVariantAttributes = decorate<ProductVariantAttributesProps>(
                     v => v.slug === value
                   );
                   const label =
-                    labelMatches.length > 0 ? labelMatches[0].name : "";
+                    labelMatches.length > 0 ? labelMatches[0].name : value;
                   return {
                     label,
                     value
