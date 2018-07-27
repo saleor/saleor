@@ -664,7 +664,7 @@ def test_clear_cart_must_be_ajax(rf, customer_user):
     assert response.status_code == 302
 
 
-def test_clear_cart_check_if_cart_is_empty(request_cart_with_item, rf, client):
+def test_clear_cart(request_cart_with_item, client):
     cart = request_cart_with_item
     response = client.post(
         reverse('cart:clear-cart'), data={},
