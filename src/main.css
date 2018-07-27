@@ -4,8 +4,23 @@
     --secondaryColor: lab(32.5 38.5 -47.6 / 90%);
 }
 
-body {
-    background: var(--mainColor);
+body, html {
+    width: 100%;
+    height: 100%;
+    background-color: #111010;
+  background-image: repeating-linear-gradient(
+      -45deg,
+      rgba(15, 8, 46, .5), rgba(15, 8, 46, .5) 10%,
+      rgba(16, 9, 57, .5) 10%, rgba(16, 9, 57, .5) 20%,
+      rgba(23, 14, 73, .5) 20%, rgba(23, 14, 73, .5) 30%,
+      rgba(49, 19, 100, .5) 30%, rgba(49, 19, 100, .5) 40%,
+      rgba(33, 18, 94, .5) 40%, rgba(33, 18, 94, .5) 50%,
+      rgba(24, 14, 76, .5) 50%, rgba(24, 14, 76, .5) 60%,
+      rgba(21, 13, 72, .5) 60%, rgba(21, 13, 72, .5) 70%,
+      rgba(26, 15, 81, .5) 70%, rgba(26, 15, 81, .5) 80%,
+      rgba(33, 18, 94, .5) 80%, rgba(33, 18, 94, .5) 90%,
+      rgba(15, 8, 46, .5) 90%, rgba(15, 8, 46, .5) 100%
+  );
     transition: 1s;
 
     @nest #root & {
