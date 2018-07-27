@@ -1,4 +1,6 @@
 :root {
+    /* Global */
+
     --primaryColor: #36c1ac;
     --secondaryColor: #d62319;
     --border-width: 1px;
@@ -9,6 +11,15 @@
 
     --layout-width: 1400px;
 
+    /* Media Queries */
+
+    --mobile-min-width: 576px;
+    --tablet-min-width: 768px;
+    --medium-min-width: 992px;
+    --desktop-min-width: 1200px;
+    --retina-min-width: 1920px;
+
+    /* Typography */
 
     --font-family-sans-serif:      Catamaran, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --font-family-monospace:       monospace;
@@ -39,5 +50,6 @@
     --headings-font-weight:        500;
     --headings-line-height:        1.2;
     --headings-color:              inherit;
+
 }
 
