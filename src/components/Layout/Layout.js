@@ -8,7 +8,9 @@ class Layout extends Component {
   render() {
     console.log(this.props);
     return (
-      <div className="layout">Start</div>
+      <div className="layout">
+        {this.props.children}
+      </div>
     );
   }
 }
