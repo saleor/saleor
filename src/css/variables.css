@@ -4,7 +4,10 @@
     --border-width: 1px;
     --border-radius: 1rem;
     --spacer: 1rem;
-    --body-color: #000;
+    --body-color: #fff;
+    --background-color: #111010;
+
+    --layout-width: 1400px;
 
     --font-family-sans-serif:      Catamaran, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --font-family-monospace:       monospace;
