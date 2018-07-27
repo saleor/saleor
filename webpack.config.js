@@ -12,6 +12,9 @@ const distDir = path.join(__dirname, './dist/');
 const devMode = process.env.NODE_ENV !== 'production';
 
 module.exports = {
+  resolve: {
+    extensions: ['.js', '.jsx']
+  },
   watchOptions: {
     poll: true,
   },
@@ -19,7 +22,7 @@ module.exports = {
     fs: 'empty',
   },
   entry: {
-    app: `${sourceDir}index.js`,
+    app: `${sourceDir}index.jsx`,
   },
   output: {
     path: distDir,
@@ -29,7 +32,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.js$/,
+        test: /\.jsx?$/,
         exclude: /node_modules/,
         use: {
           loader: 'babel-loader',
@@ -43,20 +46,22 @@ module.exports = {
         use: [
           devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
           { loader: 'css-loader', options: { importLoaders: 1 } },
-          { loader: 'postcss-loader', options: {
-            ident: 'postcss',
-            plugins: (ctx) => [
-              PostcssPresetEnv({
-                stage: 3,
-                features: {
-                  'nesting-rules': true,
-                  'color-mod-function': {
-                    unresolved: 'warn'
+          {
+            loader: 'postcss-loader', options: {
+              ident: 'postcss',
+              plugins: (ctx) => [
+                PostcssPresetEnv({
+                  stage: 3,
+                  features: {
+                    'nesting-rules': true,
+                    'color-mod-function': {
+                      unresolved: 'warn'
+                    }
                   }
-                }
-              })
-            ]
-          } }
+                })
+              ]
+            }
+          }
         ]
       },
       {

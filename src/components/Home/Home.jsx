@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
 
-import Layout from '../Layout';
-
 class Home extends Component {
   constructor(props) {
     super(props);
@@ -11,9 +9,7 @@ class Home extends Component {
     console.log(this.props);
     return (
       <div className="home">
-        <Layout>
           Start
-        </Layout>
       </div>
     );
   }
