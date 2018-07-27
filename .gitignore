@@ -12,6 +12,7 @@ node_modules/
 # Hidden files
 .*
 !/.gitignore
+!/.eslintrc
 
 # Dist files
 dist
