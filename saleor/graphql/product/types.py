@@ -251,8 +251,7 @@ class Category(CountableDjangoObjectType):
         return self.children.distinct()
 
     def resolve_url(self, info):
-        ancestors = self.get_ancestors().distinct()
-        return self.get_absolute_url(ancestors)
+        return self.get_absolute_url()
 
     def resolve_products(self, info, **kwargs):
         qs = models.Product.objects.available_products()

@@ -3,6 +3,7 @@ from io import BytesIO
 from unittest.mock import MagicMock, Mock
 
 import pytest
+
 from django.contrib.auth.models import Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
@@ -16,7 +17,6 @@ from graphql_jwt.shortcuts import get_token
 from payments import FraudStatus, PaymentStatus
 from PIL import Image
 from prices import Money
-
 from saleor.account.models import Address, User
 from saleor.checkout import utils
 from saleor.checkout.models import Cart
@@ -29,7 +29,8 @@ from saleor.order.models import Order
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.product.models import (
-    AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
+    AttributeChoiceValue, AttributeChoiceValueTranslation, Category,
+    Collection, Product, ProductAttribute, ProductAttributeTranslation,
     ProductImage, ProductType, ProductVariant)
 from saleor.shipping.models import ShippingMethod, ShippingMethodCountry
 from saleor.site.models import AuthorizationKey, SiteSettings
@@ -142,7 +143,7 @@ def address(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def customer_user(db, address):  # pylint: disable=W0613
+def customer_user(address):  # pylint: disable=W0613
     default_address = address.get_copy()
     user = User.objects.create_user(
         'test@example.com',
@@ -540,7 +541,7 @@ def payment_input(order_with_lines):
 
 
 @pytest.fixture()
-def sale(db, default_category, collection):
+def sale(default_category, collection):
     sale = Sale.objects.create(name="Sale", value=5)
     sale.categories.add(default_category)
     sale.collections.add(collection)
@@ -548,7 +549,7 @@ def sale(db, default_category, collection):
 
 
 @pytest.fixture
-def authorization_key(db, site_settings):
+def authorization_key(site_settings):
     return AuthorizationKey.objects.create(
         site_settings=site_settings, name='Backend', key='Key',
         password='Password')
@@ -697,3 +698,27 @@ def vatlayer(db, settings, tax_rates, taxes):
             'passenger transport': 7}}
     VAT.objects.create(country_code='DE', data=tax_rates_2)
     return taxes
+
+
+@pytest.fixture
+def translated_variant(product):
+    attribute = product.product_type.variant_attributes.first()
+    return ProductAttributeTranslation.objects.create(
+        language_code='fr', product_attribute=attribute,
+        name='Name tranlsated to french')
+
+
+@pytest.fixture
+def translated_product_attribute(product):
+    attribute = product.product_type.product_attributes.first()
+    return ProductAttributeTranslation.objects.create(
+        language_code='fr', product_attribute=attribute,
+        name='Name tranlsated to french')
+
+
+@pytest.fixture
+def attribute_choice_translation_fr(translated_product_attribute):
+    value = translated_product_attribute.product_attribute.values.first()
+    return AttributeChoiceValueTranslation.objects.create(
+        language_code='fr', attribute_choice_value=value,
+        name='French name')

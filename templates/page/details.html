@@ -5,16 +5,16 @@
 
 {% block title %}
   {% if page.seo_title %}
-    {{ page.seo_title }}
+    {{ page.translated.seo_title }}
   {% else %}
-    {{ page.title }} - {{ block.super }}
+    {{ page.translated.title }} - {{ block.super }}
   {% endif %}
 {% endblock %}
 
 {% block meta_tags %}
-  <meta property="og:title" content="{{ page.seo_title|default:page.title }}">
-  <meta property="og:description" content="{{ page.seo_description|default:"" }}">
-  <meta name="description" content="{{ page.seo_description|default:"" }}">
+  <meta property="og:title" content="{{ page.translated.seo_title|default:page.translated.title }}">
+  <meta property="og:description" content="{{ page.translated.seo_description|default:"" }}">
+  <meta name="description" content="{{ page.translated.seo_description|default:"" }}">
 
   {% build_absolute_uri request=request location=page.get_absolute_url as page_url %}
   <meta property="og:url" content="{{ page_url }}">
@@ -29,7 +29,7 @@
     </li>
     {% if page %}
       <li>
-        <a href="{{ page.get_absolute_url }}">{{ page.title }}</a>
+        <a href="{{ page.get_absolute_url }}">{{ page.translated.title }}</a>
       </li>
     {% endif %}
   </ul>
@@ -52,6 +52,6 @@
     </div>
   {% endif %}
   <div class="">
-    {{ page.content|safe }}
+    {{ page.translated.content|safe }}
   </div>
 {% endblock %}

@@ -3,6 +3,7 @@ from django.db import models
 from django.utils.translation import pgettext_lazy
 
 from . import AuthenticationBackends
+from ..core.utils.translations import TranslationProxy
 from .patch_sites import patch_contrib_sites
 
 patch_contrib_sites()
@@ -24,6 +25,8 @@ class SiteSettings(models.Model):
     charge_taxes_on_shipping = models.BooleanField(default=True)
     track_inventory_by_default = models.BooleanField(default=True)
 
+    translated = TranslationProxy()
+
     class Meta:
         permissions = ((
             'manage_settings', pgettext_lazy(
@@ -34,6 +37,22 @@ class SiteSettings(models.Model):
 
     def available_backends(self):
         return self.authorizationkey_set.values_list('name', flat=True)
+
+
+class SiteSettingsTranslation(models.Model):
+    language_code = models.CharField(max_length=10)
+    site_settings = models.ForeignKey(
+        SiteSettings, related_name='translations', on_delete=models.CASCADE)
+    header_text = models.CharField(max_length=200, blank=True)
+    description = models.CharField(max_length=500, blank=True)
+
+    def __repr__(self):
+        class_ = type(self)
+        return '%s(pk=%r, site_settings_pk=%r)' % (
+            class_.__name__, self.pk, self.site_settings_id)
+
+    def __str__(self):
+        return self.site_settings.site.name
 
 
 class AuthorizationKey(models.Model):
