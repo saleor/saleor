@@ -6,7 +6,9 @@ import {
   ProductDetailsQuery,
   ProductDetailsQueryVariables,
   ProductListQuery,
-  ProductListQueryVariables
+  ProductListQueryVariables,
+  ProductVariantCreateDataQuery,
+  ProductVariantCreateDataQueryVariables
 } from "../gql-types";
 
 export const fragmentMoney = gql`
@@ -180,6 +182,14 @@ export const fragmentVariant = gql`
             id
             name
             sku
+            images(first: 1) {
+              edges {
+                node {
+                  id
+                  url
+                }
+              }
+            }
           }
         }
       }
@@ -309,6 +319,63 @@ export const productCreateQuery = gql`
         node {
           id
           name
+        }
+      }
+    }
+  }
+`;
+
+export const TypedProductVariantCreateQuery = Query as React.ComponentType<
+  QueryProps<
+    ProductVariantCreateDataQuery,
+    ProductVariantCreateDataQueryVariables
+  >
+>;
+export const productVariantCreateQuery = gql`
+  query ProductVariantCreateData($id: ID!) {
+    product(id: $id) {
+      images {
+        edges {
+          node {
+            id
+            sortOrder
+            url
+          }
+        }
+      }
+      productType {
+        id
+        variantAttributes {
+          edges {
+            node {
+              id
+              slug
+              name
+              values {
+                id
+                sortOrder
+                name
+                slug
+              }
+            }
+          }
+        }
+      }
+      variants {
+        edges {
+          node {
+            id
+            name
+            sku
+            images(first: 1) {
+              edges {
+                node {
+                  id
+                  url
+                }
+              }
+            }
+          }
         }
       }
     }

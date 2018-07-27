@@ -6,6 +6,7 @@ import ProductCreate from "./views/ProductCreate";
 import ProductListComponent from "./views/ProductList";
 import ProductUpdateComponent from "./views/ProductUpdate";
 import ProductVariantComponent from "./views/ProductVariant";
+import ProductVariantCreateComponent from "./views/ProductVariantCreate";
 
 const ProductList: React.StatelessComponent<RouteComponentProps<any>> = ({
   location
@@ -35,11 +36,22 @@ const ProductVariant: React.StatelessComponent<RouteComponentProps<any>> = ({
   );
 };
 
+const ProductVariantCreate: React.StatelessComponent<
+  RouteComponentProps<any>
+> = ({ match }) => {
+  return <ProductVariantCreateComponent productId={match.params.id} />;
+};
+
 const Component = ({ match }) => (
   <Switch>
     <Route exact path={match.url} component={ProductList} />
     <Route exact path={`${match.url}/add/`} component={ProductCreate} />
     <Route exact path={`${match.url}/:id/`} component={ProductUpdate} />
+    <Route
+      exact
+      path={`${match.url}/:id/variant/add/`}
+      component={ProductVariantCreate}
+    />
     <Route
       exact
       path={`${match.url}/:productId/variant/:variantId/`}
@@ -56,12 +68,15 @@ export const productImageEditUrl = (id: string) => {
   return `/products/${id}/image/`;
 };
 
+export const productVariantAddUrl = (productId: string) => {
+  return `/products/${productId}/variant/add/`;
+};
+
 export const productVariantEditUrl = (productId: string, variantId: string) => {
   return `/products/${productId}/variant/${variantId}/`;
 };
 
 export const productListUrl = "/products/";
-
 export const productAddUrl = "/products/add/";
 
 export interface AttributeType {

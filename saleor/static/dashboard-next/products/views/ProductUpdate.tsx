@@ -11,7 +11,11 @@ import Navigator from "../../components/Navigator";
 import i18n from "../../i18n";
 import ProductUpdatePage from "../components/ProductUpdatePage";
 import ProductUpdateOperations from "../containers/ProductUpdateOperations";
-import { productListUrl, productVariantEditUrl } from "../index";
+import {
+  productListUrl,
+  productVariantAddUrl,
+  productVariantEditUrl
+} from "../index";
 import { productDetailsQuery, TypedProductDetailsQuery } from "../queries";
 
 interface ProductUpdateProps {
@@ -51,6 +55,8 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                     pushMessage({
                       text: i18n.t("Image successfully uploaded")
                     });
+                  const handleVariantAdd = () =>
+                    navigate(productVariantAddUrl(id));
 
                   const product = data ? data.product : undefined;
                   const allCollections =
@@ -153,7 +159,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               }
                             }}
                             onSubmit={handleSubmit}
-                            onVariantAdd={() => {}}
+                            onVariantAdd={handleVariantAdd}
                             onVariantShow={variantId => () =>
                               navigate(
                                 productVariantEditUrl(product.id, variantId)
