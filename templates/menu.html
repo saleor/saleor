@@ -4,7 +4,7 @@
   {% with children=item.get_children %}
     <li class="{% if horizontal %}nav-item{% endif %} {% if children %}nav-item__dropdown{% endif %} menu__item">
       <a class="{% if horizontal %}nav-link{% endif %}" href="{{ item.get_url }}">
-        {{ item }}
+        {{ item.translated }}
       </a>
       {% if children %}
         <div class="{% if horizontal %}nav-item__dropdown-content{% else %}nav-item__submenu{% endif %}">
@@ -14,9 +14,9 @@
               <li>
                 <a href="{{ child.get_url }}">
                   {% if horizontal %}
-                    <strong>{{ child }}</strong>
+                    <strong>{{ child.translated }}</strong>
                   {% else %}
-                    {{ child }}
+                    {{ child.translated }}
                   {% endif %}
                 </a>
               </li>
@@ -26,7 +26,7 @@
                   {% for grandchild in grandchildren %}
                     <li>
                       <a href="{{ grandchild.get_url }}">
-                        {{ grandchild }}
+                        {{ grandchild.translated }}
                       </a>
                     </li>
                   {% endfor %}

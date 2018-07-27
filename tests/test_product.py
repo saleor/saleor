@@ -4,10 +4,10 @@ from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
+
 from django.core import serializers
 from django.urls import reverse
 from prices import Money, TaxedMoney, TaxedMoneyRange
-
 from saleor.checkout import utils
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import add_variant_to_cart
@@ -16,6 +16,7 @@ from saleor.product import ProductAvailabilityStatus, models
 from saleor.product.thumbnails import create_product_thumbnails
 from saleor.product.utils import (
     allocate_stock, deallocate_stock, decrease_stock, increase_stock)
+from saleor.product.utils.attributes import get_product_attributes_data
 from saleor.product.utils.availability import get_product_availability_status
 from saleor.product.utils.variants_picker import get_variant_picker_data
 
@@ -197,7 +198,8 @@ def test_adding_to_cart_with_current_user_token(
 
 
 def test_adding_to_cart_with_another_user_token(
-        admin_user, admin_client, product, customer_user, request_cart_with_item):
+        admin_user, admin_client, product, customer_user,
+        request_cart_with_item):
     client = admin_client
     key = utils.COOKIE_NAME
     request_cart_with_item.user = customer_user
@@ -292,7 +294,7 @@ def test_product_filter_before_filtering(
     url = reverse(
         'product:category',
         kwargs={
-            'path': default_category.slug,
+            'slug': default_category.slug,
             'category_id': default_category.pk})
 
     response = authorized_client.get(url)
@@ -309,7 +311,7 @@ def test_product_filter_product_exists(authorized_client, product,
     url = reverse(
         'product:category',
         kwargs={
-            'path': default_category.slug,
+            'slug': default_category.slug,
             'category_id': default_category.pk})
     data = {'price_0': [''], 'price_1': ['20']}
 
@@ -323,7 +325,7 @@ def test_product_filter_product_does_not_exist(
     url = reverse(
         'product:category',
         kwargs={
-            'path': default_category.slug,
+            'slug': default_category.slug,
             'category_id': default_category.pk})
     data = {'price_0': ['20'], 'price_1': ['']}
 
@@ -341,7 +343,7 @@ def test_product_filter_form(authorized_client, product,
     url = reverse(
         'product:category',
         kwargs={
-            'path': default_category.slug,
+            'slug': default_category.slug,
             'category_id': default_category.pk})
 
     response = authorized_client.get(url)
@@ -360,7 +362,7 @@ def test_product_filter_sorted_by_price_descending(
     url = reverse(
         'product:category',
         kwargs={
-            'path': default_category.slug,
+            'slug': default_category.slug,
             'category_id': default_category.pk})
     data = {'sort_by': '-price'}
 
@@ -374,7 +376,7 @@ def test_product_filter_sorted_by_wrong_parameter(
     url = reverse(
         'product:category',
         kwargs={
-            'path': default_category.slug,
+            'slug': default_category.slug,
             'category_id': default_category.pk})
     data = {'sort_by': 'aaa'}
 
@@ -411,11 +413,10 @@ def test_include_products_from_subcategories_in_main_view(
         name='sub', slug='test', parent=default_category)
     product.category = subcategory
     product.save()
-    path = default_category.get_full_path()
     # URL to parent category view
     url = reverse(
         'product:category', kwargs={
-            'path': path, 'category_id': default_category.pk})
+            'slug': default_category.slug, 'category_id': default_category.pk})
     response = authorized_client.get(url)
     assert product in response.context_data['products'][0]
 
@@ -584,7 +585,7 @@ def test_product_json_deserialization(default_category, product_type):
         "pk": 60,
         "fields": {{
             "seo_title": null,
-            "seo_description": "Future almost cup national. Study left manage we else.",
+            "seo_description": "Future almost cup national.",
             "product_type": {product_type_pk},
             "name": "Kelly-Clark",
             "description": "Future almost cup national",
@@ -592,7 +593,7 @@ def test_product_json_deserialization(default_category, product_type):
             "price": "35.98",
             "available_on": null,
             "is_published": true,
-            "attributes": "{{\\"9\\": \\"24\\", \\"10\\": \\"26\\", \\"11\\": \\"29\\"}}",
+            "attributes": "{{\\"9\\": \\"24\\", \\"10\\": \\"26\\"}}",
             "updated_at": "2018-07-19T13:30:24.195Z",
             "is_featured": false,
             "charge_taxes": true,
@@ -606,3 +607,29 @@ def test_product_json_deserialization(default_category, product_type):
     product_deserialized.save()
     product = models.Product.objects.first()
     assert product.price == Money(Decimal('35.98'), 'USD')
+
+
+def test_variant_picker_data_with_translations(
+        product, translated_variant, settings):
+    settings.LANGUAGE_CODE = 'fr'
+    variant_picker_data = get_variant_picker_data(product)
+    attribute = variant_picker_data['variantAttributes'][0]
+    assert attribute['name'] == translated_variant.name
+
+
+def test_get_product_attributes_data_translation(
+        product, settings, translated_product_attribute):
+    settings.LANGUAGE_CODE = 'fr'
+    attributes_data = get_product_attributes_data(product)
+    attributes_keys = [attr.name for attr in attributes_data.keys()]
+    assert translated_product_attribute.name in attributes_keys
+
+
+def test_attribute_choice_value_translation_fr(
+        settings, product, attribute_choice_translation_fr):
+    attribute = product.product_type.product_attributes.first()
+    choice = attribute.values.first()
+    assert choice.translated.name == 'Red'
+
+    settings.LANGUAGE_CODE = 'fr'
+    assert choice.translated.name == 'French name'

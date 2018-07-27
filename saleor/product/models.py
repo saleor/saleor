@@ -21,8 +21,9 @@ from versatileimagefield.fields import PPOIField, VersatileImageField
 from ..core.exceptions import InsufficientStock
 from ..core.models import SortableModel
 from ..core.utils.taxes import DEFAULT_TAX_RATE_NAME, apply_tax_to_price
+from ..core.utils.translations import TranslationProxy
 from ..discount.utils import calculate_discounted_price
-from ..seo.models import SeoModel
+from ..seo.models import SeoModel, SeoModelTranslation
 
 
 class Category(MPTTModel, SeoModel):
@@ -37,22 +38,31 @@ class Category(MPTTModel, SeoModel):
 
     objects = models.Manager()
     tree = TreeManager()
+    translated = TranslationProxy()
 
     def __str__(self):
         return self.name
 
-    def get_absolute_url(self, ancestors=None):
-        return reverse('product:category',
-                       kwargs={'path': self.get_full_path(ancestors),
-                               'category_id': self.id})
+    def get_absolute_url(self):
+        return reverse(
+            'product:category',
+            kwargs={'slug': self.slug, 'category_id': self.id})
 
-    def get_full_path(self, ancestors=None):
-        if not self.parent_id:
-            return self.slug
-        if not ancestors:
-            ancestors = self.get_ancestors()
-        nodes = [node for node in ancestors] + [self]
-        return '/'.join([node.slug for node in nodes])
+
+class CategoryTranslation(SeoModelTranslation):
+    language_code = models.CharField(max_length=10)
+    category = models.ForeignKey(
+        Category, related_name='translations', on_delete=models.CASCADE)
+    name = models.CharField(max_length=128)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        class_ = type(self)
+        return '%s(pk=%r, name=%r, category_pk=%r)' % (
+            class_.__name__, self.pk, self.name, self.category_id)
 
 
 class ProductType(models.Model):
@@ -106,6 +116,7 @@ class Product(SeoModel):
         max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True)
 
     objects = ProductQuerySet.as_manager()
+    translated = TranslationProxy()
 
     class Meta:
         app_label = 'product'
@@ -160,6 +171,22 @@ class Product(SeoModel):
         return TaxedMoneyRange(start=price, stop=price)
 
 
+class ProductTranslation(SeoModelTranslation):
+    language_code = models.CharField(max_length=10)
+    product = models.ForeignKey(
+        Product, related_name='translations', on_delete=models.CASCADE)
+    name = models.CharField(max_length=128)
+    description = models.TextField()
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        class_ = type(self)
+        return '%s(pk=%r, name=%r, product_pk=%r)' % (
+            class_.__name__, self.pk, self.name, self.product_id)
+
+
 class ProductVariant(models.Model):
     sku = models.CharField(max_length=32, unique=True)
     name = models.CharField(max_length=255, blank=True)
@@ -178,6 +205,8 @@ class ProductVariant(models.Model):
     cost_price = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, blank=True, null=True)
+
+    translated = TranslationProxy()
 
     class Meta:
         app_label = 'product'
@@ -222,9 +251,9 @@ class ProductVariant(models.Model):
         return self.quantity_available > 0
 
     def display_product(self):
-        variant_display = str(self)
+        variant_display = str(self.translated)
         product_display = (
-            '%s (%s)' % (self.product, variant_display)
+            '%s (%s)' % (self.product.translated, variant_display)
             if variant_display else str(self.product))
         return smart_text(product_display)
 
@@ -237,9 +266,28 @@ class ProductVariant(models.Model):
             self.sku, self.display_product(), prices_i18n.amount(price))
 
 
+class ProductVariantTranslation(models.Model):
+    language_code = models.CharField(max_length=10)
+    product_variant = models.ForeignKey(
+        ProductVariant, related_name='translations', on_delete=models.CASCADE)
+    name = models.CharField(max_length=255, blank=True)
+
+    translated = TranslationProxy()
+
+    def __repr__(self):
+        class_ = type(self)
+        return '%s(pk=%r, name=%r, variant_pk=%r)' % (
+            class_.__name__, self.pk, self.name, self.product_variant_id)
+
+    def __str__(self):
+        return self.name or str(self.product_variant)
+
+
 class ProductAttribute(models.Model):
     slug = models.SlugField(max_length=50, unique=True)
     name = models.CharField(max_length=100)
+
+    translated = TranslationProxy()
 
     class Meta:
         ordering = ('slug', )
@@ -254,11 +302,29 @@ class ProductAttribute(models.Model):
         return self.values.exists()
 
 
+class ProductAttributeTranslation(models.Model):
+    language_code = models.CharField(max_length=10)
+    product_attribute = models.ForeignKey(
+        ProductAttribute, related_name='translations',
+        on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+
+    def __repr__(self):
+        class_ = type(self)
+        return '%s(pk=%r, name=%r, attribute_pk=%r)' % (
+            class_.__name__, self.pk, self.name, self.product_attribute_id)
+
+    def __str__(self):
+        return self.name
+
+
 class AttributeChoiceValue(SortableModel):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100)
     attribute = models.ForeignKey(
         ProductAttribute, related_name='values', on_delete=models.CASCADE)
+
+    translated = TranslationProxy()
 
     class Meta:
         ordering = ('sort_order',)
@@ -269,6 +335,23 @@ class AttributeChoiceValue(SortableModel):
 
     def get_ordering_queryset(self):
         return self.attribute.values.all()
+
+
+class AttributeChoiceValueTranslation(models.Model):
+    language_code = models.CharField(max_length=10)
+    attribute_choice_value = models.ForeignKey(
+        AttributeChoiceValue, related_name='translations',
+        on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+
+    def __repr__(self):
+        class_ = type(self)
+        return '%s(pk=%r, name=%r, attribute_choice_value_pk=%r)' % (
+            class_.__name__, self.pk, self.name,
+            self.attribute_choice_value_id)
+
+    def __str__(self):
+        return self.name
 
 
 class ProductImage(SortableModel):
@@ -310,6 +393,7 @@ class Collection(SeoModel):
     is_published = models.BooleanField(default=False)
 
     objects = CollectionQuerySet.as_manager()
+    translated = TranslationProxy()
 
     class Meta:
         ordering = ['pk']
@@ -321,3 +405,19 @@ class Collection(SeoModel):
         return reverse(
             'product:collection',
             kwargs={'pk': self.id, 'slug': self.slug})
+
+
+class CollectionTranslation(SeoModelTranslation):
+    language_code = models.CharField(max_length=10)
+    collection = models.ForeignKey(
+        Collection, related_name='translations',
+        on_delete=models.CASCADE)
+    name = models.CharField(max_length=128)
+
+    def __repr__(self):
+        class_ = type(self)
+        return '%s(pk=%r, name=%r, collection_pk=%r)' % (
+            class_.__name__, self.pk, self.name, self.collection_id)
+
+    def __str__(self):
+        return self.name

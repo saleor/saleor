@@ -23,8 +23,11 @@ def products_visible_to_user(user):
 def products_with_details(user):
     products = products_visible_to_user(user)
     products = products.prefetch_related(
-        'category', 'collections', 'images', 'variants__variant_images__image',
-        'attributes__values', 'product_type__product_attributes__values')
+        'translations', 'category__translations', 'collections__translations',
+        'images', 'variants__variant_images__image',
+        'attributes__values__translations',
+        'product_type__product_attributes__translations',
+        'product_type__product_attributes__values__translations')
     return products
 
 

@@ -15,7 +15,7 @@
                data-srcset="{% product_first_image product method="crop" size="255x255" %} 1x, {% product_first_image product method="crop" size="510x510" %} 2x"
                alt=""
                src="{% placeholder size=255 %}">
-          <span class="product-list-item-name" title="{{ product }}">{{ product }}</span>
+          <span class="product-list-item-name" title="{{ product.translated }}">{{ product.translated }}</span>
         </div>
         <div class="panel-footer">
           {% if availability.available %}

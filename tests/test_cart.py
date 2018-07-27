@@ -521,7 +521,7 @@ def test_cart_summary_page(settings, client, request_cart_with_item, vatlayer):
     assert len(content['lines']) == 1
     cart_line = content['lines'][0]
     variant = request_cart_with_item.lines.get().variant
-    assert cart_line['variant'] == variant.name
+    assert cart_line['variant'] == variant
     assert cart_line['quantity'] == 1
 
 
