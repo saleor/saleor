@@ -271,3 +271,36 @@ export const variantCreateMutation = gql`
     }
   }
 `;
+
+export const TypedProductImageDeleteMutation = Mutation as React.ComponentType<
+  MutationProps<ProductImageDeleteMutation, ProductImageMutationDeleteVariables>
+>;
+
+export const productImageDeleteMutation = gql`
+  mutation ProductImageDelete($id: ID!) {
+    productImageDelete(id: $id) {
+      productImage {
+        id
+      }
+    }
+  }
+`;
+
+export const TypedProductImageUpdateMutation = Mutation as React.ComponentType<
+  MutationProps<ProductImageUpdateMutation, ProductImageMutationUpdateVariables>
+>;
+
+export const productImageUpdateMutation = gql`
+  mutation ProductImageUpdate($id: ID!, $alt: String!) {
+    productImageUpdate(id: $id, input: { alt: $alt }) {
+      errors {
+        field
+        message
+      }
+      productImage {
+        id
+        alt
+      }
+    }
+  }
+`;
