@@ -130,7 +130,8 @@ def category_index(request, slug, category_id):
 
 
 def collection_index(request, slug, pk):
-    collections = collections_visible_to_user(request.user)
+    collections = collections_visible_to_user(request.user).prefetch_related(
+        'translations')
     collection = get_object_or_404(collections, id=pk)
     if collection.slug != slug:
         return HttpResponsePermanentRedirect(collection.get_absolute_url())
