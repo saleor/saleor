@@ -12,6 +12,8 @@ import {
   ProductImageReorderMutationVariables,
   ProductUpdateMutation,
   ProductUpdateMutationVariables,
+  VariantCreateMutation,
+  VariantCreateMutationVariables,
   VariantDeleteMutation,
   VariantDeleteMutationVariables,
   VariantUpdateMutation,
@@ -212,6 +214,43 @@ export const variantUpdateMutation = gql`
   ) {
     productVariantUpdate(
       id: $id
+      input: {
+        attributes: $attributes
+        costPrice: $costPrice
+        priceOverride: $priceOverride
+        product: $product
+        sku: $sku
+        quantity: $quantity
+        trackInventory: $trackInventory
+      }
+    ) {
+      errors {
+        field
+        message
+      }
+      productVariant {
+        ...ProductVariant
+      }
+    }
+  }
+`;
+
+export const TypedVariantCreateMutation = Mutation as React.ComponentType<
+  MutationProps<VariantCreateMutation, VariantCreateMutationVariables>
+>;
+
+export const variantCreateMutation = gql`
+  ${fragmentVariant}
+  mutation VariantCreate(
+    $attributes: [AttributeValueInput]
+    $costPrice: Decimal
+    $priceOverride: Decimal
+    $product: ID
+    $sku: String
+    $quantity: Int
+    $trackInventory: Boolean!
+  ) {
+    productVariantCreate(
       input: {
         attributes: $attributes
         costPrice: $costPrice

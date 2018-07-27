@@ -23,9 +23,9 @@ interface FormData {
     slug: string;
     value: string;
   }>;
-  costPrice?: number;
+  costPrice?: string;
   images?: string[];
-  priceOverride?: number;
+  priceOverride?: string;
   stock?: number;
   sku?: string;
 }
@@ -67,7 +67,6 @@ interface ProductVariantCreatePageProps {
   saveButtonBarState?: SaveButtonBarState;
   onBack: () => void;
   onSubmit: (data: FormData) => void;
-  onImageSelect: (images: string[]) => void;
   onVariantClick: (variantId: string) => void;
 }
 
@@ -95,7 +94,6 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
     product,
     saveButtonBarState,
     onBack,
-    onImageSelect,
     onSubmit,
     onVariantClick
   }) => {

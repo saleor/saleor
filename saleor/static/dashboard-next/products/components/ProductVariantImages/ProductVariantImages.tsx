@@ -58,7 +58,9 @@ export const ProductVariantImages = decorate<ProductVariantImagesProps>(
           <Button
             color="secondary"
             variant="flat"
-            disabled={disabled}
+            // FIXME: enable this button when API will be able to pin images
+            // to variants
+            disabled={true || disabled}
             onClick={onImageAdd}
           >
             {i18n.t("Choose photos")}
@@ -73,7 +75,7 @@ export const ProductVariantImages = decorate<ProductVariantImagesProps>(
             images
               .sort((prev, next) => (prev.sortOrder > next.sortOrder ? 1 : -1))
               .map(tile => (
-                <div className={classes.imageContainer}>
+                <div className={classes.imageContainer} key={tile.id}>
                   <img className={classes.image} src={tile.url} />
                 </div>
               ))
