@@ -6,6 +6,7 @@ const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const PostcssPresetEnv = require('postcss-preset-env');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const sourceDir = path.join(__dirname, './src/');
 const distDir = path.join(__dirname, './dist/');
@@ -100,6 +101,8 @@ module.exports = {
       filename: devMode ? '[name].css' : '[name].[hash].css',
       chunkFilename: devMode ? '[id].css' : '[id].[hash].css'
     }),
+    new CopyWebpackPlugin(
+      [{ from: `${sourceDir}images/`, to: `${distDir}images/` }]),
     // PWA plugins
     new WebappWebpackPlugin({
       logo: `${sourceDir}images/logo.svg`,
