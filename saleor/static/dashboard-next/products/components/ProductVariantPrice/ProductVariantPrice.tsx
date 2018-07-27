@@ -9,8 +9,8 @@ import i18n from "../../../i18n";
 
 interface ProductVariantPriceProps {
   currencySymbol?: string;
-  priceOverride?: number;
-  costPrice?: number;
+  priceOverride?: string;
+  costPrice?: string;
   errors: { [key: string]: string };
   loading?: boolean;
   onChange(event: any);

@@ -36,7 +36,6 @@ storiesOf("Views / Products / Create product variant", module)
       product={product}
       onBack={() => {}}
       onSubmit={() => {}}
-      onImageSelect={() => {}}
       onVariantClick={() => {}}
     />
   ))
@@ -48,7 +47,6 @@ storiesOf("Views / Products / Create product variant", module)
       product={product}
       onBack={() => {}}
       onSubmit={() => {}}
-      onImageSelect={() => {}}
       onVariantClick={() => {}}
     />
   ))
@@ -59,7 +57,6 @@ storiesOf("Views / Products / Create product variant", module)
       loading={true}
       onBack={() => {}}
       onSubmit={() => {}}
-      onImageSelect={() => {}}
       onVariantClick={() => {}}
     />
   ));
