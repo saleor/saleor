@@ -381,3 +381,22 @@ export const productVariantCreateQuery = gql`
     }
   }
 `;
+
+export const TypedProductImageQuery = Query as React.ComponentType<
+  QueryProps<ProductImageQuery, ProductImageVariables>
+>;
+export const productImageQuery = gql`
+  query ProductImage($productId: ID!, $imageId: String!) {
+    product(id: $productId) {
+      image: images(after: $imageId, first: 1) {
+        edges {
+          cursor
+          node {
+            id
+            url
+          }
+        }
+      }
+    }
+  }
+`;
