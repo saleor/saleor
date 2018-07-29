@@ -135,15 +135,19 @@ class EmailChangeForm(forms.Form):
     email = forms.EmailField(
         label=pgettext('New email', 'Email'), max_length=75)
 
+    error_messages = {
+        'email': pgettext_lazy('New email address cannot be the same'
+                               ' as your current email address'),
+    }
+
     def __init__(self, request, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['email'].widget.attrs['placeholder'] = request.user.email
         self.user = request.user
 
-    # def clean_email(self):
-    #     email = self.cleaned_data.get('email')
-    #     if user.email == email:
-    #         raise forms.ValidationError(pgettext_lazy(
-    #             'New email address cannot be the same'
-    #             ' as your current email address'))
-    #     return email
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if self.user.email == email:
+            raise forms.ValidationError(self.error_messages['email'],
+                                        code='email', )
+        return email

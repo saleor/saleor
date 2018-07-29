@@ -163,8 +163,15 @@ def account_delete_confirm(request, token):
 @login_required
 def email_edit(request):
     form = EmailChangeForm(request, data=request.POST or None)
-    if form.is_valid():
-        messages.success(request, pgettext(
-            'Storefront message', 'Email successfully changed.'))
+
+    if request.method == 'POST':
+        if form.is_valid():
+            form.clean_email()
+            messages.success(request, pgettext(
+                'Storefront message', 'Email successfully changed.'))
+        elif form.errors:
+            messages.error(request, pgettext(
+                'Storefront message', 'Something goes wrong'))
         return HttpResponseRedirect(reverse('account:details') + '#settings')
-    return form
+    else:
+        return form
