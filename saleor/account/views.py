@@ -14,7 +14,7 @@ from ..core.utils import get_paginator_items
 from .emails import send_account_delete_confirmation_email
 from .forms import (
     ChangePasswordForm, LoginForm, PasswordResetForm, SignupForm,
-    get_address_form, logout_on_password_change)
+    get_address_form, logout_on_password_change, EmailChangeForm)
 
 
 @find_and_assign_anonymous_cart()
@@ -76,12 +76,14 @@ def password_reset_confirm(request, uidb64=None, token=None):
 @login_required
 def details(request):
     password_form = get_or_process_password_form(request)
+    email_form = email_edit(request)
     orders = request.user.orders.confirmed().prefetch_related('lines')
     orders_paginated = get_paginator_items(
         orders, settings.PAGINATE_BY, request.GET.get('page'))
     ctx = {'addresses': request.user.addresses.all(),
            'orders': orders_paginated,
-           'change_password_form': password_form}
+           'change_password_form': password_form,
+           'change_email_form': email_form}
 
     return TemplateResponse(request, 'account/details.html', ctx)
 
@@ -156,3 +158,13 @@ def account_delete_confirm(request, token):
 
     return TemplateResponse(
         request, 'account/account_delete_prompt.html')
+
+
+@login_required
+def email_edit(request):
+    form = EmailChangeForm(request, data=request.POST or None)
+    if form.is_valid():
+        messages.success(request, pgettext(
+            'Storefront message', 'Email successfully changed.'))
+        return HttpResponseRedirect(reverse('account:details') + '#settings')
+    return form

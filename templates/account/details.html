@@ -134,17 +134,17 @@
         </div>
       </div>
       <div class="tab-pane fade" id="settings" role="tabpanel">
+        {% if user.email %}
         <div class="row ">
-          <div class="col-md-8 col-lg-6 m-auto">
-            <form action="" method="post">
-              <div class="form-group relative">
-                <label for="email_edit">Email</label>
-                <input name="old_password" placeholder="{{ user.email }}" class="form-control" id="email_edit" type="email">
-              </div>
+          <div class="col-md-8 col-lg-6 m-auto user__email">
+            <form action="{% url 'account:email-edit' %}" method="post">
+              {% csrf_token %}
+              {% bootstrap_form change_email_form %}
               <input class="btn primary narrow" value="Change email" type="submit" style="float:right; margin-top:1rem">
             </form>
           </div>
         </div>
+        {% endif %}
         {% if user.password %}
         <div class="row ">
           <div class="col-md-8 col-lg-6 m-auto account__password">

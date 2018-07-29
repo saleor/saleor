@@ -127,3 +127,23 @@ class PasswordResetForm(django_forms.PasswordResetForm, FormWithReCaptcha):
         # template, we remove it from the context.
         del context['user']
         emails.send_password_reset_email.delay(context, to_email)
+
+
+class EmailChangeForm(forms.Form):
+    """ Allow changing email """
+
+    email = forms.EmailField(
+        label=pgettext('New email', 'Email'), max_length=75)
+
+    def __init__(self, request, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['email'].widget.attrs['placeholder'] = request.user.email
+        self.user = request.user
+
+    # def clean_email(self):
+    #     email = self.cleaned_data.get('email')
+    #     if user.email == email:
+    #         raise forms.ValidationError(pgettext_lazy(
+    #             'New email address cannot be the same'
+    #             ' as your current email address'))
+    #     return email
