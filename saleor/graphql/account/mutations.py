@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist
@@ -12,7 +13,7 @@ from ..core.mutations import BaseMutation, ModelMutation
 from ..core.types import Error
 
 
-def send_user_password_reset_email(user, use_https=False):
+def send_user_password_reset_email(user):
     site = Site.objects.get_current()
     context = {
         'email': user.email,
@@ -20,7 +21,7 @@ def send_user_password_reset_email(user, use_https=False):
         'token': default_token_generator.make_token(user),
         'site_name': site.name,
         'domain': site.domain,
-        'protocol': 'https' if use_https else 'http'
+        'protocol': 'https' if settings.ENABLE_SSL else 'http'
     }
     emails.send_password_reset_email.delay(context, user.email)
 
@@ -62,7 +63,6 @@ class CustomerCreate(ModelMutation):
         user.save()
         if cleaned_input.get('send_password_email'):
             send_user_password_reset_email(user)
-            return cls.success_response(user)
 
     @classmethod
     def user_is_allowed(cls, user, input):
@@ -124,7 +124,6 @@ class StaffCreate(ModelMutation):
         user.save()
         if cleaned_input.get('send_password_email'):
             send_user_password_reset_email(user)
-            return cls.success_response(user)
 
 
 class StaffUpdate(StaffCreate):
@@ -190,6 +189,7 @@ class PasswordReset(BaseMutation):
         except ObjectDoesNotExist:
             return cls(
                 errors=[
-                    Error(field='email',
-                          message="User with this email doesn't exist")])
+                    Error(
+                        field='email',
+                        message='User with this email doesn\'t exist')])
         send_user_password_reset_email(user)
