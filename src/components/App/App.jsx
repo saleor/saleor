@@ -6,7 +6,7 @@ import {
   Switch
 } from 'react-router-dom';
 
-import { Home, Header } from '..';
+import { Home, Header, Footer } from '..';
 import css from './css/index.css';
 
 class App extends Component {
@@ -21,7 +21,7 @@ class App extends Component {
               <Route path="/features" component={Home} />
             </Switch>
           </section>
-          <footer></footer>
+          <Footer />
         </Fragment>
       </Router>
     );
