@@ -26,8 +26,8 @@
     --font-family-base:            var(--font-family-sans-serif);
 
     --font-size-base:              1rem;
-    --font-size-lg:                calc(--font-size-base * 1.25);
-    --font-size-sm:                calc(--font-size-base * .875);
+    --font-size-lg:                calc(var(--font-size-base) * 1.5);
+    --font-size-sm:                calc(var(--font-size-base) * .875);
 
     --font-weight-lighter:         lighter;
     --font-weight-light:           300;
@@ -38,14 +38,14 @@
     --font-weight-base:            var(--font-weight-normal);
     --line-height-base:            1.5;
 
-    --h1-font-size:                calc(--font-size-base * 2.5);
-    --h2-font-size:                calc(--font-size-base * 2);
-    --h3-font-size:                calc(--font-size-base * 1.75);
-    --h4-font-size:                calc(--font-size-base * 1.5);
-    --h5-font-size:                calc(font-size-base * 1.25);
+    --h1-font-size:                calc(var(--font-size-base) * 2.5);
+    --h2-font-size:                calc(var(--font-size-base) * 2);
+    --h3-font-size:                calc(var(--font-size-base) * 1.75);
+    --h4-font-size:                calc(var(--font-size-base) * 1.5);
+    --h5-font-size:                calc(var(font-size-base) * 1.25);
     --h6-font-size:                var(font-size-base);
 
-    --headings-margin-bottom:      calc(--spacer / 2);
+    --headings-margin-bottom:      calc(var(--spacer) / 2);
     --headings-font-family:        inherit;
     --headings-font-weight:        500;
     --headings-line-height:        1.2;

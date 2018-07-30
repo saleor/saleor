@@ -78,12 +78,17 @@ a {
     }
 }
 
-.menu {
-    & ul {
-        display: flex;
-        justify-content: space-between;
-        & li {
-            padding: calc(var(--spacer) * 2) 0;
+.btn {
+    padding: calc(var(--spacer) / 2) calc(var(--spacer) * 2);
+    border-radius: calc(var(--border-radius) * 2);
+    transition: background .5s, color .5s;
+    &.btn-primary {
+        border: solid var(--border-width) var(--primaryColor);
+        &:hover {
+            text-decoration: none;
+            border-color: var(--secondaryColor);
+            background-color: var(--secondaryColor);
+            color: var(--body-color);
         }
     }
 }
