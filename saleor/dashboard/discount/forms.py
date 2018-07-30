@@ -7,7 +7,7 @@ from django.utils.translation import pgettext_lazy
 from django_prices.forms import MoneyField
 from mptt.forms import TreeNodeMultipleChoiceField
 
-from ...core.i18n import COUNTRY_CODE_CHOICES
+from ...core.i18n import COUNTRY_CODE_CHOICES, ANY_COUNTRY
 from ...core.utils.taxes import ZERO_MONEY
 from ...discount import DiscountValueType
 from ...discount.models import Sale, Voucher
@@ -131,11 +131,14 @@ class VoucherForm(forms.ModelForm):
 def country_choices():
     country_codes = ShippingMethodCountry.objects.all()
     country_codes = country_codes.values_list('country_code', flat=True)
-    country_codes = country_codes.distinct()
+    country_codes = list(country_codes.distinct())
+    if ANY_COUNTRY in country_codes:
+        return COUNTRY_CODE_CHOICES
     country_dict = dict(COUNTRY_CODE_CHOICES)
-    return [
+    country_choices = [
         (country_code, country_dict[country_code])
         for country_code in country_codes]
+    return country_choices
 
 
 class ShippingVoucherForm(forms.ModelForm):
