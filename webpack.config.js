@@ -85,8 +85,24 @@ module.exports = {
             options: {
               name: '[name].[ext]',
               outputPath: 'images/',
-            },
+            }
           },
+          {
+            loader: 'image-webpack-loader',
+            options: {
+              mozjpeg: {
+                progressive: true,
+                quality: 85
+              },
+              pngquant: {
+                quality: '65-90',
+                speed: 4
+              },
+              gifsicle: {
+                enabled: false,
+              },
+            }
+          }
         ],
       },
     ]
