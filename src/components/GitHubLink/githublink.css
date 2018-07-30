@@ -1,0 +1,25 @@
+.menu {
+  & ul {
+    & li {
+      & .githubLink {
+        & svg {
+          fill: var(--primaryColor);
+          & path {
+            fill: var(--primaryColor);
+          }
+        }
+        & .github-icon { 
+          display: inline-block;
+          & div {
+            position: relative;
+            top: calc(var(--spacer) / 3);
+          }
+        }
+        & .star-icon { 
+          display: inline-block;
+          padding: 0 calc(var(--spacer) / 4)
+        }
+      }
+    }
+  }
+}

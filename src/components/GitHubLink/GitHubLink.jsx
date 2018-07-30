@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import ReactSVG from 'react-svg';
 import axios from 'axios';
 
+import css from './githublink.css';
 
 class GitHubLink extends Component {
 
