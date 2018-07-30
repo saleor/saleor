@@ -9,7 +9,7 @@ class Home extends Component {
     console.log(this.props);
     return (
       <div className="home">
-          Start
+        Start
       </div>
     );
   }

@@ -4,8 +4,8 @@
 @import './variables.css';
 
 html, body {
-    margin: 0;
-    height: 100%;
+  margin: 0;
+  height: 100%;
 }
 
 body {
@@ -18,78 +18,78 @@ body {
   /* TODO: use color-mod function instead of rgba */
   background-color: #111010;
   background-image: repeating-linear-gradient(
-      -45deg,
-      rgba(15, 8, 46, .5), rgba(15, 8, 46, .5) 10%,
-      rgba(16, 9, 57, .5) 10%, rgba(16, 9, 57, .5) 20%,
-      rgba(23, 14, 73, .5) 20%, rgba(23, 14, 73, .5) 30%,
-      rgba(49, 19, 100, .5) 30%, rgba(49, 19, 100, .5) 40%,
-      rgba(33, 18, 94, .5) 40%, rgba(33, 18, 94, .5) 50%,
-      rgba(24, 14, 76, .5) 50%, rgba(24, 14, 76, .5) 60%,
-      rgba(21, 13, 72, .5) 60%, rgba(21, 13, 72, .5) 70%,
-      rgba(26, 15, 81, .5) 70%, rgba(26, 15, 81, .5) 80%,
-      rgba(33, 18, 94, .5) 80%, rgba(33, 18, 94, .5) 90%,
-      rgba(15, 8, 46, .5) 90%, rgba(15, 8, 46, .5) 100%
+    -45deg,
+    rgba(15, 8, 46, .5), rgba(15, 8, 46, .5) 10%,
+    rgba(16, 9, 57, .5) 10%, rgba(16, 9, 57, .5) 20%,
+    rgba(23, 14, 73, .5) 20%, rgba(23, 14, 73, .5) 30%,
+    rgba(49, 19, 100, .5) 30%, rgba(49, 19, 100, .5) 40%,
+    rgba(33, 18, 94, .5) 40%, rgba(33, 18, 94, .5) 50%,
+    rgba(24, 14, 76, .5) 50%, rgba(24, 14, 76, .5) 60%,
+    rgba(21, 13, 72, .5) 60%, rgba(21, 13, 72, .5) 70%,
+    rgba(26, 15, 81, .5) 70%, rgba(26, 15, 81, .5) 80%,
+    rgba(33, 18, 94, .5) 80%, rgba(33, 18, 94, .5) 90%,
+    rgba(15, 8, 46, .5) 90%, rgba(15, 8, 46, .5) 100%
   );
 }
 
 h1 {
-    font-size: var(--h1-font-size);
+  font-size: var(--h1-font-size);
 }
 
 h2 {
-    font-size: var(--h1-font-size);
+  font-size: var(--h1-font-size);
 }
 
 h3 {
-    font-size: var(--h1-font-size);
+  font-size: var(--h1-font-size);
 }
 
 h4 {
-    font-size: var(--h1-font-size);
+  font-size: var(--h1-font-size);
 }
 
 a {
-    color: var(--primaryColor);
-    text-decoration: none;
-    &:hover {
-        text-decoration: underline;
-    }
+  color: var(--primaryColor);
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .container {
-    max-width: var(--layout-width);
-    margin: 0 auto;
-    & .grid {
-        width: 100%;
-        display: inline-grid;
-        grid-template-columns: repeat(12, 1fr);
-        & .column-1 { grid-column: span 1; }
-        & .column-2 { grid-column: span 2; }
-        & .column-3 { grid-column: span 3; }
-        & .column-4 { grid-column: span 4; }
-        & .column-5 { grid-column: span 5; }
-        & .column-6 { grid-column: span 6; }
-        & .column-7 { grid-column: span 7; }
-        & .column-8 { grid-column: span 8; }
-        & .column-9 { grid-column: span 9; }
-        & .column-10 { grid-column: span 10; }
-        & .column-11 { grid-column: span 11; }
-        & .column-12 { grid-column: span 12; }
-    }
+  max-width: var(--layout-width);
+  margin: 0 auto;
+  & .grid {
+    width: 100%;
+    display: inline-grid;
+    grid-template-columns: repeat(12, 1fr);
+    & .column-1 { grid-column: span 1; }
+    & .column-2 { grid-column: span 2; }
+    & .column-3 { grid-column: span 3; }
+    & .column-4 { grid-column: span 4; }
+    & .column-5 { grid-column: span 5; }
+    & .column-6 { grid-column: span 6; }
+    & .column-7 { grid-column: span 7; }
+    & .column-8 { grid-column: span 8; }
+    & .column-9 { grid-column: span 9; }
+    & .column-10 { grid-column: span 10; }
+    & .column-11 { grid-column: span 11; }
+    & .column-12 { grid-column: span 12; }
+  }
 }
 
 .btn {
-    padding: calc(var(--spacer) / 2) calc(var(--spacer) * 2);
-    border-radius: calc(var(--border-radius) * 2);
-    transition: background .5s, color .5s;
-    &.btn-primary {
-        border: solid var(--border-width) var(--primaryColor);
-        &:hover {
-            text-decoration: none;
-            border-color: var(--secondaryColor);
-            background-color: var(--secondaryColor);
-            color: var(--body-color);
-        }
+  padding: calc(var(--spacer) / 2) calc(var(--spacer) * 2);
+  border-radius: calc(var(--border-radius) * 2);
+  transition: background .5s, color .5s;
+  &.btn-primary {
+    border: solid var(--border-width) var(--primaryColor);
+    &:hover {
+      text-decoration: none;
+      border-color: var(--secondaryColor);
+      background-color: var(--secondaryColor);
+      color: var(--body-color);
     }
+  }
 }
 

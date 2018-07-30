@@ -1,55 +1,55 @@
 :root {
-    /* Global */
+  /* Global */
 
-    --primaryColor: #36c1ac;
-    --secondaryColor: #d62319;
-    --border-width: 1px;
-    --border-radius: 1rem;
-    --spacer: 1rem;
-    --body-color: #fff;
-    --background-color: #111010;
+  --primaryColor: #36c1ac;
+  --secondaryColor: #d62319;
+  --border-width: 1px;
+  --border-radius: 1rem;
+  --spacer: 1rem;
+  --body-color: #fff;
+  --background-color: #111010;
 
-    --layout-width: 1400px;
+  --layout-width: 1400px;
 
-    /* Media Queries */
+  /* Media Queries */
 
-    --mobile-min-width: 576px;
-    --tablet-min-width: 768px;
-    --medium-min-width: 992px;
-    --desktop-min-width: 1200px;
-    --retina-min-width: 1920px;
+  --mobile-min-width: 576px;
+  --tablet-min-width: 768px;
+  --medium-min-width: 992px;
+  --desktop-min-width: 1200px;
+  --retina-min-width: 1920px;
 
-    /* Typography */
+  /* Typography */
 
-    --font-family-sans-serif:      Catamaran, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    --font-family-monospace:       monospace;
-    --font-family-base:            var(--font-family-sans-serif);
+  --font-family-sans-serif:      Catamaran, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-family-monospace:       monospace;
+  --font-family-base:            var(--font-family-sans-serif);
 
-    --font-size-base:              1rem;
-    --font-size-lg:                calc(var(--font-size-base) * 1.5);
-    --font-size-sm:                calc(var(--font-size-base) * .875);
+  --font-size-base:              1rem;
+  --font-size-lg:                calc(var(--font-size-base) * 1.5);
+  --font-size-sm:                calc(var(--font-size-base) * .875);
 
-    --font-weight-lighter:         lighter;
-    --font-weight-light:           300;
-    --font-weight-normal:          400;
-    --font-weight-bold:            700;
-    --font-weight-bolder:          bolder;
+  --font-weight-lighter:         lighter;
+  --font-weight-light:           300;
+  --font-weight-normal:          400;
+  --font-weight-bold:            700;
+  --font-weight-bolder:          bolder;
 
-    --font-weight-base:            var(--font-weight-normal);
-    --line-height-base:            1.5;
+  --font-weight-base:            var(--font-weight-normal);
+  --line-height-base:            1.5;
 
-    --h1-font-size:                calc(var(--font-size-base) * 2.5);
-    --h2-font-size:                calc(var(--font-size-base) * 2);
-    --h3-font-size:                calc(var(--font-size-base) * 1.75);
-    --h4-font-size:                calc(var(--font-size-base) * 1.5);
-    --h5-font-size:                calc(var(font-size-base) * 1.25);
-    --h6-font-size:                var(font-size-base);
+  --h1-font-size:                calc(var(--font-size-base) * 2.5);
+  --h2-font-size:                calc(var(--font-size-base) * 2);
+  --h3-font-size:                calc(var(--font-size-base) * 1.75);
+  --h4-font-size:                calc(var(--font-size-base) * 1.5);
+  --h5-font-size:                calc(var(font-size-base) * 1.25);
+  --h6-font-size:                var(font-size-base);
 
-    --headings-margin-bottom:      calc(var(--spacer) / 2);
-    --headings-font-family:        inherit;
-    --headings-font-weight:        500;
-    --headings-line-height:        1.2;
-    --headings-color:              inherit;
+  --headings-margin-bottom:      calc(var(--spacer) / 2);
+  --headings-font-family:        inherit;
+  --headings-font-weight:        500;
+  --headings-line-height:        1.2;
+  --headings-color:              inherit;
 
 }
 
