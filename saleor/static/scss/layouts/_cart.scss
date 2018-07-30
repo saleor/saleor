@@ -100,4 +100,12 @@
       width: 100%;
     }
   }
+  &__clear{
+    @media (min-width: 470px) {
+      margin-right: 1rem;
+    }
+    @media (max-width: 370px) {
+      width: 100%;
+    }
+  }
 }
