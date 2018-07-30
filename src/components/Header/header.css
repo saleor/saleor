@@ -1,0 +1,19 @@
+header {
+  & .logo {
+    padding: calc(var(--spacer) * 3) 0;
+  }
+
+  & .menu {
+    & ul {
+      display: flex;
+      justify-content: space-between;
+      & li {
+        padding: calc(var(--spacer) * 3.5) 0;
+        & a {
+          font-size: var(--font-size-lg);
+          font-weight: var(--font-weight-light);
+        }
+      }
+    }
+  }
+}
