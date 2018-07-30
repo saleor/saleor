@@ -26,10 +26,10 @@ class GitHubLink extends Component {
 
   render() {
     return (
-      <a href={`https://github.com/${this.props.owner}/${this.props.name}`}>
-        <ReactSVG path="images/github.svg" />
-        <ReactSVG path="images/star.svg" />
-        {this.state.stars}
+      <a className="githubLink" href={`https://github.com/${this.props.owner}/${this.props.name}`}>
+        <ReactSVG className="github-icon" svgStyle={{ width: 25, height: 25 }} path="images/github-icon.svg" />
+        <ReactSVG className="star-icon" svgStyle={{ width: 15, height: 15 }} path="images/star-icon.svg" />
+        <span className="star-value">{this.state.stars}</span>
       </a>
     );
   }
