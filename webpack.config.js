@@ -16,6 +16,9 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.jsx']
   },
+  externals: {
+    googleTagManager: 'dataLayer'
+  },
   watchOptions: {
     poll: true,
   },
@@ -110,8 +113,9 @@ module.exports = {
   plugins: [
     new CleanWebpackPlugin([distDir]),
     new HtmlWebpackPlugin({
-      template: `${sourceDir}index.html`,
-      filename: `${distDir}index.html`
+      template: `${sourceDir}index.ejs`,
+      filename: `${distDir}index.html`,
+      googleTagManager: 'GTM-KL4NB3Z'
     }),
     new MiniCssExtractPlugin({
       filename: devMode ? '[name].css' : '[name].[hash].css',
