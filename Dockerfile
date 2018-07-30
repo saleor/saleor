@@ -18,7 +18,7 @@ FROM node:8.6.0 as build-nodejs
 ARG STATIC_URL
 
 # Install node_modules
-ADD webpack.config.js app.json package.json package-lock.json /app/
+ADD webpack.config.js app.json package.json package-lock.json tsconfig.json webpack.d.ts /app/
 WORKDIR /app
 RUN npm install
 
