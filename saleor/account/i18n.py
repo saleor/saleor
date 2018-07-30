@@ -4,7 +4,6 @@ import i18naddress
 from django import forms
 from django.forms.forms import BoundField
 from django.utils.translation import pgettext_lazy
-from django_countries import countries
 from django_countries.data import COUNTRIES
 from phonenumber_field.formfields import PhoneNumberField
 
@@ -123,7 +122,10 @@ class AddressForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         autocomplete_type = kwargs.pop('autocomplete_type', None)
         super().__init__(*args, **kwargs)
-        self.fields['country'].choices = countries
+        # countries order was taken as defined in the model,
+        # not being sorted accordingly to the selected language
+        self.fields['country'].choices = sorted(
+            COUNTRY_CHOICES, key=lambda choice: choice[1])
         autocomplete_dict = defaultdict(
             lambda: 'off', self.AUTOCOMPLETE_MAPPING)
         for field_name, field in self.fields.items():
