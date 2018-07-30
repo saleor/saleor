@@ -13,12 +13,17 @@ class GitHubLink extends Component {
 
   updateStars() {
     const apiUrl = `https://api.github.com/repos/${this.props.owner}/${this.props.name}`;
-    const stars = axios.get(apiUrl);
-    stars.then((response) => {
-      if (response.status === 200) {
-        this.setState({stars: response.data.watchers_count});
+    const request = new XMLHttpRequest();
+    request.open('GET', apiUrl);
+    request.send();
+    request.onreadystatechange = () => {
+      const DONE = 4;
+      const OK = 200;
+      if (request.readyState === DONE && request.status === OK) {
+        const response = JSON.parse(request.responseText);
+        this.setState({stars: response.watchers_count});
       }
-    });
+    };
   }
 
   componentDidMount() {

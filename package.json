@@ -7,7 +7,6 @@
     "main": "dist/index.js",
     "browserslist": "last 2 versions",
     "dependencies": {
-        "axios": "^0.18.0",
         "babel-eslint": "^8.2.6",
         "eslint-config-prettier": "^2.9.0",
         "eslint-plugin-prettier": "^2.6.2",
