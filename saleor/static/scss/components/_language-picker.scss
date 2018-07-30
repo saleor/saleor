@@ -1,0 +1,32 @@
+#languagePickerModal {
+  cursor: all-scroll;
+  user-select: none;
+  text-align: center;
+  padding: 0!important;
+
+  &:before {
+    content: '';
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;
+  }
+  .modal-body {
+    height: 50%;
+    overflow-y: auto;
+  }
+  .modal-dialog {
+    display: inline-block;
+    text-align: left;
+    vertical-align: middle;
+  }
+  @media (min-height: 500px) {
+    .modal-body {
+      height: 25em;
+    }
+  }
+  @media (min-height: 800px) {
+    .modal-body {
+      height: 38em;
+    }
+  }
+}

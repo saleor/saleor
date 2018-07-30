@@ -55,7 +55,20 @@
         </div>
         <div class="col-6">
           <ul class="float-right">
-            {% include "_language_picker.html" %}
+            {% get_available_languages as LANGUAGES %}
+
+            {# We display language picker only if there're languages to pick from #}
+            {% if LANGUAGES|length > 1 %}
+              {% get_current_language as LANGUAGE_CODE %}
+              {% get_language_info for LANGUAGE_CODE as current_lang %}
+              <li>
+                <div class="language-picker dropdown show">
+                  <a class="dropdown-toggle dropdown-link " data-toggle="modal" data-target="#languagePickerModal" href="" id="dropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {{ current_lang.name_local }}
+                  </a>
+                </div>
+              </li>
+            {% endif %}
             {% if user.is_authenticated %}
               {% if user.is_staff or request.impersonator.is_staff %}
                 <li>
@@ -271,5 +284,8 @@
   <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
   {% render_bundle 'storefront' 'js' %}
 {% endblock footer_scripts %}
+{% if LANGUAGES|length > 1 %}
+  {% include "_language_picker_modal.html" %}
+{% endif %}
 </body>
 </html>

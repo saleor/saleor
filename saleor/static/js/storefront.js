@@ -8,7 +8,6 @@ import './components/navbar';
 import './components/cart';
 import './components/sorter';
 import './components/variant-picker';
-import './components/language-picker';
 import './components/footer';
 import './components/product-filters';
 import './components/address-form';
