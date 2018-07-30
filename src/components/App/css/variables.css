@@ -8,6 +8,7 @@
   --spacer: 1rem;
   --body-color: #fff;
   --background-color: #111010;
+  --footer-border: #13657F;
 
   --layout-width: 1400px;
 
@@ -36,9 +37,10 @@
   --font-weight-bolder:          bolder;
 
   --font-weight-base:            var(--font-weight-normal);
-  --line-height-base:            1.5;
+  --line-height-base:            1.2;
+c:              1.5;
 
-  --h1-font-size:                calc(var(--font-size-base) * 2.5);
+  --h1-font-size:                calc(var(--font-size-base) * 3.5);
   --h2-font-size:                calc(var(--font-size-base) * 2);
   --h3-font-size:                calc(var(--font-size-base) * 1.75);
   --h4-font-size:                calc(var(--font-size-base) * 1.5);

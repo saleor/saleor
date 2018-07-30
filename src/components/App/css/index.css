@@ -34,6 +34,7 @@ body {
 
 h1 {
   font-size: var(--h1-font-size);
+  line-height: var(--line-height-base);
 }
 
 h2 {
@@ -55,6 +56,9 @@ a {
     text-decoration: underline;
   }
 }
+
+.primaryColor { color: var(--primaryColor); }
+.seconadyColor { color: var(--secondaryColor); }
 
 .container {
   max-width: var(--layout-width);
@@ -79,9 +83,10 @@ a {
 }
 
 .btn {
-  padding: calc(var(--spacer) / 2) calc(var(--spacer) * 2);
+  padding: calc(var(--spacer) / 2) calc(var(--spacer) * 3);
   border-radius: calc(var(--border-radius) * 2);
   transition: background .5s, color .5s;
+  font-size: var(--font-size-lg);
   &.btn-primary {
     border: solid var(--border-width) var(--primaryColor);
     &:hover {
@@ -89,6 +94,17 @@ a {
       border-color: var(--secondaryColor);
       background-color: var(--secondaryColor);
       color: var(--body-color);
+    }
+  }
+  &.btn-secondary {
+    border: solid var(--border-width) var(--secondaryColor);
+    background-color: var(--secondaryColor);
+    color: var(--body-color);
+    &:hover {
+      text-decoration: none;
+      border-color: var(--primaryColor);
+      background-color: transparent;
+      color: var(--primaryColor);
     }
   }
 }
