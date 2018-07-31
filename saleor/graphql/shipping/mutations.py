@@ -2,7 +2,7 @@ import graphene
 
 from ...shipping import models
 from ..core.mutations import ModelDeleteMutation, ModelMutation
-from ..core.types import Decimal
+from ..core.types.common import Decimal
 
 
 class ShippingPriceInput(graphene.InputObjectType):

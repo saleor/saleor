@@ -3,13 +3,13 @@ from django.utils.translation import npgettext_lazy, pgettext_lazy
 from graphql_jwt.decorators import permission_required
 
 from ....dashboard.order.utils import fulfill_order_line
-from ....graphql.core.mutations import BaseMutation, ModelMutation
-from ....graphql.core.types import Error
-from ....graphql.order.types import Fulfillment
-from ....graphql.utils import get_node, get_nodes
 from ....order import models
 from ....order.emails import send_fulfillment_confirmation
 from ....order.utils import cancel_fulfillment, update_order_status
+from ...core.mutations import BaseMutation, ModelMutation
+from ...core.types.common import Error
+from ...order.types import Fulfillment
+from ...utils import get_node, get_nodes
 from ..types import OrderLine
 
 

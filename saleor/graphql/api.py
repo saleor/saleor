@@ -22,8 +22,7 @@ from .discount.mutations import (
     VoucherUpdate)
 from .core.filters import DistinctFilterSet
 from .core.mutations import CreateToken, VerifyToken
-from .core.resolvers import resolve_shop
-from .core.types import Shop
+from .core.types.shop import Shop
 from .order.filters import OrderFilter
 from .order.resolvers import resolve_order, resolve_orders
 from .order.types import Order
@@ -134,9 +133,7 @@ class Query(graphene.ObjectType):
     sales = DjangoFilterConnectionField(
         Sale, query=graphene.String(description=DESCRIPTIONS['sale']),
         description="List of the shop\'s sales.")
-    shop = graphene.Field(
-        Shop, description='Represents a shop resources.',
-        resolver=resolve_shop)
+    shop = graphene.Field(Shop, description='Represents a shop resources.')
     voucher = graphene.Field(
         Voucher, id=graphene.Argument(graphene.ID),
         description='Lookup a voucher by ID.')
@@ -213,6 +210,9 @@ class Query(graphene.ObjectType):
 
     def resolve_product_types(self, info, **kwargs):
         return resolve_product_types()
+
+    def resolve_shop(self, info):
+        return Shop()
 
     @permission_required('discount.manage_discounts')
     def resolve_sale(self, info, id):

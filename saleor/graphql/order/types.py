@@ -3,7 +3,8 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from ...order import models
-from ..core.types import CountableDjangoObjectType, Money, TaxedMoney
+from ..core.types.common import CountableDjangoObjectType
+from ..core.types.money import Money, TaxedMoney
 
 
 class Order(CountableDjangoObjectType):

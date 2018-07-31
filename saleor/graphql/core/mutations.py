@@ -11,7 +11,7 @@ from ...account import models
 from ..account.types import User
 from ..file_upload.types import Upload
 from ..utils import get_node, get_nodes
-from .types import Error
+from .types.common import Error
 
 registry = get_global_registry()
 

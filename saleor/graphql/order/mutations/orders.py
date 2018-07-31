@@ -6,7 +6,7 @@ from payments import PaymentError, PaymentStatus
 from ....order import CustomPaymentChoices, models
 from ....order.utils import cancel_order
 from ...core.mutations import BaseMutation, ModelMutation
-from ...core.types import Decimal, Error
+from ...core.types.common import Decimal, Error
 from ...order.mutations.draft_orders import DraftOrderUpdate
 from ...order.types import Order
 from ...utils import get_node
