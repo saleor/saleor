@@ -15,5 +15,5 @@ storiesOf("Views / Products / Product image details", module)
     />
   ))
   .add("when loading data", () => (
-    <ProductImagePage loading={true} onSubmit={() => {}} onBack={() => {}} />
+    <ProductImagePage disabled={true} onSubmit={() => {}} onBack={() => {}} />
   ));

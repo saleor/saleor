@@ -12,6 +12,7 @@ import i18n from "../../i18n";
 import ProductUpdatePage from "../components/ProductUpdatePage";
 import ProductUpdateOperations from "../containers/ProductUpdateOperations";
 import {
+  productImageUrl,
   productListUrl,
   productVariantAddUrl,
   productVariantEditUrl
@@ -86,6 +87,8 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                         reorderProductImages,
                         updateProduct
                       }) => {
+                        const handleImageEdit = (imageId: string) => () =>
+                          navigate(productImageUrl(id, imageId));
                         const handleSubmit = data => {
                           if (product) {
                             updateProduct.mutate({
@@ -173,6 +176,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                                 });
                               }
                             }}
+                            onImageEdit={handleImageEdit}
                           />
                         );
                       }}

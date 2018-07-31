@@ -3,6 +3,7 @@ import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import ProductCreate from "./views/ProductCreate";
+import ProductImageComponent from "./views/ProductImage";
 import ProductListComponent from "./views/ProductList";
 import ProductUpdateComponent from "./views/ProductUpdate";
 import ProductVariantComponent from "./views/ProductVariant";
@@ -36,6 +37,17 @@ const ProductVariant: React.StatelessComponent<RouteComponentProps<any>> = ({
   );
 };
 
+const ProductImage: React.StatelessComponent<RouteComponentProps<any>> = ({
+  match
+}) => {
+  return (
+    <ProductImageComponent
+      imageId={match.params.imageId}
+      productId={match.params.productId}
+    />
+  );
+};
+
 const ProductVariantCreate: React.StatelessComponent<
   RouteComponentProps<any>
 > = ({ match }) => {
@@ -57,15 +69,16 @@ const Component = ({ match }) => (
       path={`${match.url}/:productId/variant/:variantId/`}
       component={ProductVariant}
     />
+    <Route
+      exact
+      path={`${match.url}/:productId/image/:imageId/`}
+      component={ProductImage}
+    />
   </Switch>
 );
 
 export const productUrl = (id: string) => {
   return `/products/${id}/`;
-};
-
-export const productImageEditUrl = (id: string) => {
-  return `/products/${id}/image/`;
 };
 
 export const productVariantAddUrl = (productId: string) => {
@@ -75,6 +88,9 @@ export const productVariantAddUrl = (productId: string) => {
 export const productVariantEditUrl = (productId: string, variantId: string) => {
   return `/products/${productId}/variant/${variantId}/`;
 };
+
+export const productImageUrl = (productId: string, imageId: string) =>
+  `/products/${productId}/image/${imageId}/`;
 
 export const productListUrl = "/products/";
 export const productAddUrl = "/products/add/";

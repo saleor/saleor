@@ -144,7 +144,6 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
     onImageEdit,
     onImageReorder,
     onImageUpload,
-    onProductShow,
     onSeoClick,
     onSubmit,
     onVariantAdd,
