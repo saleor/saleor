@@ -5,7 +5,7 @@ from graphql_jwt.decorators import permission_required
 
 from ....product import models
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types import Decimal, Error, SeoInput
+from ...core.types.common import Decimal, Error, SeoInput
 from ...core.utils import clean_seo_fields
 from ...file_upload.types import Upload
 from ...utils import get_attributes_dict_from_list, get_node, get_nodes
