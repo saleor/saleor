@@ -31,6 +31,11 @@ export default createMuiTheme({
       }
     },
     MuiInput: {
+      input: {
+        "&:-webkit-autofill": {
+          boxShadow: "inset 0 0 0px 9999px #EFF8F2"
+        }
+      },
       root: {
         color: "#616161",
         fontSize: "0.875rem"
