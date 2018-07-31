@@ -1,8 +1,7 @@
 import * as React from "react";
-import { RouteComponentProps } from "react-router-dom";
 
 import { UserFragment } from "../gql-types";
-import LoginPage from "./views/LoginPage";
+import Login from "./views/Login";
 
 interface UserContext {
   login: (username: string, password: string, persist: boolean) => void;
@@ -29,4 +28,4 @@ export const removeAuthToken = () => {
   sessionStorage.removeItem("dashboardAuth");
 };
 
-export default LoginPage;
+export default Login;
