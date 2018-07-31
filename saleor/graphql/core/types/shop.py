@@ -3,6 +3,7 @@ from django_countries import countries
 from django_prices_vatlayer import models as vatlayer_models
 from django.conf import settings
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
+from graphql_jwt.decorators import permission_required
 
 from ....core.permissions import get_permissions
 from ....site import models as site_models
@@ -65,6 +66,7 @@ class Shop(graphene.ObjectType):
         Represents a shop resource containing general shop\'s data
         and configuration.'''
 
+    @permission_required('site.manage_settings')
     def resolve_authorization_keys(self, info):
         return site_models.AuthorizationKey.objects.all()
 
@@ -97,6 +99,7 @@ class Shop(graphene.ObjectType):
     def resolve_name(self, info):
         return info.context.site.name
 
+    @permission_required('site.manage_settings')
     def resolve_permissions(self, info):
         permissions = get_permissions()
         return format_permissions_for_display(permissions)
@@ -104,9 +107,11 @@ class Shop(graphene.ObjectType):
     def resolve_phone_prefixes(self, info):
         return list(COUNTRY_CODE_TO_REGION_CODE.keys())
 
+    @permission_required('site.manage_settings')
     def resolve_tax_rates(self, info):
         return vatlayer_models.VAT.objects.order_by('country_code')
 
+    @permission_required('site.manage_settings')
     def resolve_tax_rate(self, info, country_code):
         # country codes for VAT rates are stored uppercase
         country_code = country_code.upper()
