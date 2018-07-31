@@ -1,22 +1,32 @@
 import pytest
 
+from saleor.discount.models import VoucherTranslation
 from saleor.product.models import (
-    CategoryTranslation, CollectionTranslation, ProductTranslation,
-    ProductVariantTranslation, ProductAttributeTranslation)
+    AttributeChoiceValueTranslation, CategoryTranslation,
+    CollectionTranslation, ProductAttributeTranslation, ProductTranslation,
+    ProductVariantTranslation)
 
 
 @pytest.fixture
-def product_translation_fr(db, product):
+def product_translation_fr(product):
     return ProductTranslation.objects.create(
         language_code='fr', product=product, name='French name',
         description='French description')
 
 
 @pytest.fixture
-def product_translation_pl(db, product):
+def product_translation_pl(product):
     return ProductTranslation.objects.create(
         language_code='pl', product=product, name='Polish name',
         description="Polish description")
+
+
+@pytest.fixture
+def attribute_choice_translation_fr(translated_product_attribute):
+    value = translated_product_attribute.product_attribute.values.first()
+    return AttributeChoiceValueTranslation.objects.create(
+        language_code='fr', attribute_choice_value=value,
+        name='French name')
 
 
 def test_translation(product, settings, product_translation_fr):
@@ -103,3 +113,9 @@ def test_attribute_choice_value_translation(
     assert not attribute.translated.name == 'French name'
     settings.LANGUAGE_CODE = 'fr'
     assert attribute.translated.name == 'French name'
+
+
+def test_voucher_translation(settings, voucher, voucher_translation_fr):
+    assert not voucher.translated.name == 'French name'
+    settings.LANGUAGE_CODE = 'fr'
+    assert voucher.translated.name == 'French name'

@@ -26,6 +26,9 @@ class MenuForm(forms.ModelForm):
         labels = {
             'name': pgettext_lazy('Menu name', 'Menu name')}
 
+    def save(self, commit=True):
+        return super().save(commit)
+
 
 class MenuItemForm(forms.ModelForm):
     """Add or update menu item.

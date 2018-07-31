@@ -727,7 +727,13 @@ def recalculate_cart_discount(cart, discounts, taxes):
             subtotal = cart.get_subtotal(discounts, taxes).gross
             cart.discount_amount = min(discount, subtotal)
             cart.discount_name = voucher.name
-            cart.save(update_fields=['discount_amount', 'discount_name'])
+            cart.translated_discount_name = (
+                voucher.translated.name
+                if voucher.translated.name != voucher.name else '')
+            cart.save(
+                update_fields=[
+                    'translated_discount_name',
+                    'discount_amount', 'discount_name'])
     else:
         remove_voucher_from_cart(cart)
 
@@ -736,9 +742,12 @@ def remove_voucher_from_cart(cart):
     """Remove voucher data from cart."""
     cart.voucher_code = None
     cart.discount_name = None
+    cart.translated_discount_name = None
     cart.discount_amount = ZERO_MONEY
-    cart.save(update_fields=[
-        'voucher_code', 'discount_name', 'discount_amount'])
+    cart.save(
+        update_fields=[
+            'voucher_code', 'discount_name', 'translated_discount_name',
+            'discount_amount'])
 
 
 def get_taxes_for_cart(cart, default_taxes):
@@ -782,7 +791,8 @@ def _process_voucher_data_for_order(cart):
     return {
         'voucher': voucher,
         'discount_amount': cart.discount_amount,
-        'discount_name': cart.discount_name}
+        'discount_name': cart.discount_name,
+        'translated_discount_name': cart.translated_discount_name}
 
 
 def _process_shipping_data_for_order(cart, taxes):

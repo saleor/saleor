@@ -19,6 +19,8 @@ from saleor.product.utils import (
 from saleor.product.utils.attributes import get_product_attributes_data
 from saleor.product.utils.availability import get_product_availability_status
 from saleor.product.utils.variants_picker import get_variant_picker_data
+from saleor.menu.models import MenuItemTranslation
+from saleor.dashboard.menu.utils import update_menu
 
 from .utils import filter_products_by_attribute
 
@@ -103,9 +105,31 @@ def test_filtering_by_attribute(db, color_attribute, default_category):
     assert product_b not in list(filtered)
 
 
-def test_render_home_page(client, product):
+def test_render_home_page(client, product, site_settings, settings):
+    # Tests if menu renders properly if none is assigned
+    settings.LANGUAGE_CODE = 'fr'
+    site_settings.top_menu = None
+    site_settings.save()
+
     response = client.get(reverse('home'))
     assert response.status_code == 200
+
+
+def test_render_home_page_with_translated_menu_items(
+        client, product, menu_with_items, site_settings, settings):
+    settings.LANGUAGE_CODE = 'fr'
+    site_settings.top_menu = menu_with_items
+    site_settings.save()
+
+    for item in menu_with_items.items.all():
+        MenuItemTranslation.objects.create(
+            menu_item=item, language_code='fr',
+            name='Translated name in French')
+    update_menu(menu_with_items)
+
+    response = client.get(reverse('home'))
+    assert response.status_code == 200
+    assert 'Translated name in French' in str(response.content)
 
 
 def test_render_home_page_with_sale(client, product, sale):
@@ -623,13 +647,3 @@ def test_get_product_attributes_data_translation(
     attributes_data = get_product_attributes_data(product)
     attributes_keys = [attr.name for attr in attributes_data.keys()]
     assert translated_product_attribute.name in attributes_keys
-
-
-def test_attribute_choice_value_translation_fr(
-        settings, product, attribute_choice_translation_fr):
-    attribute = product.product_type.product_attributes.first()
-    choice = attribute.values.first()
-    assert choice.translated.name == 'Red'
-
-    settings.LANGUAGE_CODE = 'fr'
-    assert choice.translated.name == 'French name'

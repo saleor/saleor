@@ -1,5 +1,6 @@
-from django.urls import reverse
+import json
 
+from django.urls import reverse
 from saleor.core.templatetags.shop import get_sort_by_url, menu
 
 
@@ -23,7 +24,9 @@ def test_sort_by_url_descending(admin_client, default_category):
     assert result == expected
 
 
-def test_menu(client, menu_with_items):
-    response = client.get(reverse('home'))
-    result = menu(response.context, menu_with_items)
-    assert all((i for i in result['menu_items'] if i.parent_id is None))
+def test_menu(menu_with_items):
+    result = menu()
+    assert result == {'horizontal': False, 'menu_items': []}
+
+    result = menu(menu_with_items)
+    assert result['menu_items'] == json.loads(menu_with_items.json_content)
