@@ -5,9 +5,15 @@ from django.conf import settings
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
 from ....core.permissions import get_permissions
+from ....site import models as site_models
 from ...utils import format_permissions_for_display
 from .common import CountryDisplay, LanguageDisplay, PermissionDisplay
 from .money import VAT
+
+
+class AuthorizationKey(graphene.ObjectType):
+    name = graphene.String(description='Name of the key.', required=True)
+    key = graphene.String(description='Value of the key.', required=True)
 
 
 class Domain(graphene.ObjectType):
@@ -23,6 +29,9 @@ class Domain(graphene.ObjectType):
 
 
 class Shop(graphene.ObjectType):
+    authorization_keys = graphene.List(
+        AuthorizationKey, description='List of configured authorization keys.',
+        required=True)
     countries = graphene.List(
         CountryDisplay, description='List of countries available in the shop.',
         required=True)
@@ -55,6 +64,9 @@ class Shop(graphene.ObjectType):
         description = '''
         Represents a shop resource containing general shop\'s data
         and configuration.'''
+
+    def resolve_authorization_keys(self, info):
+        return site_models.AuthorizationKey.objects.all()
 
     def resolve_countries(self, info):
         return [
