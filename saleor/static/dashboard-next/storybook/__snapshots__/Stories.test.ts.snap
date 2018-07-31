@@ -860,7 +860,7 @@ exports[`Storyshots Generics / ActionDialog default 1`] = `null`;
 
 exports[`Storyshots Generics / AddressEdit default 1`] = `
 <div
-  class="Component-sm-id"
+  class="Component-sm-id "
 >
   <div
     class="Component-root-id"
@@ -11092,7 +11092,7 @@ exports[`Storyshots Pages / PageProperties when loading 1`] = `
 exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -11460,7 +11460,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
 exports[`Storyshots Views / Attributes / Attribute details when loading 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -11696,7 +11696,7 @@ exports[`Storyshots Views / Attributes / Attribute details when loading 1`] = `
 exports[`Storyshots Views / Attributes / Attribute details when no values 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -11897,7 +11897,7 @@ exports[`Storyshots Views / Attributes / Attribute details when no values 1`] = 
 
 exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -12223,7 +12223,7 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
 
 exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -12387,7 +12387,7 @@ exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
 
 exports[`Storyshots Views / Attributes / Attribute list no data 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -12543,7 +12543,7 @@ exports[`Storyshots Views / Attributes / Attribute list no data 1`] = `
 
 exports[`Storyshots Views / Categories / Category details default 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -13012,7 +13012,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
 
 exports[`Storyshots Views / Categories / Category details when in root 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -13130,7 +13130,7 @@ exports[`Storyshots Views / Categories / Category details when in root 1`] = `
 
 exports[`Storyshots Views / Categories / Category details when loading 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -13466,7 +13466,7 @@ exports[`Storyshots Views / Categories / Category details when loading 1`] = `
 exports[`Storyshots Views / Categories / Category edit default 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -13595,7 +13595,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
 exports[`Storyshots Views / Categories / Category edit when loading 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -13726,7 +13726,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
 exports[`Storyshots Views / Categories / Category edit with errors 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -13860,7 +13860,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
 exports[`Storyshots Views / Collections / Collection details default 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -14351,7 +14351,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
 exports[`Storyshots Views / Collections / Collection details when loading 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -14843,7 +14843,7 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
 
 exports[`Storyshots Views / Collections / Collection list default 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -15255,7 +15255,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
 
 exports[`Storyshots Views / Collections / Collection list when loading 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -15434,7 +15434,7 @@ exports[`Storyshots Views / Collections / Collection list when loading 1`] = `
 
 exports[`Storyshots Views / Customers / Customer details default 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -15992,7 +15992,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
 
 exports[`Storyshots Views / Customers / Customer details when loading 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -16323,7 +16323,7 @@ exports[`Storyshots Views / Customers / Customer details when loading 1`] = `
 
 exports[`Storyshots Views / Customers / Customer list default 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -16843,7 +16843,7 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
 
 exports[`Storyshots Views / Customers / Customer list when loading 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -17025,7 +17025,7 @@ exports[`Storyshots Views / Customers / Customer list when loading 1`] = `
 exports[`Storyshots Views / Customers / Edit customer default 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -17150,7 +17150,7 @@ exports[`Storyshots Views / Customers / Edit customer default 1`] = `
 exports[`Storyshots Views / Customers / Edit customer when adding new customer 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -17275,7 +17275,7 @@ exports[`Storyshots Views / Customers / Edit customer when adding new customer 1
 exports[`Storyshots Views / Customers / Edit customer when loading 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -17402,7 +17402,7 @@ exports[`Storyshots Views / Customers / Edit customer when loading 1`] = `
 exports[`Storyshots Views / Customers / Edit customer with errors 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -17531,7 +17531,7 @@ exports[`Storyshots Views / Customers / Edit customer with errors 1`] = `
 
 exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -18634,7 +18634,7 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
 
 exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -19914,7 +19914,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
 
 exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -21194,7 +21194,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
 
 exports[`Storyshots Views / Orders / Order details when loading data 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -21740,7 +21740,7 @@ exports[`Storyshots Views / Orders / Order details when loading data 1`] = `
 
 exports[`Storyshots Views / Orders / Order list default 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -22252,7 +22252,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
 
 exports[`Storyshots Views / Orders / Order list loading 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -22476,7 +22476,7 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
 
 exports[`Storyshots Views / Orders / Order list when no data 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -22657,7 +22657,7 @@ exports[`Storyshots Views / Orders / Order list when no data 1`] = `
 exports[`Storyshots Views / Pages / Page details when loading 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -22948,7 +22948,7 @@ exports[`Storyshots Views / Pages / Page details when loading 1`] = `
 exports[`Storyshots Views / Pages / Page details with delete button 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -23241,7 +23241,7 @@ exports[`Storyshots Views / Pages / Page details with delete button 1`] = `
 exports[`Storyshots Views / Pages / Page details with initial data 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -23533,7 +23533,7 @@ exports[`Storyshots Views / Pages / Page details with initial data 1`] = `
 
 exports[`Storyshots Views / Pages / Page list default 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -23736,7 +23736,7 @@ exports[`Storyshots Views / Pages / Page list default 1`] = `
 
 exports[`Storyshots Views / Pages / Page list loading 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -23914,7 +23914,7 @@ exports[`Storyshots Views / Pages / Page list loading 1`] = `
 
 exports[`Storyshots Views / Pages / Page list no data 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -24076,7 +24076,7 @@ exports[`Storyshots Views / Pages / Page list no data 1`] = `
 exports[`Storyshots Views / Product types / Product type details default 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -24536,7 +24536,7 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
 exports[`Storyshots Views / Product types / Product type details loading 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -24860,7 +24860,7 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
 
 exports[`Storyshots Views / Product types / Product types list default 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -25202,7 +25202,7 @@ exports[`Storyshots Views / Product types / Product types list default 1`] = `
 
 exports[`Storyshots Views / Product types / Product types list loading 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -25382,7 +25382,7 @@ exports[`Storyshots Views / Product types / Product types list loading 1`] = `
 exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -26350,7 +26350,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
 exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -27075,7 +27075,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
 
 exports[`Storyshots Views / Products / Product image details when loaded data 1`] = `
 <div
-  class="Component-sm-id"
+  class="Component-sm-id "
 >
   <form>
     <div
@@ -27179,7 +27179,7 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
 
 exports[`Storyshots Views / Products / Product image details when loading data 1`] = `
 <div
-  class="Component-sm-id"
+  class="Component-sm-id "
 >
   <form>
     <div
@@ -27285,7 +27285,7 @@ exports[`Storyshots Views / Products / Product image details when loading data 1
 
 exports[`Storyshots Views / Products / Product list default 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -27554,7 +27554,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
 
 exports[`Storyshots Views / Products / Product list loading 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -27743,7 +27743,7 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
 
 exports[`Storyshots Views / Products / Product list no data 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -27905,7 +27905,7 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
 
 exports[`Storyshots Views / Products / Product variant details when loaded data 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -28520,7 +28520,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
 
 exports[`Storyshots Views / Products / Product variant details when loading data 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -28954,7 +28954,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
 exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -29482,7 +29482,7 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
 exports[`Storyshots Views / Vouchers / Voucher details when loading 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -30017,7 +30017,7 @@ exports[`Storyshots Views / Vouchers / Voucher details when loading 1`] = `
 
 exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -30901,7 +30901,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
 
 exports[`Storyshots Views / Vouchers / Voucher list no data 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -31071,7 +31071,7 @@ exports[`Storyshots Views / Vouchers / Voucher list no data 1`] = `
 
 exports[`Storyshots Views / Vouchers / Voucher list when loading 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
