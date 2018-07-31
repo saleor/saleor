@@ -20,6 +20,7 @@ from ...account.utils import store_user_address
 from ...checkout import AddressType
 from ...core.utils.taxes import get_tax_rate_by_name, get_taxes_for_country
 from ...core.utils.text import strip_html_and_truncate
+from ...dashboard.menu.utils import update_menu
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
 from ...menu.models import Menu, MenuItem
@@ -634,6 +635,8 @@ def create_menus():
             name=page.title,
             page=page)
         yield 'Created footer menu'
+    update_menu(top_menu)
+    update_menu(bottom_menu)
     site = Site.objects.get_current()
     site_settings = site.settings
     site_settings.top_menu = top_menu
@@ -661,6 +664,7 @@ def create_translations():
     from saleor.page.models import PageTranslation
     from saleor.menu.models import MenuItemTranslation
     from saleor.site.models import SiteSettingsTranslation
+    from saleor.discount.models import Voucher, VoucherTranslation
 
     for i, category in enumerate(Category.objects.all()):
         CategoryTranslation.objects.create(
@@ -717,3 +721,9 @@ def create_translations():
             site_settings=site_set, language_code='pl',
             header_text='Tekst nagłówka po polsku %s' % site_set.pk,
             description='Opis strony, tez po polsku %s' % site_set.pk)
+    for voucher in Voucher.objects.all():
+        VoucherTranslation.objects.create(
+            voucher=voucher, name='Nazwa vouchera')
+    from ...dashboard.menu.utils import update_menu
+    for menu in Menu.objects.all():
+        update_menu(menu)

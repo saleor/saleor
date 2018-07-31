@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 {% load i18n %}
-{% load staticfiles %}
-{% load render_bundle from webpack_loader %}
-{% load shop %}
+{% load menu from shop %}
 {% load placeholder %}
+{% load render_bundle from webpack_loader %}
+{% load staticfiles %}
 {% load translate_url from urls %}
 
 <html lang="{{ LANGUAGE_CODE }}" class="no-js" data-shipping-options-url="{% url 'cart:shipping-options' %}" data-cart-summary-url="{% url 'cart:summary' %}">

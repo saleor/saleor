@@ -3,7 +3,6 @@ from io import BytesIO
 from unittest.mock import MagicMock, Mock
 
 import pytest
-
 from django.contrib.auth.models import Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
@@ -17,19 +16,21 @@ from graphql_jwt.shortcuts import get_token
 from payments import FraudStatus, PaymentStatus
 from PIL import Image
 from prices import Money
+
 from saleor.account.models import Address, User
 from saleor.checkout import utils
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import add_variant_to_cart
+from saleor.dashboard.menu.utils import update_menu
 from saleor.dashboard.order.utils import fulfill_order_line
-from saleor.discount.models import Sale, Voucher
+from saleor.discount.models import Sale, Voucher, VoucherTranslation
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderStatus
 from saleor.order.models import Order
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.product.models import (
-    AttributeChoiceValue, AttributeChoiceValueTranslation, Category,
+    AttributeChoiceValue, Category,
     Collection, Product, ProductAttribute, ProductAttributeTranslation,
     ProductImage, ProductType, ProductVariant)
 from saleor.shipping.models import ShippingMethod, ShippingMethodCountry
@@ -626,7 +627,7 @@ def model_form_class():
 @pytest.fixture
 def menu(db):
     # navbar menu object can be already created by default in migration
-    return Menu.objects.get_or_create(name='navbar')[0]
+    return Menu.objects.get_or_create(name='navbar', json_content={})[0]
 
 
 @pytest.fixture
@@ -646,6 +647,7 @@ def menu_with_items(menu, default_category, collection):
         parent=menu_item)
     menu.items.create(
         name=collection.name, collection=collection, parent=menu_item)
+    update_menu(menu)
     return menu
 
 
@@ -717,8 +719,6 @@ def translated_product_attribute(product):
 
 
 @pytest.fixture
-def attribute_choice_translation_fr(translated_product_attribute):
-    value = translated_product_attribute.product_attribute.values.first()
-    return AttributeChoiceValueTranslation.objects.create(
-        language_code='fr', attribute_choice_value=value,
-        name='French name')
+def voucher_translation_fr(voucher):
+    return VoucherTranslation.objects.create(
+        language_code='fr', voucher=voucher, name='French name')

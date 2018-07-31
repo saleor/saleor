@@ -52,27 +52,27 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.make_database_faster()
-        create_images = not options['withoutimages']
-        # for msg in create_shipping_methods():
-        #     self.stdout.write(msg)
-        # create_products_by_schema(
-        #     self.placeholders_dir, 10, create_images, stdout=self.stdout)
-        # for msg in create_product_sales(5):
-        #     self.stdout.write(msg)
-        # for msg in create_vouchers():
-        #     self.stdout.write(msg)
-        # for msg in create_users(20):
-        #     self.stdout.write(msg)
-        # for msg in create_orders(20):
-        #     self.stdout.write(msg)
-        # for msg in set_featured_products(16):
-        #     self.stdout.write(msg)
-        # for msg in create_collections_by_schema(self.placeholders_dir):
-        #     self.stdout.write(msg)
-        # for msg in create_page():
-        #     self.stdout.write(msg)
-        # for msg in create_menus():
-        #     self.stdout.write(msg)
+        create_images = False and not options['withoutimages']
+        for msg in create_shipping_methods():
+            self.stdout.write(msg)
+        create_products_by_schema(
+            self.placeholders_dir, 10, create_images, stdout=self.stdout)
+        for msg in create_product_sales(5):
+            self.stdout.write(msg)
+        for msg in create_vouchers():
+            self.stdout.write(msg)
+        for msg in create_users(20):
+            self.stdout.write(msg)
+        for msg in create_orders(20):
+            self.stdout.write(msg)
+        for msg in set_featured_products(16):
+            self.stdout.write(msg)
+        for msg in create_collections_by_schema(self.placeholders_dir):
+            self.stdout.write(msg)
+        for msg in create_page():
+            self.stdout.write(msg)
+        for msg in create_menus():
+            self.stdout.write(msg)
         create_translations()
         if options['createsuperuser']:
             credentials = {'email': 'admin@example.com', 'password': 'admin'}

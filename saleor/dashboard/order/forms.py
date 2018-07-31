@@ -241,6 +241,9 @@ class OrderEditVoucherForm(forms.ModelForm):
                 decrease_voucher_usage(self.old_voucher)
             increase_voucher_usage(voucher)
         self.instance.discount_name = voucher.name or ''
+        self.instance.translated_discount_name = (
+            voucher.translated.name
+            if voucher.translated.name != voucher.name else '')
         recalculate_order(self.instance)
         return super().save(commit)
 
@@ -535,6 +538,7 @@ class OrderRemoveVoucherForm(forms.ModelForm):
         decrease_voucher_usage(self.instance.voucher)
         self.instance.discount_amount = 0
         self.instance.discount_name = ''
+        self.instance.translated_discount_name = ''
         self.instance.voucher = None
         recalculate_order(self.instance)
 

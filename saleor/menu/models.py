@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.translation import pgettext_lazy
+from jsonfield import JSONField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 
@@ -11,6 +12,7 @@ from ..product.models import Category, Collection
 
 class Menu(models.Model):
     name = models.CharField(max_length=128)
+    json_content = JSONField(blank=True, default='')
 
     class Meta:
         permissions = ((

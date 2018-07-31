@@ -110,7 +110,7 @@
 <div class="table__row">
   <div class="row">
     <div class="col-8 order-details__table-footer">
-      <p>{{ order.discount_name }}</p>
+      <p>{{ order.translated_discount_name|default:order.discount_name }}</p>
     </div>
     <div class="col-4">
       <p class="float-right">

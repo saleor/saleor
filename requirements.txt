@@ -65,7 +65,7 @@ graphene==2.1.3           # via django-graphql-jwt, graphene-django
 graphql-core==2.1         # via graphene, graphene-django, graphql-relay
 graphql-relay==0.4.5      # via graphene
 html5lib==1.0.1           # via bleach, weasyprint
-idna==2.6                 # via cryptography, requests
+idna==2.6                 # via cryptography, requests, yarl
 iso8601==0.1.12           # via graphene-django
 jmespath==0.9.3           # via boto3, botocore
 jsonfield==2.0.2
@@ -73,6 +73,7 @@ kombu==4.2.1              # via celery
 markdown==2.6.11
 maxminddb-geolite2==2017.803
 maxminddb==1.3.0
+multidict==4.3.1          # via yarl
 oauthlib==2.0.6           # via requests-oauthlib, social-auth-core
 pdfrw==0.4                # via weasyprint
 phonenumberslite==8.9.1
@@ -118,3 +119,4 @@ weasyprint==0.42.2
 webencodings==0.5.1       # via html5lib, tinycss2
 wrapt==1.10.11            # via vcrpy
 xmltodict==0.11.0         # via django-payments
+yarl==1.2.6               # via vcrpy
