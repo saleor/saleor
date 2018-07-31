@@ -7,7 +7,7 @@ from django.utils.translation import pgettext_lazy
 from django_prices.forms import MoneyField
 from mptt.forms import TreeNodeMultipleChoiceField
 
-from ...core.i18n import COUNTRY_CODE_CHOICES, ANY_COUNTRY
+from ...core.i18n import ANY_COUNTRY, COUNTRY_CODE_CHOICES
 from ...core.utils.taxes import ZERO_MONEY
 from ...discount import DiscountValueType
 from ...discount.models import Sale, Voucher
