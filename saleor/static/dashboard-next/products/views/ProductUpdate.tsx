@@ -56,6 +56,10 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                     pushMessage({
                       text: i18n.t("Image successfully uploaded")
                     });
+                  const handleImageDeleteSuccess = () =>
+                    pushMessage({
+                      text: i18n.t("Image successfully deleted")
+                    });
                   const handleVariantAdd = () =>
                     navigate(productVariantAddUrl(id));
 
@@ -78,15 +82,19 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                       onDelete={handleDelete}
                       onError={handleError}
                       onImageCreate={handleImageCreate}
+                      onImageDelete={handleImageDeleteSuccess}
                       onUpdate={handleUpdate}
                     >
                       {({
                         createProductImage,
                         deleteProduct,
+                        deleteProductImage,
                         errors,
                         reorderProductImages,
                         updateProduct
                       }) => {
+                        const handleImageDelete = (id: string) => () =>
+                          deleteProductImage.mutate({ id });
                         const handleImageEdit = (imageId: string) => () =>
                           navigate(productImageUrl(id, imageId));
                         const handleSubmit = data => {
@@ -177,6 +185,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               }
                             }}
                             onImageEdit={handleImageEdit}
+                            onImageDelete={handleImageDelete}
                           />
                         );
                       }}
