@@ -1,7 +1,6 @@
 import graphene
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
@@ -15,8 +14,7 @@ from ..order.mutations.draft_orders import AddressInput
 from ..utils import get_node
 
 
-def send_user_password_reset_email(user):
-    site = Site.objects.get_current()
+def send_user_password_reset_email(user, site):
     context = {
         'email': user.email,
         'uid': urlsafe_base64_encode(force_bytes(user.pk)).decode(),
@@ -63,7 +61,8 @@ class CustomerCreate(ModelMutation):
     def save(cls, info, user, cleaned_input):
         user.save()
         if cleaned_input.get('send_password_email'):
-            send_user_password_reset_email(user)
+            site = info.context.site
+            send_user_password_reset_email(user, site)
 
     @classmethod
     def user_is_allowed(cls, user, input):
@@ -124,7 +123,8 @@ class StaffCreate(ModelMutation):
     def save(cls, info, user, cleaned_input):
         user.save()
         if cleaned_input.get('send_password_email'):
-            send_user_password_reset_email(user)
+            site = info.context.site
+            send_user_password_reset_email(user, site)
 
 
 class StaffUpdate(StaffCreate):
@@ -193,7 +193,8 @@ class PasswordReset(BaseMutation):
                     Error(
                         field='email',
                         message='User with this email doesn\'t exist')])
-        send_user_password_reset_email(user)
+        site = info.context.site
+        send_user_password_reset_email(user, site)
 
 
 class AddressCreateInput(AddressInput):
