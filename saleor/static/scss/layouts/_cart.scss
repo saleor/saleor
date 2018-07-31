@@ -101,8 +101,11 @@
     }
   }
   &__clear{
+    @media (max-width: 400px){
+      margin-top: $global-margin;
+    }
     @media (min-width: 470px) {
-      margin-right: 1rem;
+      margin-right: $global-margin;
     }
     @media (max-width: 370px) {
       width: 100%;
