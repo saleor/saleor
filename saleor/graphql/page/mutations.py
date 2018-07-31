@@ -2,7 +2,7 @@ import graphene
 
 from ...page import models
 from ..core.mutations import ModelDeleteMutation, ModelMutation
-from ..core.types import SeoInput
+from ..core.types.common import SeoInput
 from ..core.utils import clean_seo_fields
 
 

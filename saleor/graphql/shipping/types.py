@@ -3,7 +3,8 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from ...shipping import models
-from ..core.types import CountableDjangoObjectType, MoneyRange
+from ..core.types.common import CountableDjangoObjectType
+from ..core.types.money import MoneyRange
 
 
 class ShippingMethod(CountableDjangoObjectType):

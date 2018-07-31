@@ -6,7 +6,7 @@ from graphene_django.registry import get_global_registry
 from graphql_relay import from_global_id
 
 from ..product.models import AttributeChoiceValue, ProductAttribute
-from .core.types import PermissionDisplay
+from .core.types.common import PermissionDisplay
 
 registry = get_global_registry()
 

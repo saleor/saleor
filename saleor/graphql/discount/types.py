@@ -3,7 +3,7 @@ from graphene import relay
 
 from ...discount import (
     DiscountValueType, VoucherApplyToProduct, VoucherType, models)
-from ..core.types import CountableDjangoObjectType
+from ..core.types.common import CountableDjangoObjectType
 
 
 class Voucher(CountableDjangoObjectType):
