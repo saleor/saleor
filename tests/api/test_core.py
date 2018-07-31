@@ -115,7 +115,7 @@ def test_query_tax_rates(admin_api_client, user_api_client, vatlayer):
                 standardRate
                 reducedRates {
                     rate
-                    type
+                    rateType
                 }
             }
         }

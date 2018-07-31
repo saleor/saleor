@@ -68,14 +68,14 @@ class VAT(graphene.ObjectType):
     def resolve_reduced_rates(self, info):
         reduced_rates = self.data.get('reduced_rates', {}) or {}
         return [
-            ReducedRate(rate=rate, type=type)
-            for type, rate in reduced_rates.items()]
+            ReducedRate(rate=rate, rate_type=rate_type)
+            for rate_type, rate in reduced_rates.items()]
 
 
 class ReducedRate(graphene.ObjectType):
     rate = graphene.Float(
         description='Reduced VAT rate in percent.', required=True)
-    type = graphene.String(description='A type of goods.', required=True)
+    rate_type = graphene.String(description='A type of goods.', required=True)
 
     class Meta:
         description = 'Represents a reduced VAT rate for a particular type of goods.'
