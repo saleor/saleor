@@ -25,13 +25,6 @@ export interface LoginCardProps {
 }
 
 const decorate = withStyles(theme => ({
-  "@global": {
-    input: {
-      "&:-webkit-autofill": {
-        boxShadow: "inset 0 0 0px 9999px #EFF8F2"
-      }
-    }
-  },
   card: {
     padding: `${theme.spacing.unit * 10.5}px ${theme.spacing.unit * 17}px`,
     width: "100%"
