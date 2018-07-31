@@ -5,6 +5,8 @@ import {
   ProductCreateDataQuery,
   ProductDetailsQuery,
   ProductDetailsQueryVariables,
+  ProductImageQuery,
+  ProductImageQueryVariables,
   ProductListQuery,
   ProductListQueryVariables,
   ProductVariantCreateDataQuery,
@@ -383,7 +385,7 @@ export const productVariantCreateQuery = gql`
 `;
 
 export const TypedProductImageQuery = Query as React.ComponentType<
-  QueryProps<ProductImageQuery, ProductImageVariables>
+  QueryProps<ProductImageQuery, ProductImageQueryVariables>
 >;
 export const productImageQuery = gql`
   query ProductImage($productId: ID!, $imageId: String!) {
@@ -393,6 +395,7 @@ export const productImageQuery = gql`
           cursor
           node {
             id
+            alt
             url
           }
         }

@@ -8,6 +8,8 @@ import {
   ProductDeleteMutationVariables,
   ProductImageCreateMutation,
   ProductImageCreateMutationVariables,
+  ProductImageDeleteMutation,
+  ProductImageDeleteMutationVariables,
   ProductImageReorderMutation,
   ProductImageReorderMutationVariables,
   ProductUpdateMutation,
@@ -273,7 +275,7 @@ export const variantCreateMutation = gql`
 `;
 
 export const TypedProductImageDeleteMutation = Mutation as React.ComponentType<
-  MutationProps<ProductImageDeleteMutation, ProductImageMutationDeleteVariables>
+  MutationProps<ProductImageDeleteMutation, ProductImageDeleteMutationVariables>
 >;
 
 export const productImageDeleteMutation = gql`
@@ -286,21 +288,21 @@ export const productImageDeleteMutation = gql`
   }
 `;
 
-export const TypedProductImageUpdateMutation = Mutation as React.ComponentType<
-  MutationProps<ProductImageUpdateMutation, ProductImageMutationUpdateVariables>
->;
+// export const TypedProductImageUpdateMutation = Mutation as React.ComponentType<
+//   MutationProps<ProductImageUpdateMutation, ProductImageMutationUpdateVariables>
+// >;
 
-export const productImageUpdateMutation = gql`
-  mutation ProductImageUpdate($id: ID!, $alt: String!) {
-    productImageUpdate(id: $id, input: { alt: $alt }) {
-      errors {
-        field
-        message
-      }
-      productImage {
-        id
-        alt
-      }
-    }
-  }
-`;
+// export const productImageUpdateMutation = gql`
+//   mutation ProductImageUpdate($id: ID!, $alt: String!) {
+//     productImageUpdate(id: $id, input: { alt: $alt }) {
+//       errors {
+//         field
+//         message
+//       }
+//       productImage {
+//         id
+//         alt
+//       }
+//     }
+//   }
+// `;
