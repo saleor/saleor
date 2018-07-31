@@ -1,6 +1,7 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
 import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
@@ -10,7 +11,9 @@ import EditIcon from "@material-ui/icons/Edit";
 import * as React from "react";
 import { SortableContainer, SortableElement } from "react-sortable-hoc";
 
+import ActionDialog from "../../../components/ActionDialog";
 import CardTitle from "../../../components/CardTitle";
+import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
 
 interface ProductImagesProps {
@@ -22,7 +25,8 @@ interface ProductImagesProps {
     url: string;
   }>;
   loading?: boolean;
-  onImageEdit?(id: string);
+  onImageDelete: (id: string) => () => void;
+  onImageEdit: (id: string) => () => void;
   onImageUpload?(event: React.ChangeEvent<any>);
   onImageReorder?(event: { oldIndex: number; newIndex: number });
 }
@@ -34,12 +38,14 @@ interface ImageListElementProps {
     sortOrder: number;
     url: string;
   };
-  onImageEdit(event: React.ChangeEvent<any>);
+  onImageDelete: () => void;
+  onImageEdit: (event: React.ChangeEvent<any>) => void;
 }
 
 interface ImageListContainerProps {
   items: any;
-  onImageEdit(id: string);
+  onImageDelete: (id: string) => () => void;
+  onImageEdit: (id: string) => () => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -116,35 +122,58 @@ const decorate = withStyles(theme => ({
 }));
 
 const ImageListElement = SortableElement(
-  decorate<ImageListElementProps>(({ classes, onImageEdit, tile }) => (
-    <div className={classes.imageContainer}>
-      <div className={classes.imageOverlay}>
-        <div className={classes.imageOverlayToolbar}>
-          <IconButton color="secondary" onClick={onImageEdit}>
-            <EditIcon />
-          </IconButton>
-          <IconButton color="secondary">
-            <DeleteIcon />
-          </IconButton>
+  decorate<ImageListElementProps>(
+    ({ classes, onImageDelete, onImageEdit, tile }) => (
+      <div className={classes.imageContainer}>
+        <div className={classes.imageOverlay}>
+          <div className={classes.imageOverlayToolbar}>
+            <IconButton color="secondary" onClick={onImageEdit}>
+              <EditIcon />
+            </IconButton>
+            <IconButton color="secondary" onClick={onImageDelete}>
+              <DeleteIcon />
+            </IconButton>
+          </div>
         </div>
+        <img className={classes.image} src={tile.url} alt={tile.alt} />
       </div>
-      <img className={classes.image} src={tile.url} alt={tile.alt} />
-    </div>
-  ))
+    )
+  )
 );
 
 const ImageListContainer = SortableContainer(
   decorate<ImageListContainerProps>(
-    ({ classes, items, onImageEdit, ...props }) => {
+    ({ classes, items, onImageDelete, onImageEdit, ...props }) => {
       return (
         <div {...props}>
           {items.map((image, index) => (
-            <ImageListElement
-              key={`item-${index}`}
-              index={index}
-              tile={image}
-              onImageEdit={onImageEdit ? onImageEdit(image.id) : null}
-            />
+            <Toggle>
+              {(opened, { toggle }) => (
+                <>
+                  <ImageListElement
+                    key={`item-${index}`}
+                    index={index}
+                    tile={image}
+                    onImageEdit={onImageEdit ? onImageEdit(image.id) : null}
+                    onImageDelete={toggle}
+                  />
+                  <ActionDialog
+                    open={opened}
+                    onClose={toggle}
+                    onConfirm={() => {
+                      onImageDelete(image.id)();
+                      toggle();
+                    }}
+                    variant="delete"
+                    title={i18n.t("Remove product image")}
+                  >
+                    <DialogContentText>
+                      {i18n.t("Are you sure you want to delete this image?")}
+                    </DialogContentText>
+                  </ActionDialog>
+                </>
+              )}
+            </Toggle>
           ))}
         </div>
       );
@@ -159,6 +188,7 @@ const ProductImages = decorate<ProductImagesProps>(
     placeholderImage,
     loading,
     onImageEdit,
+    onImageDelete,
     onImageReorder,
     onImageUpload
   }) => (
@@ -200,6 +230,7 @@ const ProductImages = decorate<ProductImagesProps>(
             items={images}
             onSortEnd={onImageReorder}
             className={classes.root}
+            onImageDelete={onImageDelete}
             onImageEdit={onImageEdit}
           />
         ) : (

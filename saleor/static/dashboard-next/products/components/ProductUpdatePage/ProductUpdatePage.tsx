@@ -92,6 +92,7 @@ interface ProductUpdateProps {
   header: string;
   saveButtonBarState?: SaveButtonBarState;
   onVariantShow: (id: string) => () => void;
+  onImageDelete: (id: string) => () => void;
   onAttributesEdit: () => void;
   onBack?();
   onDelete?(id: string);
@@ -141,6 +142,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
     onAttributesEdit,
     onBack,
     onDelete,
+    onImageDelete,
     onImageEdit,
     onImageReorder,
     onImageUpload,
@@ -247,6 +249,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
                       <ProductImages
                         images={images}
                         placeholderImage={placeholderImage}
+                        onImageDelete={onImageDelete}
                         onImageReorder={onImageReorder}
                         onImageEdit={onImageEdit}
                         onImageUpload={onImageUpload}
