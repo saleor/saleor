@@ -40,6 +40,7 @@ interface AuthProviderProps {
 
 interface AuthProviderState {
   user: UserFragment;
+  persistToken: boolean;
 }
 
 class AuthProvider extends React.Component<
@@ -48,7 +49,7 @@ class AuthProvider extends React.Component<
 > {
   constructor(props) {
     super(props);
-    this.state = { user: undefined };
+    this.state = { user: undefined, persistToken: false };
   }
 
   componentWillReceiveProps(props: AuthProviderProps) {
@@ -58,7 +59,7 @@ class AuthProvider extends React.Component<
     }
     if (tokenAuth.data) {
       this.setState({ user: tokenAuth.data.tokenCreate.user });
-      setAuthToken(tokenAuth.data.tokenCreate.token);
+      setAuthToken(tokenAuth.data.tokenCreate.token, this.state.persistToken);
     }
     if (tokenVerify.data) {
       this.setState({ user: tokenVerify.data.tokenVerify.user });
@@ -74,8 +75,9 @@ class AuthProvider extends React.Component<
     }
   }
 
-  login = (email: string, password: string) => {
+  login = (email: string, password: string, persistToken: boolean) => {
     const { tokenAuth } = this.props;
+    this.setState({ persistToken });
     tokenAuth.mutate({ variables: { email, password } });
   };
 
@@ -93,8 +95,7 @@ class AuthProvider extends React.Component<
       <UserContext.Provider
         value={{ user, login: this.login, logout: this.logout }}
       >
-        {/* FIXME: render lodaing state properly */}
-        { loading ? <div>Loading...</div> : children({ isAuthenticated }) }
+        {children({ isAuthenticated })}
       </UserContext.Provider>
     );
   }
