@@ -122,6 +122,10 @@ class AddressForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         autocomplete_type = kwargs.pop('autocomplete_type', None)
         super().__init__(*args, **kwargs)
+        # countries order was taken as defined in the model,
+        # not being sorted accordingly to the selected language
+        self.fields['country'].choices = sorted(
+            COUNTRY_CHOICES, key=lambda choice: choice[1])
         autocomplete_dict = defaultdict(
             lambda: 'off', self.AUTOCOMPLETE_MAPPING)
         for field_name, field in self.fields.items():

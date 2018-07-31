@@ -5,7 +5,7 @@ from graphql_jwt.decorators import permission_required
 
 from .account.mutations import (
     CustomerCreate, CustomerUpdate, PasswordReset, SetPassword, StaffCreate,
-    StaffUpdate)
+    StaffUpdate, AddressCreate, AddressUpdate, AddressDelete)
 from .account.resolvers import resolve_user, resolve_users
 from .account.types import User
 from .menu.resolvers import resolve_menus, resolve_menu_items
@@ -261,6 +261,10 @@ class Mutations(graphene.ObjectType):
 
     staff_create = StaffCreate.Field()
     staff_update = StaffUpdate.Field()
+
+    address_create = AddressCreate.Field()
+    address_update = AddressUpdate.Field()
+    address_delete = AddressDelete.Field()
 
     collection_create = CollectionCreate.Field()
     collection_update = CollectionUpdate.Field()
