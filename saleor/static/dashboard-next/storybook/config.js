@@ -28,6 +28,9 @@ function loadStories() {
   require("./stories/attributes/AttributeDetailsPage");
   require("./stories/attributes/AttributeListPage");
 
+  // Authentication
+  require("./stories/auth/LoginPage");
+
   // Categories
   require("./stories/categories/CategoryDeleteDialog");
   require("./stories/categories/CategoryDetailsPage");

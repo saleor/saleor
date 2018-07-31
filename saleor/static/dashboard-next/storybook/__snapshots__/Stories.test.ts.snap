@@ -12541,6 +12541,259 @@ exports[`Storyshots Views / Attributes / Attribute list no data 1`] = `
 </div>
 `;
 
+exports[`Storyshots Views / Authentication / Log in default 1`] = `
+<form>
+  <div
+    class="Component-sm-id Component-root-id"
+  >
+    <div
+      class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id Component-card-id"
+    >
+      <span
+        class="isvg pending Component-logo-id"
+      />
+      <div
+        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+      >
+        <label
+          class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+          data-shrink="false"
+        >
+          Email
+        </label>
+        <div
+          class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+        >
+          <input
+            aria-invalid="false"
+            aria-required="false"
+            autocomplete="username"
+            autofocus=""
+            class="MuiInput-input-id"
+            name="email"
+            type="text"
+            value=""
+          />
+        </div>
+      </div>
+      <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+      >
+        <label
+          class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+          data-shrink="false"
+        >
+          Password
+        </label>
+        <div
+          class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+        >
+          <input
+            aria-invalid="false"
+            aria-required="false"
+            autocomplete="current-password"
+            class="MuiInput-input-id MuiInput-inputType-id"
+            name="password"
+            type="password"
+            value=""
+          />
+        </div>
+      </div>
+      <div
+        class="Component-spacer-id"
+      />
+      <label
+        class="MuiFormControlLabel-root-id"
+      >
+        <span
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+              />
+            </svg>
+            <input
+              class="MuiSwitchBase-input-id"
+              name="rememberMe"
+              type="checkbox"
+            />
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </span>
+        <span
+          class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+        >
+          Remember me
+        </span>
+      </label>
+      <div
+        class="Component-spacer-id"
+      />
+      <button
+        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id Component-loginButton-id"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiButton-label-id"
+        >
+          Login
+        </span>
+        <span
+          class="MuiTouchRipple-root-id"
+        />
+      </button>
+    </div>
+  </div>
+</form>
+`;
+
+exports[`Storyshots Views / Authentication / Log in error 1`] = `
+<form>
+  <div
+    class="Component-sm-id Component-root-id"
+  >
+    <div
+      class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id Component-card-id"
+    >
+      <span
+        class="isvg pending Component-logo-id"
+      />
+      <div
+        class="Component-panel-id"
+      >
+        <span
+          class="MuiTypography-root-id MuiTypography-caption-id"
+        >
+          Sorry, your username and/or password are incorrect. 
+          <br />
+          Please try again.
+        </span>
+      </div>
+      <div
+        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+      >
+        <label
+          class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+          data-shrink="false"
+        >
+          Email
+        </label>
+        <div
+          class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+        >
+          <input
+            aria-invalid="false"
+            aria-required="false"
+            autocomplete="username"
+            autofocus=""
+            class="MuiInput-input-id"
+            name="email"
+            type="text"
+            value=""
+          />
+        </div>
+      </div>
+      <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+      >
+        <label
+          class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+          data-shrink="false"
+        >
+          Password
+        </label>
+        <div
+          class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+        >
+          <input
+            aria-invalid="false"
+            aria-required="false"
+            autocomplete="current-password"
+            class="MuiInput-input-id MuiInput-inputType-id"
+            name="password"
+            type="password"
+            value=""
+          />
+        </div>
+      </div>
+      <div
+        class="Component-spacer-id"
+      />
+      <label
+        class="MuiFormControlLabel-root-id"
+      >
+        <span
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+              />
+            </svg>
+            <input
+              class="MuiSwitchBase-input-id"
+              name="rememberMe"
+              type="checkbox"
+            />
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </span>
+        <span
+          class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+        >
+          Remember me
+        </span>
+      </label>
+      <div
+        class="Component-spacer-id"
+      />
+      <button
+        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id Component-loginButton-id"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiButton-label-id"
+        >
+          Login
+        </span>
+        <span
+          class="MuiTouchRipple-root-id"
+        />
+      </button>
+    </div>
+  </div>
+</form>
+`;
+
 exports[`Storyshots Views / Categories / Category details default 1`] = `
 <div
   class="Component-md-id "

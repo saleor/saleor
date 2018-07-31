@@ -6,12 +6,12 @@ import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 import SVG from "react-inlinesvg";
 
-import * as saleorLogo from "../../../images/logo.svg";
-import Container from "../../components/Container";
-import Form from "../../components/Form";
-import i18n from "../../i18n";
-import { ControlledCheckbox } from "../ControlledCheckbox";
-import { FormSpacer } from "../FormSpacer";
+import * as saleorLogo from "../../../../images/logo.svg";
+import Container from "../../../components/Container";
+import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
+import Form from "../../../components/Form";
+import { FormSpacer } from "../../../components/FormSpacer";
+import i18n from "../../../i18n";
 
 export interface FormData {
   email: string;

@@ -149,7 +149,7 @@
     "globals": {},
     "transform": {
       "^.+\\.tsx?$": "ts-jest",
-      "^.+\\.png?$": "jest-file"
+      "^.+\\.(png|svg|jpe?g)$": "jest-file"
     },
     "testRegex": ".*\\.test\\.tsx?$",
     "moduleFileExtensions": [

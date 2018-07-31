@@ -1,15 +1,15 @@
 import * as React from "react";
 
-import LoginCard, { FormData } from "../../components/LoginCard";
+import LoginPage, { FormData } from "../components/LoginPage";
 import { UserContext } from "../index";
 
-const LoginPage: React.StatelessComponent = () => (
+const LoginView: React.StatelessComponent = () => (
   <UserContext.Consumer>
     {({ login, user }) => {
       const handleSubmit = (data: FormData) =>
         login(data.email, data.password, data.rememberMe);
       return (
-        <LoginCard
+        <LoginPage
           error={user === null}
           onPasswordRecovery={() => {}}
           onSubmit={handleSubmit}
@@ -19,4 +19,4 @@ const LoginPage: React.StatelessComponent = () => (
   </UserContext.Consumer>
 );
 
-export default LoginPage;
+export default LoginView;
