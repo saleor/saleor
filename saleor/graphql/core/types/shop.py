@@ -43,7 +43,7 @@ class Shop(graphene.ObjectType):
         description='Default shop\'s currency.', required=True)
     description = graphene.String(description='Shop\'s description.')
     domain = graphene.Field(
-        lambda: Domain, required=True, description='Shop\'s domain data.')
+        Domain, required=True, description='Shop\'s domain data.')
     languages = graphene.List(
         LanguageDisplay,
         description='List of the shops\'s supported languages.', required=True)
@@ -55,10 +55,10 @@ class Shop(graphene.ObjectType):
         graphene.String, description='List of possible phone prefixes.',
         required=True)
     tax_rates = graphene.List(
-        lambda: VAT, description='List of VAT tax rates configured in the shop.',
+        VAT, description='List of VAT tax rates configured in the shop.',
         required=True)
     tax_rate = graphene.Field(
-        lambda: VAT, description='VAT tax rates for a specific country.',
+        VAT, description='VAT tax rates for a specific country.',
         required=True, country_code=graphene.Argument(graphene.String))
 
     class Meta:
