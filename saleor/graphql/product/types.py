@@ -10,8 +10,8 @@ from ...product.utils.costs import (
     get_margin_for_variant, get_product_costs_data)
 from ..core.decorators import permission_required
 from ..core.filters import DistinctFilterSet
-from ..core.types import (
-    CountableDjangoObjectType, Money, MoneyRange, TaxedMoney, TaxedMoneyRange)
+from ..core.types.common import CountableDjangoObjectType
+from ..core.types.money import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from .filters import ProductFilterSet
 
 

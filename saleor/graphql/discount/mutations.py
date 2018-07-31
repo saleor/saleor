@@ -2,7 +2,7 @@ import graphene
 
 from ...discount import VoucherType, models
 from ..core.mutations import ModelDeleteMutation, ModelMutation
-from ..core.types import Decimal
+from ..core.types.common import Decimal
 from .types import ApplyToEnum, DiscountValueTypeEnum, VoucherTypeEnum
 
 

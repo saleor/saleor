@@ -2,7 +2,7 @@ import graphene
 from django_prices.models import MoneyField, TaxedMoneyField
 from graphene_django.converter import convert_django_field
 
-from .types import Money, TaxedMoney
+from .types.money import Money, TaxedMoney
 
 
 @convert_django_field.register(TaxedMoneyField)
