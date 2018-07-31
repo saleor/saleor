@@ -2,11 +2,13 @@ import json
 from django.contrib.auth.tokens import default_token_generator
 
 import graphene
+import pytest
 from django.contrib.auth import get_user_model
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 from .utils import assert_no_permission
 
+from saleor.account.models import Address
 from saleor.graphql.account.mutations import SetPassword
 
 
@@ -414,3 +416,81 @@ def test_set_password(user_api_client, customer_user):
 
     customer_user.refresh_from_db()
     assert customer_user.check_password(password)
+
+
+def test_create_address_mutation(admin_api_client, customer_user):
+    query = """
+    mutation CreateUserAddress($user: ID!, $city: String!, $country: String!) {
+        addressCreate(input: {userId: $user, city: $city, country: $country}) {
+         errors {
+            field
+            message
+         }
+         address {
+            id
+            city
+            country
+         }
+        }
+    }
+    """
+    user_id = graphene.Node.to_global_id('User', customer_user.id)
+    variables = json.dumps(
+        {'user': user_id, 'city': 'Dummy', 'country': 'PL'})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert content['data']['addressCreate']['errors'] == []
+    address_response = content['data']['addressCreate']['address']
+    assert address_response['city'] == 'Dummy'
+    assert address_response['country'] == 'PL'
+    address_obj = Address.objects.get(city='Dummy')
+    assert address_obj.user_addresses.first() == customer_user
+
+
+def test_address_update_mutation(admin_api_client, customer_user):
+    query = """
+    mutation updateUserAddress($addressId: ID!, $city: String!) {
+        addressUpdate(id: $addressId, input: {city: $city}) {
+            address {
+                city
+            }
+        }
+    }
+    """
+    address_obj = customer_user.addresses.first()
+    new_city = 'Dummy'
+    variables = {
+        'addressId': graphene.Node.to_global_id('Address', address_obj.id),
+        'city': new_city}
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['addressUpdate']
+    assert data['address']['city'] == new_city
+    address_obj.refresh_from_db()
+    assert address_obj.city == new_city
+
+
+def test_address_delete_mutation(admin_api_client, customer_user):
+    query = """
+            mutation deleteUserAddress($id: ID!) {
+                addressDelete(id: $id) {
+                    address {
+                        city
+                    }
+                }
+            }
+        """
+    address_obj = customer_user.addresses.first()
+    variables = {
+        'id': graphene.Node.to_global_id('Address', address_obj.id)}
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['addressDelete']
+    assert data['address']['city'] == address_obj.city
+    with pytest.raises(address_obj._meta.model.DoesNotExist):
+        address_obj.refresh_from_db()
