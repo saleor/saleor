@@ -1,5 +1,4 @@
 import graphene
-
 from django_prices.templatetags import prices_i18n
 
 
@@ -57,7 +56,8 @@ class VAT(graphene.ObjectType):
         description='Standard VAT rate in percent.')
     reduced_rates = graphene.List(
         lambda: ReducedRate,
-        description='Country\'s VAT rate exceptions for specific types of goods.')
+        description='''
+        Country\'s VAT rate exceptions for specific types of goods.''')
 
     class Meta:
         description = 'Represents a VAT rate for a country.'
@@ -78,4 +78,5 @@ class ReducedRate(graphene.ObjectType):
     rate_type = graphene.String(description='A type of goods.', required=True)
 
     class Meta:
-        description = 'Represents a reduced VAT rate for a particular type of goods.'
+        description = '''
+        Represents a reduced VAT rate for a particular type of goods.'''

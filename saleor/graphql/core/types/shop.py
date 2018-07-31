@@ -1,9 +1,9 @@
 import graphene
+from django.conf import settings
 from django_countries import countries
 from django_prices_vatlayer import models as vatlayer_models
-from django.conf import settings
-from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 from graphql_jwt.decorators import permission_required
+from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
 from ....core.permissions import get_permissions
 from ....site import models as site_models
