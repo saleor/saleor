@@ -9,8 +9,10 @@ from graphql_jwt.decorators import permission_required
 
 from ...account import emails, models
 from ...core.permissions import MODELS_PERMISSIONS, get_permissions
-from ..core.mutations import BaseMutation, ModelMutation
+from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import Error
+from ..order.mutations.draft_orders import AddressInput
+from ..utils import get_node
 
 
 def send_user_password_reset_email(user):
@@ -21,8 +23,7 @@ def send_user_password_reset_email(user):
         'token': default_token_generator.make_token(user),
         'site_name': site.name,
         'domain': site.domain,
-        'protocol': 'https' if settings.ENABLE_SSL else 'http'
-    }
+        'protocol': 'https' if settings.ENABLE_SSL else 'http'}
     emails.send_password_reset_email.delay(context, user.email)
 
 
@@ -193,3 +194,69 @@ class PasswordReset(BaseMutation):
                         field='email',
                         message='User with this email doesn\'t exist')])
         send_user_password_reset_email(user)
+
+
+class AddressCreateInput(AddressInput):
+    user_id = graphene.ID(
+        description='ID of a user to create address for', required=True)
+
+
+class AddressCreate(ModelMutation):
+    class Arguments:
+        input = AddressCreateInput(
+            description='Fields required to create address', required=True)
+
+    class Meta:
+        description = 'Creates user address'
+        model = models.Address
+
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        user_id = input.get('user_id')
+        user = get_node(info, user_id)
+        cleaned_input = super().clean_input(info, instance, input, errors)
+        cleaned_input['user'] = user
+        return cleaned_input
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        super().save(info, instance, cleaned_input)
+        user = cleaned_input.get('user')
+        if user:
+            instance.user_addresses.add(user)
+            instance.save()
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('account.edit_user')
+
+
+class AddressUpdate(ModelMutation):
+    class Arguments:
+        id = graphene.ID(
+            description='ID of address to update', required=True)
+        input = AddressInput(
+            description='Fields required to update address', required=True)
+
+    class Meta:
+        description = 'Updates address'
+        model = models.Address
+        exclude = ['user_addresses']
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('account.edit_user')
+
+
+class AddressDelete(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of address to delete.')
+
+    class Meta:
+        description = 'Deletes an address'
+        model = models.Address
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('account.edit_user')
