@@ -21,7 +21,7 @@ class FormWithReCaptcha(forms.BaseForm):
 
 
 def get_address_form(
-        data, country_code, initial=None, instance=None, **kwargs):
+    data, country_code, initial=None, instance=None, **kwargs):
     country_form = AddressMetaForm(data, initial=initial)
     preview = False
     if country_form.is_valid():
@@ -60,7 +60,7 @@ class ChangePasswordForm(django_forms.PasswordChangeForm):
 
 def logout_on_password_change(request, user):
     if (update_session_auth_hash is not None and
-            not settings.LOGOUT_ON_PASSWORD_CHANGE):
+        not settings.LOGOUT_ON_PASSWORD_CHANGE):
         update_session_auth_hash(request, user)
 
 
@@ -120,8 +120,8 @@ class PasswordResetForm(django_forms.PasswordResetForm, FormWithReCaptcha):
         return active_users
 
     def send_mail(
-            self, subject_template_name, email_template_name, context,
-            from_email, to_email, html_email_template_name=None):
+        self, subject_template_name, email_template_name, context,
+        from_email, to_email, html_email_template_name=None):
         # Passing the user object to the Celery task throws an
         # error "'User' is not JSON serializable". Since it's not used in our
         # template, we remove it from the context.
@@ -129,25 +129,28 @@ class PasswordResetForm(django_forms.PasswordResetForm, FormWithReCaptcha):
         emails.send_password_reset_email.delay(context, to_email)
 
 
-class EmailChangeForm(forms.Form):
+class EmailChangeForm(forms.ModelForm):
     """ Allow changing email """
 
-    email = forms.EmailField(
-        label=pgettext('New email', 'Email'), max_length=75)
+    user_email = forms.EmailField(
+        label=pgettext("Label of the user's email field", "User Email"))
 
     error_messages = {
-        'email': pgettext_lazy('New email address cannot be the same'
-                               ' as your current email address'),
+        'user_email': pgettext_lazy("Change email error",
+                                    'New email address cannot be the same'
+                                    ' as your current email address'),
     }
 
-    def __init__(self, request, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['email'].widget.attrs['placeholder'] = request.user.email
-        self.user = request.user
+    class Meta:
+        model = User
+        fields = ['user_email']
 
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if self.user.email == email:
-            raise forms.ValidationError(self.error_messages['email'],
-                                        code='email', )
-        return email
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = self.instance
+        self.fields['user_email'].widget.attrs['placeholder'] = self.user.email
+
+    def clean(self):
+        user_email = self.cleaned_data.get('user_email')
+        if self.user.email == user_email:
+            self.add_error('user_email', self.error_messages['user_email'])

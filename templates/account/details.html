@@ -137,10 +137,10 @@
         {% if user.email %}
         <div class="row ">
           <div class="col-md-8 col-lg-6 m-auto user__email">
-            <form action="{% url 'account:email-edit' %}" method="post">
+            <form action="" method="post">
               {% csrf_token %}
               {% bootstrap_form change_email_form %}
-              <input class="btn primary narrow" value="Change email" type="submit" style="float:right; margin-top:1rem">
+              <input class="btn primary narrow" value="Change email" name="email_change" type="submit" style="float:right; margin-top:1rem">
             </form>
           </div>
         </div>
@@ -151,7 +151,7 @@
             <form action="" method="post">
               {% csrf_token %}
               {% bootstrap_form change_password_form %}
-              <input type="submit" class="btn primary narrow" value="{% trans "Change password" context "User profile action" %}">
+              <input type="submit" class="btn primary narrow" name="password_change" value="{% trans "Change password" context "User profile action" %}">
             </form>
           </div>
         </div>

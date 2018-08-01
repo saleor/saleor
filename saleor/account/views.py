@@ -75,8 +75,8 @@ def password_reset_confirm(request, uidb64=None, token=None):
 
 @login_required
 def details(request):
-    password_form = get_or_process_password_form(request)
-    email_form = email_edit(request)
+
+    email_form, password_form = get_forms_by_method_or_button(request)
     orders = request.user.orders.confirmed().prefetch_related('lines')
     orders_paginated = get_paginator_items(
         orders, settings.PAGINATE_BY, request.GET.get('page'))
@@ -86,6 +86,19 @@ def details(request):
            'change_email_form': email_form}
 
     return TemplateResponse(request, 'account/details.html', ctx)
+
+
+def get_forms_by_method_or_button(request):
+    if request.method == 'POST':
+        if 'email_change' in request.POST:
+            password_form = ChangePasswordForm(data=None, user=request.user)
+            email_form = email_edit(request)
+        elif 'password_change' in request.POST:
+            password_form = get_or_process_password_form(request)
+            email_form = EmailChangeForm(data=None)
+        return email_form, password_form
+    else:
+        return email_edit(request), get_or_process_password_form(request)
 
 
 def get_or_process_password_form(request):
@@ -162,16 +175,10 @@ def account_delete_confirm(request, token):
 
 @login_required
 def email_edit(request):
-    form = EmailChangeForm(request, data=request.POST or None)
+    form = EmailChangeForm(data=request.POST or None, instance=request.user)
 
     if request.method == 'POST':
         if form.is_valid():
-            form.clean_email()
             messages.success(request, pgettext(
                 'Storefront message', 'Email successfully changed.'))
-        elif form.errors:
-            messages.error(request, pgettext(
-                'Storefront message', 'Something goes wrong'))
-        return HttpResponseRedirect(reverse('account:details') + '#settings')
-    else:
-        return form
+    return form
