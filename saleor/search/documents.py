@@ -2,6 +2,7 @@ from django_elasticsearch_dsl import DocType, Index, fields
 from elasticsearch_dsl import analyzer, token_filter
 
 from ..account.models import User
+from ..account.utils import get_user_default_billing_address
 from ..order.models import Order
 from ..product.models import Product
 
@@ -44,13 +45,13 @@ class UserDocument(DocType):
         return instance.email
 
     def prepare_first_name(self, instance):
-        address = instance.default_billing_address
+        address = get_user_default_billing_address(instance)
         if address:
             return address.first_name
         return None
 
     def prepare_last_name(self, instance):
-        address = instance.default_billing_address
+        address = get_user_default_billing_address(instance)
         if address:
             return address.last_name
         return None

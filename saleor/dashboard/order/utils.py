@@ -2,6 +2,8 @@ from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import get_template
 
+from ...account.utils import (
+    get_user_default_billing_address, get_user_default_shipping_address)
 from ...checkout import AddressType
 from ...core.utils.taxes import ZERO_MONEY
 from ...discount import VoucherType
@@ -64,12 +66,12 @@ def update_order_with_user_addresses(order):
         order.billing_address = None
 
     if order.user:
+        default_shipping = get_user_default_shipping_address(order.user)
+        default_billing = get_user_default_billing_address(order.user)
         order.billing_address = (
-            order.user.default_billing_address.get_copy()
-            if order.user.default_billing_address else None)
+            default_billing.get_copy() if default_billing else None)
         order.shipping_address = (
-            order.user.default_shipping_address.get_copy()
-            if order.user.default_shipping_address else None)
+            default_shipping.get_copy() if default_shipping else None)
 
     order.save(update_fields=['billing_address', 'shipping_address'])
 
@@ -181,16 +183,18 @@ def remove_customer_from_order(order):
     order.save()
 
     if customer:
+        default_shipping = get_user_default_shipping_address(customer)
+        default_billing = get_user_default_billing_address(customer)
         equal_billing_addresses = (
-            order.billing_address and customer.default_billing_address and
-            customer.default_billing_address == order.billing_address)
+            order.billing_address and default_billing and
+            default_billing == order.billing_address)
         if equal_billing_addresses:
             order.billing_address.delete()
             order.billing_address = None
 
         equal_shipping_addresses = (
-            order.shipping_address and customer.default_shipping_address and
-            customer.default_shipping_address == order.shipping_address)
+            order.shipping_address and default_shipping and
+            default_shipping == order.shipping_address)
         if equal_shipping_addresses:
             order.shipping_address.delete()
             order.shipping_address = None

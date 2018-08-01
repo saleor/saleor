@@ -7,6 +7,9 @@ from payments import PaymentStatus
 from prices import Money
 from tests.utils import get_form_errors, get_redirect_location
 
+from saleor.account.utils import (
+    get_user_default_billing_address, get_user_default_shipping_address)
+
 from saleor.checkout import AddressType
 from saleor.core.utils.taxes import ZERO_MONEY, ZERO_TAXED_MONEY
 from saleor.dashboard.order.forms import ChangeQuantityForm, OrderNoteForm
@@ -774,9 +777,11 @@ def test_view_order_customer_edit_to_existing_user(
     assert draft_order.user == customer_user
     assert not draft_order.user_email
     assert (
-        draft_order.billing_address == customer_user.default_billing_address)
+        draft_order.billing_address ==
+        get_user_default_billing_address(customer_user))
     assert (
-        draft_order.shipping_address == customer_user.default_shipping_address)
+        draft_order.shipping_address ==
+        get_user_default_shipping_address(customer_user))
     redirect_url = reverse(
         'dashboard:order-details', kwargs={'order_pk': draft_order.pk})
     assert get_redirect_location(response) == redirect_url
@@ -953,8 +958,12 @@ def test_view_edit_discount(admin_client, draft_order, settings):
 
 def test_update_order_with_user_addresses(order):
     update_order_with_user_addresses(order)
-    assert order.billing_address == order.user.default_billing_address
-    assert order.shipping_address == order.user.default_shipping_address
+    assert (
+        order.billing_address ==
+        get_user_default_billing_address(order.user))
+    assert (
+        order.shipping_address ==
+        get_user_default_shipping_address(order.user))
 
 
 def test_update_order_with_user_addresses_empty_user(order):
@@ -997,8 +1006,10 @@ def test_remove_customer_from_order(order):
 
 
 def test_remove_customer_from_order_remove_addresses(order, customer_user):
-    order.billing_address = customer_user.default_billing_address.get_copy()
-    order.shipping_address = customer_user.default_shipping_address.get_copy()
+    order.billing_address = (
+        get_user_default_billing_address(customer_user).get_copy())
+    order.shipping_address = (
+        get_user_default_shipping_address(customer_user).get_copy())
 
     remove_customer_from_order(order)
 

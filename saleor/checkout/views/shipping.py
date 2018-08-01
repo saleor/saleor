@@ -1,6 +1,7 @@
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
+from ...account.utils import get_user_addresses
 from ..utils import (
     get_cart_data_for_checkout, get_taxes_for_cart,
     update_shipping_address_in_anonymous_cart, update_shipping_address_in_cart)
@@ -31,7 +32,7 @@ def user_shipping_address_view(request, cart):
     """
     cart.email = request.user.email
     cart.save(update_fields=['email'])
-    user_addresses = cart.user.addresses.all()
+    user_addresses = get_user_addresses(cart.user)
 
     addresses_form, address_form, updated = update_shipping_address_in_cart(
         cart, user_addresses, request.POST or None, request.country)

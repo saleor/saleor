@@ -8,6 +8,7 @@ from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
 from saleor.account.models import Address
+from saleor.account.utils import get_user_default_billing_address
 from saleor.checkout import views
 from saleor.checkout.forms import CartVoucherForm
 from saleor.checkout.utils import (
@@ -87,7 +88,7 @@ def test_view_checkout_shipping_address_authorized_user(
     request_cart_with_item.user = customer_user
     request_cart_with_item.save()
     url = reverse('checkout:shipping-address')
-    data = {'address': customer_user.default_billing_address.pk}
+    data = {'address': get_user_default_billing_address(customer_user).pk}
 
     response = authorized_client.post(url, data, follow=True)
 
@@ -361,7 +362,8 @@ def test_create_order_insufficient_stock(
     variant = product_without_shipping.variants.get()
     add_variant_to_cart(request_cart, variant, 10, check_quantity=False)
     request_cart.user = customer_user
-    request_cart.billing_address = customer_user.default_billing_address
+    request_cart.billing_address = (
+        get_user_default_billing_address(customer_user))
     request_cart.save()
 
     with pytest.raises(InsufficientStock):

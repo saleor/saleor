@@ -16,8 +16,6 @@ class CompanyDeleteForm(forms.Form):
         if not self.user.is_staff:
             return data
 
-        import ipdb
-        ipdb.set_trace()
         if self.instance and self.instance.user_set.exists():
             raise forms.ValidationError(pgettext_lazy(
                 'Edit company details in order form error',

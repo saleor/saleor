@@ -9,6 +9,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import pgettext, ugettext_lazy as _
 from django.views.decorators.http import require_POST
 
+from ..account.utils import get_user_addresses
 from ..checkout.utils import find_and_assign_anonymous_cart
 from ..core.utils import get_paginator_items
 from .emails import send_account_delete_confirmation_email
@@ -79,7 +80,7 @@ def details(request):
     orders = request.user.orders.confirmed().prefetch_related('lines')
     orders_paginated = get_paginator_items(
         orders, settings.PAGINATE_BY, request.GET.get('page'))
-    ctx = {'addresses': request.user.addresses.all(),
+    ctx = {'addresses': get_user_addresses(request.user).all(),
            'orders': orders_paginated,
            'change_password_form': password_form}
 
@@ -98,7 +99,8 @@ def get_or_process_password_form(request):
 
 @login_required
 def address_edit(request, pk):
-    address = get_object_or_404(request.user.addresses, pk=pk)
+    user_addresses = get_user_addresses(request.user)
+    address = get_object_or_404(user_addresses, pk=pk)
     address_form, preview = get_address_form(
         request.POST or None, instance=address,
         country_code=address.country.code)
@@ -115,7 +117,8 @@ def address_edit(request, pk):
 
 @login_required
 def address_delete(request, pk):
-    address = get_object_or_404(request.user.addresses, pk=pk)
+    user_addresses = get_user_addresses(request.user)
+    address = get_object_or_404(user_addresses, pk=pk)
     if request.method == 'POST':
         address.delete()
         messages.success(

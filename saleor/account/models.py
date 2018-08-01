@@ -120,7 +120,7 @@ class User(PermissionsMixin, AbstractBaseUser):
     email = models.EmailField(unique=True)
     company = models.ForeignKey(
         Company, null=True, blank=True, on_delete=models.PROTECT)
-    user_addresses = models.ManyToManyField(Address, blank=True)
+    addresses = models.ManyToManyField(Address, blank=True)
     is_staff = models.BooleanField(default=False)
     token = models.UUIDField(default=get_token, editable=False, unique=True)
     is_active = models.BooleanField(default=True)
@@ -136,12 +136,6 @@ class User(PermissionsMixin, AbstractBaseUser):
     USERNAME_FIELD = 'email'
 
     objects = UserManager()
-
-    @property
-    def addresses(self):
-        if(self.company):
-            return Address.objects.filter(company=self.company)
-        return self.user_addresses
 
     class Meta:
         permissions = (

@@ -24,7 +24,7 @@ def customer_list(request):
         .filter(
             Q(is_staff=False) | (Q(is_staff=True) & Q(orders__isnull=False)))
         .distinct()
-        .prefetch_related('orders', 'user_addresses', 'company__addresses')
+        .prefetch_related('orders', 'addresses', 'company__addresses')
         .select_related('default_billing_address', 'default_shipping_address')
         .order_by('email'))
     customer_filter = UserFilter(request.GET, queryset=customers)
@@ -41,7 +41,7 @@ def customer_list(request):
 @permission_required('account.view_user')
 def customer_details(request, pk):
     queryset = User.objects.prefetch_related(
-        'orders', 'user_addresses', 'notes',
+        'orders', 'addresses', 'notes',
         'company__addresses').select_related(
         'default_billing_address', 'default_shipping_address')
     customer = get_object_or_404(queryset, pk=pk)

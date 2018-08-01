@@ -14,7 +14,9 @@ from prices import TaxedMoneyRange
 from . import AddressType, logger
 from ..account.forms import get_address_form
 from ..account.models import Address
-from ..account.utils import store_user_address
+from ..account.utils import (
+    get_user_default_billing_address, get_user_default_shipping_address,
+    get_user_addresses, store_user_address)
 from ..core.exceptions import InsufficientStock
 from ..core.utils import to_local_currency
 from ..core.utils.taxes import ZERO_MONEY, get_taxes_for_country
@@ -143,9 +145,11 @@ def get_or_create_anonymous_cart_from_token(
 
 def get_or_create_user_cart(user, cart_queryset=Cart.objects.all()):
     """Return an open cart for given user or create a new one."""
+    default_shipping = get_user_default_shipping_address(user)
+    default_billing = get_user_default_billing_address(user)
     defaults = {
-        'shipping_address': user.default_shipping_address,
-        'billing_address': user.default_billing_address}
+        'shipping_address': default_shipping,
+        'billing_address': default_billing}
     return cart_queryset.get_or_create(user=user, defaults=defaults)[0]
 
 
@@ -268,8 +272,8 @@ def change_cart_user(cart, user):
     if open_cart is not None:
         open_cart.delete()
     cart.user = user
-    cart.shipping_address = user.default_shipping_address
-    cart.billing_address = user.default_billing_address
+    cart.shipping_address = get_user_default_shipping_address(user)
+    cart.billing_address = get_user_default_billing_address(user)
     cart.save(update_fields=['user', 'shipping_address', 'billing_address'])
 
 
@@ -315,8 +319,8 @@ def add_variant_to_cart(
 
 def get_shipping_address_forms(cart, user_addresses, data, country):
     """Forms initialized with data depending on shipping address in cart."""
-    shipping_address = (
-        cart.shipping_address or cart.user.default_shipping_address)
+    default_shipping = get_user_default_shipping_address(cart.user)
+    shipping_address = cart.shipping_address or default_shipping
 
     if shipping_address and shipping_address in user_addresses:
         address_form, preview = get_address_form(
@@ -509,8 +513,9 @@ def get_summary_without_shipping_forms(cart, user_addresses, data, country):
             autocomplete_type='billing',
             country_code=country.code,
             initial={'country': country})
-        if cart.user and cart.user.default_billing_address:
-            initial_address = cart.user.default_billing_address.id
+        default_billing = get_user_default_billing_address(cart.user)
+        if cart.user and default_billing:
+            initial_address = default_billing.id
         else:
             initial_address = AddressChoiceForm.NEW_ADDRESS
 
@@ -558,10 +563,11 @@ def _check_new_cart_address(cart, address, address_type):
         address and not old_address,
         address and old_address and address != old_address])
 
+    user_addresses = get_user_addresses(cart.user)
     remove_old_address = (
         has_address_changed and
         old_address is not None and
-        (not cart.user or old_address not in cart.user.addresses.all()))
+        (not cart.user or old_address not in user_addresses.all()))
 
     return has_address_changed, remove_old_address
 
@@ -766,8 +772,9 @@ def _process_shipping_data_for_order(cart, taxes):
     shipping_address = cart.shipping_address
 
     if cart.user:
+        user_addresses = get_user_addresses(cart.user)
         store_user_address(cart.user, shipping_address, AddressType.SHIPPING)
-        if cart.user.addresses.filter(pk=shipping_address.pk).exists():
+        if user_addresses.filter(pk=shipping_address.pk).exists():
             shipping_address = shipping_address.get_copy()
 
     return {
@@ -782,8 +789,9 @@ def _process_user_data_for_order(cart):
     billing_address = cart.billing_address
 
     if cart.user:
+        user_addresses = get_user_addresses(cart.user)
         store_user_address(cart.user, billing_address, AddressType.BILLING)
-        if cart.user.addresses.filter(pk=billing_address.pk).exists():
+        if user_addresses.filter(pk=billing_address.pk).exists():
             billing_address = billing_address.get_copy()
 
     return {

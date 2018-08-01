@@ -18,6 +18,7 @@ from saleor.account import forms, i18n
 from saleor.account.forms import FormWithReCaptcha
 from saleor.account.models import User
 from saleor.account.templatetags.i18n_address_tags import format_address
+from saleor.account.utils import get_user_default_billing_address
 from saleor.account.validators import validate_possible_number
 
 
@@ -204,7 +205,7 @@ def test_compare_addresses_different_country(address):
 
 
 def test_user_ajax_label(customer_user):
-    address = customer_user.default_billing_address
+    address = get_user_default_billing_address(customer_user)
     label = '%s %s (%s)' % (
         address.first_name, address.last_name, customer_user.email)
     assert customer_user.get_ajax_label() == label
