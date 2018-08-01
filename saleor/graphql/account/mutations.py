@@ -9,7 +9,7 @@ from graphql_jwt.decorators import permission_required
 from ...account import emails, models
 from ...core.permissions import MODELS_PERMISSIONS, get_permissions
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.types import Error
+from ..core.types.common import Error
 from ..order.mutations.draft_orders import AddressInput
 from ..utils import get_node
 
