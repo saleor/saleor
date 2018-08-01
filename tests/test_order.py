@@ -12,7 +12,6 @@ from saleor.checkout.utils import create_order
 from saleor.core.utils.taxes import (
     DEFAULT_TAX_RATE_NAME, get_tax_rate_by_name, get_taxes_for_country)
 from saleor.order import FulfillmentStatus, OrderStatus, models
-from saleor.order.forms import OrderNoteForm
 from saleor.order.models import Order
 from saleor.order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order, recalculate_order,
@@ -158,15 +157,6 @@ def test_view_connect_order_with_user_different_email(
     assert redirect_location == reverse('account:details')
     order.refresh_from_db()
     assert order.user is None
-
-
-def test_add_note_to_order(order_with_lines):
-    order = order_with_lines
-    note = models.OrderNote(order=order, user=order.user)
-    note_form = OrderNoteForm({'content': 'test_note'}, instance=note)
-    note_form.is_valid()
-    note_form.save()
-    assert order.notes.first().content == 'test_note'
 
 
 @pytest.mark.parametrize('track_inventory', (True, False))
@@ -455,27 +445,12 @@ def test_add_order_note_view(order, authorized_client, customer_user):
     order.user_email = customer_user.email
     order.save()
     url = reverse('order:details', kwargs={'token': order.token})
-    note_content = 'bla-bla note'
-    data = {'content': note_content}
+    customer_note = 'bla-bla note'
+    data = {'customer_note': customer_note}
 
     response = authorized_client.post(url, data)
 
     redirect_url = reverse('order:details', kwargs={'token': order.token})
     assert get_redirect_location(response) == redirect_url
-    note = order.notes.first()
-    assert note.content == note_content
-
-
-def test_user_cant_view_staff_order_notes(
-       order, authorized_client, staff_user):
-    note_content = 'bla-bla note'
-    note = models.OrderNote(
-        user=staff_user, content=note_content, order=order)
-    note.save()
-
-    url = reverse('order:details', kwargs={'token': order.token})
-
-    response = authorized_client.get(url)
-
-    assert response.status_code == 200
-    assert note_content not in str(response.content)
+    order.refresh_from_db()
+    assert order.customer_note == customer_note

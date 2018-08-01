@@ -90,6 +90,7 @@ class Order(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
     discount_name = models.CharField(max_length=255, default='', blank=True)
     display_gross_prices = models.BooleanField(default=True)
+    customer_note = models.TextField(blank=True, default='')
 
     objects = OrderQueryset.as_manager()
 
