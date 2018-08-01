@@ -290,31 +290,6 @@ def group_factory():
 
 
 @pytest.fixture
-def permission_view_product():
-    return Permission.objects.get(codename='view_product')
-
-
-@pytest.fixture
-def permission_edit_product():
-    return Permission.objects.get(codename='edit_product')
-
-
-@pytest.fixture
-def permission_view_category():
-    return Permission.objects.get(codename='view_category')
-
-
-@pytest.fixture
-def permission_edit_category():
-    return Permission.objects.get(codename='edit_category')
-
-
-@pytest.fixture
-def permission_view_sale():
-    return Permission.objects.get(codename='view_sale')
-
-
-@pytest.fixture
 def permission_manage_discounts():
     return Permission.objects.get(codename='manage_discounts')
 
