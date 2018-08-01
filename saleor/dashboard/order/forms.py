@@ -15,7 +15,6 @@ from ...core.utils.taxes import ZERO_TAXED_MONEY
 from ...discount.models import Voucher
 from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
 from ...order import CustomPaymentChoices, OrderStatus
-from ...order.emails import send_note_confirmation
 from ...order.models import (
     Fulfillment, FulfillmentLine, Order, OrderLine, OrderNote, Payment)
 from ...order.utils import (
