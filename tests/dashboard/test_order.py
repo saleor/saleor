@@ -1,3 +1,4 @@
+import json
 from unittest.mock import Mock
 
 import pytest
@@ -18,6 +19,39 @@ from saleor.order import FulfillmentStatus, OrderStatus
 from saleor.order.models import Order, OrderLine, OrderNote
 from saleor.order.utils import add_variant_to_order, change_order_line_quantity
 from saleor.product.models import ProductVariant
+
+
+def test_ajax_order_shipping_methods_list(
+        admin_client, order, shipping_method):
+    method = shipping_method.price_per_country.get()
+    shipping_methods_list = [
+        {'id': method.pk, 'text': method.get_ajax_label()}]
+    url = reverse(
+        'dashboard:ajax-order-shipping-methods', kwargs={'order_pk': order.pk})
+
+    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    resp_decoded = json.loads(response.content.decode('utf-8'))
+
+    assert response.status_code == 200
+    assert resp_decoded == {'results': shipping_methods_list}
+
+
+def test_ajax_order_shipping_methods_list_different_country(
+        admin_client, order, shipping_method):
+    order.shipping_address = order.billing_address.get_copy()
+    order.save()
+    method = shipping_method.price_per_country.get()
+    shipping_methods_list = [
+        {'id': method.pk, 'text': method.get_ajax_label()}]
+    shipping_method.price_per_country.create(price=15, country_code='DE')
+    url = reverse(
+        'dashboard:ajax-order-shipping-methods', kwargs={'order_pk': order.pk})
+
+    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    resp_decoded = json.loads(response.content.decode('utf-8'))
+
+    assert response.status_code == 200
+    assert resp_decoded == {'results': shipping_methods_list}
 
 
 @pytest.mark.integration

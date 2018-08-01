@@ -1,12 +1,10 @@
 import json
-from io import BytesIO
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock
 
 from django.conf import settings
 from django.forms import HiddenInput
 from django.forms.models import model_to_dict
 from django.urls import reverse
-from PIL import Image
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from tests.utils import get_redirect_location
 
@@ -16,6 +14,7 @@ from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
     AttributeChoiceValue, Collection, Product, ProductAttribute, ProductImage,
     ProductType, ProductVariant)
+
 from ..utils import create_image
 
 
@@ -258,19 +257,6 @@ def test_view_product_bulk_update_unpublish(admin_client, product_list):
     for p in product_list:
         p.refresh_from_db()
         assert not p.is_published
-
-
-def test_product_variant_form(product):
-    variant = product.variants.first()
-    variant.name = ''
-    variant.save()
-    example_size = 'Small Size'
-    data = {'attribute-size': example_size, 'sku': '1111', 'quantity': 2}
-    form = ProductVariantForm(data, instance=variant)
-    assert form.is_valid()
-    form.save()
-    variant.refresh_from_db()
-    assert variant.name == example_size
 
 
 def test_view_ajax_products_list(admin_client, product):
