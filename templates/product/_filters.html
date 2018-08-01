@@ -12,8 +12,8 @@
 <div class="filters-menu__body d-none d-md-block">
   <h2>
     {% trans 'Filters' context 'Filter heading title' %}
-    {% if filter.is_bound_unsorted %}
-      <a href="../">
+    {% if filter_set.is_bound_unsorted %}
+      <a href="./">
         <span class="clear-filters float-right">{% trans 'Clear filters' context 'Product list page filters' %}</span>
       </a>
     {% endif %}

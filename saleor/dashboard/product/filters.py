@@ -103,6 +103,16 @@ class ProductTypeFilter(SortedFilterSet):
         label=pgettext_lazy('Product type list filter label', 'Sort by'),
         fields=PRODUCT_TYPE_SORT_BY_FIELDS.keys(),
         field_labels=PRODUCT_TYPE_SORT_BY_FIELDS)
+    product_attributes = ModelMultipleChoiceFilter(
+        label=pgettext_lazy(
+            'Product type list filter label', 'Product attributes'),
+        name='product_attributes',
+        queryset=ProductAttribute.objects.all())
+    variant_attributes = ModelMultipleChoiceFilter(
+        label=pgettext_lazy(
+            'Product type list filter label', 'Variant attributes'),
+        name='variant_attributes',
+        queryset=ProductAttribute.objects.all())
 
     class Meta:
         model = ProductType

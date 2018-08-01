@@ -16,13 +16,11 @@
 {% endblock %}
 
 {% block header_extra %}
-  {% if perms.product.edit_menu %}
-    <div class="btn-fab-fixed">
-      <a href="{% url 'dashboard:menu-add' %}" class="btn-fab-default waves-effect waves-light" title="{% trans 'Add menu' context 'Menu list add button text' %}">
-        <svg data-src="{% static 'dashboard/images/add.svg' %}"/>
-      </a>
-    </div>
-  {% endif %}
+  <div class="btn-fab-fixed">
+    <a href="{% url 'dashboard:menu-add' %}" class="btn-fab-default waves-effect waves-light" title="{% trans 'Add menu' context 'Menu list add button text' %}">
+      <svg data-src="{% static 'dashboard/images/add.svg' %}"/>
+    </a>
+  </div>
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -89,18 +87,16 @@
             </div>
             <div class="row">
               {{ assign_menu_form.bottom_menu|materializecss }}
-            </div>
-        </div>
-        {% if perms.menu.edit_menu %}
-          <div class="card-action right-align">
-            <div class="col s12">
-              <button type="submit" class="btn waves-effect right">
-                {% trans "Save" context "Dashboard update action" %}
-              </button>
-            </div>
-            <div class="clearfix"></div>
           </div>
-        {% endif %}
+        </div>
+        <div class="card-action right-align">
+          <div class="col s12">
+            <button type="submit" class="btn waves-effect right">
+              {% trans "Save" context "Dashboard update action" %}
+            </button>
+          </div>
+          <div class="clearfix"></div>
+        </div>
       </form>
     </div>
     </div>

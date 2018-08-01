@@ -1,7 +1,7 @@
 from graphene import relay
 
 from ...page import models
-from ..core.types import CountableDjangoObjectType
+from ..core.types.common import CountableDjangoObjectType
 
 
 class Page(CountableDjangoObjectType):

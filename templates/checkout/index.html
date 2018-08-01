@@ -77,9 +77,12 @@
       </div>
       <div class="row">
         <div class="col-md-12">
-          <a href="{% url "checkout:login" %}" class="btn primary float-right cart__submit">
+            <a href="{% url "checkout:login" %}" class="btn primary float-right cart__submit">
             {% trans "Checkout" context "Cart primary action" %}
           </a>
+            <button class="btn secondary float-right cart__clear" data-action="{% url 'cart:clear-cart' %}">
+            {% trans "Clear cart" context "cart page: secondary action, empty the cart" %}
+          </button>
         </div>
       </div>
     {% else %}

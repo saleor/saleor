@@ -3,7 +3,8 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from ...order import models
-from ..core.types import CountableDjangoObjectType, Money, TaxedMoney
+from ..core.types.common import CountableDjangoObjectType
+from ..core.types.money import Money, TaxedMoney
 
 
 class Order(CountableDjangoObjectType):
@@ -18,8 +19,6 @@ class Order(CountableDjangoObjectType):
         description='User-friendly order status.')
     captured_amount = graphene.Field(
         Money, description='Amount captured by payment.')
-    total_price = graphene.Field(
-        TaxedMoney, description='Total price of the order.')
 
     class Meta:
         description = 'Represents an order in the shop.'
@@ -49,11 +48,6 @@ class Order(CountableDjangoObjectType):
     def resolve_status_display(self, info):
         return self.get_status_display()
 
-    def resolve_total_prize(self, info):
-        payment = self.get_last_payment()
-        if payment:
-            return payment.get_total_price()
-
 
 class OrderHistoryEntry(CountableDjangoObjectType):
     class Meta:
@@ -69,7 +63,7 @@ class OrderLine(CountableDjangoObjectType):
         model = models.OrderLine
         interfaces = [relay.Node]
         exclude_fields = [
-            'variant', 'unit_price_gross', 'unit_price_net', 'order']
+            'order', 'unit_price_gross', 'unit_price_net', 'variant']
 
 
 class OrderNote(CountableDjangoObjectType):

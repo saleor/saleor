@@ -4,7 +4,8 @@ from graphene_django.filter import DjangoFilterConnectionField
 from graphql_jwt.decorators import permission_required
 
 from .account.mutations import (
-    CustomerCreate, CustomerUpdate, SetPassword, StaffCreate, StaffUpdate)
+    CustomerCreate, CustomerUpdate, PasswordReset, SetPassword, StaffCreate,
+    StaffUpdate, AddressCreate, AddressUpdate, AddressDelete)
 from .account.resolvers import resolve_user, resolve_users
 from .account.types import User
 from .menu.resolvers import resolve_menus, resolve_menu_items
@@ -21,8 +22,7 @@ from .discount.mutations import (
     VoucherUpdate)
 from .core.filters import DistinctFilterSet
 from .core.mutations import CreateToken, VerifyToken
-from .core.resolvers import resolve_shop
-from .core.types import Shop
+from .core.types.shop import Shop
 from .order.filters import OrderFilter
 from .order.resolvers import resolve_order, resolve_orders
 from .order.types import Order
@@ -133,9 +133,7 @@ class Query(graphene.ObjectType):
     sales = DjangoFilterConnectionField(
         Sale, query=graphene.String(description=DESCRIPTIONS['sale']),
         description="List of the shop\'s sales.")
-    shop = graphene.Field(
-        Shop, description='Represents a shop resources.',
-        resolver=resolve_shop)
+    shop = graphene.Field(Shop, description='Represents a shop resources.')
     voucher = graphene.Field(
         Voucher, id=graphene.Argument(graphene.ID),
         description='Lookup a voucher by ID.')
@@ -213,22 +211,25 @@ class Query(graphene.ObjectType):
     def resolve_product_types(self, info, **kwargs):
         return resolve_product_types()
 
-    @permission_required('discount.view_sale')
+    def resolve_shop(self, info):
+        return Shop()
+
+    @permission_required('discount.manage_discounts')
     def resolve_sale(self, info, id):
         return get_node(info, id, only_type=Sale)
 
-    @permission_required('discount.view_sale')
+    @permission_required('discount.manage_discounts')
     def resolve_sales(self, info, query=None, **kwargs):
         return resolve_sales(info, query)
 
     def resolve_product_variant(self, info, id):
         return get_node(info, id, only_type=ProductVariant)
 
-    @permission_required('discount.view_voucher')
+    @permission_required('discount.manage_discounts')
     def resolve_voucher(self, info, id):
         return get_node(info, id, only_type=Voucher)
 
-    @permission_required('discount.view_voucher')
+    @permission_required('discount.manage_discounts')
     def resolve_vouchers(self, info, query=None, **kwargs):
         return resolve_vouchers(info, query)
 
@@ -245,6 +246,7 @@ class Mutations(graphene.ObjectType):
     token_verify = VerifyToken.Field()
 
     set_password = SetPassword.Field()
+    password_reset = PasswordReset.Field()
 
     attribute_choice_value_create = AttributeChoiceValueCreate.Field()
     attribute_choice_value_delete = AttributeChoiceValueDelete.Field()
@@ -259,6 +261,10 @@ class Mutations(graphene.ObjectType):
 
     staff_create = StaffCreate.Field()
     staff_update = StaffUpdate.Field()
+
+    address_create = AddressCreate.Field()
+    address_update = AddressUpdate.Field()
+    address_delete = AddressDelete.Field()
 
     collection_create = CollectionCreate.Field()
     collection_update = CollectionUpdate.Field()

@@ -13,13 +13,13 @@ USER_SEARCH_FIELDS = (
 GROUP_SEARCH_FIELDS = ('name', )
 
 
-@permission_required(['account.view_user'])
+@permission_required(['account.manage_users'])
 def resolve_users(info, query):
     qs = models.User.objects.all().prefetch_related('addresses')
     return filter_by_query_param(
         queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS)
 
 
-@permission_required(['account.view_user'])
+@permission_required(['account.manage_users'])
 def resolve_user(info, id):
     return get_node(info, id, only_type=User)

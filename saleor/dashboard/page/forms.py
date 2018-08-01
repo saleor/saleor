@@ -8,6 +8,26 @@ from ..seo.utils import prepare_seo_description
 
 
 class PageForm(forms.ModelForm):
+    content = RichTextField(
+        label=pgettext_lazy('Page form: page content field', 'Content'))
+
+    class Meta:
+        model = Page
+        exclude = ['created']
+        widgets = {
+            'slug': forms.TextInput(attrs={'placeholder': 'example-slug'})}
+        labels = {
+            'title': pgettext_lazy(
+                'Page form: title field', 'Title'),
+            'slug': pgettext_lazy('Page form: slug field', 'Slug'),
+            'available_on': pgettext_lazy(
+                'Page form: available on which date field', 'Available on'),
+            'is_visible': pgettext_lazy(
+                'Page form: visibility status indicator', 'Is visible')}
+        help_texts = {
+            'slug': pgettext_lazy(
+                'Form field help text',
+                'Slug is being used to create page URL')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -17,21 +37,6 @@ class PageForm(forms.ModelForm):
                 'data-materialize': self['content'].html_name})
         self.fields['seo_title'] = SeoTitleField(
             extra_attrs={'data-bind': self['title'].auto_id})
-
-    class Meta:
-        model = Page
-        exclude = []
-        widgets = {
-            'slug': forms.TextInput(attrs={'placeholder': 'example-slug'})},
-        labels = {
-            'is_visible': pgettext_lazy(
-                'Visibility status indicator', 'Publish')},
-        help_texts = {
-            'slug': pgettext_lazy(
-                'Form field help text',
-                'Slug is being used to create page URL')}
-
-    content = RichTextField()
 
     def clean_slug(self):
         # Make sure slug is not being written to database with uppercase.

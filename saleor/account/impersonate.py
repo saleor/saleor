@@ -13,4 +13,4 @@ def can_impersonate(request):
     `django-impersonate` module requires a function as input argument,
     not just permission name.
     """
-    return request.user.has_perm('account.impersonate_user')
+    return request.user.has_perm('account.impersonate_users')
