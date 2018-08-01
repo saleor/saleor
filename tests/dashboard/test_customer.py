@@ -1,8 +1,22 @@
+import json
+
 from django.urls import reverse
 
 from saleor.account.models import CustomerNote, User
-from saleor.dashboard.customer.forms import (
-    CustomerDeleteForm, CustomerNoteForm)
+from saleor.dashboard.customer.forms import CustomerDeleteForm, CustomerNoteForm
+
+
+def test_ajax_users_list(admin_client, admin_user, customer_user):
+    users_list = [
+        {'id': admin_user.pk, 'text': admin_user.get_ajax_label()},
+        {'id': customer_user.pk, 'text': customer_user.get_ajax_label()}]
+    url = reverse('dashboard:ajax-users-list')
+
+    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    resp_decoded = json.loads(response.content.decode('utf-8'))
+
+    assert response.status_code == 200
+    assert resp_decoded == {'results': users_list}
 
 
 def test_add_note_to_customer(admin_user, customer_user):
