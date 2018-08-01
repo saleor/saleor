@@ -4,7 +4,7 @@ from django.utils.translation import pgettext_lazy
 from payments import PaymentStatus
 
 from ..account.forms import SignupForm
-from .models import Order, OrderNote, Payment
+from .models import Order, Payment
 
 
 class PaymentMethodsForm(forms.Form):
