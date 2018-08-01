@@ -47,24 +47,49 @@ def choose_placeholder(size=''):
 
 @register.simple_tag()
 def get_thumbnail(instance, size, method='crop'):
-    size_name = '%s__%s' % (method, size)
+    size_name = '%s__%sx%s' % (method, size, size)
     on_demand = settings.VERSATILEIMAGEFIELD_SETTINGS[
         'create_images_on_demand']
     if instance:
-        if size_name not in AVAILABLE_SIZES and not on_demand:
-            msg = (
-                "Thumbnail size %s is not defined in settings "
-                "and it won't be generated automatically" % size_name)
-            warnings.warn(msg)
+        # select equal size if exists, otherwise select closest larger size
+        # if not more than 2 times larger, otherwise select closest smaller
+        # size
+        if size_name in AVAILABLE_SIZES or on_demand:
+            used_size = '%sx%s' % (size, size)
+        else:
+            closest_larger = float('inf')
+            closest_smaller = 0
+            for available_size in AVAILABLE_SIZES:
+                available_method, size_str = available_size.split('__')
+                width, height = [int(s) for s in size_str.split('x')]
+                avail_min_dim = min(width, height)
+
+                if available_method != method:
+                    continue
+                if size < avail_min_dim <= size * 2:
+                    closest_larger = min(avail_min_dim, closest_larger)
+                if avail_min_dim <= size:
+                    closest_smaller = max(avail_min_dim, closest_smaller)
+
+            if closest_larger != float('inf'):
+                used_size = '%sx%s' % (closest_larger, closest_larger)
+            elif closest_smaller:
+                used_size = '%sx%s' % (closest_smaller, closest_smaller)
+            else:
+                msg = (
+                    "Thumbnail size %s is not defined in settings "
+                    "and it won't be generated automatically" % size_name)
+                warnings.warn(msg)
+                used_size = '%sx%s' % (size, size)
         try:
-            thumbnail = getattr(instance, method)[size]
+            thumbnail = getattr(instance, method)[used_size]
         except Exception:
             logger.exception(
                 'Thumbnail fetch failed',
                 extra={'instance': instance, 'size': size})
         else:
             return thumbnail.url
-    return static(choose_placeholder(size))
+    return static(choose_placeholder('%sx%s' % (size, size)))
 
 
 @register.simple_tag()
