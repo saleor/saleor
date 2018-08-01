@@ -58,11 +58,17 @@ class AuthProvider extends React.Component<
       this.logout();
     }
     if (tokenAuth.data) {
-      this.setState({ user: tokenAuth.data.tokenCreate.user });
-      setAuthToken(tokenAuth.data.tokenCreate.token, this.state.persistToken);
+      const user = tokenAuth.data.tokenCreate.user;
+      // FIXME: Now we set state also when auth fails and returned user is
+      // `null`, because the LoginView uses this `null` to display error.
+      this.setState({ user });
+      if (user) {
+        setAuthToken(tokenAuth.data.tokenCreate.token, this.state.persistToken);
+      }
     }
-    if (tokenVerify.data) {
-      this.setState({ user: tokenVerify.data.tokenVerify.user });
+    if (tokenVerify.data && tokenVerify.data.tokenVerify.user) {
+      const user = tokenVerify.data.tokenVerify.user;
+      this.setState({ user });
     }
   }
 
