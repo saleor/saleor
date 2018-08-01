@@ -17,8 +17,8 @@ from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
 from .forms import (
-    OrderNoteForm, PasswordForm, PaymentDeleteForm, PaymentMethodsForm)
-from .models import Order, OrderNote, Payment
+    CustomerNoteForm, PasswordForm, PaymentDeleteForm, PaymentMethodsForm)
+from .models import Order, Payment
 from .utils import attach_order_to_user, check_order_status
 
 logger = logging.getLogger(__name__)
@@ -31,12 +31,9 @@ def details(request, token):
     orders = orders.select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)
-    user = request.user if request.user.is_authenticated else None
-    notes = order.notes.filter(user=user)
-    ctx = {'order': order, 'notes': notes}
-    if order.is_open():
-        note = OrderNote(order=order, user=user)
-        note_form = OrderNoteForm(request.POST or None, instance=note)
+    ctx = {'order': order}
+    if order.is_open() and not order.customer_note:
+        note_form = CustomerNoteForm(request.POST or None, instance=order)
         ctx.update({'note_form': note_form})
         if request.method == 'POST':
             if note_form.is_valid():

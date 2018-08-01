@@ -828,7 +828,8 @@ def _fill_order_with_cart_data(order, cart, discounts, taxes):
             order, line.variant, line.quantity, discounts, taxes)
 
     if cart.note:
-        order.notes.create(user=order.user, content=cart.note)
+        order.customer_note = cart.note
+        order.save()
 
 
 @transaction.atomic

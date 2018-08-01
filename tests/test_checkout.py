@@ -493,16 +493,7 @@ def test_note_in_created_order(request_cart_with_item, address):
     request_cart_with_item.save()
     order = create_order(
         request_cart_with_item, 'tracking_code', discounts=None, taxes=None)
-    assert order.notes.filter(content='test_note').exists()
-
-
-def test_note_in_created_order_empty_note(request_cart_with_item, address):
-    request_cart_with_item.shipping_address = address
-    request_cart_with_item.note = ''
-    request_cart_with_item.save()
-    order = create_order(
-        request_cart_with_item, 'tracking_code', discounts=None, taxes=None)
-    assert not order.notes.all()
+    assert order.customer_note == request_cart_with_item.note
 
 
 @pytest.mark.parametrize(
