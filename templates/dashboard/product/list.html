@@ -16,19 +16,17 @@
 
 {% block header_extra %}
   {% if product_types %}
-    {% if perms.product.edit_product %}
-      <div class="btn-fab-fixed">
-        {% if product_types|length > 1 %}
-        <a data-href="{% url "dashboard:product-add-select-type" %}" class="btn-fab-default waves-effect waves-light modal-trigger-custom" href="#base-modal" title="{% trans "Add product" context "Product list add button text" %}">
-            <svg data-src="{% static "dashboard/images/add.svg" %}" />
-          </a>
-        {% else %}
-          <a class="btn-fab-default waves-effect waves-light modal-trigger" href="{% url 'dashboard:product-add' product_types.0.pk %}" title="{% trans "Add product" context "Product list add button text" %}">
-            <svg data-src="{% static "dashboard/images/add.svg" %}" />
-          </a>
-        {% endif %}
-      </div>
-    {% endif %}
+    <div class="btn-fab-fixed">
+      {% if product_types|length > 1 %}
+      <a data-href="{% url "dashboard:product-add-select-type" %}" class="btn-fab-default waves-effect waves-light modal-trigger-custom" href="#base-modal" title="{% trans "Add product" context "Product list add button text" %}">
+          <svg data-src="{% static "dashboard/images/add.svg" %}" />
+        </a>
+      {% else %}
+        <a class="btn-fab-default waves-effect waves-light modal-trigger" href="{% url 'dashboard:product-add' product_types.0.pk %}" title="{% trans "Add product" context "Product list add button text" %}">
+          <svg data-src="{% static "dashboard/images/add.svg" %}" />
+        </a>
+      {% endif %}
+    </div>
   {% endif %}
 {% endblock %}
 

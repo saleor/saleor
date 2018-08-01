@@ -1,15 +1,19 @@
+import json
 from io import BytesIO
 from unittest.mock import MagicMock, Mock
 
 import pytest
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Group
+from django.contrib.auth.models import Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ModelForm
+from django.test.client import MULTIPART_CONTENT, Client
 from django.utils.encoding import smart_text
 from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
+from graphql_jwt.shortcuts import get_token
 from payments import FraudStatus, PaymentStatus
 from PIL import Image
 from prices import Money
@@ -28,8 +32,64 @@ from saleor.page.models import Page
 from saleor.product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant)
-from saleor.shipping.models import ShippingMethod
+from saleor.shipping.models import ShippingMethod, ShippingMethodCountry
 from saleor.site.models import AuthorizationKey, SiteSettings
+
+
+class ApiClient(Client):
+    """GraphQL API client."""
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
+        self.token = get_token(user)
+        super().__init__(*args, **kwargs)
+
+    def _base_environ(self, **request):
+        environ = super()._base_environ(**request)
+        environ.update({'HTTP_AUTHORIZATION': 'JWT %s' % self.token})
+        return environ
+
+    def post(self, path, data=None, **kwargs):
+        """Send a POST request.
+
+        This wrapper sets the `application/json` content type which is
+        more suitable for standard GraphQL requests and doesn't mismatch with
+        handling multipart requests in Graphene.
+        """
+        if data:
+            data = json.dumps(data)
+        kwargs['content_type'] = 'application/json'
+        return super().post(path, data, **kwargs)
+
+    def post_multipart(self, *args, **kwargs):
+        """Send a multipart POST request.
+
+        This is used to send multipart requests to GraphQL API when e.g.
+        uploading files.
+        """
+        kwargs['content_type'] = MULTIPART_CONTENT
+        return super().post(*args, **kwargs)
+
+
+@pytest.fixture
+def admin_api_client(admin_user):
+    client = ApiClient(user=admin_user)
+    # FIXME: Remove client.login() when JWT authentication is re-enabled.
+    client.login(username=admin_user.email, password='password')
+    return client
+
+
+@pytest.fixture
+def user_api_client(customer_user):
+    return ApiClient(user=customer_user)
+
+
+@pytest.fixture
+def staff_api_client(staff_user):
+    client = ApiClient(user=staff_user)
+    # FIXME: Remove client.login() when JWT authentication is re-enabled.
+    client.login(username=staff_user.email, password='password')
+    return client
 
 
 @pytest.fixture(autouse=True)
@@ -140,7 +200,6 @@ def admin_user(db):
 @pytest.fixture()
 def admin_client(admin_user):
     """Return a Django test client logged in as an admin user."""
-    from django.test.client import Client
     client = Client()
     client.login(username=admin_user.email, password='password')
     return client
@@ -175,6 +234,14 @@ def shipping_method(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def shipping_price(shipping_method):
+    return ShippingMethodCountry.objects.create(
+        country_code='PL',
+        price=10,
+        shipping_method=shipping_method)
+
+
+@pytest.fixture
 def color_attribute(db):  # pylint: disable=W0613
     attribute = ProductAttribute.objects.create(
         slug='color', name='Color')
@@ -183,6 +250,13 @@ def color_attribute(db):  # pylint: disable=W0613
     AttributeChoiceValue.objects.create(
         attribute=attribute, name='Blue', slug='blue')
     return attribute
+
+
+@pytest.fixture
+def pink_choice_value(color_attribute):  # pylint: disable=W0613
+    value = AttributeChoiceValue.objects.create(
+        slug='pink', name='Color', attribute=color_attribute)
+    return value
 
 
 @pytest.fixture
@@ -216,11 +290,6 @@ def group_factory():
 
 
 @pytest.fixture
-def staff_group():
-    return Group.objects.create(name='test')
-
-
-@pytest.fixture
 def permission_view_product():
     return Permission.objects.get(codename='view_product')
 
@@ -246,28 +315,13 @@ def permission_view_sale():
 
 
 @pytest.fixture
-def permission_edit_sale():
-    return Permission.objects.get(codename='edit_sale')
+def permission_manage_discounts():
+    return Permission.objects.get(codename='manage_discounts')
 
 
 @pytest.fixture
-def permission_view_voucher():
-    return Permission.objects.get(codename='view_voucher')
-
-
-@pytest.fixture
-def permission_edit_voucher():
-    return Permission.objects.get(codename='edit_voucher')
-
-
-@pytest.fixture
-def permission_view_order():
-    return Permission.objects.get(codename='view_order')
-
-
-@pytest.fixture
-def permission_edit_order():
-    return Permission.objects.get(codename='edit_order')
+def permission_manage_orders():
+    return Permission.objects.get(codename='manage_orders')
 
 
 @pytest.fixture
@@ -299,6 +353,14 @@ def product(product_type, default_category):
         product=product, sku='123', attributes=variant_attributes,
         cost_price=Money('1.00', 'USD'), quantity=10, quantity_allocated=1)
     return product
+
+
+@pytest.fixture
+def variant(product):
+    product_variant = ProductVariant.objects.create(
+        product=product, sku='SKU_A', cost_price=Money(1, 'USD'), quantity=5,
+        quantity_allocated=3)
+    return product_variant
 
 
 @pytest.fixture
@@ -455,6 +517,11 @@ def fulfilled_order(order_with_lines):
 
 
 @pytest.fixture
+def fulfillment(fulfilled_order):
+    return fulfilled_order.fulfillments.first()
+
+
+@pytest.fixture
 def draft_order(order_with_lines):
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.save(update_fields=['status'])
@@ -484,7 +551,8 @@ def payment_confirmed(order_with_lines):
     return order_with_lines.payments.create(
         variant='default', status=PaymentStatus.CONFIRMED,
         fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_amount, captured_amount=order_amount)
+        total=order_amount, captured_amount=order_amount,
+        tax=order_with_lines.total.tax.amount)
 
 
 @pytest.fixture()
@@ -520,9 +588,10 @@ def payment_input(order_with_lines):
 
 
 @pytest.fixture()
-def sale(db, default_category):
+def sale(db, default_category, collection):
     sale = Sale.objects.create(name="Sale", value=5)
     sale.categories.add(default_category)
+    sale.collections.add(collection)
     return sale
 
 
@@ -534,73 +603,38 @@ def authorization_key(db, site_settings):
 
 
 @pytest.fixture
-def permission_view_staff():
-    return Permission.objects.get(codename='view_staff')
+def permission_manage_staff():
+    return Permission.objects.get(codename='manage_staff')
 
 
 @pytest.fixture
-def permission_edit_staff():
-    return Permission.objects.get(codename='edit_staff')
+def permission_manage_products():
+    return Permission.objects.get(codename='manage_products')
 
 
 @pytest.fixture
-def permission_view_group():
-    return Permission.objects.get(codename='view_group')
+def permission_manage_shipping():
+    return Permission.objects.get(codename='manage_shipping')
 
 
 @pytest.fixture
-def permission_edit_group():
-    return Permission.objects.get(codename='edit_group')
+def permission_manage_users():
+    return Permission.objects.get(codename='manage_users')
 
 
 @pytest.fixture
-def permission_view_properties():
-    return Permission.objects.get(codename='view_properties')
+def permission_manage_settings():
+    return Permission.objects.get(codename='manage_settings')
 
 
 @pytest.fixture
-def permission_edit_properties():
-    return Permission.objects.get(codename='edit_properties')
+def permission_impersonate_users():
+    return Permission.objects.get(codename='impersonate_users')
 
 
 @pytest.fixture
-def permission_view_shipping():
-    return Permission.objects.get(codename='view_shipping')
-
-
-@pytest.fixture
-def permission_edit_shipping():
-    return Permission.objects.get(codename='edit_shipping')
-
-
-@pytest.fixture
-def permission_view_user():
-    return Permission.objects.get(codename='view_user')
-
-
-@pytest.fixture
-def permission_edit_user():
-    return Permission.objects.get(codename='edit_user')
-
-
-@pytest.fixture
-def permission_edit_settings():
-    return Permission.objects.get(codename='edit_settings')
-
-
-@pytest.fixture
-def permission_impersonate_user():
-    return Permission.objects.get(codename='impersonate_user')
-
-
-@pytest.fixture
-def permission_edit_menu():
-    return Permission.objects.get(codename='edit_menu')
-
-
-@pytest.fixture
-def permission_view_menu():
-    return Permission.objects.get(codename='view_menu')
+def permission_manage_menus():
+    return Permission.objects.get(codename='manage_menus')
 
 
 @pytest.fixture

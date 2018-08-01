@@ -12,7 +12,8 @@ from ..forms import CartShippingMethodForm, CountryForm, ReplaceCartLineForm
 from ..models import Cart
 from ..utils import (
     check_product_availability_and_warn, check_shipping_method, get_cart_data,
-    get_cart_data_for_checkout, get_or_empty_db_cart, get_taxes_for_cart)
+    get_cart_data_for_checkout, get_or_empty_db_cart, get_taxes_for_cart,
+    update_cart_quantity)
 from .discount import add_voucher_form, validate_voucher
 from .shipping import (
     anonymous_user_shipping_address_view, user_shipping_address_view)
@@ -84,8 +85,8 @@ def checkout_shipping_method(request, cart):
 def checkout_summary(request, cart):
     """Display the correct order summary."""
     if cart.is_shipping_required():
-        view = validate_shipping_address(summary_with_shipping_view)
-        view = validate_shipping_method(view)
+        view = validate_shipping_method(summary_with_shipping_view)
+        view = validate_shipping_address(view)
         return view(request, cart)
     if request.user.is_authenticated:
         return summary_without_shipping(request, cart)
@@ -111,6 +112,7 @@ def cart_index(request, cart):
         'variant__product__product_type',
         'variant__product__category')
     lines = lines.prefetch_related(
+        'variant__product__collections',
         'variant__product__images',
         'variant__product__product_type__variant_attributes')
     for line in lines:
@@ -192,6 +194,17 @@ def update_cart_line(request, cart, variant_id):
         response = {'error': form.errors}
         status = 400
     return JsonResponse(response, status=status)
+
+
+@get_or_empty_db_cart()
+def clear_cart(request, cart):
+    """Clear cart"""
+    if not request.is_ajax():
+        return redirect('cart:index')
+    cart.lines.all().delete()
+    update_cart_quantity(cart)
+    response = {'numItems': 0}
+    return JsonResponse(response)
 
 
 @get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())

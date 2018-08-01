@@ -98,13 +98,15 @@ class OrderCustomerForm(forms.ModelForm):
     user = AjaxSelect2ChoiceField(
         queryset=User.objects.all(),
         fetch_data_url=reverse_lazy('dashboard:ajax-users-list'),
-        required=False)
+        required=False,
+        label=pgettext_lazy(
+            'Order form: editing customer details - selecting a customer',
+            'Customer'))
 
     class Meta:
         model = Order
         fields = ['user', 'user_email']
         labels = {
-            'user': pgettext_lazy('Order customer', 'User'),
             'user_email': pgettext_lazy(
                 'Order customer email',
                 'Email')}
@@ -149,14 +151,13 @@ class OrderShippingForm(forms.ModelForm):
     """Set shipping name and shipping price in an order."""
 
     shipping_method = AjaxSelect2ChoiceField(
-        queryset=ShippingMethodCountry.objects.all(), min_input=0)
+        queryset=ShippingMethodCountry.objects.all(), min_input=0,
+        label=pgettext_lazy(
+            'Shipping method form field label', 'Shipping method'))
 
     class Meta:
         model = Order
         fields = ['shipping_method']
-        labels = {
-            'shipping_method': pgettext_lazy(
-                'Shipping method form field label', 'Shipping method')}
 
     def __init__(self, *args, **kwargs):
         self.taxes = kwargs.pop('taxes')
@@ -220,13 +221,12 @@ class OrderEditVoucherForm(forms.ModelForm):
     """Edit discount amount in an order."""
     voucher = AjaxSelect2ChoiceField(
         queryset=Voucher.objects.all(),
-        fetch_data_url=reverse_lazy('dashboard:ajax-vouchers'), min_input=0)
+        fetch_data_url=reverse_lazy('dashboard:ajax-vouchers'), min_input=0,
+        label=pgettext_lazy('Order voucher', 'Voucher'))
 
     class Meta:
         model = Order
         fields = ['voucher']
-        labels = {
-            'voucher': pgettext_lazy('Order voucher', 'Voucher')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -395,14 +395,12 @@ class CancelOrderLineForm(forms.Form):
 
 class ChangeQuantityForm(forms.ModelForm):
     quantity = QuantityField(
-        validators=[MinValueValidator(1)])
+        validators=[MinValueValidator(1)],
+        label=pgettext_lazy('Integer number', 'Quantity'))
 
     class Meta:
         model = OrderLine
         fields = ['quantity']
-        labels = {
-            'quantity': pgettext_lazy(
-                'Integer number', 'Quantity')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -556,7 +554,10 @@ class AddVariantToOrderForm(forms.Form):
     variant = AjaxSelect2ChoiceField(
         queryset=ProductVariant.objects.filter(
             product__in=Product.objects.available_products()),
-        fetch_data_url=reverse_lazy('dashboard:ajax-available-variants'))
+        fetch_data_url=reverse_lazy('dashboard:ajax-available-variants'),
+        label=pgettext_lazy(
+            'Order form: subform to add variant to order form: variant field',
+            'Variant'))
     quantity = QuantityField(
         label=pgettext_lazy(
             'Add variant to order form label', 'Quantity'),
@@ -600,7 +601,10 @@ class AddVariantToOrderForm(forms.Form):
 
 class AddressForm(StorefrontAddressForm):
     phone = PossiblePhoneNumberFormField(
-        widget=PhonePrefixWidget, required=False)
+        widget=PhonePrefixWidget, required=False,
+        label=pgettext_lazy(
+            'Order form: address subform - phone number input field',
+            'Phone number'))
 
 
 class FulfillmentForm(forms.ModelForm):

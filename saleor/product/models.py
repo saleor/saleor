@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
-from django.core.validators import MinValueValidator, RegexValidator
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
 from django.urls import reverse
@@ -37,14 +37,6 @@ class Category(MPTTModel, SeoModel):
 
     objects = models.Manager()
     tree = TreeManager()
-
-    class Meta:
-        app_label = 'product'
-        permissions = (
-            ('view_category',
-             pgettext_lazy('Permission description', 'Can view categories')),
-            ('edit_category',
-             pgettext_lazy('Permission description', 'Can edit categories')))
 
     def __str__(self):
         return self.name
@@ -117,17 +109,10 @@ class Product(SeoModel):
 
     class Meta:
         app_label = 'product'
-        permissions = (
-            ('view_product',
-             pgettext_lazy('Permission description', 'Can view products')),
-            ('edit_product',
-             pgettext_lazy('Permission description', 'Can edit products')),
-            ('view_properties',
-             pgettext_lazy(
-                 'Permission description', 'Can view product properties')),
-            ('edit_properties',
-             pgettext_lazy(
-                 'Permission description', 'Can edit product properties')))
+        permissions = ((
+            'manage_products', pgettext_lazy(
+                'Permission description',
+                'Manage products.')),)
 
     def __iter__(self):
         if not hasattr(self, '__variants'):

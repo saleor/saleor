@@ -39,4 +39,4 @@ Fetching taxes
 
   .. code-block:: console
 
-  $ python manage.py get_vat_rates
+    $ python manage.py get_vat_rates

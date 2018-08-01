@@ -15,14 +15,19 @@ jobs:
       - run:
           name: Build application Docker image
           command: |
-            docker build --cache-from=mirumee/saleor:latest -t mirumee/saleor:latest .
-          environment:
-            STATIC_URL: https://saleor-demo.s3.amazonaws.com/assets/
+            docker build \
+              --build-arg AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+              --build-arg AWS_LOCATION=$AWS_LOCATION \
+              --build-arg AWS_MEDIA_BUCKET_NAME=$AWS_MEDIA_BUCKET_NAME \
+              --build-arg AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+              --build-arg AWS_STORAGE_BUCKET_NAME=$AWS_STORAGE_BUCKET_NAME \
+              --build-arg STATIC_URL=$STATIC_URL \
+              --cache-from=mirumee/saleor:latest -t mirumee/saleor:latest .
       - run:
           name: Run tests
           command: |
             docker run -d --name db circleci/postgres:latest
-            docker run --network container:db --rm -e DATABASE_URL -e DJANGO_SETTINGS_MODULE -e SECRET_KEY mirumee/saleor:latest /app/virtualenv/bin/pytest
+            docker run --network container:db --rm -e DATABASE_URL -e DJANGO_SETTINGS_MODULE -e SECRET_KEY mirumee/saleor:latest pytest
           environment:
             DATABASE_URL: postgres://root:@localhost:5432/circle_test
             DJANGO_SETTINGS_MODULE: saleor.settings
@@ -30,10 +35,23 @@ jobs:
       - deploy:
           name: Push Docker image
           command: |
-            if [ "${CIRCLE_TAG}" == demo* ]; then
-              docker login -e $DOCKERCLOUD_EMAIL -u $DOCKERCLOUD_USER -p $DOCKERCLOUD_PASS
-              docker tag mirumee/saleor:latest mirumee/saleor:$CIRCLE_SHA1
-              docker push mirumee/saleor:$CIRCLE_SHA1
-              docker push mirumee/saleor:latest
-              curl -X POST https://circleci.com/api/v1.1/project/github/mirumee/saleor-demo?circle-token=$CIRCLE_API_TOKEN
-            fi
+            docker login -u $DOCKERCLOUD_USER -p $DOCKERCLOUD_PASS
+            docker tag mirumee/saleor:latest mirumee/saleor:$CIRCLE_SHA1
+            docker push mirumee/saleor:$CIRCLE_SHA1
+            docker push mirumee/saleor:latest
+            apk add --upgrade --no-cache curl libcurl
+            curl -u $DEMO_DEPLOY_KEY: \
+              -d build_parameters[CIRCLE_JOB]=deploy \
+              https://circleci.com/api/v1.1/project/github/mirumee/saleor-demo/tree/master
+
+
+workflows:
+  version: 2
+  build-demo:
+    jobs:
+        - build:
+            filters:
+              branches:
+                ignore: /.*/
+              tags:
+                only: /demo.*/

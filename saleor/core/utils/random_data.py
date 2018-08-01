@@ -2,9 +2,9 @@ import itertools
 import os
 import random
 import unicodedata
+from decimal import Decimal
 
 from django.conf import settings
-from django.contrib.auth.models import Group, Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.template.defaultfilters import slugify
@@ -301,10 +301,12 @@ def create_variant(product, **kwargs):
     defaults = {
         'product': product,
         'quantity': fake.random_int(1, 50),
-        'cost_price': fake.money(),
         'quantity_allocated': fake.random_int(1, 50)}
     defaults.update(kwargs)
     variant = ProductVariant(**defaults)
+    if 'cost_price' not in kwargs:
+        variant.cost_price = (variant.base_price * Decimal(
+            fake.random_int(10, 99) / 100)).quantize()
     if variant.attributes:
         variant.name = get_name_from_attributes(variant)
     variant.save()
@@ -489,7 +491,8 @@ def create_users(how_many=10):
 
 def create_orders(how_many=10):
     taxes = get_taxes_for_country(Country(settings.DEFAULT_COUNTRY))
-    discounts = Sale.objects.prefetch_related('products', 'categories')
+    discounts = Sale.objects.prefetch_related(
+        'products', 'categories', 'collections')
     for dummy in range(how_many):
         order = create_fake_order(discounts, taxes)
         yield 'Order: %s' % (order,)
@@ -533,19 +536,6 @@ def create_vouchers():
         yield 'Voucher #%d' % voucher.id
     else:
         yield 'Value voucher already exists'
-
-
-def create_fake_group():
-    group, _ = Group.objects.get_or_create(name='Products Manager')
-    group.permissions.add(Permission.objects.get(codename='edit_product'))
-    group.permissions.add(Permission.objects.get(codename='view_product'))
-    group.save()
-    return group
-
-
-def create_groups():
-    group = create_fake_group()
-    return 'Group: %s' % (group.name,)
 
 
 def set_featured_products(how_many=8):

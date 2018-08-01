@@ -1,8 +1,10 @@
 import datetime
 import json
+from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
+from django.core import serializers
 from django.urls import reverse
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
@@ -589,3 +591,42 @@ def test_variant_base_price(product):
     variant.save()
 
     assert variant.base_price == variant.price_override
+
+
+def test_product_json_serialization(product):
+    product.price = Money('10.00', 'USD')
+    product.save()
+    data = json.loads(serializers.serialize(
+        "json", models.Product.objects.all()))
+    assert data[0]['fields']['price'] == '10.00'
+
+
+def test_product_json_deserialization(default_category, product_type):
+    product_json = """
+    [{{
+        "model": "product.product",
+        "pk": 60,
+        "fields": {{
+            "seo_title": null,
+            "seo_description": "Future almost cup national. Study left manage we else.",
+            "product_type": {product_type_pk},
+            "name": "Kelly-Clark",
+            "description": "Future almost cup national",
+            "category": {category_pk},
+            "price": "35.98",
+            "available_on": null,
+            "is_published": true,
+            "attributes": "{{\\"9\\": \\"24\\", \\"10\\": \\"26\\", \\"11\\": \\"29\\"}}",
+            "updated_at": "2018-07-19T13:30:24.195Z",
+            "is_featured": false,
+            "charge_taxes": true,
+            "tax_rate": "standard"
+        }}
+    }}]
+    """.format(
+        category_pk=default_category.pk, product_type_pk=product_type.pk)
+    product_deserialized = list(serializers.deserialize(
+        'json', product_json, ignorenonexistent=True))[0]
+    product_deserialized.save()
+    product = models.Product.objects.first()
+    assert product.price == Money(Decimal('35.98'), 'USD')
