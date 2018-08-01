@@ -7,9 +7,9 @@ from saleor.dashboard.customer.forms import CustomerDeleteForm, CustomerNoteForm
 
 
 def test_ajax_users_list(admin_client, admin_user, customer_user):
+    users = sorted([admin_user, customer_user], key=lambda user: user.pk)
     users_list = [
-        {'id': admin_user.pk, 'text': admin_user.get_ajax_label()},
-        {'id': customer_user.pk, 'text': customer_user.get_ajax_label()}]
+        {'id': user.pk, 'text': user.get_ajax_label()} for user in users]
     url = reverse('dashboard:ajax-users-list')
 
     response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
