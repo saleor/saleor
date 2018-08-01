@@ -13,7 +13,7 @@ from .forms import ShippingMethodCountryForm, ShippingMethodForm
 
 
 @staff_member_required
-@permission_required('shipping.view_shipping')
+@permission_required('shipping.manage_shipping')
 def shipping_method_list(request):
     methods = ShippingMethod.objects.prefetch_related(
         'price_per_country').order_by('name')
@@ -29,7 +29,7 @@ def shipping_method_list(request):
 
 
 @staff_member_required
-@permission_required('shipping.edit_shipping')
+@permission_required('shipping.manage_shipping')
 def shipping_method_add(request):
     method = ShippingMethod()
     form = ShippingMethodForm(request.POST or None, instance=method)
@@ -43,7 +43,7 @@ def shipping_method_add(request):
 
 
 @staff_member_required
-@permission_required('shipping.edit_shipping')
+@permission_required('shipping.manage_shipping')
 def shipping_method_edit(request, pk):
     method = get_object_or_404(ShippingMethod, pk=pk)
     form = ShippingMethodForm(request.POST or None, instance=method)
@@ -57,7 +57,7 @@ def shipping_method_edit(request, pk):
 
 
 @staff_member_required
-@permission_required('shipping.view_shipping')
+@permission_required('shipping.manage_shipping')
 def shipping_method_details(request, pk):
     shipping_methods = ShippingMethod.objects.prefetch_related(
         'price_per_country').all()
@@ -69,7 +69,7 @@ def shipping_method_details(request, pk):
 
 
 @staff_member_required
-@permission_required('shipping.edit_shipping')
+@permission_required('shipping.manage_shipping')
 def shipping_method_delete(request, pk):
     shipping_method = get_object_or_404(ShippingMethod, pk=pk)
     if request.method == 'POST':
@@ -86,7 +86,7 @@ def shipping_method_delete(request, pk):
 
 
 @staff_member_required
-@permission_required('shipping.edit_shipping')
+@permission_required('shipping.manage_shipping')
 def shipping_method_country_add(request, shipping_method_pk):
     shipping_method = get_object_or_404(ShippingMethod, pk=shipping_method_pk)
     country = ShippingMethodCountry(shipping_method_id=shipping_method_pk)
@@ -105,7 +105,7 @@ def shipping_method_country_add(request, shipping_method_pk):
 
 
 @staff_member_required
-@permission_required('shipping.edit_shipping')
+@permission_required('shipping.manage_shipping')
 def shipping_method_country_edit(request, shipping_method_pk, country_pk):
     shipping_method = get_object_or_404(ShippingMethod, pk=shipping_method_pk)
     country = get_object_or_404(ShippingMethodCountry, pk=country_pk)
@@ -125,7 +125,7 @@ def shipping_method_country_edit(request, shipping_method_pk, country_pk):
 
 
 @staff_member_required
-@permission_required('shipping.edit_shipping')
+@permission_required('shipping.manage_shipping')
 def shipping_method_country_delete(
         request, shipping_method_pk, country_pk=None):
     country = get_object_or_404(ShippingMethodCountry, pk=country_pk)

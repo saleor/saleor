@@ -65,7 +65,9 @@ def get_tax_rate_type_choices():
 
 
 class ProductTypeForm(forms.ModelForm):
-    tax_rate = forms.ChoiceField(required=False)
+    tax_rate = forms.ChoiceField(
+        required=False,
+        label=pgettext_lazy('Product type tax rate type', 'Tax rate'))
 
     class Meta:
         model = ProductType
@@ -85,9 +87,7 @@ class ProductTypeForm(forms.ModelForm):
                 'Attributes common to all variants'),
             'is_shipping_required': pgettext_lazy(
                 'Shipping toggle',
-                'Require shipping'),
-            'tax_rate': pgettext_lazy(
-                'Product type tax rate type', 'Tax rate')}
+                'Require shipping')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -195,17 +195,26 @@ class AttributesMixin(object):
 
 
 class ProductForm(forms.ModelForm, AttributesMixin):
-    tax_rate = forms.ChoiceField(required=False)
+    tax_rate = forms.ChoiceField(
+        required=False,
+        label=pgettext_lazy('Product tax rate type', 'Tax rate'))
+
+    category = TreeNodeChoiceField(
+        queryset=Category.objects.all(),
+        label=pgettext_lazy('Category', 'Category'))
+    collections = forms.ModelMultipleChoiceField(
+        required=False, queryset=Collection.objects.all(),
+        label=pgettext_lazy('Add to collection select', 'Collections'))
+    description = RichTextField(
+        label=pgettext_lazy('Description', 'Description'))
+
+    model_attributes_field = 'attributes'
 
     class Meta:
         model = Product
         exclude = ['attributes', 'product_type', 'updated_at']
         labels = {
             'name': pgettext_lazy('Item name', 'Name'),
-            'description': pgettext_lazy('Description', 'Description'),
-            'seo_description': pgettext_lazy(
-                'A SEO friendly description', 'SEO Friendly Description'),
-            'category': pgettext_lazy('Category', 'Category'),
             'price': pgettext_lazy('Currency amount', 'Price'),
             'available_on': pgettext_lazy(
                 'Availability date', 'Publish product on'),
@@ -214,19 +223,8 @@ class ProductForm(forms.ModelForm, AttributesMixin):
             'is_featured': pgettext_lazy(
                 'Featured product toggle',
                 'Feature this product on homepage'),
-            'collections': pgettext_lazy(
-                'Add to collection select', 'Collections'),
             'charge_taxes': pgettext_lazy(
-                'Charge taxes on product', 'Charge taxes on this product'),
-            'tax_rate': pgettext_lazy(
-                'Product tax rate type', 'Tax rate')}
-
-    category = TreeNodeChoiceField(queryset=Category.objects.all())
-    collections = forms.ModelMultipleChoiceField(
-        required=False, queryset=Collection.objects.all())
-    description = RichTextField()
-
-    model_attributes_field = 'attributes'
+                'Charge taxes on product', 'Charge taxes on this product')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

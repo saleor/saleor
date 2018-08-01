@@ -4,14 +4,14 @@ from graphene_django.filter import DjangoFilterConnectionField
 
 from ...product import models
 from ...product.templatetags.product_images import product_first_image
-from ...product.utils import products_visible_to_user
+from ...product.utils import products_with_details
 from ...product.utils.availability import get_availability
 from ...product.utils.costs import (
     get_margin_for_variant, get_product_costs_data)
 from ..core.decorators import permission_required
 from ..core.filters import DistinctFilterSet
-from ..core.types import (
-    CountableDjangoObjectType, Money, MoneyRange, TaxedMoney, TaxedMoneyRange)
+from ..core.types.common import CountableDjangoObjectType
+from ..core.types.money import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from .filters import ProductFilterSet
 
 
@@ -172,12 +172,12 @@ class Product(CountableDjangoObjectType):
     def resolve_product_type(self, info):
         return self.product_type
 
-    @permission_required('product.view_product')
+    @permission_required('product.manage_products')
     def resolve_purchase_cost(self, info):
         purchase_cost, _ = get_product_costs_data(self)
         return purchase_cost
 
-    @permission_required('product.view_product')
+    @permission_required('product.manage_products')
     def resolve_margin(self, info):
         _, margin = get_product_costs_data(self)
         return Margin(margin[0], margin[1])
@@ -197,7 +197,7 @@ class ProductType(CountableDjangoObjectType):
 
     def resolve_products(self, info):
         user = info.context.user
-        return products_visible_to_user(
+        return products_with_details(
             user=user).filter(product_type=self).distinct()
 
 
@@ -215,7 +215,7 @@ class Collection(CountableDjangoObjectType):
 
     def resolve_products(self, info, **kwargs):
         user = info.context.user
-        return products_visible_to_user(
+        return products_with_details(
             user=user).filter(collections=self).distinct()
 
 

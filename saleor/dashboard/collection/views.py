@@ -16,7 +16,7 @@ from .forms import CollectionForm
 
 
 @staff_member_required
-@permission_required('product.view_product')
+@permission_required('product.manage_products')
 def collection_list(request):
     collections = Collection.objects.prefetch_related('products').all()
     collection_filter = CollectionFilter(request.GET, queryset=collections)
@@ -31,7 +31,7 @@ def collection_list(request):
 
 
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.manage_products')
 def collection_create(request):
     collection = Collection()
     form = CollectionForm(
@@ -46,7 +46,7 @@ def collection_create(request):
 
 
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.manage_products')
 def collection_update(request, pk=None):
     collection = get_object_or_404(Collection, pk=pk)
     form = CollectionForm(
@@ -61,7 +61,7 @@ def collection_update(request, pk=None):
 
 
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.manage_products')
 def collection_delete(request, pk=None):
     collection = get_object_or_404(Collection, pk=pk)
     if request.method == 'POST':
@@ -79,7 +79,7 @@ def collection_delete(request, pk=None):
 
 @require_POST
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.manage_products')
 def collection_toggle_is_published(request, pk):
     collection = get_object_or_404(Collection, pk=pk)
     collection.is_published = not collection.is_published

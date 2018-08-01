@@ -5,6 +5,7 @@
 #    pip-compile --output-file requirements.txt requirements.in
 #
 amqp==2.2.2               # via kombu
+aniso8601==3.0.2          # via graphene
 asn1crypto==0.24.0        # via cryptography
 attrs==17.4.0             # via pytest
 babel==2.5.3
@@ -43,7 +44,7 @@ django-payments==0.12.3
 django-phonenumber-field==2.0.0
 django-prices-openexchangerates==1.0.0
 django-prices-vatlayer==1.0.1
-django-prices==1.0.1
+django-prices==1.0.2
 django-recaptcha==1.4.0
 django-redis==4.8.0
 django-render-block==0.5  # via django-templated-email
@@ -59,9 +60,9 @@ faker==0.8.11
 freezegun==0.3.10
 google-i18n-address==2.3.0
 google-measurement-protocol==1.0.0
-graphene-django==2.0.0
-graphene==2.0.1           # via django-graphql-jwt, graphene-django
-graphql-core==2.0         # via graphene, graphql-relay
+graphene-django==2.1.0
+graphene==2.1.3           # via django-graphql-jwt, graphene-django
+graphql-core==2.1         # via graphene, graphene-django, graphql-relay
 graphql-relay==0.4.5      # via graphene
 html5lib==1.0.1           # via bleach, weasyprint
 idna==2.6                 # via cryptography, requests

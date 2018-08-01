@@ -25,13 +25,9 @@ class SiteSettings(models.Model):
     track_inventory_by_default = models.BooleanField(default=True)
 
     class Meta:
-        permissions = (
-            ('edit_settings',
-             pgettext_lazy('Permission description',
-                           'Can edit site settings')),
-            ('view_settings',
-             pgettext_lazy('Permission description',
-                           'Can view site settings')))
+        permissions = ((
+            'manage_settings', pgettext_lazy(
+                'Permission description', 'Manage settings.')),)
 
     def __str__(self):
         return self.site.name

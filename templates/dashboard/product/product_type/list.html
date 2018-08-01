@@ -13,7 +13,7 @@
 {% block menu_product_types_class %}active{% endblock %}
 
 {% block header_extra %}
-  {% if perms.product.edit_properties %}
+  {% if perms.product.manage_products %}
   <div class="btn-fab-fixed">
     <a class="btn-fab-default waves-effect waves-light" title="{% trans "Add product type" context "Product type list add button text" %}" href="{% url 'dashboard:product-type-add' %}">
       <svg data-src="{% static "dashboard/images/add.svg" %}" />
@@ -54,7 +54,7 @@
               </thead>
               <tbody>
               {% for pk, name, product_attributes, variant_attributes in product_types %}
-                <tr data-action-go="{% if perms.product.edit_properties %}{% url 'dashboard:product-type-update' pk=pk %}{% endif %}">
+                <tr data-action-go="{% if perms.product.manage_products %}{% url 'dashboard:product-type-update' pk=pk %}{% endif %}">
                   <td>
                     {{ name }}
                   </td>

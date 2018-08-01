@@ -1,12 +1,15 @@
 import json
+from unittest.mock import patch
 from django.contrib.auth.tokens import default_token_generator
 
 import graphene
+import pytest
 from django.contrib.auth import get_user_model
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 from .utils import assert_no_permission
 
+from saleor.account.models import Address
 from saleor.graphql.account.mutations import SetPassword
 
 
@@ -46,7 +49,7 @@ def test_create_token_mutation(admin_client, staff_user):
 
 
 def test_token_create_user_data(
-        permission_view_order, staff_client, staff_user):
+        permission_manage_orders, staff_client, staff_user):
     query = """
     mutation {
         tokenCreate(email: "%(email)s", password: "%(password)s") {
@@ -62,7 +65,7 @@ def test_token_create_user_data(
     }
     """
 
-    permission = permission_view_order
+    permission = permission_manage_orders
     staff_user.user_permissions.add(permission)
     code = '.'.join([permission.content_type.name, permission.codename])
     name = permission.name
@@ -175,7 +178,7 @@ def test_query_users(admin_api_client, user_api_client):
 
 def test_who_can_see_user(
         staff_user, customer_user, staff_api_client, user_api_client,
-        permission_view_user):
+        permission_manage_users):
     query = """
     query User($id: ID!) {
         user(id: $id) {
@@ -205,7 +208,7 @@ def test_who_can_see_user(
     assert_no_permission(response)
 
     # Add permission and ensure staff can see user(s)
-    staff_user.user_permissions.add(permission_view_user)
+    staff_user.user_permissions.add(permission_manage_users)
     response = staff_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
@@ -217,10 +220,12 @@ def test_who_can_see_user(
     assert content['data']['users']['totalCount'] == model.objects.count()
 
 
-def test_customer_create(admin_api_client, user_api_client):
+@patch('saleor.account.emails.send_password_reset_email.delay')
+def test_customer_create(
+        send_password_reset_mock, admin_api_client, user_api_client):
     query = """
-    mutation CreateCustomer($email: String, $note: String) {
-        customerCreate(input: {email: $email, note: $note}) {
+    mutation CreateCustomer($email: String, $note: String, $send_mail: Boolean) {
+        customerCreate(input: {email: $email, note: $note, sendPasswordEmail: $send_mail}) {
             errors {
                 field
                 message
@@ -238,7 +243,7 @@ def test_customer_create(admin_api_client, user_api_client):
     email = 'api_user@example.com'
     note = 'Test user'
 
-    variables = json.dumps({'email': email, 'note': note})
+    variables = json.dumps({'email': email, 'note': note, 'send_mail': True})
 
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
@@ -254,6 +259,13 @@ def test_customer_create(admin_api_client, user_api_client):
     assert data['user']['note'] == note
     assert data['user']['isStaff'] == False
     assert data['user']['isActive'] == True
+
+    assert send_password_reset_mock.call_count == 1
+    args, kwargs = send_password_reset_mock.call_args
+    call_context = args[0]
+    call_email = args[1]
+    assert call_email == email
+    assert 'token' in call_context
 
 
 def test_customer_update(admin_api_client, customer_user, user_api_client):
@@ -293,12 +305,13 @@ def test_customer_update(admin_api_client, customer_user, user_api_client):
     assert data['user']['note'] == note
 
 
+@patch('saleor.account.emails.send_password_reset_email.delay')
 def test_staff_create(
-        admin_api_client, user_api_client, permission_view_user,
-        permission_view_product, staff_user):
+        send_password_reset_mock, admin_api_client, user_api_client,
+        permission_manage_users, permission_manage_products, staff_user):
     query = """
-    mutation CreateStaff($email: String, $permissions: [String]) {
-        staffCreate(input: {email: $email, permissions: $permissions}) {
+    mutation CreateStaff($email: String, $permissions: [String], $send_mail: Boolean) {
+        staffCreate(input: {email: $email, permissions: $permissions, sendPasswordEmail: $send_mail}) {
             errors {
                 field
                 message
@@ -316,14 +329,15 @@ def test_staff_create(
     }
     """
 
-    permission_view_product_codename = '%s.%s' % (
-        permission_view_product.content_type.app_label,
-        permission_view_product.codename)
+    permission_manage_products_codename = '%s.%s' % (
+        permission_manage_products.content_type.app_label,
+        permission_manage_products.codename)
 
     email = 'api_user@example.com'
-    staff_user.user_permissions.add(permission_view_user)
+    staff_user.user_permissions.add(permission_manage_users)
     variables = json.dumps({
-        'email': email, 'permissions': [permission_view_product_codename]})
+        'email': email, 'permissions': [permission_manage_products_codename],
+        'send_mail': True})
 
     # check unauthorized access
     response = user_api_client.post(
@@ -340,7 +354,14 @@ def test_staff_create(
     assert data['user']['isStaff'] == True
     assert data['user']['isActive'] == True
     permissions = data['user']['permissions']
-    assert permissions[0]['code'] == permission_view_product_codename
+    assert permissions[0]['code'] == permission_manage_products_codename
+
+    assert send_password_reset_mock.call_count == 1
+    args, kwargs = send_password_reset_mock.call_args
+    call_context = args[0]
+    call_email = args[1]
+    assert call_email == email
+    assert 'token' in call_context
 
 
 def test_staff_update(admin_api_client, staff_user, user_api_client):
@@ -414,3 +435,135 @@ def test_set_password(user_api_client, customer_user):
 
     customer_user.refresh_from_db()
     assert customer_user.check_password(password)
+
+
+@patch('saleor.account.emails.send_password_reset_email.delay')
+def test_password_reset_email(
+        send_password_reset_mock, admin_api_client, customer_user):
+    query = """
+    mutation ResetPassword($email: String!) {
+        passwordReset(email: $email) {
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+    email = customer_user.email
+    variables = json.dumps({'email': email})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['passwordReset']
+    assert data is None
+    assert send_password_reset_mock.call_count == 1
+    args, kwargs = send_password_reset_mock.call_args
+    call_context = args[0]
+    call_email = args[1]
+    assert call_email == email
+    assert 'token' in call_context
+
+
+@patch('saleor.account.emails.send_password_reset_email.delay')
+def test_password_reset_email_non_existing_user(
+        send_password_reset_mock, admin_api_client, customer_user):
+    query = """
+    mutation ResetPassword($email: String!) {
+        passwordReset(email: $email) {
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+    email = 'not_exists@example.com'
+    variables = json.dumps({'email': email})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['passwordReset']
+    assert data['errors'] == [{
+        'field': 'email', 'message': "User with this email doesn't exist"}]
+    send_password_reset_mock.assert_not_called()
+
+
+def test_create_address_mutation(admin_api_client, customer_user):
+    query = """
+    mutation CreateUserAddress($user: ID!, $city: String!, $country: String!) {
+        addressCreate(input: {userId: $user, city: $city, country: $country}) {
+         errors {
+            field
+            message
+         }
+         address {
+            id
+            city
+            country
+         }
+        }
+    }
+    """
+    user_id = graphene.Node.to_global_id('User', customer_user.id)
+    variables = json.dumps(
+        {'user': user_id, 'city': 'Dummy', 'country': 'PL'})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert content['data']['addressCreate']['errors'] == []
+    address_response = content['data']['addressCreate']['address']
+    assert address_response['city'] == 'Dummy'
+    assert address_response['country'] == 'PL'
+    address_obj = Address.objects.get(city='Dummy')
+    assert address_obj.user_addresses.first() == customer_user
+
+
+def test_address_update_mutation(admin_api_client, customer_user):
+    query = """
+    mutation updateUserAddress($addressId: ID!, $city: String!) {
+        addressUpdate(id: $addressId, input: {city: $city}) {
+            address {
+                city
+            }
+        }
+    }
+    """
+    address_obj = customer_user.addresses.first()
+    new_city = 'Dummy'
+    variables = {
+        'addressId': graphene.Node.to_global_id('Address', address_obj.id),
+        'city': new_city}
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['addressUpdate']
+    assert data['address']['city'] == new_city
+    address_obj.refresh_from_db()
+    assert address_obj.city == new_city
+
+
+def test_address_delete_mutation(admin_api_client, customer_user):
+    query = """
+            mutation deleteUserAddress($id: ID!) {
+                addressDelete(id: $id) {
+                    address {
+                        city
+                    }
+                }
+            }
+        """
+    address_obj = customer_user.addresses.first()
+    variables = {
+        'id': graphene.Node.to_global_id('Address', address_obj.id)}
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['addressDelete']
+    assert data['address']['city'] == address_obj.city
+    with pytest.raises(address_obj._meta.model.DoesNotExist):
+        address_obj.refresh_from_db()

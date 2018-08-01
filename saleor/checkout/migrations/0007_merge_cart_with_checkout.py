@@ -5,6 +5,14 @@ import django.db.models.deletion
 import django_prices.models
 
 
+def fix_blank_emails_in_carts(apps, schema_editor):
+    Cart = apps.get_model('checkout', 'Cart')
+
+    for cart in Cart.objects.filter(email__isnull=True):
+        cart.email = ''
+        cart.save()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -14,6 +22,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(fix_blank_emails_in_carts),
         migrations.AlterModelOptions(
             name='cart',
             options={'ordering': ('-last_change',)},

@@ -15,7 +15,7 @@ from saleor.checkout.context_processors import cart_counter
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import (
     add_variant_to_cart, change_cart_user, find_open_cart_for_user)
-from saleor.checkout.views import update_cart_line
+from saleor.checkout.views import update_cart_line, clear_cart
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.discount.models import Sale
@@ -654,3 +654,20 @@ def test_cart_taxes(request_cart_with_item, shipping_method, vatlayer):
     taxed_price = TaxedMoney(net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
     assert cart.get_shipping_price(taxes=vatlayer) == taxed_price
     assert cart.get_subtotal(taxes=vatlayer) == taxed_price
+
+
+def test_clear_cart_must_be_ajax(rf, customer_user):
+    request = rf.post(reverse('home'))
+    request.user = customer_user
+    request.discounts = None
+    response = clear_cart(request)
+    assert response.status_code == 302
+
+
+def test_clear_cart(request_cart_with_item, client):
+    cart = request_cart_with_item
+    response = client.post(
+        reverse('cart:clear-cart'), data={},
+        HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    assert response.status_code == 200
+    assert len(cart.lines.all()) == 0

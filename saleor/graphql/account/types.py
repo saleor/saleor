@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model, models as auth_models
 from graphene import relay
 
 from ...account import models
-from ..core.types import CountableDjangoObjectType, PermissionDisplay
+from ..core.types.common import CountableDjangoObjectType, PermissionDisplay
 from ..utils import format_permissions_for_display
 
 

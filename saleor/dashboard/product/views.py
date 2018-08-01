@@ -22,7 +22,7 @@ from .filters import ProductAttributeFilter, ProductFilter, ProductTypeFilter
 
 
 @staff_member_required
-@permission_required('product.view_product')
+@permission_required('product.manage_products')
 def product_list(request):
     products = Product.objects.prefetch_related('images')
     products = products.order_by('name')
@@ -40,7 +40,7 @@ def product_list(request):
 
 
 @staff_member_required
-@permission_required('product.view_product')
+@permission_required('product.manage_products')
 def product_details(request, pk):
     products = Product.objects.prefetch_related('variants', 'images').all()
     product = get_object_or_404(products, pk=pk)
@@ -68,7 +68,7 @@ def product_details(request, pk):
 
 @require_POST
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.manage_products')
 def product_toggle_is_published(request, pk):
     product = get_object_or_404(Product, pk=pk)
     product.is_published = not product.is_published
@@ -78,7 +78,7 @@ def product_toggle_is_published(request, pk):
 
 
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.manage_products')
 def product_select_type(request):
     """View for add product modal embedded in the product list view."""
     form = forms.ProductTypeSelectorForm(request.POST or None)
@@ -98,7 +98,7 @@ def product_select_type(request):
 
 
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.manage_products')
 def product_create(request, type_pk):
     track_inventory = request.site.settings.track_inventory_by_default
     product_type = get_object_or_404(ProductType, pk=type_pk)
@@ -133,7 +133,7 @@ def product_create(request, type_pk):
 
 
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.manage_products')
 def product_edit(request, pk):
     product = get_object_or_404(
         Product.objects.prefetch_related('variants'), pk=pk)
@@ -163,7 +163,7 @@ def product_edit(request, pk):
 
 
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.manage_products')
 def product_delete(request, pk):
     product = get_object_or_404(Product, pk=pk)
     if request.method == 'POST':
@@ -180,7 +180,7 @@ def product_delete(request, pk):
 
 @require_POST
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.manage_products')
 def product_bulk_update(request):
     form = forms.ProductBulkUpdate(request.POST)
     if form.is_valid():
@@ -202,7 +202,8 @@ def ajax_products_list(request):
     Response format is that of a Select2 JS widget.
     """
     queryset = (
-        Product.objects.all() if request.user.has_perm('product.view_product')
+        Product.objects.all()
+        if request.user.has_perm('product.manage_products')
         else Product.objects.available_products())
     search_query = request.GET.get('q', '')
     if search_query:
@@ -213,7 +214,7 @@ def ajax_products_list(request):
 
 
 @staff_member_required
-@permission_required('product.view_properties')
+@permission_required('product.manage_products')
 def product_type_list(request):
     types = ProductType.objects.all().prefetch_related(
         'product_attributes', 'variant_attributes').order_by('name')
@@ -234,7 +235,7 @@ def product_type_list(request):
 
 
 @staff_member_required
-@permission_required('product.edit_properties')
+@permission_required('product.manage_products')
 def product_type_create(request):
     product_type = ProductType()
     form = forms.ProductTypeForm(request.POST or None, instance=product_type)
@@ -252,7 +253,7 @@ def product_type_create(request):
 
 
 @staff_member_required
-@permission_required('product.edit_properties')
+@permission_required('product.manage_products')
 def product_type_edit(request, pk):
     product_type = get_object_or_404(ProductType, pk=pk)
     form = forms.ProductTypeForm(
@@ -271,7 +272,7 @@ def product_type_edit(request, pk):
 
 
 @staff_member_required
-@permission_required('product.edit_properties')
+@permission_required('product.manage_products')
 def product_type_delete(request, pk):
     product_type = get_object_or_404(ProductType, pk=pk)
     if request.method == 'POST':
@@ -290,7 +291,7 @@ def product_type_delete(request, pk):
 
 
 @staff_member_required
-@permission_required('product.view_product')
+@permission_required('product.manage_products')
 def variant_details(request, product_pk, variant_pk):
     product = get_object_or_404(Product, pk=product_pk)
     variant = get_object_or_404(product.variants.all(), pk=variant_pk)
@@ -313,7 +314,7 @@ def variant_details(request, product_pk, variant_pk):
 
 
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.manage_products')
 def variant_create(request, product_pk):
     track_inventory = request.site.settings.track_inventory_by_default
     product = get_object_or_404(Product.objects.all(), pk=product_pk)
@@ -337,7 +338,7 @@ def variant_create(request, product_pk):
 
 
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.manage_products')
 def variant_edit(request, product_pk, variant_pk):
     product = get_object_or_404(Product.objects.all(), pk=product_pk)
     variant = get_object_or_404(product.variants.all(), pk=variant_pk)
@@ -358,7 +359,7 @@ def variant_edit(request, product_pk, variant_pk):
 
 
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.manage_products')
 def variant_delete(request, product_pk, variant_pk):
     product = get_object_or_404(Product, pk=product_pk)
     variant = get_object_or_404(product.variants, pk=variant_pk)
@@ -378,7 +379,7 @@ def variant_delete(request, product_pk, variant_pk):
 
 
 @staff_member_required
-@permission_required('product.view_product')
+@permission_required('product.manage_products')
 def variant_images(request, product_pk, variant_pk):
     product = get_object_or_404(Product, pk=product_pk)
     qs = product.variants.prefetch_related('images')
@@ -424,7 +425,7 @@ def ajax_available_variants_list(request):
 
 
 @staff_member_required
-@permission_required('product.view_product')
+@permission_required('product.manage_products')
 def product_images(request, product_pk):
     products = Product.objects.prefetch_related('images')
     product = get_object_or_404(products, pk=product_pk)
@@ -436,7 +437,7 @@ def product_images(request, product_pk):
 
 
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.manage_products')
 def product_image_create(request, product_pk):
     product = get_object_or_404(Product, pk=product_pk)
     product_image = ProductImage(product=product)
@@ -457,7 +458,7 @@ def product_image_create(request, product_pk):
 
 
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.manage_products')
 def product_image_edit(request, product_pk, img_pk):
     product = get_object_or_404(Product, pk=product_pk)
     product_image = get_object_or_404(product.images, pk=img_pk)
@@ -478,7 +479,7 @@ def product_image_edit(request, product_pk, img_pk):
 
 
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.manage_products')
 def product_image_delete(request, product_pk, img_pk):
     product = get_object_or_404(Product, pk=product_pk)
     image = get_object_or_404(product.images, pk=img_pk)
@@ -527,7 +528,7 @@ def ajax_upload_image(request, product_pk):
 
 
 @staff_member_required
-@permission_required('product.view_properties')
+@permission_required('product.manage_products')
 def attribute_list(request):
     attributes = (ProductAttribute.objects.prefetch_related('values')
                   .order_by('name'))
@@ -545,7 +546,7 @@ def attribute_list(request):
 
 
 @staff_member_required
-@permission_required('product.view_properties')
+@permission_required('product.manage_products')
 def attribute_details(request, pk):
     attributes = ProductAttribute.objects.prefetch_related('values').all()
     attribute = get_object_or_404(attributes, pk=pk)
@@ -556,7 +557,7 @@ def attribute_details(request, pk):
 
 
 @staff_member_required
-@permission_required('product.edit_properties')
+@permission_required('product.manage_products')
 def attribute_create(request):
     attribute = ProductAttribute()
     form = forms.ProductAttributeForm(request.POST or None, instance=attribute)
@@ -573,7 +574,7 @@ def attribute_create(request):
 
 
 @staff_member_required
-@permission_required('product.edit_properties')
+@permission_required('product.manage_products')
 def attribute_edit(request, pk):
     attribute = get_object_or_404(ProductAttribute, pk=pk)
     form = forms.ProductAttributeForm(request.POST or None, instance=attribute)
@@ -590,7 +591,7 @@ def attribute_edit(request, pk):
 
 
 @staff_member_required
-@permission_required('product.edit_properties')
+@permission_required('product.manage_products')
 def attribute_delete(request, pk):
     attribute = get_object_or_404(ProductAttribute, pk=pk)
     if request.method == 'POST':
@@ -607,7 +608,7 @@ def attribute_delete(request, pk):
 
 
 @staff_member_required
-@permission_required('product.edit_properties')
+@permission_required('product.manage_products')
 def attribute_choice_value_create(request, attribute_pk):
     attribute = get_object_or_404(ProductAttribute, pk=attribute_pk)
     value = AttributeChoiceValue(attribute_id=attribute_pk)
@@ -626,7 +627,7 @@ def attribute_choice_value_create(request, attribute_pk):
 
 
 @staff_member_required
-@permission_required('product.edit_properties')
+@permission_required('product.manage_products')
 def attribute_choice_value_edit(request, attribute_pk, value_pk):
     attribute = get_object_or_404(ProductAttribute, pk=attribute_pk)
     value = get_object_or_404(AttributeChoiceValue, pk=value_pk)
@@ -645,7 +646,7 @@ def attribute_choice_value_edit(request, attribute_pk, value_pk):
 
 
 @staff_member_required
-@permission_required('product.edit_properties')
+@permission_required('product.manage_products')
 def attribute_choice_value_delete(request, attribute_pk, value_pk):
     value = get_object_or_404(AttributeChoiceValue, pk=value_pk)
     if request.method == 'POST':
@@ -662,7 +663,7 @@ def attribute_choice_value_delete(request, attribute_pk, value_pk):
 
 
 @staff_member_required
-@permission_required('product.edit_properties')
+@permission_required('product.manage_products')
 def ajax_reorder_attribute_choice_values(request, attribute_pk):
     attribute = get_object_or_404(ProductAttribute, pk=attribute_pk)
     form = forms.ReorderAttributeChoiceValuesForm(

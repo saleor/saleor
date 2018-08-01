@@ -3,17 +3,16 @@ from django.utils.translation import pgettext_lazy
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
 
-from saleor.account.models import Address
-from saleor.core.exceptions import InsufficientStock
-from saleor.core.utils.taxes import ZERO_TAXED_MONEY
-from saleor.graphql.core.mutations import (
-    BaseMutation, ModelDeleteMutation, ModelMutation)
-from saleor.graphql.core.types import Decimal, Error
-from saleor.graphql.order.types import Order
-from saleor.graphql.product.types import ProductVariant
-from saleor.graphql.utils import get_node, get_nodes
-from saleor.order import OrderStatus, models
-from saleor.order.utils import add_variant_to_order, recalculate_order
+from ....account.models import Address
+from ....core.exceptions import InsufficientStock
+from ....core.utils.taxes import ZERO_TAXED_MONEY
+from ....order import OrderStatus, models
+from ....order.utils import add_variant_to_order, recalculate_order
+from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
+from ...core.types.common import Decimal, Error
+from ...product.types import ProductVariant
+from ...utils import get_node, get_nodes
+from ..types import Order
 
 
 class AddressInput(graphene.InputObjectType):
@@ -127,7 +126,7 @@ class DraftOrderCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('order.edit_order')
+        return user.has_perm('order.manage_orders')
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -173,7 +172,7 @@ class DraftOrderDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('order.edit_order')
+        return user.has_perm('order.manage_orders')
 
 
 def check_for_draft_order_errors(order):
@@ -216,7 +215,7 @@ class DraftOrderComplete(BaseMutation):
         Order, description='Completed order.')
 
     @classmethod
-    @permission_required('order.edit_order')
+    @permission_required('order.manage_orders')
     def mutate(cls, root, info, id):
         order = get_node(info, id, only_type=Order)
         errors = check_for_draft_order_errors(order)
