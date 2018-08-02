@@ -287,13 +287,15 @@ def test_cart_counter(monkeypatch):
     assert ret == {'cart_counter': 4}
 
 
-def test_get_product_variants_and_prices():
-    variant = Mock(product_id=1, id=1, get_price=Mock(return_value=10))
-    cart = MagicMock(spec=Cart)
-    cart.__iter__ = Mock(
-        return_value=iter([Mock(quantity=1, variant=variant)]))
-    variants = list(utils.get_product_variants_and_prices(cart, variant))
-    assert variants == [(variant, 10)]
+def test_get_prices_of_discounted_products(cart_with_item):
+    discounted_line = cart_with_item.lines.first()
+    discounted_product = discounted_line.variant.product
+    prices = utils.get_prices_of_discounted_products(
+        cart_with_item, [discounted_product])
+    excepted_value = [
+        discounted_line.variant.get_price()
+        for item in range(discounted_line.quantity)]
+    assert list(prices) == excepted_value
 
 
 def test_contains_unavailable_variants():
@@ -433,23 +435,23 @@ def test_view_empty_cart(client, request_cart):
     assert response.status_code == 200
 
 
-def test_view_cart_without_taxes(client, sale, request_cart_with_item):
+def test_view_cart_without_taxes(client, request_cart_with_item):
     response = client.get(reverse('cart:index'))
     response_cart_line = response.context[0]['cart_lines'][0]
     cart_line = request_cart_with_item.lines.first()
     assert not response_cart_line['get_total'].tax.amount
-    assert not response_cart_line['get_total'] == cart_line.get_total()
+    assert response_cart_line['get_total'] == cart_line.get_total()
     assert response.status_code == 200
 
 
 def test_view_cart_with_taxes(
-        settings, client, sale, request_cart_with_item, vatlayer):
+        settings, client, request_cart_with_item, vatlayer):
     settings.DEFAULT_COUNTRY = 'PL'
     response = client.get(reverse('cart:index'))
     response_cart_line = response.context[0]['cart_lines'][0]
     cart_line = request_cart_with_item.lines.first()
     assert response_cart_line['get_total'].tax.amount
-    assert not response_cart_line['get_total'] == cart_line.get_total(
+    assert response_cart_line['get_total'] == cart_line.get_total(
         taxes=vatlayer)
     assert response.status_code == 200
 
@@ -588,12 +590,16 @@ def test_cart_line_state(product, request_cart_with_item):
     assert line.quantity == 2
 
 
-def test_get_category_variants_and_prices(
-        default_category, product, request_cart_with_item):
-    result = list(utils.get_category_variants_and_prices(
-        request_cart_with_item, default_category))
-    variant = product.variants.get()
-    assert result[0][0] == variant
+def test_get_prices_of_products_in_discounted_collections(
+        collection, product, cart_with_item):
+    discounted_line = cart_with_item.lines.first()
+    assert discounted_line.variant.product == product
+    product.collections.add(collection)
+    result = utils.get_prices_of_products_in_discounted_collections(
+        cart_with_item, [collection])
+    assert list(result) == [
+        discounted_line.variant.get_price()
+        for item in range(discounted_line.quantity)]
 
 
 def test_update_view_must_be_ajax(customer_user, rf):

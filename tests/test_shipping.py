@@ -3,6 +3,7 @@ from unittest.mock import Mock
 import pytest
 from prices import Money, TaxedMoney
 
+from saleor.core.utils import format_money
 from saleor.shipping.utils import get_taxed_shipping_price
 
 
@@ -36,4 +37,8 @@ def test_shipping_get_total_price(monkeypatch, shipping_method, vatlayer):
 def test_shipping_get_ajax_label(shipping_method):
     method = shipping_method.price_per_country.get()
     label = method.get_ajax_label()
-    assert label == 'DHL Rest of World $10.00'
+    proper_label = '%(shipping_method)s %(country_code_display)s %(price)s' % {
+        'shipping_method': method.shipping_method,
+        'country_code_display': method.get_country_code_display(),
+        'price': format_money(method.price)}
+    assert label == proper_label

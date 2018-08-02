@@ -16,12 +16,13 @@ from ..account.forms import get_address_form
 from ..account.models import Address
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
+from ..core.i18n import ANY_COUNTRY
 from ..core.utils import to_local_currency
 from ..core.utils.taxes import ZERO_MONEY, get_taxes_for_country
 from ..discount import VoucherType
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
-    get_product_or_category_voucher_discount, get_shipping_voucher_discount,
+    get_products_voucher_discount, get_shipping_voucher_discount,
     get_value_voucher_discount, increase_voucher_usage)
 from ..order.models import Order
 from ..shipping.models import ShippingMethodCountry
@@ -74,27 +75,56 @@ def remove_unavailable_variants(cart):
             add_variant_to_cart(cart, line.variant, quantity, replace=True)
 
 
-def get_product_variants_and_prices(cart, product):
-    """Get variants and unit prices from cart lines matching the product."""
-    lines = (line for line in cart if line.variant.product_id == product.id)
-    for line in lines:
-        for dummy_i in range(line.quantity):
-            yield line.variant, line.variant.get_price()
+def get_variant_prices_from_lines(lines):
+    """Get's price of each individual item within the lines."""
+    return [
+        line.variant.get_price()
+        for line in lines
+        for item in range(line.quantity)]
 
 
-def get_category_variants_and_prices(cart, root_category):
-    """Get variants and unit prices from cart lines matching the category.
+def get_prices_of_discounted_products(lines, discounted_products):
+    """Get prices of variants belonging to the discounted products."""
+    # If there's no discounted_products,
+    # it means that all products are discounted
+    if discounted_products:
+        lines = (
+            line for line in lines
+            if line.variant.product in discounted_products)
+    return get_variant_prices_from_lines(lines)
 
-    Product is assumed to be in the category if it belongs to any of its
-    descendant subcategories.
+
+def get_prices_of_products_in_discounted_collections(
+        lines, discounted_collections):
+    """Get prices of variants belonging to the discounted collections."""
+    # If there's no discounted collections,
+    # it means that all of them are discounted
+    if discounted_collections:
+        discounted_collections = set(discounted_collections)
+        lines = (
+            line for line in lines
+            if line.variant and
+            set(line.variant.product.collections.all()).intersection(
+                discounted_collections))
+    return get_variant_prices_from_lines(lines)
+
+
+def get_prices_of_products_in_discounted_categories(
+        lines, discounted_categories):
+    """Get prices of variants belonging to the discounted categories.
+
+    Product must be assigned directly to the discounted category, assigning
+    product to child category won't work.
     """
-    matching_products = {
-        line.variant.product for line in cart
-        if line.variant.product.category.is_descendant_of(
-            root_category, include_self=True)}
-    for product in matching_products:
-        for line in get_product_variants_and_prices(cart, product):
-            yield line
+    # If there's no discounted collections,
+    # it means that all of them are discounted
+    if discounted_categories:
+        discounted_categories = set(discounted_categories)
+        lines = (
+            line for line in lines
+            if line.variant and
+            line.variant.product.category in discounted_categories)
+    return get_variant_prices_from_lines(lines)
 
 
 def check_product_availability_and_warn(request, cart):
@@ -609,11 +639,6 @@ def get_cart_data_for_checkout(cart, discounts, taxes):
         'cart_total': total}
 
 
-def _get_value_voucher_discount_for_cart(voucher, cart):
-    """Calculate discount value for a voucher of value type."""
-    return get_value_voucher_discount(voucher, cart.get_subtotal())
-
-
 def _get_shipping_voucher_discount_for_cart(voucher, cart):
     """Calculate discount value for a voucher of shipping type."""
     if not cart.is_shipping_required():
@@ -627,34 +652,36 @@ def _get_shipping_voucher_discount_for_cart(voucher, cart):
             'Voucher not applicable',
             'Please select a shipping method first.')
         raise NotApplicable(msg)
-    not_valid_for_country = (
-        voucher.apply_to and shipping_method.country_code != voucher.apply_to)
+    not_valid_for_country = all([
+        voucher.countries, ANY_COUNTRY not in voucher.countries,
+        shipping_method.country_code not in voucher.countries])
     if not_valid_for_country:
         msg = pgettext(
             'Voucher not applicable',
-            'This offer is only valid in %(country)s.')
-        raise NotApplicable(
-            msg % {'country': voucher.get_apply_to_display()})
+            'This offer is not valid in your country.')
+        raise NotApplicable(msg)
     return get_shipping_voucher_discount(
         voucher, cart.get_subtotal(), shipping_method.get_total_price())
 
 
-def _get_product_or_category_voucher_discount_for_cart(voucher, cart):
-    """Calculate discount value for a voucher of product or category type."""
+def _get_products_voucher_discount(order_or_cart, voucher):
+    """Calculate products discount value for a voucher, depending on its type.
+    """
     if voucher.type == VoucherType.PRODUCT:
-        prices = [
-            variant_price for _, variant_price in
-            get_product_variants_and_prices(cart, voucher.product)]
-    else:
-        prices = [
-            variant_price for _, variant_price in
-            get_category_variants_and_prices(cart, voucher.category)]
+        prices = get_prices_of_discounted_products(
+            order_or_cart.lines.all(), voucher.products.all())
+    elif voucher.type == VoucherType.COLLECTION:
+        prices = get_prices_of_products_in_discounted_collections(
+            order_or_cart.lines.all(), voucher.collections.all())
+    elif voucher.type == VoucherType.CATEGORY:
+        prices = get_prices_of_products_in_discounted_categories(
+            order_or_cart.lines.all(), voucher.categories.all())
     if not prices:
         msg = pgettext(
             'Voucher not applicable',
             'This offer is only valid for selected items.')
         raise NotApplicable(msg)
-    return get_product_or_category_voucher_discount(voucher, prices)
+    return get_products_voucher_discount(voucher, prices)
 
 
 def get_voucher_discount_for_cart(voucher, cart):
@@ -663,12 +690,12 @@ def get_voucher_discount_for_cart(voucher, cart):
     Raise NotApplicable if voucher of given type cannot be applied.
     """
     if voucher.type == VoucherType.VALUE:
-        return _get_value_voucher_discount_for_cart(voucher, cart)
+        return get_value_voucher_discount(voucher, cart.get_subtotal())
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_cart(voucher, cart)
-    if voucher.type in (VoucherType.PRODUCT, VoucherType.CATEGORY):
-        return _get_product_or_category_voucher_discount_for_cart(
-            voucher, cart)
+    if voucher.type in (
+            VoucherType.PRODUCT, VoucherType.COLLECTION, VoucherType.CATEGORY):
+        return _get_products_voucher_discount(cart, voucher)
     raise NotImplementedError('Unknown discount type')
 
 
