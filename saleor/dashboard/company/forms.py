@@ -20,7 +20,7 @@ class CompanyDeleteForm(forms.Form):
             raise forms.ValidationError(pgettext_lazy(
                 'Edit company details in order form error',
                 'You can\'t delete a company with associated users.'))
-        can_edit_company = self.user.has_perm('account.edit_company')
+        can_edit_company = self.user.has_perm('account.manage_companies')
         if not can_edit_company:
             raise forms.ValidationError(pgettext_lazy(
                 'Edit company details in order form error',

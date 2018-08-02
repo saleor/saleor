@@ -45,7 +45,7 @@ def company_details(request, pk):
 
 
 @staff_member_required
-@permission_required('account.edit_company')
+@permission_required('account.manage_companies')
 def company_create(request):
     company = Company()
     form = CompanyForm(request.POST or None, instance=company)
@@ -60,7 +60,7 @@ def company_create(request):
 
 
 @staff_member_required
-@permission_required('account.edit_company')
+@permission_required('account.manage_companies')
 def company_edit(request, pk=None):
     company = get_object_or_404(Company, pk=pk)
     form = CompanyForm(request.POST or None, instance=company)
@@ -90,23 +90,26 @@ def ajax_companies_list(request):
 
 
 @staff_member_required
-@permission_required('account.edit_company')
+@permission_required('account.manage_companies')
 def company_delete(request, pk):
     company = get_object_or_404(Company, pk=pk)
     form = CompanyDeleteForm(
         request.POST or None, instance=company, user=request.user)
     status = 200
-    if request.method == 'POST' and form.is_valid():
-        company.delete()
-        msg = pgettext_lazy(
-            'Dashboard message',
-            '%(company_name)s successfully removed') % {
-                'company_name': company}
-        messages.success(request, msg)
-        return redirect('dashboard:companies')
-    elif request.method == 'POST' and not form.is_valid():
-        status = 400
-    ctx = {'company': company, 'form': form}
+    num_users = company.user_set.count()
+
+    if num_users == 0:
+        if request.method == 'POST' and form.is_valid():
+            company.delete()
+            msg = pgettext_lazy(
+                'Dashboard message',
+                '%(company_name)s successfully removed') % {
+                    'company_name': company}
+            messages.success(request, msg)
+            return redirect('dashboard:companies')
+        elif request.method == 'POST' and not form.is_valid():
+            status = 400
+    ctx = {'company': company, 'form': form, 'allow_delete': num_users == 0}
     return TemplateResponse(
         request, 'dashboard/company/modal/confirm_delete.html', ctx,
         status=status)

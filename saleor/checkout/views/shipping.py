@@ -32,7 +32,7 @@ def user_shipping_address_view(request, cart):
     """
     cart.email = request.user.email
     cart.save(update_fields=['email'])
-    user_addresses = get_user_addresses(cart.user)
+    user_addresses = get_user_addresses(cart.user).all()
 
     addresses_form, address_form, updated = update_shipping_address_in_cart(
         cart, user_addresses, request.POST or None, request.country)

@@ -53,7 +53,8 @@ def summary_with_shipping_view(request, cart):
         note_form.save()
 
     user_addresses = (
-        get_user_addresses(cart.user) if cart.user else Address.objects.none())
+        get_user_addresses(cart.user).all()
+        if cart.user else Address.objects.none())
 
     addresses_form, address_form, updated = (
         update_billing_address_in_cart_with_shipping(
@@ -107,7 +108,7 @@ def summary_without_shipping(request, cart):
     if note_form.is_valid():
         note_form.save()
 
-    user_addresses = get_user_addresses(cart.user)
+    user_addresses = get_user_addresses(cart.user).all()
 
     addresses_form, address_form, updated = update_billing_address_in_cart(
         cart, user_addresses, request.POST or None, request.country)

@@ -16,14 +16,21 @@
 
 {% block content %}
   <div class="col s12">
-    {% blocktrans trimmed context "Modal remove collection text" %}
-      Are you sure you want to remove company <strong>{{ company }}</strong>?
-      Please note that this procedure will remove the company, but
-      will leave all associated customers and their orders.
-    {% endblocktrans %}
+    {% if allow_delete %}
+      {% blocktrans trimmed context "Modal remove company text" %}
+        Are you sure you want to remove company <strong>{{ company }}</strong>?
+      {% endblocktrans %}
+    {% else %}
+      {% blocktrans trimmed context "Modal reject remove company text" %}
+        All users must be disassociated with a company before it can be
+        deleted.
+      {% endblocktrans %}
+    {% endif %}
   </div>
 {% endblock content %}
 
 {% block primary_action %}
-{% trans "Remove" context "Dashboard delete action" %}
+{% if allow_delete %}
+  {% trans "Remove" context "Dashboard delete action" %}
+{% endif %}
 {% endblock %}

@@ -51,7 +51,7 @@
                   {% trans "Company" context "Customer field" %}
                 </h4>
                 <p>
-                  {%if perms.user.view_company %}
+                  {%if perms.user.manage_companies %}
                     <a href="{% url 'dashboard:company-details' pk=customer.company.pk %}">{{ customer.company }}</a>
                   {% else %}
                     {{ customer.company }}
