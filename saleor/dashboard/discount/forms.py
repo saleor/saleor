@@ -5,14 +5,22 @@ from django.conf import settings
 from django.urls import reverse_lazy
 from django.utils.translation import pgettext_lazy
 from django_prices.forms import MoneyField
+from mptt.forms import TreeNodeMultipleChoiceField
 
-from ...core.i18n import COUNTRY_CODE_CHOICES
+from ...core.i18n import ANY_COUNTRY, COUNTRY_CODE_CHOICES
 from ...core.utils.taxes import ZERO_MONEY
-from ...discount import DiscountValueType, VoucherApplyToProduct
+from ...discount import DiscountValueType
 from ...discount.models import Sale, Voucher
-from ...product.models import Product
+from ...product.models import Category, Product
 from ...shipping.models import ShippingMethodCountry
-from ..forms import AjaxSelect2ChoiceField, AjaxSelect2MultipleChoiceField
+from ..forms import AjaxSelect2MultipleChoiceField
+
+MinAmountSpent = MoneyField(
+    min_value=ZERO_MONEY, required=False,
+    currency=settings.DEFAULT_CURRENCY,
+    label=pgettext_lazy(
+        'Lowest value for order to be able to use the voucher',
+        'Apply only if the purchase value is greater than or equal to'))
 
 
 class SaleForm(forms.ModelForm):
@@ -32,6 +40,12 @@ class SaleForm(forms.ModelForm):
             'type': pgettext_lazy(
                 'Discount type',
                 'Fixed or percentage'),
+            'start_date': pgettext_lazy(
+                'Sale date restrictions',
+                'Start date'),
+            'end_date': pgettext_lazy(
+                'Sale date restrictions',
+                'End date'),
             'value': pgettext_lazy(
                 'Percentage or fixed amount value',
                 'Value'),
@@ -70,7 +84,9 @@ class VoucherForm(forms.ModelForm):
 
     class Meta:
         model = Voucher
-        exclude = ['limit', 'apply_to', 'product', 'category', 'used']
+        exclude = [
+            'min_amount_spent', 'countries', 'products', 'collections',
+            'categories', 'used']
         labels = {
             'type': pgettext_lazy(
                 'Discount type',
@@ -115,102 +131,90 @@ class VoucherForm(forms.ModelForm):
 def country_choices():
     country_codes = ShippingMethodCountry.objects.all()
     country_codes = country_codes.values_list('country_code', flat=True)
-    country_codes = country_codes.distinct()
+    country_codes = list(country_codes.distinct())
+    if ANY_COUNTRY in country_codes:
+        return COUNTRY_CODE_CHOICES
     country_dict = dict(COUNTRY_CODE_CHOICES)
-    return [
+    country_choices = [
         (country_code, country_dict[country_code])
         for country_code in country_codes]
+    return country_choices
 
 
 class ShippingVoucherForm(forms.ModelForm):
-
-    limit = MoneyField(
-        min_value=ZERO_MONEY, required=False,
-        currency=settings.DEFAULT_CURRENCY,
-        label=pgettext_lazy(
-            'Lowest value for order to be able to use the voucher',
-            'Only if order is over or equal to'))
-    apply_to = forms.ChoiceField(
+    min_amount_spent = MinAmountSpent
+    countries = forms.MultipleChoiceField(
         choices=country_choices,
         required=False,
-        label=pgettext_lazy('Voucher form', 'Apply to'))
+        label=pgettext_lazy(
+            'Text above the dropdown of countries',
+            'Limit countries that voucher should apply to'))
 
     class Meta:
         model = Voucher
-        fields = ['apply_to', 'limit']
-
-    def save(self, commit=True):
-        self.instance.category = None
-        self.instance.product = None
-        return super().save(commit)
+        fields = ['countries', 'min_amount_spent']
 
 
 class ValueVoucherForm(forms.ModelForm):
-
-    limit = MoneyField(
-        min_value=ZERO_MONEY, required=False,
-        currency=settings.DEFAULT_CURRENCY,
-        label=pgettext_lazy(
-            'Lowest value for order to be able to use the voucher',
-            'Only apply if purchase value is greater than or equal to'))
+    min_amount_spent = MinAmountSpent
 
     class Meta:
         model = Voucher
-        fields = ['limit']
+        fields = ['min_amount_spent']
 
     def save(self, commit=True):
         self.instance.category = None
-        self.instance.apply_to = None
+        self.instance.countries = []
         self.instance.product = None
         return super().save(commit)
 
 
 class CommonVoucherForm(forms.ModelForm):
-
     use_required_attribute = False
-    apply_to = forms.ChoiceField(
-        choices=VoucherApplyToProduct.CHOICES, required=False,
-        label=pgettext_lazy('Voucher form', 'Apply to'))
-
-    def save(self, commit=True):
-        self.instance.limit = None
-        # Apply to one with percentage discount is more complicated case.
-        # On which product we should apply it? On first, last or cheapest?
-        # Percentage case is limited to the all value and the apply_to field
-        # is not used in this case so we set it to None.
-        if (self.instance.discount_value_type ==
-                DiscountValueType.PERCENTAGE):
-            self.instance.apply_to = None
-        return super().save(commit)
+    min_amount_spent = MinAmountSpent
+    apply_once_per_order = forms.BooleanField(
+        required=False,
+        label=pgettext_lazy(
+            'Field label, apply discount value only once per order',
+            'Only apply once per order'),
+        help_text=pgettext_lazy(
+            'Help text of checkbox for applying discount only once per order',
+            'If unchecked, discount value will be taken '
+            'off each suitable item in an order.'))
 
 
 class ProductVoucherForm(CommonVoucherForm):
-    product = AjaxSelect2ChoiceField(
+    products = AjaxSelect2MultipleChoiceField(
         queryset=Product.objects.all(),
         fetch_data_url=reverse_lazy('dashboard:ajax-products'),
         required=True,
-        label=pgettext_lazy('Product', 'Product'))
+        label=pgettext_lazy('Product', 'Products'))
 
     class Meta:
         model = Voucher
-        fields = ['product', 'apply_to']
+        fields = ['products', 'apply_once_per_order']
+
+
+class CollectionVoucherForm(CommonVoucherForm):
+
+    class Meta:
+        model = Voucher
+        fields = ['collections', 'apply_once_per_order']
+        labels = {
+            'collections': pgettext_lazy(
+                'Collections', 'Collections')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance.product:
-            self.fields['product'].set_initial(self.instance.product)
+        self.fields['collections'].required = True
 
 
 class CategoryVoucherForm(CommonVoucherForm):
+    categories = TreeNodeMultipleChoiceField(
+        queryset=Category.objects.all(),
+        required=True,
+        label=pgettext_lazy('Categories', 'Categories'))
 
     class Meta:
         model = Voucher
-        fields = ['category', 'apply_to']
-        labels = {
-            'category': pgettext_lazy(
-                'Category',
-                'Category')}
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['category'].required = True
+        fields = ['categories', 'apply_once_per_order']

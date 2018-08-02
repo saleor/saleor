@@ -1,7 +1,6 @@
 from django.db.models import F
 from django.utils.translation import pgettext
 
-from . import VoucherApplyToProduct
 from ..core.utils.taxes import ZERO_MONEY, ZERO_TAXED_MONEY
 from .models import NotApplicable
 
@@ -68,22 +67,22 @@ def calculate_discounted_price(product, price, discounts):
 
 def get_value_voucher_discount(voucher, total_price):
     """Calculate discount value for a voucher of value type."""
-    voucher.validate_limit(total_price)
+    voucher.validate_min_amount_spent(total_price)
     return voucher.get_discount_amount_for(total_price)
 
 
 def get_shipping_voucher_discount(voucher, total_price, shipping_price):
     """Calculate discount value for a voucher of shipping type."""
-    voucher.validate_limit(total_price)
+    voucher.validate_min_amount_spent(total_price)
     return voucher.get_discount_amount_for(shipping_price)
 
 
-def get_product_or_category_voucher_discount(voucher, prices):
+def get_products_voucher_discount(voucher, prices):
     """Calculate discount value for a voucher of product or category type."""
-    if voucher.apply_to == VoucherApplyToProduct.ALL_PRODUCTS:
-        discounts = (
-            voucher.get_discount_amount_for(price) for price in prices)
-        total_amount = sum(discounts, ZERO_MONEY)
-        return total_amount
-    product_total = sum(prices, ZERO_TAXED_MONEY)
-    return voucher.get_discount_amount_for(product_total)
+    if voucher.apply_once_per_order:
+        product_total = sum(prices, ZERO_TAXED_MONEY)
+        return voucher.get_discount_amount_for(product_total)
+    discounts = (
+        voucher.get_discount_amount_for(price) for price in prices)
+    total_amount = sum(discounts, ZERO_MONEY)
+    return total_amount
