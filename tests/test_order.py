@@ -1,4 +1,3 @@
-import json
 from decimal import Decimal
 
 import pytest
@@ -351,39 +350,6 @@ def test_order_queryset_to_ship():
 
     assert all([order in orders for order in orders_to_ship])
     assert all([order not in orders for order in orders_not_to_ship])
-
-
-def test_ajax_order_shipping_methods_list(
-        admin_client, order, shipping_method):
-    method = shipping_method.price_per_country.get()
-    shipping_methods_list = [
-        {'id': method.pk, 'text': method.get_ajax_label()}]
-    url = reverse(
-        'dashboard:ajax-order-shipping-methods', kwargs={'order_pk': order.pk})
-
-    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-    resp_decoded = json.loads(response.content.decode('utf-8'))
-
-    assert response.status_code == 200
-    assert resp_decoded == {'results': shipping_methods_list}
-
-
-def test_ajax_order_shipping_methods_list_different_country(
-        admin_client, order, shipping_method):
-    order.shipping_address = order.billing_address.get_copy()
-    order.save()
-    method = shipping_method.price_per_country.get()
-    shipping_methods_list = [
-        {'id': method.pk, 'text': method.get_ajax_label()}]
-    shipping_method.price_per_country.create(price=15, country_code='DE')
-    url = reverse(
-        'dashboard:ajax-order-shipping-methods', kwargs={'order_pk': order.pk})
-
-    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-    resp_decoded = json.loads(response.content.decode('utf-8'))
-
-    assert response.status_code == 200
-    assert resp_decoded == {'results': shipping_methods_list}
 
 
 def test_update_order_prices(order_with_lines):

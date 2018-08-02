@@ -390,30 +390,6 @@ def test_get_variant_picker_data_proper_variant_count(product):
     assert len(data['variantAttributes'][0]['values']) == 1
 
 
-def test_view_ajax_available_variants_list(admin_client, product):
-    variant = product.variants.first()
-    variant_list = [
-        {'id': variant.pk, 'text': '123, Test product (123), $10.00'}]
-    url = reverse('dashboard:ajax-available-variants')
-
-    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-
-    resp_decoded = json.loads(response.content.decode('utf-8'))
-    assert response.status_code == 200
-    assert resp_decoded == {'results': variant_list}
-
-
-def test_view_ajax_available_products_list(admin_client, product):
-    product_list = [{'id': product.pk, 'text': 'Test product'}]
-    url = reverse('dashboard:ajax-products')
-
-    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-
-    resp_decoded = json.loads(response.content.decode('utf-8'))
-    assert response.status_code == 200
-    assert resp_decoded == {'results': product_list}
-
-
 def test_render_product_page_with_no_variant(
         unavailable_product, admin_client):
     product = unavailable_product
