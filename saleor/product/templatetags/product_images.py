@@ -80,23 +80,24 @@ def get_thumbnail(instance, size, method='crop'):
     size_name = '%s__%s' % (method, size_str)
     on_demand = settings.VERSATILEIMAGEFIELD_SETTINGS[
         'create_images_on_demand']
-    if instance:
-        used_size = size_str
-        if size_name not in AVAILABLE_SIZES and not on_demand:
-            used_size = get_thumbnail_size(size, method)
-            if not used_size:
-                msg = (
-                    "Thumbnail size %s is not defined in settings "
-                    "and it won't be generated automatically" % size_name)
-                warnings.warn(msg)
-        try:
-            thumbnail = getattr(instance, method)[used_size]
-        except Exception:
-            logger.exception(
-                'Thumbnail fetch failed',
-                extra={'instance': instance, 'size': size})
-        else:
-            return thumbnail.url
+    if not instance:
+        return static(choose_placeholder(size_str))
+    used_size = size_str
+    if size_name not in AVAILABLE_SIZES and not on_demand:
+        used_size = get_thumbnail_size(size, method)
+    if not used_size:
+        msg = (
+            "Thumbnail size %s is not defined in settings "
+            "and it won't be generated automatically" % size_name)
+        warnings.warn(msg)
+    try:
+        thumbnail = getattr(instance, method)[used_size]
+    except Exception:
+        logger.exception(
+            'Thumbnail fetch failed',
+            extra={'instance': instance, 'size': size})
+    else:
+        return thumbnail.url
     return static(choose_placeholder(size_str))
 
 
