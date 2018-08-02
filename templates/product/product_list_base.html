@@ -23,7 +23,12 @@
   {% get_object_properties object=object properties="seo_description,description" as seo_description %}
   <meta property="og:description" content="{{ seo_description }}">
   <meta name="description" content="{{ seo_description }}">
-  <meta property="og:image" content="{% static "images/block1.png" %}">
+
+  {% if object.background_image %}
+    <meta property="og:image" content="{{ object.background_image }}">
+  {% else %}
+    <meta property="og:image" content="{% static "images/block1.png" %}">
+  {% endif %}
 
   {% build_absolute_uri request=request location=object.get_absolute_url as object_url %}
   <meta property="og:url" content="{{ object_url }}">
