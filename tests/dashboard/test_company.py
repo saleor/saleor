@@ -23,7 +23,7 @@ def test_form_delete_company(
     form = CompanyDeleteForm(data, instance=company, user=staff_user)
     assert not form.is_valid()
 
-    group = group_factory('Company Manager', 'edit_company')
+    group = group_factory('Company Manager', 'manage_companies')
     staff_user.groups.add(group)
     staff_user = User.objects.get(pk=staff_user.pk)
     form = CompanyDeleteForm(data, instance=company, user=staff_user)

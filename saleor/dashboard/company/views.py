@@ -16,7 +16,7 @@ from .forms import CompanyForm, CompanyDeleteForm
 
 
 @staff_member_required
-@permission_required('account.view_company')
+@permission_required('account.manage_companies')
 def company_list(request):
     companies = (
         Company.objects
@@ -33,7 +33,7 @@ def company_list(request):
 
 
 @staff_member_required
-@permission_required('account.view_company')
+@permission_required('account.manage_companies')
 def company_details(request, pk):
     queryset = Company.objects.select_related('default_billing_address')
     company = get_object_or_404(queryset, pk=pk)
@@ -75,7 +75,7 @@ def company_edit(request, pk=None):
 
 
 @staff_member_required
-@permission_required('account.view_company')
+@permission_required('account.manage_companies')
 def ajax_companies_list(request):
     queryset = Company.objects.select_related('default_billing_address')
     search_query = request.GET.get('q', '')

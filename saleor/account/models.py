@@ -81,10 +81,8 @@ class Company(models.Model):
 
     class Meta:
         permissions = (
-            ('view_company',
-             pgettext_lazy('Permission description', 'Can view companies')),
-            ('edit_company',
-             pgettext_lazy('Permission description', 'Can edit companies')))
+            ('manage_companies',
+             pgettext_lazy('Permission description', 'Manage companies')),)
 
     def __str__(self):
         return self.name
@@ -128,7 +126,8 @@ class User(PermissionsMixin, AbstractBaseUser):
     email = models.EmailField(unique=True)
     company = models.ForeignKey(
         Company, null=True, blank=True, on_delete=models.PROTECT)
-    addresses = models.ManyToManyField(Address, blank=True)
+    addresses = models.ManyToManyField(
+        Address, blank=True, related_name='user_addresses')
     is_staff = models.BooleanField(default=False)
     token = models.UUIDField(default=get_token, editable=False, unique=True)
     is_active = models.BooleanField(default=True)

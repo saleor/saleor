@@ -88,7 +88,7 @@ def customer_edit(request, pk=None):
 @permission_required('account.manage_users')
 def ajax_users_list(request):
     queryset = User.objects.select_related(
-        'default_billing_address', 'company')
+        'default_billing_address').prefetch_related('company')
     search_query = request.GET.get('q', '')
     if search_query:
         queryset = queryset.filter(
