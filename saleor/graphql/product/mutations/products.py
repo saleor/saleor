@@ -365,7 +365,6 @@ class ProductVariantDelete(ModelDeleteMutation):
 
 
 class ProductTypeInput(graphene.InputObjectType):
-
     name = graphene.String(description='Name of the product type.')
     has_variants = graphene.Boolean(
         required=True,
@@ -430,7 +429,9 @@ class ProductTypeDelete(ModelDeleteMutation):
 
 class ProductImageCreateInput(graphene.InputObjectType):
     alt = graphene.String(description='Alt text for an image.')
-    image = Upload(required=True, description='Image field.')
+    image = Upload(
+        required=True,
+        description='Represents an image file in a multipart request.')
     product = graphene.ID(description='ID of an product.')
 
 
@@ -441,7 +442,9 @@ class ProductImageCreate(ModelMutation):
             description='Fields required to create a product image.')
 
     class Meta:
-        description = 'Creates a product image.'
+        description = '''Create a product image. This mutation must be sent
+        as a `multipart` request. More detailed specs of the upload format can
+        be found here: https://github.com/jaydenseric/graphql-multipart-request-spec'''
         model = models.ProductImage
 
     @classmethod
