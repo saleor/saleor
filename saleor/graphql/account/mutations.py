@@ -7,6 +7,7 @@ from django.utils.http import urlsafe_base64_encode
 from graphql_jwt.decorators import permission_required
 
 from ...account import emails, models
+from ...account.utils import store_user_address
 from ...core.permissions import MODELS_PERMISSIONS, get_permissions
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import Error
@@ -224,8 +225,8 @@ class AddressCreate(ModelMutation):
         super().save(info, instance, cleaned_input)
         user = cleaned_input.get('user')
         if user:
-            instance.user_addresses.add(user)
             instance.save()
+            store_user_address(user, instance, None)
 
     @classmethod
     def user_is_allowed(cls, user, input):

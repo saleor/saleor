@@ -147,6 +147,15 @@ def customer_user(db, address):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def company_user(db, company):
+    user = User.objects.create_user(
+        'test@example.com',
+        'password',
+        company=company)
+    return user
+
+
+@pytest.fixture
 def company_factory(db):
     def factory(name, address_street):
         comp_address = address(db)

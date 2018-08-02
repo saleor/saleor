@@ -8,7 +8,7 @@ from payments import FraudStatus, PaymentStatus
 from prices import Money, TaxedMoney
 from tests.utils import get_redirect_location
 
-from saleor.account.models import User
+from saleor.account.models import Company, User
 from saleor.checkout.utils import create_order
 from saleor.core.utils.taxes import (
     DEFAULT_TAX_RATE_NAME, get_tax_rate_by_name, get_taxes_for_country)
@@ -408,6 +408,37 @@ def test_update_order_prices(order_with_lines):
     total = (
         line_1.quantity * price_1 + line_2.quantity * price_2 + shipping_price)
     assert order_with_lines.total == total
+
+
+def test_company_order_addresses(
+        request_cart_with_item, client, company_user, address,
+        shipping_method):
+    """ Verify that addresses are associated with company when user
+    is associated with a company. """
+
+    shipping_address = address
+    shipping_address.street_address_1 = '123 Shipping'
+    shipping_address.save()
+    billing_address = address.get_copy()
+    billing_address.street_address_1 = '123 Billing'
+    billing_address.save()
+    request_cart_with_item.shipping_address = shipping_address
+    request_cart_with_item.billing_address = billing_address
+    request_cart_with_item.user = company_user
+    request_cart_with_item.email = company_user.email
+    request_cart_with_item.shipping_method = (
+        shipping_method.price_per_country.first())
+    request_cart_with_item.save()
+
+    create_order(
+        request_cart_with_item, 'tracking_code', discounts=None, taxes=None)
+
+    company = Company.objects.get(id=company_user.company_id)
+    assert company.default_billing_address == billing_address
+    assert company.addresses.count() == 3
+    assert company_user.addresses.count() == 0
+    assert company_user.default_billing_address is None
+    assert company_user.default_shipping_address == shipping_address
 
 
 def test_order_payment_flow(
