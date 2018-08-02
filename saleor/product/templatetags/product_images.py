@@ -45,30 +45,33 @@ def choose_placeholder(size=''):
     return placeholder
 
 
+def get_available_sizes_by_method(method):
+    sizes = []
+    for available_size in AVAILABLE_SIZES:
+        available_method, avail_size_str = available_size.split('__')
+        if available_method != method:
+            continue
+        sizes.append(min([int(s) for s in avail_size_str.split('x')]))
+    return sizes
+
+
 def get_thumbnail_size(size, method):
     """ Return closest larger size if not more than 2 times larger, otherwise
     return closest smaller size
     """
     closest_larger = float('inf')
     closest_smaller = 0
-    for available_size in AVAILABLE_SIZES:
-        available_method, avail_size_str = available_size.split('__')
-        width, height = [int(s) for s in avail_size_str.split('x')]
-        avail_min_dim = min(width, height)
-
-        if available_method != method:
-            continue
-        if size < avail_min_dim <= size * 2:
-            closest_larger = min(avail_min_dim, closest_larger)
-        if avail_min_dim <= size:
-            closest_smaller = max(avail_min_dim, closest_smaller)
+    for avail_size in get_available_sizes_by_method(method):
+        if size < avail_size <= size * 2:
+            closest_larger = min(avail_size, closest_larger)
+        if avail_size <= size:
+            closest_smaller = max(avail_size, closest_smaller)
 
     if closest_larger != float('inf'):
         return '%sx%s' % (closest_larger, closest_larger)
     elif closest_smaller:
         return'%sx%s' % (closest_smaller, closest_smaller)
-    else:
-        return None
+    return None
 
 
 @register.simple_tag()
