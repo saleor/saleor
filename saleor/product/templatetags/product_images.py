@@ -45,6 +45,32 @@ def choose_placeholder(size=''):
     return placeholder
 
 
+def get_thumbnail_size(size, method):
+    """ Return closest larger size if not more than 2 times larger, otherwise
+    return closest smaller size
+    """
+    closest_larger = float('inf')
+    closest_smaller = 0
+    for available_size in AVAILABLE_SIZES:
+        available_method, avail_size_str = available_size.split('__')
+        width, height = [int(s) for s in avail_size_str.split('x')]
+        avail_min_dim = min(width, height)
+
+        if available_method != method:
+            continue
+        if size < avail_min_dim <= size * 2:
+            closest_larger = min(avail_min_dim, closest_larger)
+        if avail_min_dim <= size:
+            closest_smaller = max(avail_min_dim, closest_smaller)
+
+    if closest_larger != float('inf'):
+        return '%sx%s' % (closest_larger, closest_larger)
+    elif closest_smaller:
+        return'%sx%s' % (closest_smaller, closest_smaller)
+    else:
+        return None
+
+
 @register.simple_tag()
 def get_thumbnail(instance, size, method='crop'):
     size_str = '%sx%s' % (size, size)
@@ -52,36 +78,14 @@ def get_thumbnail(instance, size, method='crop'):
     on_demand = settings.VERSATILEIMAGEFIELD_SETTINGS[
         'create_images_on_demand']
     if instance:
-        # select equal size if exists, otherwise select closest larger size
-        # if not more than 2 times larger, otherwise select closest smaller
-        # size
-        if size_name in AVAILABLE_SIZES or on_demand:
-            used_size = size_str
-        else:
-            closest_larger = float('inf')
-            closest_smaller = 0
-            for available_size in AVAILABLE_SIZES:
-                available_method, avail_size_str = available_size.split('__')
-                width, height = [int(s) for s in avail_size_str.split('x')]
-                avail_min_dim = min(width, height)
-
-                if available_method != method:
-                    continue
-                if size < avail_min_dim <= size * 2:
-                    closest_larger = min(avail_min_dim, closest_larger)
-                if avail_min_dim <= size:
-                    closest_smaller = max(avail_min_dim, closest_smaller)
-
-            if closest_larger != float('inf'):
-                used_size = '%sx%s' % (closest_larger, closest_larger)
-            elif closest_smaller:
-                used_size = '%sx%s' % (closest_smaller, closest_smaller)
-            else:
+        used_size = size_str
+        if size_name not in AVAILABLE_SIZES and not on_demand:
+            used_size = get_thumbnail_size(size, method)
+            if not used_size:
                 msg = (
                     "Thumbnail size %s is not defined in settings "
                     "and it won't be generated automatically" % size_name)
                 warnings.warn(msg)
-                used_size = size_str
         try:
             thumbnail = getattr(instance, method)[used_size]
         except Exception:

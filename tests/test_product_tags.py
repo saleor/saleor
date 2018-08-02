@@ -31,7 +31,9 @@ def test_get_thumbnail_no_instance(monkeypatch):
 
 @patch(
     'saleor.product.templatetags.product_images.AVAILABLE_SIZES',
-    {'crop__10x10', 'crop__100x100', 'crop__1000x1000', 'crop__2000x2000'})
+    {
+        'thumbnail__800x800', 'crop__100x100', 'crop__1000x1000',
+        'crop__2000x2000'})
 @override_settings(
     VERSATILEIMAGEFIELD_SETTINGS={'create_images_on_demand': False})
 def test_get_thumbnail_to_larger():
@@ -53,6 +55,20 @@ def test_get_thumbnail_to_smaller():
     instance.crop = {'100x100': cropped_value}
     cropped = get_thumbnail(instance, 400, method='crop')
     assert cropped == cropped_value.url
+
+
+@patch(
+    'saleor.product.templatetags.product_images.AVAILABLE_SIZES',
+    {'thumbnail__800x800'})
+@override_settings(
+    VERSATILEIMAGEFIELD_SETTINGS={'create_images_on_demand': False},
+    PLACEHOLDER_IMAGES={1080: 'images/placeholder1080x1080.png'})
+def test_get_thumbnail_no_match_by_method():
+    instance = Mock()
+    cropped_value = Mock(url='crop.jpg')
+    instance.crop = {'1000x1000': cropped_value}
+    cropped = get_thumbnail(instance, 800, method='crop')
+    assert cropped == static('images/placeholder1080x1080.png')
 
 
 @override_settings(
