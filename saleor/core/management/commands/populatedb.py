@@ -7,8 +7,8 @@ from ...utils import create_superuser
 from ...utils.random_data import (
     add_address_to_admin, create_collections_by_schema, create_menus,
     create_orders, create_page, create_product_sales,
-    create_products_by_schema, create_shipping_methods, create_translations,
-    create_users, create_vouchers, set_featured_products)
+    create_products_by_schema, create_shipping_methods, create_users,
+    create_vouchers, set_featured_products)
 
 
 class Command(BaseCommand):
@@ -52,11 +52,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.make_database_faster()
-        create_images = False and not options['withoutimages']
+        create_images = not options['withoutimages']
         for msg in create_shipping_methods():
             self.stdout.write(msg)
-        create_products_by_schema(
-            self.placeholders_dir, 10, create_images, stdout=self.stdout)
+        create_products_by_schema(self.placeholders_dir, 10, create_images,
+                                  stdout=self.stdout)
         for msg in create_product_sales(5):
             self.stdout.write(msg)
         for msg in create_vouchers():
@@ -73,7 +73,7 @@ class Command(BaseCommand):
             self.stdout.write(msg)
         for msg in create_menus():
             self.stdout.write(msg)
-        create_translations()
+
         if options['createsuperuser']:
             credentials = {'email': 'admin@example.com', 'password': 'admin'}
             msg = create_superuser(credentials)

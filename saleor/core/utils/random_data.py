@@ -23,7 +23,7 @@ from ...core.utils.text import strip_html_and_truncate
 from ...dashboard.menu.utils import update_menu
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
-from ...menu.models import Menu, MenuItem
+from ...menu.models import Menu
 from ...order.models import Fulfillment, Order, Payment
 from ...order.utils import update_order_status
 from ...page.models import Page
@@ -34,7 +34,6 @@ from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
 from ...shipping.utils import get_taxed_shipping_price
-from ...site.models import SiteSettings
 
 fake = Factory.create()
 
@@ -653,77 +652,3 @@ def get_product_list_images_dir(placeholder_dir):
 def get_image(image_dir, image_name):
     img_path = os.path.join(image_dir, image_name)
     return File(open(img_path, 'rb'))
-
-
-def create_translations():
-    # Helper function for debugging storefront
-    from saleor.product.models import (
-        AttributeChoiceValueTranslation,
-        CategoryTranslation, CollectionTranslation, ProductTranslation,
-        ProductVariantTranslation, ProductAttributeTranslation)
-    from saleor.page.models import PageTranslation
-    from saleor.menu.models import MenuItemTranslation
-    from saleor.site.models import SiteSettingsTranslation
-    from saleor.discount.models import Voucher, VoucherTranslation
-
-    for i, category in enumerate(Category.objects.all()):
-        CategoryTranslation.objects.create(
-            language_code='pl', name='Kategoria %s' % category.pk,
-            category=category,
-            seo_title='Seo tytul kategoria %s' % category.pk,
-            seo_description='Seo opis kategoria %s' % category.pk)
-
-    for i, product in enumerate(Product.objects.all()):
-        ProductTranslation.objects.create(
-            language_code='pl', name='Produkt %s' % product.pk,
-            product=product, description='Opis produktu %s' % product.pk,
-            seo_title='Seo tytul produkt %s' % product.pk,
-            seo_description='Seo opis produkt %s' % product.pk)
-
-    for i, variant in enumerate(ProductVariant.objects.all()):
-        ProductVariantTranslation.objects.create(
-            language_code='pl',
-            name='Produkt %s Wariant %s' % (variant.product.pk, variant.pk),
-            product_variant=variant)
-
-    for i, collection in enumerate(Collection.objects.all()):
-        CollectionTranslation.objects.create(
-            language_code='pl', name='Kolekcja %s' % collection.pk,
-            collection=collection,
-            seo_title='Seo tytul kolekcja %s' % collection.pk,
-            seo_description='Seo opis kolekcja %s' % collection.pk)
-
-    for i, menu_item in enumerate(MenuItem.objects.all()):
-        name = 'Przedmiot %s' % menu_item.pk
-        MenuItemTranslation.objects.create(
-            language_code='pl', name=name,
-            menu_item=menu_item)
-
-    for i, page in enumerate(Page.objects.all()):
-        PageTranslation.objects.create(
-            language_code='pl', title='Strona %s' % page.pk,
-            page=page, content='Zawartosc strony %s' % page.pk,
-            seo_title='Seo tytul strona %s' % page.pk,
-            seo_description='Seo opis strona %s' % page.pk)
-
-    for attr in ProductAttribute.objects.all():
-        ProductAttributeTranslation.objects.create(
-            language_code='pl', name='Atrybut %s' % attr.pk,
-            product_attribute=attr)
-
-    for value in AttributeChoiceValue.objects.all():
-        AttributeChoiceValueTranslation.objects.create(
-            language_code='pl', name='Wartość %s' % value.pk,
-            attribute_choice_value=value)
-
-    for site_set in SiteSettings.objects.all():
-        SiteSettingsTranslation.objects.create(
-            site_settings=site_set, language_code='pl',
-            header_text='Tekst nagłówka po polsku %s' % site_set.pk,
-            description='Opis strony, tez po polsku %s' % site_set.pk)
-    for voucher in Voucher.objects.all():
-        VoucherTranslation.objects.create(
-            voucher=voucher, name='Nazwa vouchera')
-    from ...dashboard.menu.utils import update_menu
-    for menu in Menu.objects.all():
-        update_menu(menu)
