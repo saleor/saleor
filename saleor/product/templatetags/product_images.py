@@ -59,18 +59,14 @@ def get_thumbnail_size(size, method):
     """ Return closest larger size if not more than 2 times larger, otherwise
     return closest smaller size
     """
-    closest_larger = float('inf')
-    closest_smaller = 0
-    for avail_size in get_available_sizes_by_method(method):
-        if size < avail_size <= size * 2:
-            closest_larger = min(avail_size, closest_larger)
-        if avail_size <= size:
-            closest_smaller = max(avail_size, closest_smaller)
+    avail_sizes = sorted(get_available_sizes_by_method(method))
+    larger = list(filter(lambda x: size < x <= size * 2, avail_sizes))
+    smaller = list(filter(lambda x: x <= size, avail_sizes))
 
-    if closest_larger != float('inf'):
-        return '%sx%s' % (closest_larger, closest_larger)
-    elif closest_smaller:
-        return'%sx%s' % (closest_smaller, closest_smaller)
+    if larger:
+        return '%sx%s' % (larger[0], larger[0])
+    elif smaller:
+        return'%sx%s' % (smaller[-1], smaller[-1])
     return None
 
 
