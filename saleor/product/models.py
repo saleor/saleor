@@ -250,11 +250,16 @@ class ProductVariant(models.Model):
     def is_in_stock(self):
         return self.quantity_available > 0
 
-    def display_product(self):
-        variant_display = str(self.translated)
+    def display_product(self, translated=False):
+        if translated:
+            product = self.product.translated
+            variant_display = str(self.translated)
+        else:
+            variant_display = str(self)
+            product = self.product
         product_display = (
-            '%s (%s)' % (self.product.translated, variant_display)
-            if variant_display else str(self.product))
+            '%s (%s)' % (product, variant_display)
+            if variant_display else str(product))
         return smart_text(product_display)
 
     def get_first_image(self):

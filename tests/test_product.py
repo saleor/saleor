@@ -634,11 +634,11 @@ def test_product_json_deserialization(default_category, product_type):
 
 
 def test_variant_picker_data_with_translations(
-        product, translated_variant, settings):
+        product, translated_variant_fr, settings):
     settings.LANGUAGE_CODE = 'fr'
     variant_picker_data = get_variant_picker_data(product)
     attribute = variant_picker_data['variantAttributes'][0]
-    assert attribute['name'] == translated_variant.name
+    assert attribute['name'] == translated_variant_fr.name
 
 
 def test_get_product_attributes_data_translation(

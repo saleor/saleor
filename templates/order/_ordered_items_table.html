@@ -54,7 +54,7 @@
                 data-srcset="{% product_first_image line.variant.product size="60x60" method="crop" %} 1x, {% product_first_image line.variant.product size="120x120" method="crop" %} 2x"
                 class="float-left lazyload lazypreload"
                 src="{% placeholder size=60 %}">
-          <span class="order-details__product__description">{{ line.product_name }}</span>
+          <span class="order-details__product__description">{{ line.translated_product_name|default:line.product_name }}</span>
         </a>
       </div>
       <div class="col-md-4">
@@ -180,7 +180,7 @@
       <div class="row">
         <div class="col-md-6 col-9">
           <a class="link--clean" href="{% if line.variant.product %}{{ line.variant.product.get_absolute_url }}{% endif %}">
-            <span class="order-details__product__description">{{ line.order_line.product_name }}</span>
+            <span class="order-details__product__description">{{ line.order_line.translated_product_name|default:line.order_line.product_name }}</span>
           </a>
         </div>
         <div class="col-md-6 col-3">
