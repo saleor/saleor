@@ -862,10 +862,9 @@ def test_invalid_product_image_create_mutation(admin_api_client, product):
 
 
 def test_product_image_update_mutation(admin_api_client, product_with_image):
-    product = product_with_image
     query = """
-    mutation updateProductImage($imageId: ID!, $image: Upload!, $alt: String, $product: ID!) {
-        productImageUpdate(id: $imageId, input: {image: $image, alt: $alt, product: $product}) {
+    mutation updateProductImage($imageId: ID!, $alt: String) {
+        productImageUpdate(id: $imageId, input: {alt: $alt}) {
             productImage {
                 alt
             }
@@ -873,55 +872,15 @@ def test_product_image_update_mutation(admin_api_client, product_with_image):
     }
     """
     image_obj = product_with_image.images.first()
-    image = image_obj.image
-    assert not image_obj.alt
     alt = 'damage alt'
-    variables = {
-        'product': graphene.Node.to_global_id('Product', product.id),
-        'image': image.name, 'alt': alt,
-        'imageId': graphene.Node.to_global_id('ProductImage', image_obj.id)}
-    body = get_multipart_request_body(query, variables, image.file, image.name)
-    response = admin_api_client.post_multipart(reverse('api'), body)
+    variables = json.dumps({
+        'alt': alt,
+        'imageId': graphene.Node.to_global_id('ProductImage', image_obj.id)})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    data = content['data']['productImageUpdate']
-    assert data['productImage']['alt'] == alt
-
-
-def test_invalid_product_image_update_mutation(
-        admin_api_client, product_with_image):
-    product = product_with_image
-    query = """
-    mutation updateProductImage($image: Upload!, $alt: String, $product: ID!, $id: ID!) {
-        productImageUpdate(id: $id, input: {image: $image, alt: $alt, product: $product}) {
-            productImage {
-                image
-            }
-            errors {
-                field
-                message
-            }
-        }
-    }
-    """
-    image_obj = product_with_image.images.first()
-    image = image_obj.image
-    new_image_file, new_image_name = create_pdf_file_with_image_ext()
-    variables = {
-        'product': graphene.Node.to_global_id('Product', product.id),
-        'image': new_image_name,
-        'id': graphene.Node.to_global_id('ProductImage', image_obj.id),
-    }
-    body = get_multipart_request_body(
-        query, variables, new_image_file, new_image_name)
-    response = admin_api_client.post_multipart(reverse('api'), body)
-    content = get_graphql_content(response)
-    assert content['data']['productImageUpdate']['errors'] == [{
-        'field': 'image',
-        'message': 'Invalid file type'}]
-    product_with_image.refresh_from_db()
-    assert product_with_image.images.count() == 1
-    assert product_with_image.images.first().image == image
+    data = content['data']['productImageUpdate']['productImage']['alt'] == alt
 
 
 def test_product_image_delete(admin_api_client, product_with_image):
