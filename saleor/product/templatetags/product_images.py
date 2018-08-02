@@ -47,7 +47,8 @@ def choose_placeholder(size=''):
 
 @register.simple_tag()
 def get_thumbnail(instance, size, method='crop'):
-    size_name = '%s__%sx%s' % (method, size, size)
+    size_str = '%sx%s' % (size, size)
+    size_name = '%s__%s' % (method, size_str)
     on_demand = settings.VERSATILEIMAGEFIELD_SETTINGS[
         'create_images_on_demand']
     if instance:
@@ -55,13 +56,13 @@ def get_thumbnail(instance, size, method='crop'):
         # if not more than 2 times larger, otherwise select closest smaller
         # size
         if size_name in AVAILABLE_SIZES or on_demand:
-            used_size = '%sx%s' % (size, size)
+            used_size = size_str
         else:
             closest_larger = float('inf')
             closest_smaller = 0
             for available_size in AVAILABLE_SIZES:
-                available_method, size_str = available_size.split('__')
-                width, height = [int(s) for s in size_str.split('x')]
+                available_method, avail_size_str = available_size.split('__')
+                width, height = [int(s) for s in avail_size_str.split('x')]
                 avail_min_dim = min(width, height)
 
                 if available_method != method:
@@ -80,7 +81,7 @@ def get_thumbnail(instance, size, method='crop'):
                     "Thumbnail size %s is not defined in settings "
                     "and it won't be generated automatically" % size_name)
                 warnings.warn(msg)
-                used_size = '%sx%s' % (size, size)
+                used_size = size_str
         try:
             thumbnail = getattr(instance, method)[used_size]
         except Exception:
@@ -89,7 +90,7 @@ def get_thumbnail(instance, size, method='crop'):
                 extra={'instance': instance, 'size': size})
         else:
             return thumbnail.url
-    return static(choose_placeholder('%sx%s' % (size, size)))
+    return static(choose_placeholder(size_str))
 
 
 @register.simple_tag()

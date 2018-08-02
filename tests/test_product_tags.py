@@ -1,20 +1,23 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.test import override_settings
 
 from saleor.product.templatetags.product_images import (
     choose_placeholder, get_thumbnail, product_first_image)
 
 
+@override_settings(
+    VERSATILEIMAGEFIELD_SETTINGS={'create_images_on_demand': True})
 def test_get_thumbnail():
     instance = Mock()
     cropped_value = Mock(url='crop.jpg')
     thumbnail_value = Mock(url='thumb.jpg')
     instance.crop = {'10x10': cropped_value}
     instance.thumbnail = {'10x10': thumbnail_value}
-    cropped = get_thumbnail(instance, '10x10', method='crop')
+    cropped = get_thumbnail(instance, 10, method='crop')
     assert cropped == cropped_value.url
-    thumb = get_thumbnail(instance, '10x10', method='thumbnail')
+    thumb = get_thumbnail(instance, 10, method='thumbnail')
     assert thumb == thumbnail_value.url
 
 
@@ -22,10 +25,38 @@ def test_get_thumbnail_no_instance(monkeypatch):
     monkeypatch.setattr(
         'saleor.product.templatetags.product_images.choose_placeholder',
         lambda x: 'placeholder')
-    output = get_thumbnail(instance=None, size='10x10', method='crop')
+    output = get_thumbnail(instance=None, size=10, method='crop')
     assert output == static('placeholder')
 
 
+@patch(
+    'saleor.product.templatetags.product_images.AVAILABLE_SIZES',
+    {'crop__10x10', 'crop__100x100', 'crop__1000x1000', 'crop__2000x2000'})
+@override_settings(
+    VERSATILEIMAGEFIELD_SETTINGS={'create_images_on_demand': False})
+def test_get_thumbnail_to_larger():
+    instance = Mock()
+    cropped_value = Mock(url='crop.jpg')
+    instance.crop = {'1000x1000': cropped_value}
+    cropped = get_thumbnail(instance, 800, method='crop')
+    assert cropped == cropped_value.url
+
+
+@patch(
+    'saleor.product.templatetags.product_images.AVAILABLE_SIZES',
+    {'crop__10x10', 'crop__100x100', 'crop__1000x1000', 'crop__2000x2000'})
+@override_settings(
+    VERSATILEIMAGEFIELD_SETTINGS={'create_images_on_demand': False})
+def test_get_thumbnail_to_smaller():
+    instance = Mock()
+    cropped_value = Mock(url='crop.jpg')
+    instance.crop = {'100x100': cropped_value}
+    cropped = get_thumbnail(instance, 400, method='crop')
+    assert cropped == cropped_value.url
+
+
+@override_settings(
+    VERSATILEIMAGEFIELD_SETTINGS={'create_images_on_demand': True})
 def test_product_first_image():
     mock_product_image = Mock()
     mock_product_image.image = Mock()
@@ -34,7 +65,7 @@ def test_product_first_image():
     mock_queryset = Mock()
     mock_queryset.all.return_value = [mock_product_image]
     mock_product = Mock(images=mock_queryset)
-    out = product_first_image(mock_product, '10x10', method='crop')
+    out = product_first_image(mock_product, 10, method='crop')
     assert out == 'crop.jpg'
 
 
