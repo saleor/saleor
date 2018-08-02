@@ -64,11 +64,11 @@ def test_get_tax_rate_by_name_empty_taxes(product):
 
 
 def test_add_variant_to_order_adds_line_for_new_variant(
-        order_with_lines, product, taxes):
+        order_with_lines, product, taxes, product_translation_fr, settings):
     order = order_with_lines
     variant = product.variants.get()
     lines_before = order.lines.count()
-
+    settings.LANGUAGE_CODE = 'fr'
     add_variant_to_order(order, variant, 1, taxes=taxes)
 
     line = order.lines.last()
@@ -78,6 +78,8 @@ def test_add_variant_to_order_adds_line_for_new_variant(
     assert line.unit_price == TaxedMoney(
         net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
     assert line.tax_rate == taxes[product.tax_rate]['value']
+    assert line.translated_product_name == variant.display_product(
+        translated=True)
 
 
 @pytest.mark.parametrize('track_inventory', (True, False))

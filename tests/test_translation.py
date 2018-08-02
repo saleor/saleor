@@ -1,17 +1,9 @@
 import pytest
 
-from saleor.discount.models import VoucherTranslation
 from saleor.product.models import (
     AttributeChoiceValueTranslation, CategoryTranslation,
     CollectionTranslation, ProductAttributeTranslation, ProductTranslation,
     ProductVariantTranslation)
-
-
-@pytest.fixture
-def product_translation_fr(product):
-    return ProductTranslation.objects.create(
-        language_code='fr', product=product, name='French name',
-        description='French description')
 
 
 @pytest.fixture

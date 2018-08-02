@@ -32,7 +32,7 @@ from saleor.page.models import Page
 from saleor.product.models import (
     AttributeChoiceValue, Category,
     Collection, Product, ProductAttribute, ProductAttributeTranslation,
-    ProductImage, ProductType, ProductVariant)
+    ProductImage, ProductTranslation, ProductType, ProductVariant)
 from saleor.shipping.models import ShippingMethod, ShippingMethodCountry
 from saleor.site.models import AuthorizationKey, SiteSettings
 
@@ -703,7 +703,7 @@ def vatlayer(db, settings, tax_rates, taxes):
 
 
 @pytest.fixture
-def translated_variant(product):
+def translated_variant_fr(product):
     attribute = product.product_type.variant_attributes.first()
     return ProductAttributeTranslation.objects.create(
         language_code='fr', product_attribute=attribute,
@@ -722,3 +722,10 @@ def translated_product_attribute(product):
 def voucher_translation_fr(voucher):
     return VoucherTranslation.objects.create(
         language_code='fr', voucher=voucher, name='French name')
+
+
+@pytest.fixture
+def product_translation_fr(product):
+    return ProductTranslation.objects.create(
+        language_code='fr', product=product, name='French name',
+        description='French description')
