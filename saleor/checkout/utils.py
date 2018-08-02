@@ -15,8 +15,8 @@ from . import AddressType, logger
 from ..account.forms import get_address_form
 from ..account.models import Address
 from ..account.utils import (
-    get_user_default_billing_address, get_user_default_shipping_address,
-    get_user_addresses, store_user_address)
+    get_user_addresses, get_user_default_billing_address,
+    get_user_default_shipping_address, store_user_address)
 from ..core.exceptions import InsufficientStock
 from ..core.utils import to_local_currency
 from ..core.utils.taxes import ZERO_MONEY, get_taxes_for_country

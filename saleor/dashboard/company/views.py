@@ -12,7 +12,7 @@ from ...core.utils import get_paginator_items
 from ...order.models import Order
 from ..views import staff_member_required
 from .filters import CompanyFilter
-from .forms import CompanyForm, CompanyDeleteForm
+from .forms import CompanyDeleteForm, CompanyForm
 
 
 @staff_member_required
@@ -99,16 +99,17 @@ def company_delete(request, pk):
     num_users = company.user_set.count()
 
     if num_users == 0:
-        if request.method == 'POST' and form.is_valid():
-            company.delete()
-            msg = pgettext_lazy(
-                'Dashboard message',
-                '%(company_name)s successfully removed') % {
-                    'company_name': company}
-            messages.success(request, msg)
-            return redirect('dashboard:companies')
-        elif request.method == 'POST' and not form.is_valid():
-            status = 400
+        pass
+    elif request.method == 'POST' and form.is_valid():
+        company.delete()
+        msg = pgettext_lazy(
+            'Dashboard message',
+            '%(company_name)s successfully removed') % {
+                'company_name': company}
+        messages.success(request, msg)
+        return redirect('dashboard:companies')
+    elif request.method == 'POST' and not form.is_valid():
+        status = 400
     ctx = {'company': company, 'form': form, 'allow_delete': num_users == 0}
     return TemplateResponse(
         request, 'dashboard/company/modal/confirm_delete.html', ctx,

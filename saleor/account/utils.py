@@ -13,11 +13,12 @@ def get_user_default_address(user, address_type):
     if address_type == AddressType.BILLING:
         if user.company:
             return user.company.default_billing_address
-        else:
-            return user.default_billing_address
+        return user.default_billing_address
 
     elif address_type == AddressType.SHIPPING:
         return user.default_shipping_address
+
+    raise ValueError("Unrecognized AddressType: %s" % address_type)
 
 
 def get_user_default_shipping_address(user):

@@ -517,7 +517,7 @@ def test_create_address_mutation(admin_api_client, customer_user):
     address_response = content['data']['addressCreate']['address']
     assert address_response['city'] == 'Dummy'
     assert address_response['country'] == 'PL'
-    address_obj = Address.objects.get(city='Dummy')
+    address_obj = customer_user.addresses.get(city='Dummy')
     assert address_obj.user_addresses.first() == customer_user
 
 

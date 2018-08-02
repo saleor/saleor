@@ -225,7 +225,6 @@ class AddressCreate(ModelMutation):
         super().save(info, instance, cleaned_input)
         user = cleaned_input.get('user')
         if user:
-            instance.save()
             store_user_address(user, instance, None)
 
     @classmethod
