@@ -428,15 +428,15 @@ class ProductTypeDelete(ModelDeleteMutation):
         return user.has_perm('product.manage_products')
 
 
-class ProductImageInput(graphene.InputObjectType):
+class ProductImageCreateInput(graphene.InputObjectType):
     alt = graphene.String(description='Alt text for an image.')
-    image = Upload(required=True, description='Image file.')
+    image = Upload(required=True, description='Image field.')
     product = graphene.ID(description='ID of an product.')
 
 
 class ProductImageCreate(ModelMutation):
     class Arguments:
-        input = ProductImageInput(
+        input = ProductImageCreateInput(
             required=True,
             description='Fields required to create a product image.')
 
@@ -457,11 +457,15 @@ class ProductImageCreate(ModelMutation):
         return user.has_perm('product.manage_products')
 
 
-class ProductImageUpdate(ProductImageCreate):
+class ProductImageUpdateInput(graphene.InputObjectType):
+    alt = graphene.String(description='Alt text for an image.')
+
+
+class ProductImageUpdate(ModelMutation):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a product image to update.')
-        input = ProductImageInput(
+        input = ProductImageUpdateInput(
             required=True,
             description='Fields required to update a product image.')
 
