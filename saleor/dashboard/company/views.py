@@ -96,11 +96,9 @@ def company_delete(request, pk):
     form = CompanyDeleteForm(
         request.POST or None, instance=company, user=request.user)
     status = 200
-    num_users = company.user_set.count()
+    allow_delete = not company.user_set.exists()
 
-    if num_users == 0:
-        pass
-    elif request.method == 'POST' and form.is_valid():
+    if request.method == 'POST' and form.is_valid():
         company.delete()
         msg = pgettext_lazy(
             'Dashboard message',
@@ -110,7 +108,7 @@ def company_delete(request, pk):
         return redirect('dashboard:companies')
     elif request.method == 'POST' and not form.is_valid():
         status = 400
-    ctx = {'company': company, 'form': form, 'allow_delete': num_users == 0}
+    ctx = {'company': company, 'form': form, 'allow_delete': allow_delete}
     return TemplateResponse(
         request, 'dashboard/company/modal/confirm_delete.html', ctx,
         status=status)
