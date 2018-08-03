@@ -25,23 +25,23 @@ logger = logging.getLogger(__name__)
 
 
 def details(request, token):
+    note_form = None
     orders = Order.objects.confirmed().prefetch_related(
         'lines__variant', 'fulfillments', 'fulfillments__lines',
         'fulfillments__lines__order_line')
     orders = orders.select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)
-    ctx = {'order': order}
     if order.is_open() and not order.customer_note:
         note_form = CustomerNoteForm(request.POST or None, instance=order)
-        ctx.update({'note_form': note_form})
         if request.method == 'POST':
             if note_form.is_valid():
                 note_form.save()
                 return redirect('order:details', token=order.token)
     fulfillments = order.fulfillments.filter(
         status=FulfillmentStatus.FULFILLED)
-    ctx.update({'fulfillments': fulfillments})
+    ctx = {
+        'order': order, 'fulfillments': fulfillments, 'note_form': note_form}
     return TemplateResponse(request, 'order/details.html', ctx)
 
 
