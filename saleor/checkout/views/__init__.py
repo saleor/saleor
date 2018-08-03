@@ -108,11 +108,9 @@ def cart_index(request, cart):
     except Cart.DoesNotExist:
         pass
 
-    lines = cart.lines.select_related(
-        'variant__product__product_type',
-        'variant__product__category')
+    lines = cart.lines.select_related('variant__product__product_type')
     lines = lines.prefetch_related(
-        'variant__product__collections',
+        'variant__translations', 'variant__product__translations',
         'variant__product__images',
         'variant__product__product_type__variant_attributes__translations')
     for line in lines:
