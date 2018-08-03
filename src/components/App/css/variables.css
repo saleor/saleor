@@ -8,9 +8,8 @@
   --spacer: 1rem;
   --body-color: #fff;
   --background-color: #111010;
+  --layout-width: 1300px;
   --footer-border: #13657F;
-
-  --layout-width: 1400px;
 
   /* Media Queries */
 
@@ -36,16 +35,14 @@
   --font-weight-bold:            700;
   --font-weight-bolder:          bolder;
 
-  --font-weight-base:            var(--font-weight-normal);
-  --line-height-base:            1.2;
-c:              1.5;
+  --font-weight-base:            var(--font-weight-light);
+  --line-height-base:            1.5;
 
   --h1-font-size:                calc(var(--font-size-base) * 3.5);
-  --h2-font-size:                calc(var(--font-size-base) * 2);
-  --h3-font-size:                calc(var(--font-size-base) * 1.75);
+  --h2-font-size:                calc(var(--font-size-base) * 3.5);
+  --h3-font-size:                calc(var(--font-size-base) * 2);
   --h4-font-size:                calc(var(--font-size-base) * 1.5);
-  --h5-font-size:                calc(var(font-size-base) * 1.25);
-  --h6-font-size:                var(font-size-base);
+  --h5-font-size:                var(font-size-base);
 
   --headings-margin-bottom:      calc(var(--spacer) / 2);
   --headings-font-family:        inherit;

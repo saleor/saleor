@@ -7,6 +7,7 @@
     "main": "dist/index.js",
     "browserslist": "last 2 versions",
     "dependencies": {
+        "axios": "^0.18.0",
         "babel-eslint": "^8.2.6",
         "eslint-config-prettier": "^2.9.0",
         "eslint-plugin-prettier": "^2.6.2",
@@ -15,6 +16,7 @@
         "react-router": "^4.3.1",
         "react-router-dom": "^4.3.1",
         "react-svg": "^5.0.6",
+        "react-tabs": "^2.2.2",
         "reset-css": "^4.0.1"
     },
     "devDependencies": {
@@ -46,7 +48,7 @@
     },
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "webpack-dev-server --open --watch --port 3000 --mode development",
+        "start": "webpack-dev-server --watch --port 3000 --mode development",
         "build": "webpack -p --progress",
         "watch": "webpack -d --watch --progress --colors"
     }

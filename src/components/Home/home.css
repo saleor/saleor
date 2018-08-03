@@ -3,18 +3,249 @@
   & section {
     &.hero {
       width: 100%;
-      height: 100vh;
       background-image: url('../../images/parrot-bg.png');
-      background-size: contain;
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: 100% 0%;
       & .plane {
         width: 50%;
-        padding: calc(var(--spacer) * 20) 0 0 calc(var(--spacer) * 5);
+        padding: calc(var(--spacer) * 20) 0 calc(var(--spacer) * 12) calc(var(--spacer) * 5);
         & h1 {
-          text-transform: uppercase;
           padding-bottom: calc(var(--spacer) * 6);
         }
         & .btn {
           margin-right: var(--spacer);
+        }
+      }
+    }
+    &.features {
+      position: relative;
+      top: calc(var(--spacer) * -6);
+      & h3 {
+        color: var(--primaryColor);
+        text-transform: uppercase;
+        position: relative;
+        top: calc(var(--spacer) * -2); 
+        padding-left: calc(var(--spacer) * 5);
+        & span {
+          position: absolute;
+          top: calc(var(--spacer) * -1.5); 
+          left: calc(var(--spacer) * 3);
+          color: var(--body-color);
+          font-size: var(--font-size-base);
+          text-align: right;
+        }
+      }
+      & .feature-item {
+        padding: calc(var(--spacer) * 5) 0;
+        & p {
+          font-size: calc(var(--font-size-base) * 1.2);
+          & strong {
+            display: block;
+            padding: calc(var(--spacer) * 2) 0;
+          }
+        }
+        & .image {
+          background-repeat: no-repeat;
+          background-position: 50% 50%;
+        }
+        &.software-stack {
+          & .image {
+            background-image: url('../../images/stack-icons.png');
+            background-size: 70%;
+          }
+        }
+        &.build-to-scale {
+          & .image {
+            background-image: url('../../images/build-to-scale.png');
+            background-size: 100%;
+          }
+        }
+        &.easy-to-customize {
+          & .image {
+            background-image: url('../../images/easy-to-customize.png');
+            background-size: 80%;
+          }
+        }
+        &.user-experience {
+           padding: calc(var(--spacer) * 3) 0 calc(var(--spacer) * 2) 0;
+          & h4 {
+            padding: calc(var(--spacer) * 1.5) calc(var(--spacer) * 5);
+          }
+        }
+        &.storefront {
+          & .text {
+            padding: calc(var(--spacer) * 4) 0;
+          }
+          & .image {
+            background-image: url('../../images/storefront-icon.png');
+            background-size: 30%;
+          }
+        }
+        &.dashboard {
+          & .image {
+            background-image: url('../../images/dashboard-icon.png');
+            background-size: 80%;
+          }
+        }
+      }
+    }
+    &.open-source {
+      position: relative;
+      border-top: solid var(--border-width) var(--primaryColor);
+      border-bottom: solid var(--border-width) var(--primaryColor);
+      padding-top: calc(var(--spacer) * 3);
+      & .text {
+        width: 40%;
+        & p {
+          & strong {
+            display: block;
+            padding: calc(var(--spacer) * 1.5) 0;
+          }
+        }
+      }
+      & .stars-bg {
+        width: 80%;
+        position: absolute;
+        top: -17%;
+        right: -1.5%;
+      }
+      & .github-circle {
+        width: 25%;
+        padding-top: 25%;
+        border: solid calc(var(--border-width) * 2) var(--body-color);
+        border-radius: 50%;
+        position: absolute; 
+        right: 20.5%;
+        top: 15%;
+        & .githubLink {
+          width: 100%;
+          position: absolute;
+          display: block;
+          top: 50%;
+          left: 50%; 
+          transform: translate(-50%, -50%);
+          color: var(--body-color);
+          text-align: center;
+          & .github-icon {
+            position: relative;
+            top: calc(var(--spacer) * 1.5);
+          }
+          & .github-text {
+            position: relative;
+            top: calc(var(--spacer) * -3);
+            font-size: calc(var(--font-size-base) * 1.2);
+          }
+          & .star-icon {
+            position: relative;
+            top: calc(var(--spacer) * 5.5);
+          }
+          & .star-value {
+            position: relative;
+            top: calc(var(--spacer) * -2);
+            font-size: calc(var(--font-size-base) * 3);
+          }
+          & svg {
+            width: 30px !important;
+            height: 30px !important;
+            fill: var(--body-color);
+            color: var(--body-color);
+          }
+        }
+      }
+      & .icons {
+        width: 100%;
+        grid-template-columns: repeat(10, 1fr);
+        text-align: center;
+        padding-top: calc(var(--spacer) * 12);
+        & svg {
+          width: 80px;
+          fill: var(--primaryColor);
+          color: var(--primaryColor);
+        }
+        & h5 {
+          color: var(--primaryColor);
+        }
+      }
+    }
+    &.saleor-in-action {
+      background: rgb(16,10,53);
+      background: linear-gradient(135deg, rgba(16,10,53,0) 8%, rgba(16,10,53,1) 8%, rgba(16,10,53,1) 92%, rgba(16,10,53,0) 92%, rgba(16,10,53,0) 100%);;
+      border-bottom: solid var(--border-width) var(--primaryColor);
+      & .head {
+        padding: calc(var(--spacer) * 5) 0;
+        & h2 {
+          &.tab-1 { color: var(--body-color) }
+          &.tab-1 { color: var(--primaryColor) }
+        }
+        & ul {
+          padding-top: var(--spacer);
+          & li {
+            font-size: calc(var(--font-size-base) * 1.5);
+            text-transform: uppercase;
+            cursor: pointer;
+            &.react-tabs__tab--selected {
+              color: var(--primaryColor);
+            }
+          }
+        }
+      }
+      & .case-study {
+        & .pg-logo {
+          width: 45%;
+          position: relative;
+          top: calc(var(--spacer) * 2);
+        }
+        & .pg-quote {
+          padding: calc(var(--spacer) * 6) 0 0 calc(var(--spacer) * 3);
+          & p {
+            font-size: calc(var(--font-size-base) * 1.3);
+            font-style: italic;
+          }
+          & .author {
+            padding-bottom: calc(var(--spacer) * 4);
+            & img {
+              width: 70px;
+              display: inline-block;
+              position: relative;
+              top: var(--spacer);
+            }
+            & h5 {
+              display: inline-block;
+              padding-left: var(--spacer);
+              text-transform: uppercase;
+            }
+          }
+        }
+      }
+      & .implementation {
+        & .grid {
+          grid-gap: calc(var(--spacer) * 5);
+          & img {
+            margin-bottom: calc(var(--spacer) * 2);
+          }
+        }
+      }
+    }
+    &.enterprice-consulting {
+      & h3 {
+        width: 70%;
+        font-size: calc(var(--font-size-base) * 2.5);
+        padding-top: calc(var(--spacer) * 2);
+      }
+      & .list {
+        padding: calc(var(--spacer) * 5) 0;
+        & ul {
+          list-style-image: url('../../images/done-icon.png');
+          list-style-position: inside;
+          & li {
+            font-size: calc(var(--font-size-base) * 1.2);
+            & span {
+              position: relative;
+              top: calc(var(--spacer) * -1);
+              left: calc(var(--spacer) * 0.5);
+            }
+          }
         }
       }
     }

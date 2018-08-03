@@ -9,7 +9,7 @@ import css from './header.css';
 const Header = () => (
   <header>
     <div className="container">
-      <div class="grid">
+      <div className="grid">
         <div className="logo column-5">
           <Link to="/"><ReactSVG className="star-icon" path="images/saleor-logo.svg" /></Link>
         </div>
@@ -21,7 +21,7 @@ const Header = () => (
             <li><Link to="/about">About</Link></li>
             <li><a href="https://medium.com/saleor">Blog</a></li>
             <li><GitHubLink owner="mirumee" name="saleor" /></li>
-            <li><a class="btn btn-primary" href="#">Contact Us</a></li>
+            <li><a className="btn btn-primary" href="#">Contact Us</a></li>
           </ul>
         </nav>
       </div>

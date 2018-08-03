@@ -8,7 +8,7 @@ const Footer = () => (
   <footer>
     <div className="container">
       <div className="logo">
-        <Link to="/"><ReactSVG className="star-icon" path="images/saleor-logo.svg" /></Link>
+        <Link to="/"><ReactSVG path="images/saleor-logo.svg" /></Link>
       </div>
       <div className="content">
         <div className="grid">
@@ -41,15 +41,15 @@ const Footer = () => (
               </div>
             </div>
           </div>
-          <div class="column-3 icons">
-            <div class="grid">
-              <div class="columns-1">
+          <div className="column-3 icons">
+            <div className="grid">
+              <div className="column-1">
                 <a href=""><ReactSVG className="twitter-icon" path="images/twiiter-icon.svg" /></a>
               </div>
-              <div class="columns-1">
+              <div className="column-1">
                 <a href=""><ReactSVG className="facebook-icon" path="images/fb-icon.svg" /></a>
               </div>
-              <div class="columns-1">
+              <div className="column-1">
                 <a href=""><ReactSVG className="github-icon" path="images/github-icon.svg" /></a>
               </div>
             </div>
@@ -57,10 +57,10 @@ const Footer = () => (
         </div>
       </div>
       <div className="privacy-links grid">
-        <div class="column-2">
+        <div className="column-2">
           <a href="">Terms of service</a>
         </div>
-        <div class="column-2">
+        <div className="column-2">
           <a href="">Privacy policy</a>
         </div>
       </div>
