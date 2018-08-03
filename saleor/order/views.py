@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 
 def details(request, token):
     orders = Order.objects.confirmed().prefetch_related(
-        'lines__variant', 'fulfillments', 'fulfillments__lines',
-        'fulfillments__lines__order_line')
+        'lines__variant__product__images', 'fulfillments',
+        'fulfillments__lines', 'fulfillments__lines__order_line')
     orders = orders.select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)
@@ -50,7 +50,7 @@ def details(request, token):
 
 def payment(request, token):
     orders = Order.objects.confirmed().filter(billing_address__isnull=False)
-    orders = orders.prefetch_related('lines__variant')
+    orders = orders.prefetch_related('lines__variant__product__images')
     orders = orders.select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)

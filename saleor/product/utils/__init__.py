@@ -31,9 +31,18 @@ def products_with_details(user):
     return products
 
 
+def products_for_products_list(user):
+    products = products_visible_to_user(user)
+    products = products.prefetch_related(
+        'translations', 'images', 'variants__variant_images__image')
+    return products
+
+
 def products_for_homepage():
     user = AnonymousUser()
-    products = products_with_details(user)
+    products = products_visible_to_user(user)
+    products = products.prefetch_related(
+        'translations', 'images', 'variants__variant_images__image')
     products = products.filter(is_featured=True)
     return products
 
