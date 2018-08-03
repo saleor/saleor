@@ -829,7 +829,7 @@ def _fill_order_with_cart_data(order, cart, discounts, taxes):
 
     if cart.note:
         order.customer_note = cart.note
-        order.save()
+        order.save(update_fields=['customer_note'])
 
 
 @transaction.atomic

@@ -435,7 +435,7 @@ def test_create_user_after_order(order, client):
     assert user.orders.filter(token=order.token).exists()
 
 
-def test_view_order_detals(order, client):
+def test_view_order_details(order, client):
     url = reverse('order:details', kwargs={'token': order.token})
     response = client.get(url)
     assert response.status_code == 200
