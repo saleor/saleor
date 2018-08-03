@@ -179,6 +179,18 @@ def email_edit(request):
 
     if request.method == 'POST':
         if form.is_valid():
+            form.send_mail()
             messages.success(request, pgettext(
                 'Storefront message', 'Email successfully changed.'))
     return form
+
+
+@login_required
+def email_change_confirm(request, token=None):
+    user = request.user
+
+    if str(request.user.token) != token:
+        raise Http404('No such page!')
+
+    return TemplateResponse(
+        request, 'account/email_change_confirm.html')

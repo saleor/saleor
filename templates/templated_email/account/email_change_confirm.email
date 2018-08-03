@@ -1,0 +1,27 @@
+{% load i18n %}
+
+{% block subject %}
+  {% trans "Password reset e-mail" context "Email change confirmation subject" %}
+{% endblock %}
+
+{% block plain %}
+{% blocktrans context "Email change confirmation text" %}
+Hi!
+
+You're receiving this e-mail because you or someone else has requested changing email for your user account at {{ domain }}.
+It can be safely ignored if you did not request a email change. Click the link below to activate your new email address ({{ new_email }}).
+{% endblocktrans %}
+
+{{ protocol}}://{{ domain }}{% url 'account:email-change-confirm' token=token %}
+
+This is an automatically generated email, please do not reply.
+
+{% blocktrans context "Email change confirmation text" %}
+Sincerely,
+{{ site_name }}
+{% endblocktrans %}
+{% endblock %}
+
+{% block html %}
+{% include 'templated_email/compiled/email_change_confirm.html' %}
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% load i18n %}{% load staticfiles %}
+{% block head_title %}{% trans "Email chnage" context "Email change page title" %}{% endblock %}
+
+
+{% block content %}
+    <div class="col-md-8 m-auto text-center">
+        <img class="lazyload lazypreload"
+        data-src="{% static 'images/login-bg.png' %}"
+             data-srcset="{% static 'images/login-bg.png' %} 1x, {% static 'images/login-bg2x.png' %} 2x">
+      <h2>{% blocktrans trimmed context "Email change done text" %}
+          Your email address was changed successfully.
+      {% endblocktrans %}</h2>
+  </div>
+{% endblock %}

@@ -2,6 +2,7 @@ from captcha.fields import ReCaptchaField
 from django import forms
 from django.conf import settings
 from django.contrib.auth import forms as django_forms, update_session_auth_hash
+from django.contrib.sites.shortcuts import get_current_site
 from django.utils.translation import pgettext, pgettext_lazy
 from phonenumbers.phonenumberutil import country_code_for_region
 
@@ -151,6 +152,25 @@ class EmailChangeForm(forms.ModelForm):
         self.fields['user_email'].widget.attrs['placeholder'] = self.user.email
 
     def clean(self):
-        user_email = self.cleaned_data.get('user_email')
-        if self.user.email == user_email:
+        data = self.cleaned_data
+        if self.user.email == data['user_email']:
             self.add_error('user_email', self.error_messages['user_email'])
+        return data
+
+    def send_mail(self, request=None, use_https=False):
+        to_email = self.user.email
+        new_email = self.data['user_email']
+        user = self.user
+        current_site = get_current_site(request)
+        site_name = current_site.name
+        domain = current_site.domain
+        context = {
+            'new_email': new_email,
+            'email': to_email,
+            'domain': domain,
+            'site_name': site_name,
+            'token': str(user.token),
+            'protocol': 'https' if use_https else 'http',
+        }
+
+        emails.send_user_email_change_confirmation.delay(context, to_email)

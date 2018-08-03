@@ -32,3 +32,17 @@ def send_account_delete_confirmation_email(token, recipient_email):
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[recipient_email],
         context=ctx)
+
+
+@shared_task
+def send_user_email_change_confirmation(context, recipient):
+    reset_url = build_absolute_uri(
+        reverse(
+            'account:email-change-confirm',
+            kwargs={'token': context['token']}))
+    context['reset_url'] = reset_url
+    send_templated_mail(
+        template_name='account/email_change_confirm',
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[recipient],
+        context=context)

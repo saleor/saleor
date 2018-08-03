@@ -19,8 +19,8 @@ urlpatterns = [
     url(r'password/reset/complete/$', django_views.PasswordResetCompleteView.as_view(  # noqa
         template_name='account/password_reset_from_key_done.html'),
         name='reset-password-complete'),
-    url(r'^email/edit/$', views.email_edit,
-        name='email-edit'),
+    url(r'^email/change/(?P<token>[0-9A-Za-z_\-]+)/confirm/$',
+        views.email_change_confirm, name='email-change-confirm'),
     url(r'^address/(?P<pk>\d+)/edit/$', views.address_edit,
         name='address-edit'),
     url(r'^address/(?P<pk>\d+)/delete/$',
