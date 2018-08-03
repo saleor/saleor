@@ -56,6 +56,9 @@ class CategoryTranslation(SeoModelTranslation):
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
 
+    class Meta:
+        unique_together = (('language_code', 'category'),)
+
     def __str__(self):
         return self.name
 
@@ -178,6 +181,9 @@ class ProductTranslation(SeoModelTranslation):
     name = models.CharField(max_length=128)
     description = models.TextField()
 
+    class Meta:
+        unique_together = (('language_code', 'product'),)
+
     def __str__(self):
         return self.name
 
@@ -279,6 +285,9 @@ class ProductVariantTranslation(models.Model):
 
     translated = TranslationProxy()
 
+    class Meta:
+        unique_together = (('language_code', 'product_variant'),)
+
     def __repr__(self):
         class_ = type(self)
         return '%s(pk=%r, name=%r, variant_pk=%r)' % (
@@ -314,6 +323,9 @@ class ProductAttributeTranslation(models.Model):
         on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
 
+    class Meta:
+        unique_together = (('language_code', 'product_attribute'),)
+
     def __repr__(self):
         class_ = type(self)
         return '%s(pk=%r, name=%r, attribute_pk=%r)' % (
@@ -348,6 +360,9 @@ class AttributeChoiceValueTranslation(models.Model):
         AttributeChoiceValue, related_name='translations',
         on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
+
+    class Meta:
+        unique_together = (('language_code', 'attribute_choice_value'),)
 
     def __repr__(self):
         class_ = type(self)
@@ -418,6 +433,9 @@ class CollectionTranslation(SeoModelTranslation):
         Collection, related_name='translations',
         on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
+
+    class Meta:
+        unique_together = (('language_code', 'collection'),)
 
     def __repr__(self):
         class_ = type(self)

@@ -91,6 +91,9 @@ class MenuItemTranslation(models.Model):
         MenuItem, related_name='translations', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
 
+    class Meta:
+        unique_together = (('language_code', 'menu_item'),)
+
     def __repr__(self):
         class_ = type(self)
         return '%s(pk=%r, name=%r, menu_item_pk=%r)' % (

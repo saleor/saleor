@@ -46,6 +46,9 @@ class SiteSettingsTranslation(models.Model):
     header_text = models.CharField(max_length=200, blank=True)
     description = models.CharField(max_length=500, blank=True)
 
+    class Meta:
+        unique_together = (('language_code', 'site_settings'),)
+
     def __repr__(self):
         class_ = type(self)
         return '%s(pk=%r, site_settings_pk=%r)' % (

@@ -52,6 +52,9 @@ class PageTranslation(SeoModelTranslation):
     title = models.CharField(max_length=255, blank=True)
     content = models.TextField()
 
+    class Meta:
+        unique_together = (('language_code', 'page'),)
+
     def __repr__(self):
         class_ = type(self)
         return '%s(pk=%r, title=%r, page_pk=%r)' % (

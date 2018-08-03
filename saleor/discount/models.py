@@ -149,6 +149,9 @@ class VoucherTranslation(models.Model):
     voucher = models.ForeignKey(
         Voucher, related_name='translations', on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = (('language_code', 'voucher'),)
+
 
 class Sale(models.Model):
     name = models.CharField(max_length=255)
