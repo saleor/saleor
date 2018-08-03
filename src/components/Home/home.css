@@ -65,6 +65,18 @@
       }
       & .feature-item {
         padding: calc(var(--spacer) * 5) 0;
+         position: relative;
+        & h2 {
+          position: relative;
+          & span {
+            position: absolute;
+            top: calc(var(--spacer) * -2); 
+            left: calc(var(--spacer) * -3);
+            color: var(--body-color);
+            font-size: calc(var(--font-size-base) * 1.5);
+            text-align: right;
+          }
+        }
         & p {
           font-size: calc(var(--font-size-base) * 1.2);
           & strong {
@@ -81,11 +93,23 @@
             background-image: url('../../images/stack-icons.png');
             background-size: 70%;
           }
+          & .decoration {
+            width: 35%;
+            right: -15%;
+            left: initial;
+            top: 48%;
+          }
         }
         &.build-to-scale {
           & .image {
             background-image: url('../../images/build-to-scale.png');
             background-size: 100%;
+          }
+          & .decoration {
+            width: 15%;
+            left: -15%;
+            top: 30%;
+            right: initial;
           }
         }
         &.easy-to-customize {
@@ -95,7 +119,13 @@
           }
         }
         &.user-experience {
-           padding: calc(var(--spacer) * 3) 0 calc(var(--spacer) * 2) 0;
+          padding: calc(var(--spacer) * 3) 0 calc(var(--spacer) * 2) 0;
+          & h2 {
+            font-size: var(--h2-font-size);
+            & span {
+              left: 5%;
+            }
+          }
           & h4 {
             padding: calc(var(--spacer) * 1.5) calc(var(--spacer) * 5);
           }
@@ -108,13 +138,31 @@
             background-image: url('../../images/storefront-icon.png');
             background-size: 30%;
           }
+          & .decoration {
+            width: 30%;
+            right: -15%;
+            top: 50%;
+            left: initial;
+          }
         }
         &.dashboard {
           & .image {
             background-image: url('../../images/dashboard-icon.png');
             background-size: 80%;
           }
+          & .decoration {
+            width: 25%;
+            left: -13%;
+            right: initial;
+            top: -11%;
+          }
         }
+      }
+      & .decoration {
+        width: 40%;
+        left: 5%;
+        right: initial;
+        bottom: -3%;
       }
     }
     &.open-source {
@@ -194,8 +242,19 @@
           color: var(--primaryColor);
         }
       }
+      & .decoration01 {
+        width: 10%;
+        left: 0;
+        top: 0;
+      }
+      & .decoration02 {
+        width: 15%;
+        right: 5%;
+        top: 35%;
+      }
     }
     &.saleor-in-action {
+      position: relative;
       background: rgb(16,10,53);
       background: linear-gradient(135deg, rgba(16,10,53,0) 8%, rgba(16,10,53,1) 8%, rgba(16,10,53,1) 92%, rgba(16,10,53,0) 92%, rgba(16,10,53,0) 100%);
       border-bottom: solid var(--border-width) var(--primaryColor);
@@ -253,8 +312,20 @@
           }
         }
       }
+      & .decoration01 {
+        width: 18%;
+        left: -2%;
+        top: -10%;
+      }
+      & .decoration02 {
+        width: 15%;
+        right: -5%;
+        top: -10%;
+      }
     }
     &.enterprice-consulting {
+      position: relative;
+      padding: calc(var(--spacer) * 4) 0 calc(var(--spacer) * 2) 0;
       & h3 {
         width: 70%;
         font-size: calc(var(--font-size-base) * 2.5);
@@ -274,6 +345,16 @@
             }
           }
         }
+      }
+      & .decoration01 {
+        width: 20%;
+        left: -3%;
+        top: -9%;
+      }
+      & .decoration02 {
+        width: 40%;
+        right: -4%;
+        top: 0;
       }
     }
   }

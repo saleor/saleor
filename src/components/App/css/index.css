@@ -86,6 +86,10 @@ img {
   text-align: center;
 }
 
+.decoration {
+  position: absolute;
+}
+
 .primaryColor { color: var(--primaryColor); }
 .seconadyColor { color: var(--secondaryColor); }
 
