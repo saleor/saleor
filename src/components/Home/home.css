@@ -9,7 +9,34 @@
       background-position: 100% 0%;
       & .plane {
         width: 50%;
+        position: relative;
         padding: calc(var(--spacer) * 20) 0 calc(var(--spacer) * 12) calc(var(--spacer) * 5);
+        & .news {
+          position: relative;
+          top: calc(var(--spacer) * -8);
+          & .label {
+            width: 20%;
+            display: inline-block;
+            background: rgb(54,193,172);
+            background: linear-gradient(135deg, rgba(54,193,172,0) 20%, rgba(54,193,172,1) 20%, rgba(54,193,172,1) 80%, rgba(54,193,172,0) 80%, rgba(54,193,172,0) 100%);
+            text-align: center;
+            color: var(--background-color);
+            padding-top: calc(var(--spacer) * 0.1);
+          }
+          & .content {
+            width: 80%;
+            display: inline-block;
+            background: rgb(16,10,53);
+            background: linear-gradient(135deg, rgba(16,10,53,0) 5%, rgba(16,10,53,1) 5%, rgba(16,10,53,1) 80%, rgba(16,10,53,0) 80%, rgba(16,10,53,0) 100%);
+            padding: calc(var(--spacer) * 0.1) 0 0 0;
+            position: relative;
+            left: -5%;
+            & a {
+              color: var(--body-color);
+              padding-left: calc(var(--spacer) * 2);
+            }
+          }
+        }
         & h1 {
           padding-bottom: calc(var(--spacer) * 6);
         }
@@ -117,7 +144,7 @@
         border-radius: 50%;
         position: absolute; 
         right: 20.5%;
-        top: 15%;
+        top: 17%;
         & .githubLink {
           width: 100%;
           position: absolute;
@@ -170,7 +197,7 @@
     }
     &.saleor-in-action {
       background: rgb(16,10,53);
-      background: linear-gradient(135deg, rgba(16,10,53,0) 8%, rgba(16,10,53,1) 8%, rgba(16,10,53,1) 92%, rgba(16,10,53,0) 92%, rgba(16,10,53,0) 100%);;
+      background: linear-gradient(135deg, rgba(16,10,53,0) 8%, rgba(16,10,53,1) 8%, rgba(16,10,53,1) 92%, rgba(16,10,53,0) 92%, rgba(16,10,53,0) 100%);
       border-bottom: solid var(--border-width) var(--primaryColor);
       & .head {
         padding: calc(var(--spacer) * 5) 0;

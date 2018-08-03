@@ -22,6 +22,10 @@ class Home extends Component {
       <div id="home">
         <section className="hero">
           <div className="plane">
+            <div class="news">
+              <div class="label">NEW</div>
+              <div class="content"><a href="">April release is out. Check out what's new!</a></div>
+            </div>
             <h1>A graphql-first ecommerce <span className="primaryColor">platform for perfectionists</span></h1>
             <a href="#" className="btn btn-secondary">See demo</a>
             <a href="#" className="btn btn-primary">Brief us</a>

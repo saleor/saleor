@@ -115,6 +115,7 @@ img {
 section {
   & .section-container {
     padding: calc(var(--spacer) * 5);
+    position: relative;
   }
 }
 
