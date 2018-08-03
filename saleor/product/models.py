@@ -54,6 +54,9 @@ class Category(MPTTModel, SeoModel):
         nodes = [node for node in ancestors] + [self]
         return '/'.join([node.slug for node in nodes])
 
+    def is_public(self):
+        return True
+
 
 class ProductType(models.Model):
     name = models.CharField(max_length=128)
@@ -321,3 +324,6 @@ class Collection(SeoModel):
         return reverse(
             'product:collection',
             kwargs={'pk': self.id, 'slug': self.slug})
+
+    def is_public(self):
+        return self.is_published

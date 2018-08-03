@@ -57,6 +57,10 @@ class MenuItem(MPTTModel, SortableModel):
         return self.category or self.collection or self.page
 
     @property
+    def published(self):
+        return not self.linked_object or self.linked_object.is_public()
+
+    @property
     def destination_display(self):
         linked_object = self.linked_object
 
@@ -79,3 +83,6 @@ class MenuItem(MPTTModel, SortableModel):
     def get_url(self):
         linked_object = self.linked_object
         return linked_object.get_absolute_url() if linked_object else self.url
+
+    def get_published_children(self):
+        return [child for child in self.get_children() if child.published]
