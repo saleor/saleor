@@ -60,12 +60,12 @@
             {# We display language picker only if there're languages to pick from #}
             {% if LANGUAGES|length > 1 %}
               {% get_current_language as LANGUAGE_CODE %}
-              {% get_language_info for LANGUAGE_CODE as current_lang %}
               <li>
                 <div class="language-picker dropdown show">
-                  <a class="dropdown-toggle dropdown-link " data-toggle="modal" data-target="#languagePickerModal" href="" id="dropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    {{ current_lang.name_local }}
+                  <a class="dropdown-toggle dropdown-link " id="language-picker-button">
+                    {{ current_lang|language_name_local }}
                   </a>
+                  {% include "_language_picker.html" %}
                 </div>
               </li>
             {% endif %}

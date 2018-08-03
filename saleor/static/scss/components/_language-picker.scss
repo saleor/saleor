@@ -1,6 +1,4 @@
 #languagePickerModal {
-  cursor: all-scroll;
-  user-select: none;
   text-align: center;
   padding: 0!important;
 
@@ -11,22 +9,31 @@
     vertical-align: middle;
   }
   .modal-body {
-    height: 50%;
+    height: 25em;
     overflow-y: auto;
+    label {
+      margin-bottom: 0rem;
+      padding-bottom: 0.5rem;
+      cursor: pointer;
+      width: 100%;
+    }
+    @include media-breakpoint-up(sm) {
+      height: 40em;
+    }
   }
   .modal-dialog {
     display: inline-block;
     text-align: left;
     vertical-align: middle;
   }
-  @media (min-height: 500px) {
-    .modal-body {
-      height: 25em;
-    }
-  }
-  @media (min-height: 800px) {
-    .modal-body {
-      height: 38em;
-    }
+}
+
+.language-picker {
+  cursor: pointer;
+  user-select: none;
+  .scrollable-menu {
+    height: auto;
+    max-height: 40rem;
+    overflow-x: hidden;
   }
 }
