@@ -157,8 +157,8 @@ class Product(SeoModel):
         return self.available_on is None or self.available_on <= today
 
     def get_first_image(self):
-        first_image = self.images.first()
-        return first_image.image if first_image else None
+        images = list(self.images.all())
+        return images[0].image if images else None
 
     def get_price_range(self, discounts=None, taxes=None):
         if self.variants.exists():
