@@ -130,9 +130,7 @@ class Product(CountableDjangoObjectType):
         description='The storefront URL for the product.', required=True)
     thumbnail_url = graphene.String(
         description='The URL of a main thumbnail for a product.',
-        size=graphene.Argument(
-            graphene.Int,
-            description='Size of thumbnail'))
+        size=graphene.Argument(graphene.Int, description='Size of thumbnail'))
     availability = graphene.Field(
         ProductAvailability,
         description="""Informs about product's availability in the storefront,
@@ -265,8 +263,7 @@ class ProductImage(CountableDjangoObjectType):
     url = graphene.String(
         required=True,
         description='',
-        size=graphene.Int(
-            description='Size of image'))
+        size=graphene.Int(description='Size of image'))
 
     class Meta:
         description = 'Represents a product image.'
