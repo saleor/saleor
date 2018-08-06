@@ -147,7 +147,7 @@ const ImageListContainer = SortableContainer(
       return (
         <div {...props}>
           {items.map((image, index) => (
-            <Toggle>
+            <Toggle key={index}>
               {(opened, { toggle }) => (
                 <>
                   <ImageListElement
