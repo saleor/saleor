@@ -114,7 +114,7 @@ const SingleAutocompleteSelectFieldComponent = decorate<
                     <MenuItem disabled={true} component="div">
                       {i18n.t("Loading...")}
                     </MenuItem>
-                  ) : (
+                  ) : choices.length > 0 || custom ? (
                     <>
                       {choices.map((suggestion, index) => (
                         <MenuItem
@@ -139,6 +139,10 @@ const SingleAutocompleteSelectFieldComponent = decorate<
                         </MenuItem>
                       )}
                     </>
+                  ) : (
+                    <MenuItem disabled={true} component="div">
+                      {i18n.t("No results found")}
+                    </MenuItem>
                   )}
                 </Paper>
               )}

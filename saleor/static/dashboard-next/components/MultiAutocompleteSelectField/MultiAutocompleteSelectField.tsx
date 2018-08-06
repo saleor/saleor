@@ -155,7 +155,7 @@ export const MultiAutocompleteSelectField = decorate<
                           ))
                         : !loading && (
                             <MenuItem disabled={true} component="div">
-                              {i18n.t("No matches found")}
+                              {i18n.t("No results found")}
                             </MenuItem>
                           )}
                     </>
