@@ -10,7 +10,7 @@ import i18n from "../../../i18n";
 interface ProductVariantStockProps {
   errors: { [key: string]: string };
   sku?: string;
-  stock?: number;
+  stock?: string;
   stockAllocated?: number;
   loading?: boolean;
   onChange(event: any);
@@ -48,7 +48,7 @@ const ProductVariantStock = decorate<ProductVariantStockProps>(
               helperText={
                 errors.stock
                   ? errors.stock
-                  : loading
+                  : loading || !stockAllocated
                     ? ""
                     : `${i18n.t("Allocated:")} ${stockAllocated}`
               }
