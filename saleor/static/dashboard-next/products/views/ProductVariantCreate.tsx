@@ -44,6 +44,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
           >
             {({ data, error, loading: productLoading }) => {
               if (error) {
+                console.log(error);
                 return (
                   <ErrorMessageCard message={i18n.t("Something went wrong")} />
                 );

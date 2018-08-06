@@ -12,7 +12,6 @@ import SaveButtonBar, {
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
 import ProductVariantAttributes from "../ProductVariantAttributes";
-import ProductVariantImages from "../ProductVariantImages";
 import ProductVariantImageSelectDialog from "../ProductVariantImageSelectDialog";
 import ProductVariantNavigation from "../ProductVariantNavigation";
 import ProductVariantPrice from "../ProductVariantPrice";
@@ -53,7 +52,7 @@ interface ProductVariantCreatePageProps {
           id: string;
           name: string;
           sku: string;
-          images: {
+          image: {
             edges: Array<{
               node: {
                 url: string;
