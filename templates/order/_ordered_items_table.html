@@ -3,7 +3,7 @@
 {% load i18n_address_tags %}
 {% load placeholder %}
 {% load price from taxed_prices %}
-{% load product_first_image from product_images %}
+{% load get_thumbnail from product_images %}
 
 {% if order.user == user %}
   <div class="order-details__addresses">
@@ -50,8 +50,8 @@
     <div class="row">
       <div class="col-md-8">
         <a class="link--clean" href="{% if line.variant %}{{ line.variant.get_absolute_url }}{% endif %}">
-          <img data-src="{% product_first_image line.variant.product size=60 method="crop" %}"
-                data-srcset="{% product_first_image line.variant.product size=60 method="crop" %} 1x, {% product_first_image line.variant.product size=120 method="crop" %} 2x"
+          <img data-src="{% get_thumbnail line.variant.get_first_image size=60 method="crop" %}"
+                data-srcset="{% get_thumbnail line.variant.get_first_image size=60 method="crop" %} 1x, {% get_thumbnail line.variant.get_first_image size=120 method="crop" %} 2x"
                 class="float-left lazyload lazypreload"
                 src="{% placeholder size=60 %}">
           <span class="order-details__product__description">{{ line.translated_product_name|default:line.product_name }}</span>

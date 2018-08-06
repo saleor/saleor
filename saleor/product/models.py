@@ -269,6 +269,9 @@ class ProductVariant(models.Model):
         return smart_text(product_display)
 
     def get_first_image(self):
+        images = list(self.images.all())
+        if images:
+            return images[0].image
         return self.product.get_first_image()
 
     def get_ajax_label(self, discounts=None):
