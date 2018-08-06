@@ -28,6 +28,7 @@ storiesOf("Views / Products / Product edit", module)
       onProductShow={() => {}}
       onVariantAdd={() => {}}
       onVariantShow={() => () => {}}
+      onImageDelete={() => () => {}}
     />
   ))
   .add("when product has no images", () => (
@@ -46,6 +47,7 @@ storiesOf("Views / Products / Product edit", module)
       onAttributesEdit={() => {}}
       onDelete={() => {}}
       onProductShow={() => {}}
+      onImageDelete={() => () => {}}
       onVariantAdd={() => {}}
       onVariantShow={() => () => {}}
     />
@@ -72,6 +74,7 @@ storiesOf("Views / Products / Product edit", module)
       onDelete={() => {}}
       onProductShow={() => {}}
       onVariantAdd={() => {}}
+      onImageDelete={() => () => {}}
       onVariantShow={() => () => {}}
     />
   ))
@@ -85,6 +88,7 @@ storiesOf("Views / Products / Product edit", module)
       disabled={true}
       placeholderImage={placeholderImage}
       onAttributesEdit={() => {}}
+      onImageDelete={() => () => {}}
       onVariantShow={() => () => {}}
     />
   ));
