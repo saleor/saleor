@@ -1,14 +1,15 @@
 import { withStyles } from "@material-ui/core/styles";
+import { stringify } from "querystring";
 import * as React from "react";
 
-import { productAddUrl, productUrl } from "..";
+import { productAddUrl, productListUrl, productUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import ProductListCard from "../components/ProductListCard";
 import { productListQuery, TypedProductListQuery } from "../queries";
 
 interface ProductListProps {
-  filters: any;
+  params: any;
 }
 
 const decorate = withStyles(theme => ({
@@ -23,102 +24,99 @@ const decorate = withStyles(theme => ({
   }
 }));
 
-export const ProductList = decorate<ProductListProps>(
-  ({ classes, filters }) => (
-    <div className={classes.root}>
-      <Navigator>
-        {navigate => {
-          return (
-            <TypedProductListQuery
-              query={productListQuery}
-              variables={{ first: 12 }}
-              fetchPolicy="network-only"
-            >
-              {({ data, loading, error, fetchMore }) => {
-                if (error) {
-                  return <ErrorMessageCard message="Something went wrong" />;
+export const ProductList = decorate<ProductListProps>(({ classes, params }) => (
+  <div className={classes.root}>
+    <Navigator>
+      {navigate => {
+        const PAGINATE_BY = 20;
+        const paginationState =
+          params && (params.before || params.after)
+            ? params.after
+              ? {
+                  after: params.after,
+                  first: PAGINATE_BY
                 }
-                const loadNextPage = () => {
-                  if (loading) {
-                    return;
-                  }
-                  return fetchMore({
-                    updateQuery: (previousResult, { fetchMoreResult }) => {
-                      return {
-                        ...fetchMoreResult,
-                        products: {
-                          ...fetchMoreResult.products,
-                          pageInfo: {
-                            ...fetchMoreResult.products.pageInfo,
-                            hasPreviousPage: true
-                          }
-                        }
-                      };
-                    },
-                    variables: {
-                      after: data.products.pageInfo.endCursor,
-                      first: 12
-                    }
-                  });
-                };
-                const loadPreviousPage = () => {
-                  if (loading) {
-                    return;
-                  }
-                  return fetchMore({
-                    updateQuery: (
-                      previousResult,
-                      { fetchMoreResult, variables }
-                    ) => {
-                      return {
-                        ...fetchMoreResult,
-                        products: {
-                          ...fetchMoreResult.products,
-                          pageInfo: {
-                            ...fetchMoreResult.products.pageInfo,
-                            hasNextPage: true
-                          }
-                        }
-                      };
-                    },
-                    variables: {
-                      before: data.products.pageInfo.startCursor,
-                      first: undefined,
-                      last: 12
-                    }
-                  });
-                };
-                return (
-                  <>
-                    <div>
-                      <ProductListCard
-                        onAdd={() => navigate(productAddUrl)}
-                        disabled={loading}
-                        products={
-                          data &&
-                          data.products !== undefined &&
-                          data.products !== null
-                            ? data.products.edges.map(p => p.node)
-                            : undefined
-                        }
-                        onNextPage={loadNextPage}
-                        onPreviousPage={loadPreviousPage}
-                        pageInfo={
-                          data && data.products && data.products.pageInfo
-                            ? data.products.pageInfo
-                            : undefined
-                        }
-                        onRowClick={id => () => navigate(productUrl(id))}
-                      />
-                    </div>
-                  </>
+              : {
+                  before: params.before,
+                  last: PAGINATE_BY
+                }
+            : {
+                first: PAGINATE_BY
+              };
+        return (
+          <TypedProductListQuery
+            query={productListQuery}
+            variables={paginationState}
+            fetchPolicy="network-only"
+          >
+            {({ data, loading, error, fetchMore }) => {
+              if (error) {
+                return <ErrorMessageCard message="Something went wrong" />;
+              }
+              const loadNextPage = () => {
+                if (loading) {
+                  return;
+                }
+                return navigate(
+                  productListUrl +
+                    "?" +
+                    stringify({
+                      after: data.products.pageInfo.endCursor
+                    }),
+                  true
                 );
-              }}
-            </TypedProductListQuery>
-          );
-        }}
-      </Navigator>
-    </div>
-  )
-);
+              };
+              const loadPreviousPage = () => {
+                if (loading) {
+                  return;
+                }
+                return navigate(
+                  productListUrl +
+                    "?" +
+                    stringify({
+                      before: data.products.pageInfo.startCursor
+                    }),
+                  true
+                );
+              };
+              const pageInfo =
+                data && data.products && data.products.pageInfo
+                  ? {
+                      ...data.products.pageInfo,
+                      hasNextPage:
+                        !!paginationState.before ||
+                        data.products.pageInfo.hasNextPage,
+                      hasPreviousPage:
+                        !!paginationState.after ||
+                        data.products.pageInfo.hasPreviousPage
+                    }
+                  : undefined;
+              return (
+                <>
+                  <div>
+                    <ProductListCard
+                      onAdd={() => navigate(productAddUrl)}
+                      disabled={loading}
+                      products={
+                        data &&
+                        data.products !== undefined &&
+                        data.products !== null
+                          ? data.products.edges.map(p => p.node)
+                          : undefined
+                      }
+                      onNextPage={loadNextPage}
+                      onPreviousPage={loadPreviousPage}
+                      pageInfo={pageInfo}
+                      onRowClick={id => () => navigate(productUrl(id))}
+                    />
+                  </div>
+                </>
+              );
+            }}
+          </TypedProductListQuery>
+        );
+      }}
+    </Navigator>
+  </div>
+));
 export default ProductList;
