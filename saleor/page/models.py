@@ -41,3 +41,8 @@ class Page(SeoModel):
 
     def get_full_url(self):
         return build_absolute_uri(self.get_absolute_url())
+
+    def is_public(self):
+        today = datetime.date.today()
+        return self.is_visible and (
+            self.available_on is None or self.available_on <= today)
