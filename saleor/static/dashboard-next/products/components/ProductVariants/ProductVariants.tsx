@@ -74,9 +74,10 @@ export const ProductVariants = decorate<ProductVariantsProps>(
         title={i18n.t("Variants")}
         toolbar={
           <>
-            <Button onClick={onAttributesEdit} variant="flat" color="secondary">
+            {/* TODO: enable after adding attribute section */}
+            {/* <Button onClick={onAttributesEdit} variant="flat" color="secondary">
               {i18n.t("Edit attributes")}
-            </Button>
+            </Button> */}
             <Button onClick={onVariantAdd} variant="flat" color="secondary">
               {i18n.t("Add variant")}
             </Button>
