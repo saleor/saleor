@@ -27,7 +27,7 @@ interface FormData {
   }>;
   costPrice?: string;
   priceOverride?: string;
-  stock?: number;
+  stock?: string;
   sku?: string;
 }
 
@@ -44,7 +44,6 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
           >
             {({ data, error, loading: productLoading }) => {
               if (error) {
-                console.log(error);
                 return (
                   <ErrorMessageCard message={i18n.t("Something went wrong")} />
                 );
@@ -89,7 +88,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                           costPrice: formData.costPrice,
                           priceOverride: formData.priceOverride,
                           product: productId,
-                          quantity: formData.stock,
+                          quantity: parseInt(formData.stock, 10),
                           sku: formData.sku,
                           trackInventory: true
                         }

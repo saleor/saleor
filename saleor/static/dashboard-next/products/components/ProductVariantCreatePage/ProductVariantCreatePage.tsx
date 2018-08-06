@@ -25,7 +25,7 @@ interface FormData {
   costPrice?: string;
   images?: string[];
   priceOverride?: string;
-  stock?: number;
+  stock?: string;
   sku?: string;
 }
 interface ProductVariantCreatePageProps {
@@ -71,9 +71,6 @@ interface ProductVariantCreatePageProps {
 
 const decorate = withStyles(theme => ({
   root: {
-    "& input": {
-      width: "100%"
-    },
     display: "grid",
     gridGap: `${theme.spacing.unit * 2}px`,
     gridTemplateColumns: "1fr 2.25fr",
@@ -115,14 +112,14 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
                           value: ""
                         }))
                       : undefined,
-                  costPrice: null,
+                  costPrice: "",
                   images:
                     product && product.images && product.images.edges
                       ? product.images.edges.map(edge => edge.node.id)
                       : undefined,
-                  priceOverride: null,
-                  sku: null,
-                  stock: null
+                  priceOverride: "",
+                  sku: "",
+                  stock: ""
                 }}
                 errors={formErrors}
                 onSubmit={onSubmit}

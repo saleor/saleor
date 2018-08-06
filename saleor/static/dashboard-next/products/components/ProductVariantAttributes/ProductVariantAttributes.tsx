@@ -35,9 +35,6 @@ const decorate = withStyles(theme => ({
     overflow: "visible" as "visible"
   },
   grid: {
-    "& input": {
-      width: "100%"
-    },
     display: "grid",
     gridGap: `${theme.spacing.unit * 2}px`,
     gridTemplateColumns: "1fr 1fr"
