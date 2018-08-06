@@ -78,7 +78,7 @@ const PageProperties = decorate<PagePropertiesProps>(
           {created && (
             <div>
               <Typography variant="body1">{i18n.t("Created:")} </Typography>
-              <DateFormatter date={created} />
+              <DateFormatter date={parseInt(created, 10)} />
             </div>
           )}
           <FormSpacer />
