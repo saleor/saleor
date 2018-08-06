@@ -58,6 +58,12 @@ def get_thumbnail_size(size, method):
     """ Return closest larger size if not more than 2 times larger, otherwise
     return closest smaller size
     """
+    on_demand = settings.VERSATILEIMAGEFIELD_SETTINGS[
+        'create_images_on_demand']
+    size_str = '%sx%s' % (size, size)
+    size_name = '%s__%s' % (method, size_str)
+    if size_name in AVAILABLE_SIZES or on_demand:
+        return size_str
     avail_sizes = sorted(get_available_sizes_by_method(method))
     larger = [x for x in avail_sizes if size < x <= size * 2]
     smaller = [x for x in avail_sizes if x <= size]
@@ -66,24 +72,17 @@ def get_thumbnail_size(size, method):
         return '%sx%s' % (larger[0], larger[0])
     elif smaller:
         return'%sx%s' % (smaller[-1], smaller[-1])
+    msg = (
+        "Thumbnail size %s is not defined in settings "
+        "and it won't be generated automatically" % size_name)
+    warnings.warn(msg)
     return None
 
 
 @register.simple_tag()
 def get_thumbnail(instance, size, method='crop'):
-    size_str = '%sx%s' % (size, size)
-    size_name = '%s__%s' % (method, size_str)
-    on_demand = settings.VERSATILEIMAGEFIELD_SETTINGS[
-        'create_images_on_demand']
     if instance:
-        used_size = size_str
-        if size_name not in AVAILABLE_SIZES and not on_demand:
-            used_size = get_thumbnail_size(size, method)
-        if not used_size:
-            msg = (
-                "Thumbnail size %s is not defined in settings "
-                "and it won't be generated automatically" % size_name)
-            warnings.warn(msg)
+        used_size = get_thumbnail_size(size, method)
         try:
             thumbnail = getattr(instance, method)[used_size]
         except Exception:
@@ -92,7 +91,7 @@ def get_thumbnail(instance, size, method='crop'):
                 extra={'instance': instance, 'size': size})
         else:
             return thumbnail.url
-    return static(choose_placeholder(size_str))
+    return static(choose_placeholder('%sx%s' % (size, size)))
 
 
 @register.simple_tag()
