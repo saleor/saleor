@@ -10,7 +10,7 @@ const ProductList: React.StatelessComponent<RouteComponentProps<any>> = ({
   location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  return <ProductListComponent filters={qs} />;
+  return <ProductListComponent params={qs} />;
 };
 
 const ProductUpdate: React.StatelessComponent<RouteComponentProps<any>> = ({
