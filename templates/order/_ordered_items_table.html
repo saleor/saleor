@@ -50,8 +50,8 @@
     <div class="row">
       <div class="col-md-8">
         <a class="link--clean" href="{% if line.variant %}{{ line.variant.get_absolute_url }}{% endif %}">
-          <img data-src="{% product_first_image line.variant.product size="60x60" method="crop" %}"
-                data-srcset="{% product_first_image line.variant.product size="60x60" method="crop" %} 1x, {% product_first_image line.variant.product size="120x120" method="crop" %} 2x"
+          <img data-src="{% product_first_image line.variant.product size=60 method="crop" %}"
+                data-srcset="{% product_first_image line.variant.product size=60 method="crop" %} 1x, {% product_first_image line.variant.product size=120 method="crop" %} 2x"
                 class="float-left lazyload lazypreload"
                 src="{% placeholder size=60 %}">
           <span class="order-details__product__description">{{ line.product_name }}</span>
