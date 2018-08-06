@@ -10,10 +10,16 @@ storiesOf("Views / Products / Product image details", module)
   .add("when loaded data", () => (
     <ProductImagePage
       onSubmit={() => {}}
-      onBack={() => {}}
       image={placeholder}
+      onBack={() => {}}
+      onDelete={() => {}}
     />
   ))
   .add("when loading data", () => (
-    <ProductImagePage disabled={true} onSubmit={() => {}} onBack={() => {}} />
+    <ProductImagePage
+      onDelete={() => {}}
+      disabled={true}
+      onSubmit={() => {}}
+      onBack={() => {}}
+    />
   ));
