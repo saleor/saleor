@@ -3,7 +3,7 @@
 {% load bootstrap_field from bootstrap4 %}
 {% load build_absolute_uri from urls %}
 {% load get_object_properties from attributes %}
-{% load get_thumbnail product_first_image from product_images %}
+{% load get_thumbnail from product_images %}
 {% load i18n %}
 {% load markdown from markdown %}
 {% load placeholder %}
@@ -27,7 +27,7 @@
   <meta property="og:url" content="{{ product_url }}">
   <link rel="canonical" href="{{ product_url }}">
 
-  {% product_first_image product size=510 as product_image %}
+  {% get_thumbnail product.get_first_image size=510 as product_image %}
   {% if product_image %}
     <meta property="og:image" content="{{ product_image }}" />
     <meta property="og:image:width" content="510">

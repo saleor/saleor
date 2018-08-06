@@ -91,12 +91,4 @@ def get_thumbnail(instance, size, method='crop'):
                 extra={'instance': instance, 'size': size})
         else:
             return thumbnail.url
-    return static(choose_placeholder('%sx%s' % (size, size)))
-
-
-@register.simple_tag()
-def product_first_image(product, size, method='crop'):
-    """Return the main image of the given product."""
-    all_images = product.images.all() if product else []
-    main_image = all_images[0].image if all_images else None
-    return get_thumbnail(main_image, size, method)
+    return static(choose_placeholder(size))

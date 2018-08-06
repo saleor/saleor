@@ -4,7 +4,7 @@ from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.test import override_settings
 
 from saleor.product.templatetags.product_images import (
-    choose_placeholder, get_thumbnail, product_first_image)
+    choose_placeholder, get_thumbnail, get_thumbnail)
 
 
 @override_settings(
@@ -69,20 +69,6 @@ def test_get_thumbnail_no_match_by_method():
     instance.crop = {'1000x1000': cropped_value}
     cropped = get_thumbnail(instance, 800, method='crop')
     assert cropped == static('images/placeholder1080x1080.png')
-
-
-@override_settings(
-    VERSATILEIMAGEFIELD_SETTINGS={'create_images_on_demand': True})
-def test_product_first_image():
-    mock_product_image = Mock()
-    mock_product_image.image = Mock()
-    mock_product_image.image.crop = {'10x10': Mock(url='crop.jpg')}
-
-    mock_queryset = Mock()
-    mock_queryset.all.return_value = [mock_product_image]
-    mock_product = Mock(images=mock_queryset)
-    out = product_first_image(mock_product, 10, method='crop')
-    assert out == 'crop.jpg'
 
 
 def test_choose_placeholder(settings):
