@@ -48,7 +48,7 @@
     },
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "webpack-dev-server --watch --port 3000 --mode development",
+        "start": "webpack-dev-server --watch --port 3000 --mode development --host 0.0.0.0",
         "build": "webpack -p --progress",
         "watch": "webpack -d --watch --progress --colors"
     }
