@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-05-10 08:29-0500\n"
+"POT-Creation-Date: 2018-07-30 09:54-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Da Costa Faro Rémy <remy@dacostafaro.com>, 2018\n"
 "Language-Team: French (https://www.transifex.com/mirumee/teams/34782/fr/)\n"
@@ -317,7 +317,7 @@ msgstr "Lien hypertexte"
 #: saleor/static/dashboard/js/components/editor.js:58
 msgctxt "Rich text editor option"
 msgid "Image (converts selected text to an image tag)"
-msgstr "Image (convertis le texte sélectionné en une étiquette d'image)"
+msgstr "Image (convertit le texte sélectionné en une balise image)"
 
 #: saleor/static/dashboard/js/components/editor.js:63
 msgctxt "Rich text editor option"
