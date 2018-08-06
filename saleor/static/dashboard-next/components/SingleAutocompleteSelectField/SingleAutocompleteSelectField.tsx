@@ -7,6 +7,7 @@ import * as React from "react";
 import { compareTwoStrings } from "string-similarity";
 
 import i18n from "../../i18n";
+import ArrowDropdownIcon from "../../icons/ArrowDropdown";
 
 interface SingleAutocompleteSelectFieldProps {
   name: string;
@@ -99,7 +100,8 @@ const SingleAutocompleteSelectFieldComponent = decorate<
                   },
                   ...getInputProps({
                     placeholder
-                  })
+                  }),
+                  endAdornment: <ArrowDropdownIcon />
                 }}
                 disabled={disabled}
                 helperText={helperText}
