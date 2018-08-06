@@ -12,9 +12,9 @@ const Footer = () => (
       </div>
       <div className="content">
         <div className="grid">
-          <div className="column-9 menu">
+          <div className="col-sm-9 menu">
             <div className="grid">
-              <div className="column-2">
+              <div className="col-sm-2">
                 <ul>
                   <li><h4>Company</h4></li>
                   <li><a href="">About</a></li>
@@ -22,7 +22,7 @@ const Footer = () => (
                   <li><a href="">Contact</a></li>
                 </ul>
               </div>
-              <div className="column-2">
+              <div className="col-sm-2">
                 <ul>
                   <li><h4>Solution</h4></li>
                   <li><a href="">Features</a></li>
@@ -31,7 +31,7 @@ const Footer = () => (
                   <li><a href="">Demo</a></li>
                 </ul>
               </div>
-              <div className="column-2">
+              <div className="col-sm-2">
                 <ul>
                   <li><h4>Community</h4></li>
                   <li><a href="">Contribute</a></li>
@@ -41,15 +41,15 @@ const Footer = () => (
               </div>
             </div>
           </div>
-          <div className="column-3 icons">
+          <div className="col-sm-3 icons">
             <div className="grid">
-              <div className="column-1">
+              <div className="col-sm-1">
                 <a href=""><ReactSVG className="twitter-icon" path="images/twiiter-icon.svg" /></a>
               </div>
-              <div className="column-1">
+              <div className="col-sm-1">
                 <a href=""><ReactSVG className="facebook-icon" path="images/fb-icon.svg" /></a>
               </div>
-              <div className="column-1">
+              <div className="col-sm-1">
                 <a href=""><ReactSVG className="github-icon" path="images/github-icon.svg" /></a>
               </div>
             </div>
@@ -57,10 +57,10 @@ const Footer = () => (
         </div>
       </div>
       <div className="privacy-links grid">
-        <div className="column-2">
+        <div className="col-xs-6 col-sm-2">
           <a href="">Terms of service</a>
         </div>
-        <div className="column-2">
+        <div className="col-xs-6 col-sm-2">
           <a href="">Privacy policy</a>
         </div>
       </div>

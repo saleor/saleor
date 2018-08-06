@@ -10,10 +10,10 @@ const Header = () => (
   <header>
     <div className="container">
       <div className="grid">
-        <div className="logo column-5">
+        <div className="logo col-sm-5">
           <Link to="/"><ReactSVG className="star-icon" path="images/saleor-logo.svg" /></Link>
         </div>
-        <nav className="menu column-7">
+        <nav className="menu col-sm-7">
           <ul>
             <li><Link to="/features">Features</Link></li>
             <li><Link to="/">Roadmap</Link></li>

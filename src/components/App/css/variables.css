@@ -13,11 +13,13 @@
 
   /* Media Queries */
 
-  --mobile-min-width: 576px;
-  --tablet-min-width: 768px;
-  --medium-min-width: 992px;
-  --desktop-min-width: 1200px;
-  --retina-min-width: 1920px;
+  --xs-max-width: 576px; /* xs */
+  --sm-min-width: 768px; /* sm */
+  --md-min-width: 992px; /* md */
+  --lg-min-width: 1400px; /* lg */
+  --xlg-min-width: 1920px; /* xlg */
+
+  @custom-media --sm-min (max-width: 768px);
 
   /* Typography */
 

@@ -2,6 +2,7 @@
 @import '~typeface-catamaran';
 
 @import './variables.css';
+@import './grid.css';
 
 html, body {
   margin: 0;
@@ -97,23 +98,6 @@ img {
   max-width: var(--layout-width);
   margin: 0 auto;
   padding: 0 calc(var(--spacer) * 2);
-  & .grid {
-    width: 100%;
-    display: inline-grid;
-    grid-template-columns: repeat(12, 1fr);
-    & .column-1 { grid-column: span 1; }
-    & .column-2 { grid-column: span 2; }
-    & .column-3 { grid-column: span 3; }
-    & .column-4 { grid-column: span 4; }
-    & .column-5 { grid-column: span 5; }
-    & .column-6 { grid-column: span 6; }
-    & .column-7 { grid-column: span 7; }
-    & .column-8 { grid-column: span 8; }
-    & .column-9 { grid-column: span 9; }
-    & .column-10 { grid-column: span 10; }
-    & .column-11 { grid-column: span 11; }
-    & .column-12 { grid-column: span 12; }
-  }
 }
 
 section {
