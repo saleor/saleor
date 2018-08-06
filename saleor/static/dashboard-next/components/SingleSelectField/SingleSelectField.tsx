@@ -6,6 +6,8 @@ import Select, { SelectProps } from "@material-ui/core/Select";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
+import i18n from "../../i18n";
+
 const decorate = withStyles({
   formControl: {
     width: "100%"
@@ -65,11 +67,15 @@ export const SingleSelectField = decorate<SingleSelectFieldProps>(
           onChange={onChange}
           {...selectProps}
         >
-          {choices.map(choice => (
-            <MenuItem value={choice.value} key={choice.value}>
-              {choice.label}
-            </MenuItem>
-          ))}
+          {choices.length > 0 ? (
+            choices.map(choice => (
+              <MenuItem value={choice.value} key={choice.value}>
+                {choice.label}
+              </MenuItem>
+            ))
+          ) : (
+            <MenuItem disabled={true}>{i18n.t("No results found")}</MenuItem>
+          )}
         </Select>
         {hint && <FormHelperText>{hint}</FormHelperText>}
       </FormControl>
