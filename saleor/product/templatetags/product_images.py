@@ -49,9 +49,8 @@ def get_available_sizes_by_method(method):
     sizes = []
     for available_size in AVAILABLE_SIZES:
         available_method, avail_size_str = available_size.split('__')
-        if available_method != method:
-            continue
-        sizes.append(min([int(s) for s in avail_size_str.split('x')]))
+        if available_method == method:
+            sizes.append(min([int(s) for s in avail_size_str.split('x')]))
     return sizes
 
 
@@ -60,8 +59,8 @@ def get_thumbnail_size(size, method):
     return closest smaller size
     """
     avail_sizes = sorted(get_available_sizes_by_method(method))
-    larger = list(filter(lambda x: size < x <= size * 2, avail_sizes))
-    smaller = list(filter(lambda x: x <= size, avail_sizes))
+    larger = [x for x in avail_sizes if size < x <= size * 2]
+    smaller = [x for x in avail_sizes if x <= size]
 
     if larger:
         return '%sx%s' % (larger[0], larger[0])
@@ -76,24 +75,23 @@ def get_thumbnail(instance, size, method='crop'):
     size_name = '%s__%s' % (method, size_str)
     on_demand = settings.VERSATILEIMAGEFIELD_SETTINGS[
         'create_images_on_demand']
-    if not instance:
-        return static(choose_placeholder(size_str))
-    used_size = size_str
-    if size_name not in AVAILABLE_SIZES and not on_demand:
-        used_size = get_thumbnail_size(size, method)
-    if not used_size:
-        msg = (
-            "Thumbnail size %s is not defined in settings "
-            "and it won't be generated automatically" % size_name)
-        warnings.warn(msg)
-    try:
-        thumbnail = getattr(instance, method)[used_size]
-    except Exception:
-        logger.exception(
-            'Thumbnail fetch failed',
-            extra={'instance': instance, 'size': size})
-    else:
-        return thumbnail.url
+    if instance:
+        used_size = size_str
+        if size_name not in AVAILABLE_SIZES and not on_demand:
+            used_size = get_thumbnail_size(size, method)
+        if not used_size:
+            msg = (
+                "Thumbnail size %s is not defined in settings "
+                "and it won't be generated automatically" % size_name)
+            warnings.warn(msg)
+        try:
+            thumbnail = getattr(instance, method)[used_size]
+        except Exception:
+            logger.exception(
+                'Thumbnail fetch failed',
+                extra={'instance': instance, 'size': size})
+        else:
+            return thumbnail.url
     return static(choose_placeholder(size_str))
 
 
