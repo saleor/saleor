@@ -26,6 +26,11 @@ export interface LoginCardProps {
 
 const decorate = withStyles(theme => ({
   card: {
+    [theme.breakpoints.down("xs")]: {
+      boxShadow: "none" as "none",
+      padding: theme.spacing.unit * 4,
+      width: "100%"
+    },
     padding: `${theme.spacing.unit * 10.5}px ${theme.spacing.unit * 17}px`,
     width: "100%"
   },
@@ -56,6 +61,10 @@ const decorate = withStyles(theme => ({
     padding: theme.spacing.unit * 1.5
   },
   root: {
+    [theme.breakpoints.down("xs")]: {
+      background: "#fff",
+      boxShadow: "none" as "none"
+    },
     alignItems: "center" as "center",
     display: "flex",
     height: "100vh"
