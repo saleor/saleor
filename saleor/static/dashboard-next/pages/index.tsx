@@ -11,7 +11,7 @@ const PageList: React.StatelessComponent<RouteComponentProps<any>> = ({
   match
 }) => {
   const qs = parseQs(location.search.substr(1));
-  return <PageListComponent filters={qs} />;
+  return <PageListComponent params={qs} />;
 };
 const PageDetails: React.StatelessComponent<RouteComponentProps<any>> = ({
   match
