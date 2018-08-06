@@ -184,7 +184,15 @@ export const fragmentVariant = gql`
             id
             name
             sku
-            images(first: 1) {
+            image: images(first: 1) {
+              edges {
+                node {
+                  id
+                  url
+                }
+              }
+            }
+            images {
               edges {
                 node {
                   id
@@ -336,6 +344,7 @@ export const TypedProductVariantCreateQuery = Query as React.ComponentType<
 export const productVariantCreateQuery = gql`
   query ProductVariantCreateData($id: ID!) {
     product(id: $id) {
+      id
       images {
         edges {
           node {
@@ -369,7 +378,7 @@ export const productVariantCreateQuery = gql`
             id
             name
             sku
-            images(first: 1) {
+            image: images(first: 1) {
               edges {
                 node {
                   id

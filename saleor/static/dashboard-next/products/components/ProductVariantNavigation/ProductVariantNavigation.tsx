@@ -17,7 +17,7 @@ interface ProductVariantNavigationProps {
     id: string;
     name: string;
     sku: string;
-    images?: {
+    image?: {
       edges?: Array<{
         node?: {
           url: string;
@@ -75,12 +75,12 @@ const ProductVariantNavigation = decorate<ProductVariantNavigationProps>(
                   }
                   thumbnail={
                     variant &&
-                    variant.images &&
-                    variant.images.edges &&
-                    variant.images.edges[0] &&
-                    variant.images.edges[0].node &&
-                    variant.images.edges[0].node.url
-                      ? variant.images.edges[0].node.url
+                    variant.image &&
+                    variant.image.edges &&
+                    variant.image.edges[0] &&
+                    variant.image.edges[0].node &&
+                    variant.image.edges[0].node.url
+                      ? variant.image.edges[0].node.url
                       : null
                   }
                 />
