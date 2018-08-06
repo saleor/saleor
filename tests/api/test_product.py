@@ -577,8 +577,8 @@ def test_delete_product(admin_api_client, product):
               }
             }
     """
-    variables = json.dumps({
-        'id': graphene.Node.to_global_id('Product', product.id)})
+    node_id = graphene.Node.to_global_id('Product', product.id)
+    variables = json.dumps({'id': node_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
@@ -587,6 +587,7 @@ def test_delete_product(admin_api_client, product):
     assert data['product']['name'] == product.name
     with pytest.raises(product._meta.model.DoesNotExist):
         product.refresh_from_db()
+    assert node_id == data['product']['id']
 
 
 def test_product_type(user_api_client, product_type):
@@ -890,13 +891,14 @@ def test_product_image_delete(admin_api_client, product_with_image):
                 productImageDelete(id: $id) {
                     productImage {
                         url
+                        id
                     }
                 }
             }
         """
     image_obj = product.images.first()
-    variables = {
-        'id': graphene.Node.to_global_id('ProductImage', image_obj.id)}
+    node_id = graphene.Node.to_global_id('ProductImage', image_obj.id)
+    variables = {'id': node_id}
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
@@ -905,6 +907,7 @@ def test_product_image_delete(admin_api_client, product_with_image):
     assert data['productImage']['url'] == image_obj.image.url
     with pytest.raises(image_obj._meta.model.DoesNotExist):
         image_obj.refresh_from_db()
+    assert node_id == data['productImage']['id']
 
 
 def test_reorder_images(admin_api_client, product_with_images):
