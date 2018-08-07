@@ -18,9 +18,6 @@ interface ProductVariantStockProps {
 
 const decorate = withStyles(theme => ({
   grid: {
-    "& input": {
-      width: "100%"
-    },
     display: "grid",
     gridColumnGap: `${theme.spacing.unit * 2}px`,
     gridTemplateColumns: "1fr 1fr"
