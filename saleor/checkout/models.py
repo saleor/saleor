@@ -11,7 +11,7 @@ from jsonfield import JSONField
 
 from ..account.models import Address
 from ..core.utils.taxes import ZERO_TAXED_MONEY
-from ..shipping.models import ShippingMethodCountry
+from ..shipping.models import ShippingRate
 
 CENTS = Decimal('0.01')
 
@@ -50,7 +50,7 @@ class Cart(models.Model):
         Address, related_name='+', editable=False, null=True,
         on_delete=models.SET_NULL)
     shipping_method = models.ForeignKey(
-        ShippingMethodCountry, blank=True, null=True, related_name='carts',
+        ShippingRate, blank=True, null=True, related_name='carts',
         on_delete=models.SET_NULL)
     note = models.TextField(blank=True, default='')
     discount_amount = MoneyField(

@@ -7,13 +7,13 @@ from django.core.exceptions import NON_FIELD_ERRORS, ObjectDoesNotExist
 from django.utils.encoding import smart_text
 from django.utils.safestring import mark_safe
 from django.utils.translation import npgettext_lazy, pgettext_lazy
-from django_countries.fields import LazyTypedChoiceField, countries
+from django_countries.fields import LazyTypedChoiceField
 
 from ..core.exceptions import InsufficientStock
 from ..core.utils import format_money
 from ..core.utils.taxes import display_gross_prices
 from ..discount.models import NotApplicable, Voucher
-from ..shipping.models import ShippingMethodCountry
+from ..shipping.models import ShippingRate
 from ..shipping.utils import get_shipment_options, get_taxed_shipping_price
 from .models import Cart
 
@@ -161,13 +161,14 @@ class ReplaceCartLineForm(AddToCartForm):
 class CountryForm(forms.Form):
     """Country selection form."""
 
-    country = LazyTypedChoiceField(
-        label=pgettext_lazy('Country form field label', 'Country'),
-        choices=countries)
-
     def __init__(self, *args, **kwargs):
+        from ..shipping.utils import country_choices
+
         self.taxes = kwargs.pop('taxes', {})
         super().__init__(*args, **kwargs)
+        self.fields['country'] = LazyTypedChoiceField(
+            label=pgettext_lazy('Country form field label', 'Country'),
+            choices=country_choices())
 
     def get_shipment_options(self):
         """Return a list of shipping methods for the selected country."""
@@ -252,19 +253,18 @@ class ShippingCountryMethodChoiceField(forms.ModelChoiceField):
         else:
             price = price.net
         price_html = format_money(price)
-        label = mark_safe('%s %s' % (obj.shipping_method, price_html))
+        label = mark_safe('%s %s' % (obj.name, price_html))
         return label
 
 
-class CartShippingMethodForm(forms.ModelForm):
+class CartShippingRateForm(forms.ModelForm):
     """Cart shipping method form."""
-
     shipping_method = ShippingCountryMethodChoiceField(
-        queryset=ShippingMethodCountry.objects.select_related(
-            'shipping_method').order_by('price').all(),
+        queryset=ShippingRate.objects.prefetch_related(
+            'shipping_zone').order_by('price'),
         label=pgettext_lazy(
             'Shipping method form field label', 'Shipping method'),
-        required=True)
+        empty_label=None)
 
     class Meta:
         model = Cart
@@ -273,19 +273,16 @@ class CartShippingMethodForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         taxes = kwargs.pop('taxes')
         super().__init__(*args, **kwargs)
-        method_field = self.fields['shipping_method']
-        method_field.taxes = taxes
-
         country_code = self.instance.shipping_address.country.code
-        if country_code:
-            queryset = method_field.queryset
-            method_field.queryset = queryset.unique_for_country_code(
-                country_code)
+        qs = self.fields['shipping_method'].queryset.filter(
+            shipping_zone__countries__contains=country_code)
+        self.fields['shipping_method'].queryset = qs
+        self.fields['shipping_method'].taxes = taxes
 
         if self.initial.get('shipping_method') is None:
-            self.initial['shipping_method'] = method_field.queryset.first()
-
-        method_field.empty_label = None
+            shipping_methods = qs.all()
+            if shipping_methods:
+                self.initial['shipping_method'] = shipping_methods[0]
 
 
 class CartNoteForm(forms.ModelForm):

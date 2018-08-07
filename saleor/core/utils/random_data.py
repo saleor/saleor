@@ -9,6 +9,7 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.template.defaultfilters import slugify
+from django_countries import countries
 from django_countries.fields import Country
 from faker import Factory
 from faker.providers import BaseProvider
@@ -32,7 +33,8 @@ from ...product.models import (
     ProductImage, ProductType, ProductVariant)
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
-from ...shipping.models import ANY_COUNTRY, ShippingMethod
+from ...shipping.models import (
+    ANY_COUNTRY, ShippingMethod, ShippingRate, ShippingZone)
 from ...shipping.utils import get_taxed_shipping_price
 
 fake = Factory.create()
@@ -508,6 +510,23 @@ def create_product_sales(how_many=5):
 
 
 def create_shipping_methods():
+    django_countries = [code for code, name in countries]
+    shipping_zone = ShippingZone.objects.create(
+        name='European countries', countries=django_countries[::2])
+    #FIXME we should make sure that no country will be placed in two ShippingZones
+
+    for i in range(4):
+        shipping_zone.shipping_methods.add(
+            ShippingRate.objects.create(
+                name=fake.company(),
+                price=fake.money()))
+    shipping_zone = ShippingZone.objects.create(
+        name='European countries', countries=django_countries[1::2])
+    for i in range(4):
+        shipping_zone.shipping_methods.add(
+            ShippingRate.objects.create(
+                name=fake.company(),
+                price=fake.money()))
     shipping_method = ShippingMethod.objects.create(name='UPC')
     shipping_method.price_per_country.create(price=fake.money())
     yield 'Shipping method #%d' % shipping_method.id

@@ -6,12 +6,45 @@ from django.db import models
 from django.db.models import Q
 from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
+from django_countries.fields import CountryField
 from django_prices.models import MoneyField
 from prices import MoneyRange
 
+from . import ShippingRateType
 from ..core.i18n import ANY_COUNTRY, COUNTRY_CODE_CHOICES
 from ..core.utils import format_money
 from ..shipping.utils import get_taxed_shipping_price
+
+
+class ShippingRate(models.Model):
+    name = models.CharField(max_length=100)
+    type = models.CharField(
+        max_length=30, choices=ShippingRateType.CHOICES,
+        default=ShippingRateType.WEIGHT_BASED)
+    price = MoneyField(
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
+
+    def __str__(self):
+        return self.name
+
+    def get_total_price(self, taxes=None):
+        return get_taxed_shipping_price(self.price, taxes)
+
+
+class ShippingZone(models.Model):
+    name = models.CharField(max_length=100)
+    countries = CountryField(multiple=True)
+    shipping_methods = models.ManyToManyField(
+        ShippingRate, blank=True, related_name='shipping_zone')
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        permissions = ((
+            'manage_shipping', pgettext_lazy(
+                'Permission description', 'Manage shipping.')),)
 
 
 class ShippingMethod(models.Model):
