@@ -1,10 +1,12 @@
 from unittest.mock import Mock
 
 import pytest
-from prices import Money, TaxedMoney
 
-from saleor.core.utils import format_money
-from saleor.shipping.utils import get_taxed_shipping_price
+from prices import Money, TaxedMoney
+from saleor.core.i18n import ANY_COUNTRY, COUNTRY_CODE_CHOICES
+from saleor.core.utils import format_money, get_country_name_by_code
+from saleor.shipping.models import ShippingMethodCountry
+from saleor.shipping.utils import country_choices, get_taxed_shipping_price
 
 
 @pytest.mark.parametrize('price, charge_taxes, expected_price', [
@@ -42,3 +44,15 @@ def test_shipping_get_ajax_label(shipping_method):
         'country_code_display': method.get_country_code_display(),
         'price': format_money(method.price)}
     assert label == proper_label
+
+
+def test_country_choices(shipping_method):
+    any_country_shipping_method = ShippingMethodCountry.objects.filter(
+        country_code=ANY_COUNTRY)
+    assert any_country_shipping_method.exists()
+    assert country_choices() == COUNTRY_CODE_CHOICES
+
+    any_country_shipping_method.delete()
+    ShippingMethodCountry.objects.create(
+        country_code='PL', price=10, shipping_method=shipping_method)
+    assert country_choices() == [('PL', get_country_name_by_code('PL'))]

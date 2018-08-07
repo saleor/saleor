@@ -8,7 +8,7 @@ from ...core.utils import (
     format_money, get_user_shipping_country, to_local_currency)
 from ...product.models import ProductVariant
 from ...shipping.utils import get_shipment_options
-from ..forms import CartShippingMethodForm, CountryForm, ReplaceCartLineForm
+from ..forms import CartShippingRateForm, CountryForm, ReplaceCartLineForm
 from ..models import Cart
 from ..utils import (
     check_product_availability_and_warn, check_shipping_method, get_cart_data,
@@ -65,10 +65,11 @@ def checkout_shipping_method(request, cart):
     """Display the shipping method selection step."""
     taxes = get_taxes_for_cart(cart, request.taxes)
     check_shipping_method(cart)
-    form = CartShippingMethodForm(
+
+    form = CartShippingRateForm(
         request.POST or None, taxes=taxes, instance=cart,
         initial={'shipping_method': cart.shipping_method})
-
+    import pdb; pdb.set_trace()
     if form.is_valid():
         form.save()
         return redirect('checkout:summary')

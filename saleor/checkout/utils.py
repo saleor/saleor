@@ -25,7 +25,7 @@ from ..discount.utils import (
     get_products_voucher_discount, get_shipping_voucher_discount,
     get_value_voucher_discount, increase_voucher_usage)
 from ..order.models import Order
-from ..shipping.models import ShippingMethodCountry
+from ..shipping.models import ShippingZone
 from .forms import (
     AddressChoiceForm, AnonymousUserBillingForm, AnonymousUserShippingForm,
     BillingAddressChoiceForm)
@@ -764,9 +764,12 @@ def get_taxes_for_cart(cart, default_taxes):
 def check_shipping_method(cart):
     """Check if shipping method is valid for address and remove (if not)."""
     country_code = cart.shipping_address.country.code
-    valid_methods = ShippingMethodCountry.objects.select_related(
-        'shipping_method').unique_for_country_code(country_code)
-    if cart.shipping_method not in valid_methods:
+    # There should be only one ShippingZone per country
+    valid_shipping_zone = ShippingZone.objects.filter(
+        countries__contains=country_code).get()
+    if (
+        cart.shipping_method and
+            cart.shipping_method.shipping_zone.get() != valid_shipping_zone):
         cart.shipping_method = None
         cart.save()
         return False
