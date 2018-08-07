@@ -1,10 +1,10 @@
 import { withStyles } from "@material-ui/core/styles";
-import { stringify } from "querystring";
 import * as React from "react";
 
 import { productAddUrl, productListUrl, productUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
+import { createPaginationData, createPaginationState } from "../../misc";
 import ProductListCard from "../components/ProductListCard";
 import { productListQuery, TypedProductListQuery } from "../queries";
 
@@ -29,68 +29,28 @@ export const ProductList = decorate<ProductListProps>(({ classes, params }) => (
     <Navigator>
       {navigate => {
         const PAGINATE_BY = 20;
-        const paginationState =
-          params && (params.before || params.after)
-            ? params.after
-              ? {
-                  after: params.after,
-                  first: PAGINATE_BY
-                }
-              : {
-                  before: params.before,
-                  last: PAGINATE_BY
-                }
-            : {
-                first: PAGINATE_BY
-              };
+        const paginationState = createPaginationState(PAGINATE_BY, params);
         return (
           <TypedProductListQuery
             query={productListQuery}
             variables={paginationState}
             fetchPolicy="network-only"
           >
-            {({ data, loading, error, fetchMore }) => {
+            {({ data, loading, error }) => {
               if (error) {
                 return <ErrorMessageCard message="Something went wrong" />;
               }
-              const loadNextPage = () => {
-                if (loading) {
-                  return;
-                }
-                return navigate(
-                  productListUrl +
-                    "?" +
-                    stringify({
-                      after: data.products.pageInfo.endCursor
-                    }),
-                  true
-                );
-              };
-              const loadPreviousPage = () => {
-                if (loading) {
-                  return;
-                }
-                return navigate(
-                  productListUrl +
-                    "?" +
-                    stringify({
-                      before: data.products.pageInfo.startCursor
-                    }),
-                  true
-                );
-              };
-              const pageInfo =
-                data && data.products && data.products.pageInfo
-                  ? {
-                      ...data.products.pageInfo,
-                      hasNextPage:
-                        !!paginationState.before ||
-                        data.products.pageInfo.hasNextPage,
-                      hasPreviousPage:
-                        !!paginationState.after ||
-                        data.products.pageInfo.hasPreviousPage
-                    }
-                  : undefined;
+              const {
+                loadNextPage,
+                loadPreviousPage,
+                pageInfo
+              } = createPaginationData(
+                navigate,
+                paginationState,
+                productListUrl,
+                data && data.products ? data.products.pageInfo : undefined,
+                loading
+              );
               return (
                 <>
                   <div>

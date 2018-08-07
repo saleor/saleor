@@ -6,6 +6,11 @@ import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import { CategoryPropertiesQuery } from "../../gql-types";
 import i18n from "../../i18n";
+import {
+  createPaginationData,
+  createPaginationState,
+  PageInfo
+} from "../../misc";
 import { productAddUrl, productUrl } from "../../products";
 import { categoryAddUrl, categoryEditUrl, categoryShowUrl } from "../index";
 import {
@@ -65,92 +70,75 @@ interface CategoryPaginationProviderProps {
         props: {
           data: CategoryPropertiesQuery;
           loading: boolean;
-          fetchNextPage();
-          fetchPreviousPage();
+          pageInfo: PageInfo;
+          loadNextPage: () => void;
+          loadPreviousPage: () => void;
         }
       ) => React.ReactElement<any>)
     | React.ReactNode;
   id?: string;
+  navigate: (url: string, push: boolean) => void;
+  params: any;
 }
 
 const CategoryPaginationProvider: React.StatelessComponent<
   CategoryPaginationProviderProps
-> = ({ children, id }) => (
-  <TypedCategoryPropertiesQuery
-    query={categoryPropertiesQuery}
-    variables={{ id, first: 12 }}
-    fetchPolicy="network-only"
-  >
-    {({ loading, error, data, fetchMore }) => {
-      if (error) {
-        return (
-          <ErrorMessageCard
-            message={i18n.t("Unable to find a matching category.")}
-          />
-        );
-      }
-      const { category } = data;
-      const updatePageInfo = (
-        results: CategoryPropertiesQuery,
-        overrides: Partial<
-          CategoryPropertiesQuery["category"]["products"]["pageInfo"]
-        >
-      ) => ({
-        ...results,
-        category: {
-          ...results.category,
-          products: {
-            ...results.category.products,
-            pageInfo: {
-              ...results.category.products.pageInfo,
-              ...overrides
-            }
-          }
+> = ({ children, id, navigate, params }) => {
+  const PAGINATE_BY = 20;
+  const paginationState = createPaginationState(PAGINATE_BY, params);
+  return (
+    <TypedCategoryPropertiesQuery
+      query={categoryPropertiesQuery}
+      variables={{ id, ...paginationState }}
+      fetchPolicy="network-only"
+    >
+      {({ loading, error, data }) => {
+        if (error) {
+          return (
+            <ErrorMessageCard
+              message={i18n.t("Unable to find a matching category.")}
+            />
+          );
         }
-      });
-      const fetchNextPage = () => {
-        return fetchMore({
-          updateQuery: (previousResult, { fetchMoreResult }) =>
-            updatePageInfo(fetchMoreResult, {
-              hasPreviousPage: true
-            }),
-          variables: {
-            after: category.products.pageInfo.endCursor,
-            first: 12
-          }
-        });
-      };
-      const fetchPreviousPage = () => {
-        return fetchMore({
-          updateQuery: (previousResult, { fetchMoreResult }) =>
-            updatePageInfo(fetchMoreResult, {
-              hasNextPage: true
-            }),
-          variables: {
-            before: category.products.pageInfo.startCursor,
-            first: undefined,
-            last: 12
-          }
-        });
-      };
-      if (typeof children === "function") {
-        return children({ data, loading, fetchNextPage, fetchPreviousPage });
-      }
-      if (React.Children.count(children) > 0) {
-        return React.Children.only(children);
-      }
-      return null;
-    }}
-  </TypedCategoryPropertiesQuery>
-);
+        const {
+          loadNextPage,
+          loadPreviousPage,
+          pageInfo
+        } = createPaginationData(
+          navigate,
+          paginationState,
+          categoryShowUrl(id),
+          data && data.category && data.category.products
+            ? data.category.products.pageInfo
+            : undefined,
+          loading
+        );
+
+        if (typeof children === "function") {
+          return children({
+            data,
+            loadNextPage,
+            loadPreviousPage,
+            loading,
+            pageInfo
+          });
+        }
+        if (React.Children.count(children) > 0) {
+          return React.Children.only(children);
+        }
+        return null;
+      }}
+    </TypedCategoryPropertiesQuery>
+  );
+};
 
 interface CategoryDetailsProps {
-  filters: any;
+  params: any;
   id: string;
 }
 
 const CategoryDetails: React.StatelessComponent<CategoryDetailsProps> = ({
-  filters,
+  params,
   id
 }) => {
   if (id) {
@@ -158,8 +146,18 @@ const CategoryDetails: React.StatelessComponent<CategoryDetailsProps> = ({
       <Navigator>
         {navigate => {
           return (
-            <CategoryPaginationProvider id={id}>
-              {({ data, loading, fetchNextPage, fetchPreviousPage }) => {
+            <CategoryPaginationProvider
+              id={id}
+              params={params}
+              navigate={navigate}
+            >
+              {({
+                data,
+                loading,
+                loadNextPage,
+                loadPreviousPage,
+                pageInfo
+              }) => {
                 return (
                   <CategoryDeleteProvider category={data.category}>
                     {deleteCategory => (
@@ -189,13 +187,9 @@ const CategoryDetails: React.StatelessComponent<CategoryDetailsProps> = ({
                         onEdit={() => navigate(categoryEditUrl(id))}
                         onProductClick={(id: string) => () =>
                           navigate(productUrl(id))}
-                        pageInfo={
-                          data && data.category && data.category.products
-                            ? data.category.products.pageInfo
-                            : undefined
-                        }
-                        onNextPage={fetchNextPage}
-                        onPreviousPage={fetchPreviousPage}
+                        pageInfo={pageInfo}
+                        onNextPage={loadNextPage}
+                        onPreviousPage={loadPreviousPage}
                       />
                     )}
                   </CategoryDeleteProvider>
@@ -231,8 +225,7 @@ const CategoryDetails: React.StatelessComponent<CategoryDetailsProps> = ({
                 onBack={() => window.history.back()}
                 onCategoryClick={(id: string) => () =>
                   navigate(categoryShowUrl(id))}
-                onProductClick={(id: string) => () =>
-                  navigate(productUrl(id))}
+                onProductClick={(id: string) => () => navigate(productUrl(id))}
               />
             )}
           </Navigator>
