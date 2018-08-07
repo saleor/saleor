@@ -26,7 +26,7 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
           query={productImageQuery}
           variables={{ imageId, productId }}
         >
-          {({ data }) => {
+          {({ data, loading }) => {
             return (
               <TypedProductImageDeleteMutation
                 mutation={productImageDeleteMutation}
@@ -35,32 +35,21 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
                 {mutate => {
                   const handleDelete = () =>
                     mutate({ variables: { id: imageId } });
+                  const image =
+                    data &&
+                    data.product &&
+                    data.product.image &&
+                    data.product.image.edges &&
+                    data.product.image.edges[0] &&
+                    data.product.image.edges[0]
+                      ? data.product.image.edges[0].node
+                      : undefined;
                   return (
                     <ProductImagePage
-                      description={
-                        data &&
-                        data.product &&
-                        data.product.image &&
-                        data.product.image.edges &&
-                        data.product.image.edges[0] &&
-                        data.product.image.edges[0].node &&
-                        data.product.image.edges[0].node.alt
-                          ? data.product.image.edges[0].node.alt
-                          : null
-                      }
+                      description={image ? image.alt : null}
                       // TODO: unlock editing after API fixes
                       disabled={true}
-                      image={
-                        data &&
-                        data.product &&
-                        data.product.image &&
-                        data.product.image.edges &&
-                        data.product.image.edges[0] &&
-                        data.product.image.edges[0].node &&
-                        data.product.image.edges[0].node.url
-                          ? data.product.image.edges[0].node.url
-                          : null
-                      }
+                      image={image ? image.url : null}
                       onBack={handleBack}
                       onDelete={handleDelete}
                       onSubmit={() => {}}
