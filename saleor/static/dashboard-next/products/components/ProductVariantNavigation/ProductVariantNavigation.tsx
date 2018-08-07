@@ -90,7 +90,7 @@ const ProductVariantNavigation = decorate<ProductVariantNavigationProps>(
               </TableRow>
             ))
           ) : (
-            <TableRow hover>
+            <TableRow>
               <TableCell>{i18n.t("This product has no variants")}</TableCell>
             </TableRow>
           )}
