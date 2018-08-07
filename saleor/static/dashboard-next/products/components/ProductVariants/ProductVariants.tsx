@@ -93,7 +93,7 @@ export const ProductVariants = decorate<ProductVariantsProps>(
       </CardContent>
       <Table className={classes.denseTable}>
         <TableHead>
-          <TableRow hover>
+          <TableRow>
             <TableCell className={classes.textLeft}>{i18n.t("Name")}</TableCell>
             <TableCell>{i18n.t("Status")}</TableCell>
             <TableCell>{i18n.t("SKU")}</TableCell>
@@ -155,7 +155,7 @@ export const ProductVariants = decorate<ProductVariantsProps>(
               );
             })
           ) : (
-            <TableRow hover>
+            <TableRow>
               <TableCell colSpan={2}>
                 {i18n.t("This product has no variants")}
               </TableCell>
