@@ -161,6 +161,31 @@ def test_view_connect_order_with_user_different_email(
     assert order.user is None
 
 
+def test_view_order_with_deleted_variant(authorized_client, order_with_lines):
+    order = order_with_lines
+    order_details_url = reverse('order:details', kwargs={'token': order.token})
+
+    # delete a variant associated to the order
+    order.lines.first().variant.delete()
+
+    # check if the order details view handles the deleted variant
+    response = authorized_client.get(order_details_url)
+    assert response.status_code == 200
+
+
+def test_view_fulfilled_order_with_deleted_variant(
+        authorized_client, fulfilled_order):
+    order = fulfilled_order
+    order_details_url = reverse('order:details', kwargs={'token': order.token})
+
+    # delete a variant associated to the order
+    order.lines.first().variant.delete()
+
+    # check if the order details view handles the deleted variant
+    response = authorized_client.get(order_details_url)
+    assert response.status_code == 200
+
+
 @pytest.mark.parametrize('track_inventory', (True, False))
 def test_restock_order_lines(order_with_lines, track_inventory):
 
