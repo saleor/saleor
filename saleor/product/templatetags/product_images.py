@@ -91,4 +91,4 @@ def get_thumbnail(instance, size, method='crop'):
                 extra={'instance': instance, 'size': size})
         else:
             return thumbnail.url
-    return static(choose_placeholder(size))
+    return static(choose_placeholder('%sx%s' % (size, size)))
