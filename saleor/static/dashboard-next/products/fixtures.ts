@@ -94,6 +94,15 @@ export const product = (placeholderImage: string) => ({
           },
           stockQuantity: 48,
           margin: 2,
+          image: {
+            edges: [
+              {
+                node: {
+                  url: placeholderImage
+                }
+              }
+            ]
+          },
           images: {
             edges: [
               {
@@ -118,6 +127,15 @@ export const product = (placeholderImage: string) => ({
           priceOverride: null,
           stockQuantity: 14,
           margin: 7,
+          image: {
+            edges: [
+              {
+                node: {
+                  url: placeholderImage
+                }
+              }
+            ]
+          },
           images: {
             edges: [
               {
@@ -138,7 +156,6 @@ export const product = (placeholderImage: string) => ({
         node: {
           id: "UHJvZHVjdEltYWdlOjE=",
           sortOrder: 0,
-          image: placeholderImage,
           alt: "Id sit dolores adipisci",
           url: placeholderImage
         }
@@ -147,7 +164,6 @@ export const product = (placeholderImage: string) => ({
         node: {
           id: "UHJvZHVjdEltYWdlOaE=",
           sortOrder: 2,
-          image: placeholderImage,
           alt: "Id sit dolores adipisci",
           url: placeholderImage
         }
@@ -156,7 +172,6 @@ export const product = (placeholderImage: string) => ({
         node: {
           id: "UPJvZHVjdEltYWdlOjV=",
           sortOrder: 1,
-          image: placeholderImage,
           alt: "Id sit dolores adipisci",
           url: placeholderImage
         }
@@ -165,7 +180,6 @@ export const product = (placeholderImage: string) => ({
         node: {
           id: "UHJvZHVjdEltYHdlOjX=",
           sortOrder: 3,
-          image: placeholderImage,
           alt: "Id sit dolores adipisci",
           url: placeholderImage
         }
@@ -174,7 +188,6 @@ export const product = (placeholderImage: string) => ({
         node: {
           id: "UHJvZHVjdIlnYWdlOjX=",
           sortOrder: 4,
-          image: placeholderImage,
           alt: "Id sit dolores adipisci",
           url: placeholderImage
         }
