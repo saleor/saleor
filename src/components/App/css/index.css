@@ -36,15 +36,16 @@ body {
 
 h1 {
   font-size: var(--h1-font-size);
+  font-weight: var(--h1-font-weight);
   line-height: var(--headings-line-height);
   text-transform: uppercase;
 }
 
 h2 {
   font-size: var(--h2-font-size);
-  text-transform: uppercase;
+  font-weight: var(--h2-font-weight);
   line-height: var(--headings-line-height);
-  font-weight: var(--font-weight-normal);
+  text-transform: uppercase;
   @media (max-width: 1024px) {
     font-size: calc(var(--font-size-base) * 2.5);
   }
@@ -52,8 +53,9 @@ h2 {
 
 h3 {
   font-size: var(--h3-font-size);
+  font-weight: var(--h3-font-weight);
   line-height: var(--headings-line-height);
-  font-weight: var(--font-weight-normal);
+  text-transform: uppercase;
 }
 
 h4 {
@@ -173,3 +175,11 @@ ul {
   }
 }
 
+.scroll-link {
+  color: var(--primaryColor);
+  text-align: center;
+  & img {
+    display: block;
+    margin: 1rem auto 0;
+  }
+}
