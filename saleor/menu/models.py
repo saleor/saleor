@@ -12,7 +12,7 @@ from ..product.models import Category, Collection
 
 class Menu(models.Model):
     name = models.CharField(max_length=128)
-    json_content = JSONField(blank=True, default='')
+    json_content = JSONField(blank=True, default={})
 
     class Meta:
         permissions = ((
