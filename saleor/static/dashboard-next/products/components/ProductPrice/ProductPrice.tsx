@@ -13,7 +13,6 @@ import i18n from "../../../i18n";
 import Skeleton from "../../../components/Skeleton";
 import { MoneyType } from "../..";
 
-
 interface ProductPriceProps {
   purchaseCost?: {
     start: MoneyType;
@@ -42,7 +41,7 @@ const ProductPrice = decorate<ProductPriceProps>(
       <PageHeader title={i18n.t("Pricing")} />
       <Table className={classes.root}>
         <TableBody>
-          <TableRow hover>
+          <TableRow>
             <TableCell>{i18n.t("Purchase cost")}</TableCell>
             <TableCell className={classes.textRight}>
               {purchaseCost ? (

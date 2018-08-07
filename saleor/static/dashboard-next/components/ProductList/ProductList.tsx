@@ -57,7 +57,7 @@ export const ProductList = decorate<ProductListProps>(
   }) => (
     <Table>
       <TableHead>
-        <TableRow hover>
+        <TableRow>
           <TableCell />
           <TableCell className={classes.textLeft}>
             {i18n.t("Name", { context: "object" })}
@@ -68,7 +68,7 @@ export const ProductList = decorate<ProductListProps>(
         </TableRow>
       </TableHead>
       <TableFooter>
-        <TableRow hover>
+        <TableRow>
           <TablePagination
             colSpan={5}
             hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
@@ -140,7 +140,7 @@ export const ProductList = decorate<ProductListProps>(
             </TableRow>
           ))
         ) : (
-          <TableRow hover>
+          <TableRow>
             <TableCell colSpan={5}>{i18n.t("No products found")}</TableCell>
           </TableRow>
         )}
