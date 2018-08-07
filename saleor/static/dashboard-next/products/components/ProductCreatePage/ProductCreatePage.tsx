@@ -16,6 +16,36 @@ import ProductDetailsForm from "../ProductDetailsForm";
 import ProductOrganization from "../ProductOrganization";
 import ProductPricing from "../ProductPricing";
 
+interface FormData {
+  attributes: Array<{
+    slug: string;
+    value: string;
+  }>;
+  available: boolean;
+  availableOn: string;
+  category: string;
+  chargeTaxes: boolean;
+  collections: string[];
+  description: string;
+  featured: boolean;
+  name: string;
+  price: number;
+  productType: {
+    label: string;
+    value: {
+      hasVariants: boolean;
+      id: string;
+      name: string;
+      productAttributes: {
+        edges: Array<{ node: AttributeType }>;
+      };
+    };
+  };
+  seoDescription: string;
+  seoTitle: string;
+  sku: string;
+  stockQuantity: number;
+}
 interface ProductCreatePageProps {
   errors: UserError[];
   collections?: Array<{
@@ -41,7 +71,7 @@ interface ProductCreatePageProps {
   saveButtonBarState?: SaveButtonBarState;
   onAttributesEdit: () => void;
   onBack?();
-  onSubmit?(data: any);
+  onSubmit?(data: FormData);
 }
 
 const decorate = withStyles(theme => ({
@@ -78,7 +108,7 @@ export const ProductCreatePage = decorate<ProductCreatePageProps>(
     onBack,
     onSubmit
   }) => {
-    const initialData = {
+    const initialData: FormData = {
       attributes: [],
       available: false,
       availableOn: "",
