@@ -9,13 +9,13 @@
 			background-image: url('../../images/lock-bg.png');
 			background-size: auto;
 			background-repeat: no-repeat;
-			background-position: 90% 0%;
+			background-position: 110% 30%;
 			& .plane {
 				width: 50%;
-				padding: calc(var(--spacer) * 11) 0 calc(var(--spacer) * 6) calc(var(--spacer));
+				padding: calc(var(--spacer) * 14) 0 calc(var(--spacer) * 14) calc(var(--spacer));
 				& p {
 					font-size: calc(var(--font-size-base) * 1.2);
-					width: 65%;
+					width: 70%;
 				}
 			}
 		}
