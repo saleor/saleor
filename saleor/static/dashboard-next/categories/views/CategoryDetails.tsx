@@ -31,6 +31,13 @@ interface CategoryDeleteProviderProps {
     | React.ReactNode;
 }
 
+interface QueryParams {
+  after?: string;
+  before?: string;
+}
+
+const PAGINATE_BY = 20;
+
 const CategoryDeleteProvider: React.StatelessComponent<
   CategoryDeleteProviderProps
 > = ({ category, children }) => (
@@ -78,13 +85,12 @@ interface CategoryPaginationProviderProps {
     | React.ReactNode;
   id?: string;
   navigate: (url: string, push: boolean) => void;
-  params: any;
+  params: QueryParams;
 }
 
 const CategoryPaginationProvider: React.StatelessComponent<
   CategoryPaginationProviderProps
 > = ({ children, id, navigate, params }) => {
-  const PAGINATE_BY = 20;
   const paginationState = createPaginationState(PAGINATE_BY, params);
   return (
     <TypedCategoryPropertiesQuery
@@ -133,7 +139,7 @@ const CategoryPaginationProvider: React.StatelessComponent<
 };
 
 interface CategoryDetailsProps {
-  params: any;
+  params: QueryParams;
   id: string;
 }
 

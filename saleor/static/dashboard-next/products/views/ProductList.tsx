@@ -9,7 +9,10 @@ import ProductListCard from "../components/ProductListCard";
 import { productListQuery, TypedProductListQuery } from "../queries";
 
 interface ProductListProps {
-  params: any;
+  params: {
+    after?: string;
+    before?: string;
+  };
 }
 
 const decorate = withStyles(theme => ({
@@ -24,11 +27,12 @@ const decorate = withStyles(theme => ({
   }
 }));
 
+const PAGINATE_BY = 20;
+
 export const ProductList = decorate<ProductListProps>(({ classes, params }) => (
   <div className={classes.root}>
     <Navigator>
       {navigate => {
-        const PAGINATE_BY = 20;
         const paginationState = createPaginationState(PAGINATE_BY, params);
         return (
           <TypedProductListQuery

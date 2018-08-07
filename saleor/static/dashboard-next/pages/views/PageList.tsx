@@ -1,4 +1,3 @@
-import { stringify } from "querystring";
 import * as React from "react";
 
 import ErrorMessageCard from "../../components/ErrorMessageCard";
@@ -6,21 +5,21 @@ import Navigator from "../../components/Navigator";
 import i18n from "../../i18n";
 import { createPaginationData, createPaginationState } from "../../misc";
 import PageListPage from "../components/PageListPage/PageListPage";
-import {
-  pageAddUrl,
-  pageEditUrl,
-  pageListUrl,
-  pageStorefrontUrl
-} from "../index";
+import { pageAddUrl, pageEditUrl, pageListUrl } from "../index";
 import { pageListQuery, TypedPageListQuery } from "../queries";
 
 interface PageListProps {
-  params: any;
+  params: {
+    after?: string;
+    before?: string;
+  };
 }
 
 interface PageListState {
   isFilterMenuOpened: boolean;
 }
+
+const PAGINATE_BY = 20;
 
 export class PageList extends React.Component<PageListProps, PageListState> {
   state = { isFilterMenuOpened: false };
@@ -31,7 +30,6 @@ export class PageList extends React.Component<PageListProps, PageListState> {
   };
   render() {
     const { params } = this.props;
-    const PAGINATE_BY = 20;
     const paginationState = createPaginationState(PAGINATE_BY, params);
     return (
       <Navigator>

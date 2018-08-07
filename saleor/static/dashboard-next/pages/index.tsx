@@ -7,11 +7,14 @@ import PageDetailsComponent from "./views/PageDetails";
 import PageListComponent from "./views/PageList";
 
 const PageList: React.StatelessComponent<RouteComponentProps<any>> = ({
-  location,
-  match
+  location
 }) => {
   const qs = parseQs(location.search.substr(1));
-  return <PageListComponent params={qs} />;
+  const params = {
+    after: qs.after,
+    before: qs.before
+  };
+  return <PageListComponent params={params} />;
 };
 const PageDetails: React.StatelessComponent<RouteComponentProps<any>> = ({
   match

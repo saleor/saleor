@@ -1,4 +1,4 @@
-import { stringify } from "querystring";
+import { stringify } from "qs";
 
 export interface PageInfo {
   endCursor: string;
