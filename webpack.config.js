@@ -31,8 +31,12 @@ module.exports = {
   output: {
     path: distDir,
     filename: 'js/[name].js',
+    publicPath: '/',
   },
   devtool: 'source-map',
+  devServer: {
+    historyApiFallback: true,
+  },
   module: {
     rules: [
       {
