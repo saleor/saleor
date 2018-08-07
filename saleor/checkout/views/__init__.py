@@ -112,7 +112,9 @@ def cart_index(request, cart):
     lines = lines.prefetch_related(
         'variant__translations', 'variant__product__translations',
         'variant__product__images',
-        'variant__product__product_type__variant_attributes__translations')
+        'variant__product__product_type__variant_attributes__translations',
+        'variant__images',
+        'variant__product__product_type__variant_attributes')
     for line in lines:
         initial = {'quantity': line.quantity}
         form = ReplaceCartLineForm(
