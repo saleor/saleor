@@ -24,7 +24,8 @@ def test_get_attributes_display_map(product):
     attr_value = product_attr.values.first()
 
     assert len(attributes_display_map) == 1
-    assert attributes_display_map == {product_attr.pk: attr_value}
+    assert {k: v.pk for k, v in attributes_display_map.items()} == {
+        product_attr.pk: attr_value.translated.pk}
 
 
 def test_get_attributes_display_map_empty(product_with_no_attributes):

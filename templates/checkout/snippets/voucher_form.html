@@ -8,7 +8,7 @@
           method="post"
           class="float-left input-btn">
       {% csrf_token %}
-      <span>{{ cart.discount_name }}</span>
+      <span>{{ cart.translated_discount_name|default:cart.discount_name }}</span>
       <button type="submit"
               class="btn btn-link btn-voucher-remove"
               aria-label="{% trans "Remove" context "Checkout voucher form action" %}">

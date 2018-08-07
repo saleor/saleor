@@ -20,7 +20,6 @@ from ..core.models import BaseNote
 from ..core.utils import build_absolute_uri
 from ..core.utils.taxes import ZERO_TAXED_MONEY
 from ..discount.models import Voucher
-from ..product.models import ProductVariant
 from ..shipping.models import ShippingMethodCountry
 
 
@@ -89,6 +88,8 @@ class Order(models.Model):
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
     discount_name = models.CharField(max_length=255, default='', blank=True)
+    translated_discount_name = models.CharField(
+        max_length=255, default='', blank=True)
     display_gross_prices = models.BooleanField(default=True)
 
     objects = OrderQueryset.as_manager()
@@ -181,10 +182,11 @@ class OrderLine(models.Model):
     order = models.ForeignKey(
         Order, related_name='lines', editable=False, on_delete=models.CASCADE)
     variant = models.ForeignKey(
-        ProductVariant, related_name='+', on_delete=models.SET_NULL,
+        'product.ProductVariant', related_name='+', on_delete=models.SET_NULL,
         blank=True, null=True)
     # max_length is as produced by ProductVariant's display_product method
     product_name = models.CharField(max_length=386)
+    translated_product_name = models.CharField(max_length=386, default='')
     product_sku = models.CharField(max_length=32)
     is_shipping_required = models.BooleanField()
     quantity = models.IntegerField(

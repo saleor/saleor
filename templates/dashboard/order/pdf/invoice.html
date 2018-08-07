@@ -135,7 +135,7 @@
     {% if order.discount_amount %}
       <tr>
         <td>
-          {% trans "Discount" context "Order voucher header" %} {% if order.discount_name %}({{ order.discount_name }}){% endif %}
+          {% trans "Discount" context "Order voucher header" %} {% if order.discount_name %}({{ order.translated_discount_name|default:order.discount_name }}){% endif %}
         </td>
         <td class="right-align">
           {% discount_as_negative order.discount_amount html=True %}
