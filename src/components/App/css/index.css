@@ -92,6 +92,10 @@ img {
   box-sizing: border-box;
 }
 
+.bold {
+  font-weight: var(--font-weight-bold);
+}
+
 .text-center {
   text-align: center;
 }
@@ -180,6 +184,16 @@ ul {
   text-align: center;
   & img {
     display: block;
-    margin: 1rem auto 0;
+    margin: 0 auto;
+    padding: 1rem 0 0;
   }
+}
+
+.bullet {
+  width: 5px;
+  height: 5px;
+  border: 1px solid;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 1rem;
 }
