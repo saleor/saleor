@@ -25,11 +25,9 @@ interface OrderListPageProps extends PageListProps {
       currency: string;
     };
   }>;
-  dateNow?: number;
 }
 
 const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
-  dateNow,
   disabled,
   orders,
   pageInfo,
@@ -58,7 +56,6 @@ const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
         </Button>
       </PageHeader>
       <OrderList
-        dateNow={dateNow}
         disabled={disabled}
         onRowClick={onRowClick}
         orders={orderList}

@@ -37,7 +37,6 @@ interface OrderListProps extends ListProps {
       currency: string;
     };
   }>;
-  dateNow?: number;
 }
 
 const decorate = withStyles(
@@ -59,7 +58,6 @@ const decorate = withStyles(
 export const OrderList = decorate<OrderListProps>(
   ({
     classes,
-    dateNow,
     disabled,
     orders,
     pageInfo,
@@ -137,7 +135,7 @@ export const OrderList = decorate<OrderListProps>(
                 </TableCell>
                 <TableCell>{order.client.email}</TableCell>
                 <TableCell>
-                  <DateFormatter date={order.created} dateNow={dateNow} />
+                  <DateFormatter date={order.created} />
                 </TableCell>
                 <TableCell>
                   <StatusLabel
