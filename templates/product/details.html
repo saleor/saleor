@@ -12,16 +12,16 @@
 
 {% block title %}
   {% if product.seo_title %}
-    {{ product.seo_title }}
+    {{ product.translated.seo_title }}
   {% else %}
-    {{ product.name }} - {{ block.super }}
+    {{ product.translated.name }} - {{ block.super }}
   {% endif %}
 {% endblock %}
 
 {% block meta_tags %}
-  <meta property="og:title" content="{{ product.seo_title|default:product.name }}">
-  <meta property="og:description" content="{{ product.seo_description|default:"" }}">
-  <meta name="description" content="{{ product.seo_description|default:"" }}">
+  <meta property="og:title" content="{{ product.translated.seo_title|default:product.translated.name }}">
+  <meta property="og:description" content="{{ product.translated.seo_description|default:"" }}">
+  <meta name="description" content="{{ product.translated.seo_description|default:"" }}">
 
   {% build_absolute_uri request=request location=product.get_absolute_url as product_url %}
   <meta property="og:url" content="{{ product_url }}">
@@ -46,11 +46,11 @@
     </li>
     {% if product.category %}
       <li>
-        <a href="{{ product.category.get_absolute_url }}">{{ product.category }}</a>
+        <a href="{{ product.category.get_absolute_url }}">{{ product.category.translated }}</a>
       </li>
     {% endif %}
     <li>
-      <a href="{{ product.get_absolute_url }}">{{ product }}</a>
+      <a href="{{ product.get_absolute_url }}">{{ product.translated }}</a>
     </li>
   </ul>
 {% endblock breadcrumb %}
@@ -113,7 +113,7 @@
     </div>
     <div class="col-md-6 col-12 product__info">
       <h1 class="product__info__name">
-        {{ product }}
+        {{ product.translated }}
       </h1>
       {% if user.is_staff %}
         <p>
@@ -190,14 +190,14 @@
       <div class="product__info__description">
         <h3>{% trans "Description" context "Product details title" %}</h3>
         <hr>
-        {{ product.description|safe }}
+        {{ product.translated.description|safe }}
       </div>
       <hr>
       <table>
         {% for attribute, value in product_attributes.items %}
           <tr>
-            <td>{{ attribute }}:</td>
-            <td><strong>{{ value }}</strong></td>
+            <td>{{ attribute.translated }}:</td>
+            <td><strong>{{ value.translated }}</strong></td>
           </tr>
         {% endfor %}
       </table>

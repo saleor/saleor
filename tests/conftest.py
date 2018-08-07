@@ -21,16 +21,18 @@ from saleor.account.models import Address, User
 from saleor.checkout import utils
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import add_variant_to_cart
+from saleor.dashboard.menu.utils import update_menu
 from saleor.dashboard.order.utils import fulfill_order_line
-from saleor.discount.models import Sale, Voucher
+from saleor.discount.models import Sale, Voucher, VoucherTranslation
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderStatus
 from saleor.order.models import Order
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.product.models import (
-    AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
-    ProductImage, ProductType, ProductVariant)
+    AttributeChoiceValue, Category,
+    Collection, Product, ProductAttribute, ProductAttributeTranslation,
+    ProductImage, ProductTranslation, ProductType, ProductVariant)
 from saleor.shipping.models import ShippingMethod, ShippingMethodCountry
 from saleor.site.models import AuthorizationKey, SiteSettings
 
@@ -142,7 +144,7 @@ def address(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def customer_user(db, address):  # pylint: disable=W0613
+def customer_user(address):  # pylint: disable=W0613
     default_address = address.get_copy()
     user = User.objects.create_user(
         'test@example.com',
@@ -540,7 +542,7 @@ def payment_input(order_with_lines):
 
 
 @pytest.fixture()
-def sale(db, default_category, collection):
+def sale(default_category, collection):
     sale = Sale.objects.create(name="Sale", value=5)
     sale.categories.add(default_category)
     sale.collections.add(collection)
@@ -548,7 +550,7 @@ def sale(db, default_category, collection):
 
 
 @pytest.fixture
-def authorization_key(db, site_settings):
+def authorization_key(site_settings):
     return AuthorizationKey.objects.create(
         site_settings=site_settings, name='Backend', key='Key',
         password='Password')
@@ -625,7 +627,7 @@ def model_form_class():
 @pytest.fixture
 def menu(db):
     # navbar menu object can be already created by default in migration
-    return Menu.objects.get_or_create(name='navbar')[0]
+    return Menu.objects.get_or_create(name='navbar', json_content={})[0]
 
 
 @pytest.fixture
@@ -645,6 +647,7 @@ def menu_with_items(menu, default_category, collection):
         parent=menu_item)
     menu.items.create(
         name=collection.name, collection=collection, parent=menu_item)
+    update_menu(menu)
     return menu
 
 
@@ -697,3 +700,32 @@ def vatlayer(db, settings, tax_rates, taxes):
             'passenger transport': 7}}
     VAT.objects.create(country_code='DE', data=tax_rates_2)
     return taxes
+
+
+@pytest.fixture
+def translated_variant_fr(product):
+    attribute = product.product_type.variant_attributes.first()
+    return ProductAttributeTranslation.objects.create(
+        language_code='fr', product_attribute=attribute,
+        name='Name tranlsated to french')
+
+
+@pytest.fixture
+def translated_product_attribute(product):
+    attribute = product.product_type.product_attributes.first()
+    return ProductAttributeTranslation.objects.create(
+        language_code='fr', product_attribute=attribute,
+        name='Name tranlsated to french')
+
+
+@pytest.fixture
+def voucher_translation_fr(voucher):
+    return VoucherTranslation.objects.create(
+        language_code='fr', voucher=voucher, name='French name')
+
+
+@pytest.fixture
+def product_translation_fr(product):
+    return ProductTranslation.objects.create(
+        language_code='fr', product=product, name='French name',
+        description='French description')

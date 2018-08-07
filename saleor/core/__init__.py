@@ -3,7 +3,6 @@ from django.core.checks import register, Warning
 
 TOKEN_PATTERN = ('(?P<token>[0-9a-z]{8}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}'
                  '-[0-9a-z]{12})')
-NAVIGATION_CONTEXT_NAME = 'menus'
 
 
 @register()

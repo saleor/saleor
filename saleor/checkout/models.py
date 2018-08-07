@@ -26,8 +26,8 @@ class CartQueryset(models.QuerySet):
         problem.
         """
         return self.prefetch_related(
-            'lines__variant__product__category',
-            'lines__variant__product__collections',
+            'lines__variant__translations',
+            'lines__variant__product__translations',
             'lines__variant__product__images',
             'lines__variant__product__product_type__product_attributes__values')  # noqa
 
@@ -57,6 +57,8 @@ class Cart(models.Model):
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
     discount_name = models.CharField(max_length=255, blank=True, null=True)
+    translated_discount_name = models.CharField(
+        max_length=255, blank=True, null=True)
     voucher_code = models.CharField(max_length=12, blank=True, null=True)
 
     objects = CartQueryset.as_manager()

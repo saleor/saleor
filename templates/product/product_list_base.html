@@ -12,14 +12,14 @@
 
 {% block title %}
   {% if object.seo_title %}
-    {{ object.seo_title }}
+    {{ object.translated.seo_title }}
   {% else %}
-    {{ object.name }} - {{ block.super }}
+    {{ object.translated.name }} - {{ block.super }}
   {% endif %}
 {% endblock %}
 
 {% block meta_tags %}
-  <meta property="og:title" content="{{ object.seo_title|default:object.name }}">
+  <meta property="og:title" content="{{ object.translated.seo_title|default:object.translated.name }}">
   {% get_object_properties object=object properties="seo_description,description" as seo_description %}
   <meta property="og:description" content="{{ seo_description }}">
   <meta name="description" content="{{ seo_description }}">

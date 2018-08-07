@@ -344,5 +344,8 @@ class CartVoucherForm(forms.ModelForm):
         voucher = self.cleaned_data['voucher']
         self.instance.voucher_code = voucher.code
         self.instance.discount_name = voucher.name
+        self.instance.translated_discount_name = (
+            voucher.translated.name
+            if voucher.translated.name != voucher.name else '')
         self.instance.discount_amount = self.cleaned_data['discount_amount']
         return super().save(commit)

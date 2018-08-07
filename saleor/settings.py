@@ -138,7 +138,6 @@ context_processors = [
     'django.template.context_processors.request',
     'saleor.core.context_processors.default_currency',
     'saleor.checkout.context_processors.cart_counter',
-    'saleor.core.context_processors.navigation',
     'saleor.core.context_processors.search_enabled',
     'saleor.site.context_processors.site',
     'social_django.context_processors.backends',

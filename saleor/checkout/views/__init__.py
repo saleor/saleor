@@ -108,13 +108,11 @@ def cart_index(request, cart):
     except Cart.DoesNotExist:
         pass
 
-    lines = cart.lines.select_related(
-        'variant__product__product_type',
-        'variant__product__category')
+    lines = cart.lines.select_related('variant__product__product_type')
     lines = lines.prefetch_related(
-        'variant__product__collections',
+        'variant__translations', 'variant__product__translations',
         'variant__product__images',
-        'variant__product__product_type__variant_attributes')
+        'variant__product__product_type__variant_attributes__translations')
     for line in lines:
         initial = {'quantity': line.quantity}
         form = ReplaceCartLineForm(
@@ -217,7 +215,7 @@ def cart_summary(request, cart):
         first_image = line.variant.get_first_image()
         return {
             'product': line.variant.product,
-            'variant': line.variant.name,
+            'variant': line.variant,
             'quantity': line.quantity,
             'image': first_image,
             'line_total': line.get_total(discounts, taxes),

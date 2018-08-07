@@ -12,6 +12,7 @@ from django_prices.templatetags.prices_i18n import amount
 from prices import Money, fixed_discount, percentage_discount
 
 from . import DiscountValueType, VoucherType
+from ..core.utils.translations import TranslationProxy
 
 
 class NotApplicable(ValueError):
@@ -62,6 +63,7 @@ class Voucher(models.Model):
     categories = models.ManyToManyField('product.Category', blank=True)
 
     objects = VoucherQueryset.as_manager()
+    translated = TranslationProxy()
 
     def __str__(self):
         if self.name:
@@ -139,6 +141,16 @@ class SaleQueryset(models.QuerySet):
     def active(self, date):
         return self.filter(
             end_date__gte=date, start_date__lte=date)
+
+
+class VoucherTranslation(models.Model):
+    language_code = models.CharField(max_length=10)
+    name = models.CharField(max_length=255, null=True, blank=True)
+    voucher = models.ForeignKey(
+        Voucher, related_name='translations', on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('language_code', 'voucher'),)
 
 
 class Sale(models.Model):

@@ -7,6 +7,7 @@ from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ...page.models import Page
+from ..menu.utils import get_menus_that_needs_update, update_menus
 from ..views import staff_member_required
 from .filters import PageFilter
 from .forms import PageForm
@@ -57,7 +58,10 @@ def _page_edit(request, page):
 def page_delete(request, pk):
     page = get_object_or_404(Page, pk=pk)
     if request.POST:
+        menus = get_menus_that_needs_update(page=page)
         page.delete()
+        if menus:
+            update_menus(menus)
         msg = pgettext_lazy(
             'Dashboard message', 'Removed page %s') % (page.title,)
         messages.success(request, msg)

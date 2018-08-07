@@ -7,7 +7,7 @@
         <ul class="product-filters__categories__childs no-parent">
           {% for child in children %}
             <li>
-              <a href="{{ child.get_absolute_url }}">{{ child.name }}</a>
+              <a href="{{ child.get_absolute_url }}">{{ child.translated.name }}</a>
             </li>
           {% endfor %}
         </ul>
