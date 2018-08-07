@@ -1,7 +1,10 @@
 #privacy-policy {
 	border: solid var(--border-width) var(--primaryColor);
-	& section{
+	& section {
 		padding: calc(var(--spacer) * 2) calc(var(--spacer) * 7);
+		& .title, & .description {
+			margin-bottom: var(--headings-margin-bottom);
+		}
 		&.hero {
 			background-image: url('../../images/lock-bg.png');
 			background-size: auto;
@@ -10,9 +13,6 @@
 			& .plane {
 				width: 50%;
 				padding: calc(var(--spacer) * 11) 0 calc(var(--spacer) * 6) calc(var(--spacer));
-				& .title {
-					margin-bottom: var(--headings-margin-bottom);
-				}
 				& p {
 					font-size: calc(var(--font-size-base) * 1.2);
 					width: 65%;
@@ -20,7 +20,10 @@
 			}
 		}
 		&.general-information {
-			
+			& .border-left {
+				border-left: 4px solid;
+				padding: 0 0 0 1rem;
+			}
 		}
 	}
 }
