@@ -25,7 +25,7 @@ const decorate = withStyles(theme => ({
   },
   pullDown: {
     position: "relative" as "relative",
-    top: theme.spacing.unit * 1.5
+    top: theme.spacing.unit * 2
   },
   pullUp: {
     marginTop: -theme.spacing.unit * 2
