@@ -133,7 +133,21 @@ const ProductImageDeleteProvider: React.StatelessComponent<
         data,
         error,
         loading,
-        mutate
+        mutate: opts => {
+          const optimisticResponse = {
+            productImageDelete: {
+              __typename: "ProductImageDelete",
+              productImage: {
+                __typename: "ProductImage",
+                id: opts.variables.id
+              }
+            }
+          };
+          return mutate({
+            optimisticResponse,
+            variables: opts.variables
+          });
+        }
       })
     }
   </TypedProductImageDeleteMutation>
@@ -189,6 +203,11 @@ const ProductUpdateOperations: React.StatelessComponent<
       {updateProduct => (
         <ProductImagesReorderProvider
           productId={productId}
+          productImages={
+            product && product.images && product.images.edges
+              ? product.images.edges.map(edge => edge.node)
+              : []
+          }
           onError={onError}
           onSuccess={onImageReorder}
         >
@@ -226,21 +245,8 @@ const ProductUpdateOperations: React.StatelessComponent<
                           deleteProductImage: {
                             data: deleteProductImage.data,
                             loading: deleteProductImage.loading,
-                            mutate: variables => {
-                              const optimisticResponse = {
-                                productImageDelete: {
-                                  __typename: "ProductImageDelete",
-                                  productImage: {
-                                    __typename: "ProductImage",
-                                    id: variables.id
-                                  }
-                                }
-                              };
-                              deleteProductImage.mutate({
-                                optimisticResponse,
-                                variables
-                              });
-                            }
+                            mutate: variables =>
+                              deleteProductImage.mutate({ variables })
                           },
                           errors:
                             updateProduct &&
@@ -251,31 +257,8 @@ const ProductUpdateOperations: React.StatelessComponent<
                           reorderProductImages: {
                             data: reorderProductImages.data,
                             loading: reorderProductImages.loading,
-                            mutate: variables => {
-                              const imagesMap = {};
-                              product.images.edges.forEach(edge => {
-                                const image = edge.node;
-                                imagesMap[image.id] = image;
-                              });
-                              const productImages = variables.imagesIds.map(
-                                (id, index) => ({
-                                  __typename: "ProductImage",
-                                  ...imagesMap[id],
-                                  sortOrder: index
-                                })
-                              );
-                              const optimisticResponse = {
-                                productImageReorder: {
-                                  __typename: "ProductImageReorder",
-                                  errors: null,
-                                  productImages
-                                }
-                              };
-                              reorderProductImages.mutate({
-                                optimisticResponse,
-                                variables
-                              });
-                            }
+                            mutate: variables =>
+                              reorderProductImages.mutate({ variables })
                           },
                           updateProduct: {
                             data: updateProduct.data,
