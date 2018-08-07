@@ -314,13 +314,11 @@ def test_order_add_note(admin_api_client, order_with_lines, admin_user):
     order = order_with_lines
     query = """
         mutation addNote(
-        $id: ID!, $note: String, $user: ID, $is_public: Boolean) {
+        $id: ID!, $note: String, $user: ID) {
             orderAddNote(
-            input: {order: $id, content: $note, user: $user,
-            isPublic: $is_public}) {
+            input: {order: $id, content: $note, user: $user}) {
                 orderNote {
                     content
-                    isPublic
                     user {
                         email
                     }
@@ -332,16 +330,12 @@ def test_order_add_note(admin_api_client, order_with_lines, admin_user):
     order_id = graphene.Node.to_global_id('Order', order.id)
     note = 'nuclear note'
     user = graphene.Node.to_global_id('User', admin_user.id)
-    is_public = True
-    variables = json.dumps(
-        {'id': order_id, 'user': user, 'is_public': is_public,
-         'note': note})
+    variables = json.dumps({'id': order_id, 'user': user, 'note': note})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderAddNote']['orderNote']
     assert data['content'] == note
-    assert data['isPublic'] == is_public
     assert data['user']['email'] == admin_user.email
 
 

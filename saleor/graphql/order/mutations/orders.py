@@ -69,8 +69,6 @@ class OrderAddNoteInput(graphene.InputObjectType):
     order = graphene.ID(description='ID of the order.')
     user = graphene.ID(description='ID of the user who added note.')
     content = graphene.String(description='Note content.')
-    is_public = graphene.Boolean(
-        description='Determine if note is visible by customer or not.')
 
 
 class OrderAddNote(ModelMutation):

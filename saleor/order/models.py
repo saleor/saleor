@@ -91,6 +91,7 @@ class Order(models.Model):
     translated_discount_name = models.CharField(
         max_length=255, default='', blank=True)
     display_gross_prices = models.BooleanField(default=True)
+    customer_note = models.TextField(blank=True, default='')
 
     objects = OrderQueryset.as_manager()
 
@@ -324,6 +325,7 @@ class OrderHistoryEntry(models.Model):
 class OrderNote(BaseNote):
     order = models.ForeignKey(
         Order, related_name='notes', on_delete=models.CASCADE)
+    is_public = None
 
     class Meta:
         ordering = ('date', )
