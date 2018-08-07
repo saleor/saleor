@@ -16,6 +16,10 @@ import { productDetailsQuery } from "../queries";
 interface ProductImagesReorderProviderProps
   extends PartialMutationProviderProps<ProductImageReorderMutation> {
   productId: string;
+  productImages: Array<{
+    id: string;
+    url: string;
+  }>;
   children: PartialMutationProviderRenderProps<
     ProductImageReorderMutation,
     ProductImageReorderMutationVariables
@@ -24,15 +28,15 @@ interface ProductImagesReorderProviderProps
 
 const ProductImagesReorderProvider: React.StatelessComponent<
   ProductImagesReorderProviderProps
-> = ({ productId, children, onError, onSuccess }) => (
+> = props => (
   <TypedProductImagesReorder
     mutation={productImagesReorder}
-    onCompleted={onSuccess}
-    onError={onError}
+    onCompleted={props.onSuccess}
+    onError={props.onError}
     update={(cache, { data: { productImageReorder } }) => {
       const data: ProductDetailsQuery = cache.readQuery({
         query: productDetailsQuery,
-        variables: { id: productId }
+        variables: { id: props.productId }
       });
       data.product.images.edges.forEach((item, index, array) => {
         array[index].node = productImageReorder.productImages[index];
@@ -41,11 +45,32 @@ const ProductImagesReorderProvider: React.StatelessComponent<
     }}
   >
     {(mutate, { data, error, loading }) =>
-      children({
+      props.children({
         data,
         error,
         loading,
-        mutate
+        mutate: opts => {
+          const productImagesMap = props.productImages.reduce((prev, curr) => {
+            prev[curr.id] = curr;
+            return prev;
+          }, {});
+          const productImages = opts.variables.imagesIds.map((id, index) => ({
+            __typename: "ProductImage",
+            ...productImagesMap[id],
+            sortOrder: index
+          }));
+          const optimisticResponse = {
+            productImageReorder: {
+              __typename: "ProductImageReorder",
+              errors: null,
+              productImages
+            }
+          };
+          return mutate({
+            optimisticResponse,
+            variables: opts.variables
+          });
+        }
       })
     }
   </TypedProductImagesReorder>
