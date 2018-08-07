@@ -3,12 +3,7 @@ from graphene import relay
 from graphene_django.filter import DjangoFilterConnectionField
 
 from ...product import models
-<<<<<<< HEAD
-from ...product.templatetags.product_images import (
-    get_thumbnail, product_first_image)
-=======
 from ...product.templatetags.product_images import get_thumbnail
->>>>>>> Remove duplicated product_first_image templatetag
 from ...product.utils import products_with_details
 from ...product.utils.availability import get_availability
 from ...product.utils.costs import (
