@@ -91,7 +91,8 @@
         &.software-stack {
           & .image {
             background-image: url('../../images/stack-icons.png');
-            background-size: 70%;
+            background-size: 90%;
+            background-position: 150%;
           }
           & .decoration {
             width: 35%;
@@ -136,7 +137,7 @@
           }
           & .image {
             background-image: url('../../images/storefront-icon.png');
-            background-size: 30%;
+            background-size: 40%;
           }
           & .decoration {
             width: 30%;

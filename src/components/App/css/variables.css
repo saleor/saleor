@@ -11,15 +11,11 @@
   --layout-width: 1300px;
   --footer-border: #13657F;
 
-  /* Media Queries */
-
   --xs-max-width: 576px; /* xs */
   --sm-min-width: 768px; /* sm */
   --md-min-width: 992px; /* md */
   --lg-min-width: 1400px; /* lg */
   --xlg-min-width: 1920px; /* xlg */
-
-  @custom-media --sm-min (max-width: 768px);
 
   /* Typography */
 
@@ -31,13 +27,13 @@
   --font-size-lg:                calc(var(--font-size-base) * 1.5);
   --font-size-sm:                calc(var(--font-size-base) * .875);
 
-  --font-weight-lighter:         lighter;
+  --font-weight-lighter:         100;
   --font-weight-light:           300;
   --font-weight-normal:          400;
   --font-weight-bold:            700;
   --font-weight-bolder:          bolder;
 
-  --font-weight-base:            var(--font-weight-light);
+  --font-weight-base:            var(--font-weight-lighter);
   --line-height-base:            1.5;
 
   --h1-font-size:                calc(var(--font-size-base) * 3.5);
