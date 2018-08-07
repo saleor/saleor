@@ -10,7 +10,7 @@ import i18n from "../../../i18n";
 interface ProductVariantStockProps {
   errors: { [key: string]: string };
   sku?: string;
-  stock?: string;
+  stock?: number;
   stockAllocated?: number;
   loading?: boolean;
   onChange(event: any);

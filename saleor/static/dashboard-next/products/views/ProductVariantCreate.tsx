@@ -27,7 +27,7 @@ interface FormData {
   }>;
   costPrice?: string;
   priceOverride?: string;
-  stock?: string;
+  stock?: number;
   sku?: string;
 }
 
@@ -88,7 +88,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                           costPrice: formData.costPrice,
                           priceOverride: formData.priceOverride,
                           product: productId,
-                          quantity: parseInt(formData.stock, 10),
+                          quantity: formData.stock,
                           sku: formData.sku,
                           trackInventory: true
                         }

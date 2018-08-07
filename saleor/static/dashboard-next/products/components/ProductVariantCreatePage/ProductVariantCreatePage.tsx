@@ -25,7 +25,7 @@ interface FormData {
   costPrice?: string;
   images?: string[];
   priceOverride?: string;
-  stock?: string;
+  stock?: number;
   sku?: string;
 }
 interface ProductVariantCreatePageProps {
@@ -94,6 +94,26 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
     onVariantClick
   }) => {
     const handleImageSelect = (ids: string[]) => {};
+    const initialForm = {
+      attributes:
+        product &&
+        product.productType &&
+        product.productType.variantAttributes &&
+        product.productType.variantAttributes.edges
+          ? product.productType.variantAttributes.edges.map(a => ({
+              slug: a.node.slug,
+              value: ""
+            }))
+          : undefined,
+      costPrice: "",
+      images:
+        product && product.images && product.images.edges
+          ? product.images.edges.map(edge => edge.node.id)
+          : undefined,
+      priceOverride: "",
+      sku: "",
+      stock: 0
+    };
     return (
       <Toggle>
         {(isImageSelectModalActive, { toggle: toggleImageSelectModal }) => (
@@ -101,26 +121,7 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
             <Container width="md">
               <PageHeader title={header} onBack={onBack} />
               <Form
-                initial={{
-                  attributes:
-                    product &&
-                    product.productType &&
-                    product.productType.variantAttributes &&
-                    product.productType.variantAttributes.edges
-                      ? product.productType.variantAttributes.edges.map(a => ({
-                          slug: a.node.slug,
-                          value: ""
-                        }))
-                      : undefined,
-                  costPrice: "",
-                  images:
-                    product && product.images && product.images.edges
-                      ? product.images.edges.map(edge => edge.node.id)
-                      : undefined,
-                  priceOverride: "",
-                  sku: "",
-                  stock: ""
-                }}
+                initial={initialForm}
                 errors={formErrors}
                 onSubmit={onSubmit}
                 key={product ? JSON.stringify(product) : "noproduct"}
