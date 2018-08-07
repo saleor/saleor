@@ -1,5 +1,6 @@
 import React from 'react';
 
+import css from './scrolllink.css';
 import arrowDownIcon from '../../images/arrow-down-icon.png';
 
 const ScrollButton = (props) => (
