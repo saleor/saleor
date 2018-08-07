@@ -99,16 +99,14 @@ export const ProductList = decorate<ProductListProps>(
           </TableRow>
         ) : products !== null && products.length > 0 ? (
           products.map(product => (
-            <TableRow hover key={product.id}>
+            <TableRow
+              hover
+              key={product.id}
+              onClick={onRowClick(product.id)}
+              className={classes.link}
+            >
               <TableCellAvatar thumbnail={product.thumbnailUrl} />
-              <TableCell className={classes.textLeft}>
-                <span
-                  onClick={onRowClick ? onRowClick(product.id) : undefined}
-                  className={onRowClick ? classes.link : ""}
-                >
-                  {product.name}
-                </span>
-              </TableCell>
+              <TableCell className={classes.textLeft}>{product.name}</TableCell>
               <TableCell>{product.productType.name}</TableCell>
               <TableCell>
                 {product.availability &&

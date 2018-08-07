@@ -79,9 +79,6 @@ interface ProductVariantPageProps {
 
 const decorate = withStyles(theme => ({
   root: {
-    "& input": {
-      width: "100%"
-    },
     display: "grid",
     gridGap: `${theme.spacing.unit * 2}px`,
     gridTemplateColumns: "1fr 2.25fr",
