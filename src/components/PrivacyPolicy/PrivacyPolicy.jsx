@@ -23,7 +23,7 @@ const PrivacyPolicy = () => (
 		</section>
 		<section className="analytics">
 			<h3 className="title">Analytics</h3>
-			<p className="description">This website includes Google Analytics software that collects anonymized information about visitors to help us provide better services. See how Google uses your data.</p>
+			<p className="description">This website includes Google Analytics software that collects anonymized information about visitors to help us provide better services. <a href="">See how Google uses your data.</a></p>
 		</section>
 		<section className="your-rights">
 			<h3 className="title">Your Rights</h3>
@@ -50,8 +50,8 @@ const PrivacyPolicy = () => (
 					the right to object to processing.
 				</li>
 			</ul>
-      <p className="description">Please consult the GDPR text in your language to better understand your rights.</p>
-      <p className="description">We ask that you direct all questions and requests related to your personal data to privacy@mirumee.com or that you send them to the postal address of the company listed above </p>
+      <p className="description">Please consult the <a href="">GDPR text in your language</a> to better understand your rights.</p>
+      <p className="description">We ask that you direct all questions and requests related to your personal data to <a href="">privacy@mirumee.com</a> or that you send them to the postal address of the company listed above </p>
 		</section>
 		<section className="banner text-center">
       <h1>simple <span className="text-light">is</span> better</h1>
