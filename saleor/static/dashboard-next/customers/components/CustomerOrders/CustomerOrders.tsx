@@ -108,7 +108,7 @@ const CustomerOrders = decorate<CustomerOrdersProps>(
                   {order.number}
                 </TableCell>
                 <TableCell>
-                  <DateFormatter date={order.created} dateNow={dateNow} />
+                  <DateFormatter date={order.created} />
                 </TableCell>
                 <TableCell>
                   <StatusLabel

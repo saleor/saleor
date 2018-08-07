@@ -15,6 +15,8 @@ import AppRoot from "./AppRoot";
 import Auth, { getAuthToken, removeAuthToken } from "./auth";
 import AuthProvider from "./auth/AuthProvider";
 import CategorySection from "./categories";
+import { DateProvider } from "./components/DateFormatter";
+import { LocaleProvider } from "./components/Locale";
 import { MessageManager } from "./components/messages";
 import "./i18n";
 import PageSection from "./pages";
@@ -64,24 +66,28 @@ render(
   <ApolloProvider client={apolloClient}>
     <BrowserRouter basename="/dashboard/next/">
       <MuiThemeProvider theme={theme}>
-        <MessageManager>
-          <CssBaseline />
-          <AuthProvider>
-            {({ isAuthenticated }) => (
-              isAuthenticated ? (
-                <AppRoot>
-                  <Switch>
-                    <Route path="/categories" component={CategorySection} />
-                    <Route path="/pages" component={PageSection} />
-                    <Route path="/products" component={ProductSection} />
-                  </Switch>
-                </AppRoot>
-              ) : (
-                <Route component={Auth} />
-              )
-            )}
-          </AuthProvider>
-        </MessageManager>
+        <DateProvider>
+          <LocaleProvider>
+            <MessageManager>
+              <CssBaseline />
+              <AuthProvider>
+                {({ isAuthenticated }) =>
+                  isAuthenticated ? (
+                    <AppRoot>
+                      <Switch>
+                        <Route path="/categories" component={CategorySection} />
+                        <Route path="/pages" component={PageSection} />
+                        <Route path="/products" component={ProductSection} />
+                      </Switch>
+                    </AppRoot>
+                  ) : (
+                    <Route component={Auth} />
+                  )
+                }
+              </AuthProvider>
+            </MessageManager>
+          </LocaleProvider>
+        </DateProvider>
       </MuiThemeProvider>
     </BrowserRouter>
   </ApolloProvider>,

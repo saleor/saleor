@@ -9,8 +9,7 @@ import { LocaleConsumer } from "../Locale";
 import { Consumer } from "./DateContext";
 
 interface DateFormatterProps {
-  date: number;
-  showTooltip?: boolean;
+  date: string;
   locale?: string;
   typographyProps?: TypographyProps;
 }
@@ -19,7 +18,7 @@ const decorate = withStyles(theme => ({ root: { display: "inline" } }), {
   name: "DateFormatter"
 });
 const DateFormatter = decorate<DateFormatterProps>(
-  ({ classes, date, showTooltip = true, typographyProps }) => {
+  ({ classes, date, typographyProps }) => {
     return (
       <LocaleConsumer>
         {locale => (
@@ -30,21 +29,16 @@ const DateFormatter = decorate<DateFormatterProps>(
                 className={classes.root}
                 {...typographyProps}
               >
-                {showTooltip ? (
-                  <Tooltip
-                    title={moment(date)
-                      .toDate()
-                      .toLocaleString()}
-                  >
-                    <ReactMoment from={dateNow} locale={locale}>
-                      {date}
-                    </ReactMoment>
-                  </Tooltip>
-                ) : (
+                <Tooltip
+                  title={moment(date)
+                    .locale(locale)
+                    .toDate()
+                    .toLocaleString()}
+                >
                   <ReactMoment from={dateNow} locale={locale}>
                     {date}
                   </ReactMoment>
-                )}
+                </Tooltip>
               </Typography>
             )}
           </Consumer>
