@@ -3,7 +3,7 @@
 	& section {
 		padding: calc(var(--spacer) * 2) calc(var(--spacer) * 7);
 		& .title, & .description {
-			margin-bottom: var(--headings-margin-bottom);
+			margin-bottom: var(--spacer);
 		}
 		&.hero {
 			background-image: url('../../images/lock-bg.png');
@@ -25,5 +25,26 @@
 				padding: 0 0 0 1rem;
 			}
 		}
+		&.analytics {
+			& .description {
+				width: 80%;
+			}
+		}
+		&.your-rights {
+			& .list li {
+        margin-bottom: calc(var(--spacer) * 1.5);
+			}
+    }
+    &.banner {
+      background: rgb(16,10,53);
+      background: linear-gradient(135deg, rgba(16,10,53,0) 8%, rgba(16,10,53,1) 8%, rgba(16,10,53,1) 92%, rgba(16,10,53,0) 92%, rgba(16,10,53,0) 100%);
+      & h1 span {
+        font-weight: var(--font-weight-light)
+      }
+      & .btn {
+        margin: calc(var(--spacer) * 2) 0;
+        display: inline-block;
+      }
+    }
 	}
 }

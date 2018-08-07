@@ -92,8 +92,12 @@ img {
   box-sizing: border-box;
 }
 
-.bold {
+.text-bold {
   font-weight: var(--font-weight-bold);
+}
+
+.text-light {
+  font-weight: var(--font-weight-light);
 }
 
 .text-center {
