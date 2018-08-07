@@ -4,6 +4,7 @@ import * as React from "react";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import i18n from "../../i18n";
+import { createPaginationData, createPaginationState } from "../../misc";
 import PageListPage from "../components/PageListPage/PageListPage";
 import {
   pageAddUrl,
@@ -31,20 +32,7 @@ export class PageList extends React.Component<PageListProps, PageListState> {
   render() {
     const { params } = this.props;
     const PAGINATE_BY = 20;
-    const paginationState =
-      params && (params.before || params.after)
-        ? params.after
-          ? {
-              after: params.after,
-              first: PAGINATE_BY
-            }
-          : {
-              before: params.before,
-              last: PAGINATE_BY
-            }
-        : {
-            first: PAGINATE_BY
-          };
+    const paginationState = createPaginationState(PAGINATE_BY, params);
     return (
       <Navigator>
         {navigate => (
@@ -62,52 +50,23 @@ export class PageList extends React.Component<PageListProps, PageListState> {
                 );
               }
 
-              const loadNextPage = () => {
-                if (loading) {
-                  return;
-                }
-                return navigate(
-                  pageListUrl +
-                    "?" +
-                    stringify({
-                      after: data.pages.pageInfo.endCursor
-                    }),
-                  true
-                );
-              };
-              const loadPreviousPage = () => {
-                if (loading) {
-                  return;
-                }
-                return navigate(
-                  pageListUrl +
-                    "?" +
-                    stringify({
-                      before: data.pages.pageInfo.startCursor
-                    }),
-                  true
-                );
-              };
-              const pageInfo =
-                data && data.pages && data.pages.pageInfo
-                  ? {
-                      ...data.pages.pageInfo,
-                      hasNextPage:
-                        !!paginationState.before ||
-                        data.pages.pageInfo.hasNextPage,
-                      hasPreviousPage:
-                        !!paginationState.after ||
-                        data.pages.pageInfo.hasPreviousPage
-                    }
-                  : undefined;
+              const {
+                loadNextPage,
+                loadPreviousPage,
+                pageInfo
+              } = createPaginationData(
+                navigate,
+                paginationState,
+                pageListUrl,
+                data && data.pages ? data.pages.pageInfo : undefined,
+                loading
+              );
 
               return (
                 <Navigator>
                   {navigate => {
                     const handleEditClick = (id: string) => () =>
                       navigate(pageEditUrl(id));
-                    const handleShowPageClick = (slug: string) => () =>
-                      window.open(pageStorefrontUrl(slug));
                     return (
                       <PageListPage
                         disabled={loading}

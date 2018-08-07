@@ -11,7 +11,7 @@ const CategoryPaginator: React.StatelessComponent<RouteComponentProps<any>> = ({
   match
 }) => {
   const qs = parseQs(location.search.substr(1));
-  return <CategoryDetails id={match.params.id} filters={qs} />;
+  return <CategoryDetails id={match.params.id} params={qs} />;
 };
 const SubcategoryCreateForm: React.StatelessComponent<
   RouteComponentProps<any>
