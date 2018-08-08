@@ -23,7 +23,7 @@ from saleor.product.models import ProductVariant
 
 def test_ajax_order_shipping_methods_list(
         admin_client, order, shipping_method):
-    method = shipping_method.price_per_country.get()
+    method = shipping_method.shipping_methods.get()
     shipping_methods_list = [
         {'id': method.pk, 'text': method.get_ajax_label()}]
     url = reverse(
@@ -40,10 +40,10 @@ def test_ajax_order_shipping_methods_list_different_country(
         admin_client, order, shipping_method):
     order.shipping_address = order.billing_address.get_copy()
     order.save()
-    method = shipping_method.price_per_country.get()
+    method = shipping_method.shipping_methods.get()
     shipping_methods_list = [
         {'id': method.pk, 'text': method.get_ajax_label()}]
-    shipping_method.price_per_country.create(price=15, country_code='DE')
+    shipping_method.shipping_methods.create(price=15, country_code='DE')
     url = reverse(
         'dashboard:ajax-order-shipping-methods', kwargs={'order_pk': order.pk})
 
@@ -773,7 +773,7 @@ def test_view_create_from_draft_order_not_draft_order(
 
 def test_view_create_from_draft_order_shipping_method_not_valid(
         admin_client, draft_order, shipping_method):
-    method = shipping_method.price_per_country.create(
+    method = shipping_method.shipping_methods.create(
         country_code='DE', price=10)
     draft_order.shipping_method = method
     draft_order.save()
@@ -910,7 +910,7 @@ def test_view_order_customer_remove(admin_client, draft_order):
 
 def test_view_order_shipping_edit(
         admin_client, draft_order, shipping_method, settings, vatlayer):
-    method = shipping_method.price_per_country.create(
+    method = shipping_method.shipping_methods.create(
         price=Money(5, settings.DEFAULT_CURRENCY), country_code='PL')
     url = reverse(
         'dashboard:order-shipping-edit', kwargs={'order_pk': draft_order.pk})
@@ -930,7 +930,7 @@ def test_view_order_shipping_edit(
 
 def test_view_order_shipping_edit_not_draft_order(
         admin_client, order_with_lines, shipping_method):
-    method = shipping_method.price_per_country.create(
+    method = shipping_method.shipping_methods.create(
         price=5, country_code='PL')
     url = reverse(
         'dashboard:order-shipping-edit',

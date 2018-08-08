@@ -766,10 +766,12 @@ def check_shipping_method(cart):
     country_code = cart.shipping_address.country.code
     # There should be only one ShippingZone per country
     valid_shipping_zone = ShippingZone.objects.filter(
-        countries__contains=country_code).get()
-    if (
+        countries__contains=country_code).first()
+
+    shipping_method_not_applicable = (
         cart.shipping_method and
-            cart.shipping_method.shipping_zone.get() != valid_shipping_zone):
+        cart.shipping_method.shipping_zone != valid_shipping_zone)
+    if not valid_shipping_zone or shipping_method_not_applicable:
         cart.shipping_method = None
         cart.save()
         return False

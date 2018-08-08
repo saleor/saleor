@@ -32,7 +32,7 @@ def test_shipping_method_query(user_api_client, shipping_method):
     }
     """
 
-    ID = graphene.Node.to_global_id('ShippingMethod', shipping.id)
+    ID = graphene.Node.to_global_id('ShippingZone', shipping.id)
     variables = json.dumps({'id': ID})
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
@@ -42,7 +42,7 @@ def test_shipping_method_query(user_api_client, shipping_method):
     assert 'errors' not in content
     assert shipping_data['name'] == shipping.name
     assert shipping_data['description'] == shipping.description
-    no_ppc = shipping_method.price_per_country.count()
+    no_ppc = shipping_method.shipping_methods.count()
     assert len(shipping_data['pricePerCountry']) == no_ppc
     price_range = shipping.price_range
     data_price_range = shipping_data['priceRange']
@@ -99,7 +99,7 @@ def test_update_shipping_method(admin_api_client, shipping_method):
     """
     name = 'Parabolic name'
     shipping_id = graphene.Node.to_global_id(
-        'ShippingMethod', shipping_method.pk)
+        'ShippingZone', shipping_method.pk)
     assert shipping_method.name != name
     variables = json.dumps({'id': shipping_id, 'name': name})
     response = admin_api_client.post(
@@ -112,7 +112,7 @@ def test_update_shipping_method(admin_api_client, shipping_method):
 
 def test_delete_shipping_method(admin_api_client, shipping_method):
     query = """
-        mutation deleteShippingMethod($id: ID!) {
+        mutation deleteShippingZone($id: ID!) {
             shippingMethodDelete(id: $id) {
                 shippingMethod {
                     name
@@ -121,7 +121,7 @@ def test_delete_shipping_method(admin_api_client, shipping_method):
         }
     """
     shipping_method_id = graphene.Node.to_global_id(
-        'ShippingMethod', shipping_method.pk)
+        'ShippingZone', shipping_method.pk)
     variables = json.dumps({'id': shipping_method_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
@@ -153,7 +153,7 @@ def test_create_shipping_price(admin_api_client, shipping_method):
     code = 'PL'
     price = '12.34'
     shipping_method_id = graphene.Node.to_global_id(
-        'ShippingMethod', shipping_method.pk)
+        'ShippingZone', shipping_method.pk)
     variables = json.dumps(
         {
             'shippingMethod': shipping_method_id,
@@ -182,13 +182,13 @@ def test_update_shipping_price(admin_api_client, shipping_method, shipping_price
         }
     }
     """
-    # shipping_price = shipping_method.price_per_country.first()
+    # shipping_price = shipping_method.shipping_methods.first()
     price = '12.34'
     assert not str(shipping_price.price) == price
     shipping_method_id = graphene.Node.to_global_id(
-        'ShippingMethod', shipping_method.pk)
+        'ShippingZone', shipping_method.pk)
     shipping_price_id = graphene.Node.to_global_id(
-        'ShippingMethodCountry', shipping_price.pk)
+        'ShippingRate', shipping_price.pk)
     variables = json.dumps(
         {
             'shippingMethod': shipping_method_id,
@@ -213,7 +213,7 @@ def test_delete_shipping_price(admin_api_client, shipping_price):
         }
         """
     shipping_price_id = graphene.Node.to_global_id(
-        'ShippingMethodCountry', shipping_price.pk)
+        'ShippingRate', shipping_price.pk)
     variables = json.dumps({'id': shipping_price_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
