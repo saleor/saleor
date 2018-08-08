@@ -56,9 +56,9 @@ def test_shipping_method_delete(admin_client, shipping_method):
     assert ShippingMethod.objects.count() == 0
 
 
-def test_shipping_method_country_add(admin_client, shipping_method):
+def test_shipping_rate_add(admin_client, shipping_method):
     assert ShippingMethodCountry.objects.count() == 1
-    url = reverse('dashboard:shipping-method-country-add',
+    url = reverse('dashboard:shipping-rate-add',
                   kwargs={'shipping_method_pk': shipping_method.pk})
     data = {'country_code': 'FR', 'price': '50',
             'shipping_method': shipping_method.pk}
@@ -67,9 +67,9 @@ def test_shipping_method_country_add(admin_client, shipping_method):
     assert ShippingMethodCountry.objects.count() == 2
 
 
-def test_shipping_method_country_add_not_valid(admin_client, shipping_method):
+def test_shipping_rate_add_not_valid(admin_client, shipping_method):
     assert ShippingMethodCountry.objects.count() == 1
-    url = reverse('dashboard:shipping-method-country-add',
+    url = reverse('dashboard:shipping-rate-add',
                   kwargs={'shipping_method_pk': shipping_method.pk})
     data = {}
     response = admin_client.post(url, data, follow=True)
@@ -77,13 +77,13 @@ def test_shipping_method_country_add_not_valid(admin_client, shipping_method):
     assert ShippingMethodCountry.objects.count() == 1
 
 
-def test_shipping_method_country_edit(admin_client, shipping_method):
+def test_shipping_rate_edit(admin_client, shipping_method):
     assert ShippingMethodCountry.objects.count() == 1
     country = shipping_method.price_per_country.all()[0]
     assert country.price == Money(10, 'USD')
-    url = reverse('dashboard:shipping-method-country-edit',
+    url = reverse('dashboard:shipping-rate-edit',
                   kwargs={'shipping_method_pk': shipping_method.pk,
-                          'country_pk': country.pk})
+                          'rate_pk': country.pk})
     data = {'country_code': '', 'price': '50',
             'shipping_method': shipping_method.pk}
     response = admin_client.post(url, data, follow=True)
@@ -94,12 +94,12 @@ def test_shipping_method_country_edit(admin_client, shipping_method):
     assert shipping_price == Money(50, 'USD')
 
 
-def test_shipping_method_country_delete(admin_client, shipping_method):
+def test_shipping_rate_delete(admin_client, shipping_method):
     assert ShippingMethodCountry.objects.count() == 1
     country = shipping_method.price_per_country.all()[0]
-    url = reverse('dashboard:shipping-method-country-delete',
+    url = reverse('dashboard:shipping-rate-delete',
                   kwargs={'shipping_method_pk': shipping_method.pk,
-                          'country_pk': country.pk})
+                          'rate_pk': country.pk})
     response = admin_client.post(url, follow=True)
     assert response.status_code == 200
     assert ShippingMethodCountry.objects.count() == 0
