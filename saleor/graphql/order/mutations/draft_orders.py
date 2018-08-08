@@ -93,7 +93,7 @@ class DraftOrderCreate(ModelMutation):
         lines = input.pop('lines', None)
         if lines:
             variant_ids = [line.get('variant_id') for line in lines]
-            variants = cls.get_instances(
+            variants = cls.get_nodes_or_error(
                 ids=variant_ids, graphene_type=ProductVariant, errors=errors,
                 field='variants')
             quantities = [line.get('quantity') for line in lines]

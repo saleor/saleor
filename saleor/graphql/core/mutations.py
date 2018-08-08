@@ -124,13 +124,13 @@ class ModelMutation(BaseMutation):
                 if value is not None and (
                     isinstance(field.type, graphene.List)) and (
                     field.type.of_type == graphene.ID):
-                    instances = cls.get_instances(
+                    instances = cls.get_nodes_or_error(
                         value, errors=errors, field=field.name) if value else []
                     cleaned_input[field_name] = instances
 
                 # handle ID field
                 elif value is not None and field.type == graphene.ID:
-                    instance = cls.get_instance(
+                    instance = cls.get_node_or_error(
                         info, value, errors, field=field.name)
                     cleaned_input[field_name] = instance
 
@@ -213,7 +213,7 @@ class ModelMutation(BaseMutation):
         instance.save()
 
     @classmethod
-    def get_instance(cls, info, id, errors, only_type=None, field='Error'):
+    def get_node_or_error(cls, info, id, errors, only_type=None, field='Error'):
         instance = None
         try:
             instance = get_node(info, id, only_type)
@@ -223,7 +223,7 @@ class ModelMutation(BaseMutation):
         return instance
 
     @classmethod
-    def get_instances(cls, ids, errors, graphene_type=None, field='Error'):
+    def get_nodes_or_error(cls, ids, errors, graphene_type=None, field='Error'):
         instances = None
         try:
             instances = get_nodes(ids, graphene_type)
@@ -231,7 +231,6 @@ class ModelMutation(BaseMutation):
             cls.add_error(
                 field=field, message=str(e), errors=errors)
         return instances
-
 
     @classmethod
     def mutate(cls, root, info, **data):
