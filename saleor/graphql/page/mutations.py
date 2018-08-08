@@ -13,7 +13,6 @@ class PageInput(graphene.InputObjectType):
         description="""Page content.
         May consists of ordinary text, HTML and images.""")
     is_visible = graphene.Boolean(
-        required=True,
         description='Determines if page is visible in the storefront')
     available_on = graphene.String(
         description='Publication date. ISO 8601 standard.')
