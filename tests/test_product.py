@@ -647,3 +647,18 @@ def test_get_product_attributes_data_translation(
     attributes_data = get_product_attributes_data(product)
     attributes_keys = [attr.name for attr in attributes_data.keys()]
     assert translated_product_attribute.name in attributes_keys
+
+
+def test_homepage_collection_render(
+        client, site_settings, collection, product_list):
+    collection.products.add(*product_list)
+    site_settings.homepage_collection = collection
+    site_settings.save()
+
+    response = client.get(reverse('home'))
+    assert response.status_code == 200
+    products_in_context = {
+        product[0] for product in response.context['products']}
+    products_available = {
+        product for product in product_list if product.is_published}
+    assert products_in_context == products_available
