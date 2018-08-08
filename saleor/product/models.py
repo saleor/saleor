@@ -113,7 +113,6 @@ class Product(SeoModel):
     is_published = models.BooleanField(default=True)
     attributes = HStoreField(default={}, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
-    is_featured = models.BooleanField(default=False)
     charge_taxes = models.BooleanField(default=True)
     tax_rate = models.CharField(
         max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True)

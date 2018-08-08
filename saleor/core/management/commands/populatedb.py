@@ -8,7 +8,7 @@ from ...utils.random_data import (
     add_address_to_admin, create_collections_by_schema, create_menus,
     create_orders, create_page, create_product_sales,
     create_products_by_schema, create_shipping_methods, create_users,
-    create_vouchers, set_featured_products)
+    create_vouchers, set_homepage_collection)
 
 
 class Command(BaseCommand):
@@ -65,9 +65,9 @@ class Command(BaseCommand):
             self.stdout.write(msg)
         for msg in create_orders(20):
             self.stdout.write(msg)
-        for msg in set_featured_products(16):
-            self.stdout.write(msg)
         for msg in create_collections_by_schema(self.placeholders_dir):
+            self.stdout.write(msg)
+        for msg in set_homepage_collection():
             self.stdout.write(msg)
         for msg in create_page():
             self.stdout.write(msg)

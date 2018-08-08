@@ -220,9 +220,6 @@ class ProductForm(forms.ModelForm, AttributesMixin):
                 'Availability date', 'Publish product on'),
             'is_published': pgettext_lazy(
                 'Product published toggle', 'Published'),
-            'is_featured': pgettext_lazy(
-                'Featured product toggle',
-                'Feature this product on homepage'),
             'charge_taxes': pgettext_lazy(
                 'Charge taxes on product', 'Charge taxes on this product')}
 

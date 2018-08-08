@@ -13,19 +13,21 @@ def copy_featured_products_to_homepade_collection(apps, schema_editor):
     Collection = apps.get_model('product', 'Collection')
     Product = apps.get_model('product', 'Product')
 
-    homepage_collection = Collection(name='Homepage collection for migration')
-    homepage_collection.slug = slugify(homepage_collection.name)
-    homepage_collection.save()
     today = datetime.date.today()
-    homepage_collection.products.add(
-        *list(
-            Product.objects.filter(
-                Q(available_on__lte=today) | Q(available_on__isnull=True),
-                Q(is_published=True, is_featured=True))))
+    homepage_products = list(
+        Product.objects.filter(
+            Q(available_on__lte=today) | Q(available_on__isnull=True),
+            is_published=True, is_featured=True))
+    if homepage_products:
+        homepage_collection = Collection(
+            name='Homepage collection for migration')
+        homepage_collection.slug = slugify(homepage_collection.name)
+        homepage_collection.save()
+        homepage_collection.products.add(*homepage_products)
 
-    for site_setting in SiteSettings.objects.all():
-        site_setting.homepage_collection = homepage_collection
-        site_setting.save()
+        for site_setting in SiteSettings.objects.all():
+            site_setting.homepage_collection = homepage_collection
+            site_setting.save()
 
 
 class Migration(migrations.Migration):
