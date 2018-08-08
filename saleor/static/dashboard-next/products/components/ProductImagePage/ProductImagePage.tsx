@@ -41,7 +41,7 @@ const decorate = withStyles(theme => ({
   root: {
     display: "grid" as "grid",
     gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "1fr 2.25fr"
+    gridTemplateColumns: "4fr 9fr"
   }
 }));
 const ProductImagePage = decorate<ProductImagePageProps>(
