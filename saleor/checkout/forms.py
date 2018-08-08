@@ -10,6 +10,7 @@ from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_countries.fields import LazyTypedChoiceField
 
 from ..core.exceptions import InsufficientStock
+from ..core.i18n import COUNTRY_CODE_CHOICES
 from ..core.utils import format_money
 from ..core.utils.taxes import display_gross_prices
 from ..discount.models import NotApplicable, Voucher
@@ -162,16 +163,14 @@ class CountryForm(forms.Form):
     """Country selection form."""
 
     def __init__(self, *args, **kwargs):
-        from ..shipping.utils import country_choices
-
         self.taxes = kwargs.pop('taxes', {})
         super().__init__(*args, **kwargs)
         self.fields['country'] = LazyTypedChoiceField(
             label=pgettext_lazy('Country form field label', 'Country'),
-            choices=country_choices())
+            choices=COUNTRY_CODE_CHOICES)
 
     def get_shipment_options(self):
-        """Return a list of shipping methods for the selected country."""
+        """Return a list of shipping rates for the selected country."""
         code = self.cleaned_data['country']
         return get_shipment_options(code, self.taxes)
 
@@ -235,8 +234,8 @@ class BillingAddressChoiceForm(AddressChoiceForm):
         choices=CHOICES, initial=SHIPPING_ADDRESS, widget=forms.RadioSelect)
 
 
-class ShippingCountryMethodChoiceField(forms.ModelChoiceField):
-    """Shipping method country choice field.
+class ShippingRateChoiceField(forms.ModelChoiceField):
+    """Shipping rate choice field.
 
     Uses a radio group instead of a dropdown and includes estimated shipping
     prices.
@@ -246,7 +245,7 @@ class ShippingCountryMethodChoiceField(forms.ModelChoiceField):
     widget = forms.RadioSelect()
 
     def label_from_instance(self, obj):
-        """Return a friendly label for the shipping method."""
+        """Return a friendly label for the shipping rate."""
         price = get_taxed_shipping_price(obj.price, self.taxes)
         if display_gross_prices():
             price = price.gross
@@ -258,31 +257,31 @@ class ShippingCountryMethodChoiceField(forms.ModelChoiceField):
 
 
 class CartShippingRateForm(forms.ModelForm):
-    """Cart shipping method form."""
-    shipping_method = ShippingCountryMethodChoiceField(
+    """Cart shipping rate form."""
+    shipping_rate = ShippingRateChoiceField(
         queryset=ShippingRate.objects.prefetch_related(
             'shipping_zone').order_by('price'),
         label=pgettext_lazy(
-            'Shipping method form field label', 'Shipping method'),
+            'Shipping rate form field label', 'Shipping rate'),
         empty_label=None)
 
     class Meta:
         model = Cart
-        fields = ['shipping_method']
+        fields = ['shipping_rate']
 
     def __init__(self, *args, **kwargs):
         taxes = kwargs.pop('taxes')
         super().__init__(*args, **kwargs)
         country_code = self.instance.shipping_address.country.code
-        qs = self.fields['shipping_method'].queryset.filter(
+        qs = self.fields['shipping_rate'].queryset.filter(
             shipping_zone__countries__contains=country_code)
-        self.fields['shipping_method'].queryset = qs
-        self.fields['shipping_method'].taxes = taxes
+        self.fields['shipping_rate'].queryset = qs
+        self.fields['shipping_rate'].taxes = taxes
 
-        if self.initial.get('shipping_method') is None:
-            shipping_methods = qs.all()
-            if shipping_methods:
-                self.initial['shipping_method'] = shipping_methods[0]
+        if self.initial.get('shipping_rate') is None:
+            shipping_rates = qs.all()
+            if shipping_rates:
+                self.initial['shipping_rate'] = shipping_rates[0]
 
 
 class CartNoteForm(forms.ModelForm):

@@ -1,9 +1,7 @@
 from django import forms
 from django.utils.translation import pgettext_lazy
 
-from ...shipping.models import ShippingMethod, ShippingZone, ShippingRate, ShippingMethodCountry
-from django_countries.widgets import LazySelectMultiple
-from saleor.account.i18n import COUNTRY_CHOICES
+from ...shipping.models import ShippingZone, ShippingRate
 
 
 def currently_used_countries(shipping_zone_pk=None):
@@ -19,7 +17,7 @@ class ShippingZoneForm(forms.ModelForm):
 
     class Meta:
         model = ShippingZone
-        exclude = ['shipping_methods']
+        exclude = ['shipping_rates']
         labels = {
             'name': pgettext_lazy(
                 'Shippment Zone field name', 'Zone Name'),
@@ -41,6 +39,7 @@ class ShippingZoneForm(forms.ModelForm):
                 self.instance.pk if self.instance else None))
 
     def clean_countries(self):
+        #TODO testme
         countries = self.cleaned_data.get('countries')
         if not countries:
             return

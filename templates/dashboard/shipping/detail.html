@@ -5,10 +5,10 @@
 {% load staticfiles %}
 
 {% block title %}
-  {{ shipping_method }} - {{ block.super }}
+  {{ shipping_zone }} - {{ block.super }}
 {% endblock %}
 
-{% block body_class %}body-shipping-methods{% endblock %}
+{% block body_class %}body-shipping-zones{% endblock %}
 
 {% block menu_delivery_class %}active{% endblock %}
 
@@ -17,16 +17,16 @@
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
-      <a href="{% url 'dashboard:shipping-methods' %}">
-        {% trans "Shipping methods" context "Shipping method form breadcrumbs" %}
+      <a href="{% url 'dashboard:shipping-zones' %}">
+        {% trans "Shipping zones" context "Shipping zone form breadcrumbs" %}
       </a>
     </li>
     <li class="back-mobile">
-      <a href="{% url 'dashboard:shipping-methods' %}"><i class="material-icons">arrow_back</i></a>
+      <a href="{% url 'dashboard:shipping-zones' %}"><i class="material-icons">arrow_back</i></a>
     </li>
     <li>
       <span class="breadcrumbs--elipsed-item">
-        {{ shipping_method }}
+        {{ shipping_zone }}
       </span>
     </li>
   </ul>
@@ -38,17 +38,17 @@
       <div class="card">
         <div class="card-content">
           <span class="card-title">
-            {% blocktrans with shipping_name=shipping_method.name list_of_countries=shipping_method.get_countries_display %}
+            {% blocktrans with shipping_name=shipping_zone.name list_of_countries=shipping_zone.get_countries_display %}
               {{ shipping_name }}  <small>(ships to {{ list_of_countries }})</small>
             {% endblocktrans %}
           </span>
         </div>
         <div class="card-action">
-          <a class="btn-flat waves-effect" href="{% url 'dashboard:shipping-method-update' shipping_method.pk %}">
-            {% trans "Edit shipping method" context "Shipping method action" %}
+          <a class="btn-flat waves-effect" href="{% url 'dashboard:shipping-zone-update' shipping_zone.pk %}">
+            {% trans "Edit shipping zone" context "Shipping zone action" %}
           </a>
-          <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:shipping-method-delete' shipping_method.pk %}">
-            {% trans "Remove shipping method" context "Shipping method action" %}
+          <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:shipping-zone-delete' shipping_zone.pk %}">
+            {% trans "Remove shipping zone" context "Shipping zone action" %}
           </a>
         </div>
       </div>
@@ -62,7 +62,7 @@
           </span>
         </div>
         <div class="data-table-header-action">
-            <a href="{% url 'dashboard:shipping-rate-add' shipping_method_pk=shipping_method.pk %}" class="btn-data-table btn-flat waves-effect">
+            <a href="{% url 'dashboard:shipping-rate-add' shipping_zone_pk=shipping_zone.pk %}" class="btn-data-table btn-flat waves-effect">
               {% trans "Add" %}
             </a>
         </div>
@@ -84,10 +84,10 @@
                   <td>{{ country.name }}</td>
                   <td>{% price country.price %}</td>
                   <td class="right-align">
-                    <a href="{% url 'dashboard:shipping-rate-edit' shipping_method_pk=shipping_method.pk rate_pk=country.pk %}" class="btn-flat waves-effect">
+                    <a href="{% url 'dashboard:shipping-rate-edit' shipping_zone_pk=shipping_zone.pk shipping_rate_pk=country.pk %}" class="btn-flat waves-effect">
                       {% trans 'Edit' context 'Attribute choice value edit action' %}
                     </a>
-                    <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:shipping-rate-delete' shipping_method_pk=shipping_method.pk rate_pk=country.pk %}">
+                    <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:shipping-rate-delete' shipping_zone_pk=shipping_zone.pk shipping_rate_pk=country.pk %}">
                       {% trans 'Remove' context 'Attribute choice value remove action' %}
                     </a>
                   </td>

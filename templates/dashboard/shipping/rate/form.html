@@ -12,14 +12,14 @@
   - {{ block.super }}
 {% endblock %}
 
-{% block body_class %}body-shipping-methods{% endblock %}
+{% block body_class %}body-shipping-zones{% endblock %}
 
 {% block menu_delivery_class %}active{% endblock %}
 
 {% block menu_shipping_class %}active{% endblock %}
 
 {% block header_menu %}
-  {% url "dashboard:shipping-method-list" as url %}
+  {% url "dashboard:shipping-zone-list" as url %}
   {% include "dashboard/includes/_back_link.html" with url=url %}
 {% endblock %}
 
@@ -27,19 +27,19 @@
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
-      <a href="{% url 'dashboard:shipping-methods' %}" class="breadcrumbs--ellipsed-item">
-        {% trans "Shipping methods" context "Dashboard attributes list" %}
+      <a href="{% url 'dashboard:shipping-zones' %}" class="breadcrumbs--ellipsed-item">
+        {% trans "Shipping zones" context "Dashboard attributes list" %}
       </a>
     </li>
     <li class="back-mobile">
-      <a href="{% url 'dashboard:shipping-methods' %}">
+      <a href="{% url 'dashboard:shipping-zones' %}">
         <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
-    {% if shipping_method.pk %}
+    {% if shipping_zone.pk %}
     <li>
-      <a href="{% url 'dashboard:shipping-method-details' shipping_method.pk %}" class="breadcrumbs--ellipsed-item">
-        {{ shipping_method }}
+      <a href="{% url 'dashboard:shipping-zone-details' shipping_zone.pk %}" class="breadcrumbs--ellipsed-item">
+        {{ shipping_zone }}
       </a>
     </li>
     {% endif %}
@@ -69,14 +69,14 @@
           {% csrf_token %}
           <div class="card-content">
             <span class="card-title">
-              {% trans "Shipping method price for country " context "Shipping method price for country form title" %}
+              {% trans "Shipping zone price for country " context "Shipping zone price for country form title" %}
             </span>
             <div class="row">
               {{ form|materializecss }}
             </div>
           </div>
           <div class="card-action right-align">
-            <a href="{% url 'dashboard:shipping-method-details' pk=shipping_method.pk %}" class="btn-flat waves-effect">
+            <a href="{% url 'dashboard:shipping-zone-details' pk=shipping_zone.pk %}" class="btn-flat waves-effect">
               {% trans "Cancel" context "Dashboard cancel action" %}
             </a>
             {% if shipping_rate.pk %}

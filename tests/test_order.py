@@ -379,7 +379,7 @@ def test_update_order_prices(order_with_lines):
     line_2 = order_with_lines.lines.last()
     price_1 = line_1.variant.get_price(taxes=taxes)
     price_2 = line_2.variant.get_price(taxes=taxes)
-    shipping_price = order_with_lines.shipping_method.get_total_price(taxes)
+    shipping_price = order_with_lines.shipping_rate.get_total_price(taxes)
 
     update_order_prices(order_with_lines, None)
 
@@ -394,12 +394,12 @@ def test_update_order_prices(order_with_lines):
 
 
 def test_order_payment_flow(
-        request_cart_with_item, client, address, shipping_method):
+        request_cart_with_item, client, address, shipping_zone):
     request_cart_with_item.shipping_address = address
     request_cart_with_item.billing_address = address.get_copy()
     request_cart_with_item.email = 'test@example.com'
-    request_cart_with_item.shipping_method = (
-        shipping_method.shipping_methods.first())
+    request_cart_with_item.shipping_rate = (
+        shipping_zone.shipping_rates.first())
     request_cart_with_item.save()
 
     order = create_order(

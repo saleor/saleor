@@ -49,7 +49,7 @@ class Cart(models.Model):
     shipping_address = models.ForeignKey(
         Address, related_name='+', editable=False, null=True,
         on_delete=models.SET_NULL)
-    shipping_method = models.ForeignKey(
+    shipping_rate = models.ForeignKey(
         ShippingRate, blank=True, null=True, related_name='carts',
         on_delete=models.SET_NULL)
     note = models.TextField(blank=True, default='')
@@ -81,8 +81,8 @@ class Cart(models.Model):
 
     def get_shipping_price(self, taxes):
         return (
-            self.shipping_method.get_total_price(taxes)
-            if self.shipping_method and self.is_shipping_required()
+            self.shipping_rate.get_total_price(taxes)
+            if self.shipping_rate and self.is_shipping_required()
             else ZERO_TAXED_MONEY)
 
     def get_subtotal(self, discounts=None, taxes=None):

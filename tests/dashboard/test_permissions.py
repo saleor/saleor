@@ -739,47 +739,47 @@ def test_staff_can_access_attribute_delete(
     assert response.status_code == 200
 
 
-def test_staff_with_permissions_can_view_shipping_methods_and_details(
-        staff_client, staff_user, permission_manage_shipping, shipping_method):
+def test_staff_with_permissions_can_view_shipping_rates_and_details(
+        staff_client, staff_user, permission_manage_shipping, shipping_zone):
     assert not staff_user.has_perm('shipping.manage_shipping')
-    response = staff_client.get(reverse('dashboard:shipping-methods'))
+    response = staff_client.get(reverse('dashboard:shipping-zones'))
     assert response.status_code == 302
     response = staff_client.get(
         reverse(
-            'dashboard:shipping-method-details', args=[shipping_method.pk]))
+            'dashboard:shipping-zone-details', args=[shipping_zone.pk]))
     assert response.status_code == 302
     staff_user.user_permissions.add(permission_manage_shipping)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm('shipping.manage_shipping')
-    response = staff_client.get(reverse('dashboard:shipping-methods'))
+    response = staff_client.get(reverse('dashboard:shipping-zones'))
     assert response.status_code == 200
     response = staff_client.get(
         reverse(
-            'dashboard:shipping-method-details', args=[shipping_method.pk]))
+            'dashboard:shipping-zone-details', args=[shipping_zone.pk]))
     assert response.status_code == 200
 
 
-def test_staff_with_permissions_can_update_add_and_delete_shipping_method(
-        staff_client, staff_user, permission_manage_shipping, shipping_method):
+def test_staff_with_permissions_can_update_add_and_delete_shipping_zone(
+        staff_client, staff_user, permission_manage_shipping, shipping_zone):
     assert not staff_user.has_perm('shipping.manage_shipping')
     response = staff_client.get(
-        reverse('dashboard:shipping-method-update', args=[shipping_method.pk]))
+        reverse('dashboard:shipping-zone-update', args=[shipping_zone.pk]))
     assert response.status_code == 302
     response = staff_client.get(
-        reverse('dashboard:shipping-method-delete', args=[shipping_method.pk]))
+        reverse('dashboard:shipping-zone-delete', args=[shipping_zone.pk]))
     assert response.status_code == 302
-    response = staff_client.get(reverse('dashboard:shipping-method-add'))
+    response = staff_client.get(reverse('dashboard:shipping-zone-add'))
     assert response.status_code == 302
     staff_user.user_permissions.add(permission_manage_shipping)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm('shipping.manage_shipping')
     response = staff_client.get(
-        reverse('dashboard:shipping-method-update', args=[shipping_method.pk]))
+        reverse('dashboard:shipping-zone-update', args=[shipping_zone.pk]))
     assert response.status_code == 200
     response = staff_client.get(
-        reverse('dashboard:shipping-method-delete', args=[shipping_method.pk]))
+        reverse('dashboard:shipping-zone-delete', args=[shipping_zone.pk]))
     assert response.status_code == 200
-    response = staff_client.get(reverse('dashboard:shipping-method-add'))
+    response = staff_client.get(reverse('dashboard:shipping-zone-add'))
     assert response.status_code == 200
 
 

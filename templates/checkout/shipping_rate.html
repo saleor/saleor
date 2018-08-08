@@ -10,11 +10,11 @@
   <hr>
   <form method="post" novalidate>
     {% csrf_token %}
-    <h2>{% trans "Shipping method" context "Checkout shipping method form title" %}</h2>
-    {% bootstrap_form shipping_method_form show_label=False %}
+    <h2>{% trans "Shipping rate" context "Checkout shipping rate form title" %}</h2>
+    {% bootstrap_form shipping_rate_form show_label=False %}
     <p class="text-md-right">
       <button type="submit" class="btn primary">
-        {% trans "Continue" context "Checkout shipping method primary action" %}
+        {% trans "Continue" context "Checkout shipping rate primary action" %}
       </button>
     </p>
   </form>

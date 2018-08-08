@@ -9,7 +9,6 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.template.defaultfilters import slugify
-from django_countries import countries as django_countries
 from django_countries.fields import Country
 from faker import Factory
 from faker.providers import BaseProvider
@@ -33,13 +32,11 @@ from ...product.models import (
     ProductImage, ProductType, ProductVariant)
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
-from ...shipping.models import (
-    ANY_COUNTRY, ShippingRate, ShippingZone)
+from ...shipping.models import ShippingRate, ShippingZone
 from ...shipping.utils import get_taxed_shipping_price
 
 fake = Factory.create()
 
-DELIVERY_REGIONS = [ANY_COUNTRY, 'US', 'PL', 'DE', 'GB']
 PRODUCTS_LIST_DIR = 'products-list/'
 
 GROCERIES_CATEGORY = {'name': 'Groceries', 'image_name': 'groceries.jpg'}
@@ -243,12 +240,6 @@ class SaleorProvider(BaseProvider):
     def money(self):
         return Money(
             fake.pydecimal(2, 2, positive=True), settings.DEFAULT_CURRENCY)
-
-    def delivery_region(self):
-        return random.choice(DELIVERY_REGIONS)
-
-    def shipping_method(self):
-        return random.choice(ShippingRate.objects.all())
 
 
 fake.add_provider(SaleorProvider)
@@ -457,11 +448,11 @@ def create_fake_order(discounts, taxes):
             'user_email': get_email(
                 address.first_name, address.last_name)}
 
-    shipping_method = ShippingRate.objects.order_by('?').first()
-    shipping_price = shipping_method.price
+    shipping_rate = ShippingRate.objects.order_by('?').first()
+    shipping_price = shipping_rate.price
     shipping_price = get_taxed_shipping_price(shipping_price, taxes)
     order_data.update({
-        'shipping_method_name': shipping_method.name,
+        'shipping_rate_name': shipping_rate.name,
         'shipping_price': shipping_price})
 
     order = Order.objects.create(**order_data)
@@ -509,22 +500,63 @@ def create_product_sales(how_many=5):
         yield 'Sale: %s' % (sale,)
 
 
-def create_shipping_methods():
-    countries = [code for code, name in django_countries]
-    shipping_zone = ShippingZone.objects.create(
-        name='European countries', countries=countries[::2])
-    for i in range(4):
-        ShippingRate.objects.create(
-            shipping_zone=shipping_zone,
-            name=fake.company(),
-            price=fake.money())
-    shipping_zone = ShippingZone.objects.create(
-        name='European countries', countries=countries[1::2])
-    for i in range(4):
-        ShippingRate.objects.create(
-            shipping_zone=shipping_zone,
-            name=fake.company(),
-            price=fake.money())
+def create_shipping_zone(shipping_rates_names, countries, shipping_zone_name):
+    shipping_zone = ShippingZone.objects.get_or_create(
+        name=shipping_zone_name, defaults={'countries': countries})[0]
+    shipping_rates = [
+        ShippingRate(
+            name=name, price=fake.money(), shipping_zone=shipping_zone)
+        for name in shipping_rates_names]
+    ShippingRate.objects.bulk_create(shipping_rates)
+    return 'Shipping Zone: %s' % shipping_zone
+
+
+def create_shipping_zones():
+    european_countries = [
+        'AX', 'AL', 'AD', 'AT', 'BY', 'BE', 'BA', 'BG', 'HR', 'CZ', 'DK', 'EE',
+        'FO', 'FI', 'FR', 'DE', 'GI', 'GR', 'GG', 'VA', 'HU', 'IS', 'IE', 'IM',
+        'IT', 'JE', 'LV', 'LI', 'LT', 'LU', 'MK', 'MT', 'MD', 'MC', 'ME', 'NL',
+        'NO', 'PL', 'PT', 'RO', 'RU', 'SM', 'RS', 'SK', 'SI', 'ES', 'SJ', 'SE',
+        'CH', 'UA', 'GB']
+    yield create_shipping_zone(
+        shipping_zone_name='Europe', countries=european_countries,
+        shipping_rates_names=[
+            'DHL', 'UPS', 'Registred priority', 'DB Schenker'])
+    oceanian_countries = [
+        'AS', 'AU', 'CX', 'CC', 'CK', 'FJ', 'PF', 'GU', 'HM', 'KI', 'MH', 'FM',
+        'NR', 'NC', 'NZ', 'NU', 'NF', 'MP', 'PW', 'PG', 'PN', 'WS', 'SB', 'TK',
+        'TO', 'TV', 'UM', 'VU', 'WF']
+    yield create_shipping_zone(
+        shipping_zone_name='Oceania', countries=oceanian_countries,
+        shipping_rates_names=['FBA', 'FedEx Express', 'Oceania Air Mail'])
+    asian_countries = [
+        'AF', 'AM', 'AZ', 'BH', 'BD', 'BT', 'BN', 'KH', 'CN', 'CY', 'GE', 'HK',
+        'IN', 'ID', 'IR', 'IQ', 'IL', 'JP', 'JO', 'KZ', 'KP', 'KR', 'KW', 'KG',
+        'LA', 'LB', 'MO', 'MY', 'MV', 'MN', 'MM', 'NP', 'OM', 'PK', 'PS', 'PH',
+        'QA', 'SA', 'SG', 'LK', 'SY', 'TW', 'TJ', 'TH', 'TL', 'TR', 'TM', 'AE',
+        'UZ', 'VN', 'YE']
+    yield create_shipping_zone(
+        shipping_zone_name='Asia', countries=asian_countries,
+        shipping_rates_names=['China Post', 'TNT', 'Aramex', 'EMS'])
+    american_countries = [
+        'AI', 'AG', 'AR', 'AW', 'BS', 'BB', 'BZ', 'BM', 'BO', 'BQ', 'BV', 'BR',
+        'CA', 'KY', 'CL', 'CO', 'CR', 'CU', 'CW', 'DM', 'DO', 'EC', 'SV', 'FK',
+        'GF', 'GL', 'GD', 'GP', 'GT', 'GY', 'HT', 'HN', 'JM', 'MQ', 'MX', 'MS',
+        'NI', 'PA', 'PY', 'PE', 'PR', 'BL', 'KN', 'LC', 'MF', 'PM', 'VC', 'SX',
+        'GS', 'SR', 'TT', 'TC', 'US', 'UY', 'VE', 'VG', 'VI']
+    yield create_shipping_zone(
+        shipping_zone_name='Americas', countries=american_countries,
+        shipping_rates_names=['DHL', 'UPS', 'FedEx', 'EMS'])
+    african_countries = [
+        'DZ', 'AO', 'BJ', 'BW', 'IO', 'BF', 'BI', 'CV', 'CM', 'CF', 'TD', 'KM',
+        'CG', 'CD', 'CI', 'DJ', 'EG', 'GQ', 'ER', 'SZ', 'ET', 'TF', 'GA', 'GM',
+        'GH', 'GN', 'GW', 'KE', 'LS', 'LR', 'LY', 'MG', 'MW', 'ML', 'MR', 'MU',
+        'YT', 'MA', 'MZ', 'NA', 'NE', 'NG', 'RE', 'RW', 'SH', 'ST', 'SN', 'SC',
+        'SL', 'SO', 'ZA', 'SS', 'SD', 'TZ', 'TG', 'TN', 'UG', 'EH', 'ZM', 'ZW']
+    yield create_shipping_zone(
+        shipping_zone_name='Africa', countries=african_countries,
+        shipping_rates_names=[
+            'Royale International', 'ACE', 'fastway couriers', 'Post Office'])
 
 
 def create_vouchers():

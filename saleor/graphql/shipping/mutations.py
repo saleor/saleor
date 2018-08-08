@@ -6,59 +6,60 @@ from ..core.types.common import Decimal
 
 
 class ShippingPriceInput(graphene.InputObjectType):
-    country_code = graphene.String(
-        description='Shipping specific country code.')
-    price = Decimal(description='Shipping price to a specified country.')
-    shipping_method = graphene.ID(
-        description='Related shipping method name.', name='shippingMethod')
+    name = graphene.String(
+        description='Name of the shipping rate.')
+    price = Decimal(description='Shipping price of the shipping rate.')
+    shipping_zone = graphene.ID(
+        description='Related shipping zone name.', name='shippingZone')
 
 
-class ShippingMethodInput(graphene.InputObjectType):
-    name = graphene.String(description='Shipping method\'s name.')
-    description = graphene.String(
-        description='Optional short description of the method.')
+class ShippingZoneInput(graphene.InputObjectType):
+    name = graphene.String(description='Shipping zone\'s name.')
+    countries = graphene.List(
+        graphene.String,
+        description='List of countries available in the shop.')
 
 
-class ShippingMethodCreate(ModelMutation):
+class ShippingZoneCreate(ModelMutation):
     class Arguments:
-        input = ShippingMethodInput(
-            description='Fields required to create a shipping method.',
+        input = ShippingZoneInput(
+            description='Fields required to create a shipping zone.',
             required=True)
 
     class Meta:
-        description = 'Creates a new shipping method.'
-        model = models.ShippingMethod
+        description = 'Creates a new shipping zone.'
+        model = models.ShippingZone
 
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('shipping.manage_shipping')
 
 
-class ShippingMethodUpdate(ModelMutation):
+class ShippingZoneUpdate(ModelMutation):
     class Arguments:
         id = graphene.ID(
-            description='ID of a shipping method to update.', required=True)
-        input = ShippingMethodInput(
-            description='Fields required to update a shipping method.',
+            description='ID of a shipping zone to update.', required=True)
+        input = ShippingZoneInput(
+            description='Fields required to update a shipping zone.',
             required=True)
 
     class Meta:
-        description = 'Updates a new shipping method.'
-        model = models.ShippingMethod
+        description = 'Updates a new shipping zone.'
+        model = models.ShippingZone
 
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('shipping.manage_shipping')
 
 
-class ShippingMethodDelete(ModelDeleteMutation):
+class ShippingZoneDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(
-            required=True, description='ID of a shipping method to delete.')
+            required=True, description='ID of a shipping zone to delete.')
 
     class Meta:
-        description = 'Deletes a shipping method.'
-        model = models.ShippingMethod
+        description = 'Deletes a shipping zone.'
+        model = models.ShippingZone
 
     @classmethod
     def user_is_allowed(cls, user, input):
@@ -73,7 +74,7 @@ class ShippingPriceCreate(ModelMutation):
 
     class Meta:
         description = 'Creates a new shipping price.'
-        model = models.ShippingMethodCountry
+        model = models.ShippingRate
 
     @classmethod
     def user_is_allowed(cls, user, input):
@@ -90,7 +91,7 @@ class ShippingPriceUpdate(ModelMutation):
 
     class Meta:
         description = 'Updates a new shipping price.'
-        model = models.ShippingMethodCountry
+        model = models.ShippingRate
 
     @classmethod
     def user_is_allowed(cls, user, input):
@@ -104,7 +105,7 @@ class ShippingPriceDelete(ModelDeleteMutation):
 
     class Meta:
         description = 'Deletes a shipping price.'
-        model = models.ShippingMethodCountry
+        model = models.ShippingRate
 
     @classmethod
     def user_is_allowed(cls, user, input):

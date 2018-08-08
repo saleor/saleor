@@ -626,7 +626,7 @@ def test_get_or_create_db_cart(customer_user, db, rf):
     assert Cart.objects.filter(user__isnull=True).count() == 1
 
 
-def test_get_cart_data(request_cart_with_item, shipping_method, vatlayer):
+def test_get_cart_data(request_cart_with_item, shipping_zone, vatlayer):
     shipment_option = get_shipment_options('PL', vatlayer)
     cart_data = utils.get_cart_data(
         request_cart_with_item, shipment_option, 'USD', None, vatlayer)
@@ -653,9 +653,9 @@ def test_cart_total_with_discount(request_cart_with_item, sale, vatlayer):
         net=Money('4.07', 'USD'), gross=Money('5.00', 'USD'))
 
 
-def test_cart_taxes(request_cart_with_item, shipping_method, vatlayer):
+def test_cart_taxes(request_cart_with_item, shipping_zone, vatlayer):
     cart = request_cart_with_item
-    cart.shipping_method = shipping_method.shipping_methods.get()
+    cart.shipping_rate = shipping_zone.shipping_rates.get()
     cart.save()
     taxed_price = TaxedMoney(net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
     assert cart.get_shipping_price(taxes=vatlayer) == taxed_price

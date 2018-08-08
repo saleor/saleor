@@ -6,24 +6,24 @@
 {% load utils %}
 
 {% block title %}
-  {% trans "Shipping methods" context "Dashboard shipping methods list" %} - {{ block.super }}
+  {% trans "Shipping zones" context "Dashboard shipping zones list" %} - {{ block.super }}
 {% endblock %}
 
-{% block body_class %}body-shipping-methods{% endblock %}
+{% block body_class %}body-shipping-zones{% endblock %}
 
 {% block menu_delivery_class %}active{% endblock %}
 
 {% block breadcrumbs %}
   <ul class="breadcrumbs">
     <li class="visible-s">
-      {% trans "Shipping methods" context "Dashboard shipping methods list" %}
+      {% trans "Shipping zones" context "Dashboard shipping zones list" %}
     </li>
   </ul>
 {% endblock %}
 
 {% block header_extra %}
   <div class="btn-fab-fixed">
-    <a href="{% url 'dashboard:shipping-method-add' %}" class="btn-fab-default waves-effect waves-light" title="{% trans "Add method" context "Shipping method list add button text" %}">
+    <a href="{% url 'dashboard:shipping-zone-add' %}" class="btn-fab-default waves-effect waves-light" title="{% trans "Add method" context "Shipping zone list add button text" %}">
       <svg data-src="{% static "dashboard/images/add.svg" %}" />
     </a>
   </div>
@@ -38,20 +38,20 @@
             <table class="bordered highlight responsive data-table">
               <thead>
                 <tr>
-                  {% trans "Zone name" context "Shipping methods table header" as label %}
+                  {% trans "Shipping zone" context "Shipping zones table header, name of the shipping zone" as label %}
                   {% sorting_header 'name' label is_wide=True %}
 
                   <th>
-                    {% trans "Price range" context "Shipping methods table header" %}
+                    {% trans "Price range" context "Shipping zones table header, price range of shipping rates within shipping zone" %}
                   </th>
                   <th class="wide">
-                    {% trans "Countries" context "Shipping methods table header" %}
+                    {% trans "Countries" context "Shipping zones table header, list of countries within of shipping zone" %}
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {% for method in shipping_zones %}
-                  <tr data-action-go="{% url 'dashboard:shipping-method-details' pk=method.pk %}">
+                  <tr data-action-go="{% url 'dashboard:shipping-zone-details' pk=method.pk %}">
                     <td>
                       {{ method }}
                     </td>
@@ -79,7 +79,7 @@
           <div class="col s12">
             <div class="not-found">
               <p class="grey-text">
-                {% trans "No shipping methods found." context "Empty shipping list message" %}
+                {% trans "No shipping zones found." context "Empty shipping list message" %}
               </p>
             </div>
           </div>

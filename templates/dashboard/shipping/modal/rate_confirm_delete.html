@@ -5,18 +5,18 @@
 {% block form_class %}{% endblock %}
 
 {% block action_url %}
-{% url "dashboard:shipping-rate-delete" shipping_method_pk=shipping_method_pk rate_pk=shipping_rate.pk %}
+{% url "dashboard:shipping-rate-delete" shipping_zone_pk=shipping_zone_pk shipping_rate_pk=shipping_rate.pk %}
 {% endblock %}
 
 {% block title %}
-{% blocktrans trimmed context "Modal remove shipping method shippingrate title" %}
+{% blocktrans trimmed context "Modal remove shipping rate shippingrate title" %}
   Remove shipping {{ shipping_rate }}
 {% endblocktrans %}
 {% endblock title %}
 
 {% block content %}
   <div class="col s12">
-    {% blocktrans trimmed context "Modal remove shipping method shipping rate text" %}
+    {% blocktrans trimmed context "Modal remove shipping rate shipping rate text" %}
       Are you sure you want to remove shipping rate <strong>{{ shipping_rate }}</strong>?
     {% endblocktrans %}
   </div>

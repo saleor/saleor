@@ -118,7 +118,7 @@
     </tr>
     <tr>
       <td>
-        {% trans "Shipping" context "Order total shipping price header" %} {% if order.shipping_method_name %}({{ order.shipping_method_name }}){% endif %}
+        {% trans "Shipping" context "Order total shipping price header" %} {% if order.shipping_rate_name %}({{ order.shipping_rate_name }}){% endif %}
       </td>
       <td class="right-align">
         {% price order.shipping_price.gross %}
