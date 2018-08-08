@@ -45,8 +45,6 @@
       background-color: #100A35;
       background: linear-gradient(135deg, rgba(16,10,53,0) 18%, rgba(16,10,53,1) 8%, rgba(16,10,53,1) 80%, rgba(16,10,53,0) 8%, rgba(16,10,53,0) 100%);
       margin-bottom: calc(var(--spacer) * 2);
-      margin-left: -33.33%;
-      margin-right: -33.33%;
       position: relative;
       & h1 span {
         font-weight: var(--font-weight-light)
@@ -57,12 +55,12 @@
       }
       & .decoration-left {
         top: 0;
-        left: 15%;
+        left: -5%;
         width: 10%;
       }
       & .decoration-right {
-        right: 15%;
-        top: -40%;
+        right: -5%;
+        top: -20%;
         width: 10%;
       }
     }
