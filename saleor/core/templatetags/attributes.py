@@ -10,5 +10,5 @@ def get_object_properties(object, properties):
     for property in properties:
         attribute = getattr(object, property, '')
         if attribute:
-            return attribute
+            return getattr(object.translated, property)
     return ''

@@ -2,6 +2,7 @@ import itertools
 import os
 import random
 import unicodedata
+from datetime import date
 from decimal import Decimal
 
 from django.conf import settings
@@ -19,6 +20,7 @@ from ...account.utils import store_user_address
 from ...checkout import AddressType
 from ...core.utils.taxes import get_tax_rate_by_name, get_taxes_for_country
 from ...core.utils.text import strip_html_and_truncate
+from ...dashboard.menu.utils import update_menu
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
 from ...menu.models import Menu
@@ -491,7 +493,7 @@ def create_users(how_many=10):
 
 def create_orders(how_many=10):
     taxes = get_taxes_for_country(Country(settings.DEFAULT_COUNTRY))
-    discounts = Sale.objects.prefetch_related(
+    discounts = Sale.objects.active(date.today()).prefetch_related(
         'products', 'categories', 'collections')
     for dummy in range(how_many):
         order = create_fake_order(discounts, taxes)
@@ -531,7 +533,7 @@ def create_vouchers():
             'name': 'Big order discount',
             'discount_value_type': DiscountValueType.FIXED,
             'discount_value': 25,
-            'limit': 200})
+            'min_amount_spent': 200})
     if created:
         yield 'Voucher #%d' % voucher.id
     else:
@@ -632,6 +634,8 @@ def create_menus():
             name=page.title,
             page=page)
         yield 'Created footer menu'
+    update_menu(top_menu)
+    update_menu(bottom_menu)
     site = Site.objects.get_current()
     site_settings = site.settings
     site_settings.top_menu = top_menu

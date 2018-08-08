@@ -73,8 +73,7 @@ class CategoryDelete(ModelDeleteMutation):
 
 class CollectionInput(graphene.InputObjectType):
     is_published = graphene.Boolean(
-        description='Informs whether a collection is published.',
-        required=True)
+        description='Informs whether a collection is published.')
     name = graphene.String(description='Name of the collection.')
     slug = graphene.String(description='Slug of the collection.')
     products = graphene.List(
@@ -193,17 +192,14 @@ class ProductInput(graphene.InputObjectType):
         description='Publication date. ISO 8601 standard.')
     category = graphene.ID(description='ID of the product\'s category.')
     charge_taxes = graphene.Boolean(
-        required=True,
         description='Determine if taxes are being charged for the product.')
     collections = graphene.List(
         graphene.ID,
         description='List of IDs of collections that the product belongs to.')
     description = graphene.String(description='Product description.')
     is_published = graphene.Boolean(
-        required=True,
         description='Determines if product is visible to customers.')
     is_featured = graphene.Boolean(
-        required=True,
         description='Determines if product is featured in the storefront.')
     name = graphene.String(description='Product name.')
     product_type = graphene.ID(
@@ -294,7 +290,6 @@ class ProductVariantInput(graphene.InputObjectType):
     quantity = graphene.Int(
         description='The total quantity of this variant available for sale.')
     track_inventory = graphene.Boolean(
-        required=True,
         description="""Determines if the inventory of this variant should
         be tracked. If false, the quantity won't change when customers
         buy this item.""")
@@ -365,10 +360,8 @@ class ProductVariantDelete(ModelDeleteMutation):
 
 
 class ProductTypeInput(graphene.InputObjectType):
-
     name = graphene.String(description='Name of the product type.')
     has_variants = graphene.Boolean(
-        required=True,
         description="""Determines if product of this type has multiple
         variants. This option mainly simplifies product management
         in the dashboard. There is always at least one variant created under
@@ -381,7 +374,6 @@ class ProductTypeInput(graphene.InputObjectType):
         description="""List of attributes used to distinguish between
         different variants of a product.""")
     is_shipping_required = graphene.Boolean(
-        required=True,
         description="""Determines if shipping is required for products
         of this variant.""")
 
@@ -428,20 +420,24 @@ class ProductTypeDelete(ModelDeleteMutation):
         return user.has_perm('product.manage_products')
 
 
-class ProductImageInput(graphene.InputObjectType):
+class ProductImageCreateInput(graphene.InputObjectType):
     alt = graphene.String(description='Alt text for an image.')
-    image = Upload(required=True, description='Image file.')
+    image = Upload(
+        required=True,
+        description='Represents an image file in a multipart request.')
     product = graphene.ID(description='ID of an product.')
 
 
 class ProductImageCreate(ModelMutation):
     class Arguments:
-        input = ProductImageInput(
+        input = ProductImageCreateInput(
             required=True,
             description='Fields required to create a product image.')
 
     class Meta:
-        description = 'Creates a product image.'
+        description = '''Create a product image. This mutation must be sent
+        as a `multipart` request. More detailed specs of the upload format can
+        be found here: https://github.com/jaydenseric/graphql-multipart-request-spec'''
         model = models.ProductImage
 
     @classmethod
@@ -457,11 +453,15 @@ class ProductImageCreate(ModelMutation):
         return user.has_perm('product.manage_products')
 
 
-class ProductImageUpdate(ProductImageCreate):
+class ProductImageUpdateInput(graphene.InputObjectType):
+    alt = graphene.String(description='Alt text for an image.')
+
+
+class ProductImageUpdate(ModelMutation):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a product image to update.')
-        input = ProductImageInput(
+        input = ProductImageUpdateInput(
             required=True,
             description='Fields required to update a product image.')
 

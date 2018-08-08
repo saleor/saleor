@@ -64,7 +64,7 @@
       <tbody>
         {% for line in order %}
           <tr class="table-item-row">
-            <td>{{ line.product_name }}</td>
+            <td>{{ line.translated_product_name|default:line.product_name }}</td>
             <td style="text-align: right;">{{ line.quantity }}</td>
             <td style="text-align: right;">
               {% price line.unit_price display_gross=order.display_gross_prices html=False %}

@@ -577,8 +577,8 @@ def test_delete_product(admin_api_client, product):
               }
             }
     """
-    variables = json.dumps({
-        'id': graphene.Node.to_global_id('Product', product.id)})
+    node_id = graphene.Node.to_global_id('Product', product.id)
+    variables = json.dumps({'id': node_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
@@ -587,6 +587,7 @@ def test_delete_product(admin_api_client, product):
     assert data['product']['name'] == product.name
     with pytest.raises(product._meta.model.DoesNotExist):
         product.refresh_from_db()
+    assert node_id == data['product']['id']
 
 
 def test_product_type(user_api_client, product_type):
@@ -862,10 +863,9 @@ def test_invalid_product_image_create_mutation(admin_api_client, product):
 
 
 def test_product_image_update_mutation(admin_api_client, product_with_image):
-    product = product_with_image
     query = """
-    mutation updateProductImage($imageId: ID!, $image: Upload!, $alt: String, $product: ID!) {
-        productImageUpdate(id: $imageId, input: {image: $image, alt: $alt, product: $product}) {
+    mutation updateProductImage($imageId: ID!, $alt: String) {
+        productImageUpdate(id: $imageId, input: {alt: $alt}) {
             productImage {
                 alt
             }
@@ -873,55 +873,15 @@ def test_product_image_update_mutation(admin_api_client, product_with_image):
     }
     """
     image_obj = product_with_image.images.first()
-    image = image_obj.image
-    assert not image_obj.alt
     alt = 'damage alt'
-    variables = {
-        'product': graphene.Node.to_global_id('Product', product.id),
-        'image': image.name, 'alt': alt,
-        'imageId': graphene.Node.to_global_id('ProductImage', image_obj.id)}
-    body = get_multipart_request_body(query, variables, image.file, image.name)
-    response = admin_api_client.post_multipart(reverse('api'), body)
+    variables = json.dumps({
+        'alt': alt,
+        'imageId': graphene.Node.to_global_id('ProductImage', image_obj.id)})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    data = content['data']['productImageUpdate']
-    assert data['productImage']['alt'] == alt
-
-
-def test_invalid_product_image_update_mutation(
-        admin_api_client, product_with_image):
-    product = product_with_image
-    query = """
-    mutation updateProductImage($image: Upload!, $alt: String, $product: ID!, $id: ID!) {
-        productImageUpdate(id: $id, input: {image: $image, alt: $alt, product: $product}) {
-            productImage {
-                image
-            }
-            errors {
-                field
-                message
-            }
-        }
-    }
-    """
-    image_obj = product_with_image.images.first()
-    image = image_obj.image
-    new_image_file, new_image_name = create_pdf_file_with_image_ext()
-    variables = {
-        'product': graphene.Node.to_global_id('Product', product.id),
-        'image': new_image_name,
-        'id': graphene.Node.to_global_id('ProductImage', image_obj.id),
-    }
-    body = get_multipart_request_body(
-        query, variables, new_image_file, new_image_name)
-    response = admin_api_client.post_multipart(reverse('api'), body)
-    content = get_graphql_content(response)
-    assert content['data']['productImageUpdate']['errors'] == [{
-        'field': 'image',
-        'message': 'Invalid file type'}]
-    product_with_image.refresh_from_db()
-    assert product_with_image.images.count() == 1
-    assert product_with_image.images.first().image == image
+    data = content['data']['productImageUpdate']['productImage']['alt'] == alt
 
 
 def test_product_image_delete(admin_api_client, product_with_image):
@@ -931,13 +891,14 @@ def test_product_image_delete(admin_api_client, product_with_image):
                 productImageDelete(id: $id) {
                     productImage {
                         url
+                        id
                     }
                 }
             }
         """
     image_obj = product.images.first()
-    variables = {
-        'id': graphene.Node.to_global_id('ProductImage', image_obj.id)}
+    node_id = graphene.Node.to_global_id('ProductImage', image_obj.id)
+    variables = {'id': node_id}
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
@@ -946,6 +907,7 @@ def test_product_image_delete(admin_api_client, product_with_image):
     assert data['productImage']['url'] == image_obj.image.url
     with pytest.raises(image_obj._meta.model.DoesNotExist):
         image_obj.refresh_from_db()
+    assert node_id == data['productImage']['id']
 
 
 def test_reorder_images(admin_api_client, product_with_images):

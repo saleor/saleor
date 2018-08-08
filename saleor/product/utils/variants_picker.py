@@ -48,12 +48,15 @@ def get_variant_picker_data(
         if available_variants:
             data['variantAttributes'].append({
                 'pk': attribute.pk,
-                'name': attribute.name,
-                'slug': attribute.slug,
+                'name': attribute.translated.name,
+                'slug': attribute.translated.slug,
                 'values': [
-                    {'pk': value.pk, 'name': value.name, 'slug': value.slug}
+                    {
+                        'pk': value.pk, 'name': value.translated.name,
+                        'slug': value.translated.slug}
                     for value in attribute.values.filter(
-                        pk__in=available_variants)]})
+                        pk__in=available_variants).prefetch_related(
+                            'translations')]})
 
     data['availability'] = {
         'discount': price_as_dict(availability.discount),

@@ -1,8 +1,7 @@
 import graphene
 from graphene import relay
 
-from ...discount import (
-    DiscountValueType, VoucherApplyToProduct, VoucherType, models)
+from ...discount import DiscountValueType, VoucherType, models
 from ..core.types.common import CountableDjangoObjectType
 
 
@@ -17,7 +16,7 @@ class Voucher(CountableDjangoObjectType):
             'discount_value': ['gte', 'lte'],
             'start_date': ['exact'],
             'end_date': ['exact'],
-            'limit': ['gte', 'lte']}
+            'min_amount_spent': ['gte', 'lte']}
         model = models.Voucher
 
 
@@ -29,12 +28,15 @@ class Sale(CountableDjangoObjectType):
         filter_fields = {
             'name': ['icontains'],
             'type': ['icontains'],
-            'value': ['gte', 'lte']}
+            'value': ['gte', 'lte'],
+            'start_date': ['exact'],
+            'end_date': ['exact']}
         model = models.Sale
 
 
 class VoucherTypeEnum(graphene.Enum):
     PRODUCT = VoucherType.PRODUCT
+    COLLECTION = VoucherType.COLLECTION
     CATEGORY = VoucherType.CATEGORY
     SHIPPING = VoucherType.SHIPPING
     VALUE = VoucherType.VALUE
@@ -43,8 +45,3 @@ class VoucherTypeEnum(graphene.Enum):
 class DiscountValueTypeEnum(graphene.Enum):
     FIXED = DiscountValueType.FIXED
     PERCENTAGE = DiscountValueType.PERCENTAGE
-
-
-class ApplyToEnum(graphene.Enum):
-    ONE_PRODUCT = VoucherApplyToProduct.ONE_PRODUCT
-    ALL_PRODUCTS = VoucherApplyToProduct.ALL_PRODUCTS

@@ -3,7 +3,7 @@ from graphene import relay
 from graphene_django.filter import DjangoFilterConnectionField
 
 from ...product import models
-from ...product.templatetags.product_images import product_first_image
+from ...product.templatetags.product_images import get_thumbnail
 from ...product.utils import products_with_details
 from ...product.utils.availability import get_availability
 from ...product.utils.costs import (
@@ -129,9 +129,7 @@ class Product(CountableDjangoObjectType):
         description='The storefront URL for the product.', required=True)
     thumbnail_url = graphene.String(
         description='The URL of a main thumbnail for a product.',
-        size=graphene.Argument(
-            graphene.String,
-            description='Size of a thumbnail, for example 255x255.'))
+        size=graphene.Argument(graphene.Int, description='Size of thumbnail'))
     availability = graphene.Field(
         ProductAvailability,
         description="""Informs about product's availability in the storefront,
@@ -154,8 +152,8 @@ class Product(CountableDjangoObjectType):
 
     def resolve_thumbnail_url(self, info, *, size=None):
         if not size:
-            size = '255x255'
-        return product_first_image(self, size)
+            size = 255
+        return get_thumbnail(self.get_first_image(), size)
 
     def resolve_url(self, info):
         return self.get_absolute_url()
@@ -251,8 +249,7 @@ class Category(CountableDjangoObjectType):
         return self.children.distinct()
 
     def resolve_url(self, info):
-        ancestors = self.get_ancestors().distinct()
-        return self.get_absolute_url(ancestors)
+        return self.get_absolute_url()
 
     def resolve_products(self, info, **kwargs):
         qs = models.Product.objects.available_products()
@@ -264,8 +261,7 @@ class ProductImage(CountableDjangoObjectType):
     url = graphene.String(
         required=True,
         description='',
-        size=graphene.String(
-            description='Size of an image, for example 255x255.'))
+        size=graphene.Int(description='Size of image'))
 
     class Meta:
         description = 'Represents a product image.'
@@ -275,5 +271,5 @@ class ProductImage(CountableDjangoObjectType):
 
     def resolve_url(self, info, *, size=None):
         if size:
-            return self.image.crop[size].url
+            return get_thumbnail(self.image, size, 'crop')
         return self.image.url

@@ -255,10 +255,15 @@ class ModelDeleteMutation(ModelMutation):
         if not cls.user_is_allowed(info.context.user, data):
             raise PermissionDenied()
 
-        id = data.get('id')
+        node_id = data.get('id')
         model_type = registry.get_type_for_model(cls._meta.model)
-        instance = get_node(info, id, only_type=model_type)
+        instance = get_node(info, node_id, only_type=model_type)
+        db_id = instance.id
         instance.delete()
+
+        # After the instance is deleted, set its ID to the original database's
+        # ID so that the success response contains ID of the deleted object.
+        instance.id = db_id
         return cls.success_response(instance)
 
 

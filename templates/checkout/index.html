@@ -42,10 +42,10 @@
           <div class="row">
             <div class="col-7 cart__line__product">
               <a class="link--clean" href="{{ line.variant.get_absolute_url }}">
-                <img class="lazyload lazypreload" data-src="{% get_thumbnail line.variant.product.images.first.image method="crop" size="60x60" %}"
-                     data-srcset="{% get_thumbnail line.variant.product.images.first.image method="crop" size="60x60" %} 1x, {% get_thumbnail line.variant.product.images.first.image method="crop" size="120x120" %} 2x"
+                <img class="lazyload lazypreload" data-src="{% get_thumbnail line.variant.get_first_image method="crop" size=60 %}"
+                     data-srcset="{% get_thumbnail line.variant.get_first_image method="crop" size=60 %} 1x, {% get_thumbnail line.variant.get_first_image method="crop" size=120 %} 2x"
                      alt="">
-                <p>{{ line.variant.product }}<br><small>{{ line.variant }}</small></p>
+                <p>{{ line.variant.product.translated }}<br><small>{{ line.variant.translated }}</small></p>
               </a>
             </div>
             <div class="col-5">
