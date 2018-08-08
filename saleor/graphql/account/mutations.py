@@ -40,18 +40,11 @@ class StaffInput(UserInput):
     permissions = graphene.List(
         graphene.String,
         description='List of permission code names to assign to this user.')
-<<<<<<< HEAD
 
 
 class StaffCreateInput(StaffInput):
     send_password_email = graphene.Boolean(
         description='Send an email with a link to set a password')
-=======
-    groups = graphene.List(
-        graphene.ID,
-        description='List of IDs of permission groups to assign the user to.',
-        name='groups')
->>>>>>> eedc30806... Add names to input fields so there is no null field in returned errors
 
 
 class CustomerCreate(ModelMutation):
