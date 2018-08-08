@@ -52,6 +52,7 @@ interface ProductCreatePageProps {
     id: string;
     name: string;
   }>;
+  currency: string;
   categories?: Array<{
     id: string;
     name: string;
@@ -97,6 +98,7 @@ const decorate = withStyles(theme => ({
 export const ProductCreatePage = decorate<ProductCreatePageProps>(
   ({
     classes,
+    currency,
     disabled,
     categories,
     collections,
@@ -150,8 +152,7 @@ export const ProductCreatePage = decorate<ProductCreatePageProps>(
                 />
                 <div className={classes.cardContainer}>
                   <ProductPricing
-                    // FIXME: this should be fetched from API
-                    currency="USD"
+                    currency={currency}
                     data={data}
                     disabled={disabled}
                     onChange={change}

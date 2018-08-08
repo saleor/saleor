@@ -85,6 +85,8 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                         const disabled = loading || productCreateDataLoading;
                         return (
                           <ProductCreatePage
+                            // FIXME: this should be fetched from API
+                            currency="USD"
                             categories={
                               data && data.categories
                                 ? data.categories.edges.map(edge => edge.node)
