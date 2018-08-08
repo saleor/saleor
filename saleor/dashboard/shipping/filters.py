@@ -13,12 +13,12 @@ SORT_BY_FIELDS = {
 class ShippingZoneFilter(SortedFilterSet):
     name = CharFilter(
         label=pgettext_lazy(
-            'Shipping zones list filter label', 'Zone name'),
+            'Shipping zones list filter label', 'Shipping zone name'),
         lookup_expr="icontains")
     price = RangeFilter(
         label=pgettext_lazy(
             'Shipping zones list filter label', 'Price range'),
-        name='shipping_methods__price')
+        name='shipping_rates__price')
     country = ChoiceFilter(
         label=pgettext_lazy('Shipping zones filter label', 'Country'),
         name='countries', lookup_expr='contains',
@@ -36,7 +36,7 @@ class ShippingZoneFilter(SortedFilterSet):
         counter = self.qs.count()
         return npgettext(
             'Number of matching records in the dashboard '
-            'shipping methods list',
-            'Found %(counter)d matching shipping method',
-            'Found %(counter)d matching shipping methods',
+            'shipping zones list',
+            'Found %(counter)d matching shipping zone',
+            'Found %(counter)d matching shipping zones',
             number=counter) % {'counter': counter}

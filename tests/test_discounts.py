@@ -1,11 +1,10 @@
 from datetime import date, timedelta
 
 import pytest
-from prices import Money, TaxedMoney
 
+from prices import Money, TaxedMoney
 from saleor.checkout.utils import get_voucher_discount_for_cart
-from saleor.discount import (
-    DiscountValueType, VoucherType)
+from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Sale, Voucher
 from saleor.discount.utils import (
     decrease_voucher_usage, get_product_discount_on_sale,

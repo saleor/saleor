@@ -22,7 +22,7 @@ from ...order.utils import (
     change_order_line_quantity, recalculate_order)
 from ...product.models import Product, ProductVariant
 from ...product.utils import allocate_stock, deallocate_stock
-from ...shipping.models import ANY_COUNTRY, ShippingMethodCountry
+from ...shipping.models import ShippingRate
 from ..forms import AjaxSelect2ChoiceField
 from ..widgets import PhonePrefixWidget
 from .utils import (
@@ -55,15 +55,15 @@ class CreateOrderFromDraftForm(forms.ModelForm):
                 'Create draft order form error',
                 'Could not create order without any products')))
         if self.instance.is_shipping_required():
-            method = self.instance.shipping_method
+            method = self.instance.shipping_rate
             shipping_address = self.instance.shipping_address
             shipping_not_valid = (
                 method and shipping_address and
-                shipping_address.country.code not in method.shipping_zone.countries)
+                shipping_address.country.code not in method.shipping_zone.countries)  # noqa
             if shipping_not_valid:
                 errors.append(forms.ValidationError(pgettext_lazy(
                     'Create draft order form error',
-                    'Shipping method is not valid for chosen shipping '
+                    'Shipping rate is not valid for chosen shipping '
                     'address')))
         if errors:
             raise forms.ValidationError(errors)
@@ -75,7 +75,7 @@ class CreateOrderFromDraftForm(forms.ModelForm):
             self.instance.user_email = self.instance.user.email
         remove_shipping_address = False
         if not self.instance.is_shipping_required():
-            self.instance.shipping_method_name = None
+            self.instance.shipping_rate_name = None
             self.instance.shipping_price = ZERO_TAXED_MONEY
             if self.instance.shipping_address:
                 remove_shipping_address = True
@@ -147,38 +147,38 @@ class OrderRemoveCustomerForm(forms.ModelForm):
 
 class OrderShippingForm(forms.ModelForm):
     """Set shipping name and shipping price in an order."""
-
-    shipping_method = AjaxSelect2ChoiceField(
-        queryset=ShippingMethodCountry.objects.all(), min_input=0,
+    #FIXME
+    shipping_rate = AjaxSelect2ChoiceField(
+        queryset=ShippingRate.objects.all(), min_input=0,
         label=pgettext_lazy(
-            'Shipping method form field label', 'Shipping method'))
+            'Shipping rate form field label', 'Shipping rate'))
 
     class Meta:
         model = Order
-        fields = ['shipping_method']
+        fields = ['shipping_rate']
 
     def __init__(self, *args, **kwargs):
         self.taxes = kwargs.pop('taxes')
         super().__init__(*args, **kwargs)
-        method_field = self.fields['shipping_method']
+        method_field = self.fields['shipping_rate']
         fetch_data_url = reverse(
-            'dashboard:ajax-order-shipping-methods',
+            'dashboard:ajax-order-shipping-rates',
             kwargs={'order_pk': self.instance.id})
         method_field.set_fetch_data_url(fetch_data_url)
 
-        method = self.instance.shipping_method
+        method = self.instance.shipping_rate
         if method:
             method_field.set_initial(method, label=method.get_ajax_label())
 
         if self.instance.shipping_address:
             country_code = self.instance.shipping_address.country.code
-            queryset = method_field.queryset.unique_for_country_code(
-                country_code)
+            queryset = method_field.queryset.filter(
+                shipping_zone__countries__contains=country_code)
             method_field.queryset = queryset
 
     def save(self, commit=True):
-        method = self.instance.shipping_method
-        self.instance.shipping_method_name = method.shipping_method.name
+        method = self.instance.shipping_rate
+        self.instance.shipping_rate_name = method.shipping_zone.name
         self.instance.shipping_price = method.get_total_price(self.taxes)
         recalculate_order(self.instance)
         return super().save(commit)
@@ -192,8 +192,8 @@ class OrderRemoveShippingForm(forms.ModelForm):
         fields = []
 
     def save(self, commit=True):
-        self.instance.shipping_method = None
-        self.instance.shipping_method_name = None
+        self.instance.shipping_rate = None
+        self.instance.shipping_rate_name = None
         self.instance.shipping_price = ZERO_TAXED_MONEY
         recalculate_order(self.instance)
         return super().save(commit)

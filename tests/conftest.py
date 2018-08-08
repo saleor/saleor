@@ -213,20 +213,20 @@ def authorized_client(client, customer_user):
 
 
 @pytest.fixture
-def shipping_method(db):  # pylint: disable=W0613
+def shipping_zone(db):  # pylint: disable=W0613
     shipping_zone = ShippingZone.objects.create(
         name='Europe', countries=[code for code, name in countries])
-    shipping_zone.shipping_methods.create(
+    shipping_zone.shipping_rates.create(
         name='DHL', price=10)
     return shipping_zone
 
 
 @pytest.fixture
-def shipping_price(shipping_method):
+def shipping_rate(shipping_zone):
     return ShippingRate.objects.create(
         name='DHL',
         price=10,
-        shipping_zone=shipping_method)
+        shipping_zone=shipping_zone)
 
 
 @pytest.fixture
@@ -409,7 +409,7 @@ def voucher(db):  # pylint: disable=W0613
 
 @pytest.fixture()
 def order_with_lines(
-        order, product_type, default_category, shipping_method, vatlayer):
+        order, product_type, default_category, shipping_zone, vatlayer):
     taxes = vatlayer
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
@@ -442,9 +442,9 @@ def order_with_lines(
         tax_rate=taxes['standard']['value'])
 
     order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = shipping_method.name
-    method = shipping_method.shipping_methods.get()
-    order.shipping_method = method
+    order.shipping_rate_name = shipping_zone.name
+    method = shipping_zone.shipping_rates.get()
+    order.shipping_rate = method
     order.shipping_price = method.get_total_price(taxes)
     order.save()
 

@@ -7,11 +7,11 @@ from django.utils.translation import pgettext_lazy
 from django_prices.forms import MoneyField
 from mptt.forms import TreeNodeMultipleChoiceField
 
+from ...core.i18n import COUNTRY_CODE_CHOICES
 from ...core.utils.taxes import ZERO_MONEY
 from ...discount import DiscountValueType
 from ...discount.models import Sale, Voucher
 from ...product.models import Category, Product
-from ...shipping.utils import country_choices
 from ..forms import AjaxSelect2MultipleChoiceField
 
 MinAmountSpent = MoneyField(
@@ -130,7 +130,7 @@ class VoucherForm(forms.ModelForm):
 class ShippingVoucherForm(forms.ModelForm):
     min_amount_spent = MinAmountSpent
     countries = forms.MultipleChoiceField(
-        choices=country_choices,
+        choices=COUNTRY_CODE_CHOICES,
         required=False,
         label=pgettext_lazy(
             'Text above the dropdown of countries',

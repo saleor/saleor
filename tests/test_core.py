@@ -81,11 +81,11 @@ def test_create_superuser(db, client):
     assert response.context['request'].user == admin
 
 
-def test_create_shipping_methods(db):
+def test_create_shipping_zones(db):
     assert ShippingZone.objects.all().count() == 0
-    for _ in random_data.create_shipping_methods():
+    for _ in random_data.create_shipping_zones():
         pass
-    assert ShippingZone.objects.all().count() == 2
+    assert ShippingZone.objects.all().count() == 5
 
 
 def test_create_fake_user(db):
@@ -158,7 +158,7 @@ def test_create_fake_order(db, monkeypatch, product_image):
     monkeypatch.setattr(
         'saleor.core.utils.random_data.get_image',
         Mock(return_value=product_image))
-    for _ in random_data.create_shipping_methods():
+    for _ in random_data.create_shipping_zones():
         pass
     for _ in random_data.create_users(3):
         pass

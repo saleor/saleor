@@ -7,7 +7,7 @@ from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import MoneyRange
 
 
-class ShippingMethod(CountableDjangoObjectType):
+class ShippingZone(CountableDjangoObjectType):
     price_range = graphene.Field(
         MoneyRange, description="Lowest and highest prices for the shipping.")
     countries = graphene.List(
@@ -15,13 +15,13 @@ class ShippingMethod(CountableDjangoObjectType):
         description="List of countries available for the method.")
 
     class Meta:
-        description = 'Represents a shipping method in the shop.'
-        model = models.ShippingMethod
+        description = 'Represents a shipping zone in the shop.'
+        model = models.ShippingZone
         interfaces = [relay.Node]
         filter_fields = {
             'name': ['icontains'],
-            'description': ['icontains'],
-            'price_per_country__price': ['gte', 'lte']
+            'countries': ['icontains'],
+            'shipping_rates__price': ['gte', 'lte']
         }
 
     def resolve_price_range(self, info):
@@ -31,9 +31,9 @@ class ShippingMethod(CountableDjangoObjectType):
         return self.countries
 
 
-class ShippingMethodCountry(DjangoObjectType):
+class ShippingRate(DjangoObjectType):
     class Meta:
-        description = 'Country to which shipping applies.'
-        model = models.ShippingMethodCountry
+        description = 'Shipping method within a shipping zone.'
+        model = models.ShippingRate
         interfaces = [relay.Node]
-        exclude_fields = ['shipping_method', 'orders']
+        exclude_fields = ['shipping_zone', 'orders']

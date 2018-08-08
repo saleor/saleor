@@ -6,7 +6,7 @@
 {% block form_class %}{% endblock %}
 
 {% block action_url %}
-{% url "dashboard:shipping-method-delete" shipping_zone.pk %}
+{% url "dashboard:shipping-zone-delete" shipping_zone.pk %}
 {% endblock %}
 
 {% block title %}
@@ -18,7 +18,7 @@ Remove shipping zone {{ shipping_zone }}
 {% block content %}
   <div class="col s12">
     {% blocktrans context "Dashboard confirmation modal" %}
-      Are you sure you want to remove shipping method <strong>{{ shipping_zone}}</strong>?
+      Are you sure you want to remove shipping zone <strong>{{ shipping_zone}}</strong>?
     {% endblocktrans %}
   </div>
 {% endblock %}

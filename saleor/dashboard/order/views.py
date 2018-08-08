@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
-from django.contrib.sites.models import Site
 from django.db import transaction
 from django.db.models import F, Q
 from django.forms import modelformset_factory
@@ -24,7 +23,7 @@ from ...order.emails import (
     send_order_confirmation)
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderNote
 from ...order.utils import update_order_prices, update_order_status
-from ...shipping.models import ShippingMethodCountry
+from ...shipping.models import ShippingRate
 from ..views import staff_member_required
 from .filters import OrderFilter
 from .forms import (
@@ -712,22 +711,23 @@ def change_fulfillment_tracking(request, order_pk, fulfillment_pk):
 
 
 @staff_member_required
-def ajax_order_shipping_methods_list(request, order_pk):
+def ajax_order_shipping_rates_list(request, order_pk):
     order = get_object_or_404(Order, pk=order_pk)
-    queryset = ShippingMethodCountry.objects.select_related(
-        'shipping_method').order_by('shipping_method__name', 'price')
+    queryset = ShippingRate.objects.prefetch_related(
+        'shipping_zone').order_by('name', 'price')
 
     if order.shipping_address:
         country_code = order.shipping_address.country.code
-        queryset = queryset.unique_for_country_code(country_code)
+        queryset = queryset.filter(
+            shipping_zone__countries__contains=country_code)
 
     search_query = request.GET.get('q', '')
     if search_query:
         queryset = queryset.filter(
-            Q(shipping_method__name__icontains=search_query) |
+            Q(name__icontains=search_query) |
             Q(price__icontains=search_query))
 
-    shipping_methods = [
+    shipping_rates = [
         {'id': method.pk, 'text': method.get_ajax_label()}
         for method in queryset]
-    return JsonResponse({'results': shipping_methods})
+    return JsonResponse({'results': shipping_rates})

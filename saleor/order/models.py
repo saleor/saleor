@@ -58,7 +58,7 @@ class Order(models.Model):
         Address, related_name='+', editable=False, null=True,
         on_delete=models.SET_NULL)
     user_email = models.EmailField(blank=True, default='')
-    shipping_method = models.ForeignKey(
+    shipping_rate = models.ForeignKey(
         ShippingRate, blank=True, null=True, related_name='orders',
         on_delete=models.SET_NULL)
     shipping_price_net = MoneyField(
@@ -71,7 +71,7 @@ class Order(models.Model):
         default=0, editable=False)
     shipping_price = TaxedMoneyField(
         net_field='shipping_price_net', gross_field='shipping_price_gross')
-    shipping_method_name = models.CharField(
+    shipping_rate_name = models.CharField(
         max_length=255, null=True, default=None, blank=True, editable=False)
     token = models.CharField(max_length=36, unique=True, blank=True)
     total_net = MoneyField(

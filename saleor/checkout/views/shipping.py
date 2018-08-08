@@ -13,7 +13,7 @@ def anonymous_user_shipping_address_view(request, cart):
             cart, request.POST or None, request.country))
 
     if updated:
-        return redirect('checkout:shipping-method')
+        return redirect('checkout:shipping-rate')
 
     taxes = get_taxes_for_cart(cart, request.taxes)
     ctx = get_cart_data_for_checkout(cart, request.discounts, taxes)
@@ -37,7 +37,7 @@ def user_shipping_address_view(request, cart):
         cart, user_addresses, request.POST or None, request.country)
 
     if updated:
-        return redirect('checkout:shipping-method')
+        return redirect('checkout:shipping-rate')
 
     taxes = get_taxes_for_cart(cart, request.taxes)
     ctx = get_cart_data_for_checkout(cart, request.discounts, taxes)
