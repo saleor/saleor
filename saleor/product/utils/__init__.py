@@ -38,12 +38,12 @@ def products_for_products_list(user):
     return products
 
 
-def products_for_homepage():
+def products_for_homepage(homepage_collection):
     user = AnonymousUser()
     products = products_visible_to_user(user)
     products = products.prefetch_related(
         'translations', 'images', 'variants__variant_images__image')
-    products = products.filter(is_featured=True)
+    products = products.filter(collections=homepage_collection)
     return products
 
 

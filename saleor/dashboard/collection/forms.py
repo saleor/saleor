@@ -7,6 +7,7 @@ from text_unidecode import unidecode
 from ...product.models import Collection, Product
 from ..forms import AjaxSelect2MultipleChoiceField
 from ..seo.fields import SeoDescriptionField, SeoTitleField
+from ...site.models import SiteSettings
 
 
 class CollectionForm(forms.ModelForm):
@@ -38,3 +39,9 @@ class CollectionForm(forms.ModelForm):
     def save(self, commit=True):
         self.instance.slug = slugify(unidecode(self.instance.name))
         return super().save(commit=commit)
+
+
+class AssignHomepageCollectionForm(forms.ModelForm):
+    class Meta:
+        model = SiteSettings
+        fields = ('homepage_collection',)
