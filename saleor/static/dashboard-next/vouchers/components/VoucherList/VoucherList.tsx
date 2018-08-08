@@ -12,6 +12,7 @@ import { createVoucherName, VoucherType } from "../..";
 import { ListProps } from "../../..";
 import DateFormatter from "../../../components/DateFormatter";
 import Money from "../../../components/Money";
+import Percent from "../../../components/Percent";
 import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
@@ -154,15 +155,18 @@ const VoucherList = decorate<VoucherListProps>(
                   {voucher &&
                   voucher.discountValueType &&
                   voucher.discountValue ? (
-                    <Money
-                      amount={voucher.discountValue}
-                      currency={
-                        voucher.discountValueType === "PERCENTAGE"
-                          ? "%"
-                          : currency
-                      }
-                      typographyProps={{ className: classes.tableCellFont }}
-                    />
+                    voucher.discountValueType === "PERCENTAGE" ? (
+                      <Percent
+                        amount={voucher.discountValue}
+                        typographyProps={{ className: classes.tableCellFont }}
+                      />
+                    ) : (
+                      <Money
+                        amount={voucher.discountValue}
+                        currency={currency}
+                        typographyProps={{ className: classes.tableCellFont }}
+                      />
+                    )
                   ) : (
                     <Skeleton />
                   )}
