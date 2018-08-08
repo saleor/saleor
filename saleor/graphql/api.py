@@ -49,7 +49,7 @@ from .product.mutations.products import (
     ProductTypeDelete, ProductImageCreate, ProductImageDelete,
     ProductImageReorder, ProductImageUpdate, ProductTypeUpdate,
     ProductVariantCreate, ProductVariantDelete,
-    ProductVariantUpdate)
+    ProductVariantUpdate, VariantImageAssign, VariantImageDelete)
 from .product.resolvers import (
     resolve_attributes, resolve_categories, resolve_collections,
     resolve_products, resolve_product_types)
@@ -335,6 +335,9 @@ class Mutations(graphene.ObjectType):
     shipping_price_create = ShippingPriceCreate.Field()
     shipping_price_delete = ShippingPriceDelete.Field()
     shipping_price_update = ShippingPriceUpdate.Field()
+
+    variant_image_assign = VariantImageAssign.Field()
+    variant_image_delete = VariantImageDelete.Field()
 
 
 schema = graphene.Schema(Query, Mutations)

@@ -476,6 +476,10 @@ class ProductImageUpdate(ModelMutation):
         description = 'Updates a product image.'
         model = models.ProductImage
 
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.manage_products')
+
 
 class ProductImageReorder(BaseMutation):
     class Arguments:
@@ -518,6 +522,54 @@ class ProductImageDelete(ModelDeleteMutation):
     class Meta:
         description = 'Deletes a product image.'
         model = models.ProductImage
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.manage_products')
+
+
+class VariantImageAssignInput(graphene.InputObjectType):
+    variant = graphene.ID(
+        name='variant',
+        description='ID of a product variant to assign the image to.')
+    image = graphene.ID(
+        name='image',
+        description='ID of a product image to assign to the variant.')
+
+
+class VariantImageAssign(ModelMutation):
+    class Arguments:
+        input = VariantImageAssignInput(
+            required=True,
+            description='''
+            Fields required to assign an image to a product variant.''')
+
+    class Meta:
+        description = 'Assign an image to a product variant'
+        model = models.VariantImage
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.manage_products')
+
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        cleaned_input = super().clean_input(info, instance, input, errors)
+        image = cleaned_input.get('image')
+        variant = cleaned_input.get('variant')
+        if image and variant and not variant.product.images.filter(pk=image.pk).first():
+            cls.add_error(errors, 'image', 'Image must be for this product')
+        return cleaned_input
+
+
+class VariantImageDelete(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of a variant image to delete.')
+
+    class Meta:
+        description = 'Unassign an image from a variant.'
+        model = models.VariantImage
 
     @classmethod
     def user_is_allowed(cls, user, input):

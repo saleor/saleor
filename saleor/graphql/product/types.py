@@ -273,3 +273,10 @@ class ProductImage(CountableDjangoObjectType):
         if size:
             return get_thumbnail(self.image, size, 'crop')
         return self.image.url
+
+
+class VariantImage(CountableDjangoObjectType):
+    class Meta:
+        description = 'Represents a variant image'
+        interfaces = [relay.Node]
+        model = models.VariantImage
