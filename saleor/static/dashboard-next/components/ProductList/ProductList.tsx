@@ -128,7 +128,7 @@ export const ProductList = decorate<ProductListProps>(
               <TableCell>
                 {product.price &&
                 product.price.amount !== undefined &&
-                product.price.currency ? (
+                product.price.currency !== undefined ? (
                   <Money
                     amount={product.price.amount}
                     currency={product.price.currency}
