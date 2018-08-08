@@ -3,17 +3,23 @@ import * as React from "react";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import i18n from "../../i18n";
+import { createPaginationData, createPaginationState } from "../../misc";
 import PageListPage from "../components/PageListPage/PageListPage";
-import { pageAddUrl, pageEditUrl, pageStorefrontUrl } from "../index";
+import { pageAddUrl, pageEditUrl, pageListUrl } from "../index";
 import { pageListQuery, TypedPageListQuery } from "../queries";
 
 interface PageListProps {
-  filters: any;
+  params: {
+    after?: string;
+    before?: string;
+  };
 }
 
 interface PageListState {
   isFilterMenuOpened: boolean;
 }
+
+const PAGINATE_BY = 20;
 
 export class PageList extends React.Component<PageListProps, PageListState> {
   state = { isFilterMenuOpened: false };
@@ -23,100 +29,64 @@ export class PageList extends React.Component<PageListProps, PageListState> {
     }));
   };
   render() {
+    const { params } = this.props;
+    const paginationState = createPaginationState(PAGINATE_BY, params);
     return (
-      <TypedPageListQuery
-        query={pageListQuery}
-        variables={{ first: 4 }}
-        fetchPolicy="network-only"
-      >
-        {({ data, loading, error, fetchMore }) => {
-          if (error) {
-            return (
-              <ErrorMessageCard
-                message={i18n.t("Something went terribly wrong.")}
-              />
-            );
-          }
-
-          const loadNextPage = () => {
-            if (loading) {
-              return;
-            }
-            return fetchMore({
-              updateQuery: (previousResult, { fetchMoreResult }) => {
-                return {
-                  ...fetchMoreResult,
-                  pages: {
-                    ...fetchMoreResult.pages,
-                    pageInfo: {
-                      ...fetchMoreResult.pages.pageInfo,
-                      hasPreviousPage: true
-                    }
-                  }
-                };
-              },
-              variables: {
-                after: data.pages.pageInfo.endCursor,
-                first: 12
-              }
-            });
-          };
-          const loadPreviousPage = () => {
-            if (loading) {
-              return;
-            }
-            return fetchMore({
-              updateQuery: (previousResult, { fetchMoreResult, variables }) => {
-                return {
-                  ...fetchMoreResult,
-                  pages: {
-                    ...fetchMoreResult.pages,
-                    pageInfo: {
-                      ...fetchMoreResult.pages.pageInfo,
-                      hasNextPage: true
-                    }
-                  }
-                };
-              },
-              variables: {
-                before: data.pages.pageInfo.startCursor,
-                first: undefined,
-                last: 12
-              }
-            });
-          };
-
-          return (
-            <Navigator>
-              {navigate => {
-                const handleEditClick = (id: string) => () =>
-                  navigate(pageEditUrl(id));
-                const handleShowPageClick = (slug: string) => () =>
-                  window.open(pageStorefrontUrl(slug));
+      <Navigator>
+        {navigate => (
+          <TypedPageListQuery
+            query={pageListQuery}
+            variables={paginationState}
+            fetchPolicy="network-only"
+          >
+            {({ data, loading, error }) => {
+              if (error) {
                 return (
-                  <PageListPage
-                    disabled={loading}
-                    pages={
-                      data && data.pages
-                        ? data.pages.edges.map(edge => edge.node)
-                        : undefined
-                    }
-                    pageInfo={
-                      data && data.pages && data.pages.pageInfo
-                        ? data.pages.pageInfo
-                        : undefined
-                    }
-                    onAdd={() => navigate(pageAddUrl)}
-                    onRowClick={handleEditClick}
-                    onNextPage={loadNextPage}
-                    onPreviousPage={loadPreviousPage}
+                  <ErrorMessageCard
+                    message={i18n.t("Something went terribly wrong.")}
                   />
                 );
-              }}
-            </Navigator>
-          );
-        }}
-      </TypedPageListQuery>
+              }
+
+              const {
+                loadNextPage,
+                loadPreviousPage,
+                pageInfo
+              } = createPaginationData(
+                navigate,
+                paginationState,
+                pageListUrl,
+                data && data.pages ? data.pages.pageInfo : undefined,
+                loading
+              );
+
+              return (
+                <Navigator>
+                  {navigate => {
+                    const handleEditClick = (id: string) => () =>
+                      navigate(pageEditUrl(id));
+                    return (
+                      <PageListPage
+                        disabled={loading}
+                        pages={
+                          data && data.pages
+                            ? data.pages.edges.map(edge => edge.node)
+                            : undefined
+                        }
+                        pageInfo={pageInfo}
+                        onAdd={() => navigate(pageAddUrl)}
+                        onRowClick={handleEditClick}
+                        onNextPage={loadNextPage}
+                        onPreviousPage={loadPreviousPage}
+                      />
+                    );
+                  }}
+                </Navigator>
+              );
+            }}
+          </TypedPageListQuery>
+        )}
+      </Navigator>
     );
   }
 }
