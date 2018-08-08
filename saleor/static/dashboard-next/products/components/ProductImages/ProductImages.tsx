@@ -76,7 +76,7 @@ const decorate = withStyles(theme => ({
     background: "#ffffff",
     border: "1px solid #eaeaea",
     borderRadius: theme.spacing.unit,
-    height: theme.spacing.unit * 17.5,
+    height: 140,
     overflow: "hidden" as "hidden",
     padding: theme.spacing.unit * 2,
     position: "relative" as "relative"
@@ -85,12 +85,12 @@ const decorate = withStyles(theme => ({
     background: "rgba(0, 0, 0, 0.6)",
     cursor: "move",
     display: "none" as "none",
-    height: theme.spacing.unit * 17.5,
+    height: 140,
     left: 0,
     padding: theme.spacing.unit * 2,
     position: "absolute" as "absolute",
     top: 0,
-    width: theme.spacing.unit * 17.5
+    width: 140
   },
   imageOverlayToolbar: {
     alignContent: "flex-end",
