@@ -64,6 +64,11 @@ class ShippingRate(models.Model):
     def get_total_price(self, taxes=None):
         return get_taxed_shipping_price(self.price, taxes)
 
+    def get_ajax_label(self):
+        price_html = format_money(self.price)
+        label = mark_safe('%s %s' % (self, price_html))
+        return label
+
 
 
 class ShippingMethod(models.Model):

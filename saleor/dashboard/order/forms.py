@@ -59,8 +59,7 @@ class CreateOrderFromDraftForm(forms.ModelForm):
             shipping_address = self.instance.shipping_address
             shipping_not_valid = (
                 method and shipping_address and
-                method.country_code != ANY_COUNTRY and
-                shipping_address.country.code != method.country_code)
+                shipping_address.country.code not in method.shipping_zone.countries)
             if shipping_not_valid:
                 errors.append(forms.ValidationError(pgettext_lazy(
                     'Create draft order form error',

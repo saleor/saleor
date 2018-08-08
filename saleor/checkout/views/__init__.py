@@ -69,7 +69,6 @@ def checkout_shipping_method(request, cart):
     form = CartShippingRateForm(
         request.POST or None, taxes=taxes, instance=cart,
         initial={'shipping_method': cart.shipping_method})
-    import pdb; pdb.set_trace()
     if form.is_valid():
         form.save()
         return redirect('checkout:summary')

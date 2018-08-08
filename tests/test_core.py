@@ -18,7 +18,7 @@ from saleor.core.utils.text import get_cleaner, strip_html
 from saleor.discount.models import Sale, Voucher
 from saleor.order.models import Order
 from saleor.product.models import Product, ProductImage, ProductVariant
-from saleor.shipping.models import ShippingMethod
+from saleor.shipping.models import ShippingZone
 
 type_schema = {
     'Vegetable': {
@@ -82,10 +82,10 @@ def test_create_superuser(db, client):
 
 
 def test_create_shipping_methods(db):
-    assert ShippingMethod.objects.all().count() == 0
+    assert ShippingZone.objects.all().count() == 0
     for _ in random_data.create_shipping_methods():
         pass
-    assert ShippingMethod.objects.all().count() == 2
+    assert ShippingZone.objects.all().count() == 2
 
 
 def test_create_fake_user(db):

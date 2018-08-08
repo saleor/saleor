@@ -163,7 +163,7 @@ def test_draft_order_create(
     shipping_address = {
         'firstName': 'John', 'country': 'PL'}
     shipping_id = graphene.Node.to_global_id(
-        'ShippingMethodCountry', shipping_price.id)
+        'ShippingRate', shipping_price.id)
     voucher_id = graphene.Node.to_global_id('Voucher', voucher.id)
     variables = json.dumps(
         {

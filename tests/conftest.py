@@ -3,6 +3,7 @@ from io import BytesIO
 from unittest.mock import MagicMock, Mock
 
 import pytest
+
 from django.contrib.auth.models import Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
@@ -10,13 +11,13 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ModelForm
 from django.test.client import MULTIPART_CONTENT, Client
 from django.utils.encoding import smart_text
+from django_countries import countries
 from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
 from graphql_jwt.shortcuts import get_token
 from payments import FraudStatus, PaymentStatus
 from PIL import Image
 from prices import Money
-
 from saleor.account.models import Address, User
 from saleor.checkout import utils
 from saleor.checkout.models import Cart
@@ -30,10 +31,11 @@ from saleor.order.models import Order
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.product.models import (
-    AttributeChoiceValue, Category,
-    Collection, Product, ProductAttribute, ProductAttributeTranslation,
-    ProductImage, ProductTranslation, ProductType, ProductVariant)
-from saleor.shipping.models import ShippingMethod, ShippingMethodCountry
+    AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
+    ProductAttributeTranslation, ProductImage, ProductTranslation, ProductType,
+    ProductVariant)
+from saleor.shipping.models import (
+    ShippingZone, ShippingRate, ShippingRate, ShippingZone)
 from saleor.site.models import AuthorizationKey, SiteSettings
 
 
@@ -212,17 +214,19 @@ def authorized_client(client, customer_user):
 
 @pytest.fixture
 def shipping_method(db):  # pylint: disable=W0613
-    shipping_method = ShippingMethod.objects.create(name='DHL')
-    shipping_method.price_per_country.create(price=10)
-    return shipping_method
+    shipping_zone = ShippingZone.objects.create(
+        name='Europe', countries=[code for code, name in countries])
+    shipping_zone.shipping_methods.create(
+        name='DHL', price=10)
+    return shipping_zone
 
 
 @pytest.fixture
 def shipping_price(shipping_method):
-    return ShippingMethodCountry.objects.create(
-        country_code='PL',
+    return ShippingRate.objects.create(
+        name='DHL',
         price=10,
-        shipping_method=shipping_method)
+        shipping_zone=shipping_method)
 
 
 @pytest.fixture
@@ -439,7 +443,7 @@ def order_with_lines(
 
     order.shipping_address = order.billing_address.get_copy()
     order.shipping_method_name = shipping_method.name
-    method = shipping_method.price_per_country.get()
+    method = shipping_method.shipping_methods.get()
     order.shipping_method = method
     order.shipping_price = method.get_total_price(taxes)
     order.save()

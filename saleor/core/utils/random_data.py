@@ -9,7 +9,7 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.template.defaultfilters import slugify
-from django_countries import countries
+from django_countries import countries as django_countries
 from django_countries.fields import Country
 from faker import Factory
 from faker.providers import BaseProvider
@@ -34,7 +34,7 @@ from ...product.models import (
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
 from ...shipping.models import (
-    ANY_COUNTRY, ShippingMethod, ShippingRate, ShippingZone)
+    ANY_COUNTRY, ShippingRate, ShippingZone)
 from ...shipping.utils import get_taxed_shipping_price
 
 fake = Factory.create()
@@ -248,7 +248,7 @@ class SaleorProvider(BaseProvider):
         return random.choice(DELIVERY_REGIONS)
 
     def shipping_method(self):
-        return random.choice(ShippingMethod.objects.all())
+        return random.choice(ShippingRate.objects.all())
 
 
 fake.add_provider(SaleorProvider)
@@ -457,8 +457,8 @@ def create_fake_order(discounts, taxes):
             'user_email': get_email(
                 address.first_name, address.last_name)}
 
-    shipping_method = ShippingMethod.objects.order_by('?').first()
-    shipping_price = shipping_method.price_per_country.first().price
+    shipping_method = ShippingRate.objects.order_by('?').first()
+    shipping_price = shipping_method.price
     shipping_price = get_taxed_shipping_price(shipping_price, taxes)
     order_data.update({
         'shipping_method_name': shipping_method.name,
@@ -510,29 +510,21 @@ def create_product_sales(how_many=5):
 
 
 def create_shipping_methods():
-    django_countries = [code for code, name in countries]
+    countries = [code for code, name in django_countries]
     shipping_zone = ShippingZone.objects.create(
-        name='European countries', countries=django_countries[::2])
-    #FIXME we should make sure that no country will be placed in two ShippingZones
-
+        name='European countries', countries=countries[::2])
     for i in range(4):
         ShippingRate.objects.create(
             shipping_zone=shipping_zone,
             name=fake.company(),
             price=fake.money())
     shipping_zone = ShippingZone.objects.create(
-        name='European countries', countries=django_countries[1::2])
+        name='European countries', countries=countries[1::2])
     for i in range(4):
         ShippingRate.objects.create(
             shipping_zone=shipping_zone,
             name=fake.company(),
             price=fake.money())
-    shipping_method = ShippingMethod.objects.create(name='UPC')
-    shipping_method.price_per_country.create(price=fake.money())
-    yield 'Shipping method #%d' % shipping_method.id
-    shipping_method = ShippingMethod.objects.create(name='DHL')
-    shipping_method.price_per_country.create(price=fake.money())
-    yield 'Shipping method #%d' % shipping_method.id
 
 
 def create_vouchers():
