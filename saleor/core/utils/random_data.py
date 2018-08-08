@@ -516,17 +516,17 @@ def create_shipping_methods():
     #FIXME we should make sure that no country will be placed in two ShippingZones
 
     for i in range(4):
-        shipping_zone.shipping_methods.add(
-            ShippingRate.objects.create(
-                name=fake.company(),
-                price=fake.money()))
+        ShippingRate.objects.create(
+            shipping_zone=shipping_zone,
+            name=fake.company(),
+            price=fake.money())
     shipping_zone = ShippingZone.objects.create(
         name='European countries', countries=django_countries[1::2])
     for i in range(4):
-        shipping_zone.shipping_methods.add(
-            ShippingRate.objects.create(
-                name=fake.company(),
-                price=fake.money()))
+        ShippingRate.objects.create(
+            shipping_zone=shipping_zone,
+            name=fake.company(),
+            price=fake.money())
     shipping_method = ShippingMethod.objects.create(name='UPC')
     shipping_method.price_per_country.create(price=fake.money())
     yield 'Shipping method #%d' % shipping_method.id

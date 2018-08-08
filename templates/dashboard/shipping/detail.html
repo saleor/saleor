@@ -38,20 +38,10 @@
       <div class="card">
         <div class="card-content">
           <span class="card-title">
-            {{ shipping_method.name }}
+            {% blocktrans with shipping_name=shipping_method.name list_of_countries=shipping_method.get_countries_display %}
+              {{ shipping_name }}  <small>(ships to {{ list_of_countries }})</small>
+            {% endblocktrans %}
           </span>
-          <div class="row">
-            {% if shipping_method.description %}
-              <div class="col s12 m4 l12">
-                <h4>
-                  {% trans "Description" context "Shipping method field" %}
-                </h4>
-                <p>
-                  {{ shipping_method.description }}
-                </p>
-              </div>
-            {% endif %}
-          </div>
         </div>
         <div class="card-action">
           <a class="btn-flat waves-effect" href="{% url 'dashboard:shipping-method-update' shipping_method.pk %}">
@@ -68,11 +58,11 @@
       <div class="card">
         <div class="card-content">
           <span class="card-title">
-             {% trans "Price per country" context "Title of the per-country shipping price list" %}
+             {% trans "Shipping rates" context "Title of the per-country shipping price list" %}
           </span>
         </div>
         <div class="data-table-header-action">
-            <a href="{% url 'dashboard:shipping-method-country-add' shipping_method_pk=shipping_method.pk %}" class="btn-data-table btn-flat waves-effect">
+            <a href="{% url 'dashboard:shipping-rate-add' shipping_method_pk=shipping_method.pk %}" class="btn-data-table btn-flat waves-effect">
               {% trans "Add" %}
             </a>
         </div>
@@ -81,7 +71,7 @@
             <thead>
               <tr>
                 <th>
-                  {% trans "Country" context "Header of the per-country shipping price list" %}
+                  {% trans "Name" context "Header of the per-country shipping price list" %}
                 </th>
                 <th>
                   {% trans "Price" context "Header of the per-country shipping price list" %}
@@ -89,15 +79,15 @@
               </tr>
             </thead>
             <tbody>
-              {% for country in method_countries %}
+              {% for country in shipping_rates %}
                 <tr>
-                  <td>{{ country.get_country_code_display }}</td>
+                  <td>{{ country.name }}</td>
                   <td>{% price country.price %}</td>
                   <td class="right-align">
-                    <a href="{% url 'dashboard:shipping-method-country-edit' shipping_method_pk=shipping_method.pk country_pk=country.pk %}" class="btn-flat waves-effect">
+                    <a href="{% url 'dashboard:shipping-rate-edit' shipping_method_pk=shipping_method.pk rate_pk=country.pk %}" class="btn-flat waves-effect">
                       {% trans 'Edit' context 'Attribute choice value edit action' %}
                     </a>
-                    <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:shipping-method-country-delete' shipping_method_pk=shipping_method.pk country_pk=country.pk %}">
+                    <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:shipping-rate-delete' shipping_method_pk=shipping_method.pk rate_pk=country.pk %}">
                       {% trans 'Remove' context 'Attribute choice value remove action' %}
                     </a>
                   </td>

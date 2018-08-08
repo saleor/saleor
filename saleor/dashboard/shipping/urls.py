@@ -12,13 +12,9 @@ urlpatterns = [
     url(r'^(?P<pk>\d+)/delete/$',
         views.shipping_method_delete, name='shipping-method-delete'),
 
-    url(r'^(?P<shipping_method_pk>\d+)/country/add/$',
-        views.shipping_method_country_add,
-        name='shipping-method-country-add'),
-    url(r'^(?P<shipping_method_pk>\d+)/country/(?P<country_pk>\d+)/update/$',
-        views.shipping_method_country_edit,
-        name='shipping-method-country-edit'),
-    url(r'^(?P<shipping_method_pk>\d+)/country/(?P<country_pk>\d+)/delete/$',
-        views.shipping_method_country_delete,
-        name='shipping-method-country-delete'),
-]
+    url(r'^(?P<shipping_method_pk>\d+)/rate/add/$',
+        views.shipping_rate_add, name='shipping-rate-add'),
+    url(r'^(?P<shipping_method_pk>\d+)/rate/(?P<rate_pk>\d+)/update/$',
+        views.shipping_rate_edit, name='shipping-rate-edit'),
+    url(r'^(?P<shipping_method_pk>\d+)/rate/(?P<rate_pk>\d+)/delete/$',
+        views.shipping_rate_delete, name='shipping-rate-delete')]

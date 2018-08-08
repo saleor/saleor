@@ -43,7 +43,7 @@
       </a>
     </li>
     {% endif %}
-    {% if country.pk %}
+    {% if shipping_zone.pk %}
     <li>
       <span class="breadcrumbs--ellipsed-item">
         {% trans "Edit" context "Attribute detail breadcrumbs" %}
@@ -79,7 +79,7 @@
             <a href="{% url 'dashboard:shipping-method-details' pk=shipping_method.pk %}" class="btn-flat waves-effect">
               {% trans "Cancel" context "Dashboard cancel action" %}
             </a>
-            {% if country.pk %}
+            {% if shipping_rate.pk %}
               <button type="submit" class="btn waves-effect">
                 {% trans "Save" context "Dashboard update action" %}
               </button>
