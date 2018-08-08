@@ -114,8 +114,8 @@ export const ProductList = decorate<ProductListProps>(
                   <StatusLabel
                     label={
                       product.availability.available
-                        ? i18n.t("Published")
-                        : i18n.t("Not published")
+                        ? i18n.t("Published", { context: "product status" })
+                        : i18n.t("Not published", { context: "product status" })
                     }
                     status={
                       product.availability.available ? "success" : "error"
