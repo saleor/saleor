@@ -7,13 +7,27 @@
       background-size: cover;
       background-repeat: no-repeat;
       background-position: 100% 0%;
+      @media (max-width: 1024px) {
+        background-position: 80% 0%;
+      }
+      @media (max-width: 768px) {
+        background-position: 80% 0%;
+        background-size: 150%;
+      }
       & .plane {
         width: 50%;
         position: relative;
         padding: calc(var(--spacer) * 20) 0 calc(var(--spacer) * 12) calc(var(--spacer) * 5);
+        @media (max-width: 768px) {
+          width: 100%;
+          padding: calc(var(--spacer) * 14) 0 calc(var(--spacer) * 12) calc(var(--spacer) * 2);
+        }
         & .news {
           position: relative;
           top: calc(var(--spacer) * -8);
+          @media (max-width: 768px) {
+            top: calc(var(--spacer) * -4);
+          }
           & .label {
             width: 20%;
             display: inline-block;
@@ -39,6 +53,10 @@
         }
         & h1 {
           padding-bottom: calc(var(--spacer) * 6);
+          @media (max-width: 768px) {
+            font-size: calc(var(--font-size-base) * 2.5);
+            padding-right: calc(var(--spacer) * 13);
+          }
         }
         & .btn {
           margin-right: var(--spacer);
@@ -61,11 +79,23 @@
           color: var(--body-color);
           font-size: var(--font-size-base);
           text-align: right;
+          @media (max-width: 768px) {
+            font-size: calc(var(--font-size-base) * 1.5);
+          }
+        }
+        @media (max-width: 1024px) {
+          font-size: calc(var(--font-size-base) * 1.5);
+        }
+        @media (max-width: 768px) {
+          font-size: calc(var(--font-size-base) * 2);
         }
       }
       & .feature-item {
         padding: calc(var(--spacer) * 5) 0;
-         position: relative;
+        @media (max-width: 1024px) {
+          padding: calc(var(--spacer) * 3) 0;
+        }
+        position: relative;
         & h2 {
           position: relative;
           & span {
@@ -82,6 +112,12 @@
           & strong {
             display: block;
             padding: calc(var(--spacer) * 2) 0;
+            @media (max-width: 768px) {
+              padding: var(--spacer) 0;
+            }
+          }
+          @media (max-width: 1024px) {
+            font-size: var(--font-size-base);
           }
         }
         & .image {
@@ -93,18 +129,36 @@
             background-image: url('../../images/stack-icons.png');
             background-size: 90%;
             background-position: 150%;
+            @media (max-width: 768px) {
+              background-size: 120%;
+              background-position: -30%;
+            }
           }
           & .decoration {
             width: 35%;
             right: -15%;
             left: initial;
-            top: 48%;
+            top: 28%;
+            @media (max-width: 768px) {
+              top: 50%;
+            }
+          }
+          @media (max-width: 768px) {
+            & h2 {
+              & br { display: none; }
+              & span {
+                & br { display: block; }
+              }
+            }
           }
         }
         &.build-to-scale {
           & .image {
             background-image: url('../../images/build-to-scale.png');
             background-size: 100%;
+            @media (max-width: 768px) {
+              background-size: 130%;
+            }
           }
           & .decoration {
             width: 15%;
@@ -117,12 +171,18 @@
           & .image {
             background-image: url('../../images/easy-to-customize.png');
             background-size: 80%;
+            @media (max-width: 768px) {
+              background-size: 130%;
+            }
           }
         }
         &.user-experience {
           padding: calc(var(--spacer) * 3) 0 calc(var(--spacer) * 2) 0;
           & h2 {
             font-size: var(--h2-font-size);
+            @media (max-width: 1024px) {
+              font-size: calc(var(--font-size-base) * 2.5);
+            }
             & span {
               left: 5%;
             }
@@ -173,6 +233,9 @@
       padding-top: calc(var(--spacer) * 3);
       & .text {
         width: 40%;
+        @media (max-width: 768px) {
+          width: 50%;
+        }
         & p {
           & strong {
             display: block;
@@ -194,6 +257,12 @@
         position: absolute; 
         right: 20.5%;
         top: 17%;
+        @media (max-width: 1024px) {
+          top: 14%;
+        }
+        @media (max-width: 768px) {
+          top: 9%;
+        }
         & .githubLink {
           width: 100%;
           position: absolute;
@@ -234,8 +303,19 @@
         grid-template-columns: repeat(10, 1fr);
         text-align: center;
         padding-top: calc(var(--spacer) * 12);
+        @media (max-width: 1024px) {
+          padding-top: calc(var(--spacer) * 2);
+        }
         & svg {
           width: 80px;
+          @media (max-width: 1024px) {
+            width: 60px;
+            height: 60px;
+          }
+          @media (max-width: 768px) {
+            width: 40px;
+            height: 40px;
+          }
           fill: var(--primaryColor);
           color: var(--primaryColor);
         }
@@ -255,6 +335,13 @@
       }
     }
     &.saleor-in-action {
+      min-height: 90vh;
+      @media (max-width: 768px) {
+        min-height: 90vh;
+      }
+      @media (max-width: 768px) {
+        min-height: 130vh;
+      }
       position: relative;
       background: rgb(16,10,53);
       background: linear-gradient(135deg, rgba(16,10,53,0) 8%, rgba(16,10,53,1) 8%, rgba(16,10,53,1) 92%, rgba(16,10,53,0) 92%, rgba(16,10,53,0) 100%);
@@ -264,6 +351,9 @@
         & h2 {
           &.tab-1 { color: var(--body-color) }
           &.tab-1 { color: var(--primaryColor) }
+          @media (max-width: 768px) {
+            padding-bottom: calc(var(--spacer) * 2);
+          }
         }
         & ul {
           padding-top: var(--spacer);
@@ -285,6 +375,12 @@
         }
         & .pg-quote {
           padding: calc(var(--spacer) * 6) 0 0 calc(var(--spacer) * 3);
+          @media (max-width: 1024px) {
+            padding: calc(var(--spacer) * 2) 0 0 calc(var(--spacer) * 3);
+          }
+          @media (max-width: 768px) {
+            padding: calc(var(--spacer) * 2) 0 0 calc(var(--spacer));
+          }
           & p {
             font-size: calc(var(--font-size-base) * 1.3);
             font-style: italic;
@@ -308,8 +404,16 @@
       & .implementation {
         & .grid {
           grid-gap: calc(var(--spacer) * 5);
+          @media (max-width: 1024px) {
+            grid-gap: calc(var(--spacer));
+          }
           & img {
             margin-bottom: calc(var(--spacer) * 2);
+          }
+          @media (max-width: 768px) {
+            & .text-center {
+              margin-bottom: calc(var(--spacer) * 2);
+            }
           }
         }
       }
@@ -317,6 +421,9 @@
         width: 18%;
         left: -2%;
         top: -10%;
+        @media (max-width: 768px) {
+          top: 1%;
+        }
       }
       & .decoration02 {
         width: 15%;
@@ -331,18 +438,31 @@
         width: 70%;
         font-size: calc(var(--font-size-base) * 2.5);
         padding-top: calc(var(--spacer) * 2);
+        @media (max-width: 1024px) {
+          font-size: calc(var(--font-size-base) * 2);
+        }
+        @media (max-width: 1024px) {
+          font-size: calc(var(--font-size-base) * 1.5);
+        }
       }
       & .list {
         padding: calc(var(--spacer) * 5) 0;
+        @media (max-width: 1024px) {
+          grid-gap: var(--spacer);
+        }
         & ul {
           list-style-image: url('../../images/done-icon.png');
-          list-style-position: inside;
+          list-style-position: outside;
+          margin-left: calc(var(--spacer) * 3);
           & li {
             font-size: calc(var(--font-size-base) * 1.2);
             & span {
               position: relative;
               top: calc(var(--spacer) * -1);
               left: calc(var(--spacer) * 0.5);
+              @media (max-width: 1024px) {
+                top: calc(var(--spacer) * -1);
+              }
             }
           }
         }
@@ -356,6 +476,9 @@
         width: 40%;
         right: -4%;
         top: 0;
+        @media (max-width: 768px) {
+          top: -12%;
+        }
       }
     }
   }

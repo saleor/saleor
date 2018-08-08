@@ -3,12 +3,18 @@ footer {
   & .logo {
     padding-bottom: var(--spacer);
     padding-left: calc(var(--spacer) * 5);
+    @media (max-width: 768px) {
+      padding-left: calc(var(--spacer) * 2);
+    }
   }
   & .content {
     border-top: solid var(--border-width) var(--footer-border);
     border-bottom: solid var(--border-width) var(--footer-border);
     & .menu {
       padding: calc(var(--spacer) * 2) calc(var(--spacer) * 5);
+      @media (max-width: 768px) {
+        padding: calc(var(--spacer) * 2) calc(var(--spacer) * 2);
+      }
       & h4 {
         font-size: var(--font-size);
         color: var(--primaryColor);
@@ -34,6 +40,9 @@ footer {
     }
   }
   & .privacy-links {
-    padding: calc(var(--spacer) * 2) calc(var(--spacer) * 5)
+    padding: calc(var(--spacer) * 2) calc(var(--spacer) * 5);
+    @media (max-width: 768px) {
+      padding: calc(var(--spacer) * 2) calc(var(--spacer) * 2);
+    }
   }
 }

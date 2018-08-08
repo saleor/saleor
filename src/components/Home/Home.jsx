@@ -33,19 +33,19 @@ class Home extends Component {
         </section>
         <section className="features">
           <div className="grid icons">
-            <div className="col-xs-6 col-sm-3">
+            <div className="col-xs-6 col-sm-6 col-md-3">
               <img src={modernStackIcon} />
               <h3><span>01<br/>-</span>Modern <br />stack</h3>
             </div>
-            <div className="col-xs-6 col-sm-3">
+            <div className="col-xs-6 col-sm-6 col-md-3">
               <img src={buildToScaleIcon} />
               <h3><span>02<br/>-</span>Build to <br />scale</h3>
             </div>
-            <div className="col-xs-6 col-sm-3">
+            <div className="col-xs-6 col-sm-6 col-md-3">
               <img src={easyToCustomizeIcon} />
               <h3><span>03<br/>-</span>Easy to <br />customize</h3>
             </div>
-            <div className="col-xs-6 col-sm-3">
+            <div className="col-xs-6 col-sm-6 col-md-3">
               <img src={greatExperienceIcon} />
               <h3><span>04<br/>-</span>Great <br />expierience</h3>
             </div>
@@ -162,11 +162,11 @@ class Home extends Component {
           <div className="section-container">
             <Tabs selectedIndex={this.state.tabIndex} onSelect={tabIndex => this.setState({ tabIndex })}>
               <div className="grid head">
-                <div className="col-xs-12 col-sm-6">
+                <div className="col-xs-12 col-sm-12 col-md-6">
                   <h2 className={`tab-${this.state.tabIndex}`}>Saleor in action</h2>
                 </div>
-                <div className="col-xs-12 col-sm-6">
-                  <TabList className="tabs grid">
+                <div className="col-xs-12 col-sm-12 col-md-6">
+                  <TabList className="tabs grid hovered">
                     <Tab className="col-sm-6">Case studies</Tab>
                     <Tab className="col-sm-6">Implementations</Tab>
                   </TabList>
@@ -174,11 +174,11 @@ class Home extends Component {
               </div>
               <TabPanel className="case-study">
                 <div className="grid">
-                  <div className="col-xs-12 col-sm-6">
+                  <div className="col-xs-12 col-sm-12 col-md-6">
                     <ReactSVG className="pg-logo" path="images/pg-logo.svg" />
                     <img src="../../images/pg-showcase.png" />
                   </div>
-                  <div className="col-xs-12 col-sm-6">
+                  <div className="col-xs-12 col-sm-12 col-md-6">
                     <div className="pg-quote">
                       <p>“The response time of the website has improved dramatically. We’re down below the 1-second mark whereas previously we were 3.5-4 seconds on average. We've also been able to maintain that response time during extreme high-traffic.”</p>
                       <div className="author">
@@ -192,13 +192,13 @@ class Home extends Component {
               </TabPanel>
               <TabPanel className="implementation">
                 <div className="grid">
-                  <div className="col-xs-12 col-sm-6">
+                  <div className="col-xs-12 col-sm-12 col-md-6">
                     <img src="../../images/implementation1.png" />
                     <div className="text-center">
                       <a className="btn btn-primary" href="#">Visit website</a>
                     </div>
                   </div>
-                  <div className="col-xs-12 col-sm-6">
+                  <div className="col-xs-12 col-sm-12 col-md-6">
                     <img src="../../images/implementation1.png" />
                     <div className="text-center">
                     <a className="btn btn-primary" href="#">Visit website</a>
@@ -220,14 +220,14 @@ class Home extends Component {
             <h2>Enterprice consulting</h2>
             <h3>Some situations however call for a custom solution and extra code to be written. In that case, our team can help.</h3>
             <div className="list grid">
-              <div className="col-xs-12 col-sm-5">
+              <div className="col-xs-12 col-sm-6 col-lg-5">
                 <ul>
                   <li><span>if you're looking for b2b or entreprise solutions</span></li>
                   <li><span>if a licensed platform is not enough</span></li>
                   <li><span>if you’re outgrowing your existing solution</span></li>
                 </ul>
               </div>
-              <div className="col-xs-12 col-sm-7">
+              <div className="col-xs-12 col-sm-6 col-lg-7">
                 <ul>
                   <li><span>if you need unlimited integration possibilities</span></li>
                   <li><span>if you’re a high-volume business</span></li>
