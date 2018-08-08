@@ -16,13 +16,10 @@ export const Money: React.StatelessComponent<MoneyProps> = ({
 }) => (
   <LocaleConsumer>
     {locale => {
-      const money =
-        currency === "%"
-          ? [amount, currency].join(" ")
-          : amount.toLocaleString(locale, {
-              currency,
-              style: "currency"
-            });
+      const money = amount.toLocaleString(locale, {
+        currency,
+        style: "currency"
+      });
       if (typographyProps) {
         return <Typography {...typographyProps}>{money}</Typography>;
       }
