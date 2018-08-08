@@ -73,8 +73,7 @@ class CategoryDelete(ModelDeleteMutation):
 
 class CollectionInput(graphene.InputObjectType):
     is_published = graphene.Boolean(
-        description='Informs whether a collection is published.',
-        required=True)
+        description='Informs whether a collection is published.')
     name = graphene.String(description='Name of the collection.')
     slug = graphene.String(description='Slug of the collection.')
     products = graphene.List(
@@ -193,17 +192,14 @@ class ProductInput(graphene.InputObjectType):
         description='Publication date. ISO 8601 standard.')
     category = graphene.ID(description='ID of the product\'s category.')
     charge_taxes = graphene.Boolean(
-        required=True,
         description='Determine if taxes are being charged for the product.')
     collections = graphene.List(
         graphene.ID,
         description='List of IDs of collections that the product belongs to.')
     description = graphene.String(description='Product description.')
     is_published = graphene.Boolean(
-        required=True,
         description='Determines if product is visible to customers.')
     is_featured = graphene.Boolean(
-        required=True,
         description='Determines if product is featured in the storefront.')
     name = graphene.String(description='Product name.')
     product_type = graphene.ID(
@@ -294,7 +290,6 @@ class ProductVariantInput(graphene.InputObjectType):
     quantity = graphene.Int(
         description='The total quantity of this variant available for sale.')
     track_inventory = graphene.Boolean(
-        required=True,
         description="""Determines if the inventory of this variant should
         be tracked. If false, the quantity won't change when customers
         buy this item.""")
@@ -367,7 +362,6 @@ class ProductVariantDelete(ModelDeleteMutation):
 class ProductTypeInput(graphene.InputObjectType):
     name = graphene.String(description='Name of the product type.')
     has_variants = graphene.Boolean(
-        required=True,
         description="""Determines if product of this type has multiple
         variants. This option mainly simplifies product management
         in the dashboard. There is always at least one variant created under
@@ -380,7 +374,6 @@ class ProductTypeInput(graphene.InputObjectType):
         description="""List of attributes used to distinguish between
         different variants of a product.""")
     is_shipping_required = graphene.Boolean(
-        required=True,
         description="""Determines if shipping is required for products
         of this variant.""")
 
