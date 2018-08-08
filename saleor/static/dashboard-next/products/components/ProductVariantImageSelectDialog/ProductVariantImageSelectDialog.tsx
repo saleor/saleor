@@ -10,11 +10,6 @@ import { ProductImageType } from "../..";
 import i18n from "../../../i18n";
 
 const decorate = withStyles(theme => ({
-  gridElement: {
-    "& img": {
-      width: "100%"
-    }
-  },
   image: {
     height: "100%",
     objectFit: "contain" as "contain",
