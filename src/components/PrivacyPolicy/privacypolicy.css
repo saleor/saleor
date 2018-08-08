@@ -12,7 +12,8 @@
 			background-image: url('../../images/lock-bg.png');
 			background-size: auto;
 			background-repeat: no-repeat;
-			background-position: 110% 30%;
+      background-position: 110% 30%;
+      position: relative;
 			& .plane {
 				width: 50%;
 				padding: calc(var(--spacer) * 14) 0 calc(var(--spacer) * 14) calc(var(--spacer));
