@@ -7,6 +7,7 @@ Architecture
    architecture/money
    architecture/products
    architecture/thumbnails
+   architecture/translations
    architecture/stock
    architecture/orders
    architecture/i18n
