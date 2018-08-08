@@ -115,7 +115,7 @@ const decorate = withStyles(theme => ({
   root: {
     display: "grid",
     gridGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "2.25fr 1fr",
+    gridTemplateColumns: "9fr 4fr",
     marginTop: theme.spacing.unit * 2,
     [theme.breakpoints.down("sm")]: {
       gridGap: theme.spacing.unit + "px",
