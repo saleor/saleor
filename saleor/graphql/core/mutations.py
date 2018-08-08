@@ -4,6 +4,7 @@ import graphene
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from graphene.types.mutation import MutationOptions
 from graphene_django.registry import get_global_registry
+from graphql.error import GraphQLError
 from graphql_jwt import ObtainJSONWebToken, Verify
 from graphql_jwt.exceptions import GraphQLJWTError, PermissionDenied
 
@@ -131,7 +132,7 @@ class ModelMutation(BaseMutation):
                 # handle ID field
                 elif value is not None and field.type == graphene.ID:
                     instance = cls.get_node_or_error(
-                        info, value, errors, field=field.name)
+                        info, value, errors=errors, field=field.name)
                     cleaned_input[field_name] = instance
 
                 # handle uploaded files
@@ -213,23 +214,21 @@ class ModelMutation(BaseMutation):
         instance.save()
 
     @classmethod
-    def get_node_or_error(cls, info, id, errors, only_type=None, field='Error'):
+    def get_node_or_error(cls, info, id, errors, field, only_type=None):
         instance = None
         try:
             instance = get_node(info, id, only_type)
-        except Exception as e:
-            cls.add_error(
-                field=field, message=str(e), errors=errors)
+        except GraphQLError as e:
+            cls.add_error(field=field, message=str(e), errors=errors)
         return instance
 
     @classmethod
-    def get_nodes_or_error(cls, ids, errors, graphene_type=None, field='Error'):
+    def get_nodes_or_error(cls, ids, errors, field, graphene_type=None):
         instances = None
         try:
             instances = get_nodes(ids, graphene_type)
-        except Exception as e:
-            cls.add_error(
-                field=field, message=str(e), errors=errors)
+        except GraphQLError as e:
+            cls.add_error(field=field, message=str(e), errors=errors)
         return instances
 
     @classmethod

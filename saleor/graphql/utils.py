@@ -3,6 +3,7 @@ from django.db.models import Q
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from graphene_django.registry import get_global_registry
+from graphql.error import GraphQLError
 from graphql_relay import from_global_id
 
 from ..product.models import AttributeChoiceValue, ProductAttribute
@@ -15,7 +16,7 @@ def get_node(info, id, only_type=None):
     """Return node or throw an error if the node does not exist."""
     node = graphene.Node.get_node_from_global_id(info, id, only_type=only_type)
     if not node:
-        raise Exception(
+        raise GraphQLError(
             "Could not resolve to a node with the global id of '%s'." % id)
     return node
 
@@ -52,7 +53,7 @@ def get_nodes(ids, graphene_type=None):
 
     nodes = list(graphene_type._meta.model.objects.filter(pk__in=pks))
     if not nodes:
-        raise Exception(
+        raise GraphQLError(
             "Could not resolve to a nodes with the global id list of '%s'."
             % ids)
     nodes_pk_list = [str(node.pk) for node in nodes]
