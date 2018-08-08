@@ -10,9 +10,9 @@ from tests.utils import (
     create_image, create_pdf_file_with_image_ext, get_graphql_content)
 
 from saleor.product.models import (
-    Category, Collection, Product, ProductAttribute, ProductType)
+    Category, Collection, Product, ProductAttribute, ProductType, ProductImage)
 
-from .utils import get_multipart_request_body
+from .utils import assert_no_permission, get_multipart_request_body
 
 
 def test_fetch_all_products(user_api_client, product):
@@ -1111,3 +1111,50 @@ def test_remove_products_to_collection(
     data = content['data']['collectionRemoveProducts']['collection']
     assert data[
         'products']['totalCount'] == no_products_before - len(product_ids)
+
+
+
+def test_assign_variant_image(admin_api_client, user_api_client, product_with_image):
+    query = """
+    mutation assignVariantImageMutation($variant: ID!, $image: ID!) {
+        variantImageAssign(input: {
+            variant: $variant
+            image: $image
+        }) {
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+    variant = product_with_image.variants.first()
+    image = product_with_image.images.first()
+
+    variables = json.dumps({
+        'variant': to_global_id('ProductVariant', variant.pk),
+        'image': to_global_id('ProductImage', image.pk)})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    variant.refresh_from_db()
+    assert variant.images.first() == image
+
+    # check that assigning an image from a different product is not allowed
+    product_with_image.pk = None
+    product_with_image.save()
+
+    image_2 = ProductImage.objects.create(product=product_with_image)
+    variables = json.dumps({
+        'variant': to_global_id('ProductVariant', variant.pk),
+        'image': to_global_id('ProductImage', image_2.pk)})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert content['data']['variantImageAssign']['errors'][0]['field'] == 'image'
+
+    # check permissions
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    assert_no_permission(response)
