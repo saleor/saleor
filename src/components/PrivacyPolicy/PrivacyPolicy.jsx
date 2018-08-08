@@ -11,6 +11,9 @@ const PrivacyPolicy = () => (
 				<p className="text-large">We respect your privacy and transparency is something we highly value. Below you can learn everything about information we collect.</p>
 			</div>
 			<ScrollLink to="#general-information"> Learn more </ScrollLink>
+      <div className="decoration">
+        <img src="../../images/decoration08.png" />
+      </div>
 		</section>
 		<section id="general-information" className="general-information">
 			<h3 className="title">General Information</h3>
@@ -58,6 +61,12 @@ const PrivacyPolicy = () => (
       <h1>less <span className="text-light">is</span> more</h1>
       <h1>saleor <span className="text-light">is</span> free</h1>
       <a className="btn btn-primary" href="">Fork it on Github</a>
+      <div className="decoration decoration-left">
+        <img src="../../images/decoration07.png" />
+      </div>
+      <div className="decoration decoration-right">
+        <img src="../../images/decoration09.png" />
+      </div>
 		</section>
 	</div>
 );
