@@ -11,7 +11,7 @@
 
 {% block body_class %}body-companies{% endblock %}
 
-{% block menu_companys_class %}active{% endblock %}
+{% block menu_companies_class %}active{% endblock %}
 
 {% block header_menu %}
   {% url "dashboard:companies" as url %}
@@ -56,18 +56,6 @@
               </div>
             {% endif %}
           </div>
-          {% if company.note %}
-            <div class="row">
-              <div class="col s12 m4 l12">
-                <h4>
-                  {% trans "Note" context "Company field" %}
-                </h4>
-                <p>
-                  {{ company.note }}
-                </p>
-              </div>
-            </div>
-          {% endif %}
         </div>
         <div class="card-action">
           {% if perms.account.edit_user %}

@@ -41,9 +41,6 @@
                 <tr>
                   {% trans "Name" context "Company table header" as label %}
                   {% sorting_header 'name' label %}
-
-                  {% trans "Location" context "Customers table header" as label %}
-                  {% sorting_header 'location' label %}
                 </tr>
               </thead>
               <tbody>
@@ -52,13 +49,6 @@
                     {% with company.default_billing_address as default_address %}
                       <td>
                         {{ company.name }}
-                      </td>
-                      <td>
-                        {% if default_address %}
-                          {{ default_address.city }}, {{ default_address.get_country_display }}
-                        {% else %}
-                          -
-                        {% endif %}
                       </td>
                     {% endwith %}
                   </tr>

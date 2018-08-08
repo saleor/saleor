@@ -29,7 +29,7 @@ def get_user_default_billing_address(user):
     return get_user_default_address(user, AddressType.BILLING)
 
 
-def set_user_default_address(user, address, address_type, auto_save=False):
+def set_user_default_address(user, address, address_type):
     """ Sets the correct default address, taking into account whether
     or not the user is associated with a company. Returns the object that
     was updated (user or company)."""
@@ -41,8 +41,7 @@ def set_user_default_address(user, address, address_type, auto_save=False):
         obj = user
 
     setattr(obj, prop, address)
-    if auto_save:
-        obj.save(update_fields=[prop])
+    obj.save(update_fields=[prop])
     return obj
 
 
@@ -53,7 +52,7 @@ def store_user_address(user, address, address_type):
 
     if address_type == AddressType.BILLING:
         if not user.default_billing_address:
-            set_user_default_address(user, address, address_type, True)
+            set_user_default_address(user, address, address_type)
     elif address_type == AddressType.SHIPPING:
         if not user.default_shipping_address:
-            set_user_default_address(user, address, address_type, True)
+            set_user_default_address(user, address, address_type)
