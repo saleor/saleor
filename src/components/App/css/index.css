@@ -106,6 +106,9 @@ img {
   overflow: hidden;
   margin: 0 auto;
   padding: 0 calc(var(--spacer) * 2);
+  @media (max-width: 576px) {
+    padding: 0 calc(var(--spacer));
+  }
 }
 
 section {
