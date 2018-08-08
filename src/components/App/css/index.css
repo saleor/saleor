@@ -39,6 +39,9 @@ h1 {
   font-weight: var(--h1-font-weight);
   line-height: var(--headings-line-height);
   text-transform: uppercase;
+  @media (width < 768px) {
+    font-size: calc(var(--h1-font-size) * 0.7)
+  }
 }
 
 h2 {
@@ -186,8 +189,8 @@ ul {
 .bullet {
   width: 5px;
   height: 5px;
-  border: 1px solid;
+  border: var(--border-width) solid;
   border-radius: 50%;
   display: inline-block;
-  margin-right: 1rem;
+  margin-right: var(--spacer);
 }

@@ -2,6 +2,9 @@
   border: solid var(--border-width) var(--primaryColor);
 	& section {
     padding: calc(var(--spacer) * 2) calc(var(--spacer) * 7);
+    @media (max-width: 768px) {
+      padding: calc(var(--spacer) * 2) calc(var(--spacer))
+    }
 		& .title, & .description {
 			margin-bottom: var(--spacer);
 		}
@@ -16,7 +19,14 @@
 				& p {
 					font-size: calc(var(--font-size-base) * 1.2);
 					width: 70%;
-				}
+        }
+        @media (max-width: 768px) {
+          padding: calc(var(--spacer) * 10) 0 calc(var(--spacer) * 5) 0;
+          width: auto;
+          & p {
+            width: auto;
+          }
+        }
       }
       & .decoration {
         top: 40%;
@@ -24,11 +34,21 @@
         z-index: -1;
         width: auto;
       }
+      @media (width < 768px) {
+        height: 70vh;
+        background-position: 35% 0%;
+        & .scroll-link {
+          position: absolute;
+          bottom: 5%;
+          left: 0;
+          right: 0;
+        }
+      }
 		}
 		&.general-information {
 			& .border-left {
 				border-left: 4px solid;
-				padding: 0 0 0 1rem;
+				padding: 0 0 0 var(--spacer);
 			}
 		}
 		&.analytics {

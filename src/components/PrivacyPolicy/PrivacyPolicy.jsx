@@ -21,7 +21,8 @@ const PrivacyPolicy = () => (
 			<div className="border-left bold">
 				<h5>Mirumee Software sp. z.o.o. sp. k.</h5>
 				<h5>ul. Tęczowa 7</h5>
-				<h5>53-601 Wrocław Poland</h5>
+				<h5>53-601 Wrocław</h5>
+				<h5>Poland</h5>
 			</div>
 		</section>
 		<section className="analytics">

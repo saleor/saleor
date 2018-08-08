@@ -4,6 +4,6 @@
     & img {
       display: block;
       margin: 0 auto;
-      padding: 1rem 0 0;
+      padding: var(--spacer) 0 0;
     }
   }
