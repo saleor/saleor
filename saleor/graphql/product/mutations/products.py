@@ -530,7 +530,7 @@ class ProductImageDelete(ModelDeleteMutation):
 
 class VariantImageAssign(BaseMutation):
     image = graphene.Field(
-        ProductImage, description='Product image beeing assigned.')
+        ProductImage, description='Assigned product image.')
 
     class Arguments:
         image_id = graphene.ID(
@@ -572,7 +572,7 @@ class VariantImageUnassign(BaseMutation):
             required=True, description='ID of a product variant.')
 
     image = graphene.Field(
-        ProductImage, description='Product image beeing unassigned.')
+        ProductImage, description='Unassigned product image.')
 
     class Meta:
         description = 'Unassign an image from a product variant'
