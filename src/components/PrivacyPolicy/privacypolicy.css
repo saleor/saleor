@@ -35,7 +35,7 @@
         z-index: -1;
         width: auto;
       }
-      @media (width < 768px) {
+      @media (max-width: 768px) {
         height: 70vh;
         background-position: 35% 0%;
         & .scroll-link {
@@ -54,13 +54,21 @@
 		}
 		&.analytics {
 			& .description {
-				width: 80%;
+        width: 80%;
+        @media (max-width: 768px) {
+          width: auto;
+        }
 			}
 		}
 		&.your-rights {
-			& .list li {
-        margin-bottom: calc(var(--spacer) * 1.5);
-			}
+      & .list {
+        list-style: circle;
+        list-style-position: outside;
+        margin-left: calc(var(--spacer) * 1.3);
+        & li {
+          margin-bottom: calc(var(--spacer) * 1.5);
+        }
+      }
     }
     &.banner {
       background-color: #100A35;
