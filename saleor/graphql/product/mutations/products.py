@@ -9,7 +9,7 @@ from ...core.types.common import Decimal, Error, SeoInput
 from ...core.utils import clean_seo_fields
 from ...file_upload.types import Upload
 from ...utils import get_attributes_dict_from_list, get_node, get_nodes
-from ..types import Collection, Product, ProductImage
+from ..types import Collection, Product, ProductImage, ProductVariant
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -528,49 +528,70 @@ class ProductImageDelete(ModelDeleteMutation):
         return user.has_perm('product.manage_products')
 
 
-class VariantImageAssignInput(graphene.InputObjectType):
-    variant = graphene.ID(
-        name='variant',
-        description='ID of a product variant to assign the image to.')
-    image = graphene.ID(
-        name='image',
-        description='ID of a product image to assign to the variant.')
+class VariantImageAssign(BaseMutation):
+    image = graphene.Field(
+        ProductImage, description='Product image beeing assigned.')
 
-
-class VariantImageAssign(ModelMutation):
     class Arguments:
-        input = VariantImageAssignInput(
+        image_id = graphene.ID(
             required=True,
-            description='''
-            Fields required to assign an image to a product variant.''')
+            description='ID of a product image to assign to a variant.')
+        variant_id = graphene.ID(
+            required=True,
+            description='ID of a product variant.')
 
     class Meta:
         description = 'Assign an image to a product variant'
-        model = models.VariantImage
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('product.manage_products')
+    @permission_required('product.manage_products')
+    def mutate(cls, root, info, image_id, variant_id):
+        errors = []
+        image = cls.get_node_or_error(
+            info, image_id, errors, 'imageId', ProductImage)
+        variant = cls.get_node_or_error(
+            info, variant_id, errors, 'variantId', ProductVariant)
+        if image and variant:
+            # check if the given image and variant can be matched together
+            image_belongs_to_product = variant.product.images.filter(
+                pk=image.pk).first()
+            if image_belongs_to_product:
+                image.variant_images.create(variant=variant)
+            else:
+                cls.add_error(
+                    errors, 'imageId', 'Image must be for this product')
+        return VariantImageAssign(image=image, errors=errors)
 
-    @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
-        image = cleaned_input.get('image')
-        variant = cleaned_input.get('variant')
-        if image and variant and not variant.product.images.filter(pk=image.pk).first():
-            cls.add_error(errors, 'image', 'Image must be for this product')
-        return cleaned_input
 
-
-class VariantImageDelete(ModelDeleteMutation):
+class VariantImageUnassign(BaseMutation):
     class Arguments:
-        id = graphene.ID(
-            required=True, description='ID of a variant image to delete.')
+        image_id = graphene.ID(
+            required=True,
+            description='ID of a product image to unassign from a variant.')
+        variant_id = graphene.ID(
+            required=True, description='ID of a product variant.')
+
+    image = graphene.Field(
+        ProductImage, description='Product image beeing unassigned.')
 
     class Meta:
-        description = 'Unassign an image from a variant.'
-        model = models.VariantImage
+        description = 'Unassign an image from a product variant'
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('product.manage_products')
+    @permission_required('product.manage_products')
+    def mutate(cls, root, info, image_id, variant_id):
+        errors = []
+        image = cls.get_node_or_error(
+            info, image_id, errors, 'imageId', ProductImage)
+        variant = cls.get_node_or_error(
+            info, variant_id, errors, 'variantId', ProductVariant)
+        if image and variant:
+            try:
+                variant_image = models.VariantImage.objects.get(
+                    image=image, variant=variant)
+            except models.VariantImage.DoesNotExist:
+                cls.add_error(
+                    errors, 'imageId', 'Image is not assigned to this variant.')
+            else:
+                variant_image.delete()
+        return VariantImageUnassign(image=image, errors=errors)
