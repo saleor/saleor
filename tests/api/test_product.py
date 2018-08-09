@@ -143,6 +143,27 @@ def test_product_query(admin_api_client, product):
     assert margin[1] == product_data['margin']['stop']
 
 
+def test_query_product_image_by_id(user_api_client, product_with_image):
+    image = product_with_image.images.first()
+    query = '''
+    query productImageById($imageId: ID!, $productId: ID!) {
+        product(id: $productId) {
+            imageById(id: $imageId) {
+                id
+                url
+            }
+        }
+    }
+    '''
+    variables = json.dumps({
+        'productId': graphene.Node.to_global_id('Product', product_with_image.pk),
+        'imageId': graphene.Node.to_global_id('ProductImage', image.pk)})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+
+
 def test_product_with_collections(admin_api_client, product, collection):
     query = '''
         query getProduct($productID: ID!) {
