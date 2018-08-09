@@ -4,6 +4,8 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { GitHubLink } from '..';
 import { isMobileOnly } from 'react-device-detect';
 
+import { ScrollLink } from '..';
+
 import css from './home.css';
 
 import modernStackIcon from '../../images/modern-stack.png';
@@ -47,8 +49,9 @@ class Home extends Component {
             <a href="#" className="btn btn-secondary">See demo</a>
             <a href="#" className="btn btn-primary">Brief us</a>
           </div>
+          <ScrollLink to="#features-section"> Why Salor </ScrollLink>
         </section>
-        <section className="features">
+        <section id="features-section" className="features">
           <div className="grid icons">
             <div className="col-xs-6 col-sm-6 col-md-3">
               <img src={modernStackIcon} />

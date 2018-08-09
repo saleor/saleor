@@ -11,6 +11,9 @@
         background-size: 90%;
         background-repeat: no-repeat;
         background-position: 10% 0%;
+        @media (min-width: 1450px) {
+          background-size: 65%;
+        }
         @media (max-width: 1024px) {
           background-size: 120%;
           background-position: 100% 0%;
@@ -27,7 +30,7 @@
       }
       & .plane {
         width: 50%;
-        padding: calc(var(--spacer) * 20) 0 calc(var(--spacer) * 12) calc(var(--spacer) * 5);
+        padding: calc(var(--spacer) * 12) 0 calc(var(--spacer) * 12) calc(var(--spacer) * 5);
         @media (max-width: 768px) {
           width: 100%;
           padding: calc(var(--spacer) * 14) 0 calc(var(--spacer) * 12) calc(var(--spacer) * 2);
@@ -37,7 +40,7 @@
         }
         & .news {
           position: relative;
-          top: calc(var(--spacer) * -8);
+          top: calc(var(--spacer) * -4);
           @media (max-width: 768px) {
             top: calc(var(--spacer) * -4);
           }
@@ -130,6 +133,25 @@
           }
         }
       }
+      & .scroll-link {
+          position: absolute;
+          bottom: 3%;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 999;
+          @media (min-width: 1450px) {
+            bottom: 27%;
+          }
+          @media (max-width: 1024px) {
+            bottom: 18%;
+          }
+          @media (max-width: 768px) {
+            bottom: 12%;
+          }
+          @media (max-width: 576px) {
+            bottom: 3%;
+          }
+        }
     }
     &.features {
       position: relative;
