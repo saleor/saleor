@@ -12,7 +12,7 @@ You're receiving this e-mail because you or someone else has requested changing 
 It can be safely ignored if you did not request a email change. Click the link below to activate your new email address ({{ new_email }}).
 {% endblocktrans %}
 
-{{ protocol}}://{{ domain }}{% url 'account:email-change-confirm' token=token %}
+{{ reset_url }}
 
 This is an automatically generated email, please do not reply.
 

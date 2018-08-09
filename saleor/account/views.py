@@ -2,13 +2,16 @@ from django.conf import settings
 from django.contrib import auth, messages
 from django.contrib.auth import views as django_views
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.utils.translation import pgettext, ugettext_lazy as _
 from django.views.decorators.http import require_POST
 
+from ..account.models import User
 from ..checkout.utils import find_and_assign_anonymous_cart
 from ..core.utils import get_paginator_items
 from .emails import send_account_delete_confirmation_email
@@ -75,7 +78,6 @@ def password_reset_confirm(request, uidb64=None, token=None):
 
 @login_required
 def details(request):
-
     email_form, password_form = get_forms_by_method_or_button(request)
     orders = request.user.orders.confirmed().prefetch_related('lines')
     orders_paginated = get_paginator_items(
@@ -97,8 +99,7 @@ def get_forms_by_method_or_button(request):
             password_form = get_or_process_password_form(request)
             email_form = EmailChangeForm(data=None)
         return email_form, password_form
-    else:
-        return email_edit(request), get_or_process_password_form(request)
+    return email_edit(request), get_or_process_password_form(request)
 
 
 def get_or_process_password_form(request):
@@ -177,20 +178,45 @@ def account_delete_confirm(request, token):
 def email_edit(request):
     form = EmailChangeForm(data=request.POST or None, instance=request.user)
 
-    if request.method == 'POST':
-        if form.is_valid():
-            form.send_mail()
-            messages.success(request, pgettext(
-                'Storefront message', 'Email successfully changed.'))
+    if request.method == 'POST' and form.is_valid():
+        cache.set(
+            str(request.user.pk) + '_email_field', form.data['user_email'],
+            1200)
+        form.send_mail()
+        request.user.email_change_requested_on = timezone.now()
+        request.user.save()
+        messages.success(
+            request,
+            pgettext(
+                'Storefront message',
+                'Email change confirmation was sent to user.'
+                'Confirmation token is active only for 20 minutes.'
+            ))
     return form
 
 
 @login_required
 def email_change_confirm(request, token=None):
-    user = request.user
-
     if str(request.user.token) != token:
         raise Http404('No such page!')
-
+    new_email = cache.get(str(request.user.pk) + '_email_field')
+    if new_email:
+        try:
+            user_exist = User.objects.get(email=new_email)
+        except User.DoesNotExist:
+            user_exist = None
+        if user_exist:
+            msg = pgettext(
+                'Email changed error', 'User with this email already exists.')
+        else:
+            request.user.email = new_email
+            request.user.save()
+            cache.delete(str(request.user.pk))
+            msg = pgettext(
+                'Email changed success',
+                'Your email address was changed successfully.')
+    else:
+        msg = pgettext(
+            'Email changed error', 'It looks like Your token has expired.')
     return TemplateResponse(
-        request, 'account/email_change_confirm.html')
+        request, 'account/email_change_confirm.html', {'message': msg})

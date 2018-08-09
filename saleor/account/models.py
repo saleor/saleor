@@ -120,7 +120,7 @@ class User(PermissionsMixin, AbstractBaseUser):
     default_billing_address = models.ForeignKey(
         Address, related_name='+', null=True, blank=True,
         on_delete=models.SET_NULL)
-
+    email_change_requested_on = models.DateTimeField(null=True)
     USERNAME_FIELD = 'email'
 
     objects = UserManager()

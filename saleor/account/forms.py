@@ -1,8 +1,11 @@
+from datetime import timedelta
 from captcha.fields import ReCaptchaField
 from django import forms
 from django.conf import settings
 from django.contrib.auth import forms as django_forms, update_session_auth_hash
 from django.contrib.sites.shortcuts import get_current_site
+from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import pgettext, pgettext_lazy
 from phonenumbers.phonenumberutil import country_code_for_region
 
@@ -60,8 +63,8 @@ class ChangePasswordForm(django_forms.PasswordChangeForm):
 
 
 def logout_on_password_change(request, user):
-    if (update_session_auth_hash is not None and
-        not settings.LOGOUT_ON_PASSWORD_CHANGE):
+    if (update_session_auth_hash is not None
+        and not settings.LOGOUT_ON_PASSWORD_CHANGE):
         update_session_auth_hash(request, user)
 
 
@@ -101,7 +104,7 @@ class SignupForm(forms.ModelForm, FormWithReCaptcha):
             self.fields[self._meta.model.USERNAME_FIELD].widget.attrs.update(
                 {'autofocus': ''})
 
-    def save(self, request=None, commit=True):
+    def save(self, commit=True):
         user = super().save(commit=False)
         password = self.cleaned_data['password']
         user.set_password(password)
@@ -121,8 +124,13 @@ class PasswordResetForm(django_forms.PasswordResetForm, FormWithReCaptcha):
         return active_users
 
     def send_mail(
-        self, subject_template_name, email_template_name, context,
-        from_email, to_email, html_email_template_name=None):
+        self,
+        subject_template_name,
+        email_template_name,
+        context,
+        from_email,
+        to_email,
+        html_email_template_name=None):
         # Passing the user object to the Celery task throws an
         # error "'User' is not JSON serializable". Since it's not used in our
         # template, we remove it from the context.
@@ -137,10 +145,20 @@ class EmailChangeForm(forms.ModelForm):
         label=pgettext("Label of the user's email field", "User Email"))
 
     error_messages = {
-        'user_email': pgettext_lazy("Change email error",
-                                    'New email address cannot be the same'
-                                    ' as your current email address'),
-    }
+        'requests_exceeded':
+        pgettext_lazy(
+            "Max requests exceeded",
+            'Sorry, but it looks like You are trying change email address'
+            'again. You can change email only once per 10 minutes.'),
+        'same_email':
+        pgettext_lazy(
+            "Email can't be the same", 'New email address cannot be the '
+            'same as your current email'
+            ' address'),
+        'user_exists':
+        pgettext_lazy(
+            "User already exists",
+            'User with this email address already exists'), }
 
     class Meta:
         model = User
@@ -148,29 +166,39 @@ class EmailChangeForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.user = self.instance
-        self.fields['user_email'].widget.attrs['placeholder'] = self.user.email
+        self.fields['user_email'].widget.attrs[
+            'placeholder'] = self.instance.email
 
     def clean(self):
+        last_request = self.instance.email_change_requested_on
         data = self.cleaned_data
-        if self.user.email == data['user_email']:
-            self.add_error('user_email', self.error_messages['user_email'])
+        if self.instance.email == data['user_email']:
+            self.add_error('user_email', self.error_messages['same_email'])
+        elif last_request and (last_request + timedelta(minutes=10) >
+                               timezone.now()):
+            self.add_error(
+                'user_email', self.error_messages['requests_exceeded'])
+        else:
+            try:
+                user = User.objects.get(email=data['user_email'])
+            except User.DoesNotExist:
+                user = None
+            finally:
+                if user:
+                    self.add_error(
+                        'user_email', self.error_messages['user_exists'])
         return data
 
-    def send_mail(self, request=None, use_https=False):
-        to_email = self.user.email
-        new_email = self.data['user_email']
-        user = self.user
+    def send_mail(self, request=None):
         current_site = get_current_site(request)
         site_name = current_site.name
         domain = current_site.domain
         context = {
-            'new_email': new_email,
-            'email': to_email,
+            'new_email': self.data['user_email'],
+            'email': self.instance.email,
             'domain': domain,
             'site_name': site_name,
-            'token': str(user.token),
-            'protocol': 'https' if use_https else 'http',
-        }
+            'token': str(self.instance.token)}
 
-        emails.send_user_email_change_confirmation.delay(context, to_email)
+        emails.send_user_email_change_confirmation.delay(
+            context, self.instance.email)
