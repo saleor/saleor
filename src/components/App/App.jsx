@@ -6,7 +6,7 @@ import {
   Switch
 } from 'react-router-dom';
 
-import { Home, Header, Footer } from '..';
+import { Home, Header, Footer, PrivacyPolicy } from '..';
 import css from './css/index.css';
 
 class App extends Component {
@@ -14,11 +14,12 @@ class App extends Component {
     return (
       <Router>
         <Fragment>
-          <Header/>
+          <Header />
           <section className="container">
             <Switch>
               <Route exact path="/" component={Home} />
               <Route path="/features" component={Home} />
+              <Route path="/privacy-policy" component={PrivacyPolicy} />
             </Switch>
           </section>
           <Footer />

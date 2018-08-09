@@ -6,7 +6,9 @@
 
 html, body {
   margin: 0;
-  height: 100%;
+  height: 100vh;
+  overflow: hidden scroll;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -36,15 +38,19 @@ body {
 
 h1 {
   font-size: var(--h1-font-size);
+  font-weight: var(--h1-font-weight);
   line-height: var(--headings-line-height);
   text-transform: uppercase;
+  @media (max-width: 768px) {
+    font-size: calc(var(--h1-font-size) * 0.7)
+  }
 }
 
 h2 {
   font-size: var(--h2-font-size);
-  text-transform: uppercase;
+  font-weight: var(--h2-font-weight);
   line-height: var(--headings-line-height);
-  font-weight: var(--font-weight-normal);
+  text-transform: uppercase;
   @media (max-width: 1024px) {
     font-size: calc(var(--font-size-base) * 2.5);
   }
@@ -52,8 +58,9 @@ h2 {
 
 h3 {
   font-size: var(--h3-font-size);
+  font-weight: var(--h3-font-weight);
   line-height: var(--headings-line-height);
-  font-weight: var(--font-weight-normal);
+  text-transform: uppercase;
 }
 
 h4 {
@@ -90,6 +97,14 @@ img {
   box-sizing: border-box;
 }
 
+.text-bold {
+  font-weight: var(--font-weight-bold);
+}
+
+.text-light {
+  font-weight: var(--font-weight-light);
+}
+
 .text-center {
   text-align: center;
 }
@@ -106,8 +121,11 @@ img {
   overflow: hidden;
   margin: 0 auto;
   padding: 0 calc(var(--spacer) * 2);
+  @media (max-width: 768px) {
+    padding: 0 var(--spacer);
+  }
   @media (max-width: 576px) {
-    padding: 0 calc(var(--spacer));
+    padding: 0 calc(var(--spacer) * 0.5);
   }
 }
 
@@ -172,4 +190,3 @@ ul {
     }
   }
 }
-

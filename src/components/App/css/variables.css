@@ -31,7 +31,7 @@
   --font-weight-lighter:         100;
   --font-weight-light:           300;
   --font-weight-normal:          400;
-  --font-weight-bold:            700;
+  --font-weight-bold:            600;
   --font-weight-bolder:          bolder;
 
   --font-weight-base:            var(--font-weight-lighter);
@@ -42,6 +42,10 @@
   --h3-font-size:                calc(var(--font-size-base) * 2);
   --h4-font-size:                calc(var(--font-size-base) * 1.5);
   --h5-font-size:                var(font-size-base);
+
+  --h1-font-weight:              600;
+  --h2-font-weight:              600;
+  --h3-font-weight:              500;
 
   --headings-margin-bottom:      calc(var(--spacer) / 2);
   --headings-font-family:        inherit;
