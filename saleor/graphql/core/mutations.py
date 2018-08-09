@@ -4,6 +4,7 @@ import graphene
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from graphene.types.mutation import MutationOptions
 from graphene_django.registry import get_global_registry
+from graphql.error import GraphQLError
 from graphql_jwt import ObtainJSONWebToken, Verify
 from graphql_jwt.exceptions import GraphQLJWTError, PermissionDenied
 
@@ -121,15 +122,17 @@ class ModelMutation(BaseMutation):
                 # e.g. graphene.IdList(graphene.ID, type=Product).
 
                 # handle list of IDs field
-                if value is not None and isinstance(
-                    field.type, graphene.List) and (
-                        field.type.of_type == graphene.ID):
-                    instances = get_nodes(value) if value else []
+                if value is not None and (
+                    isinstance(field.type, graphene.List)) and (
+                    field.type.of_type == graphene.ID):
+                    instances = cls.get_nodes_or_error(
+                        value, errors=errors, field=field.name) if value else []
                     cleaned_input[field_name] = instances
 
                 # handle ID field
                 elif value is not None and field.type == graphene.ID:
-                    instance = get_node(info, value)
+                    instance = cls.get_node_or_error(
+                        info, value, errors=errors, field=field.name)
                     cleaned_input[field_name] = instance
 
                 # handle uploaded files
@@ -209,6 +212,24 @@ class ModelMutation(BaseMutation):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         instance.save()
+
+    @classmethod
+    def get_node_or_error(cls, info, id, errors, field, only_type=None):
+        instance = None
+        try:
+            instance = get_node(info, id, only_type)
+        except GraphQLError as e:
+            cls.add_error(field=field, message=str(e), errors=errors)
+        return instance
+
+    @classmethod
+    def get_nodes_or_error(cls, ids, errors, field, graphene_type=None):
+        instances = None
+        try:
+            instances = get_nodes(ids, graphene_type)
+        except GraphQLError as e:
+            cls.add_error(field=field, message=str(e), errors=errors)
+        return instances
 
     @classmethod
     def mutate(cls, root, info, **data):
