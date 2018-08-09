@@ -40,6 +40,43 @@
             & .testimonial-author {
               text-transform: uppercase;
             }
-         }
+        }
+        &.features {
+          & .icons {
+            width: 100%;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-gap: calc(var(--spacer) * 5) calc(var(--spacer) * 5);
+            & .card {
+              max-width: 450px;
+              justify-self: center;
+              position: relative;
+              & .title {
+                width: 75%;
+                margin-bottom: calc(var(--spacer) * 1.5);
+                @media (max-width: 576px) {
+                  width: 80%;
+                }
+              }
+              & .decorator {
+                width: 5px;
+                height: 0;
+                border: 1px solid;
+                display: inline-block;
+                position: absolute;
+                left: -30px;
+                top: 175px;
+              }
+              & img {
+                width: 165px;
+              }
+              & h5 {
+                color: var(--primaryColor);
+              }
+            }
+          }
+          @media (max-width: 576px) {
+            padding: calc(var(--spacer) * 2) var(--spacer);
+          }
+        }
     }
 }
