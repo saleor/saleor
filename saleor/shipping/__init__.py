@@ -1,7 +1,7 @@
 from django.utils.translation import pgettext_lazy
 
 
-class ShippingRateType:
+class ShippingMethodType:
     PRICE_BASED = 'price'
     WEIGHT_BASED = 'weight'
 

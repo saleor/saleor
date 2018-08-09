@@ -3,7 +3,7 @@ from functools import wraps
 from django.core.exceptions import ValidationError
 from django.shortcuts import redirect
 
-from ..utils import check_shipping_rate
+from ..utils import check_shipping_method
 
 
 def validate_cart(view):
@@ -39,18 +39,18 @@ def validate_shipping_address(view):
     return func
 
 
-def validate_shipping_rate(view):
-    """Decorate a view making it require a shipping rate.
+def validate_shipping_method(view):
+    """Decorate a view making it require a shipping method.
 
-    If the method is missing or incorrect, redirect to the shipping rate
+    If the method is missing or incorrect, redirect to the shipping method
     step.
 
     Expects to be decorated with `@validate_cart`.
     """
     @wraps(view)
     def func(request, cart):
-        if not cart.shipping_rate or not check_shipping_rate(cart):
-            return redirect('checkout:shipping-rate')
+        if not cart.shipping_method or not check_shipping_method(cart):
+            return redirect('checkout:shipping-method')
         return view(request, cart)
     return func
 

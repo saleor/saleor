@@ -341,8 +341,8 @@
                     {% if order.is_draft %}
                       <a href="#base-modal" data-href="{% url 'dashboard:order-shipping-edit' order_pk=order.pk %}"
                          class="modal-trigger-custom" title="{% trans "Edit shipping" context "Order totals action" %}">
-                        {% if order.shipping_rate_name %}
-                          {% blocktrans trimmed with shipping_name=order.shipping_rate_name context "Order totals header" %}
+                        {% if order.shipping_method_name %}
+                          {% blocktrans trimmed with shipping_name=order.shipping_method_name context "Order totals header" %}
                             Shipping ({{ shipping_name }})
                           {% endblocktrans %}
                         {% else %}
@@ -350,8 +350,8 @@
                         {% endif %}
                       </a>
                     {% else %}
-                      {% if order.shipping_rate_name %}
-                        {% blocktrans trimmed with shipping_name=order.shipping_rate_name context "Order totals header" %}
+                      {% if order.shipping_method_name %}
+                        {% blocktrans trimmed with shipping_name=order.shipping_method_name context "Order totals header" %}
                           Shipping ({{ shipping_name }})
                         {% endblocktrans %}
                       {% else %}

@@ -21,42 +21,42 @@ from saleor.shipping.models import ShippingZone
 from tests.utils import get_form_errors, get_redirect_location
 
 
-def test_ajax_order_shipping_rates_list(
+def test_ajax_order_shipping_methods_list(
         admin_client, order, shipping_zone):
-    method = shipping_zone.shipping_rates.get()
-    shipping_rates_list = [
+    method = shipping_zone.shipping_methods.get()
+    shipping_methods_list = [
         {'id': method.pk, 'text': method.get_ajax_label()}]
     url = reverse(
-        'dashboard:ajax-order-shipping-rates', kwargs={'order_pk': order.pk})
+        'dashboard:ajax-order-shipping-methods', kwargs={'order_pk': order.pk})
 
     response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     resp_decoded = json.loads(response.content.decode('utf-8'))
 
     assert response.status_code == 200
-    assert resp_decoded == {'results': shipping_rates_list}
+    assert resp_decoded == {'results': shipping_methods_list}
 
 
-def test_ajax_order_shipping_rates_list_different_country(
+def test_ajax_order_shipping_methods_list_different_country(
         admin_client, order, shipping_zone):
     order.shipping_address = order.billing_address.get_copy()
     order.save()
-    method = shipping_zone.shipping_rates.get()
-    shipping_rates_list = [
+    method = shipping_zone.shipping_methods.get()
+    shipping_methods_list = [
         {'id': method.pk, 'text': method.get_ajax_label()}]
-    # If shipping zone does not cover order's country, then its shipping rates
+    # If shipping zone does not cover order's country, then its shipping methods
     # should not be included
     assert order.shipping_address.country.code != 'DE'
     zone = ShippingZone.objects.create(name='Shipping zone', countries=['DE'])
-    zone.shipping_rates.create(price=15, name='DHL')
+    zone.shipping_methods.create(price=15, name='DHL')
 
     url = reverse(
-        'dashboard:ajax-order-shipping-rates', kwargs={'order_pk': order.pk})
+        'dashboard:ajax-order-shipping-methods', kwargs={'order_pk': order.pk})
 
     response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     resp_decoded = json.loads(response.content.decode('utf-8'))
 
     assert response.status_code == 200
-    assert resp_decoded == {'results': shipping_rates_list}
+    assert resp_decoded == {'results': shipping_methods_list}
 
 
 @pytest.mark.integration
@@ -778,18 +778,18 @@ def test_view_create_from_draft_order_not_draft_order(
 
 def test_view_create_from_draft_order_shipping_zone_not_valid(
         admin_client, draft_order, shipping_zone):
-    method = shipping_zone.shipping_rates.create(name='DHL', price=10)
+    method = shipping_zone.shipping_methods.create(name='DHL', price=10)
     shipping_zone.countries = ['DE']
     shipping_zone.save()
     # Shipping zone is not valid, as shipping address is listed outside the
     # shipping zone's countries
     assert draft_order.shipping_address.country.code != 'DE'
-    draft_order.shipping_rate = method
+    draft_order.shipping_method = method
     draft_order.save()
     url = reverse(
         'dashboard:create-order-from-draft',
         kwargs={'order_pk': draft_order.pk})
-    data = {'shipping_rate': method.pk}
+    data = {'shipping_method': method.pk}
 
     response = admin_client.post(url, data)
 
@@ -797,7 +797,7 @@ def test_view_create_from_draft_order_shipping_zone_not_valid(
     draft_order.refresh_from_db()
     assert draft_order.status == OrderStatus.DRAFT
     errors = get_form_errors(response)
-    error = 'Shipping rate is not valid for chosen shipping address'
+    error = 'Shipping method is not valid for chosen shipping address'
     assert error in errors
 
 
@@ -919,11 +919,11 @@ def test_view_order_customer_remove(admin_client, draft_order):
 
 def test_view_order_shipping_edit(
         admin_client, draft_order, shipping_zone, settings, vatlayer):
-    method = shipping_zone.shipping_rates.create(
+    method = shipping_zone.shipping_methods.create(
         price=Money(5, settings.DEFAULT_CURRENCY), name='DHL')
     url = reverse(
         'dashboard:order-shipping-edit', kwargs={'order_pk': draft_order.pk})
-    data = {'shipping_rate': method.pk}
+    data = {'shipping_method': method.pk}
 
     response = admin_client.post(url, data)
 
@@ -932,18 +932,18 @@ def test_view_order_shipping_edit(
         'dashboard:order-details', kwargs={'order_pk': draft_order.pk})
     assert get_redirect_location(response) == redirect_url
     draft_order.refresh_from_db()
-    assert draft_order.shipping_rate_name == shipping_zone.name
+    assert draft_order.shipping_method_name == shipping_zone.name
     assert draft_order.shipping_price == method.get_total_price(taxes=vatlayer)
-    assert draft_order.shipping_rate == method
+    assert draft_order.shipping_method == method
 
 
 def test_view_order_shipping_edit_not_draft_order(
         admin_client, order_with_lines, shipping_zone):
-    method = shipping_zone.shipping_rates.create(price=5, name='DHL')
+    method = shipping_zone.shipping_methods.create(price=5, name='DHL')
     url = reverse(
         'dashboard:order-shipping-edit',
         kwargs={'order_pk': order_with_lines.pk})
-    data = {'shipping_rate': method.pk}
+    data = {'shipping_method': method.pk}
 
     response = admin_client.post(url, data)
 
@@ -962,8 +962,8 @@ def test_view_order_shipping_remove(admin_client, draft_order):
         'dashboard:order-details', kwargs={'order_pk': draft_order.pk})
     assert get_redirect_location(response) == redirect_url
     draft_order.refresh_from_db()
-    assert not draft_order.shipping_rate
-    assert not draft_order.shipping_rate_name
+    assert not draft_order.shipping_method
+    assert not draft_order.shipping_method_name
     assert draft_order.shipping_price == ZERO_TAXED_MONEY
 
 

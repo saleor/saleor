@@ -29,7 +29,7 @@ Money amounts are stored on model using `MoneyField` that provides its own safec
 
 If you ever need to get to the `Decimal` of your `Money` object, you'll find it on the `amount` property.
 
-Products and shipping rates prices are stored using `MoneyField`. All prices displayed in dashboard, excluding orders, are as they have been entered in the forms. You can decide if those prices are treated as gross or net in dashboard ``Taxes`` tab.
+Products and shipping methods prices are stored using `MoneyField`. All prices displayed in dashboard, excluding orders, are as they have been entered in the forms. You can decide if those prices are treated as gross or net in dashboard ``Taxes`` tab.
 
 Prices displayed in orders are gross or net depending on setting how prices are displayed for customers, both in storefront and dashboard. This way staff users will always see the same state of an order as the customer.
 

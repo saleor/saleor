@@ -79,7 +79,7 @@
             <a href="{% url 'dashboard:shipping-zone-details' pk=shipping_zone.pk %}" class="btn-flat waves-effect">
               {% trans "Cancel" context "Dashboard cancel action" %}
             </a>
-            {% if shipping_rate.pk %}
+            {% if shipping_method.pk %}
               <button type="submit" class="btn waves-effect">
                 {% trans "Save" context "Dashboard update action" %}
               </button>

@@ -6,17 +6,17 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
-from ...shipping.models import ShippingRate, ShippingZone
+from ...shipping.models import ShippingMethod, ShippingZone
 from ..views import staff_member_required
 from .filters import ShippingZoneFilter
-from .forms import ShippingRateForm, ShippingZoneForm
+from .forms import ShippingMethodForm, ShippingZoneForm
 
 
 @staff_member_required
 @permission_required('shipping.manage_shipping')
 def shipping_zone_list(request):
     zones = ShippingZone.objects.prefetch_related(
-        'shipping_rates').order_by('name')
+        'shipping_methods').order_by('name')
     shipping_zone_filter = ShippingZoneFilter(
         request.GET, queryset=zones)
     zones = get_paginator_items(
@@ -60,8 +60,8 @@ def shipping_zone_edit(request, pk):
 @permission_required('shipping.manage_shipping')
 def shipping_zone_details(request, pk):
     zone = get_object_or_404(ShippingZone, pk=pk)
-    shipping_rates = zone.shipping_rates.all()
-    ctx = {'shipping_zone': zone, 'shipping_rates': shipping_rates}
+    shipping_methods = zone.shipping_methods.all()
+    ctx = {'shipping_zone': zone, 'shipping_methods': shipping_methods}
     return TemplateResponse(
         request, 'dashboard/shipping/detail.html', ctx)
 
@@ -85,32 +85,32 @@ def shipping_zone_delete(request, pk):
 
 @staff_member_required
 @permission_required('shipping.manage_shipping')
-def shipping_rate_add(request, shipping_zone_pk):
+def shipping_method_add(request, shipping_zone_pk):
     shipping_zone = get_object_or_404(ShippingZone, pk=shipping_zone_pk)
-    shipping_rate = ShippingRate(shipping_zone_id=shipping_zone_pk)
-    form = ShippingRateForm(request.POST or None, instance=shipping_rate)
+    shipping_method = ShippingMethod(shipping_zone_id=shipping_zone_pk)
+    form = ShippingMethodForm(request.POST or None, instance=shipping_method)
     if form.is_valid():
-        shipping_rate = form.save()
+        shipping_method = form.save()
         msg = pgettext_lazy(
             'Dashboard message', 'Added shipping price for %s'
-        ) % (shipping_rate,)
+        ) % (shipping_method,)
         messages.success(request, msg)
         return redirect(
             'dashboard:shipping-zone-details', pk=shipping_zone_pk)
     ctx = {
         'form': form, 'shipping_zone': shipping_zone,
-        'shipping_rate': shipping_rate}
+        'shipping_method': shipping_method}
     return TemplateResponse(
         request, 'dashboard/shipping/rate/form.html', ctx)
 
 
 @staff_member_required
 @permission_required('shipping.manage_shipping')
-def shipping_rate_edit(request, shipping_zone_pk, shipping_rate_pk):
+def shipping_method_edit(request, shipping_zone_pk, shipping_method_pk):
     shipping_zone = get_object_or_404(ShippingZone, pk=shipping_zone_pk)
-    shipping_rate = get_object_or_404(ShippingRate, pk=shipping_rate_pk)
+    shipping_method = get_object_or_404(ShippingMethod, pk=shipping_method_pk)
 
-    form = ShippingRateForm(request.POST or None, instance=shipping_rate)
+    form = ShippingMethodForm(request.POST or None, instance=shipping_method)
     if form.is_valid():
         country = form.save()
         msg = pgettext_lazy(
@@ -121,26 +121,26 @@ def shipping_rate_edit(request, shipping_zone_pk, shipping_rate_pk):
             'dashboard:shipping-zone-details', pk=shipping_zone_pk)
     ctx = {
         'form': form, 'shipping_zone': shipping_zone,
-        'shipping_rate': shipping_rate}
+        'shipping_method': shipping_method}
     return TemplateResponse(
         request, 'dashboard/shipping/rate/form.html', ctx)
 
 
 @staff_member_required
 @permission_required('shipping.manage_shipping')
-def shipping_rate_delete(
-        request, shipping_zone_pk, shipping_rate_pk=None):
-    shipping_rate = get_object_or_404(ShippingRate, pk=shipping_rate_pk)
+def shipping_method_delete(
+        request, shipping_zone_pk, shipping_method_pk=None):
+    shipping_method = get_object_or_404(ShippingMethod, pk=shipping_method_pk)
     if request.method == 'POST':
-        shipping_rate.delete()
+        shipping_method.delete()
         msg = pgettext_lazy(
             'Dashboard message', 'Removed shipping zone %s') % (
-                shipping_rate,)
+                shipping_method,)
         messages.success(request, msg)
         return redirect(
             'dashboard:shipping-zone-details', pk=shipping_zone_pk)
     ctx = {
-        'shipping_rate': shipping_rate,
+        'shipping_method': shipping_method,
         'shipping_zone_pk': shipping_zone_pk}
     return TemplateResponse(
         request, 'dashboard/shipping/modal/rate_confirm_delete.html', ctx)

@@ -35,7 +35,7 @@ from saleor.product.models import (
     ProductAttributeTranslation, ProductImage, ProductTranslation, ProductType,
     ProductVariant)
 from saleor.shipping.models import (
-    ShippingZone, ShippingRate, ShippingRate, ShippingZone)
+    ShippingZone, ShippingMethod, ShippingMethod, ShippingZone)
 from saleor.site.models import AuthorizationKey, SiteSettings
 
 
@@ -216,14 +216,14 @@ def authorized_client(client, customer_user):
 def shipping_zone(db):  # pylint: disable=W0613
     shipping_zone = ShippingZone.objects.create(
         name='Europe', countries=[code for code, name in countries])
-    shipping_zone.shipping_rates.create(
+    shipping_zone.shipping_methods.create(
         name='DHL', price=10)
     return shipping_zone
 
 
 @pytest.fixture
-def shipping_rate(shipping_zone):
-    return ShippingRate.objects.create(
+def shipping_method(shipping_zone):
+    return ShippingMethod.objects.create(
         name='DHL',
         price=10,
         shipping_zone=shipping_zone)
@@ -442,9 +442,9 @@ def order_with_lines(
         tax_rate=taxes['standard']['value'])
 
     order.shipping_address = order.billing_address.get_copy()
-    order.shipping_rate_name = shipping_zone.name
-    method = shipping_zone.shipping_rates.get()
-    order.shipping_rate = method
+    order.shipping_method_name = shipping_zone.name
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_method = method
     order.shipping_price = method.get_total_price(taxes)
     order.save()
 

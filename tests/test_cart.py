@@ -655,7 +655,7 @@ def test_cart_total_with_discount(request_cart_with_item, sale, vatlayer):
 
 def test_cart_taxes(request_cart_with_item, shipping_zone, vatlayer):
     cart = request_cart_with_item
-    cart.shipping_rate = shipping_zone.shipping_rates.get()
+    cart.shipping_method = shipping_zone.shipping_methods.get()
     cart.save()
     taxed_price = TaxedMoney(net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
     assert cart.get_shipping_price(taxes=vatlayer) == taxed_price

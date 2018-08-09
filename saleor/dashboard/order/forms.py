@@ -22,7 +22,7 @@ from ...order.utils import (
     change_order_line_quantity, recalculate_order)
 from ...product.models import Product, ProductVariant
 from ...product.utils import allocate_stock, deallocate_stock
-from ...shipping.models import ShippingRate
+from ...shipping.models import ShippingMethod
 from ..forms import AjaxSelect2ChoiceField
 from ..widgets import PhonePrefixWidget
 from .utils import (
@@ -55,7 +55,7 @@ class CreateOrderFromDraftForm(forms.ModelForm):
                 'Create draft order form error',
                 'Could not create order without any products')))
         if self.instance.is_shipping_required():
-            method = self.instance.shipping_rate
+            method = self.instance.shipping_method
             shipping_address = self.instance.shipping_address
             shipping_not_valid = (
                 method and shipping_address and
@@ -63,7 +63,7 @@ class CreateOrderFromDraftForm(forms.ModelForm):
             if shipping_not_valid:
                 errors.append(forms.ValidationError(pgettext_lazy(
                     'Create draft order form error',
-                    'Shipping rate is not valid for chosen shipping '
+                    'Shipping method is not valid for chosen shipping '
                     'address')))
         if errors:
             raise forms.ValidationError(errors)
@@ -75,7 +75,7 @@ class CreateOrderFromDraftForm(forms.ModelForm):
             self.instance.user_email = self.instance.user.email
         remove_shipping_address = False
         if not self.instance.is_shipping_required():
-            self.instance.shipping_rate_name = None
+            self.instance.shipping_method_name = None
             self.instance.shipping_price = ZERO_TAXED_MONEY
             if self.instance.shipping_address:
                 remove_shipping_address = True
@@ -148,25 +148,25 @@ class OrderRemoveCustomerForm(forms.ModelForm):
 class OrderShippingForm(forms.ModelForm):
     """Set shipping name and shipping price in an order."""
     #FIXME
-    shipping_rate = AjaxSelect2ChoiceField(
-        queryset=ShippingRate.objects.all(), min_input=0,
+    shipping_method = AjaxSelect2ChoiceField(
+        queryset=ShippingMethod.objects.all(), min_input=0,
         label=pgettext_lazy(
-            'Shipping rate form field label', 'Shipping rate'))
+            'Shipping method form field label', 'Shipping method'))
 
     class Meta:
         model = Order
-        fields = ['shipping_rate']
+        fields = ['shipping_method']
 
     def __init__(self, *args, **kwargs):
         self.taxes = kwargs.pop('taxes')
         super().__init__(*args, **kwargs)
-        method_field = self.fields['shipping_rate']
+        method_field = self.fields['shipping_method']
         fetch_data_url = reverse(
-            'dashboard:ajax-order-shipping-rates',
+            'dashboard:ajax-order-shipping-methods',
             kwargs={'order_pk': self.instance.id})
         method_field.set_fetch_data_url(fetch_data_url)
 
-        method = self.instance.shipping_rate
+        method = self.instance.shipping_method
         if method:
             method_field.set_initial(method, label=method.get_ajax_label())
 
@@ -177,8 +177,8 @@ class OrderShippingForm(forms.ModelForm):
             method_field.queryset = queryset
 
     def save(self, commit=True):
-        method = self.instance.shipping_rate
-        self.instance.shipping_rate_name = method.shipping_zone.name
+        method = self.instance.shipping_method
+        self.instance.shipping_method_name = method.shipping_zone.name
         self.instance.shipping_price = method.get_total_price(self.taxes)
         recalculate_order(self.instance)
         return super().save(commit)
@@ -192,8 +192,8 @@ class OrderRemoveShippingForm(forms.ModelForm):
         fields = []
 
     def save(self, commit=True):
-        self.instance.shipping_rate = None
-        self.instance.shipping_rate_name = None
+        self.instance.shipping_method = None
+        self.instance.shipping_method_name = None
         self.instance.shipping_price = ZERO_TAXED_MONEY
         recalculate_order(self.instance)
         return super().save(commit)
