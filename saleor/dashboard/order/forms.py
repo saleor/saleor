@@ -147,7 +147,6 @@ class OrderRemoveCustomerForm(forms.ModelForm):
 
 class OrderShippingForm(forms.ModelForm):
     """Set shipping name and shipping price in an order."""
-    #FIXME
     shipping_method = AjaxSelect2ChoiceField(
         queryset=ShippingMethod.objects.all(), min_input=0,
         label=pgettext_lazy(

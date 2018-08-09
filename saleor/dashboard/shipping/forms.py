@@ -1,7 +1,8 @@
 from django import forms
 from django.utils.translation import pgettext_lazy
 
-from ...shipping.models import ShippingZone, ShippingMethod
+from ...shipping import ShippingMethodType
+from ...shipping.models import ShippingMethod, ShippingZone
 
 
 def currently_used_countries(shipping_zone_pk=None):
@@ -19,8 +20,7 @@ class ShippingZoneForm(forms.ModelForm):
         model = ShippingZone
         exclude = ['shipping_methods']
         labels = {
-            'name': pgettext_lazy(
-                'Shippment Zone field name', 'Zone Name'),
+            'name': pgettext_lazy('Shippment Zone field name', 'Zone Name'),
             'countries': pgettext_lazy(
                 'List of countries to pick from', 'Countries')}
         help_texts = {
@@ -39,7 +39,6 @@ class ShippingZoneForm(forms.ModelForm):
                 self.instance.pk if self.instance else None))
 
     def clean_countries(self):
-        #TODO testme
         countries = self.cleaned_data.get('countries')
         if not countries:
             return
@@ -50,7 +49,7 @@ class ShippingZoneForm(forms.ModelForm):
                 'countries',
                 'Countries already exists in another '
                 'shipping zone: %(list_of_countries)s' % {
-                    'list_of_countries': ''.join(duplicated_countries)})
+                    'list_of_countries': ', '.join(duplicated_countries)})
         return countries
 
 
@@ -58,11 +57,25 @@ class ShippingMethodForm(forms.ModelForm):
 
     class Meta:
         model = ShippingMethod
-        exclude = ['shipping_zone']
+        exclude = ['shipping_zone', 'type']
         labels = {
+            'name': pgettext_lazy('Shipping Method name', 'Name'),
+            'price': pgettext_lazy('Currency amount', 'Price')}
+        help_texts = {
             'name': pgettext_lazy(
-                'Shipping Method name', 'Name'),
-            'type': pgettext_lazy(
-                'Shipping Method type', 'Type'),
-            'price': pgettext_lazy(
-                'Currency amount', 'Price')}
+                'Shipping method name help text',
+                'Customers will see this at the checkout.')}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.type == ShippingMethodType.WEIGHT_BASED:
+            del self.fields['minimum_order_price']
+            del self.fields['maximum_order_price']
+        else:
+            del self.fields['minimum_order_weight']
+            del self.fields['maximum_order_weight']
+            self.fields['minimum_order_price'].required = False
+            self.fields['maximum_order_price'].widget.attrs['placeholder'] = \
+                pgettext_lazy(
+                    'Placeholder for maximum order price set to unlimited',
+                    'No limit')

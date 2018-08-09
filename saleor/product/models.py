@@ -10,8 +10,10 @@ from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
+from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
 from django_prices.templatetags import prices_i18n
+from measurement.measures import Weight
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from prices import TaxedMoneyRange
@@ -78,6 +80,9 @@ class ProductType(models.Model):
     is_shipping_required = models.BooleanField(default=False)
     tax_rate = models.CharField(
         max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True)
+    weight = MeasurementField(
+        measurement=Weight, unit_choices=settings.DEFAULT_WEIGHT_UNITS,
+        default=0)
 
     class Meta:
         app_label = 'product'
@@ -116,6 +121,9 @@ class Product(SeoModel):
     charge_taxes = models.BooleanField(default=True)
     tax_rate = models.CharField(
         max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True)
+    weight = MeasurementField(
+        measurement=Weight, unit_choices=settings.DEFAULT_WEIGHT_UNITS,
+        blank=True, null=True)
 
     objects = ProductQuerySet.as_manager()
     translated = TranslationProxy()
@@ -210,7 +218,9 @@ class ProductVariant(models.Model):
     cost_price = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, blank=True, null=True)
-
+    weight = MeasurementField(
+        measurement=Weight, unit_choices=settings.DEFAULT_WEIGHT_UNITS,
+        blank=True, null=True)
     translated = TranslationProxy()
 
     class Meta:
@@ -242,6 +252,11 @@ class ProductVariant(models.Model):
         tax_rate = (
             self.product.tax_rate or self.product.product_type.tax_rate)
         return apply_tax_to_price(taxes, tax_rate, price)
+
+    def get_weight(self):
+        return (
+            self.weight or self.product.weight or
+            self.product.product_type.weight)
 
     def get_absolute_url(self):
         slug = self.product.get_slug()

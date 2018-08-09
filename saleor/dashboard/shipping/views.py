@@ -60,8 +60,11 @@ def shipping_zone_edit(request, pk):
 @permission_required('shipping.manage_shipping')
 def shipping_zone_details(request, pk):
     zone = get_object_or_404(ShippingZone, pk=pk)
-    shipping_methods = zone.shipping_methods.all()
-    ctx = {'shipping_zone': zone, 'shipping_methods': shipping_methods}
+    price_based = zone.shipping_methods.price_based()
+    weight_based = zone.shipping_methods.weight_based()
+    ctx = {
+        'shipping_zone': zone, 'price_based': price_based,
+        'weight_based': weight_based}
     return TemplateResponse(
         request, 'dashboard/shipping/detail.html', ctx)
 
@@ -85,9 +88,10 @@ def shipping_zone_delete(request, pk):
 
 @staff_member_required
 @permission_required('shipping.manage_shipping')
-def shipping_method_add(request, shipping_zone_pk):
+def shipping_method_add(request, shipping_zone_pk, type):
     shipping_zone = get_object_or_404(ShippingZone, pk=shipping_zone_pk)
-    shipping_method = ShippingMethod(shipping_zone_id=shipping_zone_pk)
+    shipping_method = ShippingMethod(
+        shipping_zone_id=shipping_zone_pk, type=type)
     form = ShippingMethodForm(request.POST or None, instance=shipping_method)
     if form.is_valid():
         shipping_method = form.save()
@@ -101,7 +105,7 @@ def shipping_method_add(request, shipping_zone_pk):
         'form': form, 'shipping_zone': shipping_zone,
         'shipping_method': shipping_method}
     return TemplateResponse(
-        request, 'dashboard/shipping/rate/form.html', ctx)
+        request, 'dashboard/shipping/methods/form.html', ctx)
 
 
 @staff_member_required
@@ -110,7 +114,8 @@ def shipping_method_edit(request, shipping_zone_pk, shipping_method_pk):
     shipping_zone = get_object_or_404(ShippingZone, pk=shipping_zone_pk)
     shipping_method = get_object_or_404(ShippingMethod, pk=shipping_method_pk)
 
-    form = ShippingMethodForm(request.POST or None, instance=shipping_method)
+    form = ShippingMethodForm(
+        request.POST or None, instance=shipping_method)
     if form.is_valid():
         country = form.save()
         msg = pgettext_lazy(
@@ -123,7 +128,7 @@ def shipping_method_edit(request, shipping_zone_pk, shipping_method_pk):
         'form': form, 'shipping_zone': shipping_zone,
         'shipping_method': shipping_method}
     return TemplateResponse(
-        request, 'dashboard/shipping/rate/form.html', ctx)
+        request, 'dashboard/shipping/methods/form.html', ctx)
 
 
 @staff_member_required

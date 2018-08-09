@@ -7,7 +7,7 @@ from ...account.forms import LoginForm
 from ...core.utils import (
     format_money, get_user_shipping_country, to_local_currency)
 from ...product.models import ProductVariant
-from ...shipping.utils import get_shipment_options
+from ...shipping.utils import shipping_price_estimate
 from ..forms import CartShippingMethodForm, CountryForm, ReplaceCartLineForm
 from ..models import Cart
 from ..utils import (
@@ -64,7 +64,7 @@ def checkout_shipping_address(request, cart):
 def checkout_shipping_method(request, cart):
     """Display the shipping method selection step."""
     taxes = get_taxes_for_cart(cart, request.taxes)
-    check_shipping_method(cart)
+    check_shipping_method(cart, request.taxes, request.discounts)
 
     form = CartShippingMethodForm(
         request.POST or None, taxes=taxes, instance=cart,
@@ -128,14 +128,17 @@ def cart_index(request, cart):
 
     default_country = get_user_shipping_country(request)
     country_form = CountryForm(initial={'country': default_country})
-    default_country_options = get_shipment_options(default_country, taxes)
+    shipping_price_range = shipping_price_estimate(
+        price=cart.get_subtotal(discounts, taxes).gross,
+        weight=cart.get_total_weight(), country_code=default_country,
+        taxes=taxes)
 
     cart_data = get_cart_data(
-        cart, default_country_options, request.currency, discounts, taxes)
+        cart, shipping_price_range, request.currency, discounts, taxes)
     ctx = {
         'cart_lines': cart_lines,
         'country_form': country_form,
-        'default_country_options': default_country_options}
+        'shipping_price_range': shipping_price_range}
     ctx.update(cart_data)
 
     return TemplateResponse(request, 'checkout/index.html', ctx)
@@ -146,14 +149,17 @@ def cart_shipping_options(request, cart):
     """Display shipping options to get a price estimate."""
     country_form = CountryForm(request.POST or None, taxes=request.taxes)
     if country_form.is_valid():
-        shipments = country_form.get_shipment_options()
+        shipping_price_range = country_form.shipping_price_estimate(
+            price=cart.get_subtotal(request.discounts, request.taxes).gross,
+            weight=cart.get_total_weight())
     else:
-        shipments = None
+        shipping_price_range = None
     ctx = {
-        'default_country_options': shipments,
+        'shipping_price_range': shipping_price_range,
         'country_form': country_form}
     cart_data = get_cart_data(
-        cart, shipments, request.currency, request.discounts, request.taxes)
+        cart, shipping_price_range, request.currency, request.discounts,
+        request.taxes)
     ctx.update(cart_data)
     return TemplateResponse(request, 'checkout/_subtotal_table.html', ctx)
 

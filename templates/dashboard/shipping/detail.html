@@ -1,8 +1,6 @@
 {% extends 'dashboard/base.html' %}
 
 {% load i18n %}
-{% load price from taxed_prices %}
-{% load staticfiles %}
 
 {% block title %}
   {{ shipping_zone }} - {{ block.super }}
@@ -53,54 +51,9 @@
         </div>
       </div>
     </div>
-
-    <div class="col m12 l9">
-      <div class="card">
-        <div class="card-content">
-          <span class="card-title">
-             {% trans "Shipping methods" context "Title of the per-country shipping price list" %}
-          </span>
-        </div>
-        <div class="data-table-header-action">
-            <a href="{% url 'dashboard:shipping-method-add' shipping_zone_pk=shipping_zone.pk %}" class="btn-data-table btn-flat waves-effect">
-              {% trans "Add" %}
-            </a>
-        </div>
-        <div class="data-table-container">
-          <table class="bordered highlight responsive data-table">
-            <thead>
-              <tr>
-                <th>
-                  {% trans "Name" context "Header of the per-country shipping price list" %}
-                </th>
-                <th>
-                  {% trans "Price" context "Header of the per-country shipping price list" %}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for country in shipping_methods %}
-                <tr>
-                  <td>{{ country.name }}</td>
-                  <td>{% price country.price %}</td>
-                  <td class="right-align">
-                    <a href="{% url 'dashboard:shipping-method-edit' shipping_zone_pk=shipping_zone.pk shipping_method_pk=country.pk %}" class="btn-flat waves-effect">
-                      {% trans 'Edit' context 'Attribute choice value edit action' %}
-                    </a>
-                    <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:shipping-method-delete' shipping_zone_pk=shipping_zone.pk shipping_method_pk=country.pk %}">
-                      {% trans 'Remove' context 'Attribute choice value remove action' %}
-                    </a>
-                  </td>
-                </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="2">{% trans "No shipping prices" context "Empty list of per-country shipping prices" %}</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+    {% trans "Price based shipping" context "Title of the shipping methods list" as price_based_header %}
+    {% trans "Weight based shipping" context "Title of the shipping methods list" as weight_based_header %}
+    {% include "dashboard/shipping/methods/_shipping_methods_table.html" with type='price' header=price_based_header shipping_methods=price_based %}
+    {% include "dashboard/shipping/methods/_shipping_methods_table.html" with type='weight' header=weight_based_header shipping_methods=weight_based %}
   </div>
 {% endblock %}

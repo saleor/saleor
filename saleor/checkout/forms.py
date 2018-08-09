@@ -12,10 +12,10 @@ from django_countries.fields import LazyTypedChoiceField
 from ..core.exceptions import InsufficientStock
 from ..core.i18n import COUNTRY_CODE_CHOICES
 from ..core.utils import format_money
-from ..core.utils.taxes import display_gross_prices
+from ..core.utils.taxes import display_gross_prices, get_taxed_shipping_price
 from ..discount.models import NotApplicable, Voucher
 from ..shipping.models import ShippingMethod
-from ..shipping.utils import get_shipment_options, get_taxed_shipping_price
+from ..shipping.utils import shipping_price_estimate
 from .models import Cart
 
 
@@ -46,12 +46,10 @@ class AddToCartForm(forms.Form):
             'Add to cart form error',
             'Sorry. This product is currently out of stock.'),
         'variant-does-not-exists': pgettext_lazy(
-            'Add to cart form error',
-            'Oops. We could not find that product.'),
+            'Add to cart form error', 'Oops. We could not find that product.'),
         'insufficient-stock': npgettext_lazy(
             'Add to cart form error',
-            'Only %d remaining in stock.',
-            'Only %d remaining in stock.')}
+            'Only %d remaining in stock.', 'Only %d remaining in stock.')}
 
     def __init__(self, *args, **kwargs):
         self.cart = kwargs.pop('cart')
@@ -161,18 +159,20 @@ class ReplaceCartLineForm(AddToCartForm):
 
 class CountryForm(forms.Form):
     """Country selection form."""
+    country = LazyTypedChoiceField(
+        label=pgettext_lazy('Country form field label', 'Country'),
+        choices=COUNTRY_CODE_CHOICES)
 
     def __init__(self, *args, **kwargs):
         self.taxes = kwargs.pop('taxes', {})
         super().__init__(*args, **kwargs)
-        self.fields['country'] = LazyTypedChoiceField(
-            label=pgettext_lazy('Country form field label', 'Country'),
-            choices=COUNTRY_CODE_CHOICES)
 
-    def get_shipment_options(self):
-        """Return a list of shipping methods for the selected country."""
+    def shipping_price_estimate(self, price, weight):
+        """Return a shipping price range for given order for the selected
+        country.
+        """
         code = self.cleaned_data['country']
-        return get_shipment_options(code, self.taxes)
+        return shipping_price_estimate(price, weight, code, self.taxes)
 
 
 class AnonymousUserShippingForm(forms.ModelForm):
@@ -257,10 +257,8 @@ class ShippingMethodChoiceField(forms.ModelChoiceField):
 
 
 class CartShippingMethodForm(forms.ModelForm):
-    """Cart shipping method form."""
     shipping_method = ShippingMethodChoiceField(
-        queryset=ShippingMethod.objects.prefetch_related(
-            'shipping_zone').order_by('price'),
+        queryset=ShippingMethod.objects.all(),
         label=pgettext_lazy(
             'Shipping method form field label', 'Shipping method'),
         empty_label=None)
@@ -273,8 +271,10 @@ class CartShippingMethodForm(forms.ModelForm):
         taxes = kwargs.pop('taxes')
         super().__init__(*args, **kwargs)
         country_code = self.instance.shipping_address.country.code
-        qs = self.fields['shipping_method'].queryset.filter(
-            shipping_zone__countries__contains=country_code)
+        qs = ShippingMethod.objects.applicable_shipping_methods(
+            price=self.instance.get_subtotal().gross,
+            weight=self.instance.get_total_weight(),
+            country_code=country_code)
         self.fields['shipping_method'].queryset = qs
         self.fields['shipping_method'].taxes = taxes
 

@@ -1,8 +1,32 @@
 from django.urls import reverse
 from prices import Money
-
-from saleor.shipping.models import ShippingZone, ShippingMethod
+from saleor.dashboard.shipping.forms import (
+    ShippingMethodForm, ShippingZoneForm, currently_used_countries)
 from saleor.shipping import ShippingMethodType
+from saleor.shipping.models import ShippingMethod, ShippingZone
+
+
+def test_currently_used_countries():
+    zone_1 = ShippingZone.objects.create(name='Zone 1', countries=['PL'])
+    zone_2 = ShippingZone.objects.create(name='Zone 2', countries=['DE'])
+    result = currently_used_countries(zone_1.pk)
+    assert list(result)[0][0] == 'DE'
+
+
+def test_shipping_zone_form():
+    zone_1 = ShippingZone.objects.create(name='Zone 1', countries=['PL'])
+    zone_2 = ShippingZone.objects.create(name='Zone 2', countries=['DE'])
+    form = ShippingZoneForm(
+        instance=zone_1, data={'name': 'Zone 1', 'countries': ['PL']})
+
+    assert 'DE' not in [
+        code for code, name in form.fields['countries'].choices]
+    assert form.is_valid()
+
+    form = ShippingZoneForm(
+        instance=zone_1, data={'name': 'Zone 2', 'countries': ['DE']})
+    assert not form.is_valid()
+    assert 'countries' in form.errors
 
 
 def test_shipping_zone_list(admin_client, shipping_zone):
@@ -59,8 +83,9 @@ def test_shipping_zone_delete(admin_client, shipping_zone):
 
 def test_shipping_method_add(admin_client, shipping_zone):
     assert ShippingMethod.objects.count() == 1
-    url = reverse('dashboard:shipping-method-add',
-                  kwargs={'shipping_zone_pk': shipping_zone.pk})
+    url = reverse(
+        'dashboard:shipping-method-add', kwargs={
+            'shipping_zone_pk': shipping_zone.pk, 'type': 'price'})
     data = {
         'name': 'DHL', 'price': '50', 'shipping_zone': shipping_zone.pk,
         'type': ShippingMethodType.PRICE_BASED}
@@ -71,8 +96,9 @@ def test_shipping_method_add(admin_client, shipping_zone):
 
 def test_shipping_method_add_not_valid(admin_client, shipping_zone):
     assert ShippingMethod.objects.count() == 1
-    url = reverse('dashboard:shipping-method-add',
-                  kwargs={'shipping_zone_pk': shipping_zone.pk})
+    url = reverse(
+        'dashboard:shipping-method-add', kwargs={
+            'shipping_zone_pk': shipping_zone.pk, 'type': 'price'})
     data = {}
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200

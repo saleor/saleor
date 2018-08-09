@@ -83,11 +83,11 @@ def update_order_prices(order, discounts):
             line.unit_price = line.variant.get_price(discounts, taxes)
             line.tax_rate = get_tax_rate_by_name(
                 line.variant.product.tax_rate, taxes)
-            line.save()
+            line.save(update_fields=['unit_price', 'tax_rate'])
 
     if order.shipping_method:
         order.shipping_price = order.shipping_method.get_total_price(taxes)
-        order.save()
+        order.save(update_fields=['shipping_price'])
 
     recalculate_order(order)
 
@@ -182,7 +182,7 @@ def change_order_line_quantity(line, new_quantity):
     """Change the quantity of ordered items in a order line."""
     if new_quantity:
         line.quantity = new_quantity
-        line.save()
+        line.save(update_fields=['quantity'])
     else:
         line.delete()
 

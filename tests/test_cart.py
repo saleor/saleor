@@ -19,7 +19,7 @@ from saleor.checkout.views import update_cart_line, clear_cart
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.discount.models import Sale
-from saleor.shipping.utils import get_shipment_options
+from saleor.shipping.utils import shipping_price_estimate
 
 
 @pytest.fixture()
@@ -627,7 +627,7 @@ def test_get_or_create_db_cart(customer_user, db, rf):
 
 
 def test_get_cart_data(request_cart_with_item, shipping_zone, vatlayer):
-    shipment_option = get_shipment_options('PL', vatlayer)
+    shipment_option = shipping_price_estimate('PL', vatlayer)
     cart_data = utils.get_cart_data(
         request_cart_with_item, shipment_option, 'USD', None, vatlayer)
     assert cart_data['cart_total'] == TaxedMoney(
@@ -637,7 +637,7 @@ def test_get_cart_data(request_cart_with_item, shipping_zone, vatlayer):
 
 
 def test_get_cart_data_no_shipping(request_cart_with_item, vatlayer):
-    shipment_option = get_shipment_options('PL', vatlayer)
+    shipment_option = shipping_price_estimate('PL', vatlayer)
     cart_data = utils.get_cart_data(
         request_cart_with_item, shipment_option, 'USD', None, vatlayer)
     cart_total = cart_data['cart_total']
