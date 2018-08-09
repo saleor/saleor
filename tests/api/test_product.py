@@ -809,7 +809,6 @@ def test_product_image_create_mutation(admin_api_client, product):
         productImageCreate(input: {image: $image, product: $product}) {
             productImage {
                 id
-                image
                 url
                 sortOrder
             }
@@ -825,10 +824,8 @@ def test_product_image_create_mutation(admin_api_client, product):
     content = get_graphql_content(response)
     assert 'errors' not in content
     data = content['data']['productImageCreate']
-    file_name = data['productImage']['image']
     product.refresh_from_db()
     assert product.images.first().image.file
-    assert product.images.first().image.name == file_name
 
 
 def test_invalid_product_image_create_mutation(admin_api_client, product):
@@ -837,7 +834,6 @@ def test_invalid_product_image_create_mutation(admin_api_client, product):
         productImageCreate(input: {image: $image, product: $product}) {
             productImage {
                 id
-                image
                 url
                 sortOrder
             }
@@ -1116,14 +1112,14 @@ def test_remove_products_to_collection(
 
 def test_assign_variant_image(admin_api_client, user_api_client, product_with_image):
     query = """
-    mutation assignVariantImageMutation($variant: ID!, $image: ID!) {
-        variantImageAssign(input: {
-            variant: $variant
-            image: $image
-        }) {
+    mutation assignVariantImageMutation($variantId: ID!, $imageId: ID!) {
+        variantImageAssign(variantId: $variantId, imageId: $imageId) {
             errors {
                 field
                 message
+            }
+            image {
+                id
             }
         }
     }
@@ -1132,8 +1128,8 @@ def test_assign_variant_image(admin_api_client, user_api_client, product_with_im
     image = product_with_image.images.first()
 
     variables = json.dumps({
-        'variant': to_global_id('ProductVariant', variant.pk),
-        'image': to_global_id('ProductImage', image.pk)})
+        'variantId': to_global_id('ProductVariant', variant.pk),
+        'imageId': to_global_id('ProductImage', image.pk)})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
@@ -1147,12 +1143,57 @@ def test_assign_variant_image(admin_api_client, user_api_client, product_with_im
 
     image_2 = ProductImage.objects.create(product=product_with_image)
     variables = json.dumps({
-        'variant': to_global_id('ProductVariant', variant.pk),
-        'image': to_global_id('ProductImage', image_2.pk)})
+        'variantId': to_global_id('ProductVariant', variant.pk),
+        'imageId': to_global_id('ProductImage', image_2.pk)})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert content['data']['variantImageAssign']['errors'][0]['field'] == 'image'
+    assert content['data']['variantImageAssign']['errors'][0]['field'] == 'imageId'
+
+    # check permissions
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    assert_no_permission(response)
+
+
+def test_unassign_variant_image(admin_api_client, user_api_client, product_with_image):
+    image = product_with_image.images.first()
+    variant = product_with_image.variants.first()
+    variant.variant_images.create(image=image)
+
+    query = """
+    mutation unassignVariantImageMutation($variantId: ID!, $imageId: ID!) {
+        variantImageUnassign(variantId: $variantId, imageId: $imageId) {
+            errors {
+                field
+                message
+            }
+            image {
+                id
+            }
+        }
+    }
+    """
+
+    variables = json.dumps({
+        'variantId': to_global_id('ProductVariant', variant.pk),
+        'imageId': to_global_id('ProductImage', image.pk)})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    variant.refresh_from_db()
+    assert variant.images.count() == 0
+
+    # check that unsassigning a not assigned image throws error
+    image_2 = ProductImage.objects.create(product=product_with_image)
+    variables = json.dumps({
+        'variantId': to_global_id('ProductVariant', variant.pk),
+        'imageId': to_global_id('ProductImage', image_2.pk)})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert content['data']['variantImageUnassign']['errors'][0]['field'] == 'imageId'
 
     # check permissions
     response = user_api_client.post(

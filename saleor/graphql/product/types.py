@@ -98,6 +98,7 @@ class ProductVariant(CountableDjangoObjectType):
     class Meta:
         description = """Represents a version of a product such as different
         size or color."""
+        exclude_fields = ['variant_images']
         interfaces = [relay.Node]
         model = models.ProductVariant
 
@@ -260,12 +261,14 @@ class Category(CountableDjangoObjectType):
 class ProductImage(CountableDjangoObjectType):
     url = graphene.String(
         required=True,
-        description='',
-        size=graphene.Int(description='Size of image'))
+        description='The URL of the image.',
+        size=graphene.Int(description='Size of the image'))
 
     class Meta:
         description = 'Represents a product image.'
-        exclude_fields = ['product', 'productvariant_set', 'variant_images']
+        exclude_fields = [
+            'image', 'product', 'ppoi', 'productvariant_set',
+            'variant_images']
         interfaces = [relay.Node]
         model = models.ProductImage
 
