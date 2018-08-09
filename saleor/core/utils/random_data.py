@@ -12,6 +12,7 @@ from django.template.defaultfilters import slugify
 from django_countries.fields import Country
 from faker import Factory
 from faker.providers import BaseProvider
+from measurement.measures import Mass
 from payments import PaymentStatus
 from prices import Money
 
@@ -32,7 +33,7 @@ from ...product.models import (
     ProductImage, ProductType, ProductVariant)
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
-from ...shipping.models import ShippingMethod, ShippingZone
+from ...shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
 from ...shipping.utils import get_taxed_shipping_price
 
 fake = Factory.create()
@@ -136,7 +137,8 @@ def create_product_type_with_attributes(name, schema):
     variant_attributes_schema = schema.get('variant_attributes', {})
     is_shipping_required = schema.get('is_shipping_required', True)
     product_type = get_or_create_product_type(
-        name=name, is_shipping_required=is_shipping_required)
+        name=name, is_shipping_required=is_shipping_required,
+        weight=fake.weight())
     product_attributes = create_attributes_and_values(
         product_attributes_schema)
     variant_attributes = create_attributes_and_values(
@@ -241,6 +243,9 @@ class SaleorProvider(BaseProvider):
         return Money(
             fake.pydecimal(2, 2, positive=True), settings.DEFAULT_CURRENCY)
 
+    def weight(self):
+        return Mass(kg=fake.pydecimal(1, 2, positive=True))
+
 
 fake.add_provider(SaleorProvider)
 
@@ -287,7 +292,8 @@ def create_product(**kwargs):
         'name': fake.company(),
         'price': fake.money(),
         'description': '\n\n'.join(description),
-        'seo_description': strip_html_and_truncate(description[0], 300)}
+        'seo_description': strip_html_and_truncate(description[0], 300),
+        'weight': fake.weight() if random.randint(0, 1) else None}
     defaults.update(kwargs)
     return Product.objects.create(**defaults)
 
@@ -296,7 +302,8 @@ def create_variant(product, **kwargs):
     defaults = {
         'product': product,
         'quantity': fake.random_int(1, 50),
-        'quantity_allocated': fake.random_int(1, 50)}
+        'quantity_allocated': fake.random_int(1, 50),
+        'weight': fake.weight() if random.randint(0, 1) else None}
     defaults.update(kwargs)
     variant = ProductVariant(**defaults)
     if 'cost_price' not in kwargs:
@@ -461,6 +468,10 @@ def create_fake_order(discounts, taxes):
 
     order.total = sum(
         [line.get_total() for line in lines], order.shipping_price)
+    weight = Mass(kg=0)
+    for line in order:
+        weight += line.variant.get_weight()
+    order.weight = weight
     order.save()
 
     create_fulfillments(order)
@@ -500,14 +511,19 @@ def create_product_sales(how_many=5):
         yield 'Sale: %s' % (sale,)
 
 
-def create_shipping_zone(shipping_methods_names, countries, shipping_zone_name):
+def create_shipping_zone(
+        shipping_methods_names, countries, shipping_zone_name):
     shipping_zone = ShippingZone.objects.get_or_create(
         name=shipping_zone_name, defaults={'countries': countries})[0]
-    shipping_methods = [
+    ShippingMethod.objects.bulk_create([
         ShippingMethod(
-            name=name, price=fake.money(), shipping_zone=shipping_zone)
-        for name in shipping_methods_names]
-    ShippingMethod.objects.bulk_create(shipping_methods)
+            name=name, price=fake.money(), shipping_zone=shipping_zone,
+            type=(
+                ShippingMethodType.PRICE_BASED if random.randint(0, 1)
+                else ShippingMethodType.WEIGHT_BASED),
+            minimum_order_price=fake.money(), maximum_order_price=None,
+            minimum_order_weight=fake.weight(), maximum_order_weight=None)
+        for name in shipping_methods_names])
     return 'Shipping Zone: %s' % shipping_zone
 
 

@@ -9,7 +9,9 @@ from django.db.models import F, Max, Sum
 from django.urls import reverse
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
+from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
+from measurement.measures import Weight
 from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
 from prices import Money, TaxedMoney
@@ -92,7 +94,9 @@ class Order(models.Model):
         max_length=255, default='', blank=True)
     display_gross_prices = models.BooleanField(default=True)
     customer_note = models.TextField(blank=True, default='')
-
+    weight = MeasurementField(
+        measurement=Weight, unit_choices=settings.DEFAULT_WEIGHT_UNITS,
+        default=0)
     objects = OrderQueryset.as_manager()
 
     class Meta:

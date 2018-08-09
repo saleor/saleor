@@ -218,6 +218,7 @@ INSTALLED_APPS = [
     'versatileimagefield',
     'django_babel',
     'bootstrap4',
+    'django_measurement',
     'django_prices',
     'django_prices_openexchangerates',
     'django_prices_vatlayer',
@@ -309,6 +310,7 @@ LOGIN_URL = '/account/login/'
 DEFAULT_COUNTRY = os.environ.get('DEFAULT_COUNTRY', 'US')
 DEFAULT_CURRENCY = os.environ.get('DEFAULT_CURRENCY', 'USD')
 DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
+DEFAULT_WEIGHT_UNITS = [('kg', 'kg'), ('lb', 'lb')]
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 COUNTRIES_OVERRIDE = {
     'EU': pgettext_lazy(

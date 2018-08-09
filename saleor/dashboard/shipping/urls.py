@@ -12,9 +12,9 @@ urlpatterns = [
     url(r'^(?P<pk>\d+)/delete/$',
         views.shipping_zone_delete, name='shipping-zone-delete'),
 
-    url(r'^(?P<shipping_zone_pk>\d+)/shipping_method/add/$',
+    url(r'^(?P<shipping_zone_pk>\d+)/shipping/add/(?P<type>price|weight)/$',
         views.shipping_method_add, name='shipping-method-add'),
-    url(r'^(?P<shipping_zone_pk>\d+)/shipping_method/(?P<shipping_method_pk>\d+)/update/$',
+    url(r'^(?P<shipping_zone_pk>\d+)/shipping/(?P<shipping_method_pk>\d+)/update/$',  # noqa
         views.shipping_method_edit, name='shipping-method-edit'),
-    url(r'^(?P<shipping_zone_pk>\d+)/shipping_method/(?P<shipping_method_pk>\d+)/delete/$',
+    url(r'^(?P<shipping_zone_pk>\d+)/shipping/(?P<shipping_method_pk>\d+)/delete/$',  # noqa
         views.shipping_method_delete, name='shipping-method-delete')]
