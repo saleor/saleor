@@ -29,13 +29,15 @@ def clean_lines_quantities(order_lines, quantities):
 
 
 class FulfillmentLineInput(graphene.InputObjectType):
-    order_line_id = graphene.ID(description='The ID of the order line.')
+    order_line_id = graphene.ID(
+        description='The ID of the order line.', name='orderLineId')
     quantity = graphene.Int(
         description='The number of line item(s) to be fulfiled.')
 
 
 class FulfillmentCreateInput(graphene.InputObjectType):
-    order = graphene.ID(description='ID of the order to be fulfilled.')
+    order = graphene.ID(
+        description='ID of the order to be fulfilled.', name='order')
     tracking_number = graphene.String(
         description='Fulfillment tracking number')
     notify_customer = graphene.Boolean(
