@@ -94,7 +94,7 @@ class DraftOrderCreate(ModelMutation):
         if lines:
             variant_ids = [line.get('variant_id') for line in lines]
             variants = cls.get_nodes_or_error(
-                ids=variant_ids, graphene_type=ProductVariant, errors=errors,
+                ids=variant_ids, only_type=ProductVariant, errors=errors,
                 field='variants')
             quantities = [line.get('quantity') for line in lines]
             line_errors = check_lines_quantity(variants, quantities)
