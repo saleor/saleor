@@ -171,12 +171,10 @@ class FulfillmentCancel(BaseMutation):
         order = fulfillment.order
         errors = []
         if not fulfillment.can_edit():
-            errors.append(
-                Error(
-                    field='fulfillment',
-                    message=pgettext_lazy(
-                        'Cancel fulfillment mutation error',
-                        'This fulfillment can\'t be canceled')))
+            err_msg = pgettext_lazy(
+                'Cancel fulfillment mutation error',
+                'This fulfillment can\'t be canceled')
+            cls.add_error(errors, 'fulfillment', err_msg)
         if errors:
             return cls(errors=errors)
         cancel_fulfillment(fulfillment, restock)
