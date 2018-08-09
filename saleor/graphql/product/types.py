@@ -1,6 +1,7 @@
 import graphene
 from graphene import relay
 from graphene_django.filter import DjangoFilterConnectionField
+from graphql.error import GraphQLError
 
 from ...product import models
 from ...product.templatetags.product_images import get_thumbnail
@@ -12,6 +13,7 @@ from ..core.decorators import permission_required
 from ..core.filters import DistinctFilterSet
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from ..utils import get_database_id
 from .filters import ProductFilterSet
 
 
@@ -144,6 +146,11 @@ class Product(CountableDjangoObjectType):
         description='List of product attributes assigned to this product.')
     purchase_cost = graphene.Field(MoneyRange)
     margin = graphene.Field(Margin)
+    image_by_id = graphene.Field(
+        lambda: ProductImage,
+        id=graphene.Argument(
+            graphene.ID, description='ID of a product image.'),
+        description='Get a single product image by ID')
 
     class Meta:
         description = """Represents an individual item for sale in the
@@ -180,6 +187,14 @@ class Product(CountableDjangoObjectType):
     def resolve_margin(self, info):
         _, margin = get_product_costs_data(self)
         return Margin(margin[0], margin[1])
+
+    def resolve_image_by_id(self, info, id):
+        pk = get_database_id(info, id, ProductImage)
+        try:
+            return self.images.get(pk=pk)
+        except models.ProductImage.DoesNotExist:
+            raise GraphQLError(
+                "Could not resolve to a node with the global id of '%s'." % id)
 
 
 class ProductType(CountableDjangoObjectType):
@@ -276,10 +291,3 @@ class ProductImage(CountableDjangoObjectType):
         if size:
             return get_thumbnail(self.image, size, 'crop')
         return self.image.url
-
-
-class VariantImage(CountableDjangoObjectType):
-    class Meta:
-        description = 'Represents a variant image'
-        interfaces = [relay.Node]
-        model = models.VariantImage
