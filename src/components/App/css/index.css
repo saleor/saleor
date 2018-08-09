@@ -41,7 +41,7 @@ h1 {
   font-weight: var(--h1-font-weight);
   line-height: var(--headings-line-height);
   text-transform: uppercase;
-  @media (width < 768px) {
+  @media (max-width: 768px) {
     font-size: calc(var(--h1-font-size) * 0.7)
   }
 }
@@ -186,13 +186,4 @@ ul {
       color: var(--primaryColor);
     }
   }
-}
-
-.bullet {
-  width: 5px;
-  height: 5px;
-  border: var(--border-width) solid;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: var(--spacer);
 }
