@@ -591,7 +591,8 @@ class VariantImageUnassign(BaseMutation):
                     image=image, variant=variant)
             except models.VariantImage.DoesNotExist:
                 cls.add_error(
-                    errors, 'imageId', 'Image is not assigned to this variant.')
+                    errors, 'imageId',
+                    'Image is not assigned to this variant.')
             else:
                 variant_image.delete()
         return VariantImageUnassign(image=image, errors=errors)
