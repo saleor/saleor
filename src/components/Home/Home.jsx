@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import ReactSVG from 'react-svg';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { GitHubLink } from '..';
+import { isMobileOnly } from 'react-device-detect';
 
 import css from './home.css';
 
@@ -10,22 +11,38 @@ import buildToScaleIcon from '../../images/build-to-scale.png';
 import easyToCustomizeIcon from '../../images/easy-to-customize.png';
 import greatExperienceIcon from '../../images/great-experience.png';
 import starsBg from '../../images/open-source-bg.png';
+import mobileStarsBg from '../../images/open-source-bg2.png';
 
 class Home extends Component {
   constructor(props) {
     super(props);
-    this.state = { tabIndex: 0 };
+    this.toggleNewsBar= this.toggleNewsBar.bind(this);
+    this.state = { 
+      tabIndex: 0,
+      newsBar: true
+    };
   }
+
+  toggleNewsBar() {
+    const currentState = this.state.newsBar;
+    this.setState({ newsBar: !currentState });
+  };
 
   render() {
     return (
       <div id="home">
         <section className="hero">
+          <div className="bg-container"></div>
           <div className="plane">
+            {this.state.newsBar &&
             <div className="news">
               <div className="label">NEW</div>
-              <div className="content"><a href="">April release is out. Check out what's new!</a></div>
+              <div className="content">
+                <a href="">April release is out. Check out what's new!</a>
+                <div className="close-icon" onClick={this.toggleNewsBar}></div>
+              </div>
             </div>
+            }
             <h1>A graphql-first ecommerce <span className="primaryColor">platform for perfectionists</span></h1>
             <a href="#" className="btn btn-secondary">See demo</a>
             <a href="#" className="btn btn-primary">Brief us</a>
@@ -81,32 +98,72 @@ class Home extends Component {
               </div>
               <div className="col-xs-12 col-sm-6 image"></div>
             </div>
-            <div className="feature-item user-experience text-center">
-              <h2><span>04<br/>-</span>User experience that simply rocks</h2>
-              <h4>Unlike what you might expect from open source software Saleor’s user experience rivals that of the best commercial solutions.</h4>
+            <div className="grid feature-item user-experience text-center">
+              <div className="col-xs-12 col-sm-12 text">
+                <h2><span>04<br/>-</span>User experience that simply rocks</h2>
+                <h4>Unlike what you might expect from open source software Saleor’s user experience rivals that of the best commercial solutions.</h4>
+              </div>
+              <div className="col-xs-12 col-sm-0 image"></div>
             </div>
-            <div className="grid feature-item storefront">
-              <div className="col-xs-12 col-sm-6 text">
-                <h2>Storefront</h2>
-                <p><strong>Saleor takes advantage of PWA standards  to optimize mobile experiences of the rapidly growing group of people shopping on the run. </strong></p>
-                <p>Allow your customers to buy their next pair of jeans while enjoying a virgin margarita on a plane. They will only need an internet connection when they go to pay with Apple Pay or one of the cards stored by their phone. </p>
+            {isMobileOnly ? (
+              <Tabs className="feature-tabs">
+               <TabList className="grid">
+                 <Tab className="col-xs-6">Dashboard</Tab>
+                 <Tab className="col-xs-6">Storefront</Tab>
+               </TabList>
+               <TabPanel>
+                 <div className="grid feature-item dashboard">
+                   <div className="col-xs-12 col-sm-6 image"></div>
+                   <div className="col-xs-12 col-sm-6 text">
+                     <h2>Dashboard</h2>
+                     <p><strong>Easy-to-use dashboard makes managing your store a pleasant experience whether you’re using the latest Macbook or a two-year-old smartphone. </strong></p>
+                     <p>Its intuitive interface is designed to aid your staff in daily routines like order management, inventory tracking or reporting. Saleor dashboard’s friendly home screen will also suggest items that may need your attention so you always stay on top of things.</p>
+                   </div>
+                   <div className="decoration">
+                     <img src="../../images/decoration03.png" />
+                   </div>
+                 </div>
+               </TabPanel>
+               <TabPanel>
+                 <div className="grid feature-item storefront">
+                   <div className="col-xs-12 col-sm-6 text">
+                     <h2>Storefront</h2>
+                     <p><strong>Saleor takes advantage of PWA standards  to optimize mobile experiences of the rapidly growing group of people shopping on the run. </strong></p>
+                     <p>Allow your customers to buy their next pair of jeans while enjoying a virgin margarita on a plane. They will only need an internet connection when they go to pay with Apple Pay or one of the cards stored by their phone. </p>
+                   </div>
+                   <div className="col-xs-12 col-sm-6 image"></div>
+                   <div className="decoration">
+                     <img src="../../images/decoration01.png" />
+                   </div>
+                 </div>
+               </TabPanel>
+             </Tabs>
+            ) : (
+              <div>
+                <div className="grid feature-item storefront">
+                  <div className="col-xs-12 col-sm-6 text">
+                    <h2>Storefront</h2>
+                    <p><strong>Saleor takes advantage of PWA standards  to optimize mobile experiences of the rapidly growing group of people shopping on the run. </strong></p>
+                    <p>Allow your customers to buy their next pair of jeans while enjoying a virgin margarita on a plane. They will only need an internet connection when they go to pay with Apple Pay or one of the cards stored by their phone. </p>
+                  </div>
+                  <div className="col-xs-12 col-sm-6 image"></div>
+                  <div className="decoration">
+                    <img src="../../images/decoration01.png" />
+                  </div>
+                </div>
+                <div className="grid feature-item dashboard">
+                  <div className="col-xs-12 col-sm-6 image"></div>
+                  <div className="col-xs-12 col-sm-6 text">
+                    <h2>Dashboard</h2>
+                    <p><strong>Easy-to-use dashboard makes managing your store a pleasant experience whether you’re using the latest Macbook or a two-year-old smartphone. </strong></p>
+                    <p>Its intuitive interface is designed to aid your staff in daily routines like order management, inventory tracking or reporting. Saleor dashboard’s friendly home screen will also suggest items that may need your attention so you always stay on top of things.</p>
+                  </div>
+                  <div className="decoration">
+                    <img src="../../images/decoration03.png" />
+                  </div>
+                </div>
               </div>
-              <div className="col-xs-12 col-sm-6 image"></div>
-              <div className="decoration">
-                <img src="../../images/decoration01.png" />
-              </div>
-            </div>
-            <div className="grid feature-item dashboard">
-              <div className="col-xs-12 col-sm-6 image"></div>
-              <div className="col-xs-12 col-sm-6 text">
-                <h2>Dashboard</h2>
-                <p><strong>Easy-to-use dashboard makes managing your store a pleasant experience whether you’re using the latest Macbook or a two-year-old smartphone. </strong></p>
-                <p>Its intuitive interface is designed to aid your staff in daily routines like order management, inventory tracking or reporting. Saleor dashboard’s friendly home screen will also suggest items that may need your attention so you always stay on top of things.</p>
-              </div>
-              <div className="decoration">
-                <img src="../../images/decoration03.png" />
-              </div>
-            </div>
+            )}
             <div className="text-center">
               <a className="btn btn-primary" href="">See more features</a>
             </div>
@@ -123,29 +180,33 @@ class Home extends Component {
               <p>What started in 2010 as a humble solution to a local problem has over the years become a platform that many of you rely on in your day to day job. We wouldn’t be here if it wasn’t for all of our great contributors and supporters.</p>
             </div>
             <div className="stars-bg">
-              <img src={starsBg} />
+              {isMobileOnly ? (
+                <img src={mobileStarsBg} />
+              ):(
+                <img src={starsBg} />
+              )}
             </div>
             <div className="github-circle">
               <GitHubLink owner="mirumee" name="saleor" text="Github Stars" />
             </div>
             <div className="grid icons">
-              <div className="col-xs-6 col-sm-2">
+              <div className="icon col-xs-5 col-sm-2">
                 <ReactSVG className="github-icon" path="images/github-icon.svg" />
                 <h5>Suggest features <br/>and propose changes</h5>
               </div>
-              <div className="col-xs-6 col-sm-2">
+              <div className="icon col-xs-5 col-sm-2">
                 <ReactSVG className="transifex-icon" path="images/transifex-icon.svg" />
                 <h5>Translate Saleor <br/>to your language</h5>
               </div>
-              <div className="col-xs-6 col-sm-2">
+              <div className="icon col-xs-5 col-sm-2">
                 <ReactSVG className="gitter-icon" path="images/gitter-icon.svg" />
                 <h5>Discuss the <br/>featre of Saleor</h5>
               </div>
-              <div className="col-xs-6 col-sm-2">
+              <div className="icon col-xs-5 col-sm-2">
                 <ReactSVG className="stackoverflow-icon" path="images/stackoverflow-icon.svg" />
                 <h5>Ask for <br />help</h5>
               </div>
-              <div className="col-xs-6 col-sm-2">
+              <div className="icon col-xs-5 col-sm-2">
                 <ReactSVG className="medium-icon" path="images/medium-icon.svg" />
                 <h5>Follow Saleor's<br/> development</h5>
               </div>
@@ -167,8 +228,8 @@ class Home extends Component {
                 </div>
                 <div className="col-xs-12 col-sm-12 col-md-6">
                   <TabList className="tabs grid hovered">
-                    <Tab className="col-sm-6">Case studies</Tab>
-                    <Tab className="col-sm-6">Implementations</Tab>
+                    <Tab className="col-xs-6 col-sm-6"><span>Case studies</span></Tab>
+                    <Tab className="col-xs-6 col-sm-6"><span>Implementations</span></Tab>
                   </TabList>
                 </div>
               </div>

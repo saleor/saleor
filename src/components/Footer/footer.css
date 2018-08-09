@@ -1,10 +1,16 @@
 footer {
   padding: calc(var(--spacer) * 3) 0;
+  position: relative;
   & .logo {
+    width: 120px;
     padding-bottom: var(--spacer);
     padding-left: calc(var(--spacer) * 5);
     @media (max-width: 768px) {
       padding-left: calc(var(--spacer) * 2);
+    }
+    @media (max-width: 576px) {
+      width: 80px;
+      padding-left: calc(var(--spacer) / 2);
     }
   }
   & .content {
@@ -14,6 +20,9 @@ footer {
       padding: calc(var(--spacer) * 2) calc(var(--spacer) * 5);
       @media (max-width: 768px) {
         padding: calc(var(--spacer) * 2) calc(var(--spacer) * 2);
+      }
+      @media (max-width: 576px) {
+        padding: calc(var(--spacer) * 2) calc(var(--spacer) / 2);
       }
       & h4 {
         font-size: var(--font-size);
@@ -36,6 +45,12 @@ footer {
         width: 25px;
         height: 25px;
         margin: 0 calc(var(--spacer) / 2);
+      }
+      @media (max-width: 576px) {
+        position: absolute;
+        width: 30%;
+        top: 5%;
+        right: 7%;
       }
     }
   }

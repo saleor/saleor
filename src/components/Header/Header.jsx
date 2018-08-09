@@ -24,13 +24,11 @@ class Header extends Component {
         <div className="container">
           <div className="grid">
             <div className={this.state.mobileMenu ? 'logo open col-xs-3 col-sm-3' : 'logo col-xs-3 col-sm-3'}>
-              <Link to="/"><ReactSVG className="star-icon" path="images/saleor-logo.svg" /></Link>
+              <Link to="/"><ReactSVG className="logo-svg" path="images/saleor-logo.svg" /></Link>
             </div>
             <nav className="menu col-xs-9 col-sm-9">
-              <ul className={this.state.mobileMenu ? 'menu-mobile' : null}>
-                {this.state.mobileMenu &&
-                  <li><span className="count">01. </span><Link to="/">Home</Link></li>
-                }
+              <ul className={this.state.mobileMenu ? 'menu-mobile hovered' : null}>
+                <li className="home"><span className="count">01. </span><Link to="/">Home</Link></li>
                 <li><span className="count">02. </span><Link to="/features">Features</Link></li>
                 <li><span className="count">03. </span><Link to="/">Roadmap</Link></li>
                 <li><span className="count">04. </span><a href="https://saleor.readthedocs.io/en/latest/">Docs</a></li>

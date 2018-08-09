@@ -12,9 +12,9 @@ const Footer = () => (
       </div>
       <div className="content">
         <div className="grid">
-          <div className="col-sm-9 menu">
+          <div className="col-xs-12 col-sm-9 menu">
             <div className="grid">
-              <div className="col-sm-3 col-md-2">
+              <div className="col-xs-4 col-sm-3 col-md-2">
                 <ul>
                   <li><h4>Company</h4></li>
                   <li><a href="">About</a></li>
@@ -22,7 +22,7 @@ const Footer = () => (
                   <li><a href="">Contact</a></li>
                 </ul>
               </div>
-              <div className="col-sm-3 col-md-2">
+              <div className="col-xs-4 col-sm-3 col-md-2">
                 <ul>
                   <li><h4>Solution</h4></li>
                   <li><a href="">Features</a></li>
@@ -31,7 +31,7 @@ const Footer = () => (
                   <li><a href="">Demo</a></li>
                 </ul>
               </div>
-              <div className="col-sm-3 col-md-2">
+              <div className="col-xs-4 col-sm-3 col-md-2">
                 <ul>
                   <li><h4>Community</h4></li>
                   <li><a href="">Contribute</a></li>
@@ -41,7 +41,7 @@ const Footer = () => (
               </div>
             </div>
           </div>
-          <div className="col-sm-3 icons">
+          <div className="col-xs-12 col-sm-3 icons">
             <div className="grid">
               <div className="col-sm-1">
                 <a href=""><ReactSVG className="twitter-icon" path="images/twiiter-icon.svg" /></a>
