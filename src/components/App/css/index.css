@@ -121,8 +121,11 @@ img {
   overflow: hidden;
   margin: 0 auto;
   padding: 0 calc(var(--spacer) * 2);
+  @media (max-width: 768px) {
+    padding: 0 var(--spacer);
+  }
   @media (max-width: 576px) {
-    padding: 0 calc(var(--spacer));
+    padding: 0 calc(var(--spacer) * 0.5);
   }
 }
 

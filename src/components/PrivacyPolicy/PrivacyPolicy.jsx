@@ -6,6 +6,7 @@ import css from './privacypolicy.css';
 const PrivacyPolicy = () => (
 	<div id="privacy-policy">
 		<section className="hero">
+			<div className="bg-container"></div>
 			<div className="plane">
 				<h1 className="title">Privacy Policy</h1>
 				<p className="text-large">We respect your privacy and transparency is something we highly value. Below you can learn everything about information we collect.</p>

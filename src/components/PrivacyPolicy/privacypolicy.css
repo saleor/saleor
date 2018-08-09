@@ -7,26 +7,55 @@
     }
 		& .title, & .description {
 			margin-bottom: var(--spacer);
-		}
-		&.hero {
-			background-image: url('../../images/lock-bg.png');
-			background-size: auto;
-			background-repeat: no-repeat;
+    }
+    & .bg-container {
+      background-image: url('../../images/lock-bg.png');
+      background-size: auto;
+      background-repeat: no-repeat;
       background-position: 110% 30%;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      z-index: -1;
+      @media (max-width: 768px) {
+        opacity: 0.5;
+        background-position: 400% 0%;
+      }
+      @media (max-width: 576px) {
+        background-position: 35% 0%;
+      }
+    }
+		&.hero {
+      padding: 0;
       position: relative;
+      margin-bottom: calc(var(--spacer) * 4);
 			& .plane {
 				width: 50%;
-				padding: calc(var(--spacer) * 14) 0 calc(var(--spacer) * 14) calc(var(--spacer));
+				padding: calc(var(--spacer) * 14) calc(var(--spacer) * 7);
 				& p {
 					font-size: calc(var(--font-size-base) * 1.2);
 					width: 70%;
         }
-        @media (max-width: 768px) {
-          padding: calc(var(--spacer) * 10) 0 calc(var(--spacer) * 5) 0;
+        @media (max-width: 576px) {
+          padding: 0 var(--spacer);
           width: auto;
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
           & p {
             width: auto;
           }
+        }
+      }
+      & .scroll-link {
+        @media (max-width: 768px) {
+          position: absolute;
+          bottom: 5%;
+          left: 0;
+          right: 0;
+        }
+        @media (max-width: 576px) {
+          bottom: 10%;
         }
       }
       & .decoration {
@@ -35,16 +64,11 @@
         z-index: -1;
         width: auto;
       }
+
       @media (max-width: 768px) {
-        height: 70vh;
-        background-position: 35% 0%;
-        & .scroll-link {
-          position: absolute;
-          bottom: 5%;
-          left: 0;
-          right: 0;
-        }
+        height: 80vh;
       }
+
 		}
 		&.general-information {
 			& .border-left {
@@ -92,6 +116,14 @@
         top: -20%;
         width: 10%;
       }
+      @media(max-width: 768px) {
+        background: linear-gradient(135deg, rgba(16,10,53,0) 0%, rgba(16,10,53,1) 8%, rgba(16,10,53,1) 100%, rgba(16,10,53,0) 8%, rgba(16,10,53,0) 100%);
+      }
     }
-	}
+  }
+  @media (max-width: 768px) {
+    & .decoration {
+      display: none;
+    }
+  }
 }
