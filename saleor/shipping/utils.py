@@ -13,13 +13,13 @@ def get_taxed_shipping_price(price, taxes):
 
 
 def get_shipment_options(country_code, taxes):
-    from .models import ShippingRate
-    shipping_rates = ShippingRate.objects.prefetch_related(
+    from .models import ShippingMethod
+    shipping_methods = ShippingMethod.objects.prefetch_related(
         'shipping_zone')
-    shipping_rates = shipping_rates.filter(
+    shipping_methods = shipping_methods.filter(
         shipping_zone__countries__contains=country_code)
-    if shipping_rates:
-        shipping_rates = shipping_rates.values_list('price', flat=True)
+    if shipping_methods:
+        shipping_methods = shipping_methods.values_list('price', flat=True)
         prices = MoneyRange(
-            start=min(shipping_rates), stop=max(shipping_rates))
+            start=min(shipping_methods), stop=max(shipping_methods))
         return get_taxed_shipping_price(prices, taxes)

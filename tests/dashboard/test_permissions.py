@@ -739,7 +739,7 @@ def test_staff_can_access_attribute_delete(
     assert response.status_code == 200
 
 
-def test_staff_with_permissions_can_view_shipping_rates_and_details(
+def test_staff_with_permissions_can_view_shipping_methods_and_details(
         staff_client, staff_user, permission_manage_shipping, shipping_zone):
     assert not staff_user.has_perm('shipping.manage_shipping')
     response = staff_client.get(reverse('dashboard:shipping-zones'))

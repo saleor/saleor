@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import pgettext_lazy
 
-from ...shipping.models import ShippingZone, ShippingRate
+from ...shipping.models import ShippingZone, ShippingMethod
 
 
 def currently_used_countries(shipping_zone_pk=None):
@@ -17,7 +17,7 @@ class ShippingZoneForm(forms.ModelForm):
 
     class Meta:
         model = ShippingZone
-        exclude = ['shipping_rates']
+        exclude = ['shipping_methods']
         labels = {
             'name': pgettext_lazy(
                 'Shippment Zone field name', 'Zone Name'),
@@ -54,15 +54,15 @@ class ShippingZoneForm(forms.ModelForm):
         return countries
 
 
-class ShippingRateForm(forms.ModelForm):
+class ShippingMethodForm(forms.ModelForm):
 
     class Meta:
-        model = ShippingRate
+        model = ShippingMethod
         exclude = ['shipping_zone']
         labels = {
             'name': pgettext_lazy(
-                'Shipping Rate name', 'Name'),
+                'Shipping Method name', 'Name'),
             'type': pgettext_lazy(
-                'Shipping Rate type', 'Type'),
+                'Shipping Method type', 'Type'),
             'price': pgettext_lazy(
                 'Currency amount', 'Price')}

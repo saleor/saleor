@@ -23,7 +23,7 @@ from ...order.emails import (
     send_order_confirmation)
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderNote
 from ...order.utils import update_order_prices, update_order_status
-from ...shipping.models import ShippingRate
+from ...shipping.models import ShippingMethod
 from ..views import staff_member_required
 from .filters import OrderFilter
 from .forms import (
@@ -711,9 +711,9 @@ def change_fulfillment_tracking(request, order_pk, fulfillment_pk):
 
 
 @staff_member_required
-def ajax_order_shipping_rates_list(request, order_pk):
+def ajax_order_shipping_methods_list(request, order_pk):
     order = get_object_or_404(Order, pk=order_pk)
-    queryset = ShippingRate.objects.prefetch_related(
+    queryset = ShippingMethod.objects.prefetch_related(
         'shipping_zone').order_by('name', 'price')
 
     if order.shipping_address:
@@ -727,7 +727,7 @@ def ajax_order_shipping_rates_list(request, order_pk):
             Q(name__icontains=search_query) |
             Q(price__icontains=search_query))
 
-    shipping_rates = [
+    shipping_methods = [
         {'id': method.pk, 'text': method.get_ajax_label()}
         for method in queryset]
-    return JsonResponse({'results': shipping_rates})
+    return JsonResponse({'results': shipping_methods})

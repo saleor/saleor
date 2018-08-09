@@ -646,11 +646,11 @@ def _get_shipping_voucher_discount_for_cart(voucher, cart):
             'Voucher not applicable',
             'Your order does not require shipping.')
         raise NotApplicable(msg)
-    shipping_method = cart.shipping_rate
+    shipping_method = cart.shipping_method
     if not shipping_method:
         msg = pgettext(
             'Voucher not applicable',
-            'Please select a shipping rate first.')
+            'Please select a shipping method first.')
         raise NotApplicable(msg)
     not_valid_for_country = all([
         voucher.countries, ANY_COUNTRY not in voucher.countries,
@@ -761,22 +761,22 @@ def get_taxes_for_cart(cart, default_taxes):
     return default_taxes
 
 
-def check_shipping_rate(cart):
-    """Check if shipping rate is valid for the cart and remove (if not)."""
+def check_shipping_method(cart):
+    """Check if shipping method is valid for the cart and remove (if not)."""
     country_code = cart.shipping_address.country.code
     # There should be only one ShippingZone per country
     valid_shipping_zone = ShippingZone.objects.filter(
         countries__contains=country_code).first()
 
     shipping_outside_the_shipping_zone = (
-        cart.shipping_rate and
-        cart.shipping_rate.shipping_zone != valid_shipping_zone)
+        cart.shipping_method and
+        cart.shipping_method.shipping_zone != valid_shipping_zone)
     # TODO here we should check price based shipping /weight based shipping
-    shipping_rate_not_applicable = False
+    shipping_method_not_applicable = False
     if any([
         not valid_shipping_zone, shipping_outside_the_shipping_zone,
-            shipping_rate_not_applicable]):
-        cart.shipping_rate = None
+            shipping_method_not_applicable]):
+        cart.shipping_method = None
         cart.save()
         return False
     return True
@@ -818,8 +818,8 @@ def _process_shipping_data_for_order(cart, taxes):
 
     return {
         'shipping_address': shipping_address,
-        'shipping_rate': cart.shipping_rate,
-        'shipping_rate_name': smart_text(cart.shipping_rate),
+        'shipping_method': cart.shipping_method,
+        'shipping_method_name': smart_text(cart.shipping_method),
         'shipping_price': cart.get_shipping_price(taxes)}
 
 

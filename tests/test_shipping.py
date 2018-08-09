@@ -23,7 +23,7 @@ def test_get_taxed_shipping_price(
 
 
 def test_shipping_get_total_price(monkeypatch, shipping_zone, vatlayer):
-    method = shipping_zone.shipping_rates.get()
+    method = shipping_zone.shipping_methods.get()
     price = Money(10, 'USD')
     taxed_price = TaxedMoney(
         net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
@@ -35,7 +35,7 @@ def test_shipping_get_total_price(monkeypatch, shipping_zone, vatlayer):
 
 
 def test_shipping_get_ajax_label(shipping_zone):
-    shipping_method = shipping_zone.shipping_rates.get()
+    shipping_method = shipping_zone.shipping_methods.get()
     label = shipping_method.get_ajax_label()
     proper_label = '%(shipping_method)s %(price)s' % {
         'shipping_method': shipping_method,

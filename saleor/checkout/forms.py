@@ -14,7 +14,7 @@ from ..core.i18n import COUNTRY_CODE_CHOICES
 from ..core.utils import format_money
 from ..core.utils.taxes import display_gross_prices
 from ..discount.models import NotApplicable, Voucher
-from ..shipping.models import ShippingRate
+from ..shipping.models import ShippingMethod
 from ..shipping.utils import get_shipment_options, get_taxed_shipping_price
 from .models import Cart
 
@@ -170,7 +170,7 @@ class CountryForm(forms.Form):
             choices=COUNTRY_CODE_CHOICES)
 
     def get_shipment_options(self):
-        """Return a list of shipping rates for the selected country."""
+        """Return a list of shipping methods for the selected country."""
         code = self.cleaned_data['country']
         return get_shipment_options(code, self.taxes)
 
@@ -234,8 +234,8 @@ class BillingAddressChoiceForm(AddressChoiceForm):
         choices=CHOICES, initial=SHIPPING_ADDRESS, widget=forms.RadioSelect)
 
 
-class ShippingRateChoiceField(forms.ModelChoiceField):
-    """Shipping rate choice field.
+class ShippingMethodChoiceField(forms.ModelChoiceField):
+    """Shipping method choice field.
 
     Uses a radio group instead of a dropdown and includes estimated shipping
     prices.
@@ -245,7 +245,7 @@ class ShippingRateChoiceField(forms.ModelChoiceField):
     widget = forms.RadioSelect()
 
     def label_from_instance(self, obj):
-        """Return a friendly label for the shipping rate."""
+        """Return a friendly label for the shipping method."""
         price = get_taxed_shipping_price(obj.price, self.taxes)
         if display_gross_prices():
             price = price.gross
@@ -256,32 +256,32 @@ class ShippingRateChoiceField(forms.ModelChoiceField):
         return label
 
 
-class CartShippingRateForm(forms.ModelForm):
-    """Cart shipping rate form."""
-    shipping_rate = ShippingRateChoiceField(
-        queryset=ShippingRate.objects.prefetch_related(
+class CartShippingMethodForm(forms.ModelForm):
+    """Cart shipping method form."""
+    shipping_method = ShippingMethodChoiceField(
+        queryset=ShippingMethod.objects.prefetch_related(
             'shipping_zone').order_by('price'),
         label=pgettext_lazy(
-            'Shipping rate form field label', 'Shipping rate'),
+            'Shipping method form field label', 'Shipping method'),
         empty_label=None)
 
     class Meta:
         model = Cart
-        fields = ['shipping_rate']
+        fields = ['shipping_method']
 
     def __init__(self, *args, **kwargs):
         taxes = kwargs.pop('taxes')
         super().__init__(*args, **kwargs)
         country_code = self.instance.shipping_address.country.code
-        qs = self.fields['shipping_rate'].queryset.filter(
+        qs = self.fields['shipping_method'].queryset.filter(
             shipping_zone__countries__contains=country_code)
-        self.fields['shipping_rate'].queryset = qs
-        self.fields['shipping_rate'].taxes = taxes
+        self.fields['shipping_method'].queryset = qs
+        self.fields['shipping_method'].taxes = taxes
 
-        if self.initial.get('shipping_rate') is None:
-            shipping_rates = qs.all()
-            if shipping_rates:
-                self.initial['shipping_rate'] = shipping_rates[0]
+        if self.initial.get('shipping_method') is None:
+            shipping_methods = qs.all()
+            if shipping_methods:
+                self.initial['shipping_method'] = shipping_methods[0]
 
 
 class CartNoteForm(forms.ModelForm):

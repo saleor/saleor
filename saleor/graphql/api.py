@@ -56,7 +56,7 @@ from .product.resolvers import (
 from .product.types import (
     Category, Collection, Product, ProductAttribute, ProductType,
     ProductVariant)
-from .shipping.resolvers import resolve_shipping_rates
+from .shipping.resolvers import resolve_shipping_methods
 from .shipping.types import ShippingZone
 from .shipping.mutations import (
     ShippingZoneCreate, ShippingZoneDelete, ShippingZoneUpdate,
@@ -239,8 +239,8 @@ class Query(graphene.ObjectType):
     def resolve_shipping_zone(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ShippingZone)
 
-    def resolve_shipping_rates(self, info, **kwargs):
-        return resolve_shipping_rates(info)
+    def resolve_shipping_methods(self, info, **kwargs):
+        return resolve_shipping_methods(info)
 
 
 class Mutations(graphene.ObjectType):

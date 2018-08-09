@@ -21,7 +21,7 @@ class ShippingZone(CountableDjangoObjectType):
         filter_fields = {
             'name': ['icontains'],
             'countries': ['icontains'],
-            'shipping_rates__price': ['gte', 'lte']
+            'shipping_methods__price': ['gte', 'lte']
         }
 
     def resolve_price_range(self, info):
@@ -31,9 +31,9 @@ class ShippingZone(CountableDjangoObjectType):
         return self.countries
 
 
-class ShippingRate(DjangoObjectType):
+class ShippingMethod(DjangoObjectType):
     class Meta:
         description = 'Shipping method within a shipping zone.'
-        model = models.ShippingRate
+        model = models.ShippingMethod
         interfaces = [relay.Node]
         exclude_fields = ['shipping_zone', 'orders']

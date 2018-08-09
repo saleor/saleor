@@ -18,7 +18,7 @@
 {% endblock %}
 
 {% block actions_left %}
-  {% if order.shipping_rate or order.shipping_rate_name %}
+  {% if order.shipping_method or order.shipping_method_name %}
     <button type="submit" class="modal-action btn-flat waves-effect" formaction="{% url 'dashboard:order-shipping-remove' order_pk=order.pk %}">
       {% trans "Remove shipping from order" context "Dashboard edit draft order remove action" %}
     </button>

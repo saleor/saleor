@@ -18,5 +18,5 @@ class TaxesConfigurationForm(forms.ModelForm):
                 'Display gross prices',
                 'Show gross prices to customers in the storefront'),
             'charge_taxes_on_shipping': pgettext_lazy(
-                'Charge taxes on shipping rates',
-                'Charge taxes on shipping rates')}
+                'Charge taxes on shipping methods',
+                'Charge taxes on shipping methods')}

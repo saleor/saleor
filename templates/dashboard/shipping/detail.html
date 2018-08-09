@@ -58,11 +58,11 @@
       <div class="card">
         <div class="card-content">
           <span class="card-title">
-             {% trans "Shipping rates" context "Title of the per-country shipping price list" %}
+             {% trans "Shipping methods" context "Title of the per-country shipping price list" %}
           </span>
         </div>
         <div class="data-table-header-action">
-            <a href="{% url 'dashboard:shipping-rate-add' shipping_zone_pk=shipping_zone.pk %}" class="btn-data-table btn-flat waves-effect">
+            <a href="{% url 'dashboard:shipping-method-add' shipping_zone_pk=shipping_zone.pk %}" class="btn-data-table btn-flat waves-effect">
               {% trans "Add" %}
             </a>
         </div>
@@ -79,15 +79,15 @@
               </tr>
             </thead>
             <tbody>
-              {% for country in shipping_rates %}
+              {% for country in shipping_methods %}
                 <tr>
                   <td>{{ country.name }}</td>
                   <td>{% price country.price %}</td>
                   <td class="right-align">
-                    <a href="{% url 'dashboard:shipping-rate-edit' shipping_zone_pk=shipping_zone.pk shipping_rate_pk=country.pk %}" class="btn-flat waves-effect">
+                    <a href="{% url 'dashboard:shipping-method-edit' shipping_zone_pk=shipping_zone.pk shipping_method_pk=country.pk %}" class="btn-flat waves-effect">
                       {% trans 'Edit' context 'Attribute choice value edit action' %}
                     </a>
-                    <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:shipping-rate-delete' shipping_zone_pk=shipping_zone.pk shipping_rate_pk=country.pk %}">
+                    <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:shipping-method-delete' shipping_zone_pk=shipping_zone.pk shipping_method_pk=country.pk %}">
                       {% trans 'Remove' context 'Attribute choice value remove action' %}
                     </a>
                   </td>

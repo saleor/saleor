@@ -12,7 +12,7 @@ def test_shipping_zone_query(user_api_client, shipping_zone):
     query ShippingQuery($id: ID!) {
         shippingZone(id: $id) {
             name
-            shippingRates {
+            shippingMethods {
                 edges {
                     node {
                         price {
@@ -42,8 +42,8 @@ def test_shipping_zone_query(user_api_client, shipping_zone):
     shipping_data = content['data']['shippingZone']
     assert 'errors' not in content
     assert shipping_data['name'] == shipping.name
-    no_ppc = shipping_zone.shipping_rates.count()
-    assert len(shipping_data['shippingRates']) == no_ppc
+    no_ppc = shipping_zone.shipping_methods.count()
+    assert len(shipping_data['shippingMethods']) == no_ppc
     price_range = shipping.price_range
     data_price_range = shipping_data['priceRange']
     assert data_price_range['start']['amount'] == price_range.start.amount
@@ -134,7 +134,7 @@ def test_delete_shipping_zone(admin_api_client, shipping_zone):
         shipping_zone.refresh_from_db()
 
 
-def test_create_shipping_rate(admin_api_client, shipping_zone):
+def test_create_shipping_method(admin_api_client, shipping_zone):
     query = """
     mutation createShippingPrice(
         $name: String!, $price: Decimal, $shippingZone: ID!){
@@ -142,7 +142,7 @@ def test_create_shipping_rate(admin_api_client, shipping_zone):
             input: {
                 name: $name, price: $price,
                 shippingZone: $shippingZone}) {
-            shippingRate {
+            shippingMethod {
                 name
                 price {
                     amount
@@ -164,18 +164,18 @@ def test_create_shipping_rate(admin_api_client, shipping_zone):
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    data = content['data']['shippingPriceCreate']['shippingRate']
+    data = content['data']['shippingPriceCreate']['shippingMethod']
     assert data['name'] == name
     assert data['price']['amount'] == float(price)
 
 
-def test_update_shipping_rate(admin_api_client, shipping_zone, shipping_rate):
+def test_update_shipping_method(admin_api_client, shipping_zone, shipping_method):
     query = """
     mutation updateShippingPrice(
         $id: ID!, $price: Decimal, $shippingZone: ID!) {
         shippingPriceUpdate(
             id: $id, input: {price: $price, shippingZone: $shippingZone}) {
-            shippingRate {
+            shippingMethod {
                 price {
                     amount
                 }
@@ -183,31 +183,31 @@ def test_update_shipping_rate(admin_api_client, shipping_zone, shipping_rate):
         }
     }
     """
-    # shipping_rate = shipping_zone.shipping_rates.first()
+    # shipping_method = shipping_zone.shipping_methods.first()
     price = '12.34'
-    assert not str(shipping_rate.price) == price
+    assert not str(shipping_method.price) == price
     shipping_zone_id = graphene.Node.to_global_id(
         'ShippingZone', shipping_zone.pk)
-    shipping_rate_id = graphene.Node.to_global_id(
-        'ShippingRate', shipping_rate.pk)
+    shipping_method_id = graphene.Node.to_global_id(
+        'ShippingMethod', shipping_method.pk)
     variables = json.dumps(
         {
             'shippingZone': shipping_zone_id,
             'price': price,
-            'id': shipping_rate_id})
+            'id': shipping_method_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    data = content['data']['shippingPriceUpdate']['shippingRate']
+    data = content['data']['shippingPriceUpdate']['shippingMethod']
     assert data['price']['amount'] == float(price)
 
 
-def test_delete_shipping_rate(admin_api_client, shipping_rate):
+def test_delete_shipping_method(admin_api_client, shipping_method):
     query = """
         mutation deleteShippingPrice($id: ID!) {
             shippingPriceDelete(id: $id) {
-                shippingRate {
+                shippingMethod {
                     price {
                         amount
                     }
@@ -215,14 +215,14 @@ def test_delete_shipping_rate(admin_api_client, shipping_rate):
             }
         }
         """
-    shipping_rate_id = graphene.Node.to_global_id(
-        'ShippingRate', shipping_rate.pk)
-    variables = json.dumps({'id': shipping_rate_id})
+    shipping_method_id = graphene.Node.to_global_id(
+        'ShippingMethod', shipping_method.pk)
+    variables = json.dumps({'id': shipping_method_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    data = content['data']['shippingPriceDelete']['shippingRate']
-    assert data['price']['amount'] == float(shipping_rate.price)
-    with pytest.raises(shipping_rate._meta.model.DoesNotExist):
-        shipping_rate.refresh_from_db()
+    data = content['data']['shippingPriceDelete']['shippingMethod']
+    assert data['price']['amount'] == float(shipping_method.price)
+    with pytest.raises(shipping_method._meta.model.DoesNotExist):
+        shipping_method.refresh_from_db()

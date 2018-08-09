@@ -8,10 +8,10 @@ from ...core.utils import (
     format_money, get_user_shipping_country, to_local_currency)
 from ...product.models import ProductVariant
 from ...shipping.utils import get_shipment_options
-from ..forms import CartShippingRateForm, CountryForm, ReplaceCartLineForm
+from ..forms import CartShippingMethodForm, CountryForm, ReplaceCartLineForm
 from ..models import Cart
 from ..utils import (
-    check_product_availability_and_warn, check_shipping_rate, get_cart_data,
+    check_product_availability_and_warn, check_shipping_method, get_cart_data,
     get_cart_data_for_checkout, get_or_empty_db_cart, get_taxes_for_cart,
     update_cart_quantity)
 from .discount import add_voucher_form, validate_voucher
@@ -22,7 +22,7 @@ from .summary import (
     summary_without_shipping)
 from .validators import (
     validate_cart, validate_is_shipping_required, validate_shipping_address,
-    validate_shipping_rate)
+    validate_shipping_method)
 
 
 @get_or_empty_db_cart(Cart.objects.for_display())
@@ -61,21 +61,21 @@ def checkout_shipping_address(request, cart):
 @validate_is_shipping_required
 @validate_shipping_address
 @add_voucher_form
-def checkout_shipping_rate(request, cart):
-    """Display the shipping rate selection step."""
+def checkout_shipping_method(request, cart):
+    """Display the shipping method selection step."""
     taxes = get_taxes_for_cart(cart, request.taxes)
-    check_shipping_rate(cart)
+    check_shipping_method(cart)
 
-    form = CartShippingRateForm(
+    form = CartShippingMethodForm(
         request.POST or None, taxes=taxes, instance=cart,
-        initial={'shipping_rate': cart.shipping_rate})
+        initial={'shipping_method': cart.shipping_method})
     if form.is_valid():
         form.save()
         return redirect('checkout:summary')
 
     ctx = get_cart_data_for_checkout(cart, request.discounts, taxes)
-    ctx.update({'shipping_rate_form': form})
-    return TemplateResponse(request, 'checkout/shipping_rate.html', ctx)
+    ctx.update({'shipping_method_form': form})
+    return TemplateResponse(request, 'checkout/shipping_method.html', ctx)
 
 
 @get_or_empty_db_cart(Cart.objects.for_display())
@@ -85,7 +85,7 @@ def checkout_shipping_rate(request, cart):
 def checkout_summary(request, cart):
     """Display the correct order summary."""
     if cart.is_shipping_required():
-        view = validate_shipping_rate(summary_with_shipping_view)
+        view = validate_shipping_method(summary_with_shipping_view)
         view = validate_shipping_address(view)
         return view(request, cart)
     if request.user.is_authenticated:

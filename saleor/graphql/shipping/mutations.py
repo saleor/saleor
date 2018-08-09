@@ -7,8 +7,8 @@ from ..core.types.common import Decimal
 
 class ShippingPriceInput(graphene.InputObjectType):
     name = graphene.String(
-        description='Name of the shipping rate.')
-    price = Decimal(description='Shipping price of the shipping rate.')
+        description='Name of the shipping method.')
+    price = Decimal(description='Shipping price of the shipping method.')
     shipping_zone = graphene.ID(
         description='Related shipping zone name.', name='shippingZone')
 
@@ -74,7 +74,7 @@ class ShippingPriceCreate(ModelMutation):
 
     class Meta:
         description = 'Creates a new shipping price.'
-        model = models.ShippingRate
+        model = models.ShippingMethod
 
     @classmethod
     def user_is_allowed(cls, user, input):
@@ -91,7 +91,7 @@ class ShippingPriceUpdate(ModelMutation):
 
     class Meta:
         description = 'Updates a new shipping price.'
-        model = models.ShippingRate
+        model = models.ShippingMethod
 
     @classmethod
     def user_is_allowed(cls, user, input):
@@ -105,7 +105,7 @@ class ShippingPriceDelete(ModelDeleteMutation):
 
     class Meta:
         description = 'Deletes a shipping price.'
-        model = models.ShippingRate
+        model = models.ShippingMethod
 
     @classmethod
     def user_is_allowed(cls, user, input):

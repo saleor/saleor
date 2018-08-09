@@ -32,7 +32,7 @@ from ...product.models import (
     ProductImage, ProductType, ProductVariant)
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
-from ...shipping.models import ShippingRate, ShippingZone
+from ...shipping.models import ShippingMethod, ShippingZone
 from ...shipping.utils import get_taxed_shipping_price
 
 fake = Factory.create()
@@ -448,11 +448,11 @@ def create_fake_order(discounts, taxes):
             'user_email': get_email(
                 address.first_name, address.last_name)}
 
-    shipping_rate = ShippingRate.objects.order_by('?').first()
-    shipping_price = shipping_rate.price
+    shipping_method = ShippingMethod.objects.order_by('?').first()
+    shipping_price = shipping_method.price
     shipping_price = get_taxed_shipping_price(shipping_price, taxes)
     order_data.update({
-        'shipping_rate_name': shipping_rate.name,
+        'shipping_method_name': shipping_method.name,
         'shipping_price': shipping_price})
 
     order = Order.objects.create(**order_data)
@@ -500,14 +500,14 @@ def create_product_sales(how_many=5):
         yield 'Sale: %s' % (sale,)
 
 
-def create_shipping_zone(shipping_rates_names, countries, shipping_zone_name):
+def create_shipping_zone(shipping_methods_names, countries, shipping_zone_name):
     shipping_zone = ShippingZone.objects.get_or_create(
         name=shipping_zone_name, defaults={'countries': countries})[0]
-    shipping_rates = [
-        ShippingRate(
+    shipping_methods = [
+        ShippingMethod(
             name=name, price=fake.money(), shipping_zone=shipping_zone)
-        for name in shipping_rates_names]
-    ShippingRate.objects.bulk_create(shipping_rates)
+        for name in shipping_methods_names]
+    ShippingMethod.objects.bulk_create(shipping_methods)
     return 'Shipping Zone: %s' % shipping_zone
 
 
@@ -520,7 +520,7 @@ def create_shipping_zones():
         'CH', 'UA', 'GB']
     yield create_shipping_zone(
         shipping_zone_name='Europe', countries=european_countries,
-        shipping_rates_names=[
+        shipping_methods_names=[
             'DHL', 'UPS', 'Registred priority', 'DB Schenker'])
     oceanian_countries = [
         'AS', 'AU', 'CX', 'CC', 'CK', 'FJ', 'PF', 'GU', 'HM', 'KI', 'MH', 'FM',
@@ -528,7 +528,7 @@ def create_shipping_zones():
         'TO', 'TV', 'UM', 'VU', 'WF']
     yield create_shipping_zone(
         shipping_zone_name='Oceania', countries=oceanian_countries,
-        shipping_rates_names=['FBA', 'FedEx Express', 'Oceania Air Mail'])
+        shipping_methods_names=['FBA', 'FedEx Express', 'Oceania Air Mail'])
     asian_countries = [
         'AF', 'AM', 'AZ', 'BH', 'BD', 'BT', 'BN', 'KH', 'CN', 'CY', 'GE', 'HK',
         'IN', 'ID', 'IR', 'IQ', 'IL', 'JP', 'JO', 'KZ', 'KP', 'KR', 'KW', 'KG',
@@ -537,7 +537,7 @@ def create_shipping_zones():
         'UZ', 'VN', 'YE']
     yield create_shipping_zone(
         shipping_zone_name='Asia', countries=asian_countries,
-        shipping_rates_names=['China Post', 'TNT', 'Aramex', 'EMS'])
+        shipping_methods_names=['China Post', 'TNT', 'Aramex', 'EMS'])
     american_countries = [
         'AI', 'AG', 'AR', 'AW', 'BS', 'BB', 'BZ', 'BM', 'BO', 'BQ', 'BV', 'BR',
         'CA', 'KY', 'CL', 'CO', 'CR', 'CU', 'CW', 'DM', 'DO', 'EC', 'SV', 'FK',
@@ -546,7 +546,7 @@ def create_shipping_zones():
         'GS', 'SR', 'TT', 'TC', 'US', 'UY', 'VE', 'VG', 'VI']
     yield create_shipping_zone(
         shipping_zone_name='Americas', countries=american_countries,
-        shipping_rates_names=['DHL', 'UPS', 'FedEx', 'EMS'])
+        shipping_methods_names=['DHL', 'UPS', 'FedEx', 'EMS'])
     african_countries = [
         'DZ', 'AO', 'BJ', 'BW', 'IO', 'BF', 'BI', 'CV', 'CM', 'CF', 'TD', 'KM',
         'CG', 'CD', 'CI', 'DJ', 'EG', 'GQ', 'ER', 'SZ', 'ET', 'TF', 'GA', 'GM',
@@ -555,7 +555,7 @@ def create_shipping_zones():
         'SL', 'SO', 'ZA', 'SS', 'SD', 'TZ', 'TG', 'TN', 'UG', 'EH', 'ZM', 'ZW']
     yield create_shipping_zone(
         shipping_zone_name='Africa', countries=african_countries,
-        shipping_rates_names=[
+        shipping_methods_names=[
             'Royale International', 'ACE', 'fastway couriers', 'Post Office'])
 
 

@@ -21,7 +21,7 @@ There are three ways in which you can configure taxes:
 
    If selected, prices displayed for customers in storefront will be gross. Taxes will be properly calculated at checkout. Changing this setting has no effect on displaying orders placed in the past.
 
-#. Charge taxes on shipping rates
+#. Charge taxes on shipping methods
 
    If selected, standard tax rate will be charged on shipping price.
 
