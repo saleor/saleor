@@ -15,6 +15,14 @@ import greatExperienceIcon from '../../images/great-experience.png';
 import starsBg from '../../images/open-source-bg.png';
 import mobileStarsBg from '../../images/open-source-bg2.png';
 
+import decoration01 from '../../images/decoration01.png';
+import decoration02 from '../../images/decoration02.png';
+import decoration03 from '../../images/decoration03.png';
+import decoration04 from '../../images/decoration04.png';
+import decoration05 from '../../images/decoration05.png';
+import decoration06 from '../../images/decoration06.png';
+import decoration07 from '../../images/decoration07.png';
+
 class Home extends Component {
   constructor(props) {
     super(props);
@@ -79,7 +87,7 @@ class Home extends Component {
               </div>
               <div className="col-xs-12 col-sm-6 image"></div>
               <div className="decoration">
-                <img src="../../images/decoration01.png" />
+                <img src={decoration01} />
               </div>
             </div>
             <div className="grid feature-item build-to-scale">
@@ -90,7 +98,7 @@ class Home extends Component {
                 <p>Saleor is optimized for cloud deployments using Docker. Horizontal scalability allows Saleor to take advantage of platforms such as AWS and Google Cloud and adapt to your traffic. Multi-container deployments allow your software to scale without downtimes. Persistent GraphQL Queries take advantage of CDN to ensure snappy performance under even the heaviest of loads.</p>
               </div>
               <div className="decoration">
-                <img src="../../images/decoration02.png" />
+                <img src={decoration02} />
               </div>
             </div>
             <div className="grid feature-item easy-to-customize">
@@ -123,7 +131,7 @@ class Home extends Component {
                      <p>Its intuitive interface is designed to aid your staff in daily routines like order management, inventory tracking or reporting. Saleor dashboard’s friendly home screen will also suggest items that may need your attention so you always stay on top of things.</p>
                    </div>
                    <div className="decoration">
-                     <img src="../../images/decoration03.png" />
+                     <img src={decoration03} />
                    </div>
                  </div>
                </TabPanel>
@@ -151,7 +159,7 @@ class Home extends Component {
                   </div>
                   <div className="col-xs-12 col-sm-6 image"></div>
                   <div className="decoration">
-                    <img src="../../images/decoration01.png" />
+                    <img src={decoration01} />
                   </div>
                 </div>
                 <div className="grid feature-item dashboard">
@@ -162,7 +170,7 @@ class Home extends Component {
                     <p>Its intuitive interface is designed to aid your staff in daily routines like order management, inventory tracking or reporting. Saleor dashboard’s friendly home screen will also suggest items that may need your attention so you always stay on top of things.</p>
                   </div>
                   <div className="decoration">
-                    <img src="../../images/decoration03.png" />
+                    <img src={decoration03} />
                   </div>
                 </div>
               </div>
@@ -172,7 +180,7 @@ class Home extends Component {
             </div>
           </div>
           <div className="decoration">
-            <img src="../../images/decoration04.png" />
+            <img src={decoration04} />
           </div>
         </section>
         <section className="open-source">
@@ -216,10 +224,10 @@ class Home extends Component {
             </div>
           </div>
           <div className="decoration decoration01">
-            <img src="../../images/decoration05.png" />
+            <img src={decoration05} />
           </div>
           <div className="decoration decoration02">
-            <img src="../../images/decoration02.png" />
+            <img src={decoration02} />
           </div>
         </section>
         <section className="saleor-in-action">
@@ -273,10 +281,10 @@ class Home extends Component {
             </Tabs>
           </div>
           <div className="decoration decoration01">
-            <img src="../../images/decoration07.png" />
+            <img src={decoration07} />
           </div>
           <div className="decoration decoration02">
-            <img src="../../images/decoration06.png" />
+            <img src={decoration06} />
           </div>
         </section>
         <section className="enterprice-consulting">
@@ -304,10 +312,10 @@ class Home extends Component {
             </div>
           </div>
           <div className="decoration decoration01">
-            <img src="../../images/decoration07.png" />
+            <img src={decoration07} />
           </div>
           <div className="decoration decoration02">
-            <img src="../../images/decoration01.png" />
+            <img src={decoration01} />
           </div>
         </section>
       </div>

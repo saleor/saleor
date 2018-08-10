@@ -14,7 +14,7 @@
         position: absolute;
         z-index: -1;
         background-image: url('../../images/roadmap-bg.png');
-        background-size: 100%;
+        background-size: 70%;
         background-repeat: no-repeat;
         background-position: 85% 20%;
         @media (max-width: 578px) {

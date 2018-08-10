@@ -2,6 +2,7 @@
   border: solid var(--border-width) var(--primaryColor);
   & section {
     &.hero {
+      position: relative;
       & .bg-container {
         width: 100%;
         height: 100%;
