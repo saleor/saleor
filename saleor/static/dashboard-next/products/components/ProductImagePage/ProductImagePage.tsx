@@ -4,6 +4,7 @@ import { withStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
+import { ListProps } from "../../..";
 import CardTitle from "../../../components/CardTitle";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
@@ -13,11 +14,18 @@ import SaveButtonBar, {
 } from "../../../components/SaveButtonBar";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
+import ProductImageNavigation from "../ProductImageNavigation";
 
-interface ProductImagePageProps {
-  image?: string;
+interface ProductImagePageProps extends ListProps {
+  image?: {
+    id: string;
+    url: string;
+  };
+  images?: Array<{
+    id: string;
+    url: string;
+  }>;
   description?: string;
-  disabled?: boolean;
   saveButtonBarState?: SaveButtonBarState;
   onBack: () => void;
   onDelete: () => void;
@@ -47,12 +55,17 @@ const decorate = withStyles(theme => ({
 const ProductImagePage = decorate<ProductImagePageProps>(
   ({
     classes,
-    image,
     description,
     disabled,
+    image,
+    images,
+    pageInfo,
     saveButtonBarState,
     onBack,
     onDelete,
+    onNextPage,
+    onPreviousPage,
+    onRowClick,
     onSubmit
   }) => (
     <Form
@@ -66,6 +79,15 @@ const ProductImagePage = decorate<ProductImagePageProps>(
             <PageHeader title={i18n.t("Edit Photo")} onBack={onBack} />
             <div className={classes.root}>
               <div>
+                <ProductImageNavigation
+                  onNextPage={onNextPage}
+                  onPreviousPage={onPreviousPage}
+                  disabled={disabled}
+                  images={images}
+                  highlighted={image ? image.id : undefined}
+                  onRowClick={onRowClick}
+                  pageInfo={pageInfo}
+                />
                 <Card>
                   <CardTitle title={i18n.t("Photo Information")} />
                   <CardContent>
@@ -88,7 +110,7 @@ const ProductImagePage = decorate<ProductImagePageProps>(
                   <CardContent>
                     {!!image ? (
                       <div className={classes.imageContainer}>
-                        <img src={image} className={classes.image} />
+                        <img src={image.url} className={classes.image} />
                       </div>
                     ) : (
                       <Skeleton />

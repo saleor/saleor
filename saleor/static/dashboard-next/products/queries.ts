@@ -397,7 +397,12 @@ export const TypedProductImageQuery = Query as React.ComponentType<
   QueryProps<ProductImageQuery, ProductImageQueryVariables>
 >;
 export const productImageQuery = gql`
-  query ProductImage($productId: ID!, $imageId: String!) {
+  query ProductImage(
+    $productId: ID!
+    $imageId: String!
+    $imageAfter: String
+    $imageBefore: String
+  ) {
     product(id: $productId) {
       image: images(after: $imageId, first: 1) {
         edges {
@@ -407,6 +412,22 @@ export const productImageQuery = gql`
             alt
             url
           }
+        }
+      }
+      images(after: $imageAfter, before: $imageBefore, first: 8) {
+        edges {
+          cursor
+          node {
+            id
+            alt
+            url
+          }
+        }
+        pageInfo {
+          hasPreviousPage
+          hasNextPage
+          startCursor
+          endCursor
         }
       }
     }
