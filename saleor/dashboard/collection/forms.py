@@ -5,6 +5,7 @@ from django.utils.translation import pgettext_lazy
 from text_unidecode import unidecode
 
 from ...product.models import Collection, Product
+from ...site.models import SiteSettings
 from ..forms import AjaxSelect2MultipleChoiceField
 from ..seo.fields import SeoDescriptionField, SeoTitleField
 
@@ -38,3 +39,9 @@ class CollectionForm(forms.ModelForm):
     def save(self, commit=True):
         self.instance.slug = slugify(unidecode(self.instance.name))
         return super().save(commit=commit)
+
+
+class AssignHomepageCollectionForm(forms.ModelForm):
+    class Meta:
+        model = SiteSettings
+        fields = ('homepage_collection',)

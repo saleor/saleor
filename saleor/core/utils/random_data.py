@@ -540,10 +540,13 @@ def create_vouchers():
         yield 'Value voucher already exists'
 
 
-def set_featured_products(how_many=8):
-    pks = Product.objects.order_by('?')[:how_many].values_list('pk', flat=True)
-    Product.objects.filter(pk__in=pks).update(is_featured=True)
-    yield 'Featured products created'
+def set_homepage_collection():
+    homepage_collection = Collection.objects.order_by('?').first()
+    site = Site.objects.get_current()
+    site_settings = site.settings
+    site_settings.homepage_collection = homepage_collection
+    site_settings.save()
+    yield 'Homepage collection assigned'
 
 
 def add_address_to_admin(email):
