@@ -193,8 +193,7 @@ class Product(CountableDjangoObjectType):
         try:
             return self.images.get(pk=pk)
         except models.ProductImage.DoesNotExist:
-            raise GraphQLError(
-                "Could not resolve to a node with the global id of '%s'." % id)
+            raise GraphQLError('Product image not found.')
 
 
 class ProductType(CountableDjangoObjectType):
