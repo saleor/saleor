@@ -42,7 +42,7 @@ class CustomerInput(UserInput):
         description='Shipping address of the customer.')
 
 
-class UserCreateInput(UserInput):
+class UserCreateInput(CustomerInput):
     send_password_email = graphene.Boolean(
         description='Send an email with a link to set a password')
 
@@ -67,13 +67,6 @@ class CustomerCreate(ModelMutation):
         description = 'Creates a new customer.'
         exclude = ['password']
         model = models.User
-
-    @classmethod
-    def save(cls, info, user, cleaned_input):
-        user.save()
-        if cleaned_input.get('send_password_email'):
-            site = info.context.site
-            send_user_password_reset_email(user, site)
 
     @classmethod
     def user_is_allowed(cls, user, input):
@@ -119,10 +112,15 @@ class CustomerCreate(ModelMutation):
         if default_shipping_address:
             default_shipping_address.save()
             instance.default_shipping_address = default_shipping_address
+
         default_billing_address = cleaned_input.get(BILLING_ADDRESS_FIELD)
         if default_billing_address:
             default_billing_address.save()
             instance.default_billing_address = default_billing_address
+
+        if cleaned_input.get('send_password_email'):
+            site = info.context.site
+            send_user_password_reset_email(instance, site)
         super().save(info, instance, cleaned_input)
 
 
