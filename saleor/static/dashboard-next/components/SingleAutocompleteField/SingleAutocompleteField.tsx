@@ -100,6 +100,9 @@ const SingleAutocompleteField = decorate<SingleAutocompleteFieldProps>(
                 ? choices.filter(c => c.value === selectedItem.value).length ===
                   0
                 : false;
+            const choiceMap = sort
+              ? filter(choices, inputValue, { key: "name" })
+              : choices;
             return (
               <div className={classes.container}>
                 <TextField
@@ -120,24 +123,29 @@ const SingleAutocompleteField = decorate<SingleAutocompleteFieldProps>(
                 />
                 {isOpen && (
                   <Paper className={classes.paper} square>
-                    {(sort
-                      ? filter(choices, inputValue, { key: "name" })
-                      : choices
-                    ).map((suggestion, index) => (
-                      <MenuItem
-                        key={suggestion.value}
-                        selected={
-                          selectedItem
-                            ? suggestion.value === selectedItem.value ||
-                              index === highlightedIndex
-                            : false
-                        }
-                        component="div"
-                        {...getItemProps({ item: suggestion })}
-                      >
-                        {suggestion.label ? suggestion.label : suggestion.name}
+                    {choiceMap.length > 0 ? (
+                      choiceMap.map((suggestion, index) => (
+                        <MenuItem
+                          key={suggestion.value}
+                          selected={
+                            selectedItem
+                              ? suggestion.value === selectedItem ||
+                                index === highlightedIndex
+                              : false
+                          }
+                          component="div"
+                          {...getItemProps({ item: suggestion })}
+                        >
+                          {suggestion.label
+                            ? suggestion.label
+                            : suggestion.name}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled={true} component="div">
+                        {i18n.t("No matches found")}
                       </MenuItem>
-                    ))}
+                    )}
                     {custom && (
                       <MenuItem
                         selected={isCustom}
