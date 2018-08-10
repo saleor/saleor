@@ -19,26 +19,51 @@
             }
         }
         &.hero {
-            position: relative;
-            padding: 0;
-            margin-bottom: calc(var(--spacer) * 6);
-            & .plane {
-                width: 45%;
-                padding: calc(var(--spacer) * 10) 0 calc(var(--spacer) * 18) calc(var(--spacer) * 10);
+          position: relative;
+          padding: 0;
+          margin-bottom: calc(var(--spacer) * 6);
+          & .plane {
+            width: 45%;
+            padding: calc(var(--spacer) * 10) 0 calc(var(--spacer) * 18) calc(var(--spacer) * 10);
+            @media (max-width: 576px) {
+              padding: calc(var(--spacer) * 2) var(--spacer);
+              width: auto;
+              position: absolute;
+              top: 50%;
+              transform: translateY(-50%);
+              & p {
+                width: auto;
+              }
             }
+          }
+          @media (max-width: 768px) {
+            height: 80vh;
+            & .scroll-link {
+              position: absolute;
+              bottom: 5%;
+              left: 0;
+              right: 0;
+            }
+          }
         }
         &.testimonial {
-            background-color: #100A35;
-            background: linear-gradient(135deg, rgba(16,10,53,0) 5%, rgba(16,10,53,1) 8%, rgba(16,10,53,1) 95%, rgba(16,10,53,0) 8%, rgba(16,10,53,0) 100%);
-            padding: calc(var(--spacer) * 8) calc(var(--spacer) * 22) calc(var(--spacer) * 6);
-            font-weight: var(--font-weight-lighter);
-            & .comment {
-              font-size: calc(var(--font-size-base) * 1.5);
-              margin-bottom: calc(var(--spacer) * 2);
-            }
-            & .testimonial-author {
-              text-transform: uppercase;
-            }
+          background-color: #100A35;
+          background: linear-gradient(135deg, rgba(16,10,53,0) 5%, rgba(16,10,53,1) 8%, rgba(16,10,53,1) 95%, rgba(16,10,53,0) 8%, rgba(16,10,53,0) 100%);
+          padding: calc(var(--spacer) * 8) calc(var(--spacer) * 22) calc(var(--spacer) * 6);
+          font-weight: var(--font-weight-lighter);
+          & .comment {
+            font-size: calc(var(--font-size-base) * 1.5);
+            margin-bottom: calc(var(--spacer) * 2);
+          }
+          & .testimonial-author {
+            text-transform: uppercase;
+          }
+          @media (max-width: 768px) {
+            padding: calc(var(--spacer) * 4) calc(var(--spacer) * 2);
+          }
+          @media (max-width: 576px) {
+            padding: calc(var(--spacer) * 2) var(--spacer);
+          }
         }
         &.features {
           padding: calc(var(--spacer) * 2) calc(var(--spacer) * 10) calc(var(--spacer) * 4);
@@ -53,9 +78,6 @@
               & .title {
                 width: 75%;
                 margin-bottom: calc(var(--spacer) * 1.5);
-                @media (max-width: 576px) {
-                  width: 80%;
-                }
               }
               & .decorator {
                 width: 5px;
@@ -76,6 +98,15 @@
           }
           @media (max-width: 576px) {
             padding: calc(var(--spacer) * 2) var(--spacer);
+            & .icons {
+              grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+              & .icon-card {
+                margin-left: calc(var(--spacer) * 2);
+                &.title {
+                  width: 80%;
+                }
+              }
+            }
           }
         }
         &.management-section {
@@ -87,7 +118,7 @@
               max-width: 360px;
             }
           }
-          & .icons {
+          & .card-grid {
             width: 100%;
             padding-left: calc(var(--spacer) * 6);
             display: grid;
@@ -96,9 +127,19 @@
             @media (max-width: 768px) {
               padding-left: 0;
             }
+            & .icon-card {
+              & .title {
+                margin-bottom: calc(var(--spacer) * 0.5);
+              }
+            }
+          }
+          @media (max-width: 768px) {
+            & .side-header {
+              margin-bottom: calc(var(--spacer) * 2);
+            }
           }
           @media (max-width: 576px) {
-            padding: var(--spacer);
+            padding: calc(var(--spacer) * 2) var(--spacer);
           }
         }
         &.documentation {
@@ -108,6 +149,13 @@
           & .description {
             font-weight: var(--font-weight-lighter);
             margin-bottom: calc(var(--spacer) * 3);
+          }
+          @media (max-width: 576px) {
+            padding: calc(var(--spacer) * 2) var(--spacer);
+            & .description {
+              margin-top: calc(var(--spacer) * 0.5);
+              font-size: calc(var(--font-size-base) * 1.5);
+            }
           }
         }
     }

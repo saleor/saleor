@@ -87,7 +87,7 @@ const Feature = () => (
           <p className="sub-description">Product offer attractiveness is the resultant of
              many factors - product price, exposure or their variety. Be in charge of that.</p>
         </div>
-        <div className="icons col-md-7 col-sm-12 col-xs-12">
+        <div className="card-grid col-md-7 col-sm-12 col-xs-12">
           <div className="icon-card">
               <img src={productVariant} />
               <h5 className="title">Product & Variants</h5>
@@ -130,7 +130,7 @@ const Feature = () => (
           <p className="sub-description">Saleor gives you full control over placed orders,
              from the checkout, customer management, ending on product delivery.</p>
         </div>
-        <div className="icons col-md-7 col-sm-12 col-xs-12">
+        <div className="card-grid col-md-7 col-sm-12 col-xs-12">
           <div className="icon-card">
               <img src={multiCareerShipping} />
               <h5 className="title">Multi-carrier shipping</h5>
@@ -172,7 +172,7 @@ const Feature = () => (
           <p className="sub-description">Saleor is packed with number of ready-to-use payment methods,
              sales optimizations and discount options.</p>
         </div>
-        <div className="icons col-md-7 col-sm-12 col-xs-12">
+        <div className="card-grid col-md-7 col-sm-12 col-xs-12">
           <div className="icon-card">
               <img src={paymentIntegration} />
               <h5 className="title">Payments integration</h5>
@@ -205,7 +205,7 @@ const Feature = () => (
           <h2>Back Office</h2>
           <p className="sub-description">Manage your staff, search through thousands of products, accounts and orders.</p>
         </div>
-        <div className="icons col-md-7 col-sm-12 col-xs-12">
+        <div className="card-grid col-md-7 col-sm-12 col-xs-12">
           <div className="icon-card">
               <img src={search} />
               <h5 className="title">Search</h5>
