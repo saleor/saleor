@@ -1375,7 +1375,7 @@ exports[`Storyshots Generics / Global messages with undo action 1`] = `
 </button>
 `;
 
-exports[`Storyshots Generics / Money default 1`] = `null`;
+exports[`Storyshots Generics / Money formatting default 1`] = `null`;
 
 exports[`Storyshots Generics / MultiAutocompleteSelectField with loaded data 1`] = `
 <form>
@@ -2050,6 +2050,12 @@ exports[`Storyshots Generics / PageHeader without title 1`] = `
   <div
     class="Component-action-id"
   />
+</div>
+`;
+
+exports[`Storyshots Generics / Percent formatting default 1`] = `
+<div>
+  96.14%
 </div>
 `;
 
@@ -26191,20 +26197,6 @@ exports[`Storyshots Views / Products / Create product When loading 1`] = `
                     type="text"
                     value=""
                   />
-                  <svg
-                    aria-hidden="true"
-                    class="MuiSvgIcon-root-id"
-                    focusable="false"
-                    viewBox="0 0 24 24"
-                  >
-                    <g
-                      style="fill-rule:evenodd"
-                    >
-                      <path
-                        d="M7 10l5 5 5-5z"
-                      />
-                    </g>
-                  </svg>
                 </div>
               </div>
             </div>
@@ -26467,6 +26459,20 @@ exports[`Storyshots Views / Products / Create product When loading 1`] = `
                     type="text"
                     value=""
                   />
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <g
+                      style="fill-rule:evenodd"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                    </g>
+                  </svg>
                 </div>
               </div>
             </div>
@@ -26827,20 +26833,6 @@ exports[`Storyshots Views / Products / Create product default 1`] = `
                     type="text"
                     value=""
                   />
-                  <svg
-                    aria-hidden="true"
-                    class="MuiSvgIcon-root-id"
-                    focusable="false"
-                    viewBox="0 0 24 24"
-                  >
-                    <g
-                      style="fill-rule:evenodd"
-                    >
-                      <path
-                        d="M7 10l5 5 5-5z"
-                      />
-                    </g>
-                  </svg>
                 </div>
               </div>
             </div>
@@ -27386,7 +27378,7 @@ exports[`Storyshots Views / Products / Create product default 1`] = `
 
 exports[`Storyshots Views / Products / Create product variant default 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -27464,22 +27456,12 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                   class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
                 >
                   <div
-                    class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
+                    class="MuiAvatar-root-id Component-avatar-id"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
-                      >
-                        <path
-                          d="M 22.418358,23.933955 23.941248,22.416861 1.505286,0.06622212 -0.01756434,1.5833815 2.3945365,3.98626 c -0.00402,0.054209 -0.00609,0.1089561 -0.00609,0.1641949 l 0,15.5654231 c 0,1.223034 1.0044565,2.223746 2.232151,2.223746 l 15.6251379,0 c 0.05533,0 0.110242,-0.0021 0.164611,-0.0061 l 2.008007,2.000405 z m -4.234188,-4.218065 -2.232782,-2.224284 -10.2147024,0 3.3482328,-4.291641 2.3883966,2.879541 1.336535,-1.717557 -8.1892465,-8.1579753 0,13.5119163 13.5635665,0 z m 4.293682,-15.5654234 0,13.8585934 -2.232111,-2.223614 0,-11.6349794 -11.6793779,0 -2.232218,-2.2237479 13.9115959,0 c 1.227708,0 2.232111,1.0007001 2.232111,2.2237479 z"
-                        />
-                      </g>
-                    </svg>
+                    <img
+                      class="MuiAvatar-img-id"
+                      src="placeholder255x255.png"
+                    />
                   </div>
                 </td>
                 <td
@@ -27495,22 +27477,12 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                   class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
                 >
                   <div
-                    class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
+                    class="MuiAvatar-root-id Component-avatar-id"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
-                      >
-                        <path
-                          d="M 22.418358,23.933955 23.941248,22.416861 1.505286,0.06622212 -0.01756434,1.5833815 2.3945365,3.98626 c -0.00402,0.054209 -0.00609,0.1089561 -0.00609,0.1641949 l 0,15.5654231 c 0,1.223034 1.0044565,2.223746 2.232151,2.223746 l 15.6251379,0 c 0.05533,0 0.110242,-0.0021 0.164611,-0.0061 l 2.008007,2.000405 z m -4.234188,-4.218065 -2.232782,-2.224284 -10.2147024,0 3.3482328,-4.291641 2.3883966,2.879541 1.336535,-1.717557 -8.1892465,-8.1579753 0,13.5119163 13.5635665,0 z m 4.293682,-15.5654234 0,13.8585934 -2.232111,-2.223614 0,-11.6349794 -11.6793779,0 -2.232218,-2.2237479 13.9115959,0 c 1.227708,0 2.232111,1.0007001 2.232111,2.2237479 z"
-                        />
-                      </g>
-                    </svg>
+                    <img
+                      class="MuiAvatar-img-id"
+                      src="placeholder255x255.png"
+                    />
                   </div>
                 </td>
                 <td
@@ -27575,6 +27547,20 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                     type="text"
                     value=""
                   />
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <g
+                      style="fill-rule:evenodd"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                    </g>
+                  </svg>
                 </div>
               </div>
             </div>
@@ -27723,8 +27709,8 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                    data-shrink="false"
+                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
                   >
                     Inventory
                   </label>
@@ -27737,7 +27723,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                       class="MuiInput-input-id"
                       name="stock"
                       type="text"
-                      value=""
+                      value="0"
                     />
                   </div>
                 </div>
@@ -27810,7 +27796,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
 
 exports[`Storyshots Views / Products / Create product variant when loading data 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -28072,8 +28058,8 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                    data-shrink="false"
+                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
                   >
                     Inventory
                   </label>
@@ -28087,7 +28073,7 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
                       disabled=""
                       name="stock"
                       type="text"
-                      value=""
+                      value="0"
                     />
                   </div>
                 </div>
@@ -28161,7 +28147,7 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
 
 exports[`Storyshots Views / Products / Create product variant with errors 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -28239,22 +28225,12 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                   class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
                 >
                   <div
-                    class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
+                    class="MuiAvatar-root-id Component-avatar-id"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
-                      >
-                        <path
-                          d="M 22.418358,23.933955 23.941248,22.416861 1.505286,0.06622212 -0.01756434,1.5833815 2.3945365,3.98626 c -0.00402,0.054209 -0.00609,0.1089561 -0.00609,0.1641949 l 0,15.5654231 c 0,1.223034 1.0044565,2.223746 2.232151,2.223746 l 15.6251379,0 c 0.05533,0 0.110242,-0.0021 0.164611,-0.0061 l 2.008007,2.000405 z m -4.234188,-4.218065 -2.232782,-2.224284 -10.2147024,0 3.3482328,-4.291641 2.3883966,2.879541 1.336535,-1.717557 -8.1892465,-8.1579753 0,13.5119163 13.5635665,0 z m 4.293682,-15.5654234 0,13.8585934 -2.232111,-2.223614 0,-11.6349794 -11.6793779,0 -2.232218,-2.2237479 13.9115959,0 c 1.227708,0 2.232111,1.0007001 2.232111,2.2237479 z"
-                        />
-                      </g>
-                    </svg>
+                    <img
+                      class="MuiAvatar-img-id"
+                      src="placeholder255x255.png"
+                    />
                   </div>
                 </td>
                 <td
@@ -28270,22 +28246,12 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                   class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
                 >
                   <div
-                    class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
+                    class="MuiAvatar-root-id Component-avatar-id"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      viewBox="0 0 24 24"
-                    >
-                      <g
-                        style="fill-rule:evenodd"
-                      >
-                        <path
-                          d="M 22.418358,23.933955 23.941248,22.416861 1.505286,0.06622212 -0.01756434,1.5833815 2.3945365,3.98626 c -0.00402,0.054209 -0.00609,0.1089561 -0.00609,0.1641949 l 0,15.5654231 c 0,1.223034 1.0044565,2.223746 2.232151,2.223746 l 15.6251379,0 c 0.05533,0 0.110242,-0.0021 0.164611,-0.0061 l 2.008007,2.000405 z m -4.234188,-4.218065 -2.232782,-2.224284 -10.2147024,0 3.3482328,-4.291641 2.3883966,2.879541 1.336535,-1.717557 -8.1892465,-8.1579753 0,13.5119163 13.5635665,0 z m 4.293682,-15.5654234 0,13.8585934 -2.232111,-2.223614 0,-11.6349794 -11.6793779,0 -2.232218,-2.2237479 13.9115959,0 c 1.227708,0 2.232111,1.0007001 2.232111,2.2237479 z"
-                        />
-                      </g>
-                    </svg>
+                    <img
+                      class="MuiAvatar-img-id"
+                      src="placeholder255x255.png"
+                    />
                   </div>
                 </td>
                 <td
@@ -28512,8 +28478,8 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                    data-shrink="false"
+                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
                   >
                     Inventory
                   </label>
@@ -28526,7 +28492,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                       class="MuiInput-input-id"
                       name="stock"
                       type="text"
-                      value=""
+                      value="0"
                     />
                   </div>
                   <p
@@ -28610,7 +28576,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
 exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -29306,7 +29272,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                 class="MuiTableHead-root-id"
               >
                 <tr
-                  class="MuiTableRow-root-id MuiTableRow-head-id MuiTableRow-hover-id"
+                  class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id Component-textLeft-id"
@@ -29947,7 +29913,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
 exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -30044,20 +30010,6 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
                     type="text"
                     value=""
                   />
-                  <svg
-                    aria-hidden="true"
-                    class="MuiSvgIcon-root-id"
-                    focusable="false"
-                    viewBox="0 0 24 24"
-                  >
-                    <g
-                      style="fill-rule:evenodd"
-                    >
-                      <path
-                        d="M7 10l5 5 5-5z"
-                      />
-                    </g>
-                  </svg>
                 </div>
               </div>
             </div>
@@ -30452,6 +30404,20 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
                     type="text"
                     value=""
                   />
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root-id"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <g
+                      style="fill-rule:evenodd"
+                    >
+                      <path
+                        d="M7 10l5 5 5-5z"
+                      />
+                    </g>
+                  </svg>
                 </div>
               </div>
             </div>
@@ -30726,7 +30692,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
 exports[`Storyshots Views / Products / Product edit when product has no images 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -31104,7 +31070,7 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
                 class="MuiTableHead-root-id"
               >
                 <tr
-                  class="MuiTableRow-root-id MuiTableRow-head-id MuiTableRow-hover-id"
+                  class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id Component-textLeft-id"
@@ -31708,37 +31674,6 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
     <div
       class="Component-root-id"
     >
-<<<<<<< HEAD
-      <div
-        class="Component-spacer-id"
-      />
-      <button
-        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
-        disabled=""
-        tabindex="-1"
-        type="button"
-      >
-        <span
-          class="MuiButton-label-id"
-        >
-          Save
-        </span>
-      </button>
-    </div>
-  </div>
-</form>
-`;
-
-exports[`Storyshots Views / Products / Product image details when loaded data 1`] = `
-<div
-  class="Component-sm-id "
->
-  <form>
-    <div
-      class="Component-root-id"
-    >
-=======
->>>>>>> Restyle product section
       <button
         class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
         tabindex="0"
@@ -31773,23 +31708,11 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
 </form>
 `;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-exports[`Storyshots Views / Products / Product image details when loading data 1`] = `
-<div
-  class="Component-sm-id "
->
-  <form>
-=======
-exports[`Storyshots Views / Products / Product edit when product has no images 1`] = `
-=======
 exports[`Storyshots Views / Products / Product edit when product has no variants 1`] = `
->>>>>>> Make code locale-aware
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
->>>>>>> Restyle product section
     <div
       class="Component-root-id"
     >
@@ -31941,38 +31864,6 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
         <div
           class="Component-cardContainer-id"
         >
-<<<<<<< HEAD
-          Save
-        </span>
-      </button>
-    </div>
-  </form>
-</div>
-`;
-
-exports[`Storyshots Views / Products / Product list default 1`] = `
-<div
-  class="Component-md-id "
->
-  <div
-    class="Component-root-id"
-  >
-    <h2
-      class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-    >
-      Product list
-    </h2>
-    <div
-      class="Component-action-id"
-    >
-      <button
-        class="MuiButtonBase-root-id MuiIconButton-root-id"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiIconButton-label-id"
-=======
           <div
             class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id Component-card-id"
           >
@@ -32361,7 +32252,6 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
         </div>
         <div
           class="Component-cardContainer-id"
->>>>>>> Restyle product section
         >
           <div
             class="MuiPaper-root-id MuiPaper-elevation2-id MuiPaper-rounded-id MuiCard-root-id"
@@ -33100,7 +32990,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
 exports[`Storyshots Views / Products / Product image details when loaded data 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -33293,7 +33183,7 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
 exports[`Storyshots Views / Products / Product image details when loading data 1`] = `
 <form>
   <div
-    class="Component-md-id"
+    class="Component-md-id "
   >
     <div
       class="Component-root-id"
@@ -33483,7 +33373,7 @@ exports[`Storyshots Views / Products / Product image details when loading data 1
 
 exports[`Storyshots Views / Products / Product list default 1`] = `
 <div
-  class="Component-md-id"
+  class="Component-md-id "
 >
   <div
     class="Component-root-id"
@@ -33534,7 +33424,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
         class="MuiTableHead-root-id"
       >
         <tr
-          class="MuiTableRow-root-id MuiTableRow-head-id MuiTableRow-hover-id"
+          class="MuiTableRow-root-id MuiTableRow-head-id"
         >
           <th
             class="MuiTableCell-root-id MuiTableCell-head-id"
@@ -33570,7 +33460,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
         class="MuiTableFooter-root-id"
       >
         <tr
-          class="MuiTableRow-root-id MuiTableRow-footer-id MuiTableRow-hover-id"
+          class="MuiTableRow-root-id MuiTableRow-footer-id"
         >
           <td
             class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
@@ -33638,7 +33528,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
         class="MuiTableBody-root-id"
       >
         <tr
-          class="MuiTableRow-root-id MuiTableRow-hover-id"
+          class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
         >
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
@@ -33655,11 +33545,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span
-              class="Component-link-id"
-            >
-              Tasty Frozen Tuna
-            </span>
+            Tasty Frozen Tuna
           </td>
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -33685,7 +33571,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
           </td>
         </tr>
         <tr
-          class="MuiTableRow-root-id MuiTableRow-hover-id"
+          class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
         >
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
@@ -33702,11 +33588,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span
-              class="Component-link-id"
-            >
-              Incredible Rubber Computer
-            </span>
+            Incredible Rubber Computer
           </td>
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -33732,7 +33614,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
           </td>
         </tr>
         <tr
-          class="MuiTableRow-root-id MuiTableRow-hover-id"
+          class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
         >
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
@@ -33749,11 +33631,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span
-              class="Component-link-id"
-            >
-              Intelligent Frozen Soap
-            </span>
+            Intelligent Frozen Soap
           </td>
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -33779,7 +33657,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
           </td>
         </tr>
         <tr
-          class="MuiTableRow-root-id MuiTableRow-hover-id"
+          class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
         >
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
@@ -33796,11 +33674,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span
-              class="Component-link-id"
-            >
-              Rustic Plastic Chips
-            </span>
+            Rustic Plastic Chips
           </td>
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -33826,7 +33700,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
           </td>
         </tr>
         <tr
-          class="MuiTableRow-root-id MuiTableRow-hover-id"
+          class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
         >
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
@@ -33843,11 +33717,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span
-              class="Component-link-id"
-            >
-              Awesome Fresh Chicken
-            </span>
+            Awesome Fresh Chicken
           </td>
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -33873,7 +33743,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
           </td>
         </tr>
         <tr
-          class="MuiTableRow-root-id MuiTableRow-hover-id"
+          class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
         >
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
@@ -33890,11 +33760,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span
-              class="Component-link-id"
-            >
-              Refined Frozen Chicken
-            </span>
+            Refined Frozen Chicken
           </td>
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -33920,7 +33786,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
           </td>
         </tr>
         <tr
-          class="MuiTableRow-root-id MuiTableRow-hover-id"
+          class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
         >
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
@@ -33937,11 +33803,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span
-              class="Component-link-id"
-            >
-              Practical Concrete Fish
-            </span>
+            Practical Concrete Fish
           </td>
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -33967,7 +33829,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
           </td>
         </tr>
         <tr
-          class="MuiTableRow-root-id MuiTableRow-hover-id"
+          class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
         >
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
@@ -33984,11 +33846,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span
-              class="Component-link-id"
-            >
-              Licensed Steel Ball
-            </span>
+            Licensed Steel Ball
           </td>
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -34014,7 +33872,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
           </td>
         </tr>
         <tr
-          class="MuiTableRow-root-id MuiTableRow-hover-id"
+          class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
         >
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
@@ -34031,11 +33889,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span
-              class="Component-link-id"
-            >
-              Sleek Wooden Pants
-            </span>
+            Sleek Wooden Pants
           </td>
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -34061,7 +33915,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
           </td>
         </tr>
         <tr
-          class="MuiTableRow-root-id MuiTableRow-hover-id"
+          class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
         >
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
@@ -34078,11 +33932,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span
-              class="Component-link-id"
-            >
-              Practical Steel Shirt
-            </span>
+            Practical Steel Shirt
           </td>
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -34166,7 +34016,7 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
         class="MuiTableHead-root-id"
       >
         <tr
-          class="MuiTableRow-root-id MuiTableRow-head-id MuiTableRow-hover-id"
+          class="MuiTableRow-root-id MuiTableRow-head-id"
         >
           <th
             class="MuiTableCell-root-id MuiTableCell-head-id"
@@ -34202,7 +34052,7 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
         class="MuiTableFooter-root-id"
       >
         <tr
-          class="MuiTableRow-root-id MuiTableRow-footer-id MuiTableRow-hover-id"
+          class="MuiTableRow-root-id MuiTableRow-footer-id"
         >
           <td
             class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
@@ -34386,7 +34236,7 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
         class="MuiTableHead-root-id"
       >
         <tr
-          class="MuiTableRow-root-id MuiTableRow-head-id MuiTableRow-hover-id"
+          class="MuiTableRow-root-id MuiTableRow-head-id"
         >
           <th
             class="MuiTableCell-root-id MuiTableCell-head-id"
@@ -34422,7 +34272,7 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
         class="MuiTableFooter-root-id"
       >
         <tr
-          class="MuiTableRow-root-id MuiTableRow-footer-id MuiTableRow-hover-id"
+          class="MuiTableRow-root-id MuiTableRow-footer-id"
         >
           <td
             class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
@@ -34490,7 +34340,7 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
         class="MuiTableBody-root-id"
       >
         <tr
-          class="MuiTableRow-root-id MuiTableRow-hover-id"
+          class="MuiTableRow-root-id"
         >
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -34840,20 +34690,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
             </aside>
             <div
               class="Component-toolbar-id"
-            >
-              <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id"
-                disabled=""
-                tabindex="-1"
-                type="button"
-              >
-                <span
-                  class="MuiButton-label-id"
-                >
-                  Choose photos
-                </span>
-              </button>
-            </div>
+            />
           </div>
           <div
             class="Component-children-id"
@@ -35286,20 +35123,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
             </aside>
             <div
               class="Component-toolbar-id"
-            >
-              <button
-                class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id"
-                disabled=""
-                tabindex="-1"
-                type="button"
-              >
-                <span
-                  class="MuiButton-label-id"
-                >
-                  Choose photos
-                </span>
-              </button>
-            </div>
+            />
           </div>
           <div
             class="Component-children-id"
@@ -36968,7 +36792,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <p
               class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
             >
-              31 %
+              31%
             </p>
           </td>
           <td
@@ -37013,7 +36837,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <p
               class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
             >
-              52 %
+              52%
             </p>
           </td>
           <td
@@ -37058,7 +36882,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <p
               class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
             >
-              61 %
+              61%
             </p>
           </td>
           <td
@@ -37172,7 +36996,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <p
               class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
             >
-              37 %
+              37%
             </p>
           </td>
           <td
@@ -37225,7 +37049,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <p
               class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
             >
-              65 %
+              65%
             </p>
           </td>
           <td
@@ -37270,7 +37094,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <p
               class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
             >
-              36 %
+              36%
             </p>
           </td>
           <td
@@ -37580,7 +37404,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <p
               class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
             >
-              39 %
+              39%
             </p>
           </td>
           <td
