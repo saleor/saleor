@@ -40,9 +40,15 @@ const ProductVariant: React.StatelessComponent<RouteComponentProps<any>> = ({
 const ProductImage: React.StatelessComponent<RouteComponentProps<any>> = ({
   match
 }) => {
+  const qs = parseQs(location.search.substr(1));
+  const params = {
+    after: qs.after,
+    before: qs.before
+  };
   return (
     <ProductImageComponent
       imageId={match.params.imageId}
+      params={params}
       productId={match.params.productId}
     />
   );

@@ -1616,6 +1616,8 @@ export interface ProductVariantCreateDataQuery {
 export interface ProductImageQueryVariables {
   productId: string,
   imageId: string,
+  imageAfter?: string | null,
+  imageBefore?: string | null,
 };
 
 export interface ProductImageQuery {
@@ -1633,6 +1635,29 @@ export interface ProductImageQuery {
           url: string,
         },
       } >,
+    } | null,
+    images:  {
+      edges:  Array< {
+        // A cursor for use in pagination
+        cursor: string,
+        // The item at the end of the edge
+        node:  {
+          // The ID of the object.
+          id: string,
+          alt: string,
+          url: string,
+        },
+      } >,
+      pageInfo:  {
+        // When paginating backwards, are there more items?
+        hasPreviousPage: boolean,
+        // When paginating forwards, are there more items?
+        hasNextPage: boolean,
+        // When paginating backwards, the cursor to continue.
+        startCursor: string | null,
+        // When paginating forwards, the cursor to continue.
+        endCursor: string | null,
+      },
     } | null,
   } | null,
 };

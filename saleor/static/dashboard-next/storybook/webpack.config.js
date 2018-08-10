@@ -1,11 +1,10 @@
 /* eslint-disable */
-var path = require("path");
-var webpack = require("webpack");
+const path = require("path");
 
-var resolve = path.resolve.bind(path, `${__dirname}/../../../../`);
+const resolve = path.resolve.bind(path, `${__dirname}/../../../../`);
 
-var reactPath;
-var reactDomPath;
+let reactPath;
+let reactDomPath;
 
 if (process.env.NODE_ENV === "production") {
   reactPath = "node_modules/react/umd/react.production.min.js";
@@ -14,14 +13,8 @@ if (process.env.NODE_ENV === "production") {
   reactPath = "node_modules/react/umd/react.development.js";
   reactDomPath = "node_modules/react-dom/umd/react-dom.development.js";
 }
-var providePlugin = new webpack.ProvidePlugin({
-  "query-string": "query-string"
-});
 
-var config = {
-  entry: {
-    "dashboard-next": "./saleor/static/dashboard-next/index.tsx"
-  },
+const config = {
   module: {
     rules: [
       {
@@ -31,6 +24,7 @@ var config = {
       },
       {
         test: /\.tsx?$/,
+        exclude: /node_modules/,
         loader: "ts-loader"
       },
       {
@@ -42,7 +36,6 @@ var config = {
       }
     ]
   },
-  plugins: [providePlugin],
   resolve: {
     alias: {
       react: resolve(reactPath),

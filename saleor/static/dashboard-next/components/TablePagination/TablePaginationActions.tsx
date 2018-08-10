@@ -19,19 +19,21 @@ const decorate = withStyles(
 );
 
 interface TablePaginationActionsProps {
-  backIconButtonProps: any;
+  backIconButtonProps?: any;
   classes: any;
+  className: string;
   hasNextPage: boolean;
   hasPreviousPage: boolean;
-  nextIconButtonProps: any;
+  nextIconButtonProps?: any;
   onNextPage(event);
   onPreviousPage(event);
 }
 
-const TablePaginationActions = decorate<TablePaginationActionsProps>(
+export const TablePaginationActions = decorate<TablePaginationActionsProps>(
   ({
     backIconButtonProps,
     classes,
+    className,
     hasNextPage,
     hasPreviousPage,
     nextIconButtonProps,
@@ -40,7 +42,7 @@ const TablePaginationActions = decorate<TablePaginationActionsProps>(
     theme,
     ...other
   }) => (
-    <div className={classes.root} {...other}>
+    <div className={[classes.root, className].join(" ")} {...other}>
       <IconButton
         onClick={onPreviousPage}
         disabled={!hasPreviousPage}
