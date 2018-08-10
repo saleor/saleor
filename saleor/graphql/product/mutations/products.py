@@ -4,12 +4,29 @@ from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
 
 from ....product import models
+from ....product.utils.attributes import get_name_from_attributes
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import Decimal, Error, SeoInput
 from ...core.utils import clean_seo_fields
 from ...file_upload.types import Upload
 from ...utils import get_attributes_dict_from_list, get_node, get_nodes
 from ..types import Collection, Product, ProductImage, ProductVariant
+
+
+def update_variants_names(instance, saved_attributes):
+    initial_attributes = set(instance.variant_attributes.all())
+    attributes_changed = initial_attributes.intersection(saved_attributes)
+    if not attributes_changed:
+        return
+    variants_to_be_updated = models.ProductVariant.objects.filter(
+        product__in=instance.products.all(),
+        product__product_type__variant_attributes__in=attributes_changed)
+    variants_to_be_updated = variants_to_be_updated.prefetch_related(
+        'product__product_type__variant_attributes__values').all()
+    attributes = instance.variant_attributes.all()
+    for variant in variants_to_be_updated:
+        variant.name = get_name_from_attributes(variant, attributes)
+        variant.save()
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -331,6 +348,12 @@ class ProductVariantCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
+    def save(cls, info, instance, cleaned_input):
+        attributes = instance.product.product_type.variant_attributes.all()
+        instance.name = get_name_from_attributes(instance, attributes)
+        instance.save()
+
+    @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('product.manage_products')
 
@@ -409,6 +432,14 @@ class ProductTypeUpdate(ProductTypeCreate):
     class Meta:
         description = 'Updates an existing product type.'
         model = models.ProductType
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        variant_attr = cleaned_input.get('variant_attributes')
+        if variant_attr:
+            variant_attr = set(variant_attr)
+            update_variants_names(instance, variant_attr)
+        super().save(info, instance, cleaned_input)
 
 
 class ProductTypeDelete(ModelDeleteMutation):
