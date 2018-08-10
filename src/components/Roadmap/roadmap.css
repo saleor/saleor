@@ -1,3 +1,121 @@
 #roadmap {
-  
+  border: solid var(--border-width) var(--primaryColor);
+  position: relative;
+  & section {
+    &.hero {
+      padding-bottom: calc(var(--spacer) * 10);
+      position: relative;
+      & .bg-container {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        z-index: -1;
+        background-image: url('../../images/roadmap-bg.png');
+        background-size: 60%;
+        background-repeat: no-repeat;
+        background-position: 85% 20%;
+      }
+      & .plane {
+        width: 30%;
+        padding: calc(var(--spacer) * 15) calc(var(--spacer) * 10);
+        & p {
+          font-size: calc(var(--font-size-base) * 1.3);
+        }
+      }
+      & .scroll-link {
+        width: 100%;
+        position: absolute;
+        bottom: 15%;
+        left: 0;
+        text-align: center;
+      }
+      & .decoration01 {
+        width: 40%;
+        top: 41%;
+        right: 0;
+      }
+    }
+    &.roadmap-content {
+      padding: calc(var(--spacer) * 5) 0;
+      position: relative;
+      & .roadmap-item {
+        & .line {
+          width: 100%;
+          position: relative;
+          text-align: center;
+          & .icon {
+            width: 180px;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            right: 21.5%;
+            background-image: url('../../images/done-icon.png');
+            background-size: 40%;
+            background-repeat: no-repeat;
+            background-position: 85% 5%;
+            &::after {
+              content: "";
+              position: absolute;
+              z-index: -1;
+              top: 45%;
+              bottom: 8%;
+              left: 70%;
+              border-left: 3px solid var(--primaryColor);
+            }
+            &.lantern {
+              background-image: url('../../images/lantern-icon.png');
+              background-size: 50%;
+              background-position: 85% 5%;
+              &::after {
+                top: 57%;
+              }
+            }
+            &.parrot {
+              background-image: url('../../images/parrot-icon.png');
+              background-size: contain;
+              background-position: 20% 5%;
+              &::after {
+                top: 37%;
+              }
+            }
+            &.last {
+              &::after {
+                border: none;
+              }
+            }
+          }
+        }
+        & .text {
+          padding-bottom: calc(var(--spacer) * 3);
+          & h2 {
+            padding: var(--spacer) 0;
+          }
+          & h4 {
+            padding-top: calc(var(--spacer) / 5);
+            font-size: var(--font-size-base);
+            text-transform: initial;
+            font-weight: var(--font-weight-bold);
+          }
+          & p {
+            padding-bottom: var(--spacer);
+          }
+        }
+      }
+      & .decoration01 {
+        width: 40%;
+        right: -20%;
+        top: 10%;
+      }
+      & .decoration02 {
+        width: 17%;
+        top: 39%;
+        left: -5%;
+      }
+      & .decoration03 {
+        width: 30%;
+        right: 0;
+        top: 65%;
+      }
+    }
+  }
 }
