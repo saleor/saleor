@@ -12,6 +12,15 @@ from .core.types.common import PermissionDisplay
 registry = get_global_registry()
 
 
+def get_database_id(info, node_id, only_type):
+    """Get a database ID from a node ID of given type."""
+    _type, _id = graphene.relay.Node.from_global_id(node_id)
+    graphene_type = info.schema.get_type(_type).graphene_type
+    if graphene_type != only_type:
+        raise AssertionError('Must receive a %s id.' % only_type._meta.name)
+    return _id
+
+
 def get_node(info, id, only_type=None):
     """Return node or throw an error if the node does not exist."""
     node = graphene.Node.get_node_from_global_id(info, id, only_type=only_type)
