@@ -32,6 +32,7 @@ storiesOf("Generics / Autocomplete select field", module)
           name="country"
           onChange={change}
           placeholder="Select country"
+          initialLabel={choices[0].name}
           value={data.country}
         />
       )}
@@ -47,6 +48,7 @@ storiesOf("Generics / Autocomplete select field", module)
           onChange={change}
           placeholder="Select country"
           sort={true}
+          initialLabel={choices[0].name}
           value={data.country}
         />
       )}
@@ -65,6 +67,7 @@ storiesOf("Generics / Autocomplete select field", module)
           onChange={change}
           placeholder="Select country"
           sort={true}
+          initialLabel={choices[0].name}
           value={data.country}
         />
       )}

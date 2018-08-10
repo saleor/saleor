@@ -1,4 +1,7 @@
+import CircularProgress from "@material-ui/core/CircularProgress";
 import * as React from "react";
+
+import ArrowDropdownIcon from "../../icons/ArrowDropdown";
 import SingleAutocompleteField from "../SingleAutocompleteField";
 
 interface FetchableAutocompleteFieldProps {
@@ -12,6 +15,7 @@ interface FetchableAutocompleteFieldProps {
   helperText?: string;
   label?: string;
   loading: boolean;
+  initialLabel?: string;
   name: string;
   placeholder?: string;
   value: string;
@@ -21,10 +25,20 @@ interface FetchableAutocompleteFieldProps {
 
 const FetchableAutocompleteField: React.StatelessComponent<
   FetchableAutocompleteFieldProps
-> = ({ fetchChoices, ...other }) => {
+> = ({ fetchChoices, loading, ...other }) => {
   return (
     <SingleAutocompleteField
       sort={false}
+      InputProps={{
+        endAdornment: loading ? (
+          <CircularProgress
+            size={18}
+            style={{ marginTop: 4, marginRight: 4 }}
+          />
+        ) : (
+          <ArrowDropdownIcon />
+        )
+      }}
       onInputChange={fetchChoices}
       {...other}
     />

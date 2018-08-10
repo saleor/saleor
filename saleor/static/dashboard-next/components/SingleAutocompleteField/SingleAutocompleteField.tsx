@@ -1,3 +1,4 @@
+import { InputProps } from "@material-ui/core/Input";
 import MenuItem from "@material-ui/core/MenuItem";
 import Paper from "@material-ui/core/Paper";
 import { withStyles, WithStyles } from "@material-ui/core/styles";
@@ -7,6 +8,7 @@ import { filter } from "fuzzaldrin";
 import * as React from "react";
 
 import i18n from "../../i18n";
+import ArrowDropdownIcon from "../../icons/ArrowDropdown";
 
 interface SingleAutocompleteFieldProps {
   choices: Array<{
@@ -16,6 +18,8 @@ interface SingleAutocompleteFieldProps {
   }>;
   custom?: boolean;
   disabled?: boolean;
+  initialLabel?: string;
+  InputProps?: InputProps;
   helperText?: string;
   label?: string;
   name: string;
@@ -52,18 +56,11 @@ const SingleAutocompleteField = decorate<SingleAutocompleteFieldProps>(
       WithStyles<"container" | "inputRoot" | "paper">,
     SingleAutocompleteFieldState
   > {
-    constructor(props) {
-      super(props);
-      const filteredChoices = this.props.choices.filter(
-        choice => choice.value === this.props.value
-      );
-      const name =
-        filteredChoices.length > 0 ? filteredChoices[0].name : this.props.value;
-      this.state = { name };
-    }
+    state = { name: this.props.initialLabel || "" };
 
     render() {
       const {
+        InputProps,
         choices,
         classes,
         custom,
@@ -113,7 +110,9 @@ const SingleAutocompleteField = decorate<SingleAutocompleteFieldProps>(
                     ...getInputProps({
                       disabled,
                       placeholder
-                    })
+                    }),
+                    endAdornment: <ArrowDropdownIcon />,
+                    ...InputProps
                   }}
                   helperText={helperText}
                   label={label}

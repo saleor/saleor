@@ -37,6 +37,7 @@ storiesOf("Generics / Autocomplete select field with fetch", module)
               onChange={change}
               placeholder="Select country"
               value={data.country}
+              initialLabel={suggestions[0].name}
               fetchChoices={fetchChoices}
             />
           )}
