@@ -3,9 +3,9 @@ Model Translations
 
 .. note::
 
-    The Model Translations are in the early version. They are fully functional, however, translations can be created only via custom code.
-
-    An API and UI for the translation interface will be added in the future releases.
+    At this stage, model translations are only accessible from the Python code.
+    The backend and the storefront are prepared to handle the translated properties, but
+    GraphQL API and UI views will be added in the future releases.
 
 Overview
 --------
@@ -14,8 +14,8 @@ Model translations are available via ``TranslationProxy`` defined on the to-be-t
 
 ``TranslationProxy`` gets user's language, and checks if there's a ``ModelTranslation`` created for that language.
 
-If there's no relevant ``ModelTranslation`` available, we are returning the original (therefore not translated) property.
-Otherwise, the translated property is returned.
+If there's no relevant ``ModelTranslation`` available, it will return the original (therefore not translated) property.
+Otherwise, it will return the translated property.
 
 Adding a ModelTranslation
 -------------------------
@@ -37,21 +37,21 @@ Consider a product.
        translated = TranslationProxy()
 
 
-``Product`` has several properties, but only two of them are translatable - ``name`` and ``description``.
+The product has several properties, but we want to translate just its ``name`` and ``description``.
 
-We've also set a ``translated`` property being an instance of ``TranslationProxy``.
+We've also set a ``translated`` property to an instance of ``TranslationProxy``.
 
-``ProductTranslation`` will be used to store our translated properties, it needs to have two fields:
+We will use ``ProductTranslation``  to store our translated properties, it requires two base fields:
 
 - ``language_code``
-    A language code that this translation correlates to
+    A language code that this translation correlates to.
 
 - ``product``
     ``ForeignKey`` relation to the translated object (in this case we named it *product*)
 
 ... and any other field you'd like to translate, in our example, we will use ``name`` and ``description``.
 
-.. warning:: ``TranslationProxy`` excepts ``related_name``, on the ``ForgeignKey`` relation to be set to ``translations``
+.. warning:: ``TranslationProxy`` expects that the ``related_name``, on the ``ForeignKey`` relation is set to ``translations``
 
 .. code-block:: python
 
@@ -68,9 +68,9 @@ We've also set a ``translated`` property being an instance of ``TranslationProxy
        class Meta:
            unique_together = ('product', 'language_code')
 
-.. note:: Don't forget to set ``unique_together`` on the ``product`` and ``language_code``, as we want to ensure there's only one translation per product per language.
+.. note:: Don't forget to set ``unique_together`` on the ``product`` and ``language_code``, there should be only one translation per product per language.
 
-.. warning:: ModelTranslation fields should take same arguments as the original fields, eg. inconsistency in ``max_length`` attribute could lead to UI bugs with translation turned on.
+.. warning:: ``ModelTranslation`` fields must always take the same arguments as the existing translatable model, eg. inconsistency in ``max_length`` attribute could lead to UI bugs with translation turned on.
 
 Using a ModelTranslation
 ------------------------
