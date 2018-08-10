@@ -2,21 +2,31 @@ import gql from "graphql-tag";
 import { Mutation, MutationProps } from "react-apollo";
 
 import {
+  ProductCreateMutation,
+  ProductCreateMutationVariables,
   ProductDeleteMutation,
   ProductDeleteMutationVariables,
   ProductImageCreateMutation,
   ProductImageCreateMutationVariables,
+  ProductImageDeleteMutation,
+  ProductImageDeleteMutationVariables,
   ProductImageReorderMutation,
   ProductImageReorderMutationVariables,
   ProductUpdateMutation,
   ProductUpdateMutationVariables,
+  VariantCreateMutation,
+  VariantCreateMutationVariables,
   VariantDeleteMutation,
   VariantDeleteMutationVariables,
   VariantUpdateMutation,
   VariantUpdateMutationVariables
 } from "../gql-types";
 
-import { fragmentProduct, fragmentProductImage, fragmentVariant } from "./queries";
+import {
+  fragmentProduct,
+  fragmentProductImage,
+  fragmentVariant
+} from "./queries";
 
 export const TypedProductImageCreateMutation = Mutation as React.ComponentType<
   MutationProps<ProductImageCreateMutation, ProductImageCreateMutationVariables>
@@ -125,6 +135,51 @@ export const productUpdateMutation = gql`
   }
 `;
 
+export const TypedProductCreateMutation = Mutation as React.ComponentType<
+  MutationProps<ProductCreateMutation, ProductCreateMutationVariables>
+>;
+
+export const productCreateMutation = gql`
+  ${fragmentProduct}
+  mutation ProductCreate(
+    $attributes: [AttributeValueInput]
+    $availableOn: Date
+    $category: ID!
+    $chargeTaxes: Boolean!
+    $collections: [ID]
+    $description: String
+    $isPublished: Boolean!
+    $isFeatured: Boolean!
+    $name: String!
+    $price: Decimal
+    $productType: ID!
+  ) {
+    productCreate(
+      input: {
+        attributes: $attributes
+        availableOn: $availableOn
+        category: $category
+        chargeTaxes: $chargeTaxes
+        collections: $collections
+        description: $description
+        isPublished: $isPublished
+        isFeatured: $isFeatured
+        name: $name
+        price: $price
+        productType: $productType
+      }
+    ) {
+      errors {
+        field
+        message
+      }
+      product {
+        ...Product
+      }
+    }
+  }
+`;
+
 export const TypedVariantDeleteMutation = Mutation as React.ComponentType<
   MutationProps<VariantDeleteMutation, VariantDeleteMutationVariables>
 >;
@@ -181,3 +236,73 @@ export const variantUpdateMutation = gql`
     }
   }
 `;
+
+export const TypedVariantCreateMutation = Mutation as React.ComponentType<
+  MutationProps<VariantCreateMutation, VariantCreateMutationVariables>
+>;
+
+export const variantCreateMutation = gql`
+  ${fragmentVariant}
+  mutation VariantCreate(
+    $attributes: [AttributeValueInput]
+    $costPrice: Decimal
+    $priceOverride: Decimal
+    $product: ID
+    $sku: String
+    $quantity: Int
+    $trackInventory: Boolean!
+  ) {
+    productVariantCreate(
+      input: {
+        attributes: $attributes
+        costPrice: $costPrice
+        priceOverride: $priceOverride
+        product: $product
+        sku: $sku
+        quantity: $quantity
+        trackInventory: $trackInventory
+      }
+    ) {
+      errors {
+        field
+        message
+      }
+      productVariant {
+        ...ProductVariant
+      }
+    }
+  }
+`;
+
+export const TypedProductImageDeleteMutation = Mutation as React.ComponentType<
+  MutationProps<ProductImageDeleteMutation, ProductImageDeleteMutationVariables>
+>;
+
+export const productImageDeleteMutation = gql`
+  mutation ProductImageDelete($id: ID!) {
+    productImageDelete(id: $id) {
+      productImage {
+        id
+      }
+    }
+  }
+`;
+
+// export const TypedProductImageUpdateMutation = Mutation as React.ComponentType<
+//   MutationProps<ProductImageUpdateMutation, ProductImageMutationUpdateVariables>
+// >;
+
+// export const productImageUpdateMutation = gql`
+//   mutation ProductImageUpdate($id: ID!, $alt: String!) {
+//     productImageUpdate(id: $id, input: { alt: $alt }) {
+//       errors {
+//         field
+//         message
+//       }
+//       productImage {
+//         id
+//         alt
+//       }
+//     }
+//   }
+// `;

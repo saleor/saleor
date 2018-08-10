@@ -2,17 +2,21 @@ import gql from "graphql-tag";
 import { Query, QueryProps } from "react-apollo";
 
 import {
+  ProductCreateDataQuery,
   ProductDetailsQuery,
   ProductDetailsQueryVariables,
+  ProductImageQuery,
+  ProductImageQueryVariables,
   ProductListQuery,
-  ProductListQueryVariables
+  ProductListQueryVariables,
+  ProductVariantCreateDataQuery,
+  ProductVariantCreateDataQueryVariables
 } from "../gql-types";
 
 export const fragmentMoney = gql`
   fragment Money on Money {
     amount
     currency
-    localized
   }
 `;
 
@@ -120,6 +124,7 @@ export const fragmentProduct = gql`
     productType {
       id
       name
+      hasVariants
     }
     url
   }
@@ -178,6 +183,23 @@ export const fragmentVariant = gql`
           node {
             id
             name
+            sku
+            image: images(first: 1) {
+              edges {
+                node {
+                  id
+                  url
+                }
+              }
+            }
+            images {
+              edges {
+                node {
+                  id
+                  url
+                }
+              }
+            }
           }
         }
       }
@@ -193,6 +215,7 @@ export const TypedProductListQuery = Query as React.ComponentType<
 >;
 
 export const productListQuery = gql`
+  ${fragmentMoney}
   query ProductList($first: Int, $after: String, $last: Int, $before: String) {
     products(before: $before, after: $after, first: $first, last: $last) {
       edges {
@@ -200,6 +223,12 @@ export const productListQuery = gql`
           id
           name
           thumbnailUrl
+          availability {
+            available
+          }
+          price {
+            ...Money
+          }
           productType {
             id
             name
@@ -254,6 +283,132 @@ export const productVariantQuery = gql`
   query ProductVariantDetails($id: ID!) {
     productVariant(id: $id) {
       ...ProductVariant
+    }
+  }
+`;
+
+export const TypedProductCreateQuery = Query as React.ComponentType<
+  QueryProps<ProductCreateDataQuery>
+>;
+export const productCreateQuery = gql`
+  query ProductCreateData {
+    productTypes {
+      edges {
+        node {
+          id
+          name
+          hasVariants
+          productAttributes {
+            edges {
+              node {
+                id
+                slug
+                name
+                values {
+                  id
+                  sortOrder
+                  name
+                  slug
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    collections {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+    categories {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+export const TypedProductVariantCreateQuery = Query as React.ComponentType<
+  QueryProps<
+    ProductVariantCreateDataQuery,
+    ProductVariantCreateDataQueryVariables
+  >
+>;
+export const productVariantCreateQuery = gql`
+  query ProductVariantCreateData($id: ID!) {
+    product(id: $id) {
+      id
+      images {
+        edges {
+          node {
+            id
+            sortOrder
+            url
+          }
+        }
+      }
+      productType {
+        id
+        variantAttributes {
+          edges {
+            node {
+              id
+              slug
+              name
+              values {
+                id
+                sortOrder
+                name
+                slug
+              }
+            }
+          }
+        }
+      }
+      variants {
+        edges {
+          node {
+            id
+            name
+            sku
+            image: images(first: 1) {
+              edges {
+                node {
+                  id
+                  url
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+export const TypedProductImageQuery = Query as React.ComponentType<
+  QueryProps<ProductImageQuery, ProductImageQueryVariables>
+>;
+export const productImageQuery = gql`
+  query ProductImage($productId: ID!, $imageId: String!) {
+    product(id: $productId) {
+      image: images(after: $imageId, first: 1) {
+        edges {
+          cursor
+          node {
+            id
+            alt
+            url
+          }
+        }
+      }
     }
   }
 `;

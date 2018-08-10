@@ -7,6 +7,8 @@ import Select, { SelectProps } from "@material-ui/core/Select";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
+import i18n from "../../i18n";
+
 const decorate = withStyles(theme => ({
   chip: {
     margin: theme.spacing.unit * 0.5
@@ -82,11 +84,15 @@ export const MultiSelectField = decorate<MultiSelectFieldProps>(
           onChange={onChange}
           {...selectProps}
         >
-          {choices.map(choice => (
-            <MenuItem value={choice.value} key={choice.value}>
-              {choice.label}
-            </MenuItem>
-          ))}
+          {choices.length > 0 ? (
+            choices.map(choice => (
+              <MenuItem value={choice.value} key={choice.value}>
+                {choice.label}
+              </MenuItem>
+            ))
+          ) : (
+            <MenuItem disabled={true}>{i18n.t("No results found")}</MenuItem>
+          )}
         </Select>
         {hint && <FormHelperText>{hint}</FormHelperText>}
       </FormControl>

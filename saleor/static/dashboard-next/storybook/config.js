@@ -13,6 +13,7 @@ function loadStories() {
   require("./stories/components/MultiAutocompleteSelectField");
   require("./stories/components/MultiSelectField");
   require("./stories/components/PageHeader");
+  require("./stories/components/Percent");
   require("./stories/components/PhoneField");
   require("./stories/components/PriceField");
   require("./stories/components/SaveButtonBar");
@@ -54,9 +55,11 @@ function loadStories() {
   require("./stories/pages/PageProperties");
 
   // Products
+  require("./stories/products/ProductCreatePage");
   require("./stories/products/ProductImagePage");
   require("./stories/products/ProductListCard");
   require("./stories/products/ProductUpdatePage");
+  require("./stories/products/ProductVariantCreatePage");
   require("./stories/products/ProductVariantPage");
 
   // Orders

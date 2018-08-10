@@ -13,7 +13,6 @@ import i18n from "../../../i18n";
 import Skeleton from "../../../components/Skeleton";
 import { MoneyType } from "../..";
 
-
 interface ProductPriceProps {
   purchaseCost?: {
     start: MoneyType;
@@ -81,7 +80,7 @@ const ProductPrice = decorate<ProductPriceProps>(
               )}
             </TableCell>
           </TableRow>
-          <TableRow>
+          <TableRow hover>
             <TableCell>{i18n.t("Margin")}</TableCell>
             <TableCell className={classes.textRight}>
               {margin ? `${margin.start} % - ${margin.stop}%` : <Skeleton />}

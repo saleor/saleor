@@ -5,12 +5,11 @@ import * as moment from "moment";
 import * as React from "react";
 import ReactMoment from "react-moment";
 
+import { LocaleConsumer } from "../Locale";
+import { Consumer } from "./DateContext";
+
 interface DateFormatterProps {
   date: string;
-  dateNow?: number;
-  inputFormat?: string;
-  outputFormat?: string;
-  showTooltip?: boolean;
   locale?: string;
   typographyProps?: TypographyProps;
 }
@@ -19,44 +18,32 @@ const decorate = withStyles(theme => ({ root: { display: "inline" } }), {
   name: "DateFormatter"
 });
 const DateFormatter = decorate<DateFormatterProps>(
-  ({
-    classes,
-    date,
-    dateNow,
-    inputFormat,
-    outputFormat,
-    showTooltip = true,
-    locale,
-    typographyProps
-  }) => {
+  ({ classes, date, typographyProps }) => {
     return (
-      <Typography
-        component="span"
-        className={classes.root}
-        {...typographyProps}
-      >
-        {showTooltip && dateNow ? (
-          <Tooltip
-            title={moment(date)
-              .toDate()
-              .toLocaleString()}
-          >
-            {dateNow ? (
-              <ReactMoment from={dateNow}>{date}</ReactMoment>
-            ) : (
-              <>
-                {moment(date)
-                  .toDate()
-                  .toLocaleString()}
-              </>
+      <LocaleConsumer>
+        {locale => (
+          <Consumer>
+            {dateNow => (
+              <Typography
+                component="span"
+                className={classes.root}
+                {...typographyProps}
+              >
+                <Tooltip
+                  title={moment(date)
+                    .locale(locale)
+                    .toDate()
+                    .toLocaleString()}
+                >
+                  <ReactMoment from={dateNow} locale={locale}>
+                    {date}
+                  </ReactMoment>
+                </Tooltip>
+              </Typography>
             )}
-          </Tooltip>
-        ) : (
-          moment(date)
-            .toDate()
-            .toLocaleString()
+          </Consumer>
         )}
-      </Typography>
+      </LocaleConsumer>
     );
   }
 );

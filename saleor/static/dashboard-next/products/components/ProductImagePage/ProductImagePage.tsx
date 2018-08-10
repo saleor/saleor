@@ -4,6 +4,7 @@ import { withStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
+import CardTitle from "../../../components/CardTitle";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
@@ -16,19 +17,31 @@ import i18n from "../../../i18n";
 interface ProductImagePageProps {
   image?: string;
   description?: string;
-  loading?: boolean;
+  disabled?: boolean;
   saveButtonBarState?: SaveButtonBarState;
-  onSubmit(data: { description: string });
-  onBack();
+  onBack: () => void;
+  onDelete: () => void;
+  onSubmit: (data: { description: string }) => void;
 }
 
 const decorate = withStyles(theme => ({
-  root: {},
   image: {
-    display: "block",
-    marginLeft: "auto",
-    marginRight: "auto",
-    marginBottom: theme.spacing.unit * 2
+    height: "100%",
+    objectFit: "contain" as "contain",
+    width: "100%"
+  },
+  imageContainer: {
+    background: "#ffffff",
+    border: "1px solid #eaeaea",
+    borderRadius: theme.spacing.unit,
+    margin: `0 auto ${theme.spacing.unit * 2}px`,
+    maxWidth: 552,
+    padding: theme.spacing.unit * 2
+  },
+  root: {
+    display: "grid" as "grid",
+    gridColumnGap: theme.spacing.unit * 2 + "px",
+    gridTemplateColumns: "4fr 9fr"
   }
 }));
 const ProductImagePage = decorate<ProductImagePageProps>(
@@ -36,48 +49,64 @@ const ProductImagePage = decorate<ProductImagePageProps>(
     classes,
     image,
     description,
-    loading,
+    disabled,
     saveButtonBarState,
-    onSubmit,
-    onBack
+    onBack,
+    onDelete,
+    onSubmit
   }) => (
-    <Container width="sm">
-      <Form
-        initial={{ description: description || "" }}
-        onSubmit={onSubmit}
-        key={description}
-      >
-        {({ change, data, hasChanged, submit }) => (
-          <>
-            <PageHeader title={i18n.t("Edit image")} onBack={onBack} />
-            <Card>
-              <CardContent>
-                {loading ? (
-                  <Skeleton />
-                ) : (
-                  <img src={image} className={classes.image} />
-                )}
-                <TextField
-                  name="description"
-                  label={i18n.t("Description")}
-                  helperText={i18n.t("Optional")}
-                  disabled={loading}
-                  onChange={change}
-                  rows={10}
-                  multiline
-                  fullWidth
-                />
-              </CardContent>
-            </Card>
+    <Form
+      initial={{ description: description || "" }}
+      onSubmit={onSubmit}
+      key={description}
+    >
+      {({ change, data, hasChanged, submit }) => {
+        return (
+          <Container width="md">
+            <PageHeader title={i18n.t("Edit Photo")} onBack={onBack} />
+            <div className={classes.root}>
+              <div>
+                <Card>
+                  <CardTitle title={i18n.t("Photo Information")} />
+                  <CardContent>
+                    <TextField
+                      name="description"
+                      label={i18n.t("Description")}
+                      helperText={i18n.t("Optional")}
+                      disabled={disabled}
+                      onChange={change}
+                      value={data.description}
+                      multiline
+                      fullWidth
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+              <div>
+                <Card>
+                  <CardTitle title={i18n.t("Photo View")} />
+                  <CardContent>
+                    {!!image ? (
+                      <div className={classes.imageContainer}>
+                        <img src={image} className={classes.image} />
+                      </div>
+                    ) : (
+                      <Skeleton />
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
             <SaveButtonBar
-              disabled={loading || !onSubmit || !hasChanged}
+              disabled={disabled || !onSubmit || !hasChanged}
               state={saveButtonBarState}
+              onDelete={onDelete}
               onSave={submit}
             />
-          </>
-        )}
-      </Form>
-    </Container>
+          </Container>
+        );
+      }}
+    </Form>
   )
 );
 export default ProductImagePage;

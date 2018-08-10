@@ -1,34 +1,34 @@
 import * as React from "react";
 
-interface DateProviderProps {
-  children: ((
-    props: {
-      date: number;
-    }
-  ) => React.ReactElement<any>);
-}
+import { Provider } from "./DateContext";
+
 interface DateProviderState {
   date: number;
-  intervalId: number;
 }
 
-export class DateProvider extends React.Component<
-  DateProviderProps,
-  DateProviderState
-> {
-  constructor(props) {
-    super(props);
-    const intervalId = setInterval(() => this.setState({ date: Date.now() }));
-    this.state = {
-      date: Date.now(),
-      intervalId
-    };
+export class DateProvider extends React.Component<{}, DateProviderState> {
+  static contextTypes = {};
+
+  intervalId: number;
+
+  state = {
+    date: Date.now()
+  };
+
+  componentDidMount() {
+    this.intervalId = window.setInterval(
+      () => this.setState({ date: Date.now() }),
+      60_000
+    );
+  }
+
+  componentWillUnmount() {
+    window.clearInterval(this.intervalId);
   }
 
   render() {
-    const content = this.props.children({
-      date: this.state.date
-    });
-    return content;
+    const { children } = this.props;
+    const { date } = this.state;
+    return <Provider value={date}>{children}</Provider>;
   }
 }

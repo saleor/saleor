@@ -7,6 +7,7 @@ import Downshift, { ControllerStateAndHelpers } from "downshift";
 import * as React from "react";
 
 import i18n from "../../i18n";
+import ArrowDropdownIcon from "../../icons/ArrowDropdown";
 
 interface ChoiceType {
   label: string;
@@ -118,6 +119,7 @@ export const MultiAutocompleteSelectField = decorate<
                     onKeyDown: handleKeyDown(inputValue),
                     placeholder
                   }),
+                  endAdornment: <ArrowDropdownIcon />,
                   startAdornment: selectedItem.map(item => (
                     <Chip
                       key={item.value}
@@ -153,7 +155,7 @@ export const MultiAutocompleteSelectField = decorate<
                           ))
                         : !loading && (
                             <MenuItem disabled={true} component="div">
-                              {i18n.t("No matches found")}
+                              {i18n.t("No results found")}
                             </MenuItem>
                           )}
                     </>

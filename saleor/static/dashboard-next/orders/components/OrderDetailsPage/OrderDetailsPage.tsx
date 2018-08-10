@@ -101,7 +101,6 @@ interface OrderDetailsPageProps {
       net: MoneyType;
     };
   };
-  dateNow?: number;
   shippingMethods?: Array<{
     id: string;
     name: string;
@@ -160,7 +159,7 @@ const decorate = withStyles(theme => ({
   root: {
     display: "grid",
     gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "2.25fr 1fr"
+    gridTemplateColumns: "9fr 4fr"
   }
 }));
 class OrderDetailsPageComponent extends React.Component<
@@ -225,7 +224,6 @@ class OrderDetailsPageComponent extends React.Component<
     const {
       classes,
       countries,
-      dateNow,
       order,
       prefixes,
       shippingMethods,
@@ -282,7 +280,6 @@ class OrderDetailsPageComponent extends React.Component<
           <div className={classes.orderDate}>
             <DateFormatter
               date={order.created}
-              dateNow={dateNow}
               typographyProps={{ variant: "caption" }}
             />
           </div>
