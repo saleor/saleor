@@ -14,14 +14,14 @@ const Percent: React.StatelessComponent<PercentProps> = ({
 }) => (
   <LocaleConsumer>
     {locale => {
-      const formatted = (amount / 100).toLocaleString(locale, {
+      const formattedAmount = (amount / 100).toLocaleString(locale, {
         maximumFractionDigits: 2,
         style: "percent"
       });
       if (typographyProps) {
-        return <Typography {...typographyProps}>{formatted}</Typography>;
+        return <Typography {...typographyProps}>{formattedAmount}</Typography>;
       }
-      return <>{formatted}</>;
+      return <>{formattedAmount}</>;
     }}
   </LocaleConsumer>
 );
