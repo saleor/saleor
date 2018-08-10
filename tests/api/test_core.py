@@ -1,4 +1,7 @@
 import json
+from unittest.mock import Mock, patch
+
+import graphene
 from django.conf import settings
 from django.shortcuts import reverse
 from django_countries import countries
@@ -7,6 +10,8 @@ from tests.utils import get_graphql_content
 
 from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.graphql.core.utils import clean_seo_fields
+from saleor.graphql.product import types as product_types
+from saleor.graphql.utils import get_database_id
 from .utils import assert_no_permission
 
 
@@ -231,3 +236,13 @@ def test_user_error_field_name_for_related_object(admin_api_client):
     assert data is None
     error = content['data']['categoryCreate']['errors'][0]
     assert error['field'] == 'parent'
+
+
+def test_get_database_id(product):
+    info = Mock(
+        schema=Mock(
+            get_type=Mock(
+                return_value=Mock(graphene_type=product_types.Product))))
+    node_id = graphene.Node.to_global_id('Product', product.pk)
+    pk = get_database_id(info, node_id, product_types.Product)
+    assert int(pk) == product.pk
