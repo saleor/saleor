@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
-import { ScrollLink } from '..';
-
+import { ScrollLink, GitHubBanner } from '..';
 import css from './privacypolicy.css';
 
 const PrivacyPolicy = () => (
@@ -43,18 +42,7 @@ const PrivacyPolicy = () => (
       <p className="description">Please consult the <a href="">GDPR text in your language</a> to better understand your rights.</p>
       <p className="description">We ask that you direct all questions and requests related to your personal data to <a href="">privacy@mirumee.com</a> or that you send them to the postal address of the company listed above </p>
 		</section>
-		<section className="banner text-center">
-      <h1>simple <span className="text-light">is</span> better</h1>
-      <h1>less <span className="text-light">is</span> more</h1>
-      <h1>saleor <span className="text-light">is</span> free</h1>
-      <a className="btn btn-primary" href="">Fork it on Github</a>
-      <div className="decoration decoration-left">
-        <img src="../../images/decoration07.png" />
-      </div>
-      <div className="decoration decoration-right">
-        <img src="../../images/decoration09.png" />
-      </div>
-		</section>
+		<GitHubBanner />
 	</div>
 );
 

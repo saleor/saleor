@@ -1,4 +1,6 @@
 import React from 'react';
+import { GitHubBanner } from '..';
+
 
 import css from './roadmap.css';
 
@@ -11,6 +13,7 @@ const Roadmap = (props) => (
           <p>To keep you informed about the Implementation of the most important features, You will find our Roadmap for 2018, below.</p>
         </div>
      </section>
+    <GitHubBanner />
   </div>
 );
 
