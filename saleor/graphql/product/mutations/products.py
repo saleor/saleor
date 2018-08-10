@@ -202,8 +202,6 @@ class ProductInput(graphene.InputObjectType):
     description = graphene.String(description='Product description.')
     is_published = graphene.Boolean(
         description='Determines if product is visible to customers.')
-    is_featured = graphene.Boolean(
-        description='Determines if product is featured in the storefront.')
     name = graphene.String(description='Product name.')
     product_type = graphene.ID(
         description='ID of the type that product belongs to.',
