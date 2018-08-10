@@ -8,7 +8,9 @@ import theme from "../theme";
 export const Decorator = storyFn => (
   <MuiThemeProvider theme={theme}>
     <CssBaseline />
-    <MessageManager>{storyFn()}</MessageManager>
+    <MessageManager>
+      <div>{storyFn()}</div>
+    </MessageManager>
   </MuiThemeProvider>
 );
 export default Decorator;
