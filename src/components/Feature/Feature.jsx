@@ -9,6 +9,20 @@ import collectionsIcon from '../../images/collections.png';
 import multipleImages from '../../images/multiple-images.png';
 import seoIcon from '../../images/seo.png';
 import nonShippableIcon from '../../images/non-shippable.png';
+import multiCareerShipping from '../../images/multi-career-shipping.png';
+import multipleDispatch from '../../images/multiple-dispatch.png';
+import refunds from '../../images/refunds.png';
+import fulfillment from '../../images/fulfillment.png';
+import customerProfiles from '../../images/customer-profiles.png';
+import paymentIntegration from '../../images/payments-integration.png';
+import automaticTaxes from '../../images/automatic-taxes.png';
+import paymentRequests from '../../images/payment-requests.png';
+import discountAndPromotions from '../../images/discount-and-promotions.png';
+import search from '../../images/search.png';
+import staffManagement from '../../images/staff-management.png';
+import gdprReady from '../../images/gdpr-ready.png';
+import analytics from '../../images/analytics.png';
+
 
 const Feature = () => (
     <div id="feature">
@@ -66,12 +80,13 @@ const Feature = () => (
           </div>
         </div>
       </section>
-      <section className="product-management grid">
-        <div className="side-header col-md-5 col-xs-12">
+      <section className="product-management management-section grid">
+        <div className="side-header col-md-5 col-sm-12 col-xs-12">
           <h2>Product Management</h2>
-          <p>Product offer attractiveness is the resultant of many factors - product price, exposure or their variety. Be in charge of that.</p>
+          <p className="sub-description">Product offer attractiveness is the resultant of
+             many factors - product price, exposure or their variety. Be in charge of that.</p>
         </div>
-        <div className="icons col-md-7 col-xs-12">
+        <div className="icons col-md-7 col-sm-12 col-xs-12">
           <div className="icon-card">
               <img src={productVariant} />
               <h5 className="title">Product & Variants</h5>
@@ -105,6 +120,115 @@ const Feature = () => (
               <h5 className="title">Non-shippable products</h5>
               <p>Sell products like digital goods and services, and have the storefront
                  automatically skip the shipping method and address during checkout.</p>
+            </div>
+        </div>
+      </section>
+      <section className="product-management management-section grid">
+        <div className="side-header col-md-5 col-sm-12 col-xs-12">
+          <h2>Order Management</h2>
+          <p className="sub-description">Saleor gives you full control over placed orders,
+             from the checkout, customer management, ending on product delivery.</p>
+        </div>
+        <div className="icons col-md-7 col-sm-12 col-xs-12">
+          <div className="icon-card">
+              <img src={multiCareerShipping} />
+              <h5 className="title">Multi-carrier shipping</h5>
+              <p>Let buyers choose between multiple carriers and
+                 delivery methods. Set availability and rates separately
+                 for different countries.</p>
+            </div>
+            <div className="icon-card">
+              <img src={multipleDispatch} />
+              <h5 className="title">Multiple dispatch</h5>
+              <p>Need to ship certain items separately or on a different date?
+                 Deliver a single order using multiple fulfillments even if it
+                  means splitting the quantity of a single product.</p>
+            </div>
+            <div className="icon-card">
+              <img src={refunds} />
+              <h5 className="title">Refunds</h5>
+              <p>If anything goes wrong or a product needs to be returned
+                 reimburse your customers using the intuitive refund screen.</p>
+            </div>
+            <div className="icon-card">
+              <img src={fulfillment} />
+              <h5 className="title">Fulfillment</h5>
+              <p>Remain in control throughout the entire lifecycle of your orders.
+                 Use custom search and filtering, leave comments for other staff members
+                 and check the detailed history of every order.</p>
+            </div>
+            <div className="icon-card">
+              <img src={customerProfiles} />
+              <h5 className="title">Customer profiles</h5>
+              <p>Keep user database in check. Review the customer’s order history,
+                 leave notes for staff, deactivate accounts as needed or remove them entirely.</p>
+            </div>
+        </div>
+      </section>
+      <section className="management-section grid">
+        <div className="side-header col-md-5 col-sm-12 col-xs-12">
+          <h2>Cart & Checkout</h2>
+          <p className="sub-description">Saleor is packed with number of ready-to-use payment methods,
+             sales optimizations and discount options.</p>
+        </div>
+        <div className="icons col-md-7 col-sm-12 col-xs-12">
+          <div className="icon-card">
+              <img src={paymentIntegration} />
+              <h5 className="title">Payments integration</h5>
+              <p>Collect payments using a wide range of global payment providers like PayPal or Stripe,
+                 or opt for a region-specific option like CyberSource.</p>
+            </div>
+            <div className="icon-card">
+              <img src={automaticTaxes} />
+              <h5 className="title">Automatic taxes</h5>
+              <p>Automatically show gross prices to your European customers with Vatlayer.
+                 Apply US sales tax during checkout when serving your American clientele with Avalara.</p>
+            </div>
+            <div className="icon-card">
+              <img src={paymentRequests} />
+              <h5 className="title">Payment requests</h5>
+              <p>Allowing for a seamless mobile checkout with the Payment Request API.
+                 Allow your customers to pay using Google Pay or Apple Pay.</p>
+            </div>
+            <div className="icon-card">
+              <img src={discountAndPromotions} />
+              <h5 className="title">Discounts & Promotions</h5>
+              <p>Build seasonal sales with incentives such as free shipping,
+                 fixed amount or percentage rate off discounts that could be limited
+                 to single products or entire categories.</p>
+            </div>
+        </div>
+      </section>
+      <section className="management-section grid">
+        <div className="side-header col-md-5 col-sm-12 col-xs-12">
+          <h2>Back Office</h2>
+          <p className="sub-description">Manage your staff, search through thousands of products, accounts and orders.</p>
+        </div>
+        <div className="icons col-md-7 col-sm-12 col-xs-12">
+          <div className="icon-card">
+              <img src={search} />
+              <h5 className="title">Search</h5>
+              <p>Instantly search through your data including orders, products, or accounts.
+                 Utilize our ElasticSearch integration to gain access to additional
+                 features like query boosting.</p>
+            </div>
+            <div className="icon-card">
+              <img src={staffManagement} />
+              <h5 className="title">Staff management </h5>
+              <p>Control responsibilities and access by giving your staff members specific permissions.
+                 Use history timelines to see who carried out which changes.</p>
+            </div>
+            <div className="icon-card">
+              <img src={gdprReady} />
+              <h5 className="title">GDPR ready</h5>
+              <p>We take extra care not to collect any information that is not necessary for order fulfillment.
+                 User accounts are safe to remove without affecting your ability to process orders.</p>
+            </div>
+            <div className="icon-card">
+              <img src={analytics} />
+              <h5 className="title">Analytics</h5>
+              <p>Saleor supports server-side Google Analytics to report ecommerce metrics
+                 without affecting your customers’ privacy.</p>
             </div>
         </div>
       </section>

@@ -1,7 +1,6 @@
 #feature {
     border: solid var(--border-width) var(--primaryColor);
     & section {
-        padding: calc(var(--spacer) * 2) calc(var(--spacer) * 7);
         & .bg-container {
             background-image: url('../../images/feature-bg.png');
             background-size: auto;
@@ -79,10 +78,15 @@
             padding: calc(var(--spacer) * 2) var(--spacer);
           }
         }
-        &.product-management {
+        &.management-section {
           border-top: solid var(--border-width) var(--primaryColor);
-          padding: calc(var(--spacer) * 4) calc(var(--spacer) * 5);
-          width: auto;
+          padding: calc(var(--spacer) * 4);
+          width: fill-available;
+          & .side-header {
+            & .sub-description {
+              max-width: 360px;
+            }
+          }
           & .icons {
             width: 100%;
             padding-left: calc(var(--spacer) * 6);
@@ -90,9 +94,11 @@
             grid-template-columns: repeat(auto-fit, 260px);
             grid-gap: calc(var(--spacer) * 2) calc(var(--spacer) * 4);
             @media (max-width: 768px) {
-              justify-content: center;
               padding-left: 0;
             }
+          }
+          @media (max-width: 576px) {
+            padding: var(--spacer);
           }
         }
     }
