@@ -1,5 +1,6 @@
 import React from 'react';
 import { ScrollLink } from '..';
+import { GitHubBanner } from '..';
 
 import css from './feature.css';
 
@@ -233,12 +234,15 @@ const Feature = () => (
         </div>
       </section>
       <section className="documentation">
-        <h2>Documentation</h2>
-        <h3 className="description">Check our comprehensive and still growing documentation which can
-            guide you through the installation process or customizations that
-            you may want to carry out.</h3>
-        <a className="btn btn-primary" href="">Read the docs</a>
+        <div className="content">
+          <h2>Documentation</h2>
+          <h3 className="description">Check our comprehensive and still growing documentation which can
+              guide you through the installation process or customizations that
+              you may want to carry out.</h3>
+          <a className="btn btn-primary" href="">Read the docs</a>
+        </div>
       </section>
+      <GitHubBanner />
     </div>
 );
 
