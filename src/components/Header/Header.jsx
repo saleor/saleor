@@ -30,7 +30,7 @@ class Header extends Component {
               <ul className={this.state.mobileMenu ? 'menu-mobile hovered' : null}>
                 <li className="home"><span className="count">01. </span><Link to="/">Home</Link></li>
                 <li><span className="count">02. </span><Link to="/features">Features</Link></li>
-                <li><span className="count">03. </span><Link to="/">Roadmap</Link></li>
+                <li><span className="count">03. </span><Link to="/roadmap">Roadmap</Link></li>
                 <li><span className="count">04. </span><a href="https://saleor.readthedocs.io/en/latest/">Docs</a></li>
                 <li><span className="count">05. </span><Link to="/about">About</Link></li>
                 <li><span className="count">06. </span><a href="https://medium.com/saleor">Blog</a></li>
