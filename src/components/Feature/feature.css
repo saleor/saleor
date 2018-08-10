@@ -3,7 +3,7 @@
     & section {
         & .bg-container {
             background-image: url('../../images/feature-bg.png');
-            background-size: auto;
+            background-size: contain;
             background-repeat: no-repeat;
             background-position: 98% 50%;
             width: 100%;
@@ -15,7 +15,8 @@
               background-position: 400% 0%;
             }
             @media (max-width: 576px) {
-              background-position: 35% 0%;
+              background-position: 60% 0%;
+              background-size: cover;
             }
         }
         &.hero {
