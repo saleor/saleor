@@ -37,6 +37,7 @@
     "detect-passive-events": "^1.0.4",
     "downshift": "^1.31.14",
     "dropzone": "^5.2.0",
+    "fuzzaldrin": "^2.1.0",
     "graphql": "^0.13.2",
     "graphql-tag": "^2.6.1",
     "i18next": "^11.2.2",

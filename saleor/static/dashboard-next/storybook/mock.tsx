@@ -5,7 +5,8 @@ interface ChoiceProviderProps {
     | ((
         props: {
           choices: Array<{
-            label: string;
+            label?: React.ReactNode;
+            name: string;
             value: string;
           }>;
           loading: boolean;
@@ -14,13 +15,15 @@ interface ChoiceProviderProps {
       ) => React.ReactElement<any>)
     | React.ReactNode;
   choices: Array<{
-    label: string;
+    label?: React.ReactNode;
+    name: string;
     value: string;
   }>;
 }
 interface ChoiceProviderState {
   choices: Array<{
-    label: string;
+    label?: React.ReactNode;
+    name: string;
     value: string;
   }>;
   loading: boolean;
@@ -33,7 +36,7 @@ export class ChoiceProvider extends React.Component<
 > {
   state = { choices: [], loading: false, timeout: null };
 
-  handleChange = inputValue => {
+  handleChange = (inputValue: string) => {
     if (this.state.loading) {
       clearTimeout(this.state.timeout);
     }
@@ -44,13 +47,13 @@ export class ChoiceProvider extends React.Component<
     });
   };
 
-  fetchChoices = inputValue => {
+  fetchChoices = (inputValue: string) => {
     let count = 0;
     this.setState({
       choices: this.props.choices.filter(suggestion => {
         const keep =
           (!inputValue ||
-            suggestion.label.toLowerCase().indexOf(inputValue.toLowerCase()) !==
+            suggestion.name.toLowerCase().indexOf(inputValue.toLowerCase()) !==
               -1) &&
           count < 5;
 
