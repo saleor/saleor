@@ -1,3 +1,5 @@
+.. _model-translations:
+
 Model Translations
 ==================
 
