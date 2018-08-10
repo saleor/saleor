@@ -4,6 +4,9 @@
   & section {
     &.hero {
       padding-bottom: calc(var(--spacer) * 10);
+      @media (max-width: 1024px) {
+        padding-bottom: 0;
+      }
       position: relative;
       & .bg-container {
         width: 100%;
@@ -11,15 +14,31 @@
         position: absolute;
         z-index: -1;
         background-image: url('../../images/roadmap-bg.png');
-        background-size: 60%;
+        background-size: 100%;
         background-repeat: no-repeat;
         background-position: 85% 20%;
+        @media (max-width: 578px) {
+          opacity: 0.5;
+          background-size: 200%;
+          background-position: 50% 50%;
+        }
       }
       & .plane {
         width: 30%;
         padding: calc(var(--spacer) * 15) calc(var(--spacer) * 10);
         & p {
           font-size: calc(var(--font-size-base) * 1.3);
+        }
+        @media (max-width: 1024px) {
+          width: 40%;
+          padding: calc(var(--spacer) * 15) calc(var(--spacer) * 5);
+        }
+        @media (max-width: 768px) {
+          padding: calc(var(--spacer) * 10) calc(var(--spacer) * 5);
+        }
+        @media (max-width: 578px) {
+          width: 100%;
+          padding: calc(var(--spacer) * 12) calc(var(--spacer) * 2);
         }
       }
       & .scroll-link {
@@ -53,6 +72,9 @@
             background-size: 40%;
             background-repeat: no-repeat;
             background-position: 85% 5%;
+            @media (max-width: 578px) {
+              width: 100px;
+            }
             &::after {
               content: "";
               position: absolute;
@@ -61,6 +83,9 @@
               bottom: 8%;
               left: 70%;
               border-left: 3px solid var(--primaryColor);
+              @media (max-width: 578px) {
+                top: 37%;
+              }
             }
             &.lantern {
               background-image: url('../../images/lantern-icon.png');
@@ -68,6 +93,9 @@
               background-position: 85% 5%;
               &::after {
                 top: 57%;
+                @media (max-width: 578px) {
+                  top: 35%;
+                }
               }
             }
             &.parrot {
@@ -76,6 +104,12 @@
               background-position: 20% 5%;
               &::after {
                 top: 37%;
+              }
+              @media (max-width: 578px) {
+                background-position: 20% 0;
+                &::after {
+                  top: 15%;
+                }
               }
             }
             &.last {
@@ -92,12 +126,17 @@
           }
           & h4 {
             padding-top: calc(var(--spacer) / 5);
+            padding-right: calc(var(--spacer) * 3);
             font-size: var(--font-size-base);
             text-transform: initial;
             font-weight: var(--font-weight-bold);
           }
           & p {
             padding-bottom: var(--spacer);
+            padding-right: calc(var(--spacer) * 3);
+            @media (max-width: 578px) {
+              padding: 0;
+            }
           }
         }
       }
@@ -105,6 +144,9 @@
         width: 40%;
         right: -20%;
         top: 10%;
+        @media (max-width: 1024px) {
+          top: 13%;
+        }
       }
       & .decoration02 {
         width: 17%;
@@ -115,6 +157,9 @@
         width: 30%;
         right: 0;
         top: 65%;
+        @media (max-width: 768px) {
+          top: 60%;
+        }
       }
     }
   }
