@@ -42,11 +42,12 @@
             }
         }
         &.features {
+          padding: calc(var(--spacer) * 2) calc(var(--spacer) * 10) calc(var(--spacer) * 4);
           & .icons {
             width: 100%;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             grid-gap: calc(var(--spacer) * 5) calc(var(--spacer) * 5);
-            & .card {
+            & .icon-card {
               max-width: 450px;
               justify-self: center;
               position: relative;
@@ -76,6 +77,22 @@
           }
           @media (max-width: 576px) {
             padding: calc(var(--spacer) * 2) var(--spacer);
+          }
+        }
+        &.product-management {
+          border-top: solid var(--border-width) var(--primaryColor);
+          padding: calc(var(--spacer) * 4) calc(var(--spacer) * 5);
+          width: auto;
+          & .icons {
+            width: 100%;
+            padding-left: calc(var(--spacer) * 6);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, 260px);
+            grid-gap: calc(var(--spacer) * 2) calc(var(--spacer) * 4);
+            @media (max-width: 768px) {
+              justify-content: center;
+              padding-left: 0;
+            }
           }
         }
     }
