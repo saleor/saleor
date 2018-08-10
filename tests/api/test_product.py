@@ -10,9 +10,9 @@ from tests.utils import (
     create_image, create_pdf_file_with_image_ext, get_graphql_content)
 
 from saleor.product.models import (
-    Category, Collection, Product, ProductAttribute, ProductType)
+    Category, Collection, Product, ProductAttribute, ProductType, ProductImage)
 
-from .utils import get_multipart_request_body
+from .utils import assert_no_permission, get_multipart_request_body
 
 
 def test_fetch_all_products(user_api_client, product):
@@ -141,6 +141,27 @@ def test_product_query(admin_api_client, product):
         'purchaseCost']['stop']['amount']
     assert margin[0] == product_data['margin']['start']
     assert margin[1] == product_data['margin']['stop']
+
+
+def test_query_product_image_by_id(user_api_client, product_with_image):
+    image = product_with_image.images.first()
+    query = '''
+    query productImageById($imageId: ID!, $productId: ID!) {
+        product(id: $productId) {
+            imageById(id: $imageId) {
+                id
+                url
+            }
+        }
+    }
+    '''
+    variables = json.dumps({
+        'productId': graphene.Node.to_global_id('Product', product_with_image.pk),
+        'imageId': graphene.Node.to_global_id('ProductImage', image.pk)})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
 
 
 def test_product_with_collections(admin_api_client, product, collection):
@@ -809,7 +830,6 @@ def test_product_image_create_mutation(admin_api_client, product):
         productImageCreate(input: {image: $image, product: $product}) {
             productImage {
                 id
-                image
                 url
                 sortOrder
             }
@@ -825,10 +845,8 @@ def test_product_image_create_mutation(admin_api_client, product):
     content = get_graphql_content(response)
     assert 'errors' not in content
     data = content['data']['productImageCreate']
-    file_name = data['productImage']['image']
     product.refresh_from_db()
     assert product.images.first().image.file
-    assert product.images.first().image.name == file_name
 
 
 def test_invalid_product_image_create_mutation(admin_api_client, product):
@@ -837,7 +855,6 @@ def test_invalid_product_image_create_mutation(admin_api_client, product):
         productImageCreate(input: {image: $image, product: $product}) {
             productImage {
                 id
-                image
                 url
                 sortOrder
             }
@@ -1111,3 +1128,95 @@ def test_remove_products_to_collection(
     data = content['data']['collectionRemoveProducts']['collection']
     assert data[
         'products']['totalCount'] == no_products_before - len(product_ids)
+
+
+
+def test_assign_variant_image(admin_api_client, user_api_client, product_with_image):
+    query = """
+    mutation assignVariantImageMutation($variantId: ID!, $imageId: ID!) {
+        variantImageAssign(variantId: $variantId, imageId: $imageId) {
+            errors {
+                field
+                message
+            }
+            image {
+                id
+            }
+        }
+    }
+    """
+    variant = product_with_image.variants.first()
+    image = product_with_image.images.first()
+
+    variables = json.dumps({
+        'variantId': to_global_id('ProductVariant', variant.pk),
+        'imageId': to_global_id('ProductImage', image.pk)})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    variant.refresh_from_db()
+    assert variant.images.first() == image
+
+    # check that assigning an image from a different product is not allowed
+    product_with_image.pk = None
+    product_with_image.save()
+
+    image_2 = ProductImage.objects.create(product=product_with_image)
+    variables = json.dumps({
+        'variantId': to_global_id('ProductVariant', variant.pk),
+        'imageId': to_global_id('ProductImage', image_2.pk)})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert content['data']['variantImageAssign']['errors'][0]['field'] == 'imageId'
+
+    # check permissions
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    assert_no_permission(response)
+
+
+def test_unassign_variant_image(admin_api_client, user_api_client, product_with_image):
+    image = product_with_image.images.first()
+    variant = product_with_image.variants.first()
+    variant.variant_images.create(image=image)
+
+    query = """
+    mutation unassignVariantImageMutation($variantId: ID!, $imageId: ID!) {
+        variantImageUnassign(variantId: $variantId, imageId: $imageId) {
+            errors {
+                field
+                message
+            }
+            image {
+                id
+            }
+        }
+    }
+    """
+
+    variables = json.dumps({
+        'variantId': to_global_id('ProductVariant', variant.pk),
+        'imageId': to_global_id('ProductImage', image.pk)})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    variant.refresh_from_db()
+    assert variant.images.count() == 0
+
+    # check that unsassigning a not assigned image throws error
+    image_2 = ProductImage.objects.create(product=product_with_image)
+    variables = json.dumps({
+        'variantId': to_global_id('ProductVariant', variant.pk),
+        'imageId': to_global_id('ProductImage', image_2.pk)})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert content['data']['variantImageUnassign']['errors'][0]['field'] == 'imageId'
+
+    # check permissions
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    assert_no_permission(response)

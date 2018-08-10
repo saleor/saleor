@@ -49,6 +49,39 @@ class BaseMutation(graphene.Mutation):
         cls._meta.arguments.update(arguments)
         cls._meta.fields.update(fields)
 
+    @classmethod
+    def add_error(cls, errors, field, message):
+        """Add an error to the errors list.
+
+        `errors` is the list of errors that happened during execution of the
+        mutation. `field` is the name of model field the error is related
+        to. `None` is allowed and it indicates that the error is a general one
+        and not related to any of the model fields. `message` is the actual
+        error message.
+
+        As a result of this method, the `errors` argument is updated with an
+        Error object to be returned in mutation result.
+        """
+        errors.append(Error(field=field, message=message))
+
+    @classmethod
+    def get_node_or_error(cls, info, id, errors, field, only_type=None):
+        instance = None
+        try:
+            instance = get_node(info, id, only_type)
+        except GraphQLError as e:
+            cls.add_error(field=field, message=str(e), errors=errors)
+        return instance
+
+    @classmethod
+    def get_nodes_or_error(cls, ids, errors, field, only_type=None):
+        instances = None
+        try:
+            instances = get_nodes(ids, only_type)
+        except GraphQLError as e:
+            cls.add_error(field=field, message=str(e), errors=errors)
+        return instances
+
 
 class ModelMutation(BaseMutation):
     class Meta:
@@ -77,21 +110,6 @@ class ModelMutation(BaseMutation):
         super().__init_subclass_with_meta__(_meta=_meta, **options)
         cls._update_mutation_arguments_and_fields(
             arguments=arguments, fields=fields)
-
-    @classmethod
-    def add_error(cls, errors, field, message):
-        """Add an error to the errors list.
-
-        `errors` is the list of errors that happened during execution of the
-        mutation. `field` is the name of model field the error is related
-        to. `None` is allowed and it indicates that the error is a general one
-        and not related to any of the model fields. `message` is the actual
-        error message.
-
-        As a result of this method, the `errors` argument is updated with an
-        Error object to be returned in mutation result.
-        """
-        errors.append(Error(field=field, message=message))
 
     @classmethod
     def _check_type(cls, field, target_type):
@@ -212,24 +230,6 @@ class ModelMutation(BaseMutation):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         instance.save()
-
-    @classmethod
-    def get_node_or_error(cls, info, id, errors, field, only_type=None):
-        instance = None
-        try:
-            instance = get_node(info, id, only_type)
-        except GraphQLError as e:
-            cls.add_error(field=field, message=str(e), errors=errors)
-        return instance
-
-    @classmethod
-    def get_nodes_or_error(cls, ids, errors, field, graphene_type=None):
-        instances = None
-        try:
-            instances = get_nodes(ids, graphene_type)
-        except GraphQLError as e:
-            cls.add_error(field=field, message=str(e), errors=errors)
-        return instances
 
     @classmethod
     def mutate(cls, root, info, **data):
