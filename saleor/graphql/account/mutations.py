@@ -75,7 +75,7 @@ class CustomerCreate(ModelMutation):
     @classmethod
     def construct_address(
             cls, address_field_name, address_input, user_instance, errors):
-        if not address_field_name in [
+        if address_field_name not in [
                 BILLING_ADDRESS_FIELD, SHIPPING_ADDRESS_FIELD]:
             raise AssertionError(
                 'Wrong address_field_name: %s' % address_field_name)
@@ -96,7 +96,8 @@ class CustomerCreate(ModelMutation):
 
         if shipping_address_input:
             shipping_address = cls.construct_address(
-                SHIPPING_ADDRESS_FIELD, shipping_address_input, instance, errors)
+                SHIPPING_ADDRESS_FIELD, shipping_address_input, instance,
+                errors)
             cleaned_input[SHIPPING_ADDRESS_FIELD] = shipping_address
 
         if billing_address_input:

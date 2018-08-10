@@ -358,6 +358,7 @@ class ProductVariantCreate(ModelMutation):
     def user_is_allowed(cls, user, input):
         return user.has_perm('product.manage_products')
 
+
 class ProductVariantUpdate(ProductVariantCreate):
     class Arguments:
         id = graphene.ID(
