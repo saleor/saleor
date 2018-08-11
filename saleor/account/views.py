@@ -2,12 +2,12 @@ from django.conf import settings
 from django.contrib import auth, messages
 from django.contrib.auth import views as django_views
 from django.contrib.auth.decorators import login_required
+from django.contrib.sites.shortcuts import get_current_site
 from django.core.cache import cache
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
-from django.utils import timezone
 from django.utils.translation import pgettext, ugettext_lazy as _
 from django.views.decorators.http import require_POST
 
@@ -179,19 +179,15 @@ def email_edit(request):
     form = EmailChangeForm(data=request.POST or None, instance=request.user)
 
     if request.method == 'POST' and form.is_valid():
-        cache.set(
-            str(request.user.pk) + '_email_field', form.data['user_email'],
-            1200)
-        form.send_mail()
-        request.user.email_change_requested_on = timezone.now()
-        request.user.save()
+        current_site = get_current_site(request)
+        cache.set('new_email_field', form.data['user_email'], 1200)
+        form.send_mail(current_site)
         messages.success(
             request,
             pgettext(
                 'Storefront message',
                 'Email change confirmation was sent to user.'
-                'Confirmation token is active only for 20 minutes.'
-            ))
+                'Confirmation token is active only for 20 minutes.'))
     return form
 
 
@@ -199,19 +195,15 @@ def email_edit(request):
 def email_change_confirm(request, token=None):
     if str(request.user.token) != token:
         raise Http404('No such page!')
-    new_email = cache.get(str(request.user.pk) + '_email_field')
-    if new_email:
-        try:
-            user_exist = User.objects.get(email=new_email)
-        except User.DoesNotExist:
-            user_exist = None
-        if user_exist:
+    if cache.get('new_email_field'):
+        user = User.objects.filter(email=cache.get('new_email_field'))
+        if user.exists():
             msg = pgettext(
                 'Email changed error', 'User with this email already exists.')
         else:
-            request.user.email = new_email
+            request.user.email = cache.get('new_email_field')
             request.user.save()
-            cache.delete(str(request.user.pk))
+            cache.delete('new_email_field')
             msg = pgettext(
                 'Email changed success',
                 'Your email address was changed successfully.')

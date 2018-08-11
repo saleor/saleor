@@ -1,11 +1,8 @@
-from datetime import timedelta
 from captcha.fields import ReCaptchaField
 from django import forms
 from django.conf import settings
 from django.contrib.auth import forms as django_forms, update_session_auth_hash
-from django.contrib.sites.shortcuts import get_current_site
-from django.urls import reverse
-from django.utils import timezone
+from django.core.cache import cache
 from django.utils.translation import pgettext, pgettext_lazy
 from phonenumbers.phonenumberutil import country_code_for_region
 
@@ -25,7 +22,7 @@ class FormWithReCaptcha(forms.BaseForm):
 
 
 def get_address_form(
-    data, country_code, initial=None, instance=None, **kwargs):
+        data, country_code, initial=None, instance=None, **kwargs):
     country_form = AddressMetaForm(data, initial=initial)
     preview = False
     if country_form.is_valid():
@@ -44,12 +41,10 @@ def get_address_form(
         address_form = address_form_class(data, instance=instance, **kwargs)
     else:
         initial_address = (
-            initial if not preview
-            else data.dict() if data is not None else data)
+            initial if not preview else data.dict()
+            if data is not None else data)
         address_form = address_form_class(
-            not preview and data or None,
-            initial=initial_address,
-            **kwargs)
+            not preview and data or None, initial=initial_address, **kwargs)
     return address_form, preview
 
 
@@ -64,7 +59,7 @@ class ChangePasswordForm(django_forms.PasswordChangeForm):
 
 def logout_on_password_change(request, user):
     if (update_session_auth_hash is not None
-        and not settings.LOGOUT_ON_PASSWORD_CHANGE):
+            and not settings.LOGOUT_ON_PASSWORD_CHANGE):
         update_session_auth_hash(request, user)
 
 
@@ -124,13 +119,13 @@ class PasswordResetForm(django_forms.PasswordResetForm, FormWithReCaptcha):
         return active_users
 
     def send_mail(
-        self,
-        subject_template_name,
-        email_template_name,
-        context,
-        from_email,
-        to_email,
-        html_email_template_name=None):
+            self,
+            subject_template_name,
+            email_template_name,
+            context,
+            from_email,
+            to_email,
+            html_email_template_name=None):
         # Passing the user object to the Celery task throws an
         # error "'User' is not JSON serializable". Since it's not used in our
         # template, we remove it from the context.
@@ -148,13 +143,12 @@ class EmailChangeForm(forms.ModelForm):
         'requests_exceeded':
         pgettext_lazy(
             "Max requests exceeded",
-            'Sorry, but it looks like You are trying change email address'
-            'again. You can change email only once per 10 minutes.'),
+            'Sorry, but it looks like You actually trying to reset'
+            ' Your email address again. Please check Your email inbox first.'),
         'same_email':
         pgettext_lazy(
             "Email can't be the same", 'New email address cannot be the '
-            'same as your current email'
-            ' address'),
+            'same as your current email address'),
         'user_exists':
         pgettext_lazy(
             "User already exists",
@@ -170,27 +164,20 @@ class EmailChangeForm(forms.ModelForm):
             'placeholder'] = self.instance.email
 
     def clean(self):
-        last_request = self.instance.email_change_requested_on
         data = self.cleaned_data
         if self.instance.email == data['user_email']:
             self.add_error('user_email', self.error_messages['same_email'])
-        elif last_request and (last_request + timedelta(minutes=10) >
-                               timezone.now()):
+        elif cache.get('new_email_field'):
             self.add_error(
                 'user_email', self.error_messages['requests_exceeded'])
         else:
-            try:
-                user = User.objects.get(email=data['user_email'])
-            except User.DoesNotExist:
-                user = None
-            finally:
-                if user:
-                    self.add_error(
-                        'user_email', self.error_messages['user_exists'])
+            user = User.objects.filter(email=data['user_email'])
+            if user.exists():
+                self.add_error(
+                    'user_email', self.error_messages['user_exists'])
         return data
 
-    def send_mail(self, request=None):
-        current_site = get_current_site(request)
+    def send_mail(self, current_site):
         site_name = current_site.name
         domain = current_site.domain
         context = {

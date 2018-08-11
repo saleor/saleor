@@ -19,8 +19,8 @@
           {% endblocktrans %}
         </mj-text>
         <mj-text>
-          <a href="{{ protocol}}://{{ domain }}{% url 'account:email-change-confirm' token=token %}">
-            {{ protocol}}://{{ domain }}{% url 'account:email-change-confirm' token=token %}
+          <a href="{{ reset_url }}">
+            {{ reset_url }}
           </a>
         </mj-text>
       </mj-column>
