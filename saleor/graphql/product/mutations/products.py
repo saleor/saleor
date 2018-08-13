@@ -1,7 +1,6 @@
 import graphene
 from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
-from graphene_file_upload import Upload
 from graphql_jwt.decorators import permission_required
 
 from ....product import models
