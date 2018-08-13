@@ -83,10 +83,10 @@
               & .decorator {
                 width: 5px;
                 height: 0;
-                border: 1px solid;
+                border: var(--border-width) solid;
                 display: inline-block;
                 position: absolute;
-                left: -30px;
+                left: calc(var(--spacer) * (-2));
                 top: 175px;
               }
               & img {
