@@ -368,6 +368,32 @@
           & .image {
             background-image: url('../../images/storefront-icon.png');
             background-size: 40%;
+            position: relative;
+            & .label-wrapper {
+              position: absolute;
+              top: 65%;
+              left: 75%;
+              z-index: 1;
+              & .label {
+                margin: calc(var(--spacer) * 0.5) 0;
+                font-weight: var(--font-weight-lighter);
+                & .rectangle {
+                  height: calc(var(--spacer) * 0.4);
+                  width: calc(var(--spacer) * 3);
+                  transform: skew(-20deg) translateX(-30%);
+                  display: block;
+                  &.primary {
+                    background-color: var(--primaryColor)
+                  }
+                  &.secondary {
+                    background-color: var(--secondaryColor)
+                  }
+                }
+                &.transformed {
+                  transform: translateX(-20%);
+                }
+              }
+            }
           }
           & .decoration {
             width: 30%;
