@@ -239,7 +239,7 @@ const Feature = () => (
           <h3 className="description">Check our comprehensive and still growing documentation which can
               guide you through the installation process or customizations that
               you may want to carry out.</h3>
-          <a className="btn btn-primary" href="">Read the docs</a>
+          <a className="btn btn-primary" href="https://saleor.readthedocs.io/en/latest/" target="_blank">Read the docs</a>
         </div>
       </section>
       <GitHubBanner />

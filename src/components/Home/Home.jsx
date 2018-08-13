@@ -54,8 +54,8 @@ class Home extends Component {
             </div>
             }
             <h1>A graphql-first ecommerce <span className="primaryColor">platform for perfectionists</span></h1>
-            <a href="#" className="btn btn-secondary">See demo</a>
-            <a href="#" className="btn btn-primary">Brief us</a>
+            <a href="https://demo.getsaleor.com/pl/" target="_blank" className="btn btn-secondary">See demo</a>
+            <a href="https://mirumee.com/hire-us/" target="_blank" className="btn btn-primary">Brief us</a>
           </div>
           <ScrollLink to="#features-section"> Why Salor </ScrollLink>
         </section>
@@ -319,7 +319,7 @@ class Home extends Component {
               </div>
             </div>
             <div className="center">
-              <a className="btn btn-secondary" href="">Estimate your project</a>
+              <a className="btn btn-secondary" href="https://mirumee.com/hire-us/" target="_blank">Estimate your project</a>
             </div>
           </div>
           <div className="decoration decoration01">

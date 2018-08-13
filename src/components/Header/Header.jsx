@@ -35,7 +35,7 @@ class Header extends Component {
                 <li><span className="count">05. </span><Link to="/about">About</Link></li>
                 <li><span className="count">06. </span><a href="https://medium.com/saleor">Blog</a></li>
                 <li className="github-link"><GitHubLink owner="mirumee" name="saleor" /></li>
-                <li><span className="count">07. </span><a className={this.state.mobileMenu ? null : 'btn btn-primary'} href="#">Contact Us</a></li>
+                <li><span className="count">07. </span><a className={this.state.mobileMenu ? null : 'btn btn-primary'} href="https://mirumee.com/hire-us/">Contact Us</a></li>
               </ul>
               <ul className="mobile-btn">
                 <li className={this.state.mobileMenu ? 'github-link open' : 'github-link'} onClick={this.toggleMenu}><GitHubLink owner="mirumee" name="saleor" /></li>
