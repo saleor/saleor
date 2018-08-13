@@ -4,7 +4,6 @@ import { withStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import { ListProps } from "../../..";
 import CardTitle from "../../../components/CardTitle";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
@@ -16,7 +15,7 @@ import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import ProductImageNavigation from "../ProductImageNavigation";
 
-interface ProductImagePageProps extends ListProps {
+interface ProductImagePageProps {
   image?: {
     id: string;
     url: string;
@@ -26,9 +25,11 @@ interface ProductImagePageProps extends ListProps {
     url: string;
   }>;
   description?: string;
+  disabled: boolean;
   saveButtonBarState?: SaveButtonBarState;
   onBack: () => void;
   onDelete: () => void;
+  onRowClick: (id: string) => () => void;
   onSubmit: (data: { description: string }) => void;
 }
 
@@ -59,12 +60,9 @@ const ProductImagePage = decorate<ProductImagePageProps>(
     disabled,
     image,
     images,
-    pageInfo,
     saveButtonBarState,
     onBack,
     onDelete,
-    onNextPage,
-    onPreviousPage,
     onRowClick,
     onSubmit
   }) => (
@@ -80,13 +78,10 @@ const ProductImagePage = decorate<ProductImagePageProps>(
             <div className={classes.root}>
               <div>
                 <ProductImageNavigation
-                  onNextPage={onNextPage}
-                  onPreviousPage={onPreviousPage}
                   disabled={disabled}
                   images={images}
                   highlighted={image ? image.id : undefined}
                   onRowClick={onRowClick}
-                  pageInfo={pageInfo}
                 />
                 <Card>
                   <CardTitle title={i18n.t("Photo Information")} />

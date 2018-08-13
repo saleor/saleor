@@ -12,6 +12,8 @@ import {
   ProductImageDeleteMutationVariables,
   ProductImageReorderMutation,
   ProductImageReorderMutationVariables,
+  ProductImageUpdateMutation,
+  ProductImageUpdateMutationVariables,
   ProductUpdateMutation,
   ProductUpdateMutationVariables,
   VariantCreateMutation,
@@ -42,7 +44,6 @@ export const productImageCreateMutation = gql`
       productImage {
         id
         sortOrder
-        image
         alt
         url
       }
@@ -105,7 +106,6 @@ export const productUpdateMutation = gql`
     $collections: [ID]
     $description: String
     $isPublished: Boolean!
-    $isFeatured: Boolean!
     $name: String
     $price: Decimal
   ) {
@@ -119,7 +119,6 @@ export const productUpdateMutation = gql`
         collections: $collections
         description: $description
         isPublished: $isPublished
-        isFeatured: $isFeatured
         name: $name
         price: $price
       }
@@ -149,7 +148,6 @@ export const productCreateMutation = gql`
     $collections: [ID]
     $description: String
     $isPublished: Boolean!
-    $isFeatured: Boolean!
     $name: String!
     $price: Decimal
     $productType: ID!
@@ -163,7 +161,6 @@ export const productCreateMutation = gql`
         collections: $collections
         description: $description
         isPublished: $isPublished
-        isFeatured: $isFeatured
         name: $name
         price: $price
         productType: $productType
@@ -288,21 +285,21 @@ export const productImageDeleteMutation = gql`
   }
 `;
 
-// export const TypedProductImageUpdateMutation = Mutation as React.ComponentType<
-//   MutationProps<ProductImageUpdateMutation, ProductImageMutationUpdateVariables>
-// >;
+export const TypedProductImageUpdateMutation = Mutation as React.ComponentType<
+  MutationProps<ProductImageUpdateMutation, ProductImageUpdateMutationVariables>
+>;
 
-// export const productImageUpdateMutation = gql`
-//   mutation ProductImageUpdate($id: ID!, $alt: String!) {
-//     productImageUpdate(id: $id, input: { alt: $alt }) {
-//       errors {
-//         field
-//         message
-//       }
-//       productImage {
-//         id
-//         alt
-//       }
-//     }
-//   }
-// `;
+export const productImageUpdateMutation = gql`
+  mutation ProductImageUpdate($id: ID!, $alt: String!) {
+    productImageUpdate(id: $id, input: { alt: $alt }) {
+      errors {
+        field
+        message
+      }
+      productImage {
+        id
+        alt
+      }
+    }
+  }
+`;

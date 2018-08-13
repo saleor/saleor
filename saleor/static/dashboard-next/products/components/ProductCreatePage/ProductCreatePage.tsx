@@ -27,7 +27,6 @@ interface FormData {
   chargeTaxes: boolean;
   collections: string[];
   description: string;
-  featured: boolean;
   name: string;
   price: number;
   productType: {
@@ -118,7 +117,6 @@ export const ProductCreatePage = decorate<ProductCreatePageProps>(
       chargeTaxes: false,
       collections: [],
       description: "",
-      featured: false,
       name: "",
       price: 0,
       productType: {

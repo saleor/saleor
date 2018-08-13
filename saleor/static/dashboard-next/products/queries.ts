@@ -66,7 +66,6 @@ export const fragmentProduct = gql`
       }
     }
     isPublished
-    isFeatured
     chargeTaxes
     availableOn
     attributes {
@@ -397,30 +396,19 @@ export const TypedProductImageQuery = Query as React.ComponentType<
   QueryProps<ProductImageQuery, ProductImageQueryVariables>
 >;
 export const productImageQuery = gql`
-  query ProductImage(
-    $productId: ID!
-    $imageId: String!
-    $imageAfter: String
-    $imageBefore: String
-  ) {
+  query ProductImage($productId: ID!, $imageId: ID!) {
     product(id: $productId) {
-      image: images(after: $imageId, first: 1) {
-        edges {
-          cursor
-          node {
-            id
-            alt
-            url
-          }
-        }
+      id
+      image: imageById(id: $imageId) {
+        id
+        alt
+        url
       }
-      images(after: $imageAfter, before: $imageBefore, first: 8) {
+      images {
         edges {
-          cursor
           node {
             id
-            alt
-            url
+            url(size: 48)
           }
         }
         pageInfo {
