@@ -3,18 +3,18 @@ import CardContent from "@material-ui/core/CardContent";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { ListProps } from "../../../";
 import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
-import { TablePaginationActions } from "../../../components/TablePagination";
 import i18n from "../../../i18n";
 
-interface ProductImageNavigationProps extends ListProps {
+interface ProductImageNavigationProps {
+  disabled: boolean;
   images?: Array<{
     id: string;
     url: string;
   }>;
   highlighted?: string;
+  onRowClick: (id: string) => () => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -49,29 +49,9 @@ const decorate = withStyles(theme => ({
   toolbar: { marginTop: -theme.spacing.unit / 2 }
 }));
 const ProductImageNavigation = decorate<ProductImageNavigationProps>(
-  ({
-    classes,
-    disabled,
-    highlighted,
-    images,
-    onNextPage,
-    onPreviousPage,
-    onRowClick,
-    pageInfo
-  }) => (
+  ({ classes, disabled, highlighted, images, onRowClick }) => (
     <Card className={classes.card}>
-      <CardTitle
-        title={i18n.t("All photos")}
-        toolbar={
-          <TablePaginationActions
-            hasNextPage={!disabled && pageInfo.hasNextPage}
-            hasPreviousPage={!disabled && pageInfo.hasPreviousPage}
-            onNextPage={onNextPage}
-            onPreviousPage={onPreviousPage}
-            className={classes.toolbar}
-          />
-        }
-      />
+      <CardTitle title={i18n.t("All photos")} />
       <CardContent>
         {images === undefined ? (
           <Skeleton />

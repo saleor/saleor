@@ -73,7 +73,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               chargeTaxes: formData.chargeTaxes,
                               collections: formData.collections,
                               description: formData.description,
-                              isFeatured: formData.featured,
                               isPublished: formData.available,
                               name: formData.name,
                               price: formData.price,

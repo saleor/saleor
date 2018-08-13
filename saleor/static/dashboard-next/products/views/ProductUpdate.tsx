@@ -110,7 +110,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               collections: data.collections,
                               description: data.description,
                               id: product.id,
-                              isFeatured: data.featured,
                               isPublished: data.available,
                               name: data.name,
                               price: data.price
