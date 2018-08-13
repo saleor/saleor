@@ -82,10 +82,11 @@ def details(request):
     orders = request.user.orders.confirmed().prefetch_related('lines')
     orders_paginated = get_paginator_items(
         orders, settings.PAGINATE_BY, request.GET.get('page'))
-    ctx = {'addresses': request.user.addresses.all(),
-           'orders': orders_paginated,
-           'change_password_form': password_form,
-           'change_email_form': email_form}
+    ctx = {
+        'addresses': request.user.addresses.all(),
+        'orders': orders_paginated,
+        'change_password_form': password_form,
+        'change_email_form': email_form}
 
     return TemplateResponse(request, 'account/details.html', ctx)
 
@@ -107,8 +108,9 @@ def get_or_process_password_form(request):
     if form.is_valid():
         form.save()
         logout_on_password_change(request, form.user)
-        messages.success(request, pgettext(
-            'Storefront message', 'Password successfully changed.'))
+        messages.success(
+            request,
+            pgettext('Storefront message', 'Password successfully changed.'))
     return form
 
 
@@ -116,7 +118,8 @@ def get_or_process_password_form(request):
 def address_edit(request, pk):
     address = get_object_or_404(request.user.addresses, pk=pk)
     address_form, preview = get_address_form(
-        request.POST or None, instance=address,
+        request.POST or None,
+        instance=address,
         country_code=address.country.code)
     if address_form.is_valid() and not preview:
         address_form.save()
@@ -125,8 +128,7 @@ def address_edit(request, pk):
         messages.success(request, message)
         return HttpResponseRedirect(reverse('account:details') + '#addresses')
     return TemplateResponse(
-        request, 'account/address_edit.html',
-        {'address_form': address_form})
+        request, 'account/address_edit.html', {'address_form': address_form})
 
 
 @login_required
@@ -148,7 +150,8 @@ def account_delete(request):
     user = request.user
     send_account_delete_confirmation_email.delay(str(user.token), user.email)
     messages.success(
-        request, pgettext(
+        request,
+        pgettext(
             'Storefront message, when user requested his account removed',
             'Please check your inbox for a confirmation e-mail.'))
     return HttpResponseRedirect(reverse('account:details') + '#settings')
@@ -164,14 +167,12 @@ def account_delete_confirm(request, token):
     if request.method == 'POST':
         user.delete()
         msg = pgettext(
-            'Account deleted',
-            'Your account was deleted successfully. '
+            'Account deleted', 'Your account was deleted successfully. '
             'In case of any trouble or questions feel free to contact us.')
         messages.success(request, msg)
         return redirect('home')
 
-    return TemplateResponse(
-        request, 'account/account_delete_prompt.html')
+    return TemplateResponse(request, 'account/account_delete_prompt.html')
 
 
 @login_required
@@ -187,7 +188,7 @@ def email_edit(request):
             pgettext(
                 'Storefront message',
                 'Email change confirmation was sent to user.'
-                'Confirmation token is active only for 20 minutes.'))
+                ' Confirmation token is active only for 20 minutes.'))
     return form
 
 

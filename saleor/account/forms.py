@@ -142,7 +142,7 @@ class EmailChangeForm(forms.ModelForm):
     error_messages = {
         'requests_exceeded':
         pgettext_lazy(
-            "Max requests exceeded",
+            'Max requests exceeded',
             'Sorry, but it looks like You actually trying to reset'
             ' Your email address again. Please check Your email inbox first.'),
         'same_email':

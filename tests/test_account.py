@@ -8,6 +8,7 @@ import pytest
 
 import i18naddress
 from captcha import constants as recaptcha_constants
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.forms import Form
 from django.http import QueryDict
@@ -67,25 +68,23 @@ def test_address_form_postal_code_validation():
 
 
 @pytest.mark.parametrize(
-    'form_data, form_valid, expected_preview, expected_country', [
-        ({'preview': True}, False, True, 'PL'),
-        ({
+    'form_data, form_valid, expected_preview, expected_country',
+    [({
+        'preview': True}, False, True, 'PL'), ({
             'preview': False,
             'street_address_1': 'Foo bar',
             'postal_code': '00-123',
-            'city': 'Warsaw'}, True, False, 'PL'),
-        ({'preview': True, 'country': 'US'}, False, True, 'US'),
-        ({
-            'preview': False,
-            'street_address_1': 'Foo bar',
-            'postal_code': '0213',
-            'city': 'Warsaw'}, False, False, 'PL')])
+            'city': 'Warsaw'}, True, False, 'PL'), ({
+                'preview': True,
+                'country': 'US'}, False, True, 'US'),
+     ({
+         'preview': False,
+         'street_address_1': 'Foo bar',
+         'postal_code': '0213',
+         'city': 'Warsaw'}, False, False, 'PL')])
 def test_get_address_form(
         form_data, form_valid, expected_preview, expected_country):
-    data = {
-        'first_name': 'John',
-        'last_name': 'Doe',
-        'country': 'PL'}
+    data = {'first_name': 'John', 'last_name': 'Doe', 'country': 'PL'}
     data.update(form_data)
     query_dict = urlencode(data)
     form, preview = forms.get_address_form(
@@ -106,13 +105,13 @@ def test_country_aware_form_has_only_supported_countries():
         assert country not in country_choices
 
 
-@pytest.mark.parametrize("input,exception", [
-    ('123', ValidationError),
-    ('+48123456789', None),
-    ('+12025550169', None),
-    ('+481234567890', ValidationError),
-    ('testext', ValidationError),
-])
+@pytest.mark.parametrize(
+    "input,exception", [
+        ('123', ValidationError),
+        ('+48123456789', None),
+        ('+12025550169', None),
+        ('+481234567890', ValidationError),
+        ('testext', ValidationError), ])
 def test_validate_possible_number(input, exception):
     if exception is not None:
         with pytest.raises(exception):
@@ -215,9 +214,11 @@ def test_user_ajax_label_without_address(admin_user):
 
 
 def test_ajax_users_list(admin_client, admin_user, customer_user):
-    users_list = [
-        {'id': admin_user.pk, 'text': admin_user.get_ajax_label()},
-        {'id': customer_user.pk, 'text': customer_user.get_ajax_label()}]
+    users_list = [{
+        'id': admin_user.pk,
+        'text': admin_user.get_ajax_label()}, {
+            'id': customer_user.pk,
+            'text': customer_user.get_ajax_label()}]
     url = reverse('dashboard:ajax-users-list')
 
     response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
@@ -231,6 +232,7 @@ def test_disabled_recaptcha():
     """
     This test creates a new form that should not contain any recaptcha field.
     """
+
     class TestForm(Form, FormWithReCaptcha):
         pass
 
@@ -299,3 +301,30 @@ def test_view_account_delete_confirm(customer_user, authorized_client):
     assert response.status_code == 302
     customer_user = User.objects.filter(pk=customer_user.pk).first()
     assert customer_user is None
+
+
+def test_view_email_edit(customer_user, authorized_client):
+    url = reverse('account:details')
+    data = {'email_change': True, 'user_email': 'test@example.pl'}
+    request = authorized_client.post(url, data)
+    assert request.status_code == 200
+    assert cache.get('new_email_field') == 'test@example.pl'
+    assert request.context_data['change_email_form'].errors == {}
+
+    data['user_email'] = customer_user.email
+    request = authorized_client.post(url, data)
+    assert request.status_code == 200
+    assert request.context_data['change_email_form'].errors != {}
+
+
+def test_view_email_edit_confirm(customer_user, authorized_client):
+    cache.set('new_email_field', 'test@example.pl', 60)
+    url = reverse(
+        'account:email-change-confirm', args=[str(customer_user.token)])
+    response = authorized_client.get(url)
+    assert response.status_code == 200
+
+    response = authorized_client.post(url)
+    assert response.status_code == 200
+    user = User.objects.filter(pk=customer_user.pk).first()
+    assert user.email == 'test@example.pl'

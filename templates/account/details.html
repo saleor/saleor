@@ -135,7 +135,7 @@
       </div>
       <div class="tab-pane fade" id="settings" role="tabpanel">
         <div class="row ">
-          <div class="col-md-8 col-lg-6 m-auto user__email">
+          <div class="col-md-8 col-lg-6 m-auto pt-5 pb-4 user__email">
             <form action="" method="post">
               {% csrf_token %}
               {% bootstrap_form change_email_form %}
@@ -145,7 +145,7 @@
         </div>
         {% if user.password %}
         <div class="row ">
-          <div class="col-md-8 col-lg-6 m-auto account__password">
+          <div class="col-md-8 col-lg-6 m-auto pb-4 account__password">
             <form action="" method="post">
               {% csrf_token %}
               {% bootstrap_form change_password_form %}
@@ -155,7 +155,7 @@
         </div>
         {% endif %}
         <div class="row ">
-          <div class="d-block mx-auto text-center">
+          <div class="d-block mx-auto pt-5 text-center">
             <form action="{% url 'account:delete' %}" method="post">
               {% csrf_token %}
               <p>
