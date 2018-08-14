@@ -1,6 +1,6 @@
-from django.utils.translation import pgettext_lazy
 import importlib
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.translation import pgettext_lazy
 
 
 class PaymentError(Exception):
@@ -32,7 +32,7 @@ class PaymentMethodChargeStatus:
 
 
 # FIXME: move to settings
-PROVIDERS_MAP = {'dummy': 'saleor.payment.providers.dummy'}
+PROVIDERS_MAP = {'default': 'saleor.payment.providers.dummy'}
 
 
 def get_provider(provider_name):

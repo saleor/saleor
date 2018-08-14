@@ -108,7 +108,7 @@
             {% trans "Payments" context "Order summary card header" %}
           </h5>
           {% if payment %}
-            {% render_status payment.status payment.get_status_display %}
+            {% render_status payment.charge_status payment.get_charge_status_display %}
           {% else %}
             <span class="label">
               {% trans "N/A" context "Payment status not available" %}
@@ -599,10 +599,14 @@
                     {{ payment.created }}
                   </td>
                   <td>
-                    {% render_status payment.status payment.get_status_display %}
+                    {% render_status payment.charget_status payment.get_charge_status_display %}
                   </td>
                   <td>
-                    {% render_status payment.fraud_status payment.get_fraud_status_display %}
+                    {% if payment.fraud_status %}
+                      {% render_status payment.fraud_status payment.get_fraud_status_display %}
+                    {% else %}
+                      -
+                    {% endif %}
                   </td>
                   <td>
                     {{ payment.total|currencyfmt:payment.currency }}
