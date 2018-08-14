@@ -10,13 +10,14 @@ from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 from django.views.decorators.csrf import csrf_exempt
-from payments import PaymentStatus, RedirectNeeded
+from payments import PaymentStatus
 
 from . import FulfillmentStatus
 from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
-from ..checkout.models import PaymentMethod
+from ..payment.forms import PaymentMethodForm
+from ..payment.models import PaymentMethod
 from .forms import (
     CustomerNoteForm, PasswordForm, PaymentDeleteForm, PaymentMethodsForm)
 from .models import Order, Payment
@@ -113,7 +114,6 @@ def start_payment(request, order, variant):
     with transaction.atomic():
         payment_method, dummy_created = PaymentMethod.objects.get_or_create(
             variant=variant, is_active=True, order=order, defaults=defaults)
-        from ..checkout.forms import PaymentMethodForm
         form = PaymentMethodForm(
             data=request.POST or None, instance=payment_method)
         form.method = "POST"

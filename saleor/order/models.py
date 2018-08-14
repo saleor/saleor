@@ -134,10 +134,12 @@ class Order(models.Model):
         return super().save(*args, **kwargs)
 
     def is_fully_paid(self):
+        # FIXME Adapt to new API
         total_paid = sum([
             payment.get_total_price() for payment in self.payments.filter(
                 status=PaymentStatus.CONFIRMED)],
                          ZERO_TAXED_MONEY)
+
         return total_paid.gross >= self.total.gross
 
     def get_user_current_email(self):
@@ -162,15 +164,18 @@ class Order(models.Model):
         return reverse('order:details', kwargs={'token': self.token})
 
     def get_last_payment(self):
+        # FIXME Adapt to new API
         return max(self.payments.all(), default=None, key=attrgetter('pk'))
 
     def get_last_payment_status(self):
+        # FIXME Adapt to new API
         last_payment = self.get_last_payment()
         if last_payment:
             return last_payment.status
         return None
 
     def get_last_payment_status_display(self):
+        # FIXME Adapt to new API
         last_payment = max(
             self.payments.all(), default=None, key=attrgetter('pk'))
         if last_payment:
@@ -178,6 +183,7 @@ class Order(models.Model):
         return None
 
     def is_pre_authorized(self):
+        # FIXME Adapt to new API
         # FIXME: Check for really pre-authorized transactions
         return self.payment_methods.filter(is_active=True).exists()
 
