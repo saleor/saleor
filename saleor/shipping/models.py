@@ -99,13 +99,14 @@ class ShippingMethod(models.Model):
         on_delete=models.CASCADE)
     minimum_order_price = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0, blank=True)
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0, blank=True,
+        null=True)
     maximum_order_price = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, blank=True, null=True)
     minimum_order_weight = MeasurementField(
         measurement=Weight, unit_choices=settings.DEFAULT_WEIGHT_UNITS,
-        default=0)
+        default=0, blank=True, null=True)
     maximum_order_weight = MeasurementField(
         measurement=Weight, unit_choices=settings.DEFAULT_WEIGHT_UNITS,
         blank=True, null=True)

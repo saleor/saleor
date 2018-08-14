@@ -4,6 +4,8 @@ import graphene
 import pytest
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
+from saleor.graphql.shipping.types import ShippingMethodTypeEnum
+from saleor.shipping import ShippingMethodType
 
 
 def test_shipping_zone_query(user_api_client, shipping_zone):
@@ -136,30 +138,37 @@ def test_delete_shipping_zone(admin_api_client, shipping_zone):
 
 def test_create_shipping_method(admin_api_client, shipping_zone):
     query = """
-    mutation createShippingPrice(
-        $name: String!, $price: Decimal, $shippingZone: ID!){
-        shippingPriceCreate(
-            input: {
-                name: $name, price: $price,
-                shippingZone: $shippingZone}) {
+        mutation createShipipngPrice(
+            $type: ShippingMethodTypeEnum, $name: String!, $price: Decimal,
+            $shippingZone: ID!, $minimumOrderPrice: Decimal) {
+        shippingPriceCreate(input: {
+                name: $name, price: $price, shippingZone: $shippingZone,
+                minimumOrderPrice: $minimumOrderPrice, type: $type}) {
             shippingMethod {
                 name
                 price {
                     amount
                 }
+                minimumOrderPrice {
+                    amount
+                }
+                type
             }
         }
     }
     """
     name = 'DHL'
     price = '12.34'
+    order_price = '13.00'
     shipping_zone_id = graphene.Node.to_global_id(
         'ShippingZone', shipping_zone.pk)
     variables = json.dumps(
         {
             'shippingZone': shipping_zone_id,
             'name': name,
-            'price': price})
+            'price': price,
+            'minimumOrderPrice': order_price,
+            'type': ShippingMethodTypeEnum.PRICE_BASED.name})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
@@ -167,23 +176,36 @@ def test_create_shipping_method(admin_api_client, shipping_zone):
     data = content['data']['shippingPriceCreate']['shippingMethod']
     assert data['name'] == name
     assert data['price']['amount'] == float(price)
+    assert data['minimumOrderPrice']['amount'] == float(order_price)
+    assert data['type'] == ShippingMethodType.PRICE_BASED.upper()
 
 
-def test_update_shipping_method(admin_api_client, shipping_zone, shipping_method):
+def test_update_shipping_method(admin_api_client, shipping_zone):
     query = """
     mutation updateShippingPrice(
-        $id: ID!, $price: Decimal, $shippingZone: ID!) {
+        $id: ID!, $price: Decimal, $shippingZone: ID!,
+        $type: ShippingMethodTypeEnum!, $minimumOrderPrice: Decimal) {
         shippingPriceUpdate(
-            id: $id, input: {price: $price, shippingZone: $shippingZone}) {
+            id: $id, input: {
+                price: $price, shippingZone: $shippingZone,
+                type: $type, minimumOrderPrice: $minimumOrderPrice}) {
+            errors {
+                field
+                message
+            }
             shippingMethod {
                 price {
                     amount
                 }
+                minimumOrderPrice {
+                    amount
+                }
+                type
             }
         }
     }
     """
-    # shipping_method = shipping_zone.shipping_methods.first()
+    shipping_method = shipping_zone.shipping_methods.first()
     price = '12.34'
     assert not str(shipping_method.price) == price
     shipping_zone_id = graphene.Node.to_global_id(
@@ -194,13 +216,19 @@ def test_update_shipping_method(admin_api_client, shipping_zone, shipping_method
         {
             'shippingZone': shipping_zone_id,
             'price': price,
-            'id': shipping_method_id})
+            'id': shipping_method_id,
+            'minimumOrderPrice': '12.00',
+            'type': ShippingMethodTypeEnum.PRICE_BASED.name})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
     data = content['data']['shippingPriceUpdate']['shippingMethod']
     assert data['price']['amount'] == float(price)
+
+
+def test_create_weight_based_shipping_method():
+    pass
 
 
 def test_delete_shipping_method(admin_api_client, shipping_method):

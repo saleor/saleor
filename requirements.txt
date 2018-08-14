@@ -55,7 +55,7 @@ django-storages==1.6.6
 django-templated-email==2.2.0
 django-versatileimagefield==1.9
 django-webpack-loader==0.6.0
-django==2.1
+django==2.0.8
 docutils==0.14            # via botocore
 elasticsearch-dsl==5.4.0
 elasticsearch==5.5.3

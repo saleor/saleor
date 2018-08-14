@@ -627,9 +627,11 @@ def test_get_or_create_db_cart(customer_user, db, rf):
 
 
 def test_get_cart_data(request_cart_with_item, shipping_zone, vatlayer):
-    shipment_option = shipping_price_estimate('PL', vatlayer)
+    cart = request_cart_with_item
+    shipment_option = shipping_price_estimate(
+        cart.get_subtotal().gross, cart.get_total_weight(), 'PL', vatlayer)
     cart_data = utils.get_cart_data(
-        request_cart_with_item, shipment_option, 'USD', None, vatlayer)
+        cart, shipment_option, 'USD', None, vatlayer)
     assert cart_data['cart_total'] == TaxedMoney(
         net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
     assert cart_data['total_with_shipping'].start == TaxedMoney(
@@ -637,9 +639,11 @@ def test_get_cart_data(request_cart_with_item, shipping_zone, vatlayer):
 
 
 def test_get_cart_data_no_shipping(request_cart_with_item, vatlayer):
-    shipment_option = shipping_price_estimate('PL', vatlayer)
+    cart = request_cart_with_item
+    shipment_option = shipping_price_estimate(
+        cart.get_subtotal().gross, cart.get_total_weight(), 'PL', vatlayer)
     cart_data = utils.get_cart_data(
-        request_cart_with_item, shipment_option, 'USD', None, vatlayer)
+        cart, shipment_option, 'USD', None, vatlayer)
     cart_total = cart_data['cart_total']
     assert cart_total == TaxedMoney(
         net=Money('8.13', 'USD'), gross=Money(10, 'USD'))

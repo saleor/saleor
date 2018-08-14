@@ -85,3 +85,11 @@ class PermissionDisplay(graphene.ObjectType):
 class SeoInput(graphene.InputObjectType):
     title = graphene.String(description='SEO title.')
     description = graphene.String(description='SEO description.')
+
+
+class Weight(graphene.ObjectType):
+    unit = graphene.String(description='Weight unit', required=True)
+    value = graphene.Float(description='Weight value', required=True)
+
+    class Meta:
+        description = 'Represents weight value in a specific weight unit.'

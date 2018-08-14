@@ -539,6 +539,7 @@ def test_get_discount_for_cart_shipping_voucher(
     subtotal = TaxedMoney(net=Money(100, 'USD'), gross=Money(100, 'USD'))
     shipping_total = TaxedMoney(
         net=Money(shipping_cost, 'USD'), gross=Money(shipping_cost, 'USD'))
+    #FIXME below should be the cart not the mock
     cart = Mock(
         get_subtotal=Mock(return_value=subtotal),
         is_shipping_required=Mock(return_value=True),
@@ -572,21 +573,24 @@ def test_get_discount_for_cart_shipping_voucher(
          DiscountValueType.FIXED, [], 5, Money(2, 'USD'),
          'This offer is only valid for orders over $5.00.')])
 def test_get_discount_for_cart_shipping_voucher_not_applicable(
-        is_shipping_required, shipping_method, discount_value,
+        is_shipping_required, shipping_method, discount_value, cart_with_item,
         discount_type, countries, min_amount_spent, subtotal, error_msg):
-    subtotal_price = TaxedMoney(net=subtotal, gross=subtotal)
-    cart = Mock(
-        get_subtotal=Mock(return_value=subtotal_price),
-        is_shipping_required=Mock(return_value=is_shipping_required),
-        shipping_method=shipping_method)
+    variant = cart_with_item.lines.first().variant
+    variant.price_override = subtotal
+    variant.save()
+    cart_with_item.is_shipping_required = is_shipping_required
+    cart_with_item.shipping_method = shipping_method
+    cart_with_item.save()
     voucher = Voucher(
         code='unique', type=VoucherType.SHIPPING,
         discount_value_type=discount_type,
         discount_value=discount_value,
-        min_amount_spent=Money(min_amount_spent, 'USD') if min_amount_spent is not None else None,
+        min_amount_spent=(
+            Money(min_amount_spent, 'USD')
+            if min_amount_spent is not None else None),
         countries=countries)
     with pytest.raises(NotApplicable) as e:
-        get_voucher_discount_for_cart(voucher, cart)
+        get_voucher_discount_for_cart(voucher, cart_with_item)
     assert str(e.value) == error_msg
 
 
