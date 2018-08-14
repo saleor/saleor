@@ -139,7 +139,7 @@
           bottom: 3%;
           left: 50%;
           transform: translateX(-50%);
-          z-index: 999;
+          z-index: 3;
           @media (min-width: 1450px) {
             bottom: 27%;
           }
