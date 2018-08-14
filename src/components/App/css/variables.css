@@ -42,7 +42,7 @@
   --h2-font-size:                calc(var(--font-size-base) * 3.5);
   --h3-font-size:                calc(var(--font-size-base) * 2);
   --h4-font-size:                calc(var(--font-size-base) * 1.5);
-  --h5-font-size:                var(font-size-base);
+  --h5-font-size:                var(--font-size-base);
 
   --h1-font-weight:              600;
   --h2-font-weight:              600;

@@ -39,7 +39,7 @@ header {
       }
     }
     @media (max-width: 320px) {
-      font-size: calc(var(--font-size-base) * 0.8);
+      font-size: calc(var(--font-size-sm));
     }
   }
   & .logo {
