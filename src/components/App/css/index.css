@@ -112,6 +112,10 @@ img {
   text-align: center;
 }
 
+.text-underline {
+  text-decoration: underline;
+}
+
 .decoration {
   position: absolute;
 }

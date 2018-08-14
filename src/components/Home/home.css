@@ -68,40 +68,7 @@
             }
           }
           @media (max-width: 576px) {
-            width: 100%;
-            position: absolute;
-            top: 0;
-            & .label { display: none; }
-            & .content {
-              width: 100%;
-              padding: calc(var(--spacer) / 2) 0;
-              background: var(--primaryColor);
-              & a {
-                color: var(--mobile-background);
-              }
-              & .close-icon {
-                position: absolute;
-                cursor: pointer;
-                right: 25px;
-                top: 10px;
-                width: 20px;
-                height: 20px;
-              }
-              & .close-icon:before, & .close-icon:after {
-                position: absolute;
-                left: 15px;
-                content: ' ';
-                height: 20px;
-                width: 2px;
-                background-color: var(--mobile-background);
-              }
-              & .close-icon:before {
-                transform: rotate(45deg);
-              }
-              & .close-icon:after {
-                transform: rotate(-45deg);
-              }
-            }
+            display: none;
           }
         }
         & h1 {

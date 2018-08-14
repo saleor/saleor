@@ -10,8 +10,9 @@ import css from './header.css';
 class Header extends Component {
   constructor(props) {
     super(props);
-    this.toggleMenu= this.toggleMenu.bind(this);
-    this.state = { mobileMenu: false };
+    this.toggleMenu = this.toggleMenu.bind(this);
+    this.closeNewsBar = this.closeNewsBar.bind(this);
+    this.state = { mobileMenu: false, visibleNewsBar: true };
   }
 
   toggleMenu() {
@@ -19,10 +20,20 @@ class Header extends Component {
     this.setState({ mobileMenu: !currentState });
   };
 
+  closeNewsBar() {
+    this.setState({visibleNewsBar: false});
+  }
+
   render() {
-    const { location } = this.props
     return (
       <header>
+        {this.state.visibleNewsBar ?
+        <div className="news">
+          <div className="content">
+            <a href="">April release is out. <span className="text-underline">Check out what's new!</span></a>
+            <div className="close-icon" onClick={this.closeNewsBar}></div>
+          </div>
+        </div> : null}
         <div className="container">
           <div className="grid">
             <div className={this.state.mobileMenu ? 'logo open col-xs-3 col-sm-3' : 'logo col-xs-3 col-sm-3'}>
