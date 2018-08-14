@@ -87,7 +87,7 @@ exports[`Storyshots Categories / CategoryProducts when loading data 1`] = `
                 class="TablePagination-spacer-id"
               />
               <div
-                class="TablePaginationActions-root-id"
+                class="TablePaginationActions-root-id "
               >
                 <button
                   class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -272,7 +272,7 @@ exports[`Storyshots Categories / CategoryProducts with clickable rows 1`] = `
                 class="TablePagination-spacer-id"
               />
               <div
-                class="TablePaginationActions-root-id"
+                class="TablePaginationActions-root-id "
               >
                 <button
                   class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -535,7 +535,7 @@ exports[`Storyshots Categories / CategoryProducts with initial data 1`] = `
                 class="TablePagination-spacer-id"
               />
               <div
-                class="TablePaginationActions-root-id"
+                class="TablePaginationActions-root-id "
               >
                 <button
                   class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -790,7 +790,7 @@ exports[`Storyshots Categories / CategoryProducts without initial data 1`] = `
                 class="TablePagination-spacer-id"
               />
               <div
-                class="TablePaginationActions-root-id"
+                class="TablePaginationActions-root-id "
               >
                 <button
                   class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -3763,7 +3763,7 @@ exports[`Storyshots Generics / TablePagination both previous and next pages are 
             class="TablePagination-spacer-id"
           />
           <div
-            class="TablePaginationActions-root-id"
+            class="TablePaginationActions-root-id "
           >
             <button
               class="MuiButtonBase-root-id MuiIconButton-root-id"
@@ -3837,7 +3837,7 @@ exports[`Storyshots Generics / TablePagination next page available 1`] = `
             class="TablePagination-spacer-id"
           />
           <div
-            class="TablePaginationActions-root-id"
+            class="TablePaginationActions-root-id "
           >
             <button
               class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -3909,7 +3909,7 @@ exports[`Storyshots Generics / TablePagination no previous / next page 1`] = `
             class="TablePagination-spacer-id"
           />
           <div
-            class="TablePaginationActions-root-id"
+            class="TablePaginationActions-root-id "
           >
             <button
               class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -3979,7 +3979,7 @@ exports[`Storyshots Generics / TablePagination previous page available 1`] = `
             class="TablePagination-spacer-id"
           />
           <div
-            class="TablePaginationActions-root-id"
+            class="TablePaginationActions-root-id "
           >
             <button
               class="MuiButtonBase-root-id MuiIconButton-root-id"
@@ -12130,7 +12130,7 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -12457,7 +12457,7 @@ exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -12626,7 +12626,7 @@ exports[`Storyshots Views / Attributes / Attribute list no data 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -14693,7 +14693,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                         class="TablePagination-spacer-id"
                       />
                       <div
-                        class="TablePaginationActions-root-id"
+                        class="TablePaginationActions-root-id "
                       >
                         <button
                           class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -15182,7 +15182,7 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
                         class="TablePagination-spacer-id"
                       />
                       <div
-                        class="TablePaginationActions-root-id"
+                        class="TablePaginationActions-root-id "
                       >
                         <button
                           class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -15544,7 +15544,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -15957,7 +15957,7 @@ exports[`Storyshots Views / Collections / Collection list when loading 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -16241,7 +16241,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                       class="TablePagination-spacer-id"
                     />
                     <div
-                      class="TablePaginationActions-root-id"
+                      class="TablePaginationActions-root-id "
                     >
                       <button
                         class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -16805,7 +16805,7 @@ exports[`Storyshots Views / Customers / Customer details when loading 1`] = `
                       class="TablePagination-spacer-id"
                     />
                     <div
-                      class="TablePaginationActions-root-id"
+                      class="TablePaginationActions-root-id "
                     >
                       <button
                         class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -17063,7 +17063,7 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -17584,7 +17584,7 @@ exports[`Storyshots Views / Customers / Customer list when loading 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -22578,7 +22578,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -23085,7 +23085,7 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -23314,7 +23314,7 @@ exports[`Storyshots Views / Orders / Order list when no data 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -24349,7 +24349,7 @@ exports[`Storyshots Views / Pages / Page list default 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -24553,7 +24553,7 @@ exports[`Storyshots Views / Pages / Page list loading 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -24736,7 +24736,7 @@ exports[`Storyshots Views / Pages / Page list no data 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -25723,7 +25723,7 @@ exports[`Storyshots Views / Product types / Product types list default 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -26066,7 +26066,7 @@ exports[`Storyshots Views / Product types / Product types list loading 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -26698,7 +26698,7 @@ exports[`Storyshots Views / Products / Create product When loading 1`] = `
                 class="Component-hr-id"
               />
               <div
-                class="MuiCardContent-root-id"
+                class="MuiCardContent-root-id Component-card-id"
               >
                 <div
                   class="Component-pullUp-id"
@@ -27326,7 +27326,7 @@ exports[`Storyshots Views / Products / Create product default 1`] = `
                 class="Component-hr-id"
               />
               <div
-                class="MuiCardContent-root-id"
+                class="MuiCardContent-root-id Component-card-id"
               >
                 <div
                   class="Component-pullUp-id"
@@ -29867,49 +29867,6 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                     />
                   </div>
                 </div>
-                <div
-                  class="Component-pullDown-id"
-                >
-                  <label
-                    class="MuiFormControlLabel-root-id"
-                  >
-                    <span
-                      class="MuiSwitch-root-id"
-                    >
-                      <span
-                        class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
-                      >
-                        <span
-                          class="MuiIconButton-label-id"
-                        >
-                          <span
-                            class="MuiSwitch-icon-id"
-                          />
-                          <input
-                            class="MuiSwitchBase-input-id"
-                            name="featured"
-                            type="checkbox"
-                          />
-                        </span>
-                        <span
-                          class="MuiTouchRipple-root-id"
-                        />
-                      </span>
-                      <span
-                        class="MuiSwitch-bar-id"
-                      />
-                    </span>
-                    <span
-                      class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
-                    >
-                      <div
-                        class="Component-label-id"
-                      >
-                        Feature on Homepage
-                      </div>
-                    </span>
-                  </label>
-                </div>
               </div>
             </div>
           </div>
@@ -30635,7 +30592,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
                 class="Component-hr-id"
               />
               <div
-                class="MuiCardContent-root-id"
+                class="MuiCardContent-root-id Component-card-id"
               >
                 <div
                   class="Component-pullUp-id"
@@ -31644,49 +31601,6 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
                       value="2018-08-25T18:45:54.125Z"
                     />
                   </div>
-                </div>
-                <div
-                  class="Component-pullDown-id"
-                >
-                  <label
-                    class="MuiFormControlLabel-root-id"
-                  >
-                    <span
-                      class="MuiSwitch-root-id"
-                    >
-                      <span
-                        class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
-                      >
-                        <span
-                          class="MuiIconButton-label-id"
-                        >
-                          <span
-                            class="MuiSwitch-icon-id"
-                          />
-                          <input
-                            class="MuiSwitchBase-input-id"
-                            name="featured"
-                            type="checkbox"
-                          />
-                        </span>
-                        <span
-                          class="MuiTouchRipple-root-id"
-                        />
-                      </span>
-                      <span
-                        class="MuiSwitch-bar-id"
-                      />
-                    </span>
-                    <span
-                      class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
-                    >
-                      <div
-                        class="Component-label-id"
-                      >
-                        Feature on Homepage
-                      </div>
-                    </span>
-                  </label>
                 </div>
               </div>
             </div>
@@ -32911,49 +32825,6 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                     />
                   </div>
                 </div>
-                <div
-                  class="Component-pullDown-id"
-                >
-                  <label
-                    class="MuiFormControlLabel-root-id"
-                  >
-                    <span
-                      class="MuiSwitch-root-id"
-                    >
-                      <span
-                        class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
-                      >
-                        <span
-                          class="MuiIconButton-label-id"
-                        >
-                          <span
-                            class="MuiSwitch-icon-id"
-                          />
-                          <input
-                            class="MuiSwitchBase-input-id"
-                            name="featured"
-                            type="checkbox"
-                          />
-                        </span>
-                        <span
-                          class="MuiTouchRipple-root-id"
-                        />
-                      </span>
-                      <span
-                        class="MuiSwitch-bar-id"
-                      />
-                    </span>
-                    <span
-                      class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
-                    >
-                      <div
-                        class="Component-label-id"
-                      >
-                        Feature on Homepage
-                      </div>
-                    </span>
-                  </label>
-                </div>
               </div>
             </div>
           </div>
@@ -33072,8 +32943,8 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                  data-shrink="false"
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
                   Description
                 </label>
@@ -33097,14 +32968,18 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
                       readonly=""
                       rows="1"
                       tabindex="-1"
-                    />
+                    >
+                      Lorem ipsum
+                    </textarea>
                     <textarea
                       aria-invalid="false"
                       class="Textarea-textarea-id MuiInput-input-id MuiInput-inputMultiline-id"
                       name="description"
                       rows="1"
                       type="text"
-                    />
+                    >
+                      Lorem ipsum
+                    </textarea>
                   </div>
                 </div>
                 <p
@@ -33487,7 +33362,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -34082,7 +33957,7 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -34305,7 +34180,7 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -34703,7 +34578,22 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
               </aside>
               <div
                 class="Component-toolbar-id"
-              />
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Choose photos
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </button>
+              </div>
             </div>
             <div
               class="Component-children-id"
@@ -35155,7 +35045,20 @@ exports[`Storyshots Views / Products / Product variant details when loading data
               </aside>
               <div
                 class="Component-toolbar-id"
-              />
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id"
+                  disabled=""
+                  tabindex="-1"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Choose photos
+                  </span>
+                </button>
+              </div>
             </div>
             <div
               class="Component-children-id"
@@ -36556,7 +36459,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -37545,7 +37448,7 @@ exports[`Storyshots Views / Vouchers / Voucher list no data 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -37718,7 +37621,7 @@ exports[`Storyshots Views / Vouchers / Voucher list when loading 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id"
+                  class="TablePaginationActions-root-id "
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
