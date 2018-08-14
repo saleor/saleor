@@ -955,17 +955,6 @@ export interface VariantUpdateMutation {
                   },
                 } >,
               } | null,
-              images:  {
-                edges:  Array< {
-                  // The item at the end of the edge
-                  node:  {
-                    // The ID of the object.
-                    id: string,
-                    // The URL of the image.
-                    url: string,
-                  },
-                } >,
-              } | null,
             },
           } >,
         } | null,
@@ -1096,17 +1085,6 @@ export interface VariantCreateMutation {
                   },
                 } >,
               } | null,
-              images:  {
-                edges:  Array< {
-                  // The item at the end of the edge
-                  node:  {
-                    // The ID of the object.
-                    id: string,
-                    // The URL of the image.
-                    url: string,
-                  },
-                } >,
-              } | null,
             },
           } >,
         } | null,
@@ -1151,6 +1129,54 @@ export interface ProductImageUpdateMutation {
       // The ID of the object.
       id: string,
       alt: string,
+    } | null,
+  } | null,
+};
+
+export interface VariantImageAssignMutationVariables {
+  variantId: string,
+  imageId: string,
+};
+
+export interface VariantImageAssignMutation {
+  variantImageAssign:  {
+    // List of errors that occurred executing the mutation.
+    errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
+      field: string | null,
+      // The error message.
+      message: string | null,
+    } | null > | null,
+    // Assigned product image.
+    image:  {
+      // The ID of the object.
+      id: string,
+    } | null,
+  } | null,
+};
+
+export interface VariantImageUnassignMutationVariables {
+  variantId: string,
+  imageId: string,
+};
+
+export interface VariantImageUnassignMutation {
+  variantImageUnassign:  {
+    // List of errors that occurred executing the mutation.
+    errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
+      field: string | null,
+      // The error message.
+      message: string | null,
+    } | null > | null,
+    // Unassigned product image.
+    image:  {
+      // The ID of the object.
+      id: string,
     } | null,
   } | null,
 };
@@ -1483,17 +1509,6 @@ export interface ProductVariantDetailsQuery {
             name: string,
             sku: string,
             image:  {
-              edges:  Array< {
-                // The item at the end of the edge
-                node:  {
-                  // The ID of the object.
-                  id: string,
-                  // The URL of the image.
-                  url: string,
-                },
-              } >,
-            } | null,
-            images:  {
               edges:  Array< {
                 // The item at the end of the edge
                 node:  {
@@ -1961,17 +1976,6 @@ export interface ProductVariantFragment {
           name: string,
           sku: string,
           image:  {
-            edges:  Array< {
-              // The item at the end of the edge
-              node:  {
-                // The ID of the object.
-                id: string,
-                // The URL of the image.
-                url: string,
-              },
-            } >,
-          } | null,
-          images:  {
             edges:  Array< {
               // The item at the end of the edge
               node:  {
