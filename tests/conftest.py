@@ -35,7 +35,7 @@ from saleor.product.models import (
     ProductAttributeTranslation, ProductImage, ProductTranslation, ProductType,
     ProductVariant)
 from saleor.shipping.models import (
-    ShippingZone, ShippingMethod, ShippingMethod, ShippingZone)
+    ShippingMethod, ShippingMethodType, ShippingZone)
 from saleor.site.models import AuthorizationKey, SiteSettings
 
 
@@ -217,16 +217,16 @@ def shipping_zone(db):  # pylint: disable=W0613
     shipping_zone = ShippingZone.objects.create(
         name='Europe', countries=[code for code, name in countries])
     shipping_zone.shipping_methods.create(
-        name='DHL', price=10)
+        name='DHL', minimum_order_price=0, type=ShippingMethodType.PRICE_BASED,
+        price=10, shipping_zone=shipping_zone)
     return shipping_zone
 
 
 @pytest.fixture
 def shipping_method(shipping_zone):
     return ShippingMethod.objects.create(
-        name='DHL',
-        price=10,
-        shipping_zone=shipping_zone)
+        name='DHL', minimum_order_price=0, type=ShippingMethodType.PRICE_BASED,
+        price=10, shipping_zone=shipping_zone)
 
 
 @pytest.fixture

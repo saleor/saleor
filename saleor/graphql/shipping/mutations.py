@@ -3,12 +3,27 @@ import graphene
 from ...shipping import models
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import Decimal
+from .types import ShippingMethodTypeEnum, WeightScalar
 
 
 class ShippingPriceInput(graphene.InputObjectType):
     name = graphene.String(
         description='Name of the shipping method.')
     price = Decimal(description='Shipping price of the shipping method.')
+    minimum_order_price = Decimal(
+        description='Minimum order price to use this shipping method',
+        required=False)
+    maximum_order_price = Decimal(
+        description='Maximum order price to use this shipping method',
+        required=False)
+    minimum_order_weight = WeightScalar(
+        description='Minimum order price to use this shipping method',
+        required=False)
+    maximum_order_weight = WeightScalar(
+        description='Maximum order price to use this shipping method',
+        required=False)
+    type = ShippingMethodTypeEnum(
+        description='Shipping type: price or weight based.')
     shipping_zone = graphene.ID(
         description='Related shipping zone name.', name='shippingZone')
 
@@ -66,7 +81,47 @@ class ShippingZoneDelete(ModelDeleteMutation):
         return user.has_perm('shipping.manage_shipping')
 
 
-class ShippingPriceCreate(ModelMutation):
+class ShippingPriceMixin(object):
+
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        cleaned_input = super().clean_input(info, instance, input, errors)
+        type = cleaned_input.get('type', None)
+        if not type:
+            return cleaned_input
+
+        field_errors = []
+        if type == ShippingMethodTypeEnum.PRICE_BASED:
+            min_price = cleaned_input.get('minimum_order_price', None)
+            max_price = cleaned_input.get('maximum_order_price', None)
+            if min_price is None:
+                field_errors.append((
+                    'minimum_order_price',
+                    'Minimum order price is required'
+                    ' for Price Based shipping.'))
+            elif max_price is not None and max_price < min_price:
+                field_errors.append((
+                    'maximum_order_price',
+                    'Maximum order price cannot be smaller than the minimum.'))
+        else:
+            min_weight = cleaned_input.get('minimum_order_weight', None)
+            max_weight = cleaned_input.get('maximum_order_weight', None)
+            if min_weight is None:
+                field_errors.append((
+                    'minimum_order_weight',
+                    'Minimum order weight is required for'
+                    ' Weight Based shipping.'))
+            elif max_weight is not None and max_weight < min_price:
+                field_errors.append((
+                    'maximum_order_weight',
+                    'Maximum order weight cannot be'
+                    ' smaller than the minimum.'))
+        for err in field_errors:
+            cls.add_error(errors, field=err[0], message=err[1])
+        return cleaned_input
+
+
+class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
     class Arguments:
         input = ShippingPriceInput(
             description='Fields required to create a shipping price',
@@ -81,7 +136,7 @@ class ShippingPriceCreate(ModelMutation):
         return user.has_perm('shipping.manage_shipping')
 
 
-class ShippingPriceUpdate(ModelMutation):
+class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):
     class Arguments:
         id = graphene.ID(
             description='ID of a shipping price to update.', required=True)

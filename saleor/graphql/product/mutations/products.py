@@ -7,6 +7,7 @@ from ....product import models
 from ....product.utils.attributes import get_name_from_attributes
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import Decimal, Error, SeoInput
+from ...shipping.types import WeightScalar
 from ...core.utils import clean_seo_fields
 from ...file_upload.types import Upload
 from ...utils import get_attributes_dict_from_list
@@ -234,6 +235,8 @@ class ProductInput(graphene.InputObjectType):
     price = Decimal(description='Product price.')
     tax_rate = graphene.String(description='Tax rate.')
     seo = SeoInput(description='Search engine optimization fields.')
+    weight = WeightScalar(
+        description='Weight of the Product.', required=False)
 
 
 class ProductCreate(ModelMutation):
@@ -321,6 +324,8 @@ class ProductVariantInput(graphene.InputObjectType):
         description="""Determines if the inventory of this variant should
         be tracked. If false, the quantity won't change when customers
         buy this item.""")
+    weight = WeightScalar(
+        description='Weight of the Product Variant.', required=False)
 
 
 class ProductVariantCreate(ModelMutation):
@@ -412,6 +417,7 @@ class ProductTypeInput(graphene.InputObjectType):
     is_shipping_required = graphene.Boolean(
         description="""Determines if shipping is required for products
         of this variant.""")
+    weight = WeightScalar(description='Weight of the ProductType items.')
 
 
 class ProductTypeCreate(ModelMutation):

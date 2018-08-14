@@ -83,11 +83,11 @@ def update_order_prices(order, discounts):
             line.unit_price = line.variant.get_price(discounts, taxes)
             line.tax_rate = get_tax_rate_by_name(
                 line.variant.product.tax_rate, taxes)
-            line.save(update_fields=['unit_price', 'tax_rate'])
+            line.save()
 
     if order.shipping_method:
         order.shipping_price = order.shipping_method.get_total_price(taxes)
-        order.save(update_fields=['shipping_price'])
+        order.save()
 
     recalculate_order(order)
 
