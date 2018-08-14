@@ -164,6 +164,11 @@ ul {
             opacity: 1;
           }
         }
+        &.active {
+          &::after {
+            opacity: 1;
+          }
+        }
       }
       
     }
