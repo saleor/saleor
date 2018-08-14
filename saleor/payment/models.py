@@ -83,7 +83,8 @@ class Transaction(models.Model):
     transaction_type = models.CharField(
         max_length=10, choices=TransactionType.CHOICES)
     is_success = models.BooleanField(default=False)
-    amount = models.DecimalField(max_digits=9, decimal_places=2, default='0.0')
+    amount = models.DecimalField(
+        max_digits=9, decimal_places=2, default=Decimal('0.0'))
     gateway_response = JSONField()
 
     def get_amount(self):
