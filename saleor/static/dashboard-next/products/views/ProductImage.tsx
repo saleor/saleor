@@ -4,7 +4,6 @@ import { productImageUrl, productUrl } from "..";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import { ProductImageUpdateMutation } from "../../gql-types";
-import { createPaginationData, createPaginationState } from "../../misc";
 import ProductImagePage from "../components/ProductImagePage";
 import {
   productImageDeleteMutation,
@@ -17,17 +16,11 @@ import { productImageQuery, TypedProductImageQuery } from "../queries";
 interface ProductImageProps {
   imageId: string;
   productId: string;
-  params: {
-    after?: string;
-    before?: string;
-  };
 }
-
-const PAGINATE_BY = 8;
 
 export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
   imageId,
-  params,
+
   productId
 }) => (
   <Messages>
