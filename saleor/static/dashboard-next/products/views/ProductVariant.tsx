@@ -57,6 +57,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
               };
               const handleUpdate = () =>
                 pushMessage({ text: i18n.t("Changes saved") });
+
               return (
                 <ProductVariantOperations
                   productId={productId}
@@ -65,12 +66,42 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                   onError={handleError}
                   onUpdate={handleUpdate}
                 >
-                  {({ deleteVariant, updateVariant }) => {
+                  {({
+                    assignImage,
+                    deleteVariant,
+                    updateVariant,
+                    unassignImage
+                  }) => {
                     const disableFormSave =
-                      loading || deleteVariant.loading || updateVariant.loading;
+                      loading ||
+                      deleteVariant.loading ||
+                      updateVariant.loading ||
+                      assignImage.loading ||
+                      unassignImage.loading;
                     const formSubmitState = disableFormSave
                       ? "loading"
                       : "idle";
+                    const handleImageSelect = (id: string) => () => {
+                      if (variant) {
+                        if (
+                          variant.images &&
+                          variant.images.edges
+                            .map(edge => edge.node.id)
+                            .indexOf(id) !== -1
+                        ) {
+                          unassignImage.mutate({
+                            imageId: id,
+                            variantId: variant.id
+                          });
+                        } else {
+                          assignImage.mutate({
+                            imageId: id,
+                            variantId: variant.id
+                          });
+                        }
+                      }
+                    };
+
                     return (
                       <ProductVariantPage
                         errors={
@@ -90,7 +121,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                         }
                         onBack={handleBack}
                         onDelete={() => deleteVariant.mutate(variantId)}
-                        onImageSelect={() => {}}
+                        onImageSelect={handleImageSelect}
                         onSubmit={(data: FormData) => {
                           if (variant) {
                             updateVariant.mutate({

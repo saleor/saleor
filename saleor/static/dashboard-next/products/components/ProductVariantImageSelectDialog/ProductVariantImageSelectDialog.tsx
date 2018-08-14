@@ -45,88 +45,40 @@ const decorate = withStyles(theme => ({
 
 interface ProductVariantImageSelectDialogProps {
   images?: ProductImageType[];
-  selectedImages?: Array<{
-    id: string;
-  }>;
+  selectedImages?: string[];
   open: boolean;
-  onClose?();
-  onConfirm?(images: string[]);
-}
-
-interface ProductVariantImageSelectDialogState {
-  images: string[];
+  onClose();
+  onImageSelect(id: string);
 }
 
 const ProductVariantImageSelectDialog = decorate<
   ProductVariantImageSelectDialogProps
->(
-  class ProductVariantImageSelectDialogComponent extends React.Component<
-    ProductVariantImageSelectDialogProps &
-      WithStyles<"root" | "gridElement" | "image" | "imageContainer">,
-    ProductVariantImageSelectDialogState
-  > {
-    constructor(props) {
-      super(props);
-      this.state = {
-        images: this.props.selectedImages
-          ? this.props.selectedImages.map(image => image.id)
-          : []
-      };
-    }
-
-    handleConfirm = () => this.props.onConfirm(this.state.images);
-    handleImageSelect = id => () =>
-      this.state.images.indexOf(id) === -1
-        ? this.setState(prevState => ({ images: [...prevState.images, id] }))
-        : this.setState(prevState => ({
-            images: prevState.images.filter(image => image !== id)
-          }));
-
-    render() {
-      const { classes, images, open, onClose } = this.props;
-      return (
-        <Dialog open={open}>
-          <DialogTitle>
-            {i18n.t("Image selection", { context: "title" })}
-          </DialogTitle>
-          <DialogContent>
-            <div className={classes.root}>
-              {images
-                .sort(
-                  (prev, next) => (prev.sortOrder > next.sortOrder ? 1 : -1)
-                )
-                .map(tile => (
-                  <div
-                    className={[
-                      classes.imageContainer,
-                      this.state.images.indexOf(tile.id) === -1
-                        ? undefined
-                        : "selected"
-                    ].join(" ")}
-                    onClick={this.handleImageSelect(tile.id)}
-                    key={tile.id}
-                  >
-                    <img className={classes.image} src={tile.url} />
-                  </div>
-                ))}
-            </div>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={onClose}>
-              {i18n.t("Cancel", { context: "button" })}
-            </Button>
-            <Button
-              variant="raised"
-              onClick={this.handleConfirm}
-              color="primary"
+>(({ classes, images, open, selectedImages, onClose, onImageSelect }) => (
+  <Dialog open={open}>
+    <DialogTitle>{i18n.t("Image selection", { context: "title" })}</DialogTitle>
+    <DialogContent>
+      <div className={classes.root}>
+        {images
+          .sort((prev, next) => (prev.sortOrder > next.sortOrder ? 1 : -1))
+          .map(tile => (
+            <div
+              className={[
+                classes.imageContainer,
+                selectedImages.indexOf(tile.id) === -1 ? undefined : "selected"
+              ].join(" ")}
+              onClick={onImageSelect(tile.id)}
+              key={tile.id}
             >
-              {i18n.t("Save", { context: "button" })}
-            </Button>
-          </DialogActions>
-        </Dialog>
-      );
-    }
-  }
-);
-
+              <img className={classes.image} src={tile.url} />
+            </div>
+          ))}
+      </div>
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={onClose}>
+        {i18n.t("Close", { context: "button" })}
+      </Button>
+    </DialogActions>
+  </Dialog>
+));
 export default ProductVariantImageSelectDialog;

@@ -10,7 +10,9 @@ import {
   ProductListQuery,
   ProductListQueryVariables,
   ProductVariantCreateDataQuery,
-  ProductVariantCreateDataQueryVariables
+  ProductVariantCreateDataQueryVariables,
+  ProductVariantDetailsQuery,
+  ProductVariantDetailsQueryVariables
 } from "../gql-types";
 
 export const fragmentMoney = gql`
@@ -191,14 +193,6 @@ export const fragmentVariant = gql`
                 }
               }
             }
-            images {
-              edges {
-                node {
-                  id
-                  url
-                }
-              }
-            }
           }
         }
       }
@@ -274,7 +268,7 @@ export const productDetailsQuery = gql`
 `;
 
 export const TypedProductVariantQuery = Query as React.ComponentType<
-  QueryProps<any, { id: string }>
+  QueryProps<ProductVariantDetailsQuery, ProductVariantDetailsQueryVariables>
 >;
 
 export const productVariantQuery = gql`

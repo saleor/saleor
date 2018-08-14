@@ -20,6 +20,10 @@ import {
   VariantCreateMutationVariables,
   VariantDeleteMutation,
   VariantDeleteMutationVariables,
+  VariantImageAssignMutation,
+  VariantImageAssignMutationVariables,
+  VariantImageUnassignMutation,
+  VariantImageUnassignMutationVariables,
   VariantUpdateMutation,
   VariantUpdateMutationVariables
 } from "../gql-types";
@@ -299,6 +303,45 @@ export const productImageUpdateMutation = gql`
       productImage {
         id
         alt
+      }
+    }
+  }
+`;
+
+export const TypedVariantImageAssign = Mutation as React.ComponentType<
+  MutationProps<VariantImageAssignMutation, VariantImageAssignMutationVariables>
+>;
+
+export const variantImageAssignMutation = gql`
+  mutation VariantImageAssign($variantId: ID!, $imageId: ID!) {
+    variantImageAssign(variantId: $variantId, imageId: $imageId) {
+      errors {
+        field
+        message
+      }
+      image {
+        id
+      }
+    }
+  }
+`;
+
+export const TypedVariantImageUnassign = Mutation as React.ComponentType<
+  MutationProps<
+    VariantImageUnassignMutation,
+    VariantImageAssignMutationVariables
+  >
+>;
+
+export const variantImageUnassignMutation = gql`
+  mutation VariantImageUnassign($variantId: ID!, $imageId: ID!) {
+    variantImageUnassign(variantId: $variantId, imageId: $imageId) {
+      errors {
+        field
+        message
+      }
+      image {
+        id
       }
     }
   }
