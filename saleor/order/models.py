@@ -181,15 +181,18 @@ class Order(models.Model):
         return reverse('order:details', kwargs={'token': self.token})
 
     def get_last_payment(self):
+        # FIXME Adapt to new API
         return max(self.payments.all(), default=None, key=attrgetter('pk'))
 
     def get_last_payment_status(self):
+        # FIXME Adapt to new API
         last_payment = self.get_last_payment()
         if last_payment:
             return last_payment.status
         return None
 
     def get_last_payment_status_display(self):
+        # FIXME Adapt to new API
         last_payment = max(
             self.payments.all(), default=None, key=attrgetter('pk'))
         if last_payment:
@@ -197,6 +200,7 @@ class Order(models.Model):
         return None
 
     def is_pre_authorized(self):
+        # FIXME Adapt to new API
         # FIXME: Check for really pre-authorized transactions
         return self.payment_methods.filter(is_active=True).exists()
 

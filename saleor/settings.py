@@ -215,6 +215,7 @@ INSTALLED_APPS = [
     'saleor.site',
     'saleor.data_feeds',
     'saleor.page',
+    'saleor.payment',
 
     # External apps
     'versatileimagefield',

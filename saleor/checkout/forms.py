@@ -367,9 +367,3 @@ class CartVoucherForm(forms.ModelForm):
             if voucher.translated.name != voucher.name else '')
         self.instance.discount_amount = self.cleaned_data['discount_amount']
         return super().save(commit)
-
-
-class PaymentMethodForm(forms.ModelForm):
-    class Meta:
-        model = PaymentMethod
-        fields = ['variant', 'is_active', 'total', 'charge_status']

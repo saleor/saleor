@@ -1,20 +1,10 @@
-import logging
-
 from django.utils.translation import pgettext_lazy
+import importlib
+from django.core.exceptions import ImproperlyConfigured
 
-logger = logging.getLogger(__name__)
 
-
-class AddressType:
-    BILLING = 'billing'
-    SHIPPING = 'shipping'
-
-    CHOICES = [(
-        BILLING,
-        pgettext_lazy('Type of address used to fulfill order', 'Billing')), (
-            SHIPPING,
-            pgettext_lazy('Type of address used to fulfill order',
-                          'Shipping'))]
+class PaymentError(Exception):
+    pass
 
 
 class TransactionType:
@@ -39,3 +29,16 @@ class PaymentMethodChargeStatus:
         (NOT_CHARGED, pgettext_lazy('payment method status', 'Not charged')), (
             FULLY_REFUNDED,
             pgettext_lazy('payment method status', 'Fully refunded'))]
+
+
+# FIXME: move to settings
+PROVIDERS_MAP = {'dummy': 'saleor.payment.providers.dummy'}
+
+
+def get_provider(provider_name):
+    if provider_name not in PROVIDERS_MAP:
+        raise ImproperlyConfigured(
+            f'Payment provider {provider_name} is not configured.')
+    provider_module = importlib.import_module(PROVIDERS_MAP[provider_name])
+
+    return provider_module
