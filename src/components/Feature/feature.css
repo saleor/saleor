@@ -41,7 +41,7 @@
             height: 80vh;
             & .scroll-link {
               position: absolute;
-              bottom: 5%;
+              bottom: 7%;
               left: 0;
               right: 0;
             }

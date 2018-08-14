@@ -207,7 +207,10 @@ ul {
       color: var(--primaryColor);
     }
   }
+  @media (max-width: 576px) {
+    font-size: calc(var(--font-size-base));
+  }
   @media (max-width: 320px) {
-    font-size: var(--font-size-base);
+    font-size: calc(var(--font-size-sm));
   }
 }

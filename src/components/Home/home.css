@@ -74,7 +74,6 @@
         & h1 {
           padding-bottom: calc(var(--spacer) * 6);
           @media (max-width: 768px) {
-            font-size: calc(var(--font-size-base) * 2.5);
             padding-right: calc(var(--spacer) * 13);
           }
           @media (max-width: 576px) {

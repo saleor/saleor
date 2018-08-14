@@ -74,7 +74,7 @@ header {
         left: calc(var(--spacer) * 1.2);
       }
       & .logo-svg {
-        width: 170px;
+        width: 100px;
       }
     }
   }
@@ -128,7 +128,7 @@ header {
         top: 0;
         z-index: 998;
         background: var(--mobile-background);
-        padding: calc(var(--spacer) * 7) calc(var(--spacer) * 2) 0 calc(var(--spacer) * 2);
+        padding: calc(var(--spacer) * 5) calc(var(--spacer) * 2) 0 calc(var(--spacer) * 2);
         & li {
           position: relative;
           padding: 0 calc(var(--spacer) * 4);
@@ -155,7 +155,7 @@ header {
             padding-left: 0;
             left: calc(var(--spacer) * 2);
             top: initial;
-            bottom: calc(var(--spacer) * 9);
+            bottom: calc(var(--spacer) * 7);
             & a {
               color: var(--primaryColor);
             }
