@@ -72,15 +72,6 @@ export const ProductAvailabilityForm = decorate<ProductAvailabilityFormProps>(
                 shrink: true
               }}
             />
-            {/* <div className={classes.pullDown}>
-              <ControlledSwitch
-                name="featured"
-                label={i18n.t("Feature on Homepage")}
-                checked={featured}
-                onChange={onChange}
-                disabled={loading}
-              />
-            </div> */}
           </>
         )}
       </CardContent>
