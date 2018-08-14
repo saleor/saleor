@@ -42,6 +42,12 @@ class CollectionForm(forms.ModelForm):
 
 
 class AssignHomepageCollectionForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        homepage_collection = self.fields['homepage_collection']
+        homepage_collection.queryset = homepage_collection.queryset.filter(
+            is_published=True)
+
     class Meta:
         model = SiteSettings
         fields = ('homepage_collection',)
