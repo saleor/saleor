@@ -43,6 +43,12 @@
           position: absolute;
           top: 50%;
           transform: translateY(-50%);
+          & .button-wrapper {
+            text-align: center;
+            & :last-child {
+              margin-right: 0;
+            }
+          }
         }
         & .news {
           position: relative;

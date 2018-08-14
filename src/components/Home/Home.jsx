@@ -54,8 +54,10 @@ class Home extends Component {
             </div>
             }
             <h1>A graphql-first ecommerce <span className="primaryColor">platform for perfectionists</span></h1>
-            <a href="https://demo.getsaleor.com/pl/" target="_blank" className="btn btn-secondary">See demo</a>
-            <a href="https://mirumee.com/hire-us/" target="_blank" className="btn btn-primary">Brief us</a>
+            <div className="button-wrapper">
+              <a href="https://demo.getsaleor.com/pl/" target="_blank" className="btn btn-secondary">See demo</a>
+              <a href="https://mirumee.com/hire-us/" target="_blank" className="btn btn-primary">Brief us</a>
+            </div>
           </div>
           <ScrollLink to="#features-section"> Why Salor </ScrollLink>
         </section>
