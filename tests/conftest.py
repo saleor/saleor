@@ -29,6 +29,7 @@ from saleor.order import OrderStatus, OrderEvents
 from saleor.order.models import Order, OrderEvent
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
+from saleor.payment.models import PaymentMethod
 from saleor.product.models import (
     Attribute, AttributeTranslation, AttributeValue, Category, Collection,
     Product, ProductImage, ProductTranslation, ProductType, ProductVariant)
@@ -89,7 +90,8 @@ def cart_with_voucher(cart, product, voucher):
 @pytest.fixture
 def address(db):  # pylint: disable=W0613
     return Address.objects.create(
-        first_name='John', last_name='Doe',
+        first_name='John',
+        last_name='Doe',
         company_name='Mirumee Software',
         street_address_1='Tęczowa 7',
         city='Wrocław',
@@ -114,7 +116,8 @@ def customer_user(address):  # pylint: disable=W0613
 def request_cart(cart, monkeypatch):
     # FIXME: Fixtures should not have any side effects
     monkeypatch.setattr(
-        utils, 'get_cart_from_request',
+        utils,
+        'get_cart_from_request',
         lambda request, cart_queryset=None: cart)
     return cart
 
@@ -153,7 +156,9 @@ def admin_client(admin_user):
 def staff_user(db):
     """Return a staff member."""
     return User.objects.create_user(
-        email='staff_test@example.com', password='password', is_staff=True,
+        email='staff_test@example.com',
+        password='password',
+        is_staff=True,
         is_active=True)
 
 
@@ -191,8 +196,7 @@ def shipping_method(shipping_zone):
 
 @pytest.fixture
 def color_attribute(db):  # pylint: disable=W0613
-    attribute = Attribute.objects.create(
-        slug='color', name='Color')
+    attribute = Attribute.objects.create(slug='color', name='Color')
     AttributeValue.objects.create(
         attribute=attribute, name='Red', slug='red')
     AttributeValue.objects.create(
@@ -273,15 +277,22 @@ def product(product_type, category):
         smart_text(variant_attr.pk): smart_text(variant_attr_value.pk)}
 
     ProductVariant.objects.create(
-        product=product, sku='123', attributes=variant_attributes,
-        cost_price=Money('1.00', 'USD'), quantity=10, quantity_allocated=1)
+        product=product,
+        sku='123',
+        attributes=variant_attributes,
+        cost_price=Money('1.00', 'USD'),
+        quantity=10,
+        quantity_allocated=1)
     return product
 
 
 @pytest.fixture
 def variant(product):
     product_variant = ProductVariant.objects.create(
-        product=product, sku='SKU_A', cost_price=Money(1, 'USD'), quantity=5,
+        product=product,
+        sku='SKU_A',
+        cost_price=Money(1, 'USD'),
+        quantity=5,
         quantity_allocated=3)
     return product_variant
 
@@ -289,7 +300,8 @@ def variant(product):
 @pytest.fixture
 def product_without_shipping(category):
     product_type = ProductType.objects.create(
-        name='Type with no shipping', has_variants=False,
+        name='Type with no shipping',
+        has_variants=False,
         is_shipping_required=False)
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
@@ -323,7 +335,8 @@ def product_list(product_type, category):
 def order_list(customer_user):
     address = customer_user.default_billing_address.get_copy()
     data = {
-        'billing_address': address, 'user': customer_user,
+        'billing_address': address,
+        'user': customer_user,
         'user_email': customer_user.email}
     order = Order.objects.create(**data)
     order1 = Order.objects.create(**data)
@@ -381,7 +394,10 @@ def order_with_lines(
         name='Test product', price=Money('10.00', 'USD'),
         product_type=product_type, category=category)
     variant = ProductVariant.objects.create(
-        product=product, sku='SKU_A', cost_price=Money(1, 'USD'), quantity=5,
+        product=product,
+        sku='SKU_A',
+        cost_price=Money(1, 'USD'),
+        quantity=5,
         quantity_allocated=3)
     order.lines.create(
         product_name=variant.display_product(),
@@ -396,7 +412,10 @@ def order_with_lines(
         name='Test product 2', price=Money('20.00', 'USD'),
         product_type=product_type, category=category)
     variant = ProductVariant.objects.create(
-        product=product, sku='SKU_B', cost_price=Money(2, 'USD'), quantity=2,
+        product=product,
+        sku='SKU_B',
+        cost_price=Money(2, 'USD'),
+        quantity=2,
         quantity_allocated=2)
     order.lines.create(
         product_name=variant.display_product(),
@@ -456,16 +475,20 @@ def draft_order(order_with_lines):
 @pytest.fixture()
 def payment_waiting(order_with_lines):
     return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.WAITING,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
+        variant='default',
+        status=PaymentStatus.WAITING,
+        fraud_status=FraudStatus.ACCEPT,
+        currency='USD',
         total=order_with_lines.total_gross.amount)
 
 
 @pytest.fixture()
 def payment_preauth(order_with_lines):
     return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.PREAUTH,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
+        variant='default',
+        status=PaymentStatus.PREAUTH,
+        fraud_status=FraudStatus.ACCEPT,
+        currency='USD',
         total=order_with_lines.total.gross.amount,
         tax=order_with_lines.total.tax.amount)
 
@@ -474,41 +497,52 @@ def payment_preauth(order_with_lines):
 def payment_confirmed(order_with_lines):
     order_amount = order_with_lines.total_gross.amount
     return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.CONFIRMED,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_amount, captured_amount=order_amount,
+        variant='default',
+        status=PaymentStatus.CONFIRMED,
+        fraud_status=FraudStatus.ACCEPT,
+        currency='USD',
+        total=order_amount,
+        captured_amount=order_amount,
         tax=order_with_lines.total.tax.amount)
 
 
 @pytest.fixture()
 def payment_rejected(order_with_lines):
     return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.REJECTED,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
+        variant='default',
+        status=PaymentStatus.REJECTED,
+        fraud_status=FraudStatus.ACCEPT,
+        currency='USD',
         total=order_with_lines.total_gross.amount)
 
 
 @pytest.fixture()
 def payment_refunded(order_with_lines):
     return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.REFUNDED,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
+        variant='default',
+        status=PaymentStatus.REFUNDED,
+        fraud_status=FraudStatus.ACCEPT,
+        currency='USD',
         total=order_with_lines.total_gross.amount)
 
 
 @pytest.fixture()
 def payment_error(order_with_lines):
     return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.ERROR,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
+        variant='default',
+        status=PaymentStatus.ERROR,
+        fraud_status=FraudStatus.ACCEPT,
+        currency='USD',
         total=order_with_lines.total_gross.amount)
 
 
 @pytest.fixture()
 def payment_input(order_with_lines):
     return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.INPUT,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
+        variant='default',
+        status=PaymentStatus.INPUT,
+        fraud_status=FraudStatus.ACCEPT,
+        currency='USD',
         total=order_with_lines.total_gross.amount)
 
 
@@ -620,9 +654,7 @@ def menu(db):
 @pytest.fixture
 def menu_item(menu):
     return MenuItem.objects.create(
-        menu=menu,
-        name='Link 1',
-        url='http://example.com/')
+        menu=menu, name='Link 1', url='http://example.com/')
 
 
 @pytest.fixture
@@ -655,9 +687,10 @@ def tax_rates():
 
 @pytest.fixture
 def taxes(tax_rates):
-    taxes = {'standard': {
-        'value': tax_rates['standard_rate'],
-        'tax': get_tax_for_rate(tax_rates)}}
+    taxes = {
+        'standard': {
+            'value': tax_rates['standard_rate'],
+            'tax': get_tax_for_rate(tax_rates)}}
     if tax_rates['reduced_rates']:
         taxes.update({
             rate: {
@@ -712,5 +745,13 @@ def voucher_translation_fr(voucher):
 @pytest.fixture
 def product_translation_fr(product):
     return ProductTranslation.objects.create(
-        language_code='fr', product=product, name='French name',
+        language_code='fr',
+        product=product,
+        name='French name',
         description='French description')
+
+
+@pytest.fixture
+def payment_method_dummy(db):
+    return PaymentMethod.objects.create(
+        variant='dummy', is_active=True, total=100, currency='USD')
