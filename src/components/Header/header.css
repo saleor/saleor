@@ -83,6 +83,7 @@ header {
     & ul {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       @media (max-width: 768px) {
         height: 0;
         visibility: hidden;
@@ -94,9 +95,9 @@ header {
         top: 0;
         transition: top 0.5s;
         padding: calc(var(--spacer) * 3.5) 0;
-        & .count { display: none; }
+        & .count, &:first-child { display: none; }
         & a {
-          font-size: var(--font-size-lg);
+          font-size: var(--font-size-base);
           font-weight: var(--font-weight-light);
           @media (max-width: 1024px) {
             font-size: calc(var(--font-size-base) * 1.2);
@@ -109,6 +110,9 @@ header {
           }
         }
         &.github-link {
+          & .star-value {
+            vertical-align: text-top;
+          }
           @media (max-width: 1024px) {
             top: calc(var(--spacer) * -0.3)
           }
@@ -136,6 +140,9 @@ header {
           top: 1rem;
           text-transform: uppercase;
           font-size: calc(var(--font-size-base) * 2);
+          &:first-child {
+            display: block;
+          }
           & a {
             color: var(--body-color);
             &:hover {
