@@ -302,7 +302,7 @@ class Home extends Component {
         </section>
         <section className="enterprice-consulting">
           <div className="section-container">
-            <h2>Enterprice consulting</h2>
+            <h2>Enterprise consulting</h2>
             <h3>Some situations however call for a custom solution and extra code to be written. In that case, our team can help.</h3>
             <div className="list grid">
               <div className="col-xs-12 col-sm-6 col-lg-5">

@@ -295,7 +295,7 @@
               font-size: calc(var(--font-size-base) * 2);
             }
             & span {
-              left: 4%;
+              left: 2%;
               @media (max-width: 1024px) {
                 left: 1%;
               }
@@ -687,11 +687,13 @@
     }
     &.enterprice-consulting {
       position: relative;
+      z-index: 1;
       padding: calc(var(--spacer) * 4) 0 calc(var(--spacer) * 2) 0;
       & h3 {
         width: 70%;
         font-size: calc(var(--font-size-base) * 2.5);
         padding-top: calc(var(--spacer) * 2);
+        text-transform: unset;
         @media (max-width: 1024px) {
           font-size: calc(var(--font-size-base) * 2);
         }
