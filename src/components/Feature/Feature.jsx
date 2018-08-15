@@ -236,8 +236,8 @@ const Feature = () => (
       <section className="documentation">
         <div className="content">
           <h2>Documentation</h2>
-          <h3 className="description">Check our comprehensive documentation which can guide
-          you through the installation process or customizations that you may want to carry out.</h3>
+          <h4 className="description">Check our comprehensive documentation which can guide
+          you through the installation process or customizations that you may want to carry out.</h4>
           <a className="btn btn-primary" href="https://saleor.readthedocs.io/en/latest/" target="_blank">Read the docs</a>
         </div>
       </section>

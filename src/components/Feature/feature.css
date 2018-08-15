@@ -111,7 +111,7 @@
               & .icon-card {
                 margin-left: calc(var(--spacer) * 2);
                 &.title {
-                  width: 80%;
+                  width: 80%;                  
                 }
               }
             }
@@ -138,6 +138,7 @@
             & .icon-card {
               & .title {
                 margin-bottom: calc(var(--spacer) * 0.5);
+                font-size: var(--font-size-lg);
               }
             }
           }
@@ -154,9 +155,13 @@
           border-top: solid var(--border-width) var(--primaryColor);
           padding: calc(var(--spacer) * 4) calc(var(--spacer) * 10);
           margin-bottom: calc(var(--spacer) * 3);
+          & h2 {
+            margin-bottom: var(--spacer);
+          }
           & .description {
             font-weight: var(--font-weight-lighter);
             margin-bottom: calc(var(--spacer) * 3);
+            line-height: var(--line-height-base);
           }
           @media (max-width: 576px) {
             padding: calc(var(--spacer) * 2) var(--spacer);
