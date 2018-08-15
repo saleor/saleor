@@ -5,7 +5,7 @@
       {% for line in address_form_lines %}
         <div class="row">
           {% for field in line %}
-            <div class="col-6">
+            <div class="col-6 checkout__{{ field.name }}" >
               {% bootstrap_field field %}
             </div>
           {% endfor %}
