@@ -1,9 +1,12 @@
 .scroll-link {
     color: var(--primaryColor);
     text-align: center;
-    & img {
-      display: block;
-      margin: 0 auto;
-      padding: var(--spacer) 0 0;
+    & a {
+      text-decoration: none;
+      & img {
+        display: block;
+        margin: 0 auto;
+        padding: var(--spacer) 0 0;
+      }
     }
   }
