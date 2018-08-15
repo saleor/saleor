@@ -22,10 +22,12 @@
         &.hero {
           position: relative;
           padding: 0;
-          margin-bottom: calc(var(--spacer) * 6);
           & .plane {
             width: 45%;
-            padding: calc(var(--spacer) * 10) 0 calc(var(--spacer) * 18) calc(var(--spacer) * 10);
+            padding: calc(var(--spacer) * 10) 0 calc(var(--spacer) * 10) calc(var(--spacer) * 10);
+            @media (max-width: 768px) {
+              padding: calc(var(--spacer) * 10) 0 calc(var(--spacer) * 10) calc(var(--spacer) * 5);
+            }
             @media (max-width: 576px) {
               padding: calc(var(--spacer) * 2) var(--spacer);
               width: auto;
@@ -38,7 +40,7 @@
             }
           }
           @media (max-width: 768px) {
-            height: 80vh;
+            height: 60vh;
             & .scroll-link {
               position: absolute;
               bottom: 7%;
@@ -79,6 +81,11 @@
               & .title {
                 width: 75%;
                 margin-bottom: calc(var(--spacer) * 1.5);
+                word-break: break-word;
+                hyphens: auto;
+                @media (max-width: 576px) {
+                  width: 100%;
+                }
               }
               & .decorator {
                 width: 5px;

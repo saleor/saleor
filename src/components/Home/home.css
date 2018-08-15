@@ -14,7 +14,8 @@
         background-repeat: no-repeat;
         background-position: 10% 0%;
         @media (min-width: 1450px) {
-          background-size: 65%;
+          background-size: 100%;
+          background-position: 0 100%;
         }
         @media (max-width: 1024px) {
           background-size: 120%;
@@ -111,28 +112,15 @@
           }
         }
       }
-      & .scroll-link {
+      @media (max-width: 768px) {
+        height: 80vh;
+        & .scroll-link {
           position: absolute;
-          bottom: 3%;
-          left: 50%;
-          transform: translateX(-50%);
-          z-index: 3;
-          @media (min-width: 1450px) {
-            bottom: 27%;
-          }
-          @media (max-width: 1024px) {
-            bottom: 18%;
-          }
-          @media (max-width: 768px) {
-            bottom: 12%;
-          }
-          @media (max-width: 576px) {
-            bottom: 3%;
-          }
+          bottom: 0;
+          left: 0;
+          right: 0;
         }
-        @media (max-width: 768px) {
-          height: 80vh;
-        }
+      }
     }
     &.features {
       position: relative;
