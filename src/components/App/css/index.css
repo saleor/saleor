@@ -119,6 +119,10 @@ img {
   text-decoration: underline;
 }
 
+.quote {
+  font-style: italic;
+}
+
 .decoration {
   position: absolute;
 }
