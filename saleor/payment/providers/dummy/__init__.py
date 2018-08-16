@@ -7,8 +7,11 @@ from ...utils import create_transaction
 def dummy_success():
     return True
 
+def get_client_token(**client_kwargs):
+    return str(uuid.uuid4())
 
-def authorize(payment_method, transaction_token):
+
+def authorize(payment_method, transaction_token, **client_kwargs):
     txn = create_transaction(
         payment_method=payment_method,
         transaction_type=TransactionType.AUTH,
@@ -19,7 +22,7 @@ def authorize(payment_method, transaction_token):
     return txn
 
 
-def void(payment_method):
+def void(payment_method, **client_kwargs):
     txn = create_transaction(
         payment_method=payment_method,
         transaction_type=TransactionType.VOID,
