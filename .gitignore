@@ -22,6 +22,7 @@ __pycache__/
 build/
 coverage/
 dist/
+virtual/
 *\.egg*
 # data
 /docs/_build/
@@ -32,3 +33,5 @@ dist/
 webpack-bundle.json
 /templates/templated_email/compiled/*
 !/templates/templated_email/compiled/.gitkeep
+
+
