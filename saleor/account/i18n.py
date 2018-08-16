@@ -73,16 +73,18 @@ class AddressMetaForm(forms.ModelForm):
 class AddressForm(forms.ModelForm):
 
     AUTOCOMPLETE_MAPPING = [
-        ('first_name',
-         'given-name'), ('last_name',
-                         'family-name'), ('company_name', 'organization'),
-        ('street_address_1',
-         'address-line1'), ('street_address_2',
-                            'address-line2'), ('city', 'address-level2'),
-        ('postal_code', 'postal-code'), ('country_area', 'address-level1'),
-        ('country',
-         'country'), ('city_area',
-                      'address-level3'), ('phone', 'tel'), ('email', 'email')]
+        ('first_name', 'given-name'),
+        ('last_name', 'family-name'),
+        ('company_name', 'organization'),
+        ('street_address_1', 'address-line1'),
+        ('street_address_2', 'address-line2'),
+        ('city', 'address-level2'),
+        ('postal_code', 'postal-code'),
+        ('country_area', 'address-level1'),
+        ('country', 'country'),
+        ('city_area', 'address-level3'),
+        ('phone', 'tel'),
+        ('email', 'email')]
 
     class Meta:
         model = Address
@@ -112,30 +114,11 @@ class AddressForm(forms.ModelForm):
             'phone':
             pgettext_lazy('Phone number', 'Phone number')}
         placeholders = {
-            'first_name':
-            pgettext_lazy('Personal name', 'Given name'),
-            'last_name':
-            pgettext_lazy('Personal name', 'Family name'),
-            'company_name':
-            pgettext_lazy(
-                'Company or organization', 'Company or organization'),
             'street_address_1':
             pgettext_lazy('Address', 'Street address, P.O. box, company name'),
             'street_address_2':
             pgettext_lazy(
-                'Address', 'Apartment, suite, unit, building, floor, etc'),
-            'city':
-            pgettext_lazy('City', 'City'),
-            'city_area':
-            pgettext_lazy('City area', 'District'),
-            'postal_code':
-            pgettext_lazy('Postal code', 'Postal code'),
-            'country':
-            pgettext_lazy('Country', 'Country'),
-            'country_area':
-            pgettext_lazy('Country area', 'State or province'),
-            'phone':
-            pgettext_lazy('Phone number', 'Phone number')}
+                'Address', 'Apartment, suite, unit, building, floor, etc')}
 
     phone = PossiblePhoneNumberFormField(
         widget=PhonePrefixWidget, required=False)
@@ -160,11 +143,14 @@ class CountryAwareAddressForm(AddressForm):
 
     I18N_MAPPING = [
         ('name', ['first_name', 'last_name']),
-        ('street_address', ['street_address_1',
-                            'street_address_2']), ('city_area', ['city_area']),
-        ('country_area', ['country_area']), ('company_name', ['company_name']),
-        ('postal_code', ['postal_code']), ('city', [
-            'city']), ('sorting_code', []), ('country_code', ['country'])]
+        ('street_address', ['street_address_1', 'street_address_2']),
+        ('city_area', ['city_area']),
+        ('country_area', ['country_area']),
+        ('company_name', ['company_name']),
+        ('postal_code', ['postal_code']),
+        ('city', ['city']),
+        ('sorting_code', []),
+        ('country_code', ['country'])]
 
     class Meta:
         model = Address
