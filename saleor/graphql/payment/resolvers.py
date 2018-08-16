@@ -1,6 +1,7 @@
 from graphql_jwt.decorators import login_required
 
 from ...order import models
+from ...payment.utils import gateway_get_client_token
 from ..utils import filter_by_query_param, get_node
 from .types import Payment
 
@@ -9,8 +10,6 @@ PAYMENT_SEARCH_FIELDS = ['id']
 # @login_required
 def resolve_payments(info, query):
     queryset = models.Payment.objects.all().distinct()
-    # if user.get_all_permissions() & {'order.manage_orders'}:
-        # queryset = models.Order.objects.all().distinct()
     queryset = filter_by_query_param(queryset, query, PAYMENT_SEARCH_FIELDS)
     return queryset
 
@@ -21,6 +20,5 @@ def resolve_payment(info, id):
     return payment
 
 
-def resolve_payment_client_token(customer_id=None):
-    return
-    return braintree.create_client_token(customer_id=customer_id)
+def resolve_payment_client_token(gateway=None):
+    return gateway_get_client_token(gateway)

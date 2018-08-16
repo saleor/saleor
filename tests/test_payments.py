@@ -1,5 +1,7 @@
 import pytest
-from saleor.payment import PaymentError, TransactionType, PaymentMethodChargeStatus
+
+from saleor.payment import (
+    PaymentError, PaymentMethodChargeStatus, TransactionType)
 
 
 def test_authorize(payment_method_dummy):
