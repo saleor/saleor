@@ -15,11 +15,11 @@ bleach==2.1.3
 boto3==1.7.78
 botocore==1.10.78         # via boto3, s3transfer
 braintree==3.39.1         # via django-payments
-cairocffi==0.8.0          # via cairosvg, weasyprint
+cairocffi==0.9.0          # via cairosvg, weasyprint
 cairosvg==2.1.3
 celery[redis]==4.2.0
 certifi==2018.8.13        # via requests
-cffi==1.11.4              # via cairocffi, cryptography, weasyprint
+cffi==1.11.5              # via cairocffi, cryptography, weasyprint
 chardet==3.0.4            # via requests
 cryptography==2.2.2       # via django-payments
 cssselect2==0.2.1         # via cairosvg, weasyprint
