@@ -8,7 +8,7 @@ def dummy_success():
     return True
 
 
-def authorize(payment_method):
+def authorize(payment_method, transaction_token):
     txn = create_transaction(
         payment_method=payment_method,
         transaction_type=TransactionType.AUTH,

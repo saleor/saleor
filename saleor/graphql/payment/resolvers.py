@@ -3,7 +3,6 @@ from graphql_jwt.decorators import login_required
 from ...order import models
 from ..utils import filter_by_query_param, get_node
 from .types import Payment
-from ...payments import braintree
 
 PAYMENT_SEARCH_FIELDS = ['id']
 
@@ -23,4 +22,5 @@ def resolve_payment(info, id):
 
 
 def resolve_payment_client_token(customer_id=None):
+    return
     return braintree.create_client_token(customer_id=customer_id)

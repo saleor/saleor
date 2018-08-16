@@ -1,6 +1,7 @@
 import importlib
 from enum import Enum
 from django.core.exceptions import ImproperlyConfigured
+from django.conf import settings
 from django.utils.translation import pgettext_lazy
 
 
@@ -32,31 +33,15 @@ class PaymentMethodChargeStatus:
             pgettext_lazy('payment method status', 'Fully refunded'))]
 
 
-# FIXME: move to settings
-PROVIDERS_MAP = {
-    'dummy': {
-        'module': 'saleor.payment.providers.dummy',
-        'params': {}},
-
-    'braintree': {
-        'module': 'saleor.payment.providers.braintree',
-        'params': {
-            'sandbox_mode': True,
-            'merchant_id': '',
-            'public_key': '',
-            'private_key': ''
-        }
-    }
-
-}
-
 PROVIDERS_ENUM = Enum(
-    'ProvidersEnum', {key.upper(): key.lower() for key in PROVIDERS_MAP})
+    'ProvidersEnum',
+    {key.upper(): key.lower() for key in settings.PAYMENT_PROVIDERS})
 
 def get_provider(provider_name):
-    if provider_name not in PROVIDERS_MAP:
+    if provider_name not in settings.PAYMENT_PROVIDERS:
         raise ImproperlyConfigured(
             f'Payment provider {provider_name} is not configured.')
-    provider_module = importlib.import_module(PROVIDERS_MAP[provider_name]['module'])
-    provider_params = PROVIDERS_MAP[provider_name]['params']
+    provider_module = importlib.import_module(
+        settings.PAYMENT_PROVIDERS[provider_name]['module'])
+    provider_params = settings.PAYMENT_PROVIDERS[provider_name]['connection_params']
     return provider_module, provider_params
