@@ -110,7 +110,7 @@ social-auth-core==1.6.0   # via social-auth-app-django
 sqlparse==0.2.4           # via django-debug-toolbar
 stripe==1.77.1            # via django-payments
 suds-jurko==0.6           # via django-payments
-text-unidecode==1.1
+text-unidecode==1.2
 tinycss2==0.6.1           # via cairosvg, cssselect2, weasyprint
 typing==3.6.2             # via google-measurement-protocol, prices, promise
 urllib3==1.22             # via elasticsearch, requests
