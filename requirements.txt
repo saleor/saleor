@@ -96,8 +96,8 @@ pytz==2018.3              # via babel, celery, django
 pyyaml==3.13              # via vcrpy
 raven==6.9.0
 redis==2.10.6             # via celery, django-redis
-requests-oauthlib==0.8.0  # via social-auth-core
-requests==2.18.4
+requests-oauthlib==1.0.0  # via social-auth-core
+requests==2.19.1
 rx==1.6.0                 # via graphql-core
 s3transfer==0.1.12        # via boto3
 singledispatch==3.4.0.3   # via graphene-django
