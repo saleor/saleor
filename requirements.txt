@@ -78,7 +78,7 @@ more-itertools==4.3.0     # via pytest
 multidict==4.3.1          # via yarl
 oauthlib==2.1.0           # via requests-oauthlib, social-auth-core
 pdfrw==0.4                # via weasyprint
-phonenumberslite==8.9.1
+phonenumberslite==8.9.10
 pillow==5.0.0             # via cairosvg, django-versatileimagefield
 pluggy==0.7.1             # via pytest
 prices==1.0.0
