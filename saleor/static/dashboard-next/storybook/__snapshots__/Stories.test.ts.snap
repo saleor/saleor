@@ -164,7 +164,7 @@ exports[`Storyshots Categories / CategoryProducts when loading data 1`] = `
             </div>
           </td>
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id"
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
             <span
               class="Skeleton-skeleton-id"
@@ -604,9 +604,7 @@ exports[`Storyshots Categories / CategoryProducts with initial data 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span
-              class=""
-            >
+            <span>
               Gardner, Graham and King
             </span>
           </td>
@@ -634,9 +632,7 @@ exports[`Storyshots Categories / CategoryProducts with initial data 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span
-              class=""
-            >
+            <span>
               Gardner, Graham and King
             </span>
           </td>
@@ -664,9 +660,7 @@ exports[`Storyshots Categories / CategoryProducts with initial data 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span
-              class=""
-            >
+            <span>
               Gardner, Graham and King
             </span>
           </td>
@@ -694,9 +688,7 @@ exports[`Storyshots Categories / CategoryProducts with initial data 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span
-              class=""
-            >
+            <span>
               Gardner, Graham and King
             </span>
           </td>
@@ -10729,10 +10721,10 @@ exports[`Storyshots Orders / OrderSummary when loading data 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-avatarCell-id"
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
           >
             <div
-              class="MuiAvatar-root-id MuiAvatar-colorDefault-id"
+              class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
             >
               <svg
                 aria-hidden="true"
@@ -10767,7 +10759,7 @@ exports[`Storyshots Orders / OrderSummary when loading data 1`] = `
             </span>
           </td>
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id"
+            class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
           >
             <span
               class="Skeleton-skeleton-id"
@@ -10776,7 +10768,7 @@ exports[`Storyshots Orders / OrderSummary when loading data 1`] = `
             </span>
           </td>
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id"
+            class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
           >
             <span
               class="Skeleton-skeleton-id"
@@ -10785,7 +10777,7 @@ exports[`Storyshots Orders / OrderSummary when loading data 1`] = `
             </span>
           </td>
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id"
+            class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
           >
             <span
               class="Skeleton-skeleton-id"
@@ -11746,7 +11738,6 @@ exports[`Storyshots Views / Attributes / Attribute details when loading 1`] = `
                     disabled=""
                     name="name"
                     type="text"
-                    value=""
                   />
                 </div>
               </div>
@@ -16107,7 +16098,7 @@ exports[`Storyshots Views / Collections / Collection list when loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -16962,7 +16953,7 @@ exports[`Storyshots Views / Customers / Customer details when loading 1`] = `
                   </span>
                 </td>
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
                 >
                   <span
                     class="Skeleton-skeleton-id"
@@ -22121,10 +22112,10 @@ exports[`Storyshots Views / Orders / Order details when loading data 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-avatarCell-id"
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
                 >
                   <div
-                    class="MuiAvatar-root-id MuiAvatar-colorDefault-id"
+                    class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
                   >
                     <svg
                       aria-hidden="true"
@@ -22159,7 +22150,7 @@ exports[`Storyshots Views / Orders / Order details when loading data 1`] = `
                   </span>
                 </td>
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
                 >
                   <span
                     class="Skeleton-skeleton-id"
@@ -22168,7 +22159,7 @@ exports[`Storyshots Views / Orders / Order details when loading data 1`] = `
                   </span>
                 </td>
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
                 >
                   <span
                     class="Skeleton-skeleton-id"
@@ -22177,7 +22168,7 @@ exports[`Storyshots Views / Orders / Order details when loading data 1`] = `
                   </span>
                 </td>
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
                 >
                   <span
                     class="Skeleton-skeleton-id"
@@ -22758,12 +22749,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
             >
-              19.20 
-              <span
-                class="OrderList-currency-id"
-              >
-                USD
-              </span>
+              $19.20
             </td>
           </tr>
           <tr
@@ -22819,12 +22805,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
             >
-              28.90 
-              <span
-                class="OrderList-currency-id"
-              >
-                USD
-              </span>
+              $28.90
             </td>
           </tr>
           <tr
@@ -22880,12 +22861,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
             >
-              289.00 
-              <span
-                class="OrderList-currency-id"
-              >
-                USD
-              </span>
+              $289.00
             </td>
           </tr>
           <tr
@@ -22941,12 +22917,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
             >
-              100.05 
-              <span
-                class="OrderList-currency-id"
-              >
-                USD
-              </span>
+              $100.05
             </td>
           </tr>
           <tr
@@ -23002,12 +22973,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
             >
-              14.87 
-              <span
-                class="OrderList-currency-id"
-              >
-                USD
-              </span>
+              $14.87
             </td>
           </tr>
           <tr
@@ -23063,12 +23029,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
             >
-              14.87 
-              <span
-                class="OrderList-currency-id"
-              >
-                USD
-              </span>
+              $14.87
             </td>
           </tr>
         </tbody>
@@ -23288,7 +23249,7 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -27629,7 +27590,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
                   >
                     <div
                       class="MuiAvatar-root-id Component-avatar-id"
@@ -27650,7 +27611,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
                   >
                     <div
                       class="MuiAvatar-root-id Component-avatar-id"
@@ -28046,10 +28007,30 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
                 class="MuiTableBody-root-id"
               >
                 <tr
-                  class="MuiTableRow-root-id MuiTableRow-hover-id"
+                  class="MuiTableRow-root-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  >
+                    <div
+                      class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <g>
+                          <path
+                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
+                          />
+                        </g>
+                      </svg>
+                    </div>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
                   >
                     <span
                       class="Skeleton-skeleton-id"
@@ -28402,7 +28383,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
                   >
                     <div
                       class="MuiAvatar-root-id Component-avatar-id"
@@ -28423,7 +28404,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
                   >
                     <div
                       class="MuiAvatar-root-id Component-avatar-id"
@@ -34314,7 +34295,7 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
           class="MuiTableBody-root-id"
         >
           <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id"
+            class="MuiTableRow-root-id"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
@@ -34337,7 +34318,7 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
               </div>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -34643,11 +34624,9 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                         focusable="false"
                         viewBox="0 0 24 24"
                       >
-                        <g
-                          style="fill-rule:evenodd"
-                        >
+                        <g>
                           <path
-                            d="M 22.418358,23.933955 23.941248,22.416861 1.505286,0.06622212 -0.01756434,1.5833815 2.3945365,3.98626 c -0.00402,0.054209 -0.00609,0.1089561 -0.00609,0.1641949 l 0,15.5654231 c 0,1.223034 1.0044565,2.223746 2.232151,2.223746 l 15.6251379,0 c 0.05533,0 0.110242,-0.0021 0.164611,-0.0061 l 2.008007,2.000405 z m -4.234188,-4.218065 -2.232782,-2.224284 -10.2147024,0 3.3482328,-4.291641 2.3883966,2.879541 1.336535,-1.717557 -8.1892465,-8.1579753 0,13.5119163 13.5635665,0 z m 4.293682,-15.5654234 0,13.8585934 -2.232111,-2.223614 0,-11.6349794 -11.6793779,0 -2.232218,-2.2237479 13.9115959,0 c 1.227708,0 2.232111,1.0007001 2.232111,2.2237479 z"
+                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
                           />
                         </g>
                       </svg>
@@ -34663,7 +34642,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
                   >
                     <div
                       class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
@@ -34674,11 +34653,9 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                         focusable="false"
                         viewBox="0 0 24 24"
                       >
-                        <g
-                          style="fill-rule:evenodd"
-                        >
+                        <g>
                           <path
-                            d="M 22.418358,23.933955 23.941248,22.416861 1.505286,0.06622212 -0.01756434,1.5833815 2.3945365,3.98626 c -0.00402,0.054209 -0.00609,0.1089561 -0.00609,0.1641949 l 0,15.5654231 c 0,1.223034 1.0044565,2.223746 2.232151,2.223746 l 15.6251379,0 c 0.05533,0 0.110242,-0.0021 0.164611,-0.0061 l 2.008007,2.000405 z m -4.234188,-4.218065 -2.232782,-2.224284 -10.2147024,0 3.3482328,-4.291641 2.3883966,2.879541 1.336535,-1.717557 -8.1892465,-8.1579753 0,13.5119163 13.5635665,0 z m 4.293682,-15.5654234 0,13.8585934 -2.232111,-2.223614 0,-11.6349794 -11.6793779,0 -2.232218,-2.2237479 13.9115959,0 c 1.227708,0 2.232111,1.0007001 2.232111,2.2237479 z"
+                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
                           />
                         </g>
                       </svg>
@@ -34694,7 +34671,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
                   >
                     <div
                       class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
@@ -34705,11 +34682,9 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                         focusable="false"
                         viewBox="0 0 24 24"
                       >
-                        <g
-                          style="fill-rule:evenodd"
-                        >
+                        <g>
                           <path
-                            d="M 22.418358,23.933955 23.941248,22.416861 1.505286,0.06622212 -0.01756434,1.5833815 2.3945365,3.98626 c -0.00402,0.054209 -0.00609,0.1089561 -0.00609,0.1641949 l 0,15.5654231 c 0,1.223034 1.0044565,2.223746 2.232151,2.223746 l 15.6251379,0 c 0.05533,0 0.110242,-0.0021 0.164611,-0.0061 l 2.008007,2.000405 z m -4.234188,-4.218065 -2.232782,-2.224284 -10.2147024,0 3.3482328,-4.291641 2.3883966,2.879541 1.336535,-1.717557 -8.1892465,-8.1579753 0,13.5119163 13.5635665,0 z m 4.293682,-15.5654234 0,13.8585934 -2.232111,-2.223614 0,-11.6349794 -11.6793779,0 -2.232218,-2.2237479 13.9115959,0 c 1.227708,0 2.232111,1.0007001 2.232111,2.2237479 z"
+                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
                           />
                         </g>
                       </svg>
@@ -34725,7 +34700,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
                   >
                     <div
                       class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
@@ -34736,11 +34711,9 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                         focusable="false"
                         viewBox="0 0 24 24"
                       >
-                        <g
-                          style="fill-rule:evenodd"
-                        >
+                        <g>
                           <path
-                            d="M 22.418358,23.933955 23.941248,22.416861 1.505286,0.06622212 -0.01756434,1.5833815 2.3945365,3.98626 c -0.00402,0.054209 -0.00609,0.1089561 -0.00609,0.1641949 l 0,15.5654231 c 0,1.223034 1.0044565,2.223746 2.232151,2.223746 l 15.6251379,0 c 0.05533,0 0.110242,-0.0021 0.164611,-0.0061 l 2.008007,2.000405 z m -4.234188,-4.218065 -2.232782,-2.224284 -10.2147024,0 3.3482328,-4.291641 2.3883966,2.879541 1.336535,-1.717557 -8.1892465,-8.1579753 0,13.5119163 13.5635665,0 z m 4.293682,-15.5654234 0,13.8585934 -2.232111,-2.223614 0,-11.6349794 -11.6793779,0 -2.232218,-2.2237479 13.9115959,0 c 1.227708,0 2.232111,1.0007001 2.232111,2.2237479 z"
+                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
                           />
                         </g>
                       </svg>
@@ -35264,10 +35237,30 @@ exports[`Storyshots Views / Products / Product variant details when loading data
                 class="MuiTableBody-root-id"
               >
                 <tr
-                  class="MuiTableRow-root-id MuiTableRow-hover-id"
+                  class="MuiTableRow-root-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  >
+                    <div
+                      class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <g>
+                          <path
+                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
+                          />
+                        </g>
+                      </svg>
+                    </div>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
                   >
                     <span
                       class="Skeleton-skeleton-id"
@@ -37990,7 +37983,7 @@ exports[`Storyshots Views / Vouchers / Voucher list when loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -37999,7 +37992,7 @@ exports[`Storyshots Views / Vouchers / Voucher list when loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
               <span
                 class="Skeleton-skeleton-id"
