@@ -46,9 +46,8 @@ from .product.schema import ProductMutations, ProductQueries
 from .shipping.mutations import (
     ShippingPriceCreate, ShippingPriceDelete, ShippingPriceUpdate,
     ShippingZoneCreate, ShippingZoneDelete, ShippingZoneUpdate)
-from .payment.types import Payment
+from .payment.types import Payment, PaymentGatewayEnum
 from .payment.resolvers import resolve_payments, resolve_payment_client_token
-from .payment.mutations import CompleteCheckoutWithCreditCard
 from .shipping.resolvers import resolve_shipping_zones
 from .shipping.types import ShippingZone
 from .shop.mutations import (
@@ -103,7 +102,7 @@ class Query(ProductQueries):
         description='List of the shop\'s pages.')
     payment = graphene.Field(Payment, id=graphene.Argument(graphene.ID))
     payment_client_token = graphene.Field(
-        graphene.String, customer_id=graphene.String(description=''))
+        graphene.String, args={'gateway': PaymentGatewayEnum()})
     payments = DjangoFilterConnectionField(
         Payment,
         description='List of payments')
@@ -182,8 +181,8 @@ class Query(ProductQueries):
     def resolve_payment_method(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, PaymentMethod)
 
-    def resolve_payment_client_token(self, info, customer_id=None):
-        return resolve_payment_client_token(customer_id)
+    def resolve_payment_client_token(self, info, gateway=None):
+        return resolve_payment_client_token(gateway)
 
     def resolve_payments(self, info, query=None, **kwargs):
         return resolve_payments(info, query)

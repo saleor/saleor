@@ -30,6 +30,11 @@ def create_transaction(
     return txn
 
 
+def gateway_get_client_token(provider_name):
+    provider, provider_params = get_provider(provider_name)
+    return provider.get_client_token(**provider_params)
+
+
 def gateway_authorize(payment_method, transaction_token) -> Transaction:
     if not payment_method.is_active:
         raise PaymentError('This payment method is no longer active')

@@ -1,10 +1,12 @@
-from typing import Dict
 import uuid
-from django.db import transaction
-import braintree
+from typing import Dict
 
-from ... import TransactionType, PaymentMethodChargeStatus
+import braintree as braintree_sdk
+from django.db import transaction
+
+from ... import PaymentMethodChargeStatus, TransactionType
 from ...models import Transaction
+from ...utils import create_transaction
 
 #FIXME: Move to SiteSettings
 
@@ -37,12 +39,12 @@ def extract_gateway_response(braintree_result) -> Dict:
     return gateway_response
 
 def get_gateway(sandbox_mode, merchant_id, public_key, private_key):
-    environment = braintree.Environment.Sandbox
+    environment = braintree_sdk.Environment.Sandbox
     if not sandbox_mode:
-        environment = braintree.Environment.Production
+        environment = braintree_sdk.Environment.Production
 
-    gateway = braintree.BraintreeGateway(
-        braintree.Configuration(
+    gateway = braintree_sdk.BraintreeGateway(
+        braintree_sdk.Configuration(
             environment=environment,
             merchant_id=merchant_id,
             public_key=public_key,
@@ -51,6 +53,10 @@ def get_gateway(sandbox_mode, merchant_id, public_key, private_key):
     )
     return gateway
 
+def get_client_token(**client_kwargs):
+    gateway = get_gateway(**client_kwargs)
+    client_token = gateway.client_token.generate()
+    return client_token
 
 def authorize(payment_method,  transaction_token, **client_kwargs):
     gateway = get_gateway(**client_kwargs)
@@ -63,7 +69,7 @@ def authorize(payment_method,  transaction_token, **client_kwargs):
               'required': THREE_D_SECURE_REQUIRED
           }}})
     gateway_response = extract_gateway_response(result)
-    txn = Transaction.objects.get_or_create(
+    txn = create_transaction(
         payment_method=payment_method,
         transaction_type=TransactionType.AUTH,
         amount=payment_method.total,
@@ -83,7 +89,7 @@ def charge(payment_method, amount=None, **client_kwargs):
         amount=amount)
     gateway_response = extract_gateway_response(result)
 
-    txn = Transaction.objects.get_or_create(
+    txn = create_transaction(
         payment_method=payment_method,
         transaction_type=TransactionType.CHARGE,
         amount=amount,
@@ -95,25 +101,23 @@ def charge(payment_method, amount=None, **client_kwargs):
 def void(payment_method, **client_kwargs):
     gateway = get_gateway(**client_kwargs)
 
-    txn = Transaction.objects.get_or_create(
+    txn = create_transaction(
         payment_method=payment_method,
         transaction_type=TransactionType.VOID,
         amount=payment_method.total,
         gateway_response={},
-        defaults={
-            'token': str(uuid.uuid4()),
-            'is_success': dummy_success()})[0]
+        token='',
+        is_success=False)
     return txn
 
 def refund(payment_method, amount=None, **client_kwargs):
     gateway = get_gateway(**client_kwargs)
 
-    txn = Transaction.objects.get_or_create(
+    txn = create_transaction(
         payment_method=payment_method,
         transaction_type=TransactionType.REFUND,
         amount=amount,
-        defaults={
-            'token': str(uuid.uuid4()),
-            'gateway_response': {},
-            'is_success': dummy_success()})[0]
+        token="",
+        is_success=False,
+        gateway_response={})
     return txn
