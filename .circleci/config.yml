@@ -1,0 +1,46 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/app
+    docker:
+      - image: circleci/node:8.4.0
+    steps:
+      - checkout
+      - run:
+          name: Install system dependencies
+          command: sudo apt-get install -y libpng-dev
+      - run:
+          name: Install dependencies
+          command: npm install
+      - run:
+          name: Build application
+          command: npm run build
+      - persist_to_workspace:
+          root: ~/app
+          paths:
+            - dist/*
+  deploy:
+    working_directory: ~/app
+    docker:
+      - image: circleci/python:2.7-jessie
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Install awscli
+          command: sudo pip install awscli
+      - run:
+          name: Deploy to S3
+          command: aws s3 sync dist s3://get-saleor-stage/ --delete --acl public-read
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: gh-pages-new-saleor-page
+          
