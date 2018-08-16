@@ -148,3 +148,5 @@ raven==6.5.0
 
 python-json-logger==0.1.7
 python-logstash==0.4.6
+
+mailchimp3==3.0.2

@@ -67,7 +67,8 @@ class AbstractCartModel(models.Model):
         pgettext_lazy('Cart field', 'last status change'), auto_now_add=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True,  # related_name='carts',
-        verbose_name=pgettext_lazy('Cart field', 'user'))
+        verbose_name=pgettext_lazy('Cart field', 'user')
+    )
     email = models.EmailField(
         pgettext_lazy('Cart field', 'email'), blank=True, null=True)
     token = models.UUIDField(
