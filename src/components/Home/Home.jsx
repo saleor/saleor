@@ -54,8 +54,10 @@ class Home extends Component {
             </div>
             }
             <h1>A graphql-first ecommerce <span className="primaryColor">platform for perfectionists</span></h1>
-            <a href="#" className="btn btn-secondary">See demo</a>
-            <a href="#" className="btn btn-primary">Brief us</a>
+            <div className="button-wrapper">
+              <a href="https://demo.getsaleor.com/pl/" target="_blank" className="btn btn-secondary">See demo</a>
+              <a href="https://mirumee.com/hire-us/" target="_blank" className="btn btn-primary">Brief us</a>
+            </div>
           </div>
           <ScrollLink to="#features-section"> Why Salor </ScrollLink>
         </section>
@@ -157,7 +159,18 @@ class Home extends Component {
                     <p><strong>Saleor takes advantage of PWA standards  to optimize mobile experiences of the rapidly growing group of people shopping on the run. </strong></p>
                     <p>Allow your customers to buy their next pair of jeans while enjoying a virgin margarita on a plane. They will only need an internet connection when they go to pay with Apple Pay or one of the cards stored by their phone. </p>
                   </div>
-                  <div className="col-xs-12 col-sm-6 image"></div>
+                  <div className="col-xs-12 col-sm-6 image">
+                    <div className="label-wrapper">
+                      <div className="label">
+                        <span className="rectangle primary"></span>
+                        <span>Desktop users</span>
+                      </div>
+                      <div className="label transformed">
+                        <span className="rectangle secondary"></span>
+                        <span>Mobile users</span>
+                      </div>
+                    </div>
+                  </div>
                   <div className="decoration">
                     <img src={decoration01} />
                   </div>
@@ -289,7 +302,7 @@ class Home extends Component {
         </section>
         <section className="enterprice-consulting">
           <div className="section-container">
-            <h2>Enterprice consulting</h2>
+            <h2>Enterprise consulting</h2>
             <h3>Some situations however call for a custom solution and extra code to be written. In that case, our team can help.</h3>
             <div className="list grid">
               <div className="col-xs-12 col-sm-6 col-lg-5">
@@ -308,7 +321,7 @@ class Home extends Component {
               </div>
             </div>
             <div className="center">
-              <a className="btn btn-secondary" href="">Estimate your project</a>
+              <a className="btn btn-secondary" href="https://mirumee.com/hire-us/" target="_blank">Estimate your project</a>
             </div>
           </div>
           <div className="decoration decoration01">

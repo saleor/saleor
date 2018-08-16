@@ -35,7 +35,7 @@ const Feature = () => (
         <ScrollLink to="#testimonial"> Learn more </ScrollLink>
       </section>
       <section id="testimonial" className="testimonial">
-        <p className="comment">“After actively using and developing our Saleor store for over a year, if I were to create a new shop today I would go for it again without a doubt.”</p>
+        <p className="comment quote">“After actively using and developing our Saleor store for over a year, if I were to create a new shop today I would go for it again without a doubt.”</p>
         <div className="testimonial-author">
           <h5 className="name">Tyler Hildebrandt,</h5>
           <h5 className="position">Lead developer. Patch Garden</h5>
@@ -84,8 +84,8 @@ const Feature = () => (
       <section className="product-management management-section grid">
         <div className="side-header col-md-5 col-sm-12 col-xs-12">
           <h2>Product Management</h2>
-          <p className="sub-description">Product offer attractiveness is the resultant of
-             many factors - product price, exposure or their variety. Be in charge of that.</p>
+          <p className="sub-description">Product offer attractiveness is the resultant of many factors - price,
+          exposure and variety. Be in charge of that. </p>
         </div>
         <div className="card-grid col-md-7 col-sm-12 col-xs-12">
           <div className="icon-card">
@@ -106,8 +106,8 @@ const Feature = () => (
               <img src={multipleImages} />
               <h5 className="title">Multiple Images</h5>
               <p>Add unlimited images to your products and have Saleor automatically
-                 generate thumbnails in all relevant sizes to make both desktop
-                 and mobile users happy.</p>
+                 generate thumbnails in all relevant dimensions to satisfy
+                 both desktop and mobile users.</p>
             </div>
             <div className="icon-card">
               <img src={seoIcon} />
@@ -127,8 +127,8 @@ const Feature = () => (
       <section className="product-management management-section grid">
         <div className="side-header col-md-5 col-sm-12 col-xs-12">
           <h2>Order Management</h2>
-          <p className="sub-description">Saleor gives you full control over placed orders,
-             from the checkout, customer management, ending on product delivery.</p>
+          <p className="sub-description">Saleor gives you full control over placed orders
+          - from the checkout to customer management and finishing  with product delivery.</p>
         </div>
         <div className="card-grid col-md-7 col-sm-12 col-xs-12">
           <div className="icon-card">
@@ -141,14 +141,14 @@ const Feature = () => (
             <div className="icon-card">
               <img src={multipleDispatch} />
               <h5 className="title">Multiple dispatch</h5>
-              <p>Need to ship certain items separately or on a different date?
-                 Deliver a single order using multiple fulfillments even if it
-                  means splitting the quantity of a single product.</p>
+              <p>Need to ship certain items separately or on a different date? Deliver
+                 a single order using multiple fulfillments, even if it means
+                 splitting the quantity of a single product.</p>
             </div>
             <div className="icon-card">
               <img src={refunds} />
               <h5 className="title">Refunds</h5>
-              <p>If anything goes wrong or a product needs to be returned
+              <p>If anything goes wrong or a product needs to be returned,
                  reimburse your customers using the intuitive refund screen.</p>
             </div>
             <div className="icon-card">
@@ -161,7 +161,7 @@ const Feature = () => (
             <div className="icon-card">
               <img src={customerProfiles} />
               <h5 className="title">Customer profiles</h5>
-              <p>Keep user database in check. Review the customer’s order history,
+              <p>Keep user database in check. Review a customer’s order history,
                  leave notes for staff, deactivate accounts as needed or remove them entirely.</p>
             </div>
         </div>
@@ -169,8 +169,8 @@ const Feature = () => (
       <section className="management-section grid">
         <div className="side-header col-md-5 col-sm-12 col-xs-12">
           <h2>Cart & Checkout</h2>
-          <p className="sub-description">Saleor is packed with number of ready-to-use payment methods,
-             sales optimizations and discount options.</p>
+          <p className="sub-description">Saleor is packed with a number of ready-to-use payment methods,
+          sales optimization and discount options.</p>
         </div>
         <div className="card-grid col-md-7 col-sm-12 col-xs-12">
           <div className="icon-card">
@@ -194,9 +194,9 @@ const Feature = () => (
             <div className="icon-card">
               <img src={discountAndPromotions} />
               <h5 className="title">Discounts & Promotions</h5>
-              <p>Build seasonal sales with incentives such as free shipping,
-                 fixed amount or percentage rate off discounts that could be limited
-                 to single products or entire categories.</p>
+              <p>Build seasonal sales with incentives such as free shipping, fixed amount
+                 or percentage rate discounts which could be limited to single
+                 products or entire categories.</p>
             </div>
         </div>
       </section>
@@ -236,10 +236,9 @@ const Feature = () => (
       <section className="documentation">
         <div className="content">
           <h2>Documentation</h2>
-          <h3 className="description">Check our comprehensive and still growing documentation which can
-              guide you through the installation process or customizations that
-              you may want to carry out.</h3>
-          <a className="btn btn-primary" href="">Read the docs</a>
+          <h4 className="description">Check our comprehensive documentation which can guide
+          you through the installation process or customizations that you may want to carry out.</h4>
+          <a className="btn btn-primary" href="https://saleor.readthedocs.io/en/latest/" target="_blank">Read the docs</a>
         </div>
       </section>
       <GitHubBanner />

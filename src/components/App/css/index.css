@@ -42,7 +42,10 @@ h1 {
   line-height: var(--headings-line-height);
   text-transform: uppercase;
   @media (max-width: 768px) {
-    font-size: calc(var(--h1-font-size) * 0.7)
+    font-size: calc(var(--h1-font-size) * 0.7);
+  }
+  @media (max-width: 576px) {
+    font-size: calc(var(--h1-font-size) * 0.6);
   }
 }
 
@@ -112,6 +115,14 @@ img {
   text-align: center;
 }
 
+.text-underline {
+  text-decoration: underline;
+}
+
+.quote {
+  font-style: italic;
+}
+
 .decoration {
   position: absolute;
 }
@@ -164,6 +175,11 @@ ul {
             opacity: 1;
           }
         }
+        &.active {
+          &::after {
+            opacity: 1;
+          }
+        }
       }
       
     }
@@ -194,5 +210,11 @@ ul {
       background-color: transparent;
       color: var(--primaryColor);
     }
+  }
+  @media (max-width: 576px) {
+    font-size: calc(var(--font-size-base));
+  }
+  @media (max-width: 320px) {
+    font-size: calc(var(--font-size-sm));
   }
 }

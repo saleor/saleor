@@ -22,10 +22,12 @@
         &.hero {
           position: relative;
           padding: 0;
-          margin-bottom: calc(var(--spacer) * 6);
           & .plane {
             width: 45%;
-            padding: calc(var(--spacer) * 10) 0 calc(var(--spacer) * 18) calc(var(--spacer) * 10);
+            padding: calc(var(--spacer) * 10) 0 calc(var(--spacer) * 10) calc(var(--spacer) * 10);
+            @media (max-width: 768px) {
+              padding: calc(var(--spacer) * 10) 0 calc(var(--spacer) * 10) calc(var(--spacer) * 5);
+            }
             @media (max-width: 576px) {
               padding: calc(var(--spacer) * 2) var(--spacer);
               width: auto;
@@ -38,10 +40,10 @@
             }
           }
           @media (max-width: 768px) {
-            height: 80vh;
+            height: 60vh;
             & .scroll-link {
               position: absolute;
-              bottom: 5%;
+              bottom: 7%;
               left: 0;
               right: 0;
             }
@@ -79,6 +81,11 @@
               & .title {
                 width: 75%;
                 margin-bottom: calc(var(--spacer) * 1.5);
+                word-break: break-word;
+                hyphens: auto;
+                @media (max-width: 576px) {
+                  width: 100%;
+                }
               }
               & .decorator {
                 width: 5px;
@@ -104,7 +111,7 @@
               & .icon-card {
                 margin-left: calc(var(--spacer) * 2);
                 &.title {
-                  width: 80%;
+                  width: 80%;                  
                 }
               }
             }
@@ -131,6 +138,7 @@
             & .icon-card {
               & .title {
                 margin-bottom: calc(var(--spacer) * 0.5);
+                font-size: var(--font-size-lg);
               }
             }
           }
@@ -147,9 +155,13 @@
           border-top: solid var(--border-width) var(--primaryColor);
           padding: calc(var(--spacer) * 4) calc(var(--spacer) * 10);
           margin-bottom: calc(var(--spacer) * 3);
+          & h2 {
+            margin-bottom: var(--spacer);
+          }
           & .description {
             font-weight: var(--font-weight-lighter);
             margin-bottom: calc(var(--spacer) * 3);
+            line-height: var(--line-height-base);
           }
           @media (max-width: 576px) {
             padding: calc(var(--spacer) * 2) var(--spacer);

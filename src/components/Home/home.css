@@ -3,6 +3,7 @@
   & section {
     &.hero {
       position: relative;
+      margin-bottom: calc(var(--spacer) * 6);
       & .bg-container {
         width: 100%;
         height: 100%;
@@ -13,7 +14,8 @@
         background-repeat: no-repeat;
         background-position: 10% 0%;
         @media (min-width: 1450px) {
-          background-size: 65%;
+          background-size: 100%;
+          background-position: 0 100%;
         }
         @media (max-width: 1024px) {
           background-size: 120%;
@@ -37,7 +39,17 @@
           padding: calc(var(--spacer) * 14) 0 calc(var(--spacer) * 12) calc(var(--spacer) * 2);
         }
         @media (max-width: 576px) {
-          padding: calc(var(--spacer) * 10) calc(var(--spacer) / 2)
+          padding: calc(var(--spacer) * 20) var(--spacer);
+          width: auto;
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          & .button-wrapper {
+            text-align: center;
+            & :last-child {
+              margin-right: 0;
+            }
+          }
         }
         & .news {
           position: relative;
@@ -68,46 +80,12 @@
             }
           }
           @media (max-width: 576px) {
-            width: 100%;
-            position: absolute;
-            top: 0;
-            & .label { display: none; }
-            & .content {
-              width: 100%;
-              padding: calc(var(--spacer) / 2) 0;
-              background: var(--primaryColor);
-              & a {
-                color: var(--mobile-background);
-              }
-              & .close-icon {
-                position: absolute;
-                cursor: pointer;
-                right: 25px;
-                top: 10px;
-                width: 20px;
-                height: 20px;
-              }
-              & .close-icon:before, & .close-icon:after {
-                position: absolute;
-                left: 15px;
-                content: ' ';
-                height: 20px;
-                width: 2px;
-                background-color: var(--mobile-background);
-              }
-              & .close-icon:before {
-                transform: rotate(45deg);
-              }
-              & .close-icon:after {
-                transform: rotate(-45deg);
-              }
-            }
+            display: none;
           }
         }
         & h1 {
           padding-bottom: calc(var(--spacer) * 6);
           @media (max-width: 768px) {
-            font-size: calc(var(--font-size-base) * 2.5);
             padding-right: calc(var(--spacer) * 13);
           }
           @media (max-width: 576px) {
@@ -134,25 +112,15 @@
           }
         }
       }
-      & .scroll-link {
+      @media (max-width: 768px) {
+        height: 80vh;
+        & .scroll-link {
           position: absolute;
-          bottom: 3%;
-          left: 50%;
-          transform: translateX(-50%);
-          z-index: 999;
-          @media (min-width: 1450px) {
-            bottom: 27%;
-          }
-          @media (max-width: 1024px) {
-            bottom: 18%;
-          }
-          @media (max-width: 768px) {
-            bottom: 12%;
-          }
-          @media (max-width: 576px) {
-            bottom: 3%;
-          }
+          bottom: 0;
+          left: 0;
+          right: 0;
         }
+      }
     }
     &.features {
       position: relative;
@@ -327,7 +295,7 @@
               font-size: calc(var(--font-size-base) * 2);
             }
             & span {
-              left: 4%;
+              left: 2%;
               @media (max-width: 1024px) {
                 left: 1%;
               }
@@ -368,6 +336,32 @@
           & .image {
             background-image: url('../../images/storefront-icon.png');
             background-size: 40%;
+            position: relative;
+            & .label-wrapper {
+              position: absolute;
+              top: 65%;
+              left: 75%;
+              z-index: 1;
+              & .label {
+                margin: calc(var(--spacer) * 0.5) 0;
+                font-weight: var(--font-weight-lighter);
+                & .rectangle {
+                  height: calc(var(--spacer) * 0.4);
+                  width: calc(var(--spacer) * 3);
+                  transform: skew(-20deg) translateX(-30%);
+                  display: block;
+                  &.primary {
+                    background-color: var(--primaryColor)
+                  }
+                  &.secondary {
+                    background-color: var(--secondaryColor)
+                  }
+                }
+                &.transformed {
+                  transform: translateX(-20%);
+                }
+              }
+            }
           }
           & .decoration {
             width: 30%;
@@ -693,11 +687,13 @@
     }
     &.enterprice-consulting {
       position: relative;
+      z-index: 1;
       padding: calc(var(--spacer) * 4) 0 calc(var(--spacer) * 2) 0;
       & h3 {
         width: 70%;
         font-size: calc(var(--font-size-base) * 2.5);
         padding-top: calc(var(--spacer) * 2);
+        text-transform: unset;
         @media (max-width: 1024px) {
           font-size: calc(var(--font-size-base) * 2);
         }

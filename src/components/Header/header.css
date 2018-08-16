@@ -1,4 +1,47 @@
 header {
+  & .news {
+    display: none;
+    @media (max-width: 576px) {
+      position: relative;
+      width: 100%;
+      top: 0;
+      display: block;
+      font-weight: var(--font-weight-normal);
+      & .content {
+        padding: calc(var(--spacer) / 2) 0;
+        background: var(--accentColor);
+        & a {
+          color: var(--mobile-background);
+          padding-left: calc(var(--spacer) * 2);
+        }
+        & .close-icon {
+          position: absolute;
+          cursor: pointer;
+          right: 25px;
+          top: 10px;
+          width: 20px;
+          height: 20px;
+        }
+        & .close-icon:before, & .close-icon:after {
+          position: absolute;
+          left: 15px;
+          content: ' ';
+          height: 20px;
+          width: 2px;
+          background-color: var(--mobile-background);
+        }
+        & .close-icon:before {
+          transform: rotate(45deg);
+        }
+        & .close-icon:after {
+          transform: rotate(-45deg);
+        }
+      }
+    }
+    @media (max-width: 320px) {
+      font-size: calc(var(--font-size-sm));
+    }
+  }
   & .logo {
     width: 100%;
     padding: calc(var(--spacer) * 3) 0;
@@ -14,8 +57,8 @@ header {
       @media (max-width: 1024px) {
         width: 130px;
       }
-      @media (max-width: 768px) {
-        width: 130px;
+      @media (max-width: 576px) {
+        width: 80px;
       }
     }
     &.open {
@@ -31,7 +74,7 @@ header {
         left: calc(var(--spacer) * 1.2);
       }
       & .logo-svg {
-        width: 170px;
+        width: 100px;
       }
     }
   }
@@ -40,6 +83,7 @@ header {
     & ul {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       @media (max-width: 768px) {
         height: 0;
         visibility: hidden;
@@ -51,9 +95,9 @@ header {
         top: 0;
         transition: top 0.5s;
         padding: calc(var(--spacer) * 3.5) 0;
-        & .count { display: none; }
+        & .count, &:first-child { display: none; }
         & a {
-          font-size: var(--font-size-lg);
+          font-size: var(--font-size-base);
           font-weight: var(--font-weight-light);
           @media (max-width: 1024px) {
             font-size: calc(var(--font-size-base) * 1.2);
@@ -66,6 +110,9 @@ header {
           }
         }
         &.github-link {
+          & .star-value {
+            vertical-align: text-top;
+          }
           @media (max-width: 1024px) {
             top: calc(var(--spacer) * -0.3)
           }
@@ -85,7 +132,7 @@ header {
         top: 0;
         z-index: 998;
         background: var(--mobile-background);
-        padding: calc(var(--spacer) * 7) calc(var(--spacer) * 2) 0 calc(var(--spacer) * 2);
+        padding: calc(var(--spacer) * 5) calc(var(--spacer) * 2) 0 calc(var(--spacer) * 2);
         & li {
           position: relative;
           padding: 0 calc(var(--spacer) * 4);
@@ -93,6 +140,9 @@ header {
           top: 1rem;
           text-transform: uppercase;
           font-size: calc(var(--font-size-base) * 2);
+          &:first-child {
+            display: block;
+          }
           & a {
             color: var(--body-color);
             &:hover {
@@ -112,7 +162,7 @@ header {
             padding-left: 0;
             left: calc(var(--spacer) * 2);
             top: initial;
-            bottom: calc(var(--spacer) * 9);
+            bottom: calc(var(--spacer) * 7);
             & a {
               color: var(--primaryColor);
             }
@@ -129,7 +179,7 @@ header {
         grid-row: 1;
         @media (max-width: 768px) {
           display: inline-grid;
-          padding: calc(var(--spacer) * 2) 0 calc(var(--spacer) * 4.5) 0;
+          padding: calc(var(--spacer) * 1.5) 0;
         }
         & li {
           grid-column: -6 / span 4;
@@ -147,7 +197,7 @@ header {
             @media (max-width: 600px) {
               grid-column: -3 / span 4;
             }
-            width: 60px;
+            width: 40px;
             height: 40px;
             position: relative;
             right: var(--spacer);
@@ -156,18 +206,18 @@ header {
             & span {
               display: block;
               position: absolute;
-              height: 5px;
+              height: 3px;
               width: 100%;
               background: var(--primaryColor);
               border-radius: 5px;
               opacity: 1;
               right: 0;
-              transform: rotate(0deg);
+              transform: rotate(0deg) skew(-20deg);
               transition: .25s ease-in-out;
               &:nth-child(1) { width: 90%; top: 0; }
-              &:nth-child(2) { width: 70%; top: 15px; }
-              &:nth-child(3) { width: 70%; top: 15px; }
-              &:nth-child(4) { width: 50%; top: 30px; }
+              &:nth-child(2) { width: 70%; top: 10px; }
+              &:nth-child(3) { width: 70%; top: 10px; }
+              &:nth-child(4) { width: 50%; top: 20px; }
             }
             &.open {
               & span {
