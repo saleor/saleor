@@ -547,3 +547,21 @@ if SENTRY_DSN:
 
 SERIALIZATION_MODULES = {
     'json': 'saleor.core.utils.json_serializer'}
+
+
+PAYMENT_PROVIDERS = {
+    'dummy': {
+        'module': 'saleor.payment.providers.dummy',
+        'connection_params': {}},
+
+    'braintree': {
+        'module': 'saleor.payment.providers.braintree',
+        'connection_params': {
+            'sandbox_mode': True,
+            'merchant_id': os.environ.get('BRAINTREE_MERCHANT_ID'),
+            'public_key': os.environ.get('BRAINTREE_PUBLIC_KEY'),
+            'private_key': os.environ.get('BRAINTREE_PRIVATE_KEY')
+        }
+    }
+
+}

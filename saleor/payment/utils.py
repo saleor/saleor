@@ -30,7 +30,7 @@ def create_transaction(
     return txn
 
 
-def gateway_authorize(payment_method):
+def gateway_authorize(payment_method, transaction_token) -> Transaction:
     if not payment_method.is_active:
         raise PaymentError('This payment method is no longer active')
     if not payment_method.charge_status == PaymentMethodChargeStatus.NOT_CHARGED:
@@ -38,7 +38,7 @@ def gateway_authorize(payment_method):
 
     provider, provider_params = get_provider(payment_method.variant)
     with transaction.atomic():
-        txn = provider.authorize(payment_method, **provider_params)
+        txn = provider.authorize(payment_method, transaction_token, **provider_params)
         if txn.is_success:
             payment_method.charge_status = PaymentMethodChargeStatus.NOT_CHARGED
             payment_method.save(update_fields=['charge_status'])
@@ -48,7 +48,7 @@ def gateway_authorize(payment_method):
     return txn
 
 
-def gateway_charge(payment_method, amount):
+def gateway_charge(payment_method, amount) -> Transaction:
     if not payment_method.is_active:
         raise PaymentError('This payment method is no longer active')
     if not payment_method.charge_status in {
@@ -73,7 +73,7 @@ def gateway_charge(payment_method, amount):
     return txn
 
 
-def gateway_void(payment_method):
+def gateway_void(payment_method) -> Transaction:
     if not payment_method.is_active:
         raise PaymentError('This payment method is no longer active')
     if not payment_method.charge_status == PaymentMethodChargeStatus.NOT_CHARGED:
@@ -89,7 +89,7 @@ def gateway_void(payment_method):
     return txn
 
 
-def gateway_refund(payment_method, amount):
+def gateway_refund(payment_method, amount) -> Transaction:
     if not payment_method.is_active:
         raise PaymentError('This payment method is no longer active')
     if amount > payment_method.captured_amount:
