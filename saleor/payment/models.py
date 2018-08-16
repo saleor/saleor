@@ -5,7 +5,6 @@ from django.contrib.postgres.fields import JSONField
 from . import PaymentMethodChargeStatus, TransactionType
 from ..checkout.models import Cart
 from ..order.models import Order
-from . import utils
 
 
 class PaymentMethod(models.Model):
@@ -64,15 +63,27 @@ class PaymentMethod(models.Model):
         return self._get_money(self.tax)
 
     def authorize(self):
+        # FIXME
+        from . import utils
+
         return utils.gateway_authorize(payment_method=self)
 
     def void(self):
+        # FIXME
+        from . import utils
+
         return utils.gateway_void(payment_method=self)
 
     def charge(self, amount=None):
+        # FIXME
+        from . import utils
+
         return utils.gateway_charge(payment_method=self, amount=amount)
 
     def refund(self, amount=None):
+        # FIXME
+        from . import utils
+
         return utils.gateway_refund(payment_method=self, amount=amount)
 
 
