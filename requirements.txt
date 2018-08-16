@@ -85,7 +85,7 @@ prices==1.0.0
 promise==2.1              # via graphene, graphene-django, graphql-core, graphql-relay
 psycopg2-binary==2.7.5
 purl==1.4
-py==1.5.2                 # via pytest
+py==1.5.4                 # via pytest
 pycparser==2.18           # via cffi
 pyjwt==1.6.4              # via django-graphql-jwt, django-payments, social-auth-core
 pyphen==0.9.4             # via weasyprint
