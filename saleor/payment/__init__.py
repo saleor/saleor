@@ -1,4 +1,5 @@
 import importlib
+from enum import Enum
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import pgettext_lazy
 
@@ -33,7 +34,7 @@ class PaymentMethodChargeStatus:
 
 # FIXME: move to settings
 PROVIDERS_MAP = {
-    'default': {
+    'dummy': {
         'module': 'saleor.payment.providers.dummy',
         'params': {}},
 
@@ -49,6 +50,8 @@ PROVIDERS_MAP = {
 
 }
 
+PROVIDERS_ENUM = Enum(
+    'ProvidersEnum', {key.upper(): key.lower() for key in PROVIDERS_MAP})
 
 def get_provider(provider_name):
     if provider_name not in PROVIDERS_MAP:

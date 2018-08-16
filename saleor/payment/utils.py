@@ -1,6 +1,33 @@
+from typing import Optional, Dict
+from decimal import Decimal
 from django.db import transaction
 
+from .models import PaymentMethod, Transaction
 from . import PaymentError, PaymentMethodChargeStatus, get_provider
+
+def create_payment_method(**payment_method_kwargs):
+    payment_method, dummy_created = PaymentMethod.objects.get_or_create(
+        **payment_method_kwargs)
+    return payment_method
+
+def create_transaction(
+        payment_method: PaymentMethod,
+        token: str,
+        transaction_type: str,
+        is_success: bool,
+        amount: Decimal,
+        gateway_response: Optional[Dict] = None) -> Transaction:
+    if not gateway_response:
+        gateway_response = {}
+
+    txn, dummy_created = Transaction.objects.get_or_create(
+        payment_method=payment_method,
+        token=token,
+        transaction_type=transaction_type,
+        is_success=is_success,
+        amount=amount,
+        gateway_response=gateway_response)
+    return txn
 
 
 def gateway_authorize(payment_method):
