@@ -93,7 +93,7 @@ Installation
 
    .. code-block:: console
 
-    $ pip install -r requirements.txt
+    $ pip3 install -r requirements.txt
 
 
 #. Set ``SECRET_KEY`` environment variable.
@@ -134,7 +134,7 @@ Installation
 
    .. code-block:: console
 
-    $ python manage.py migrate
+    $ python3 manage.py migrate
 
    .. warning::
 
@@ -166,4 +166,4 @@ Installation
 
    .. code-block:: console
 
-    $ python manage.py runserver
+    $ python3 manage.py runserver
