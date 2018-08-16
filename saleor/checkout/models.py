@@ -16,7 +16,6 @@ from ..account.models import Address
 from ..core.utils.taxes import ZERO_TAXED_MONEY
 from ..shipping.models import ShippingMethod
 from ..order.models import Order
-from . import PaymentMethodChargeStatus, TransactionType
 
 CENTS = Decimal('0.01')
 
