@@ -32,13 +32,28 @@ class PaymentMethodChargeStatus:
 
 
 # FIXME: move to settings
-PROVIDERS_MAP = {'default': 'saleor.payment.providers.dummy'}
+PROVIDERS_MAP = {
+    'default': {
+        'module': 'saleor.payment.providers.dummy',
+        'params': {}},
+
+    'braintree': {
+        'module': 'saleor.payment.providers.braintree',
+        'params': {
+            'sandbox_mode': True,
+            'merchant_id': '',
+            'public_key': '',
+            'private_key': ''
+        }
+    }
+
+}
 
 
 def get_provider(provider_name):
     if provider_name not in PROVIDERS_MAP:
         raise ImproperlyConfigured(
             f'Payment provider {provider_name} is not configured.')
-    provider_module = importlib.import_module(PROVIDERS_MAP[provider_name])
-
-    return provider_module
+    provider_module = importlib.import_module(PROVIDERS_MAP[provider_name]['module'])
+    provider_params = PROVIDERS_MAP[provider_name]['params']
+    return provider_module, provider_params
