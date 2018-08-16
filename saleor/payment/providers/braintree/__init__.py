@@ -48,9 +48,7 @@ def get_gateway(sandbox_mode, merchant_id, public_key, private_key):
             environment=environment,
             merchant_id=merchant_id,
             public_key=public_key,
-            private_key=private_key
-        )
-    )
+            private_key=private_key))
     return gateway
 
 def get_client_token(**client_kwargs):
@@ -75,7 +73,7 @@ def authorize(payment_method,  transaction_token, **client_kwargs):
         amount=payment_method.total,
         gateway_response=gateway_response,
         token=result.transaction.id,
-        is_success=result.is_success)[0]
+        is_success=result.is_success)
     return txn
 
 def charge(payment_method, amount=None, **client_kwargs):
@@ -100,24 +98,33 @@ def charge(payment_method, amount=None, **client_kwargs):
 
 def void(payment_method, **client_kwargs):
     gateway = get_gateway(**client_kwargs)
+    auth_transaction = payment_method.transactions.filter(
+        transaction_type=TransactionType.AUTH).first()
+    result = gateway.transaction.void(
+        transaction_id=auth_transaction.token)
+    gateway_response = extract_gateway_response(result)
 
     txn = create_transaction(
         payment_method=payment_method,
         transaction_type=TransactionType.VOID,
         amount=payment_method.total,
-        gateway_response={},
-        token='',
-        is_success=False)
+        gateway_response=gateway_response,
+        token=result.transaction.id,
+        is_success=result.is_success)
     return txn
 
 def refund(payment_method, amount=None, **client_kwargs):
     gateway = get_gateway(**client_kwargs)
-
+    auth_transaction = payment_method.transactions.filter(
+        transaction_type=TransactionType.CHARGE).first()
+    result = gateway.transaction.refund(
+        transaction_id=auth_transaction.token, amount=amount)
+    gateway_response = extract_gateway_response(result)
     txn = create_transaction(
         payment_method=payment_method,
         transaction_type=TransactionType.REFUND,
         amount=amount,
-        token="",
-        is_success=False,
-        gateway_response={})
+        token=result.transaction.id,
+        is_success=result.is_success,
+        gateway_response=gateway_response)
     return txn
