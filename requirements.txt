@@ -114,7 +114,7 @@ text-unidecode==1.2
 tinycss2==0.6.1           # via cairosvg, cssselect2, weasyprint
 typing==3.6.2             # via google-measurement-protocol, prices, promise
 urllib3==1.22             # via elasticsearch, requests
-uwsgi==2.0.17 ; platform_system != "Windows"
+uwsgi==2.0.17.1 ; platform_system != "Windows"
 vcrpy==1.13.0
 vine==1.1.4               # via amqp
 weasyprint==0.42.3
