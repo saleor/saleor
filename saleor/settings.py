@@ -557,7 +557,7 @@ PAYMENT_PROVIDERS = {
     'braintree': {
         'module': 'saleor.payment.providers.braintree',
         'connection_params': {
-            'sandbox_mode': True,
+            'sandbox_mode': ast.literal_eval(os.environ.get('BRAINTREE_SANDBOX_MODE', 'True')),
             'merchant_id': os.environ.get('BRAINTREE_MERCHANT_ID'),
             'public_key': os.environ.get('BRAINTREE_PUBLIC_KEY'),
             'private_key': os.environ.get('BRAINTREE_PRIVATE_KEY')
