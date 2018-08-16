@@ -117,7 +117,7 @@ urllib3==1.22             # via elasticsearch, requests
 uwsgi==2.0.17 ; platform_system != "Windows"
 vcrpy==1.13.0
 vine==1.1.4               # via amqp
-weasyprint==0.42.2
+weasyprint==0.42.3
 webencodings==0.5.1       # via html5lib, tinycss2
 wrapt==1.10.11            # via vcrpy
 xmltodict==0.11.0         # via django-payments
