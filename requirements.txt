@@ -93,9 +93,9 @@ pytest-django==3.3.3
 pytest-mock==1.10.0
 pytest-vcr==0.3.0
 pytest==3.7.1
-python-dateutil==2.6.1    # via botocore, elasticsearch-dsl, faker, freezegun
+python-dateutil==2.7.3    # via botocore, elasticsearch-dsl, faker, freezegun
 python3-openid==3.1.0     # via social-auth-core
-pytz==2018.3              # via babel, celery, django
+pytz==2018.5              # via babel, celery, django
 pyyaml==3.13              # via vcrpy
 raven==6.9.0
 redis==2.10.6             # via celery, django-redis
