@@ -14104,7 +14104,7 @@ exports[`Storyshots Views / Categories / Category details when loading 1`] = `
                   </div>
                 </td>
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
                 >
                   <span
                     class="Skeleton-skeleton-id"
