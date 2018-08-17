@@ -40,7 +40,7 @@ const VariantImageAssignProvider: React.StatelessComponent<
             __typename: "ProductImageCountableEdge",
             node: {
               __typename: "ProductImage",
-              id: variantImageAssign.image.id
+              ...variantImageAssign.image
             }
           } as any
         ];
@@ -53,7 +53,7 @@ const VariantImageAssignProvider: React.StatelessComponent<
               __typename: "ProductImageCountableEdge",
               node: {
                 __typename: "ProductImage",
-                id: variantImageAssign.image.id
+                ...variantImageAssign.image
               }
             } as any
           ];

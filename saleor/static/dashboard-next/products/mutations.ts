@@ -321,6 +321,7 @@ export const variantImageAssignMutation = gql`
       }
       image {
         id
+        url
       }
     }
   }
