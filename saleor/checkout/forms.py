@@ -23,10 +23,8 @@ class QuantityField(forms.IntegerField):
 
     def __init__(self, **kwargs):
         super().__init__(
-            min_value=0,
-            max_value=settings.MAX_CART_LINE_QUANTITY,
-            initial=1,
-            **kwargs)
+            min_value=0, max_value=settings.MAX_CART_LINE_QUANTITY,
+            initial=1, **kwargs)
 
 
 class AddToCartForm(forms.Form):
@@ -40,12 +38,10 @@ class AddToCartForm(forms.Form):
     quantity = QuantityField(
         label=pgettext_lazy('Add to cart form field label', 'Quantity'))
     error_messages = {
-        'not-available':
-        pgettext_lazy(
+        'not-available': pgettext_lazy(
             'Add to cart form error',
             'Sorry. This product is currently not available.'),
-        'empty-stock':
-        pgettext_lazy(
+        'empty-stock': pgettext_lazy(
             'Add to cart form error',
             'Sorry. This product is currently out of stock.'),
         'variant-does-not-exists': pgettext_lazy(
@@ -121,8 +117,7 @@ class ReplaceCartLineForm(AddToCartForm):
         super().__init__(*args, **kwargs)
         self.cart_line = self.cart.get_line(self.variant)
         self.fields['quantity'].widget.attrs = {
-            'min': 1,
-            'max': settings.MAX_CART_LINE_QUANTITY}
+            'min': 1, 'max': settings.MAX_CART_LINE_QUANTITY}
 
     def clean_quantity(self):
         """Clean the quantity field.
@@ -135,7 +130,8 @@ class ReplaceCartLineForm(AddToCartForm):
             self.variant.check_quantity(quantity)
         except InsufficientStock as e:
             msg = self.error_messages['insufficient-stock']
-            raise forms.ValidationError(msg % e.item.quantity_available)
+            raise forms.ValidationError(
+                msg % e.item.quantity_available)
         return quantity
 
     def clean(self):
@@ -212,16 +208,13 @@ class AddressChoiceForm(forms.Form):
     """Choose one of user's addresses or to create new one."""
 
     NEW_ADDRESS = 'new_address'
-    CHOICES = [(
-        NEW_ADDRESS,
-        pgettext_lazy('Shipping addresses form choice',
-                      'Enter a new address'))]
+    CHOICES = [
+        (NEW_ADDRESS, pgettext_lazy(
+            'Shipping addresses form choice', 'Enter a new address'))]
 
     address = forms.ChoiceField(
         label=pgettext_lazy('Shipping addresses form field label', 'Address'),
-        choices=CHOICES,
-        initial=NEW_ADDRESS,
-        widget=forms.RadioSelect)
+        choices=CHOICES, initial=NEW_ADDRESS, widget=forms.RadioSelect)
 
     def __init__(self, *args, **kwargs):
         addresses = kwargs.pop('addresses')
@@ -235,19 +228,15 @@ class BillingAddressChoiceForm(AddressChoiceForm):
 
     NEW_ADDRESS = 'new_address'
     SHIPPING_ADDRESS = 'shipping_address'
-    CHOICES = [(
-        NEW_ADDRESS,
-        pgettext_lazy('Billing addresses form choice', 'Enter a new address')),
-               (
-                   SHIPPING_ADDRESS,
-                   pgettext_lazy(
-                       'Billing addresses form choice', 'Same as shipping'))]
+    CHOICES = [
+        (NEW_ADDRESS, pgettext_lazy(
+            'Billing addresses form choice', 'Enter a new address')),
+        (SHIPPING_ADDRESS, pgettext_lazy(
+            'Billing addresses form choice', 'Same as shipping'))]
 
     address = forms.ChoiceField(
         label=pgettext_lazy('Billing addresses form field label', 'Address'),
-        choices=CHOICES,
-        initial=SHIPPING_ADDRESS,
-        widget=forms.RadioSelect)
+        choices=CHOICES, initial=SHIPPING_ADDRESS, widget=forms.RadioSelect)
 
 
 class ShippingMethodChoiceField(forms.ModelChoiceField):
@@ -305,12 +294,8 @@ class CartNoteForm(forms.ModelForm):
     """Save note in cart."""
 
     note = forms.CharField(
-        max_length=250,
-        required=False,
-        strip=True,
-        label=False,
-        widget=forms.Textarea({
-            'rows': 3}))
+        max_length=250, required=False, strip=True, label=False,
+        widget=forms.Textarea({'rows': 3}))
 
     class Meta:
         model = Cart
@@ -320,8 +305,7 @@ class CartNoteForm(forms.ModelForm):
 class VoucherField(forms.ModelChoiceField):
 
     default_error_messages = {
-        'invalid_choice':
-        pgettext_lazy(
+        'invalid_choice': pgettext_lazy(
             'Voucher form error', 'Discount code incorrect or expired')}
 
 

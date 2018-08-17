@@ -305,5 +305,8 @@ class Mutations(ProductMutations):
     shipping_price_delete = ShippingPriceDelete.Field()
     shipping_price_update = ShippingPriceUpdate.Field()
 
+    variant_image_assign = VariantImageAssign.Field()
+    variant_image_unassign = VariantImageUnassign.Field()
+
 
 schema = graphene.Schema(Query, Mutations)

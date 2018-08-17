@@ -51,8 +51,7 @@ def order_list(request):
         order_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
     ctx = {
-        'orders': orders,
-        'filter_set': order_filter,
+        'orders': orders, 'filter_set': order_filter,
         'is_empty': not order_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/order/list.html', ctx)
 
@@ -65,7 +64,8 @@ def order_create(request):
     order = Order.objects.create(
         status=OrderStatus.DRAFT, display_gross_prices=display_gross_prices)
     msg = pgettext_lazy(
-        'Dashboard message related to an order', 'Draft order created')
+        'Dashboard message related to an order',
+        'Draft order created')
     messages.success(request, msg)
     return redirect('dashboard:order-details', order_pk=order.pk)
 
@@ -124,24 +124,22 @@ def order_details(request, order_pk):
         'fulfillments__lines__order_line')
     order = get_object_or_404(qs, pk=order_pk)
     all_payments = order.payments.exclude(status=PaymentStatus.INPUT)
-    all_payments = order.payment_methods.all()
-    payment = order.payment_methods.first(
-    )  #FIXME: Select successful payment method
+    payment = order.get_last_payment()
     preauthorized = ZERO_TAXED_MONEY
     captured = ZERO_MONEY
     balance = captured - order.total.gross
     if payment:
         can_capture = (
-            payment.is_active
-            and payment.charge_status == PaymentMethodChargeStatus.NOT_CHARGED
-            and order.status not in {OrderStatus.DRAFT, OrderStatus.CANCELED})
+            payment.is_active and
+            payment.charge_status == PaymentMethodChargeStatus.NOT_CHARGED and
+            order.status not in {OrderStatus.DRAFT, OrderStatus.CANCELED})
         can_release = (
-            payment.is_active
-            and payment.charge_status == PaymentMethodChargeStatus.NOT_CHARGED)
+            payment.is_active and
+            payment.charge_status == PaymentMethodChargeStatus.NOT_CHARGED)
         can_refund = (
-            payment.is_active
-            and payment.charge_status == PaymentMethodChargeStatus.CHARGED
-            and payment.variant != CustomPaymentChoices.MANUAL)
+            payment.is_active and
+            payment.charge_status == PaymentMethodChargeStatus.CHARGED and
+            payment.variant != CustomPaymentChoices.MANUAL)
         preauthorized = payment.get_total()
         if payment.charge_status == PaymentMethodChargeStatus.CHARGED:
             captured = payment.get_captured_money()
@@ -155,10 +153,8 @@ def order_details(request, order_pk):
         'events': order.events.all(),
         'captured': captured, 'balance': balance,
         'preauthorized': preauthorized,
-        'can_capture': can_capture,
-        'can_release': can_release,
-        'can_refund': can_refund,
-        'can_mark_as_paid': can_mark_as_paid,
+        'can_capture': can_capture, 'can_release': can_release,
+        'can_refund': can_refund, 'can_mark_as_paid': can_mark_as_paid,
         'order_fulfillments': order.fulfillments.all()}
     return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
 
@@ -175,7 +171,8 @@ def order_add_note(request, order_pk):
             user=request.user, type=OrderEvents.NOTE_ADDED.value,
             parameters={'message': message})
         msg = pgettext_lazy(
-            'Dashboard message related to an order', 'Added note')
+            'Dashboard message related to an order',
+            'Added note')
         messages.success(request, msg)
     elif form.errors:
         status = 400
@@ -192,8 +189,8 @@ def capture_payment(request, order_pk, payment_pk):
     order = get_object_or_404(orders, pk=order_pk)
     payment = get_object_or_404(order.payment_methods, pk=payment_pk)
     amount = order.total.quantize('0.01').gross
-    form = CapturePaymentForm(
-        request.POST or None, payment=payment, initial={'amount': amount})
+    form = CapturePaymentForm(request.POST or None, payment=payment,
+                              initial={'amount': amount})
     if form.is_valid() and form.capture():
         amount = form.cleaned_data['amount']
         msg = pgettext_lazy(
@@ -206,14 +203,10 @@ def capture_payment(request, order_pk, payment_pk):
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     status = 400 if form.errors else 200
-    ctx = {
-        'captured': payment.captured_amount,
-        'currency': payment.currency,
-        'form': form,
-        'order': order,
-        'payment': payment}
-    return TemplateResponse(
-        request, 'dashboard/order/modal/capture.html', ctx, status=status)
+    ctx = {'captured': payment.captured_amount, 'currency': payment.currency,
+           'form': form, 'order': order, 'payment': payment}
+    return TemplateResponse(request, 'dashboard/order/modal/capture.html', ctx,
+                            status=status)
 
 
 @staff_member_required
@@ -223,8 +216,8 @@ def refund_payment(request, order_pk, payment_pk):
     order = get_object_or_404(orders, pk=order_pk)
     payment = get_object_or_404(order.payment_methods, pk=payment_pk)
     amount = payment.captured_amount
-    form = RefundPaymentForm(
-        request.POST or None, payment=payment, initial={'amount': amount})
+    form = RefundPaymentForm(request.POST or None, payment=payment,
+                             initial={'amount': amount})
     if form.is_valid() and form.refund():
         amount = form.cleaned_data['amount']
         msg = pgettext_lazy(
@@ -237,14 +230,10 @@ def refund_payment(request, order_pk, payment_pk):
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     status = 400 if form.errors else 200
-    ctx = {
-        'captured': payment.captured_amount,
-        'currency': payment.currency,
-        'form': form,
-        'order': order,
-        'payment': payment}
-    return TemplateResponse(
-        request, 'dashboard/order/modal/refund.html', ctx, status=status)
+    ctx = {'captured': payment.captured_amount, 'currency': payment.currency,
+           'form': form, 'order': order, 'payment': payment}
+    return TemplateResponse(request, 'dashboard/order/modal/refund.html', ctx,
+                            status=status)
 
 
 @staff_member_required
@@ -262,14 +251,10 @@ def release_payment(request, order_pk, payment_pk):
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     status = 400 if form.errors else 200
-    ctx = {
-        'captured': payment.captured_amount,
-        'currency': payment.currency,
-        'form': form,
-        'order': order,
-        'payment': payment}
-    return TemplateResponse(
-        request, 'dashboard/order/modal/release.html', ctx, status=status)
+    ctx = {'captured': payment.captured_amount, 'currency': payment.currency,
+           'form': form, 'order': order, 'payment': payment}
+    return TemplateResponse(request, 'dashboard/order/modal/release.html', ctx,
+                            status=status)
 
 
 @staff_member_required
@@ -286,8 +271,7 @@ def orderline_change_quantity(request, order_pk, line_pk):
             'Dashboard message related to an order line',
             'Changed quantity for variant %(variant)s from'
             ' %(old_quantity)s to %(new_quantity)s') % {
-                'variant': line.variant,
-                'old_quantity': old_quantity,
+                'variant': line.variant, 'old_quantity': old_quantity,
                 'new_quantity': line.quantity}
         with transaction.atomic():
             form.save()
@@ -319,7 +303,8 @@ def orderline_cancel(request, order_pk, line_pk):
         status = 400
     ctx = {'order': order, 'item': line, 'form': form}
     return TemplateResponse(
-        request, 'dashboard/order/modal/cancel_line.html', ctx, status=status)
+        request, 'dashboard/order/modal/cancel_line.html',
+        ctx, status=status)
 
 
 @staff_member_required
@@ -329,9 +314,7 @@ def add_variant_to_order(request, order_pk):
     order = get_object_or_404(Order.objects.drafts(), pk=order_pk)
     taxes = get_taxes_for_address(order.shipping_address)
     form = AddVariantToOrderForm(
-        request.POST or None,
-        order=order,
-        discounts=request.discounts,
+        request.POST or None, order=order, discounts=request.discounts,
         taxes=taxes)
     status = 200
     if form.is_valid():
@@ -367,12 +350,14 @@ def order_address(request, order_pk, address_type):
     if address_type == 'shipping':
         address = order.shipping_address
         success_msg = pgettext_lazy(
-            'Dashboard message', 'Updated shipping address')
+            'Dashboard message',
+            'Updated shipping address')
         update_prices = True
     else:
         address = order.billing_address
         success_msg = pgettext_lazy(
-            'Dashboard message', 'Updated billing address')
+            'Dashboard message',
+            'Updated billing address')
     form = AddressForm(request.POST or None, instance=address)
     if form.is_valid():
         updated_address = form.save()
@@ -407,19 +392,19 @@ def order_customer_edit(request, order_pk):
                 '%s email assigned to an order') % user_email
         elif user:
             msg = pgettext_lazy(
-                'Dashboard message', '%s user assigned to an order') % user
+                'Dashboard message',
+                '%s user assigned to an order') % user
         else:
             msg = pgettext_lazy(
-                'Dashboard message', 'Guest user assigned to an order')
+                'Dashboard message',
+                'Guest user assigned to an order')
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order_pk)
     elif form.errors:
         status = 400
     ctx = {'order': order, 'form': form}
     return TemplateResponse(
-        request,
-        'dashboard/order/modal/edit_customer.html',
-        ctx,
+        request, 'dashboard/order/modal/edit_customer.html', ctx,
         status=status)
 
 
@@ -432,7 +417,8 @@ def order_customer_remove(request, order_pk):
         form.save()
         update_order_prices(order, request.discounts)
         msg = pgettext_lazy(
-            'Dashboard message', 'Customer removed from an order')
+            'Dashboard message',
+            'Customer removed from an order')
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order_pk)
     return redirect('dashboard:order-customer-edit', order_pk=order.pk)
@@ -454,9 +440,7 @@ def order_shipping_edit(request, order_pk):
         status = 400
     ctx = {'order': order, 'form': form}
     return TemplateResponse(
-        request,
-        'dashboard/order/modal/edit_shipping.html',
-        ctx,
+        request, 'dashboard/order/modal/edit_shipping.html', ctx,
         status=status)
 
 
@@ -488,9 +472,7 @@ def order_discount_edit(request, order_pk):
         status = 400
     ctx = {'order': order, 'form': form}
     return TemplateResponse(
-        request,
-        'dashboard/order/modal/edit_discount.html',
-        ctx,
+        request, 'dashboard/order/modal/edit_discount.html', ctx,
         status=status)
 
 
@@ -509,7 +491,8 @@ def order_voucher_edit(request, order_pk):
         status = 400
     ctx = {'order': order, 'form': form}
     return TemplateResponse(
-        request, 'dashboard/order/modal/edit_voucher.html', ctx, status=status)
+        request, 'dashboard/order/modal/edit_voucher.html', ctx,
+        status=status)
 
 
 @staff_member_required
@@ -536,7 +519,8 @@ def cancel_order(request, order_pk):
         status = 400
     ctx = {'form': form, 'order': order}
     return TemplateResponse(
-        request, 'dashboard/order/modal/cancel_order.html', ctx, status=status)
+        request, 'dashboard/order/modal/cancel_order.html', ctx,
+        status=status)
 
 
 @staff_member_required
@@ -588,7 +572,8 @@ def mark_order_as_paid(request, order_pk):
         status = 400
     ctx = {'form': form, 'order': order}
     return TemplateResponse(
-        request, 'dashboard/order/modal/mark_as_paid.html', ctx, status=status)
+        request, 'dashboard/order/modal/mark_as_paid.html', ctx,
+        status=status)
 
 
 @staff_member_required
@@ -603,7 +588,7 @@ def fulfillment_packing_slips(request, order_pk, fulfillment_pk):
     absolute_url = get_statics_absolute_url(request)
     pdf_file, order = create_packing_slip_pdf(order, fulfillment, absolute_url)
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    name = "packing-slip-%s.pdf" % (order.id, )
+    name = "packing-slip-%s.pdf" % (order.id,)
     response['Content-Disposition'] = 'filename=%s' % name
     return response
 
@@ -619,16 +604,13 @@ def fulfill_order_lines(request, order_pk):
     form = FulfillmentForm(
         request.POST or None, order=order, instance=Fulfillment())
     FulfillmentLineFormSet = modelformset_factory(
-        FulfillmentLine,
-        form=FulfillmentLineForm,
-        extra=len(unfulfilled_lines),
-        formset=BaseFulfillmentLineFormSet)
-    initial = [{
-        'order_line': line,
-        'quantity': line.quantity_unfulfilled} for line in unfulfilled_lines]
+        FulfillmentLine, form=FulfillmentLineForm,
+        extra=len(unfulfilled_lines), formset=BaseFulfillmentLineFormSet)
+    initial = [
+        {'order_line': line, 'quantity': line.quantity_unfulfilled}
+        for line in unfulfilled_lines]
     formset = FulfillmentLineFormSet(
-        request.POST or None,
-        queryset=FulfillmentLine.objects.none(),
+        request.POST or None, queryset=FulfillmentLine.objects.none(),
         initial=initial)
     all_forms_valid = all([line_form.is_valid() for line_form in formset])
     if all_forms_valid and form.is_valid():
@@ -672,9 +654,7 @@ def fulfill_order_lines(request, order_pk):
     elif form.errors:
         status = 400
     ctx = {
-        'form': form,
-        'formset': formset,
-        'order': order,
+        'form': form, 'formset': formset, 'order': order,
         'unfulfilled_lines': unfulfilled_lines}
     template = 'dashboard/order/fulfillment.html'
     return TemplateResponse(request, template, ctx, status=status)
@@ -709,9 +689,7 @@ def cancel_fulfillment(request, order_pk, fulfillment_pk):
         status = 400
     ctx = {'form': form, 'order': order, 'fulfillment': fulfillment}
     return TemplateResponse(
-        request,
-        'dashboard/order/modal/cancel_fulfillment.html',
-        ctx,
+        request, 'dashboard/order/modal/cancel_fulfillment.html', ctx,
         status=status)
 
 
@@ -746,9 +724,7 @@ def change_fulfillment_tracking(request, order_pk, fulfillment_pk):
         status = 400
     ctx = {'form': form, 'order': order, 'fulfillment': fulfillment}
     return TemplateResponse(
-        request,
-        'dashboard/order/modal/fulfillment_tracking.html',
-        ctx,
+        request, 'dashboard/order/modal/fulfillment_tracking.html', ctx,
         status=status)
 
 
@@ -769,7 +745,7 @@ def ajax_order_shipping_methods_list(request, order_pk):
             Q(name__icontains=search_query) |
             Q(price__icontains=search_query))
 
-    shipping_methods = [{
-        'id': method.pk,
-        'text': method.get_ajax_label()} for method in queryset]
+    shipping_methods = [
+        {'id': method.pk, 'text': method.get_ajax_label()}
+        for method in queryset]
     return JsonResponse({'results': shipping_methods})
