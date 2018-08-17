@@ -197,12 +197,11 @@ interface IMenuItem {
 }
 interface MenuListProps {
   menuItems: IMenuItem[];
-  nested?: boolean;
   onMenuItemClick: (url: string) => void;
 }
 const MenuList = decorate<MenuListProps>(
-  ({ classes, menuItems, nested, onMenuItemClick }) => (
-    <div className={nested ? classes.menuListNested : classes.menuList}>
+  ({ classes, menuItems, onMenuItemClick }) => (
+    <div>
       {menuItems.map(menuItem => {
         if (!menuItem.url) {
           return (
@@ -219,11 +218,12 @@ const MenuList = decorate<MenuListProps>(
                     </Typography>
                   </div>
                   {openedMenu && (
-                    <MenuList
-                      menuItems={menuItem.children}
-                      nested={true}
-                      onMenuItemClick={onMenuItemClick}
-                    />
+                    <div className={classes.menuListNested}>
+                      <MenuList
+                        menuItems={menuItem.children}
+                        onMenuItemClick={onMenuItemClick}
+                      />
+                    </div>
                   )}
                 </>
               )}
@@ -384,10 +384,12 @@ export const AppRoot = decorate(
                     </Toolbar>
                   </AppBar>
                   <ResponsiveDrawer onClose={this.closeDrawer} open={open}>
-                    <MenuList
-                      menuItems={menuStructure}
-                      onMenuItemClick={navigate}
-                    />
+                    <div className={classes.menuList}>
+                      <MenuList
+                        menuItems={menuStructure}
+                        onMenuItemClick={navigate}
+                      />
+                    </div>
                   </ResponsiveDrawer>
                   <main className={classes.content}>{children}</main>
                 </div>
