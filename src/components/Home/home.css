@@ -562,16 +562,6 @@
       }
     }
     &.saleor-in-action {
-      min-height: 100vh;
-      @media (max-width: 768px) {
-        min-height: 90vh;
-      }
-      @media (max-width: 768px) {
-        min-height: 140vh;
-      }
-      @media (max-width: 576px) {
-        min-height: 125vh;
-      }
       position: relative;
       background: rgb(16,10,53);
       background: linear-gradient(135deg, rgba(16,10,53,0) 8%, rgba(16,10,53,1) 8%, rgba(16,10,53,1) 92%, rgba(16,10,53,0) 92%, rgba(16,10,53,0) 100%);
