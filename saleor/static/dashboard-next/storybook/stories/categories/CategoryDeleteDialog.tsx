@@ -15,6 +15,7 @@ storiesOf("Categories / CategoryDeleteDialog", module)
       open={true}
       onClose={() => {}}
       onConfirm={() => {}}
+      productCount={0}
     />
   ))
   .add("with products", () => (

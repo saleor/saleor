@@ -22,37 +22,34 @@ interface ProductAttributesFormProps {
   onChange(event: any);
 }
 
-const decorate = withStyles(theme => ({}));
-export const ProductAttributesForm = decorate<ProductAttributesFormProps>(
-  ({ classes, attributes, data, disabled, onChange }) => (
-    <Card>
-      <PageHeader title={i18n.t("Attributes")} />
-      <CardContent>
-        {attributes ? (
-          attributes.map((item, index) => {
-            return (
-              <React.Fragment key={index}>
-                <SingleSelectField
-                  disabled={disabled}
-                  name={item.attribute.slug}
-                  label={item.attribute.name}
-                  onChange={onChange}
-                  value={data[item.attribute.slug]}
-                  choices={item.attribute.values.map(choice => ({
-                    label: choice.name,
-                    value: choice.slug
-                  }))}
-                  key={index}
-                />
-                <FormSpacer />
-              </React.Fragment>
-            )
-          })
-        ) : (
-          <Skeleton />
-        )}
-      </CardContent>
-    </Card>
-  )
+export const ProductAttributesForm: React.StatelessComponent<
+  ProductAttributesFormProps
+> = ({ attributes, data, disabled, onChange }) => (
+  <Card>
+    <PageHeader title={i18n.t("Attributes")} />
+    <CardContent>
+      {attributes ? (
+        attributes.map((item, index) => (
+          <React.Fragment key={index}>
+            <SingleSelectField
+              disabled={disabled}
+              name={item.attribute.slug}
+              label={item.attribute.name}
+              onChange={onChange}
+              value={data[item.attribute.slug]}
+              choices={item.attribute.values.map(choice => ({
+                label: choice.name,
+                value: choice.slug
+              }))}
+              key={index}
+            />
+            <FormSpacer />
+          </React.Fragment>
+        ))
+      ) : (
+        <Skeleton />
+      )}
+    </CardContent>
+  </Card>
 );
 export default ProductAttributesForm;

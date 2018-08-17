@@ -10,35 +10,34 @@ interface AddressFormatterProps {
 
 const AddressFormatter: React.StatelessComponent<AddressFormatterProps> = ({
   address
-}) => (
-  <>
-    {!address ? (
-      <Skeleton />
-    ) : (
-      <address>
-        <Typography component="span">
-          {address.firstName} {address.lastName}
-        </Typography>
-        {address.companyName && (
-          <Typography component="span">{address.companyName}</Typography>
-        )}
-        <Typography component="span">
-          {address.streetAddress_1}
-          <br />
-          {address.streetAddress_2}
-        </Typography>
-        <Typography component="span">
-          {" "}
-          {address.postalCode} {address.city}
-          {address.cityArea ? ", " + address.cityArea : ""}
-        </Typography>
-        <Typography component="span">
-          {address.countryArea
-            ? address.countryArea + ", " + address.country
-            : address.country}
-        </Typography>
-      </address>
-    )}
-  </>
-);
+}) => {
+  if (!address) {
+    return <Skeleton />;
+  }
+  return (
+    <address>
+      <Typography component="span">
+        {address.firstName} {address.lastName}
+      </Typography>
+      {address.companyName && (
+        <Typography component="span">{address.companyName}</Typography>
+      )}
+      <Typography component="span">
+        {address.streetAddress_1}
+        <br />
+        {address.streetAddress_2}
+      </Typography>
+      <Typography component="span">
+        {" "}
+        {address.postalCode} {address.city}
+        {address.cityArea ? ", " + address.cityArea : ""}
+      </Typography>
+      <Typography component="span">
+        {address.countryArea
+          ? address.countryArea + ", " + address.country
+          : address.country}
+      </Typography>
+    </address>
+  );
+};
 export default AddressFormatter;

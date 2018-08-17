@@ -12,6 +12,9 @@ interface FileUploadProps {
 }
 
 const decorate = withStyles(theme => ({
+  fileUploadField: {
+    display: "none"
+  },
   root: {
     display: "flex" as "flex"
   },
@@ -27,7 +30,7 @@ const FileUpload = decorate<FileUploadProps>(
         name={name}
         onChange={onChange}
         ref={ref => (this.upload = ref)}
-        style={{ display: "none" }}
+        className={classes.fileUploadField}
         type="file"
         value={value}
       />

@@ -29,7 +29,6 @@ interface AttributeValueListProps {
 const decorate = withStyles(theme => ({
   deleteIcon: {
     paddingLeft: 0,
-    paddingRight: "0 !important",
     width: theme.spacing.unit * 7
   },
   edit: {

@@ -47,7 +47,10 @@ const Component = ({ match }) => (
 );
 
 export const categoryAddUrl = (parentId?: string) => {
-  return `/categories/${parentId ? `${parentId}/add` : "add"}/`;
+  if (parentId) {
+    return `/categories/${parentId}/add/`;
+  }
+  return `/categories/add/`;
 };
 export const categoryEditUrl = (id: string) => {
   return `/categories/${id}/edit/`;

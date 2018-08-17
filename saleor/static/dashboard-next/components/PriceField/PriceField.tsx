@@ -7,15 +7,15 @@ import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 interface PriceRangeFieldProps {
-  currencySymbol?: string;
+  currencySymbol: string;
   disabled?: boolean;
   error?: boolean;
   hint?: string;
   label?: string;
-  name?: string;
-  value?: {
-    max?: string | number;
-    min?: string | number;
+  name: string;
+  value: {
+    max: string | number;
+    min: string | number;
   };
   onChange(event: any);
 }

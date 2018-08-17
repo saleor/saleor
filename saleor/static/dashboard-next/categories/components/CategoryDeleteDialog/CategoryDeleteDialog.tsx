@@ -25,7 +25,7 @@ const decorate = withStyles(
 export interface CategoryDeleteDialogProps {
   open: boolean;
   name: string;
-  productCount?: number;
+  productCount: number;
   onClose?();
   onConfirm?();
 }
@@ -46,7 +46,7 @@ const CategoryDeleteDialog = decorate<CategoryDeleteDialogProps>(props => {
             )
           }}
         />
-        {productCount && productCount > 0 ? (
+        {productCount > 0 && (
           <DialogContentText>
             {i18n.t(
               "There are {{count}} product(s) in this category that will also be removed.",
@@ -55,8 +55,6 @@ const CategoryDeleteDialog = decorate<CategoryDeleteDialogProps>(props => {
               }
             )}
           </DialogContentText>
-        ) : (
-          undefined
         )}
       </DialogContent>
       <DialogActions>

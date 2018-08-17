@@ -177,39 +177,35 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
                   </Container>
                 )}
               </Form>
-              {collection && (
-                <>
-                  <ActionDialog
-                    onClose={toggleRemoveDialog}
-                    onConfirm={onDelete}
-                    open={openedRemoveDialog}
-                    title={i18n.t("Remove collection")}
-                    variant="delete"
-                  >
-                    <DialogContentText
-                      dangerouslySetInnerHTML={{
-                        __html: i18n.t(
-                          "Are you sure you want to remove <strong>{{ name }}</strong>?",
-                          { name: collection.name }
-                        )
-                      }}
-                    />
-                  </ActionDialog>
-                  <ActionDialog
-                    onClose={toggleImageRemoveDialog}
-                    onConfirm={onImageRemove}
-                    open={openedImageRemoveDialog}
-                    title={i18n.t("Remove image")}
-                    variant="delete"
-                  >
-                    <DialogContentText>
-                      {i18n.t(
-                        "Are you sure you want to remove collection's image?"
-                      )}
-                    </DialogContentText>
-                  </ActionDialog>
-                </>
-              )}
+              <ActionDialog
+                onClose={toggleRemoveDialog}
+                onConfirm={onDelete}
+                open={openedRemoveDialog}
+                title={i18n.t("Remove collection")}
+                variant="delete"
+              >
+                <DialogContentText
+                  dangerouslySetInnerHTML={{
+                    __html: i18n.t(
+                      "Are you sure you want to remove <strong>{{ name }}</strong>?",
+                      { name: collection ? collection.name : undefined }
+                    )
+                  }}
+                />
+              </ActionDialog>
+              <ActionDialog
+                onClose={toggleImageRemoveDialog}
+                onConfirm={onImageRemove}
+                open={openedImageRemoveDialog}
+                title={i18n.t("Remove image")}
+                variant="delete"
+              >
+                <DialogContentText>
+                  {i18n.t(
+                    "Are you sure you want to remove collection's image?"
+                  )}
+                </DialogContentText>
+              </ActionDialog>
             </>
           )}
         </Toggle>
