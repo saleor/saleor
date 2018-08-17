@@ -585,6 +585,9 @@ class VariantImageAssign(BaseMutation):
     @classmethod
     @permission_required('product.manage_products')
     def mutate(cls, root, info, image_id, variant_id):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         image = cls.get_node_or_error(
             info, image_id, errors, 'imageId', ProductImage)
@@ -619,6 +622,9 @@ class VariantImageUnassign(BaseMutation):
     @classmethod
     @permission_required('product.manage_products')
     def mutate(cls, root, info, image_id, variant_id):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         image = cls.get_node_or_error(
             info, image_id, errors, 'imageId', ProductImage)

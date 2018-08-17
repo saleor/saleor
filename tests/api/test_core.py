@@ -13,7 +13,7 @@ from saleor.graphql.core.utils import clean_seo_fields, snake_to_camel_case
 from saleor.graphql.product import types as product_types
 from saleor.graphql.utils import get_database_id
 
-from .utils import assert_no_permission
+from .utils import assert_no_permission, assert_read_only_mode
 
 
 def test_query_authorization_keys(authorization_key, admin_api_client, user_api_client):
@@ -232,11 +232,7 @@ def test_user_error_field_name_for_related_object(admin_api_client):
     }
     """
     response = admin_api_client.post(reverse('api'), {'query': query})
-    content = get_graphql_content(response)
-    data = content['data']['categoryCreate']['category']
-    assert data is None
-    error = content['data']['categoryCreate']['errors'][0]
-    assert error['field'] == 'parent'
+    assert_read_only_mode(response)
 
 
 def test_get_database_id(product):
@@ -276,6 +272,4 @@ def test_mutation_returns_error_field_in_camel_case(admin_api_client, variant):
         'cost': '12.1234'})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    error = content['data']['productVariantUpdate']['errors'][0]
-    assert error['field'] == 'costPrice'
+    assert_read_only_mode(response)

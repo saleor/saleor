@@ -311,7 +311,7 @@ def test_adding_to_cart_with_closed_cart_token(
     assert customer_user.carts.count() == 1
 
 
-def test_get_variant_picker_data_proper_variant_count(product_in_stock):
+def test_get_variant_picker_data_proper_variant_count(product):
     data = get_variant_picker_data(
         product, discounts=None, taxes=None, local_currency=None)
 
@@ -331,20 +331,6 @@ def test_render_product_page_with_no_variant(
         kwargs={'product_id': product.pk, 'slug': product.get_slug()})
     response = admin_client.get(url)
     assert response.status_code == 200
-
-
-def test_include_products_from_subcategories_in_main_view(
-        default_category, product, authorized_client):
-    subcategory = models.Category.objects.create(
-        name='sub', slug='test', parent=default_category)
-    product.category = subcategory
-    product.save()
-    # URL to parent category view
-    url = reverse(
-        'product:category', kwargs={
-            'slug': default_category.slug, 'category_id': default_category.pk})
-    response = authorized_client.get(url)
-    assert product in response.context_data['products'][0]
 
 
 @patch('saleor.product.thumbnails.create_thumbnails')

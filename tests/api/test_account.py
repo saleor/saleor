@@ -273,13 +273,6 @@ def test_customer_create(
         reverse('api'), {'query': query, 'variables': variables})
     assert_read_only_mode(response)
 
-    assert send_password_reset_mock.call_count == 1
-    args, kwargs = send_password_reset_mock.call_args
-    call_context = args[0]
-    call_email = args[1]
-    assert call_email == email
-    assert 'token' in call_context
-
 
 def test_customer_update(
         admin_api_client, customer_user, user_api_client, address):
