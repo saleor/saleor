@@ -14,6 +14,7 @@ DROP TABLE orders;
 # ...
 # ...
 
+
 ### Reactivate
 SET FOREIGN_KEY_CHECKS = 1;
 
