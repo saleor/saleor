@@ -1262,7 +1262,7 @@ exports[`Storyshots Generics / DateFormatter default 1`] = `
     <time
       datetime="1523097884000"
     >
-      Sat Apr 07 2018 10:44:44 GMT+0000
+      4 months ago
     </time>
   </span>
 </div>
@@ -4122,7 +4122,7 @@ exports[`Storyshots Generics / Timeline default 1`] = `
           <time
             datetime="1525712282000"
           >
-            Mon May 07 2018 16:58:02 GMT+0000
+            3 months ago
           </time>
         </span>
       </div>
@@ -4147,7 +4147,7 @@ exports[`Storyshots Generics / Timeline default 1`] = `
           <time
             datetime="1525711682000"
           >
-            Mon May 07 2018 16:48:02 GMT+0000
+            3 months ago
           </time>
         </span>
       </div>
@@ -4172,7 +4172,7 @@ exports[`Storyshots Generics / Timeline default 1`] = `
           <time
             datetime="1525625882000"
           >
-            Sun May 06 2018 16:58:02 GMT+0000
+            3 months ago
           </time>
         </span>
       </div>
@@ -4218,7 +4218,7 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
                 <time
                   datetime="1525712282000"
                 >
-                  Mon May 07 2018 16:58:02 GMT+0000
+                  3 months ago
                 </time>
               </span>
             </div>
@@ -4307,7 +4307,7 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
                 <time
                   datetime="1525711682000"
                 >
-                  Mon May 07 2018 16:48:02 GMT+0000
+                  3 months ago
                 </time>
               </span>
             </div>
@@ -4396,7 +4396,7 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
                 <time
                   datetime="1525625882000"
                 >
-                  Sun May 06 2018 16:58:02 GMT+0000
+                  3 months ago
                 </time>
               </span>
             </div>
@@ -4494,7 +4494,7 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
                 <time
                   datetime="1525712282000"
                 >
-                  Mon May 07 2018 16:58:02 GMT+0000
+                  3 months ago
                 </time>
               </span>
             </div>
@@ -4588,7 +4588,7 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
             <time
               datetime="1525712282000"
             >
-              Mon May 07 2018 16:58:02 GMT+0000
+              3 months ago
             </time>
           </span>
         </div>
@@ -4641,7 +4641,7 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
             <time
               datetime="1525712282000"
             >
-              Mon May 07 2018 16:58:02 GMT+0000
+              3 months ago
             </time>
           </span>
         </div>
@@ -4689,7 +4689,7 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
                 <time
                   datetime="1525625882000"
                 >
-                  Sun May 06 2018 16:58:02 GMT+0000
+                  3 months ago
                 </time>
               </span>
             </div>
@@ -5261,7 +5261,7 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
               <time
                 datetime="1523186299000"
               >
-                Sun Apr 08 2018 11:18:19 GMT+0000
+                4 months ago
               </time>
             </span>
           </div>
@@ -5308,7 +5308,7 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
                   <time
                     datetime="1523107879000"
                   >
-                    Sat Apr 07 2018 13:31:19 GMT+0000
+                    4 months ago
                   </time>
                 </span>
               </div>
@@ -5413,7 +5413,7 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
                   <time
                     datetime="1523100799000"
                   >
-                    Sat Apr 07 2018 11:33:19 GMT+0000
+                    4 months ago
                   </time>
                 </span>
               </div>
@@ -5506,7 +5506,7 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
                   <time
                     datetime="1523099899000"
                   >
-                    Sat Apr 07 2018 11:18:19 GMT+0000
+                    4 months ago
                   </time>
                 </span>
               </div>
@@ -16241,7 +16241,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                 <time
                   datetime="1507728150831"
                 >
-                  Wed Oct 11 2017 13:22:30 GMT+0000
+                  10 months ago
                 </time>
               </span>
             </div>
@@ -16376,7 +16376,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                     <time
                       datetime="1523099899000"
                     >
-                      Sat Apr 07 2018 11:18:19 GMT+0000
+                      4 months ago
                     </time>
                   </span>
                 </td>
@@ -16415,7 +16415,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                     <time
                       datetime="1523099479000"
                     >
-                      Sat Apr 07 2018 11:11:19 GMT+0000
+                      4 months ago
                     </time>
                   </span>
                 </td>
@@ -16454,7 +16454,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                     <time
                       datetime="1523097884000"
                     >
-                      Sat Apr 07 2018 10:44:44 GMT+0000
+                      4 months ago
                     </time>
                   </span>
                 </td>
@@ -16465,9 +16465,9 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                     class="Component-root-id "
                   >
                     <span
-                      class="Component-errorDot-id"
+                      class="Component-successDot-id"
                     />
-                    shipped
+                    Fulfilled
                   </div>
                 </td>
                 <td
@@ -16493,7 +16493,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                     <time
                       datetime="1523097199000"
                     >
-                      Sat Apr 07 2018 10:33:19 GMT+0000
+                      4 months ago
                     </time>
                   </span>
                 </td>
@@ -16504,9 +16504,9 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                     class="Component-root-id "
                   >
                     <span
-                      class="Component-errorDot-id"
+                      class="Component-successDot-id"
                     />
-                    shipped
+                    Fulfilled
                   </div>
                 </td>
                 <td
@@ -16532,7 +16532,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                     <time
                       datetime="1523086759000"
                     >
-                      Sat Apr 07 2018 07:39:19 GMT+0000
+                      4 months ago
                     </time>
                   </span>
                 </td>
@@ -16543,9 +16543,9 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                     class="Component-root-id "
                   >
                     <span
-                      class="Component-errorDot-id"
+                      class="Component-successDot-id"
                     />
-                    shipped
+                    Fulfilled
                   </div>
                 </td>
                 <td
@@ -16571,7 +16571,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                     <time
                       datetime="1523042299000"
                     >
-                      Fri Apr 06 2018 19:18:19 GMT+0000
+                      4 months ago
                     </time>
                   </span>
                 </td>
@@ -18305,7 +18305,7 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
         <time
           datetime="1523099899000"
         >
-          Sat Apr 07 2018 11:18:19 GMT+0000
+          4 months ago
         </time>
       </span>
     </div>
@@ -18903,7 +18903,7 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                     <time
                       datetime="1523186299000"
                     >
-                      Sun Apr 08 2018 11:18:19 GMT+0000
+                      4 months ago
                     </time>
                   </span>
                 </div>
@@ -18950,7 +18950,7 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                         <time
                           datetime="1523107879000"
                         >
-                          Sat Apr 07 2018 13:31:19 GMT+0000
+                          4 months ago
                         </time>
                       </span>
                     </div>
@@ -19055,7 +19055,7 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                         <time
                           datetime="1523100799000"
                         >
-                          Sat Apr 07 2018 11:33:19 GMT+0000
+                          4 months ago
                         </time>
                       </span>
                     </div>
@@ -19148,7 +19148,7 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                         <time
                           datetime="1523099899000"
                         >
-                          Sat Apr 07 2018 11:18:19 GMT+0000
+                          4 months ago
                         </time>
                       </span>
                     </div>
@@ -19430,7 +19430,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
         <time
           datetime="1523099899000"
         >
-          Sat Apr 07 2018 11:18:19 GMT+0000
+          4 months ago
         </time>
       </span>
     </div>
@@ -20250,7 +20250,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                     <time
                       datetime="1523186299000"
                     >
-                      Sun Apr 08 2018 11:18:19 GMT+0000
+                      4 months ago
                     </time>
                   </span>
                 </div>
@@ -20297,7 +20297,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                         <time
                           datetime="1523107879000"
                         >
-                          Sat Apr 07 2018 13:31:19 GMT+0000
+                          4 months ago
                         </time>
                       </span>
                     </div>
@@ -20402,7 +20402,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                         <time
                           datetime="1523100799000"
                         >
-                          Sat Apr 07 2018 11:33:19 GMT+0000
+                          4 months ago
                         </time>
                       </span>
                     </div>
@@ -20495,7 +20495,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                         <time
                           datetime="1523099899000"
                         >
-                          Sat Apr 07 2018 11:18:19 GMT+0000
+                          4 months ago
                         </time>
                       </span>
                     </div>
@@ -20732,7 +20732,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
         <time
           datetime="1523099899000"
         >
-          Sat Apr 07 2018 11:18:19 GMT+0000
+          4 months ago
         </time>
       </span>
     </div>
@@ -21552,7 +21552,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                     <time
                       datetime="1523186299000"
                     >
-                      Sun Apr 08 2018 11:18:19 GMT+0000
+                      4 months ago
                     </time>
                   </span>
                 </div>
@@ -21599,7 +21599,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                         <time
                           datetime="1523107879000"
                         >
-                          Sat Apr 07 2018 13:31:19 GMT+0000
+                          4 months ago
                         </time>
                       </span>
                     </div>
@@ -21704,7 +21704,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                         <time
                           datetime="1523100799000"
                         >
-                          Sat Apr 07 2018 11:33:19 GMT+0000
+                          4 months ago
                         </time>
                       </span>
                     </div>
@@ -21797,7 +21797,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                         <time
                           datetime="1523099899000"
                         >
-                          Sat Apr 07 2018 11:18:19 GMT+0000
+                          4 months ago
                         </time>
                       </span>
                     </div>
@@ -22730,7 +22730,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                 <time
                   datetime="1523099899000"
                 >
-                  Sat Apr 07 2018 11:18:19 GMT+0000
+                  4 months ago
                 </time>
               </span>
             </td>
@@ -22786,7 +22786,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                 <time
                   datetime="1523099479000"
                 >
-                  Sat Apr 07 2018 11:11:19 GMT+0000
+                  4 months ago
                 </time>
               </span>
             </td>
@@ -22823,9 +22823,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                 class="Component-root-id "
               >
                 <span
-                  class="Component-errorDot-id"
+                  class="Component-successDot-id"
                 />
-                shipped
+                Fulfilled
               </div>
             </td>
             <td
@@ -22842,7 +22842,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                 <time
                   datetime="1523097884000"
                 >
-                  Sat Apr 07 2018 10:44:44 GMT+0000
+                  4 months ago
                 </time>
               </span>
             </td>
@@ -22879,9 +22879,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                 class="Component-root-id "
               >
                 <span
-                  class="Component-errorDot-id"
+                  class="Component-successDot-id"
                 />
-                shipped
+                Fulfilled
               </div>
             </td>
             <td
@@ -22898,7 +22898,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                 <time
                   datetime="1523097199000"
                 >
-                  Sat Apr 07 2018 10:33:19 GMT+0000
+                  4 months ago
                 </time>
               </span>
             </td>
@@ -22935,9 +22935,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                 class="Component-root-id "
               >
                 <span
-                  class="Component-errorDot-id"
+                  class="Component-successDot-id"
                 />
-                shipped
+                Fulfilled
               </div>
             </td>
             <td
@@ -22954,7 +22954,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                 <time
                   datetime="1523086759000"
                 >
-                  Sat Apr 07 2018 07:39:19 GMT+0000
+                  4 months ago
                 </time>
               </span>
             </td>
@@ -23010,7 +23010,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                 <time
                   datetime="1523042299000"
                 >
-                  Fri Apr 06 2018 19:18:19 GMT+0000
+                  4 months ago
                 </time>
               </span>
             </td>
@@ -36815,7 +36815,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529575618079"
                 >
-                  Thu Jun 21 2018 10:06:58 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -36864,7 +36864,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529530856763"
                 >
-                  Wed Jun 20 2018 21:40:56 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -36877,7 +36877,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1546391094677"
                 >
-                  Wed Jan 02 2019 01:04:54 GMT+0000
+                  in 5 months
                 </time>
               </span>
             </td>
@@ -36917,7 +36917,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529531599359"
                 >
-                  Wed Jun 20 2018 21:53:19 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -36930,7 +36930,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1541991624030"
                 >
-                  Mon Nov 12 2018 03:00:24 GMT+0000
+                  in 3 months
                 </time>
               </span>
             </td>
@@ -36970,7 +36970,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529531047335"
                 >
-                  Wed Jun 20 2018 21:44:07 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -36983,7 +36983,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1534759118594"
                 >
-                  Mon Aug 20 2018 09:58:38 GMT+0000
+                  in 13 days
                 </time>
               </span>
             </td>
@@ -37023,7 +37023,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529554869850"
                 >
-                  Thu Jun 21 2018 04:21:09 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37068,7 +37068,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529507072639"
                 >
-                  Wed Jun 20 2018 15:04:32 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37117,7 +37117,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529535221827"
                 >
-                  Wed Jun 20 2018 22:53:41 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37130,7 +37130,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1539018134587"
                 >
-                  Mon Oct 08 2018 17:02:14 GMT+0000
+                  in 2 months
                 </time>
               </span>
             </td>
@@ -37174,7 +37174,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529535137917"
                 >
-                  Wed Jun 20 2018 22:52:17 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37187,7 +37187,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1535007860010"
                 >
-                  Thu Aug 23 2018 07:04:20 GMT+0000
+                  in 16 days
                 </time>
               </span>
             </td>
@@ -37227,7 +37227,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529578091815"
                 >
-                  Thu Jun 21 2018 10:48:11 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37240,7 +37240,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1541427554950"
                 >
-                  Mon Nov 05 2018 14:19:14 GMT+0000
+                  in 3 months
                 </time>
               </span>
             </td>
@@ -37280,7 +37280,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529540774087"
                 >
-                  Thu Jun 21 2018 00:26:14 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37325,7 +37325,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529503265834"
                 >
-                  Wed Jun 20 2018 14:01:05 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37370,7 +37370,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529531521122"
                 >
-                  Wed Jun 20 2018 21:52:01 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37383,7 +37383,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1550310553242"
                 >
-                  Sat Feb 16 2019 09:49:13 GMT+0000
+                  in 6 months
                 </time>
               </span>
             </td>
@@ -37423,7 +37423,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529507495602"
                 >
-                  Wed Jun 20 2018 15:11:35 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37472,7 +37472,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529541514746"
                 >
-                  Thu Jun 21 2018 00:38:34 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37485,7 +37485,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1553524910984"
                 >
-                  Mon Mar 25 2019 14:41:50 GMT+0000
+                  in 8 months
                 </time>
               </span>
             </td>
@@ -37529,7 +37529,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529535698092"
                 >
-                  Wed Jun 20 2018 23:01:38 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37542,7 +37542,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1537357626711"
                 >
-                  Wed Sep 19 2018 11:47:06 GMT+0000
+                  in a month
                 </time>
               </span>
             </td>
@@ -37582,7 +37582,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529547210164"
                 >
-                  Thu Jun 21 2018 02:13:30 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37595,7 +37595,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1546098434014"
                 >
-                  Sat Dec 29 2018 15:47:14 GMT+0000
+                  in 5 months
                 </time>
               </span>
             </td>
