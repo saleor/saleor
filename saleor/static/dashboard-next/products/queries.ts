@@ -393,7 +393,7 @@ export const productImageQuery = gql`
   query ProductImage($productId: ID!, $imageId: ID!) {
     product(id: $productId) {
       id
-      image: imageById(id: $imageId) {
+      mainImage: imageById(id: $imageId) {
         id
         alt
         url

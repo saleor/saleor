@@ -72,10 +72,9 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
                             });
                           };
                           const image =
-                            data && data.product && data.product.image;
+                            data && data.product && data.product.mainImage;
                           return (
                             <ProductImagePage
-                              description={image ? image.alt : null}
                               disabled={loading}
                               image={image || null}
                               images={
