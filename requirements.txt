@@ -89,7 +89,7 @@ py==1.5.4                 # via pytest
 pycparser==2.18           # via cffi
 pyjwt==1.6.4              # via django-graphql-jwt, django-payments, social-auth-core
 pyphen==0.9.4             # via weasyprint
-pytest-django==3.3.3
+pytest-django==3.4.1
 pytest-mock==1.10.0
 pytest-vcr==0.3.0
 pytest==3.7.1
