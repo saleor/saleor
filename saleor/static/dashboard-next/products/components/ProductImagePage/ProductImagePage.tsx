@@ -18,13 +18,13 @@ import ProductImageNavigation from "../ProductImageNavigation";
 interface ProductImagePageProps {
   image?: {
     id: string;
+    alt: string;
     url: string;
   };
   images?: Array<{
     id: string;
     url: string;
   }>;
-  description?: string;
   disabled: boolean;
   saveButtonBarState?: SaveButtonBarState;
   onBack: () => void;
@@ -56,7 +56,6 @@ const decorate = withStyles(theme => ({
 const ProductImagePage = decorate<ProductImagePageProps>(
   ({
     classes,
-    description,
     disabled,
     image,
     images,
@@ -67,9 +66,9 @@ const ProductImagePage = decorate<ProductImagePageProps>(
     onSubmit
   }) => (
     <Form
-      initial={{ description: description || "" }}
+      initial={{ description: image ? image.alt : "" }}
       onSubmit={onSubmit}
-      key={description}
+      key={image ? image.alt : "loading"}
     >
       {({ change, data, hasChanged, submit }) => {
         return (
