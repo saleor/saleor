@@ -43,13 +43,17 @@ from .page.mutations import PageCreate, PageDelete, PageUpdate
 from .page.resolvers import resolve_page, resolve_pages
 from .page.types import Page
 from .product.schema import ProductMutations, ProductQueries
-from .shipping.mutations import (
-    ShippingPriceCreate, ShippingPriceDelete, ShippingPriceUpdate,
-    ShippingZoneCreate, ShippingZoneDelete, ShippingZoneUpdate)
 from .payment.types import Payment, PaymentGatewayEnum
 from .payment.resolvers import resolve_payments, resolve_payment_client_token
 from .shipping.resolvers import resolve_shipping_zones
 from .shipping.types import ShippingZone
+from .shipping.mutations import (
+    ShippingZoneCreate, ShippingZoneDelete, ShippingZoneUpdate,
+    ShippingPriceCreate, ShippingPriceDelete, ShippingPriceUpdate)
+from .utils import get_node
+from .checkout.types import CheckoutLine, Checkout
+from .checkout.mutations import CheckoutLineCreate, CheckoutCreate
+from .checkout.resolvers import resolve_checkouts
 from .shop.mutations import (
     AuthorizationKeyAdd, AuthorizationKeyDelete, HomepageCollectionUpdate,
     ShopDomainUpdate, ShopSettingsUpdate)
@@ -60,6 +64,13 @@ class Query(ProductQueries):
     address_validator = graphene.Field(
         AddressValidationData,
         input=graphene.Argument(AddressValidationInput, required=True))
+    checkouts = DjangoFilterConnectionField(
+        Checkout, description='List of checkouts',
+        filterset_class=DistinctFilterSet)
+    checkout_lines = DjangoFilterConnectionField(
+        CheckoutLine, description='List of checkout lines',
+        filterset_class=DistinctFilterSet)
+    checkout_line = graphene.Field(CheckoutLine, id=graphene.Argument(graphene.ID))
     menu = graphene.Field(
         Menu, id=graphene.Argument(graphene.ID),
         name=graphene.Argument(graphene.String, description="Menu name."),
@@ -135,6 +146,12 @@ class Query(ProductQueries):
         User, description='List of the shop\'s staff users.',
         query=graphene.String(description=DESCRIPTIONS['user']))
     node = graphene.Node.Field()
+
+    def resolve_cart_line(self, info, id):
+        return get_node(info, id, only_type=CheckoutLine)
+
+    def resolve_checkouts(self, info, query=None, **kwargs):
+        resolve_checkouts(info, query)
 
     @permission_required(['account.manage_users'])
     def resolve_user(self, info, id):
@@ -254,6 +271,9 @@ class Mutations(ProductMutations):
     address_update = AddressUpdate.Field()
     address_delete = AddressDelete.Field()
 
+    checkout_create = CheckoutCreate.Field()
+    checkout_line_create = CheckoutLineCreate.Field()
+
     menu_create = MenuCreate.Field()
     menu_delete = MenuDelete.Field()
     menu_update = MenuUpdate.Field()
@@ -307,6 +327,5 @@ class Mutations(ProductMutations):
 
     variant_image_assign = VariantImageAssign.Field()
     variant_image_unassign = VariantImageUnassign.Field()
-
 
 schema = graphene.Schema(Query, Mutations)
