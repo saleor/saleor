@@ -7,8 +7,8 @@ const createShadow = (pv, pb, ps, uv, ub, us, av, ab, as) =>
     `0 ${av}px ${ab}px ${as}px rgba(0, 0, 0, 0.12)`
   ].join(",");
 
-const primary = "#2bb673";
-const primaryLighter = "#5AB378";
+// const primary = "#2bb673";
+const primary = "#5AB378";
 const secondary = "#03a9f4";
 const error = "#CD5E5E";
 
@@ -42,7 +42,7 @@ export default createMuiTheme({
       },
       underline: {
         "&:after": {
-          borderBottomColor: primaryLighter
+          borderBottomColor: primary
         }
       }
     },
@@ -53,17 +53,22 @@ export default createMuiTheme({
         width: "100%"
       },
       root: {
-        color: [[primaryLighter], "!important"] as any
+        color: [[primary], "!important"] as any
       },
       shrink: {
         // Negates x0.75 scale
         width: "133%"
       }
     },
+    MuiMenu: {
+      paper: {
+        borderRadius: 8
+      }
+    },
     MuiSwitch: {
       bar: {
         "$colorPrimary$checked + &": {
-          backgroundColor: primaryLighter
+          backgroundColor: primary
         },
         backgroundColor: error,
         borderRadius: 12,
@@ -129,7 +134,7 @@ export default createMuiTheme({
     },
     primary: {
       contrastText: "#ffffff",
-      main: primaryLighter
+      main: primary
     },
     secondary: {
       contrastText: "#ffffff",
