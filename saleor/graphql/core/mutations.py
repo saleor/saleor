@@ -27,6 +27,9 @@ def get_model_name(model):
 def get_output_fields(model, return_field_name):
     """Return mutation output field for model instance."""
     model_type = registry.get_type_for_model(model)
+    if not model_type:
+        raise ImproperlyConfigured(
+            'Unable to find type for model %s in graphene registry' % model.__name__)
     fields = {return_field_name: graphene.Field(model_type)}
     return fields
 
