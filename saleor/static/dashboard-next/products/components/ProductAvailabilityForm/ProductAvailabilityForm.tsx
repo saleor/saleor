@@ -19,20 +19,14 @@ interface ProductAvailabilityFormProps {
 }
 
 const decorate = withStyles(theme => ({
-  card: {
-    "&:last-child": {
-      paddingBottom: 0
-    }
-  },
   date: {
     marginTop: theme.spacing.unit
   },
-  pullDown: {
-    position: "relative" as "relative",
-    top: theme.spacing.unit * 2
+  expandedSwitchContainer: {
+    marginBottom: 0
   },
-  pullUp: {
-    marginTop: -theme.spacing.unit * 2
+  switchContainer: {
+    marginBottom: -theme.spacing.unit
   }
 }));
 export const ProductAvailabilityForm = decorate<ProductAvailabilityFormProps>(
@@ -45,8 +39,14 @@ export const ProductAvailabilityForm = decorate<ProductAvailabilityFormProps>(
   }) => (
     <Card>
       <CardTitle title={i18n.t("Availability")} />
-      <CardContent className={!available ? classes.card : undefined}>
-        <div className={classes.pullUp}>
+      <CardContent>
+        <div
+          className={
+            available
+              ? classes.expandedSwitchContainer
+              : classes.switchContainer
+          }
+        >
           <ControlledSwitch
             name="available"
             label={i18n.t("Published in storefront")}
