@@ -26698,10 +26698,10 @@ exports[`Storyshots Views / Products / Create product When loading 1`] = `
                 class="Component-hr-id"
               />
               <div
-                class="MuiCardContent-root-id Component-card-id"
+                class="MuiCardContent-root-id"
               >
                 <div
-                  class="Component-pullUp-id"
+                  class="Component-switchContainer-id"
                 >
                   <label
                     class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
@@ -27326,10 +27326,10 @@ exports[`Storyshots Views / Products / Create product default 1`] = `
                 class="Component-hr-id"
               />
               <div
-                class="MuiCardContent-root-id Component-card-id"
+                class="MuiCardContent-root-id"
               >
                 <div
-                  class="Component-pullUp-id"
+                  class="Component-switchContainer-id"
                 >
                   <label
                     class="MuiFormControlLabel-root-id"
@@ -29803,7 +29803,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                 class="MuiCardContent-root-id"
               >
                 <div
-                  class="Component-pullUp-id"
+                  class="Component-expandedSwitchContainer-id"
                 >
                   <label
                     class="MuiFormControlLabel-root-id"
@@ -30592,10 +30592,10 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
                 class="Component-hr-id"
               />
               <div
-                class="MuiCardContent-root-id Component-card-id"
+                class="MuiCardContent-root-id"
               >
                 <div
-                  class="Component-pullUp-id"
+                  class="Component-switchContainer-id"
                 >
                   <label
                     class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
@@ -31538,7 +31538,7 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
                 class="MuiCardContent-root-id"
               >
                 <div
-                  class="Component-pullUp-id"
+                  class="Component-expandedSwitchContainer-id"
                 >
                   <label
                     class="MuiFormControlLabel-root-id"
@@ -32761,7 +32761,7 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                 class="MuiCardContent-root-id"
               >
                 <div
-                  class="Component-pullUp-id"
+                  class="Component-expandedSwitchContainer-id"
                 >
                   <label
                     class="MuiFormControlLabel-root-id"
@@ -32943,8 +32943,8 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                  data-shrink="true"
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
                 >
                   Description
                 </label>
@@ -32968,18 +32968,14 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
                       readonly=""
                       rows="1"
                       tabindex="-1"
-                    >
-                      Lorem ipsum
-                    </textarea>
+                    />
                     <textarea
                       aria-invalid="false"
                       class="Textarea-textarea-id MuiInput-input-id MuiInput-inputMultiline-id"
                       name="description"
                       rows="1"
                       type="text"
-                    >
-                      Lorem ipsum
-                    </textarea>
+                    />
                   </div>
                 </div>
                 <p
