@@ -41,9 +41,9 @@ class Header extends Component {
             </div>
             <nav className="menu col-xs-9 col-sm-6">
               <ul className={this.state.mobileMenu ? 'menu-mobile hovered' : null}>
-                <li><span className="count">01. </span><NavLink exact to="/">Home</NavLink></li>
-                <li><span className="count">02. </span><NavLink to="/features">Features</NavLink></li>
-                <li><span className="count">03. </span><NavLink to="/roadmap">Roadmap</NavLink></li>
+                <li><span className="count">01. </span><NavLink exact to="/" onClick={this.toggleMenu}>Home</NavLink></li>
+                <li><span className="count">02. </span><NavLink to="/features" onClick={this.toggleMenu}>Features</NavLink></li>
+                <li><span className="count">03. </span><NavLink to="/roadmap" onClick={this.toggleMenu}>Roadmap</NavLink></li>
                 <li><span className="count">04. </span><a href="https://saleor.readthedocs.io/en/latest/">Docs</a></li>
                 <li><span className="count">06. </span><a href="https://medium.com/saleor">Blog</a></li>
                 <li className="github-link"><GitHubLink owner="mirumee" name="saleor" /></li>
