@@ -12,7 +12,6 @@ interface ProductAvailabilityFormProps {
   data: {
     available: boolean;
     availableOn: string;
-    featured: boolean;
   };
   errors: { [key: string]: string };
   loading?: boolean;
@@ -23,18 +22,17 @@ const decorate = withStyles(theme => ({
   date: {
     marginTop: theme.spacing.unit
   },
-  pullDown: {
-    position: "relative" as "relative",
-    top: theme.spacing.unit * 2
+  expandedSwitchContainer: {
+    marginBottom: 0
   },
-  pullUp: {
-    marginTop: -theme.spacing.unit * 2
+  switchContainer: {
+    marginBottom: -theme.spacing.unit
   }
 }));
 export const ProductAvailabilityForm = decorate<ProductAvailabilityFormProps>(
   ({
     classes,
-    data: { available, availableOn, featured },
+    data: { available, availableOn },
     errors,
     loading,
     onChange
@@ -42,7 +40,13 @@ export const ProductAvailabilityForm = decorate<ProductAvailabilityFormProps>(
     <Card>
       <CardTitle title={i18n.t("Availability")} />
       <CardContent>
-        <div className={classes.pullUp}>
+        <div
+          className={
+            available
+              ? classes.expandedSwitchContainer
+              : classes.switchContainer
+          }
+        >
           <ControlledSwitch
             name="available"
             label={i18n.t("Published in storefront")}
@@ -68,15 +72,6 @@ export const ProductAvailabilityForm = decorate<ProductAvailabilityFormProps>(
                 shrink: true
               }}
             />
-            <div className={classes.pullDown}>
-              <ControlledSwitch
-                name="featured"
-                label={i18n.t("Feature on Homepage")}
-                checked={featured}
-                onChange={onChange}
-                disabled={loading}
-              />
-            </div>
           </>
         )}
       </CardContent>

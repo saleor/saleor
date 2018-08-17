@@ -73,7 +73,7 @@ interface ProductVariantPageProps {
   onBack();
   onDelete();
   onSubmit(data: any);
-  onImageSelect(images: string[]);
+  onImageSelect(id: string);
   onVariantClick(variantId: string);
 }
 
@@ -117,7 +117,6 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
           .filter(image => variantImages.indexOf(image.id) !== -1)
           .sort((prev, next) => (prev.sortOrder > next.sortOrder ? 1 : -1))
       : undefined;
-    const handleImageSelect = (images: string[]) => {};
     return (
       <Toggle>
         {(isModalActive, { toggle: toggleDeleteModal }) => (
@@ -236,9 +235,14 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                     />
                     <ProductVariantImageSelectDialog
                       onClose={toggleImageSelectModal}
-                      onConfirm={handleImageSelect}
+                      onImageSelect={onImageSelect}
                       open={isImageSelectModalActive}
                       images={productImages}
+                      selectedImages={
+                        variant && variant.images && variant.images.edges
+                          ? variant.images.edges.map(edge => edge.node.id)
+                          : undefined
+                      }
                     />
                   </>
                 )}

@@ -45,9 +45,12 @@ const ProductVariantStock = decorate<ProductVariantStockProps>(
               helperText={
                 errors.stock
                   ? errors.stock
-                  : loading || !stockAllocated
-                    ? ""
-                    : `${i18n.t("Allocated:")} ${stockAllocated}`
+                  : !!stockAllocated
+                    ? i18n.t("Allocated: {{ stock }}", {
+                        context: "variant allocated stock",
+                        stock: stockAllocated
+                      })
+                    : undefined
               }
               onChange={onChange}
               disabled={loading}
