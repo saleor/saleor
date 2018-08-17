@@ -32916,6 +32916,100 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
       >
         <div>
           <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-card-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <aside
+                class="MuiTypography-root-id MuiTypography-body2-id Component-title-id"
+              >
+                All photos
+              </aside>
+              <div
+                class="Component-toolbar-id"
+              />
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="Component-root-id"
+              >
+                <div
+                  class="Component-imageContainer-id "
+                >
+                  <img
+                    class="Component-image-id"
+                    src="placeholder1080x1080.png"
+                  />
+                </div>
+                <div
+                  class="Component-imageContainer-id "
+                >
+                  <img
+                    class="Component-image-id"
+                    src="placeholder1080x1080.png"
+                  />
+                </div>
+                <div
+                  class="Component-imageContainer-id "
+                >
+                  <img
+                    class="Component-image-id"
+                    src="placeholder1080x1080.png"
+                  />
+                </div>
+                <div
+                  class="Component-imageContainer-id "
+                >
+                  <img
+                    class="Component-image-id"
+                    src="placeholder1080x1080.png"
+                  />
+                </div>
+                <div
+                  class="Component-imageContainer-id "
+                >
+                  <img
+                    class="Component-image-id"
+                    src="placeholder1080x1080.png"
+                  />
+                </div>
+                <div
+                  class="Component-imageContainer-id "
+                >
+                  <img
+                    class="Component-image-id"
+                    src="placeholder1080x1080.png"
+                  />
+                </div>
+                <div
+                  class="Component-imageContainer-id "
+                >
+                  <img
+                    class="Component-image-id"
+                    src="placeholder1080x1080.png"
+                  />
+                </div>
+                <div
+                  class="Component-imageContainer-id "
+                >
+                  <img
+                    class="Component-image-id"
+                    src="placeholder1080x1080.png"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
             class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
@@ -32943,7 +33037,7 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
                   data-shrink="true"
                 >
                   Description
@@ -32983,7 +33077,7 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
                   </div>
                 </div>
                 <p
-                  class="MuiFormHelperText-root-id"
+                  class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
                 >
                   Optional
                 </p>
@@ -33113,6 +33207,37 @@ exports[`Storyshots Views / Products / Product image details when loading data 1
         class="Component-root-id"
       >
         <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-card-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <aside
+                class="MuiTypography-root-id MuiTypography-body2-id Component-title-id"
+              >
+                All photos
+              </aside>
+              <div
+                class="Component-toolbar-id"
+              />
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </div>
+          </div>
           <div
             class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
@@ -33456,7 +33581,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              PYG595
+              PYG 595
             </td>
           </tr>
           <tr
@@ -33499,7 +33624,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              GMD432.08
+              GMD 432.08
             </td>
           </tr>
           <tr
@@ -33542,7 +33667,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              WST73.74
+              WST 73.74
             </td>
           </tr>
           <tr
@@ -33585,7 +33710,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              MWK27.68
+              MWK 27.68
             </td>
           </tr>
           <tr
@@ -33628,7 +33753,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              WST440.79
+              WST 440.79
             </td>
           </tr>
           <tr
@@ -33671,7 +33796,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              HRK398.96
+              HRK 398.96
             </td>
           </tr>
           <tr
@@ -33714,7 +33839,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              HUF959.31
+              HUF 959.31
             </td>
           </tr>
           <tr
@@ -33757,7 +33882,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              PKR593
+              PKR 593
             </td>
           </tr>
           <tr
@@ -33800,7 +33925,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              SHP62.01
+              SHP 62.01
             </td>
           </tr>
           <tr
@@ -33843,7 +33968,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              UZS197
+              UZS 197
             </td>
           </tr>
         </tbody>
@@ -34580,7 +34705,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                 class="Component-toolbar-id"
               >
                 <button
-                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
                   tabindex="0"
                   type="button"
                 >
@@ -35047,7 +35172,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
                 class="Component-toolbar-id"
               >
                 <button
-                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id"
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id"
                   disabled=""
                   tabindex="-1"
                   type="button"
@@ -36558,7 +36683,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                RON10.00
+                RON 10.00
               </p>
             </td>
           </tr>
@@ -36811,7 +36936,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                PGK20.00
+                PGK 20.00
               </p>
             </td>
           </tr>
@@ -36868,7 +36993,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                KGS80.00
+                KGS 80.00
               </p>
             </td>
           </tr>
@@ -37166,7 +37291,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                DJF30
+                DJF 30
               </p>
             </td>
           </tr>
@@ -37223,7 +37348,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                GNF70
+                GNF 70
               </p>
             </td>
           </tr>
@@ -37333,7 +37458,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                RWF30
+                RWF 30
               </p>
             </td>
           </tr>
