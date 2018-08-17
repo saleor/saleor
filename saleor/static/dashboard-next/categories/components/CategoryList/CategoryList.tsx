@@ -11,6 +11,7 @@ import * as React from "react";
 import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
+import { renderCollection } from "../../../misc";
 
 interface CategoryListProps {
   categories?: Array<{
@@ -40,30 +41,25 @@ const CategoryList: React.StatelessComponent<CategoryListProps> = ({
       />
     )}
     <List>
-      {categories === undefined || categories === null ? (
-        <ListItem>
-          <ListItemIcon>
-            <Folder />
-          </ListItemIcon>
-          <ListItemText>
-            <Skeleton />
-          </ListItemText>
-        </ListItem>
-      ) : categories.length > 0 ? (
-        categories.map(category => (
+      {renderCollection(
+        categories,
+        category => (
           <ListItem
-            button={!!onRowClick}
-            key={category.id}
-            onClick={!!onRowClick ? onRowClick(category.id) : undefined}
+            button={!!category && !!onRowClick}
+            key={category ? category.id : "skeleton"}
+            onClick={category && onRowClick && onRowClick(category.id)}
           >
             <ListItemIcon>
               <Folder />
             </ListItemIcon>
-            <ListItemText primary={category.name} />
+            <ListItemText>
+              {category ? category.name : <Skeleton />}
+            </ListItemText>
           </ListItem>
-        ))
-      ) : (
-        <ListSubheader>{i18n.t("No categories found")}</ListSubheader>
+        ),
+        () => (
+          <ListSubheader>{i18n.t("No categories found")}</ListSubheader>
+        )
       )}
     </List>
   </Card>

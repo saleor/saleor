@@ -10,6 +10,7 @@ import * as React from "react";
 import { ListProps } from "../..";
 import TableCellAvatar from "../../components/TableCellAvatar";
 import i18n from "../../i18n";
+import { renderCollection } from "../../misc";
 import { MoneyType } from "../../products";
 import Money from "../Money";
 import Skeleton from "../Skeleton";
@@ -81,35 +82,29 @@ export const ProductList = decorate<ProductListProps>(
         </TableRow>
       </TableFooter>
       <TableBody>
-        {products === undefined ? (
-          <TableRow hover>
-            <TableCellAvatar />
-            <TableCell>
-              <Skeleton />
-            </TableCell>
-            <TableCell>
-              <Skeleton />
-            </TableCell>
-            <TableCell>
-              <Skeleton />
-            </TableCell>
-            <TableCell>
-              <Skeleton />
-            </TableCell>
-          </TableRow>
-        ) : products !== null && products.length > 0 ? (
-          products.map(product => (
+        {renderCollection(
+          products,
+          product => (
             <TableRow
-              hover
-              key={product.id}
-              onClick={onRowClick(product.id)}
-              className={classes.link}
+              hover={!!product}
+              key={product ? product.id : "skeleton"}
+              onClick={product && onRowClick(product.id)}
+              className={product && classes.link}
             >
-              <TableCellAvatar thumbnail={product.thumbnailUrl} />
-              <TableCell className={classes.textLeft}>{product.name}</TableCell>
-              <TableCell>{product.productType.name}</TableCell>
+              <TableCellAvatar thumbnail={product && product.thumbnailUrl} />
+              <TableCell className={classes.textLeft}>
+                {product ? product.name : <Skeleton />}
+              </TableCell>
               <TableCell>
-                {product.availability &&
+                {product && product.productType ? (
+                  product.productType.name
+                ) : (
+                  <Skeleton />
+                )}
+              </TableCell>
+              <TableCell>
+                {product &&
+                product.availability &&
                 product.availability.available !== undefined ? (
                   <StatusLabel
                     label={
@@ -126,7 +121,8 @@ export const ProductList = decorate<ProductListProps>(
                 )}
               </TableCell>
               <TableCell>
-                {product.price &&
+                {product &&
+                product.price &&
                 product.price.amount !== undefined &&
                 product.price.currency !== undefined ? (
                   <Money
@@ -138,11 +134,12 @@ export const ProductList = decorate<ProductListProps>(
                 )}
               </TableCell>
             </TableRow>
-          ))
-        ) : (
-          <TableRow>
-            <TableCell colSpan={5}>{i18n.t("No products found")}</TableCell>
-          </TableRow>
+          ),
+          () => (
+            <TableRow>
+              <TableCell colSpan={5}>{i18n.t("No products found")}</TableCell>
+            </TableRow>
+          )
         )}
       </TableBody>
     </Table>

@@ -13,6 +13,7 @@ import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
+import { renderCollection } from "../../../misc";
 
 interface PageListProps extends ListProps {
   pages?: Array<{
@@ -67,44 +68,38 @@ export const PageList = decorate<PageListProps>(
           </TableRow>
         </TableFooter>
         <TableBody>
-          {pages === undefined || pages === null ? (
-            <TableRow>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-            </TableRow>
-          ) : pages.length > 0 ? (
-            pages.map(page => (
-              <TableRow key={page.id}>
+          {renderCollection(
+            pages,
+            page => (
+              <TableRow key={page ? page.id : "skeleton"}>
                 <TableCell
-                  onClick={onRowClick(page.id)}
-                  className={classes.link}
+                  onClick={page && onRowClick(page.id)}
+                  className={page && classes.link}
                 >
-                  {page.title}
+                  {page ? page.title : <Skeleton />}
                 </TableCell>
-                <TableCell>{`/${page.slug}`}</TableCell>
+                <TableCell>{page ? `/${page.slug}` : <Skeleton />}</TableCell>
                 <TableCell>
-                  <StatusLabel
-                    label={
-                      page.isVisible
-                        ? i18n.t("Published", { context: "object" })
-                        : i18n.t("Not published", { context: "object" })
-                    }
-                    status={page.isVisible ? "success" : "error"}
-                  />
+                  {page ? (
+                    <StatusLabel
+                      label={
+                        page.isVisible
+                          ? i18n.t("Published", { context: "object" })
+                          : i18n.t("Not published", { context: "object" })
+                      }
+                      status={page.isVisible ? "success" : "error"}
+                    />
+                  ) : (
+                    <Skeleton />
+                  )}
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={3}>{i18n.t("No pages found")}</TableCell>
-            </TableRow>
+            ),
+            () => (
+              <TableRow>
+                <TableCell colSpan={3}>{i18n.t("No pages found")}</TableCell>
+              </TableRow>
+            )
           )}
         </TableBody>
       </Table>

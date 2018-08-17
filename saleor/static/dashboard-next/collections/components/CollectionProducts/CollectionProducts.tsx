@@ -14,6 +14,7 @@ import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
+import { renderCollection } from "../../../misc";
 
 interface CollectionProductsProps {
   disabled?: boolean;
@@ -93,52 +94,46 @@ const CollectionProducts = decorate<CollectionProductsProps>(
           </TableRow>
         </TableFooter>
         <TableBody>
-          {products === undefined ? (
-            <TableRow>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-            </TableRow>
-          ) : products.length > 0 ? (
-            products.map(product => (
-              <TableRow key={product.id}>
+          {renderCollection(
+            products,
+            product => (
+              <TableRow key={product ? product.id : "skeleton"}>
                 <TableCell
                   onClick={
-                    !!onProductClick ? onProductClick(product.id) : undefined
+                    product && onProductClick && onProductClick(product.id)
                   }
-                  className={!!onProductClick ? classes.link : ""}
+                  className={product && onProductClick && classes.link}
                 >
-                  {product.name}
+                  {product ? product.name : <Skeleton />}
                 </TableCell>
-                <TableCell>{product.sku}</TableCell>
+                <TableCell>{product ? product.sku : <Skeleton />}</TableCell>
                 <TableCell>
-                  <StatusLabel
-                    status={
-                      product.availability && product.availability.available
-                        ? "success"
-                        : "error"
-                    }
-                    label={
-                      product.availability && product.availability.available
-                        ? i18n.t("Published")
-                        : i18n.t("Not published")
-                    }
-                  />
+                  {product ? (
+                    <StatusLabel
+                      status={
+                        product.availability && product.availability.available
+                          ? "success"
+                          : "error"
+                      }
+                      label={
+                        product.availability && product.availability.available
+                          ? i18n.t("Published")
+                          : i18n.t("Not published")
+                      }
+                    />
+                  ) : (
+                    <Skeleton />
+                  )}
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={3}>
-                {i18n.t("This collection has no products")}
-              </TableCell>
-            </TableRow>
+            ),
+            () => (
+              <TableRow>
+                <TableCell colSpan={3}>
+                  {i18n.t("This collection has no products")}
+                </TableCell>
+              </TableRow>
+            )
           )}
         </TableBody>
       </Table>

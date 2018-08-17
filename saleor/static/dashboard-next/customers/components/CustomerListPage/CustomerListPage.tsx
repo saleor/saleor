@@ -1,5 +1,5 @@
-import Card from "@material-ui/core/Card";
 import Button from "@material-ui/core/Button";
+import Card from "@material-ui/core/Card";
 import { withStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
@@ -16,6 +16,7 @@ import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
+import { renderCollection } from "../../../misc";
 
 interface CustomerListPageProps extends PageListProps {
   customers?: Array<{
@@ -83,43 +84,45 @@ const CustomerListPage = decorate<CustomerListPageProps>(
             </TableRow>
           </TableFooter>
           <TableBody>
-            {customers === undefined || customers === null ? (
-              <TableRow>
-                <TableCell>
-                  <Skeleton />
-                </TableCell>
-                <TableCell>
-                  <Skeleton />
-                </TableCell>
-                <TableCell>
-                  <Skeleton />
-                </TableCell>
-              </TableRow>
-            ) : customers.length > 0 ? (
-              customers.map(customer => (
-                <TableRow key={customer.id}>
+            {renderCollection(
+              customers,
+              customer => (
+                <TableRow key={customer ? customer.id : "skeleton"}>
                   <TableCell>
-                    <span
-                      onClick={onRowClick ? onRowClick(customer.id) : undefined}
-                      className={onRowClick ? classes.link : ""}
-                    >
-                      {customer.defaultBillingAddress.firstName}{" "}
-                      {customer.defaultBillingAddress.lastName}
-                    </span>
+                    {customer ? (
+                      <span
+                        onClick={onRowClick && onRowClick(customer.id)}
+                        className={onRowClick && classes.link}
+                      >
+                        {customer.defaultBillingAddress.firstName +
+                          " " +
+                          customer.defaultBillingAddress.lastName}
+                      </span>
+                    ) : (
+                      <Skeleton />
+                    )}
                   </TableCell>
-                  <TableCell>{customer.email}</TableCell>
                   <TableCell>
-                    {customer.defaultBillingAddress.city},{" "}
-                    {customer.defaultBillingAddress.country}
+                    {customer ? customer.email : <Skeleton />}
+                  </TableCell>
+                  <TableCell>
+                    {customer && customer.defaultBillingAddress ? (
+                      customer.defaultBillingAddress.city +
+                      ", " +
+                      customer.defaultBillingAddress.country
+                    ) : (
+                      <Skeleton />
+                    )}
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={3}>
-                  {i18n.t("No customers found")}
-                </TableCell>
-              </TableRow>
+              ),
+              () => (
+                <TableRow>
+                  <TableCell colSpan={3}>
+                    {i18n.t("No customers found")}
+                  </TableCell>
+                </TableRow>
+              )
             )}
           </TableBody>
         </Table>

@@ -14,6 +14,7 @@ import Skeleton from "../../../components/Skeleton";
 import TableCellAvatar from "../../../components/TableCellAvatar";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
+import { renderCollection } from "../../../misc";
 
 const decorate = withStyles(theme => ({
   link: {
@@ -84,35 +85,37 @@ export const ProductList = decorate<ProductListProps>(
           </TableRow>
         </TableFooter>
         <TableBody>
-          {products === undefined || products === null ? (
-            <TableRow>
-              <TableCellAvatar />
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-            </TableRow>
-          ) : products.length > 0 ? (
-            products.map(product => (
-              <TableRow key={product.id}>
-                <TableCellAvatar thumbnail={product.thumbnailUrl} />
+          {renderCollection(
+            products,
+            product => (
+              <TableRow key={product ? product.id : "skeleton"}>
+                <TableCellAvatar thumbnail={product && product.thumbnailUrl} />
                 <TableCell className={classes.textLeft}>
-                  <span
-                    onClick={onRowClick ? onRowClick(product.id) : undefined}
-                    className={onRowClick ? classes.link : ""}
-                  >
-                    {product.name}
-                  </span>
+                  {product ? (
+                    <span
+                      onClick={onRowClick && onRowClick(product.id)}
+                      className={onRowClick && classes.link}
+                    >
+                      {product.name}
+                    </span>
+                  ) : (
+                    <Skeleton />
+                  )}
                 </TableCell>
-                <TableCell>{product.productType.name}</TableCell>
+                <TableCell>
+                  {product && product.productType ? (
+                    product.productType.name
+                  ) : (
+                    <Skeleton />
+                  )}
+                </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={3}>{i18n.t("No products found")}</TableCell>
-            </TableRow>
+            ),
+            () => (
+              <TableRow>
+                <TableCell colSpan={3}>{i18n.t("No products found")}</TableCell>
+              </TableRow>
+            )
           )}
         </TableBody>
       </Table>

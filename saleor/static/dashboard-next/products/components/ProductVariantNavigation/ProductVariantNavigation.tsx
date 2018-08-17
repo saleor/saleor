@@ -10,6 +10,7 @@ import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
 import TableCellAvatar from "../../../components/TableCellAvatar";
 import i18n from "../../../i18n";
+import { renderCollection } from "../../../misc";
 
 interface ProductVariantNavigationProps {
   current?: string;
@@ -55,23 +56,18 @@ const ProductVariantNavigation = decorate<ProductVariantNavigationProps>(
       <CardTitle title={i18n.t("Variants")} />
       <Table>
         <TableBody>
-          {variants === undefined ? (
-            <TableRow hover>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-            </TableRow>
-          ) : variants.length > 0 ? (
-            variants.map(variant => (
+          {renderCollection(
+            variants,
+            variant => (
               <TableRow
-                hover
-                key={variant.id}
-                className={classes.link}
-                onClick={() => onRowClick(variant.id)}
+                hover={!!variant}
+                key={variant ? variant.id : "skeleton"}
+                className={variant && classes.link}
+                onClick={variant ? () => onRowClick(variant.id) : undefined}
               >
                 <TableCellAvatar
                   className={
-                    variant.id === current ? classes.tabActive : undefined
+                    variant && variant.id === current && classes.tabActive
                   }
                   thumbnail={
                     variant &&
@@ -80,19 +76,18 @@ const ProductVariantNavigation = decorate<ProductVariantNavigationProps>(
                     variant.image.edges[0] &&
                     variant.image.edges[0].node &&
                     variant.image.edges[0].node.url
-                      ? variant.image.edges[0].node.url
-                      : null
                   }
                 />
                 <TableCell className={classes.textLeft}>
-                  {variant.name || variant.sku}
+                  {variant ? variant.name || variant.sku : <Skeleton />}
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell>{i18n.t("This product has no variants")}</TableCell>
-            </TableRow>
+            ),
+            () => (
+              <TableRow>
+                <TableCell>{i18n.t("This product has no variants")}</TableCell>
+              </TableRow>
+            )
           )}
         </TableBody>
       </Table>

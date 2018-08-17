@@ -1,5 +1,4 @@
 import Card from "@material-ui/core/Card";
-import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
@@ -7,7 +6,6 @@ import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import VisibilityIcon from "@material-ui/icons/Visibility";
 import * as React from "react";
 
 import { ListProps } from "../../..";
@@ -15,6 +13,7 @@ import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
+import { renderCollection } from "../../../misc";
 
 interface CollectionListProps extends ListProps {
   collections?: Array<{
@@ -72,48 +71,50 @@ const CollectionList = decorate<CollectionListProps>(
           </TableRow>
         </TableFooter>
         <TableBody>
-          {collections === undefined ? (
-            <TableRow>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-            </TableRow>
-          ) : collections.length > 0 ? (
-            collections.map(collection => (
-              <TableRow key={collection.id}>
+          {renderCollection(
+            collections,
+            collection => (
+              <TableRow key={collection ? collection.id : "skeleton"}>
                 <TableCell
-                  onClick={!!onRowClick ? onRowClick(collection.id) : undefined}
-                  className={!!onRowClick ? classes.link : ""}
+                  onClick={
+                    collection && onRowClick
+                      ? onRowClick(collection.id)
+                      : undefined
+                  }
+                  className={collection && onRowClick && classes.link}
                 >
-                  {collection.name}
+                  {collection ? collection.name : <Skeleton />}
                 </TableCell>
                 <TableCell>
-                  <StatusLabel
-                    status={collection.isPublished ? "success" : "error"}
-                    label={
-                      collection.isPublished
-                        ? i18n.t("Published")
-                        : i18n.t("Not published")
-                    }
-                  />
+                  {collection ? (
+                    <StatusLabel
+                      status={collection.isPublished ? "success" : "error"}
+                      label={
+                        collection.isPublished
+                          ? i18n.t("Published")
+                          : i18n.t("Not published")
+                      }
+                    />
+                  ) : (
+                    <Skeleton />
+                  )}
                 </TableCell>
                 <TableCell className={classes.textRight}>
-                  {collection.products.totalCount}
+                  {collection && collection.products ? (
+                    collection.products.totalCount
+                  ) : (
+                    <Skeleton />
+                  )}
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={3}>
-                {i18n.t("No collections found")}
-              </TableCell>
-            </TableRow>
+            ),
+            () => (
+              <TableRow>
+                <TableCell colSpan={3}>
+                  {i18n.t("No collections found")}
+                </TableCell>
+              </TableRow>
+            )
           )}
         </TableBody>
       </Table>

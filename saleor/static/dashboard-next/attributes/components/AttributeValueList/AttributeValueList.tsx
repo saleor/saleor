@@ -14,6 +14,7 @@ import Skeleton from "../../../components/Skeleton";
 import CardTitle from "../../../components/CardTitle";
 import { EditableTableCell } from "../../../components/EditableTableCell/EditableTableCell";
 import i18n from "../../../i18n";
+import { renderCollection } from "../../../misc";
 
 interface AttributeValueListProps {
   disabled: boolean;
@@ -93,43 +94,40 @@ const AttributeValueList = decorate<AttributeValueListProps>(
             </TableRow>
           </TableHead>
           <TableBody>
-            {values === undefined || loading ? (
-              <TableRow>
-                <TableCell>
-                  <Skeleton />
-                </TableCell>
-                <TableCell className={classes.deleteIcon}>
-                  <IconButton disabled={disabled}>
-                    <CloseIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ) : values.length > 0 ? (
-              values.map(value => (
-                <TableRow key={value.id}>
-                  <EditableTableCell
-                    classes={{ root: classes.edit }}
-                    focused={value.isNew}
-                    defaultValue={defaultValue}
-                    value={value.name}
-                    onConfirm={handleEdit(value.id)}
-                  />
+            {renderCollection(
+              values,
+              value => (
+                <TableRow key={value ? value.id : "skeleton"}>
+                  {value ? (
+                    <EditableTableCell
+                      classes={{ root: classes.edit }}
+                      focused={value.isNew}
+                      defaultValue={defaultValue}
+                      value={value.name}
+                      onConfirm={handleEdit(value.id)}
+                    />
+                  ) : (
+                    <TableCell>
+                      <Skeleton />
+                    </TableCell>
+                  )}
                   <TableCell className={classes.deleteIcon}>
                     <IconButton
                       disabled={disabled}
-                      onClick={handleDelete(value.id)}
+                      onClick={value && handleDelete(value.id)}
                     >
                       <CloseIcon />
                     </IconButton>
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={2}>
-                  {i18n.t("No attribute values found")}
-                </TableCell>
-              </TableRow>
+              ),
+              () => (
+                <TableRow>
+                  <TableCell colSpan={2}>
+                    {i18n.t("No attribute values found")}
+                  </TableCell>
+                </TableRow>
+              )
             )}
           </TableBody>
         </Table>

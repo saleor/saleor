@@ -11,7 +11,7 @@ cache:
 install:
   - pip install -U pip setuptools wheel
   - pip install tox-travis codecov
-  - nvm install 8
+  - nvm install 10
   - npm i
   - npm run build-assets --production
   - npm run build-emails

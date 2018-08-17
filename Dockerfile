@@ -13,7 +13,7 @@ RUN pip install -r /app/requirements.txt
 
 
 ### Build static assets
-FROM node:8.6.0 as build-nodejs
+FROM node:10 as build-nodejs
 
 ARG STATIC_URL
 

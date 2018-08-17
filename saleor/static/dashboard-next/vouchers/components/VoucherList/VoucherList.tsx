@@ -16,6 +16,7 @@ import Percent from "../../../components/Percent";
 import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
+import { renderCollection } from "../../../misc";
 
 interface VoucherListProps extends ListProps {
   currency?: string;
@@ -86,42 +87,29 @@ const VoucherList = decorate<VoucherListProps>(
           </TableRow>
         </TableFooter>
         <TableBody>
-          {vouchers === undefined || vouchers === null ? (
-            <TableRow>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-            </TableRow>
-          ) : vouchers.length > 0 ? (
-            vouchers.map(voucher => (
-              <TableRow key={voucher.id}>
+          {renderCollection(
+            vouchers,
+            voucher => (
+              <TableRow key={voucher ? voucher.id : "skeleton"}>
                 <TableCell>
-                  <span
-                    onClick={onRowClick ? onRowClick(voucher.id) : undefined}
-                    className={onRowClick ? classes.link : ""}
-                  >
-                    {voucher ? (
-                      voucher.name !== null ? (
-                        voucher.name
+                  {voucher ? (
+                    <span
+                      onClick={onRowClick && onRowClick(voucher.id)}
+                      className={onRowClick && classes.link}
+                    >
+                      {voucher ? (
+                        voucher.name !== null ? (
+                          voucher.name
+                        ) : (
+                          createVoucherName(voucher, currency)
+                        )
                       ) : (
-                        createVoucherName(voucher, currency)
-                      )
-                    ) : (
-                      <Skeleton />
-                    )}
-                  </span>
+                        <Skeleton />
+                      )}
+                    </span>
+                  ) : (
+                    <Skeleton />
+                  )}
                 </TableCell>
                 <TableCell>
                   {voucher ? (
@@ -187,11 +175,12 @@ const VoucherList = decorate<VoucherListProps>(
                   )}
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={5}>{i18n.t("No vouchers found")}</TableCell>
-            </TableRow>
+            ),
+            () => (
+              <TableRow>
+                <TableCell colSpan={5}>{i18n.t("No vouchers found")}</TableCell>
+              </TableRow>
+            )
           )}
         </TableBody>
       </Table>

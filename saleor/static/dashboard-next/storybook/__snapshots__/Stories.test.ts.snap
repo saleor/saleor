@@ -164,7 +164,7 @@ exports[`Storyshots Categories / CategoryProducts when loading data 1`] = `
             </div>
           </td>
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id"
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
             <span
               class="Skeleton-skeleton-id"
@@ -604,9 +604,7 @@ exports[`Storyshots Categories / CategoryProducts with initial data 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span
-              class=""
-            >
+            <span>
               Gardner, Graham and King
             </span>
           </td>
@@ -634,9 +632,7 @@ exports[`Storyshots Categories / CategoryProducts with initial data 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span
-              class=""
-            >
+            <span>
               Gardner, Graham and King
             </span>
           </td>
@@ -664,9 +660,7 @@ exports[`Storyshots Categories / CategoryProducts with initial data 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span
-              class=""
-            >
+            <span>
               Gardner, Graham and King
             </span>
           </td>
@@ -694,9 +688,7 @@ exports[`Storyshots Categories / CategoryProducts with initial data 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span
-              class=""
-            >
+            <span>
               Gardner, Graham and King
             </span>
           </td>
@@ -1270,7 +1262,7 @@ exports[`Storyshots Generics / DateFormatter default 1`] = `
     <time
       datetime="1523097884000"
     >
-      Sat Apr 07 2018 10:44:44 GMT+0000
+      4 months ago
     </time>
   </span>
 </div>
@@ -4130,7 +4122,7 @@ exports[`Storyshots Generics / Timeline default 1`] = `
           <time
             datetime="1525712282000"
           >
-            Mon May 07 2018 16:58:02 GMT+0000
+            3 months ago
           </time>
         </span>
       </div>
@@ -4155,7 +4147,7 @@ exports[`Storyshots Generics / Timeline default 1`] = `
           <time
             datetime="1525711682000"
           >
-            Mon May 07 2018 16:48:02 GMT+0000
+            3 months ago
           </time>
         </span>
       </div>
@@ -4180,7 +4172,7 @@ exports[`Storyshots Generics / Timeline default 1`] = `
           <time
             datetime="1525625882000"
           >
-            Sun May 06 2018 16:58:02 GMT+0000
+            3 months ago
           </time>
         </span>
       </div>
@@ -4226,7 +4218,7 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
                 <time
                   datetime="1525712282000"
                 >
-                  Mon May 07 2018 16:58:02 GMT+0000
+                  3 months ago
                 </time>
               </span>
             </div>
@@ -4315,7 +4307,7 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
                 <time
                   datetime="1525711682000"
                 >
-                  Mon May 07 2018 16:48:02 GMT+0000
+                  3 months ago
                 </time>
               </span>
             </div>
@@ -4404,7 +4396,7 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
                 <time
                   datetime="1525625882000"
                 >
-                  Sun May 06 2018 16:58:02 GMT+0000
+                  3 months ago
                 </time>
               </span>
             </div>
@@ -4502,7 +4494,7 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
                 <time
                   datetime="1525712282000"
                 >
-                  Mon May 07 2018 16:58:02 GMT+0000
+                  3 months ago
                 </time>
               </span>
             </div>
@@ -4596,7 +4588,7 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
             <time
               datetime="1525712282000"
             >
-              Mon May 07 2018 16:58:02 GMT+0000
+              3 months ago
             </time>
           </span>
         </div>
@@ -4649,7 +4641,7 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
             <time
               datetime="1525712282000"
             >
-              Mon May 07 2018 16:58:02 GMT+0000
+              3 months ago
             </time>
           </span>
         </div>
@@ -4697,7 +4689,7 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
                 <time
                   datetime="1525625882000"
                 >
-                  Sun May 06 2018 16:58:02 GMT+0000
+                  3 months ago
                 </time>
               </span>
             </div>
@@ -5269,7 +5261,7 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
               <time
                 datetime="1523186299000"
               >
-                Sun Apr 08 2018 11:18:19 GMT+0000
+                4 months ago
               </time>
             </span>
           </div>
@@ -5316,7 +5308,7 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
                   <time
                     datetime="1523107879000"
                   >
-                    Sat Apr 07 2018 13:31:19 GMT+0000
+                    4 months ago
                   </time>
                 </span>
               </div>
@@ -5421,7 +5413,7 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
                   <time
                     datetime="1523100799000"
                   >
-                    Sat Apr 07 2018 11:33:19 GMT+0000
+                    4 months ago
                   </time>
                 </span>
               </div>
@@ -5514,7 +5506,7 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
                   <time
                     datetime="1523099899000"
                   >
-                    Sat Apr 07 2018 11:18:19 GMT+0000
+                    4 months ago
                   </time>
                 </span>
               </div>
@@ -10729,10 +10721,10 @@ exports[`Storyshots Orders / OrderSummary when loading data 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-avatarCell-id"
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
           >
             <div
-              class="MuiAvatar-root-id MuiAvatar-colorDefault-id"
+              class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
             >
               <svg
                 aria-hidden="true"
@@ -10767,7 +10759,7 @@ exports[`Storyshots Orders / OrderSummary when loading data 1`] = `
             </span>
           </td>
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id"
+            class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
           >
             <span
               class="Skeleton-skeleton-id"
@@ -10776,7 +10768,7 @@ exports[`Storyshots Orders / OrderSummary when loading data 1`] = `
             </span>
           </td>
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id"
+            class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
           >
             <span
               class="Skeleton-skeleton-id"
@@ -10785,7 +10777,7 @@ exports[`Storyshots Orders / OrderSummary when loading data 1`] = `
             </span>
           </td>
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id"
+            class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
           >
             <span
               class="Skeleton-skeleton-id"
@@ -11746,7 +11738,6 @@ exports[`Storyshots Views / Attributes / Attribute details when loading 1`] = `
                     disabled=""
                     name="name"
                     type="text"
-                    value=""
                   />
                 </div>
               </div>
@@ -14113,7 +14104,7 @@ exports[`Storyshots Views / Categories / Category details when loading 1`] = `
                   </div>
                 </td>
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
                 >
                   <span
                     class="Skeleton-skeleton-id"
@@ -16107,7 +16098,7 @@ exports[`Storyshots Views / Collections / Collection list when loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -16250,7 +16241,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                 <time
                   datetime="1507728150831"
                 >
-                  Wed Oct 11 2017 13:22:30 GMT+0000
+                  10 months ago
                 </time>
               </span>
             </div>
@@ -16385,7 +16376,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                     <time
                       datetime="1523099899000"
                     >
-                      Sat Apr 07 2018 11:18:19 GMT+0000
+                      4 months ago
                     </time>
                   </span>
                 </td>
@@ -16424,7 +16415,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                     <time
                       datetime="1523099479000"
                     >
-                      Sat Apr 07 2018 11:11:19 GMT+0000
+                      4 months ago
                     </time>
                   </span>
                 </td>
@@ -16463,7 +16454,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                     <time
                       datetime="1523097884000"
                     >
-                      Sat Apr 07 2018 10:44:44 GMT+0000
+                      4 months ago
                     </time>
                   </span>
                 </td>
@@ -16474,9 +16465,9 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                     class="Component-root-id "
                   >
                     <span
-                      class="Component-errorDot-id"
+                      class="Component-successDot-id"
                     />
-                    shipped
+                    Fulfilled
                   </div>
                 </td>
                 <td
@@ -16502,7 +16493,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                     <time
                       datetime="1523097199000"
                     >
-                      Sat Apr 07 2018 10:33:19 GMT+0000
+                      4 months ago
                     </time>
                   </span>
                 </td>
@@ -16513,9 +16504,9 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                     class="Component-root-id "
                   >
                     <span
-                      class="Component-errorDot-id"
+                      class="Component-successDot-id"
                     />
-                    shipped
+                    Fulfilled
                   </div>
                 </td>
                 <td
@@ -16541,7 +16532,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                     <time
                       datetime="1523086759000"
                     >
-                      Sat Apr 07 2018 07:39:19 GMT+0000
+                      4 months ago
                     </time>
                   </span>
                 </td>
@@ -16552,9 +16543,9 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                     class="Component-root-id "
                   >
                     <span
-                      class="Component-errorDot-id"
+                      class="Component-successDot-id"
                     />
-                    shipped
+                    Fulfilled
                   </div>
                 </td>
                 <td
@@ -16580,7 +16571,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                     <time
                       datetime="1523042299000"
                     >
-                      Fri Apr 06 2018 19:18:19 GMT+0000
+                      4 months ago
                     </time>
                   </span>
                 </td>
@@ -16962,7 +16953,7 @@ exports[`Storyshots Views / Customers / Customer details when loading 1`] = `
                   </span>
                 </td>
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
                 >
                   <span
                     class="Skeleton-skeleton-id"
@@ -18314,7 +18305,7 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
         <time
           datetime="1523099899000"
         >
-          Sat Apr 07 2018 11:18:19 GMT+0000
+          4 months ago
         </time>
       </span>
     </div>
@@ -18912,7 +18903,7 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                     <time
                       datetime="1523186299000"
                     >
-                      Sun Apr 08 2018 11:18:19 GMT+0000
+                      4 months ago
                     </time>
                   </span>
                 </div>
@@ -18959,7 +18950,7 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                         <time
                           datetime="1523107879000"
                         >
-                          Sat Apr 07 2018 13:31:19 GMT+0000
+                          4 months ago
                         </time>
                       </span>
                     </div>
@@ -19064,7 +19055,7 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                         <time
                           datetime="1523100799000"
                         >
-                          Sat Apr 07 2018 11:33:19 GMT+0000
+                          4 months ago
                         </time>
                       </span>
                     </div>
@@ -19157,7 +19148,7 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                         <time
                           datetime="1523099899000"
                         >
-                          Sat Apr 07 2018 11:18:19 GMT+0000
+                          4 months ago
                         </time>
                       </span>
                     </div>
@@ -19439,7 +19430,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
         <time
           datetime="1523099899000"
         >
-          Sat Apr 07 2018 11:18:19 GMT+0000
+          4 months ago
         </time>
       </span>
     </div>
@@ -20259,7 +20250,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                     <time
                       datetime="1523186299000"
                     >
-                      Sun Apr 08 2018 11:18:19 GMT+0000
+                      4 months ago
                     </time>
                   </span>
                 </div>
@@ -20306,7 +20297,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                         <time
                           datetime="1523107879000"
                         >
-                          Sat Apr 07 2018 13:31:19 GMT+0000
+                          4 months ago
                         </time>
                       </span>
                     </div>
@@ -20411,7 +20402,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                         <time
                           datetime="1523100799000"
                         >
-                          Sat Apr 07 2018 11:33:19 GMT+0000
+                          4 months ago
                         </time>
                       </span>
                     </div>
@@ -20504,7 +20495,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                         <time
                           datetime="1523099899000"
                         >
-                          Sat Apr 07 2018 11:18:19 GMT+0000
+                          4 months ago
                         </time>
                       </span>
                     </div>
@@ -20741,7 +20732,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
         <time
           datetime="1523099899000"
         >
-          Sat Apr 07 2018 11:18:19 GMT+0000
+          4 months ago
         </time>
       </span>
     </div>
@@ -21561,7 +21552,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                     <time
                       datetime="1523186299000"
                     >
-                      Sun Apr 08 2018 11:18:19 GMT+0000
+                      4 months ago
                     </time>
                   </span>
                 </div>
@@ -21608,7 +21599,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                         <time
                           datetime="1523107879000"
                         >
-                          Sat Apr 07 2018 13:31:19 GMT+0000
+                          4 months ago
                         </time>
                       </span>
                     </div>
@@ -21713,7 +21704,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                         <time
                           datetime="1523100799000"
                         >
-                          Sat Apr 07 2018 11:33:19 GMT+0000
+                          4 months ago
                         </time>
                       </span>
                     </div>
@@ -21806,7 +21797,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                         <time
                           datetime="1523099899000"
                         >
-                          Sat Apr 07 2018 11:18:19 GMT+0000
+                          4 months ago
                         </time>
                       </span>
                     </div>
@@ -22121,10 +22112,10 @@ exports[`Storyshots Views / Orders / Order details when loading data 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-avatarCell-id"
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
                 >
                   <div
-                    class="MuiAvatar-root-id MuiAvatar-colorDefault-id"
+                    class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
                   >
                     <svg
                       aria-hidden="true"
@@ -22159,7 +22150,7 @@ exports[`Storyshots Views / Orders / Order details when loading data 1`] = `
                   </span>
                 </td>
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
                 >
                   <span
                     class="Skeleton-skeleton-id"
@@ -22168,7 +22159,7 @@ exports[`Storyshots Views / Orders / Order details when loading data 1`] = `
                   </span>
                 </td>
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
                 >
                   <span
                     class="Skeleton-skeleton-id"
@@ -22177,7 +22168,7 @@ exports[`Storyshots Views / Orders / Order details when loading data 1`] = `
                   </span>
                 </td>
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
                 >
                   <span
                     class="Skeleton-skeleton-id"
@@ -22739,7 +22730,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                 <time
                   datetime="1523099899000"
                 >
-                  Sat Apr 07 2018 11:18:19 GMT+0000
+                  4 months ago
                 </time>
               </span>
             </td>
@@ -22758,12 +22749,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
             >
-              19.20 
-              <span
-                class="OrderList-currency-id"
-              >
-                USD
-              </span>
+              $19.20
             </td>
           </tr>
           <tr
@@ -22800,7 +22786,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                 <time
                   datetime="1523099479000"
                 >
-                  Sat Apr 07 2018 11:11:19 GMT+0000
+                  4 months ago
                 </time>
               </span>
             </td>
@@ -22819,12 +22805,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
             >
-              28.90 
-              <span
-                class="OrderList-currency-id"
-              >
-                USD
-              </span>
+              $28.90
             </td>
           </tr>
           <tr
@@ -22842,9 +22823,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                 class="Component-root-id "
               >
                 <span
-                  class="Component-errorDot-id"
+                  class="Component-successDot-id"
                 />
-                shipped
+                Fulfilled
               </div>
             </td>
             <td
@@ -22861,7 +22842,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                 <time
                   datetime="1523097884000"
                 >
-                  Sat Apr 07 2018 10:44:44 GMT+0000
+                  4 months ago
                 </time>
               </span>
             </td>
@@ -22880,12 +22861,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
             >
-              289.00 
-              <span
-                class="OrderList-currency-id"
-              >
-                USD
-              </span>
+              $289.00
             </td>
           </tr>
           <tr
@@ -22903,9 +22879,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                 class="Component-root-id "
               >
                 <span
-                  class="Component-errorDot-id"
+                  class="Component-successDot-id"
                 />
-                shipped
+                Fulfilled
               </div>
             </td>
             <td
@@ -22922,7 +22898,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                 <time
                   datetime="1523097199000"
                 >
-                  Sat Apr 07 2018 10:33:19 GMT+0000
+                  4 months ago
                 </time>
               </span>
             </td>
@@ -22941,12 +22917,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
             >
-              100.05 
-              <span
-                class="OrderList-currency-id"
-              >
-                USD
-              </span>
+              $100.05
             </td>
           </tr>
           <tr
@@ -22964,9 +22935,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                 class="Component-root-id "
               >
                 <span
-                  class="Component-errorDot-id"
+                  class="Component-successDot-id"
                 />
-                shipped
+                Fulfilled
               </div>
             </td>
             <td
@@ -22983,7 +22954,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                 <time
                   datetime="1523086759000"
                 >
-                  Sat Apr 07 2018 07:39:19 GMT+0000
+                  4 months ago
                 </time>
               </span>
             </td>
@@ -23002,12 +22973,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
             >
-              14.87 
-              <span
-                class="OrderList-currency-id"
-              >
-                USD
-              </span>
+              $14.87
             </td>
           </tr>
           <tr
@@ -23044,7 +23010,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                 <time
                   datetime="1523042299000"
                 >
-                  Fri Apr 06 2018 19:18:19 GMT+0000
+                  4 months ago
                 </time>
               </span>
             </td>
@@ -23063,12 +23029,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
             >
-              14.87 
-              <span
-                class="OrderList-currency-id"
-              >
-                USD
-              </span>
+              $14.87
             </td>
           </tr>
         </tbody>
@@ -23288,7 +23249,7 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -27629,7 +27590,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
                   >
                     <div
                       class="MuiAvatar-root-id Component-avatar-id"
@@ -27650,7 +27611,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
                   >
                     <div
                       class="MuiAvatar-root-id Component-avatar-id"
@@ -28046,10 +28007,30 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
                 class="MuiTableBody-root-id"
               >
                 <tr
-                  class="MuiTableRow-root-id MuiTableRow-hover-id"
+                  class="MuiTableRow-root-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  >
+                    <div
+                      class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <g>
+                          <path
+                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
+                          />
+                        </g>
+                      </svg>
+                    </div>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
                   >
                     <span
                       class="Skeleton-skeleton-id"
@@ -28402,7 +28383,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
                   >
                     <div
                       class="MuiAvatar-root-id Component-avatar-id"
@@ -28423,7 +28404,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
                   >
                     <div
                       class="MuiAvatar-root-id Component-avatar-id"
@@ -34314,7 +34295,7 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
           class="MuiTableBody-root-id"
         >
           <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id"
+            class="MuiTableRow-root-id"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
@@ -34337,7 +34318,7 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
               </div>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -34643,11 +34624,9 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                         focusable="false"
                         viewBox="0 0 24 24"
                       >
-                        <g
-                          style="fill-rule:evenodd"
-                        >
+                        <g>
                           <path
-                            d="M 22.418358,23.933955 23.941248,22.416861 1.505286,0.06622212 -0.01756434,1.5833815 2.3945365,3.98626 c -0.00402,0.054209 -0.00609,0.1089561 -0.00609,0.1641949 l 0,15.5654231 c 0,1.223034 1.0044565,2.223746 2.232151,2.223746 l 15.6251379,0 c 0.05533,0 0.110242,-0.0021 0.164611,-0.0061 l 2.008007,2.000405 z m -4.234188,-4.218065 -2.232782,-2.224284 -10.2147024,0 3.3482328,-4.291641 2.3883966,2.879541 1.336535,-1.717557 -8.1892465,-8.1579753 0,13.5119163 13.5635665,0 z m 4.293682,-15.5654234 0,13.8585934 -2.232111,-2.223614 0,-11.6349794 -11.6793779,0 -2.232218,-2.2237479 13.9115959,0 c 1.227708,0 2.232111,1.0007001 2.232111,2.2237479 z"
+                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
                           />
                         </g>
                       </svg>
@@ -34663,7 +34642,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
                   >
                     <div
                       class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
@@ -34674,11 +34653,9 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                         focusable="false"
                         viewBox="0 0 24 24"
                       >
-                        <g
-                          style="fill-rule:evenodd"
-                        >
+                        <g>
                           <path
-                            d="M 22.418358,23.933955 23.941248,22.416861 1.505286,0.06622212 -0.01756434,1.5833815 2.3945365,3.98626 c -0.00402,0.054209 -0.00609,0.1089561 -0.00609,0.1641949 l 0,15.5654231 c 0,1.223034 1.0044565,2.223746 2.232151,2.223746 l 15.6251379,0 c 0.05533,0 0.110242,-0.0021 0.164611,-0.0061 l 2.008007,2.000405 z m -4.234188,-4.218065 -2.232782,-2.224284 -10.2147024,0 3.3482328,-4.291641 2.3883966,2.879541 1.336535,-1.717557 -8.1892465,-8.1579753 0,13.5119163 13.5635665,0 z m 4.293682,-15.5654234 0,13.8585934 -2.232111,-2.223614 0,-11.6349794 -11.6793779,0 -2.232218,-2.2237479 13.9115959,0 c 1.227708,0 2.232111,1.0007001 2.232111,2.2237479 z"
+                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
                           />
                         </g>
                       </svg>
@@ -34694,7 +34671,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
                   >
                     <div
                       class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
@@ -34705,11 +34682,9 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                         focusable="false"
                         viewBox="0 0 24 24"
                       >
-                        <g
-                          style="fill-rule:evenodd"
-                        >
+                        <g>
                           <path
-                            d="M 22.418358,23.933955 23.941248,22.416861 1.505286,0.06622212 -0.01756434,1.5833815 2.3945365,3.98626 c -0.00402,0.054209 -0.00609,0.1089561 -0.00609,0.1641949 l 0,15.5654231 c 0,1.223034 1.0044565,2.223746 2.232151,2.223746 l 15.6251379,0 c 0.05533,0 0.110242,-0.0021 0.164611,-0.0061 l 2.008007,2.000405 z m -4.234188,-4.218065 -2.232782,-2.224284 -10.2147024,0 3.3482328,-4.291641 2.3883966,2.879541 1.336535,-1.717557 -8.1892465,-8.1579753 0,13.5119163 13.5635665,0 z m 4.293682,-15.5654234 0,13.8585934 -2.232111,-2.223614 0,-11.6349794 -11.6793779,0 -2.232218,-2.2237479 13.9115959,0 c 1.227708,0 2.232111,1.0007001 2.232111,2.2237479 z"
+                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
                           />
                         </g>
                       </svg>
@@ -34725,7 +34700,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
                   >
                     <div
                       class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
@@ -34736,11 +34711,9 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                         focusable="false"
                         viewBox="0 0 24 24"
                       >
-                        <g
-                          style="fill-rule:evenodd"
-                        >
+                        <g>
                           <path
-                            d="M 22.418358,23.933955 23.941248,22.416861 1.505286,0.06622212 -0.01756434,1.5833815 2.3945365,3.98626 c -0.00402,0.054209 -0.00609,0.1089561 -0.00609,0.1641949 l 0,15.5654231 c 0,1.223034 1.0044565,2.223746 2.232151,2.223746 l 15.6251379,0 c 0.05533,0 0.110242,-0.0021 0.164611,-0.0061 l 2.008007,2.000405 z m -4.234188,-4.218065 -2.232782,-2.224284 -10.2147024,0 3.3482328,-4.291641 2.3883966,2.879541 1.336535,-1.717557 -8.1892465,-8.1579753 0,13.5119163 13.5635665,0 z m 4.293682,-15.5654234 0,13.8585934 -2.232111,-2.223614 0,-11.6349794 -11.6793779,0 -2.232218,-2.2237479 13.9115959,0 c 1.227708,0 2.232111,1.0007001 2.232111,2.2237479 z"
+                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
                           />
                         </g>
                       </svg>
@@ -35264,10 +35237,30 @@ exports[`Storyshots Views / Products / Product variant details when loading data
                 class="MuiTableBody-root-id"
               >
                 <tr
-                  class="MuiTableRow-root-id MuiTableRow-hover-id"
+                  class="MuiTableRow-root-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  >
+                    <div
+                      class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <g>
+                          <path
+                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
+                          />
+                        </g>
+                      </svg>
+                    </div>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
                   >
                     <span
                       class="Skeleton-skeleton-id"
@@ -36822,7 +36815,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529575618079"
                 >
-                  Thu Jun 21 2018 10:06:58 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -36871,7 +36864,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529530856763"
                 >
-                  Wed Jun 20 2018 21:40:56 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -36884,7 +36877,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1546391094677"
                 >
-                  Wed Jan 02 2019 01:04:54 GMT+0000
+                  in 5 months
                 </time>
               </span>
             </td>
@@ -36924,7 +36917,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529531599359"
                 >
-                  Wed Jun 20 2018 21:53:19 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -36937,7 +36930,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1541991624030"
                 >
-                  Mon Nov 12 2018 03:00:24 GMT+0000
+                  in 3 months
                 </time>
               </span>
             </td>
@@ -36977,7 +36970,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529531047335"
                 >
-                  Wed Jun 20 2018 21:44:07 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -36990,7 +36983,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1534759118594"
                 >
-                  Mon Aug 20 2018 09:58:38 GMT+0000
+                  in 13 days
                 </time>
               </span>
             </td>
@@ -37030,7 +37023,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529554869850"
                 >
-                  Thu Jun 21 2018 04:21:09 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37075,7 +37068,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529507072639"
                 >
-                  Wed Jun 20 2018 15:04:32 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37124,7 +37117,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529535221827"
                 >
-                  Wed Jun 20 2018 22:53:41 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37137,7 +37130,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1539018134587"
                 >
-                  Mon Oct 08 2018 17:02:14 GMT+0000
+                  in 2 months
                 </time>
               </span>
             </td>
@@ -37181,7 +37174,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529535137917"
                 >
-                  Wed Jun 20 2018 22:52:17 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37194,7 +37187,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1535007860010"
                 >
-                  Thu Aug 23 2018 07:04:20 GMT+0000
+                  in 16 days
                 </time>
               </span>
             </td>
@@ -37234,7 +37227,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529578091815"
                 >
-                  Thu Jun 21 2018 10:48:11 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37247,7 +37240,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1541427554950"
                 >
-                  Mon Nov 05 2018 14:19:14 GMT+0000
+                  in 3 months
                 </time>
               </span>
             </td>
@@ -37287,7 +37280,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529540774087"
                 >
-                  Thu Jun 21 2018 00:26:14 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37332,7 +37325,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529503265834"
                 >
-                  Wed Jun 20 2018 14:01:05 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37377,7 +37370,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529531521122"
                 >
-                  Wed Jun 20 2018 21:52:01 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37390,7 +37383,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1550310553242"
                 >
-                  Sat Feb 16 2019 09:49:13 GMT+0000
+                  in 6 months
                 </time>
               </span>
             </td>
@@ -37430,7 +37423,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529507495602"
                 >
-                  Wed Jun 20 2018 15:11:35 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37479,7 +37472,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529541514746"
                 >
-                  Thu Jun 21 2018 00:38:34 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37492,7 +37485,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1553524910984"
                 >
-                  Mon Mar 25 2019 14:41:50 GMT+0000
+                  in 8 months
                 </time>
               </span>
             </td>
@@ -37536,7 +37529,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529535698092"
                 >
-                  Wed Jun 20 2018 23:01:38 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37549,7 +37542,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1537357626711"
                 >
-                  Wed Sep 19 2018 11:47:06 GMT+0000
+                  in a month
                 </time>
               </span>
             </td>
@@ -37589,7 +37582,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1529547210164"
                 >
-                  Thu Jun 21 2018 02:13:30 GMT+0000
+                  2 months ago
                 </time>
               </span>
             </td>
@@ -37602,7 +37595,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 <time
                   datetime="1546098434014"
                 >
-                  Sat Dec 29 2018 15:47:14 GMT+0000
+                  in 5 months
                 </time>
               </span>
             </td>
@@ -37990,7 +37983,7 @@ exports[`Storyshots Views / Vouchers / Voucher list when loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -37999,7 +37992,7 @@ exports[`Storyshots Views / Vouchers / Voucher list when loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
               <span
                 class="Skeleton-skeleton-id"

@@ -1,4 +1,3 @@
-import Avatar from "@material-ui/core/Avatar";
 import blue from "@material-ui/core/colors/blue";
 import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
@@ -8,16 +7,15 @@ import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
-import Cached from "@material-ui/icons/Cached";
 import CloseIcon from "@material-ui/icons/Close";
 import * as React from "react";
 
 import EditableTableCell from "../../../components/EditableTableCell";
 import Money from "../../../components/Money";
-import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
-import i18n from "../../../i18n";
 import TableCellAvatar from "../../../components/TableCellAvatar";
+import i18n from "../../../i18n";
+import { renderCollection } from "../../../misc";
 
 interface TaxedMoneyType {
   gross: {
@@ -123,40 +121,14 @@ const OrderProducts = decorate<OrderProductsProps>(
         </TableRow>
       </TableHead>
       <TableBody>
-        {products === undefined || products === null ? (
-          <TableRow>
-            <TableCell className={classes.avatarCell}>
-              <Avatar>
-                <Cached />
-              </Avatar>
-            </TableCell>
-            <TableCell>
-              <Skeleton />
-            </TableCell>
-            <TableCell>
-              <Skeleton />
-            </TableCell>
-            <TableCell>
-              <Skeleton />
-            </TableCell>
-            <TableCell>
-              <Skeleton />
-            </TableCell>
-            <TableCell>
-              <Skeleton />
-            </TableCell>
-          </TableRow>
-        ) : products.length > 0 ? (
-          products.map(product => (
-            <TableRow key={product.id}>
-              {isDraft ? (
+        {renderCollection(
+          products,
+          product => (
+            <TableRow key={product ? product.id : "skeleton"}>
+              {product && isDraft ? (
                 <TableCell className={classes.avatarCell}>
                   <IconButton
-                    onClick={
-                      !!onOrderLineRemove
-                        ? onOrderLineRemove(product.id)
-                        : undefined
-                    }
+                    onClick={onOrderLineRemove && onOrderLineRemove(product.id)}
                     disabled={!onOrderLineRemove}
                     className={classes.deleteIcon}
                   >
@@ -164,24 +136,32 @@ const OrderProducts = decorate<OrderProductsProps>(
                   </IconButton>
                 </TableCell>
               ) : (
-                <TableCellAvatar thumbnail={product.thumbnailUrl} />
+                <TableCellAvatar thumbnail={product && product.thumbnailUrl} />
               )}
               <TableCell>
-                <span
-                  onClick={onRowClick ? onRowClick(product.id) : () => {}}
-                  className={onRowClick ? classes.link : ""}
-                >
-                  {product.name}
-                </span>
+                {product ? (
+                  <span
+                    onClick={onRowClick && onRowClick(product.id)}
+                    className={onRowClick && classes.link}
+                  >
+                    {product.name}
+                  </span>
+                ) : (
+                  <Skeleton />
+                )}
               </TableCell>
-              <TableCell>{product.sku}</TableCell>
+              <TableCell>{product ? product.sku : <Skeleton />}</TableCell>
               <TableCell className={classes.textRight}>
-                <Money
-                  amount={product.price.gross.amount}
-                  currency={product.price.gross.currency}
-                />
+                {product && product.price && product.price.gross ? (
+                  <Money
+                    amount={product.price.gross.amount}
+                    currency={product.price.gross.currency}
+                  />
+                ) : (
+                  <Skeleton />
+                )}
               </TableCell>
-              {isDraft && !!onOrderLineChange ? (
+              {product && isDraft && onOrderLineChange ? (
                 <EditableTableCell
                   className={classes.textRight}
                   InputProps={{
@@ -193,31 +173,34 @@ const OrderProducts = decorate<OrderProductsProps>(
                 />
               ) : (
                 <TableCell className={classes.textRight}>
-                  {product.quantity}
+                  {product ? product.quantity : <Skeleton />}
                 </TableCell>
               )}
               <TableCell className={classes.textRight}>
-                <Money
-                  amount={product.price.gross.amount * product.quantity}
-                  currency={product.price.gross.currency}
-                />
+                {product && product.price && product.price.gross ? (
+                  <Money
+                    amount={product.price.gross.amount * product.quantity}
+                    currency={product.price.gross.currency}
+                  />
+                ) : (
+                  <Skeleton />
+                )}
               </TableCell>
             </TableRow>
-          ))
-        ) : (
-          <TableRow>
-            <TableCell className={classes.avatarCell} />
-            <TableCell colSpan={2}>{i18n.t("No products found")}</TableCell>
-          </TableRow>
+          ),
+          () => (
+            <TableRow>
+              <TableCell className={classes.avatarCell} />
+              <TableCell colSpan={2}>{i18n.t("No products found")}</TableCell>
+            </TableRow>
+          )
         )}
         <TableRow>
           <TableCell colSpan={5} className={classes.textRight}>
             <div className={classes.flexBox}>
               <Typography>{i18n.t("Subtotal")}</Typography>
               <Typography
-                className={
-                  isDraft && !!onShippingMethodClick ? classes.link : ""
-                }
+                className={isDraft && onShippingMethodClick && classes.link}
                 onClick={onShippingMethodClick}
               >
                 {shippingMethod ? shippingMethod.name : i18n.t("Shipping")}
