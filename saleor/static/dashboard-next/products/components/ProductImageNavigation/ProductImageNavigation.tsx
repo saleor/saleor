@@ -21,6 +21,9 @@ const decorate = withStyles(theme => ({
   card: {
     marginBottom: 2 * theme.spacing.unit
   },
+  highlightedImageContainer: {
+    borderColor: theme.palette.primary.main
+  },
   image: {
     height: "100%",
     objectFit: "contain" as "contain",
@@ -28,9 +31,6 @@ const decorate = withStyles(theme => ({
     width: "100%"
   },
   imageContainer: {
-    "&.highlighted": {
-      borderColor: theme.palette.primary.main
-    },
     background: "#ffffff",
     border: "2px solid #eaeaea",
     borderRadius: theme.spacing.unit,
@@ -61,7 +61,9 @@ const ProductImageNavigation = decorate<ProductImageNavigationProps>(
               <div
                 className={[
                   classes.imageContainer,
-                  image.id === highlighted ? "highlighted" : undefined
+                  image.id === highlighted
+                    ? classes.highlightedImageContainer
+                    : undefined
                 ].join(" ")}
                 onClick={onRowClick(image.id)}
                 key={image.id}

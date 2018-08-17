@@ -17,9 +17,6 @@ const decorate = withStyles(theme => ({
     width: "100%"
   },
   imageContainer: {
-    "&.selected": {
-      borderColor: theme.palette.primary.main
-    },
     background: "#ffffff",
     border: "1px solid #eaeaea",
     borderRadius: theme.spacing.unit,
@@ -40,6 +37,9 @@ const decorate = withStyles(theme => ({
     [theme.breakpoints.down("sm")]: {
       gridTemplateColumns: "repeat(2, 1fr)"
     }
+  },
+  selectedImageContainer: {
+    borderColor: theme.palette.primary.main
   }
 }));
 
@@ -64,7 +64,9 @@ const ProductVariantImageSelectDialog = decorate<
             <div
               className={[
                 classes.imageContainer,
-                selectedImages.indexOf(tile.id) === -1 ? undefined : "selected"
+                selectedImages.indexOf(tile.id) === -1
+                  ? undefined
+                  : classes.selectedImageContainer
               ].join(" ")}
               onClick={onImageSelect(tile.id)}
               key={tile.id}
