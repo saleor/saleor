@@ -22,7 +22,7 @@ const decorate = withStyles(theme => ({
     gridTemplateColumns: "100%",
     [theme.breakpoints.up("md")]: {
       gridGap: theme.spacing.unit * 2 + "px",
-      gridTemplateColumns: "3fr 1fr"
+      gridTemplateColumns: "9fr 4fr"
     }
   }
 }));

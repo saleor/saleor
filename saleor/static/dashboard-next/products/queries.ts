@@ -10,7 +10,9 @@ import {
   ProductListQuery,
   ProductListQueryVariables,
   ProductVariantCreateDataQuery,
-  ProductVariantCreateDataQueryVariables
+  ProductVariantCreateDataQueryVariables,
+  ProductVariantDetailsQuery,
+  ProductVariantDetailsQueryVariables
 } from "../gql-types";
 
 export const fragmentMoney = gql`
@@ -66,7 +68,6 @@ export const fragmentProduct = gql`
       }
     }
     isPublished
-    isFeatured
     chargeTaxes
     availableOn
     attributes {
@@ -192,14 +193,6 @@ export const fragmentVariant = gql`
                 }
               }
             }
-            images {
-              edges {
-                node {
-                  id
-                  url
-                }
-              }
-            }
           }
         }
       }
@@ -275,7 +268,7 @@ export const productDetailsQuery = gql`
 `;
 
 export const TypedProductVariantQuery = Query as React.ComponentType<
-  QueryProps<any, { id: string }>
+  QueryProps<ProductVariantDetailsQuery, ProductVariantDetailsQueryVariables>
 >;
 
 export const productVariantQuery = gql`
@@ -397,16 +390,26 @@ export const TypedProductImageQuery = Query as React.ComponentType<
   QueryProps<ProductImageQuery, ProductImageQueryVariables>
 >;
 export const productImageQuery = gql`
-  query ProductImage($productId: ID!, $imageId: String!) {
+  query ProductImage($productId: ID!, $imageId: ID!) {
     product(id: $productId) {
-      image: images(after: $imageId, first: 1) {
+      id
+      mainImage: imageById(id: $imageId) {
+        id
+        alt
+        url
+      }
+      images {
         edges {
-          cursor
           node {
             id
-            alt
-            url
+            url(size: 48)
           }
+        }
+        pageInfo {
+          hasPreviousPage
+          hasNextPage
+          startCursor
+          endCursor
         }
       }
     }

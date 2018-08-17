@@ -50,23 +50,20 @@ const decorate = withStyles(theme => ({
 }));
 
 export const ProductVariantImages = decorate<ProductVariantImagesProps>(
-  ({ classes, images }) => (
+  ({ classes, disabled, images, onImageAdd }) => (
     <Card className={classes.card}>
       <CardTitle
         title={i18n.t("Images")}
-        // FIXME: enable this button when API will be able to pin images
-        // to variants
-
-        // toolbar={
-        //   <Button
-        //     color="secondary"
-        //     variant="flat"
-        //     disabled={disabled}
-        //     onClick={onImageAdd}
-        //   >
-        //     {i18n.t("Choose photos")}
-        //   </Button>
-        // }
+        toolbar={
+          <Button
+            color="secondary"
+            variant="flat"
+            disabled={disabled}
+            onClick={onImageAdd}
+          >
+            {i18n.t("Choose photos")}
+          </Button>
+        }
       />
       <CardContent>
         <div className={classes.root}>

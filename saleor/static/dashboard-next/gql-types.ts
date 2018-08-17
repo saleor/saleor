@@ -396,8 +396,8 @@ export interface ProductImageCreateMutation {
       // The ID of the object.
       id: string,
       sortOrder: number,
-      image: string,
       alt: string,
+      // The URL of the image.
       url: string,
     } | null,
   } | null,
@@ -447,6 +447,7 @@ export interface ProductImageReorderMutation {
       id: string,
       alt: string,
       sortOrder: number,
+      // The URL of the image.
       url: string,
     } | null > | null,
   } | null,
@@ -461,7 +462,6 @@ export interface ProductUpdateMutationVariables {
   collections?: Array< string | null > | null,
   description?: string | null,
   isPublished: boolean,
-  isFeatured: boolean,
   name?: string | null,
   price?: string | null,
 };
@@ -528,7 +528,6 @@ export interface ProductUpdateMutation {
         } | null,
       } | null,
       isPublished: boolean,
-      isFeatured: boolean,
       chargeTaxes: boolean,
       availableOn: string | null,
       // List of product attributes assigned to this product.
@@ -594,6 +593,7 @@ export interface ProductUpdateMutation {
             id: string,
             alt: string,
             sortOrder: number,
+            // The URL of the image.
             url: string,
           },
         } >,
@@ -641,7 +641,6 @@ export interface ProductCreateMutationVariables {
   collections?: Array< string | null > | null,
   description?: string | null,
   isPublished: boolean,
-  isFeatured: boolean,
   name: string,
   price?: string | null,
   productType: string,
@@ -709,7 +708,6 @@ export interface ProductCreateMutation {
         } | null,
       } | null,
       isPublished: boolean,
-      isFeatured: boolean,
       chargeTaxes: boolean,
       availableOn: string | null,
       // List of product attributes assigned to this product.
@@ -775,6 +773,7 @@ export interface ProductCreateMutation {
             id: string,
             alt: string,
             sortOrder: number,
+            // The URL of the image.
             url: string,
           },
         } >,
@@ -927,6 +926,7 @@ export interface VariantUpdateMutation {
               id: string,
               alt: string,
               sortOrder: number,
+              // The URL of the image.
               url: string,
             },
           } >,
@@ -950,16 +950,7 @@ export interface VariantUpdateMutation {
                   node:  {
                     // The ID of the object.
                     id: string,
-                    url: string,
-                  },
-                } >,
-              } | null,
-              images:  {
-                edges:  Array< {
-                  // The item at the end of the edge
-                  node:  {
-                    // The ID of the object.
-                    id: string,
+                    // The URL of the image.
                     url: string,
                   },
                 } >,
@@ -1065,6 +1056,7 @@ export interface VariantCreateMutation {
               id: string,
               alt: string,
               sortOrder: number,
+              // The URL of the image.
               url: string,
             },
           } >,
@@ -1088,16 +1080,7 @@ export interface VariantCreateMutation {
                   node:  {
                     // The ID of the object.
                     id: string,
-                    url: string,
-                  },
-                } >,
-              } | null,
-              images:  {
-                edges:  Array< {
-                  // The item at the end of the edge
-                  node:  {
-                    // The ID of the object.
-                    id: string,
+                    // The URL of the image.
                     url: string,
                   },
                 } >,
@@ -1120,6 +1103,80 @@ export interface ProductImageDeleteMutationVariables {
 export interface ProductImageDeleteMutation {
   productImageDelete:  {
     productImage:  {
+      // The ID of the object.
+      id: string,
+    } | null,
+  } | null,
+};
+
+export interface ProductImageUpdateMutationVariables {
+  id: string,
+  alt: string,
+};
+
+export interface ProductImageUpdateMutation {
+  productImageUpdate:  {
+    // List of errors that occurred executing the mutation.
+    errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
+      field: string | null,
+      // The error message.
+      message: string | null,
+    } | null > | null,
+    productImage:  {
+      // The ID of the object.
+      id: string,
+      alt: string,
+    } | null,
+  } | null,
+};
+
+export interface VariantImageAssignMutationVariables {
+  variantId: string,
+  imageId: string,
+};
+
+export interface VariantImageAssignMutation {
+  variantImageAssign:  {
+    // List of errors that occurred executing the mutation.
+    errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
+      field: string | null,
+      // The error message.
+      message: string | null,
+    } | null > | null,
+    // Assigned product image.
+    image:  {
+      // The ID of the object.
+      id: string,
+      // The URL of the image.
+      url: string,
+    } | null,
+  } | null,
+};
+
+export interface VariantImageUnassignMutationVariables {
+  variantId: string,
+  imageId: string,
+};
+
+export interface VariantImageUnassignMutation {
+  variantImageUnassign:  {
+    // List of errors that occurred executing the mutation.
+    errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
+      field: string | null,
+      // The error message.
+      message: string | null,
+    } | null > | null,
+    // Unassigned product image.
+    image:  {
       // The ID of the object.
       id: string,
     } | null,
@@ -1234,7 +1291,6 @@ export interface ProductDetailsQuery {
       } | null,
     } | null,
     isPublished: boolean,
-    isFeatured: boolean,
     chargeTaxes: boolean,
     availableOn: string | null,
     // List of product attributes assigned to this product.
@@ -1300,6 +1356,7 @@ export interface ProductDetailsQuery {
           id: string,
           alt: string,
           sortOrder: number,
+          // The URL of the image.
           url: string,
         },
       } >,
@@ -1435,6 +1492,7 @@ export interface ProductVariantDetailsQuery {
             id: string,
             alt: string,
             sortOrder: number,
+            // The URL of the image.
             url: string,
           },
         } >,
@@ -1458,16 +1516,7 @@ export interface ProductVariantDetailsQuery {
                 node:  {
                   // The ID of the object.
                   id: string,
-                  url: string,
-                },
-              } >,
-            } | null,
-            images:  {
-              edges:  Array< {
-                // The item at the end of the edge
-                node:  {
-                  // The ID of the object.
-                  id: string,
+                  // The URL of the image.
                   url: string,
                 },
               } >,
@@ -1558,6 +1607,7 @@ export interface ProductVariantCreateDataQuery {
           // The ID of the object.
           id: string,
           sortOrder: number,
+          // The URL of the image.
           url: string,
         },
       } >,
@@ -1603,6 +1653,7 @@ export interface ProductVariantCreateDataQuery {
               node:  {
                 // The ID of the object.
                 id: string,
+                // The URL of the image.
                 url: string,
               },
             } >,
@@ -1621,18 +1672,36 @@ export interface ProductImageQueryVariables {
 export interface ProductImageQuery {
   // Lookup a product by ID.
   product:  {
-    image:  {
+    // The ID of the object.
+    id: string,
+    // Get a single product image by ID
+    mainImage:  {
+      // The ID of the object.
+      id: string,
+      alt: string,
+      // The URL of the image.
+      url: string,
+    } | null,
+    images:  {
       edges:  Array< {
-        // A cursor for use in pagination
-        cursor: string,
         // The item at the end of the edge
         node:  {
           // The ID of the object.
           id: string,
-          alt: string,
+          // The URL of the image.
           url: string,
         },
       } >,
+      pageInfo:  {
+        // When paginating backwards, are there more items?
+        hasPreviousPage: boolean,
+        // When paginating forwards, are there more items?
+        hasNextPage: boolean,
+        // When paginating backwards, the cursor to continue.
+        startCursor: string | null,
+        // When paginating forwards, the cursor to continue.
+        endCursor: string | null,
+      },
     } | null,
   } | null,
 };
@@ -1663,6 +1732,7 @@ export interface ProductImageFragment {
   id: string,
   alt: string,
   sortOrder: number,
+  // The URL of the image.
   url: string,
 };
 
@@ -1717,7 +1787,6 @@ export interface ProductFragment {
     } | null,
   } | null,
   isPublished: boolean,
-  isFeatured: boolean,
   chargeTaxes: boolean,
   availableOn: string | null,
   // List of product attributes assigned to this product.
@@ -1783,6 +1852,7 @@ export interface ProductFragment {
         id: string,
         alt: string,
         sortOrder: number,
+        // The URL of the image.
         url: string,
       },
     } >,
@@ -1889,6 +1959,7 @@ export interface ProductVariantFragment {
           id: string,
           alt: string,
           sortOrder: number,
+          // The URL of the image.
           url: string,
         },
       } >,
@@ -1912,16 +1983,7 @@ export interface ProductVariantFragment {
               node:  {
                 // The ID of the object.
                 id: string,
-                url: string,
-              },
-            } >,
-          } | null,
-          images:  {
-            edges:  Array< {
-              // The item at the end of the edge
-              node:  {
-                // The ID of the object.
-                id: string,
+                // The URL of the image.
                 url: string,
               },
             } >,

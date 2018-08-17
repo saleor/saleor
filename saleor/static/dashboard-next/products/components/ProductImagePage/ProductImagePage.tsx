@@ -13,14 +13,23 @@ import SaveButtonBar, {
 } from "../../../components/SaveButtonBar";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
+import ProductImageNavigation from "../ProductImageNavigation";
 
 interface ProductImagePageProps {
-  image?: string;
-  description?: string;
-  disabled?: boolean;
+  image?: {
+    id: string;
+    alt: string;
+    url: string;
+  };
+  images?: Array<{
+    id: string;
+    url: string;
+  }>;
+  disabled: boolean;
   saveButtonBarState?: SaveButtonBarState;
   onBack: () => void;
   onDelete: () => void;
+  onRowClick: (id: string) => () => void;
   onSubmit: (data: { description: string }) => void;
 }
 
@@ -47,18 +56,19 @@ const decorate = withStyles(theme => ({
 const ProductImagePage = decorate<ProductImagePageProps>(
   ({
     classes,
-    image,
-    description,
     disabled,
+    image,
+    images,
     saveButtonBarState,
     onBack,
     onDelete,
+    onRowClick,
     onSubmit
   }) => (
     <Form
-      initial={{ description: description || "" }}
+      initial={{ description: image ? image.alt : "" }}
       onSubmit={onSubmit}
-      key={description}
+      key={image ? image.alt : "loading"}
     >
       {({ change, data, hasChanged, submit }) => {
         return (
@@ -66,6 +76,12 @@ const ProductImagePage = decorate<ProductImagePageProps>(
             <PageHeader title={i18n.t("Edit Photo")} onBack={onBack} />
             <div className={classes.root}>
               <div>
+                <ProductImageNavigation
+                  disabled={disabled}
+                  images={images}
+                  highlighted={image ? image.id : undefined}
+                  onRowClick={onRowClick}
+                />
                 <Card>
                   <CardTitle title={i18n.t("Photo Information")} />
                   <CardContent>
@@ -88,7 +104,7 @@ const ProductImagePage = decorate<ProductImagePageProps>(
                   <CardContent>
                     {!!image ? (
                       <div className={classes.imageContainer}>
-                        <img src={image} className={classes.image} />
+                        <img src={image.url} className={classes.image} />
                       </div>
                     ) : (
                       <Skeleton />
