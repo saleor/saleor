@@ -10,7 +10,7 @@ from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 from django.views.decorators.csrf import csrf_exempt
-from payments import PaymentStatus
+from payments import PaymentStatus, RedirectNeeded
 
 from . import FulfillmentStatus
 from ..account.forms import LoginForm
@@ -43,9 +43,7 @@ def details(request, token):
     fulfillments = order.fulfillments.filter(
         status=FulfillmentStatus.FULFILLED)
     ctx = {
-        'order': order,
-        'fulfillments': fulfillments,
-        'note_form': note_form}
+        'order': order, 'fulfillments': fulfillments, 'note_form': note_form}
     return TemplateResponse(request, 'order/details.html', ctx)
 
 
@@ -78,9 +76,7 @@ def payment(request, token):
             return redirect(
                 'order:payment', token=order.token, variant=payment_method)
     ctx = {
-        'order': order,
-        'payment_form': payment_form,
-        'payments': payments,
+        'order': order, 'payment_form': payment_form, 'payments': payments,
         'waiting_payment': waiting_payment,
         'waiting_payment_form': waiting_payment_form}
     return TemplateResponse(request, 'order/payment.html', ctx)
@@ -98,6 +94,7 @@ def start_payment(request, order, variant):
         'total': total.gross.amount,
         'tax': total.tax.amount,
         'currency': total.currency,
+        'delivery': order.shipping_price.net.amount,
         'billing_first_name': billing.first_name,
         'billing_last_name': billing.last_name,
         'billing_address_1': billing.street_address_1,
@@ -106,12 +103,16 @@ def start_payment(request, order, variant):
         'billing_postcode': billing.postal_code,
         'billing_country_code': billing.country.code,
         'billing_email': order.user_email,
+        'description': pgettext_lazy(
+            'Payment description', 'Order %(order_number)s') % {
+                'order_number': order},
         'billing_country_area': billing.country_area,
         'customer_ip_address': get_client_ip(request)}
     variant_choices = settings.CHECKOUT_PAYMENT_CHOICES
     if variant not in [code for code, dummy_name in variant_choices]:
-        raise Http404('%r is not a valid payment variant' % (variant, ))
+        raise Http404('%r is not a valid payment variant' % (variant,))
     with transaction.atomic():
+        # FIXME: temporary solution, should be adapted to new API
         payment_method, dummy_created = PaymentMethod.objects.get_or_create(
             variant=variant, is_active=True, order=order, defaults=defaults)
         form = PaymentMethodForm(
@@ -120,19 +121,6 @@ def start_payment(request, order, variant):
         if form.is_valid():
             form.save()
             return redirect(order.get_absolute_url())
-        # try:
-        #     form = payment.get_form(data=request.POST or None)
-        # except RedirectNeeded as redirect_to:
-        #     return redirect(str(redirect_to))
-        # except Exception:
-        #     logger.exception('Error communicating with the payment gateway')
-        #     msg = pgettext_lazy(
-        #         'Payment gateway error',
-        #         'Oops, it looks like we were unable to contact the selected '
-        #         'payment service')
-        #     messages.error(request, msg)
-        #     payment.change_status(PaymentStatus.ERROR)
-        #     return redirect('order:payment', token=order.token)
     template = 'order/payment/%s.html' % variant
     ctx = {'form': form, 'payment': payment_method}
     return TemplateResponse(
@@ -208,6 +196,7 @@ def connect_order_with_user(request, token):
         return redirect('account:details')
     attach_order_to_user(order, request.user)
     msg = pgettext_lazy(
-        'storefront message', 'The order is now assigned to your account')
+        'storefront message',
+        'The order is now assigned to your account')
     messages.success(request, msg)
     return redirect('order:details', token=order.token)
