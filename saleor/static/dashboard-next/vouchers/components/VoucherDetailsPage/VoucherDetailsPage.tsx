@@ -13,9 +13,9 @@ import SaveButtonBar, {
 } from "../../../components/SaveButtonBar";
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
-import VoucherDate from "../VoucherDate/VoucherDate";
 import VoucherDetails from "../VoucherDetails/VoucherDetails";
 import VoucherProperties from "../VoucherProperties/VoucherProperties";
+import VoucherUsability from "../VoucherUsability";
 
 interface VoucherDetailsPageProps {
   disabled?: boolean;
@@ -177,7 +177,7 @@ const VoucherDetailsPage = decorate<VoucherDetailsPageProps>(
                     />
                   </div>
                   <div>
-                    <VoucherDate
+                    <VoucherUsability
                       disabled={disabled}
                       onChange={change}
                       data={data}

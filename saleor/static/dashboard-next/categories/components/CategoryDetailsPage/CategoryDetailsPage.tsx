@@ -48,12 +48,10 @@ interface CategoryDetailsPageProps {
 }
 
 const decorate = withStyles(theme => ({
-  root: {
-    "& > *": {
-      marginBottom: theme.spacing.unit * 2,
-      [theme.breakpoints.down("md")]: {
-        marginBottom: theme.spacing.unit
-      }
+  cardContainer: {
+    marginTop: theme.spacing.unit * 2,
+    [theme.breakpoints.down("md")]: {
+      marginTop: theme.spacing.unit
     }
   }
 }));
@@ -102,7 +100,7 @@ const CategoryDetailsPage = decorate<CategoryDetailsPageProps>(
                   </Button>
                 )}
               </PageHeader>
-              <div className={classes.root}>
+              <div>
                 {!isRoot && (
                   <CategoryProperties
                     description={category ? category.description : undefined}
@@ -110,24 +108,28 @@ const CategoryDetailsPage = decorate<CategoryDetailsPageProps>(
                     onDelete={toggleDialog}
                   />
                 )}
-                <CategoryList
-                  categories={subcategories}
-                  displayTitle={!isRoot}
-                  onAdd={onAddCategory}
-                  onRowClick={onCategoryClick}
-                />
-                {!isRoot && (
-                  <CategoryProducts
-                    products={products}
-                    hasNextPage={pageInfo ? pageInfo.hasNextPage : false}
-                    hasPreviousPage={
-                      pageInfo ? pageInfo.hasPreviousPage : false
-                    }
-                    onAddProduct={onAddProduct}
-                    onNextPage={onNextPage}
-                    onPreviousPage={onPreviousPage}
-                    onRowClick={onProductClick}
+                <div className={isRoot ? undefined : classes.cardContainer}>
+                  <CategoryList
+                    categories={subcategories}
+                    displayTitle={!isRoot}
+                    onAdd={onAddCategory}
+                    onRowClick={onCategoryClick}
                   />
+                </div>
+                {!isRoot && (
+                  <div className={classes.cardContainer}>
+                    <CategoryProducts
+                      products={products}
+                      hasNextPage={pageInfo ? pageInfo.hasNextPage : false}
+                      hasPreviousPage={
+                        pageInfo ? pageInfo.hasPreviousPage : false
+                      }
+                      onAddProduct={onAddProduct}
+                      onNextPage={onNextPage}
+                      onPreviousPage={onPreviousPage}
+                      onRowClick={onProductClick}
+                    />
+                  </div>
                 )}
               </div>
             </Container>

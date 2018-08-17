@@ -61,7 +61,7 @@ const CategoryDeleteProvider: React.StatelessComponent<
       }
 
       if (typeof children === "function") {
-        return children(() => deleteCategory());
+        return children(deleteCategory);
       }
       if (React.Children.count(children) > 0) {
         return React.Children.only(children);
@@ -187,12 +187,11 @@ const CategoryDetails: React.StatelessComponent<CategoryDetailsProps> = ({
                         onAddCategory={() => navigate(categoryAddUrl(id))}
                         onAddProduct={() => navigate(productAddUrl)}
                         onBack={() => window.history.back()}
-                        onCategoryClick={(id: string) => () =>
+                        onCategoryClick={id => () =>
                           navigate(categoryShowUrl(id))}
                         onDelete={deleteCategory}
                         onEdit={() => navigate(categoryEditUrl(id))}
-                        onProductClick={(id: string) => () =>
-                          navigate(productUrl(id))}
+                        onProductClick={id => () => navigate(productUrl(id))}
                         pageInfo={pageInfo}
                         onNextPage={loadNextPage}
                         onPreviousPage={loadPreviousPage}
@@ -229,9 +228,8 @@ const CategoryDetails: React.StatelessComponent<CategoryDetailsProps> = ({
                 onAddCategory={() => navigate(categoryAddUrl())}
                 onAddProduct={() => navigate(productAddUrl)}
                 onBack={() => window.history.back()}
-                onCategoryClick={(id: string) => () =>
-                  navigate(categoryShowUrl(id))}
-                onProductClick={(id: string) => () => navigate(productUrl(id))}
+                onCategoryClick={id => () => navigate(categoryShowUrl(id))}
+                onProductClick={id => () => navigate(productUrl(id))}
               />
             )}
           </Navigator>

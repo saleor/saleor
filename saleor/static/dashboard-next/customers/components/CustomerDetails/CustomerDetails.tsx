@@ -46,6 +46,9 @@ const decorate = withStyles(theme => ({
   },
   title: {
     display: "inline-block" as "inline-block"
+  },
+  userJoinDate: {
+    display: "inline"
   }
 }));
 const CustomerDetails = decorate<CustomerDetailsProps>(
@@ -92,7 +95,7 @@ const CustomerDetails = decorate<CustomerDetailsProps>(
             <div className={classes.date}>
               <Typography
                 component="span"
-                style={{ display: "inline" }}
+                className={classes.userJoinDate}
                 variant="caption"
               >
                 {i18n.t("Joined")}

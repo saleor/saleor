@@ -29,8 +29,8 @@ interface CollectionProductsProps {
       available: boolean;
     };
   }>;
-  onNextPage?();
-  onPreviousPage?();
+  onNextPage();
+  onPreviousPage();
   onProductAdd?();
   onProductClick?(id: string): () => void;
   onProductRemove?(id: string): () => void;

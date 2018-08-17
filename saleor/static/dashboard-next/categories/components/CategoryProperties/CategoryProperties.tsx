@@ -36,9 +36,11 @@ const CategoryProperties: React.StatelessComponent<CategoryPropertiesProps> = ({
     <CardContent>
       {description === undefined ? (
         <Skeleton />
+      ) : description ? (
+        <Typography>{description}</Typography>
       ) : (
-        <Typography color={description === "" ? "textSecondary" : "default"}>
-          {description === "" ? i18n.t("No description") : description}
+        <Typography color={"textSecondary"}>
+          {i18n.t("No description")}
         </Typography>
       )}
     </CardContent>

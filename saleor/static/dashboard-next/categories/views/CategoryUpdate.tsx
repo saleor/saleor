@@ -2,7 +2,10 @@ import * as React from "react";
 import { Redirect } from "react-router-dom";
 
 import ErrorMessageCard from "../../components/ErrorMessageCard";
-import { NavigatorLink } from "../../components/Navigator";
+import Messages from "../../components/messages";
+import Navigator, { NavigatorLink } from "../../components/Navigator";
+import { CategoryUpdateMutation } from "../../gql-types";
+import i18n from "../../i18n";
 import CategoryEditPage from "../components/CategoryEditPage";
 import { categoryShowUrl } from "../index";
 import {
@@ -18,55 +21,62 @@ interface CategoryUpdateFormProps {
 export const CategoryUpdateForm: React.StatelessComponent<
   CategoryUpdateFormProps
 > = ({ id }) => (
-  <TypedCategoryDetailsQuery query={categoryDetailsQuery} variables={{ id }}>
-    {({ data, loading, error }) => {
-      if (error) {
-        return <ErrorMessageCard message={error.message} />;
-      }
-
-      return (
-        <TypedCategoryUpdateMutation mutation={categoryUpdateMutation}>
-          {(
-            mutate,
-            { called, data: updateResult, loading: updateInProgress }
-          ) => {
-            if (
-              called &&
-              !updateInProgress &&
-              updateResult &&
-              updateResult.categoryUpdate.errors.length === 0
-            ) {
+  <Messages>
+    {pushMessage => (
+      <Navigator>
+        {navigate => (
+          <TypedCategoryDetailsQuery
+            query={categoryDetailsQuery}
+            variables={{ id }}
+          >
+            {({ data, loading, error }) => {
+              if (error) {
+                return <ErrorMessageCard message={error.message} />;
+              }
+              const handleUpdateSuccess = (data: CategoryUpdateMutation) => {
+                if (data.categoryUpdate.errors.length === 0) {
+                  pushMessage({ text: i18n.t("Category updated") });
+                  navigate(categoryShowUrl(data.categoryUpdate.category.id));
+                }
+              };
               return (
-                <Redirect
-                  to={categoryShowUrl(updateResult.categoryUpdate.category.id)}
-                />
+                <TypedCategoryUpdateMutation
+                  mutation={categoryUpdateMutation}
+                  onCompleted={handleUpdateSuccess}
+                >
+                  {(
+                    updateCategory,
+                    { called, data: updateResult, loading: updateInProgress }
+                  ) => {
+                    const errors =
+                      called && !updateInProgress && updateResult
+                        ? updateResult.categoryUpdate.errors
+                        : [];
+                    return (
+                      <NavigatorLink to={categoryShowUrl(id)}>
+                        {handleCancel => (
+                          <CategoryEditPage
+                            category={data ? data.category : undefined}
+                            errors={errors}
+                            disabled={updateInProgress || loading}
+                            variant="edit"
+                            onBack={handleCancel}
+                            onSubmit={data =>
+                              updateCategory({
+                                variables: { ...data, id }
+                              })
+                            }
+                          />
+                        )}
+                      </NavigatorLink>
+                    );
+                  }}
+                </TypedCategoryUpdateMutation>
               );
-            }
-            const errors =
-              called && !updateInProgress && updateResult
-                ? updateResult.categoryUpdate.errors
-                : [];
-            return (
-              <NavigatorLink to={categoryShowUrl(id)}>
-                {handleCancel => (
-                  <CategoryEditPage
-                    category={data ? data.category : undefined}
-                    errors={errors}
-                    disabled={updateInProgress || loading}
-                    variant="edit"
-                    onBack={handleCancel}
-                    onSubmit={data =>
-                      mutate({
-                        variables: { ...data, id }
-                      })
-                    }
-                  />
-                )}
-              </NavigatorLink>
-            );
-          }}
-        </TypedCategoryUpdateMutation>
-      );
-    }}
-  </TypedCategoryDetailsQuery>
+            }}
+          </TypedCategoryDetailsQuery>
+        )}
+      </Navigator>
+    )}
+  </Messages>
 );

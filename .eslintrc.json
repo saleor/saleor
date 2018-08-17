@@ -5,12 +5,12 @@
   },
   "extends": ["standard", "plugin:react/recommended"],
   "globals": {
-    "gettext": true,
-    "pgettext": true,
-    "ngettext": true,
     "Materialize": true,
     "describe": true,
-    "it": true
+    "gettext": true,
+    "it": true,
+    "ngettext": true,
+    "pgettext": true
   },
   "plugins": ["react"],
   "parser": "babel-eslint",

@@ -9,40 +9,70 @@ const value = {
 };
 
 storiesOf("Generics / PriceRangeField", module)
-  .add("with no value", () => <PriceRangeField onChange={() => {}} />)
   .add("with value", () => (
-    <PriceRangeField value={value} onChange={() => {}} />
+    <PriceRangeField
+      currencySymbol="USD"
+      name="priceField"
+      onChange={() => {}}
+      value={value}
+    />
   ))
   .add("with label", () => (
-    <PriceRangeField label="Lorem ipsum" onChange={() => {}} />
+    <PriceRangeField
+      currencySymbol="USD"
+      label="Lorem ipsum"
+      name="priceField"
+      onChange={() => {}}
+      value={value}
+    />
   ))
   .add("with hint", () => (
-    <PriceRangeField hint="Lorem ipsum" onChange={() => {}} />
+    <PriceRangeField
+      currencySymbol="USD"
+      hint="Lorem ipsum"
+      name="priceField"
+      onChange={() => {}}
+      value={value}
+    />
   ))
-  .add("with currency symbol", () => (
-    <PriceRangeField currencySymbol="$" onChange={() => {}} />
+  .add("disabled", () => (
+    <PriceRangeField
+      currencySymbol="USD"
+      disabled
+      name="priceField"
+      onChange={() => {}}
+      value={value}
+    />
   ))
-  .add("disabled", () => <PriceRangeField disabled onChange={() => {}} />)
   .add("with label and hint", () => (
-    <PriceRangeField label="Lorem" hint="Ipsum" onChange={() => {}} />
+    <PriceRangeField
+      currencySymbol="USD"
+      hint="Ipsum"
+      label="Lorem"
+      name="priceField"
+      onChange={() => {}}
+      value={value}
+    />
   ))
   .add("with value, label, currency symbol and hint", () => (
     <PriceRangeField
-      value={value}
-      label="Lorem"
+      currencySymbol="USD"
       hint="Ipsum"
+      label="Lorem"
+      name="priceField"
       onChange={() => {}}
-      currencySymbol="$"
+      value={value}
     />
   ))
   .add("with value, label, currency symbol and error", () => (
     <PriceRangeField
-      value={value}
-      label="Lorem"
-      hint="Ipsum"
+      currencySymbol="USD"
       error={true}
+      hint="Ipsum"
+      label="Lorem"
+      name="priceField"
       onChange={() => {}}
-      currencySymbol="$"
+      value={value}
     />
   ));
 

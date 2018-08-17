@@ -21,9 +21,7 @@ const AuthProviderOperations: React.StatelessComponent<any> = ({
         <TokenVerifyProvider onError={onError}>
           {tokenVerify => (
             <AuthProvider tokenAuth={tokenAuth} tokenVerify={tokenVerify}>
-              {({ isAuthenticated }) => {
-                return children({ isAuthenticated });
-              }}
+              {children}
             </AuthProvider>
           )}
         </TokenVerifyProvider>

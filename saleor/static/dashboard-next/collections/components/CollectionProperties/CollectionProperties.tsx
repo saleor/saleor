@@ -44,7 +44,9 @@ const CollectionProperties = decorate<CollectionPropertiesProps>(
         <TextField
           disabled={disabled}
           fullWidth
-          helperText={i18n.t("Slug is being used to create collection URL")}
+          helperText={i18n.t(
+            "Slugs are used to create nice URLs for collection pages"
+          )}
           label={i18n.t("Slug")}
           name="slug"
           onChange={onChange}

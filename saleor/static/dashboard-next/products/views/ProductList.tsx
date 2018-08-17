@@ -56,25 +56,23 @@ export const ProductList = decorate<ProductListProps>(({ classes, params }) => (
                 loading
               );
               return (
-                <>
-                  <div>
-                    <ProductListCard
-                      onAdd={() => navigate(productAddUrl)}
-                      disabled={loading}
-                      products={
-                        data &&
-                        data.products !== undefined &&
-                        data.products !== null
-                          ? data.products.edges.map(p => p.node)
-                          : undefined
-                      }
-                      onNextPage={loadNextPage}
-                      onPreviousPage={loadPreviousPage}
-                      pageInfo={pageInfo}
-                      onRowClick={id => () => navigate(productUrl(id))}
-                    />
-                  </div>
-                </>
+                <div>
+                  <ProductListCard
+                    onAdd={() => navigate(productAddUrl)}
+                    disabled={loading}
+                    products={
+                      data &&
+                      data.products !== undefined &&
+                      data.products !== null
+                        ? data.products.edges.map(p => p.node)
+                        : undefined
+                    }
+                    onNextPage={loadNextPage}
+                    onPreviousPage={loadPreviousPage}
+                    pageInfo={pageInfo}
+                    onRowClick={id => () => navigate(productUrl(id))}
+                  />
+                </div>
               );
             }}
           </TypedProductListQuery>
