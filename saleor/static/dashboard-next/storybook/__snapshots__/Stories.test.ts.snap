@@ -13243,7 +13243,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
                       class="TablePagination-spacer-id"
                     />
                     <div
-                      class="TablePaginationActions-root-id"
+                      class="TablePaginationActions-root-id "
                     >
                       <button
                         class="MuiButtonBase-root-id MuiIconButton-root-id"
@@ -13969,7 +13969,7 @@ exports[`Storyshots Views / Categories / Category details when loading 1`] = `
                       class="TablePagination-spacer-id"
                     />
                     <div
-                      class="TablePaginationActions-root-id"
+                      class="TablePaginationActions-root-id "
                     >
                       <button
                         class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -33456,7 +33456,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              PYG 595
+              PYG595
             </td>
           </tr>
           <tr
@@ -33499,7 +33499,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              GMD 432.08
+              GMD432.08
             </td>
           </tr>
           <tr
@@ -33542,7 +33542,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              WST 73.74
+              WST73.74
             </td>
           </tr>
           <tr
@@ -33585,7 +33585,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              MWK 27.68
+              MWK27.68
             </td>
           </tr>
           <tr
@@ -33628,7 +33628,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              WST 440.79
+              WST440.79
             </td>
           </tr>
           <tr
@@ -33671,7 +33671,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              HRK 398.96
+              HRK398.96
             </td>
           </tr>
           <tr
@@ -33714,7 +33714,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              HUF 959.31
+              HUF959.31
             </td>
           </tr>
           <tr
@@ -33757,7 +33757,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              PKR 593
+              PKR593
             </td>
           </tr>
           <tr
@@ -33800,7 +33800,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              SHP 62.01
+              SHP62.01
             </td>
           </tr>
           <tr
@@ -33843,7 +33843,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              UZS 197
+              UZS197
             </td>
           </tr>
         </tbody>
@@ -36558,7 +36558,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                RON 10.00
+                RON10.00
               </p>
             </td>
           </tr>
@@ -36811,7 +36811,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                PGK 20.00
+                PGK20.00
               </p>
             </td>
           </tr>
@@ -36868,7 +36868,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                KGS 80.00
+                KGS80.00
               </p>
             </td>
           </tr>
@@ -37166,7 +37166,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                DJF 30
+                DJF30
               </p>
             </td>
           </tr>
@@ -37223,7 +37223,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                GNF 70
+                GNF70
               </p>
             </td>
           </tr>
@@ -37333,7 +37333,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                RWF 30
+                RWF30
               </p>
             </td>
           </tr>
