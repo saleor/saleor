@@ -21,7 +21,7 @@ Make sure that "**Add Python 3.7 to PATH**" is checked.
 Node.js
 ~~~~~~~
 
-Version 8 or later is required. Download the Windows installer from the `Node.js downloads page <https://nodejs.org/en/download/>`_.
+Version 10 or later is required. Download the Windows installer from the `Node.js downloads page <https://nodejs.org/en/download/>`_.
 
 Make sure that "**Add to PATH**" is selected.
 

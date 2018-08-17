@@ -10,11 +10,12 @@ import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
 import DateFormatter from "../../../components/DateFormatter";
-import Money from "../../../components/Money/Money";
+import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
+import { renderCollection } from "../../../misc";
 
 interface CustomerOrdersProps {
   orders?: Array<{
@@ -83,51 +84,50 @@ const CustomerOrders = decorate<CustomerOrdersProps>(
           </TableRow>
         </TableFooter>
         <TableBody>
-          {orders === undefined || orders === null ? (
-            <TableRow>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-            </TableRow>
-          ) : orders.length > 0 ? (
-            orders.map(order => (
-              <TableRow key={order.id}>
+          {renderCollection(
+            orders,
+            order => (
+              <TableRow key={order ? order.id : "skeleton"}>
                 <TableCell
-                  onClick={onRowClick ? onRowClick(order.id) : undefined}
-                  className={onRowClick ? classes.link : ""}
+                  onClick={order && onRowClick && onRowClick(order.id)}
+                  className={order && onRowClick && classes.link}
                 >
-                  {order.number}
+                  {order ? order.number : <Skeleton />}
                 </TableCell>
                 <TableCell>
-                  <DateFormatter date={order.created} />
+                  {order ? (
+                    <DateFormatter date={order.created} />
+                  ) : (
+                    <Skeleton />
+                  )}
                 </TableCell>
                 <TableCell>
-                  <StatusLabel
-                    status={order.orderStatus.status}
-                    label={order.orderStatus.localized}
-                  />
+                  {order && order.orderStatus ? (
+                    <StatusLabel
+                      status={order.orderStatus.status}
+                      label={order.orderStatus.localized}
+                    />
+                  ) : (
+                    <Skeleton />
+                  )}
                 </TableCell>
                 <TableCell className={classes.textRight}>
-                  <Money
-                    amount={order.price.amount}
-                    currency={order.price.currency}
-                  />
+                  {order && order.price ? (
+                    <Money
+                      amount={order.price.amount}
+                      currency={order.price.currency}
+                    />
+                  ) : (
+                    <Skeleton />
+                  )}
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={4}>{i18n.t("No orders found")}</TableCell>
-            </TableRow>
+            ),
+            () => (
+              <TableRow>
+                <TableCell colSpan={4}>{i18n.t("No orders found")}</TableCell>
+              </TableRow>
+            )
           )}
         </TableBody>
       </Table>

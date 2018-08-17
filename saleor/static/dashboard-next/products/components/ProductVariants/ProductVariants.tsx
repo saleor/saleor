@@ -17,6 +17,7 @@ import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import i18n from "../../../i18n";
+import { renderCollection } from "../../../misc";
 
 interface ProductVariantsProps {
   disabled?: boolean;
@@ -105,37 +106,21 @@ export const ProductVariants = decorate<ProductVariantsProps>(
           </TableRow>
         </TableHead>
         <TableBody>
-          {variants === undefined ||
-          variants === null ||
-          fallbackPrice === undefined ? (
-            <TableRow hover>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <Hidden smDown>
-                <TableCell className={classes.textRight}>
-                  <Skeleton />
+          {renderCollection(
+            variants,
+            variant => (
+              <TableRow
+                hover={!!variant}
+                key={variant ? variant.id : "skeleton"}
+              >
+                <TableCell
+                  className={[classes.textLeft, classes.link].join(" ")}
+                  onClick={onRowClick(variant.id)}
+                >
+                  {variant ? variant.name || variant.sku : <Skeleton />}
                 </TableCell>
-              </Hidden>
-            </TableRow>
-          ) : variants.length > 0 ? (
-            variants.map(variant => {
-              const price = variant.priceOverride || fallbackPrice;
-              return (
-                <TableRow hover key={variant.id}>
-                  <TableCell
-                    className={[classes.textLeft, classes.link].join(" ")}
-                    onClick={onRowClick(variant.id)}
-                  >
-                    {variant.name || variant.sku}
-                  </TableCell>
-                  <TableCell>
+                <TableCell>
+                  {variant ? (
                     <StatusLabel
                       status={variant.stockQuantity > 0 ? "success" : "error"}
                       label={
@@ -144,22 +129,41 @@ export const ProductVariants = decorate<ProductVariantsProps>(
                           : i18n.t("Unavailable")
                       }
                     />
+                  ) : (
+                    <Skeleton />
+                  )}
+                </TableCell>
+                <TableCell>{variant ? variant.sku : <Skeleton />}</TableCell>
+                <Hidden smDown>
+                  <TableCell className={classes.textRight}>
+                    {variant ? (
+                      variant.priceOverride ? (
+                        <Money
+                          amount={variant.priceOverride.amount}
+                          currency={variant.priceOverride.currency}
+                        />
+                      ) : fallbackPrice ? (
+                        <Money
+                          amount={fallbackPrice.amount}
+                          currency={fallbackPrice.currency}
+                        />
+                      ) : (
+                        <Skeleton />
+                      )
+                    ) : (
+                      <Skeleton />
+                    )}
                   </TableCell>
-                  <TableCell>{variant.sku}</TableCell>
-                  <Hidden smDown>
-                    <TableCell className={classes.textRight}>
-                      <Money amount={price.amount} currency={price.currency} />
-                    </TableCell>
-                  </Hidden>
-                </TableRow>
-              );
-            })
-          ) : (
-            <TableRow>
-              <TableCell colSpan={2}>
-                {i18n.t("This product has no variants")}
-              </TableCell>
-            </TableRow>
+                </Hidden>
+              </TableRow>
+            ),
+            () => (
+              <TableRow>
+                <TableCell colSpan={2}>
+                  {i18n.t("This product has no variants")}
+                </TableCell>
+              </TableRow>
+            )
           )}
         </TableBody>
       </Table>

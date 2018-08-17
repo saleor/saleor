@@ -12,6 +12,7 @@ import { ListProps } from "../../..";
 import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
+import { renderCollection } from "../../../misc";
 
 interface AttributeType {
   id: string;
@@ -78,28 +79,17 @@ const ProductTypeList = decorate<ProductTypeListProps>(
           </TableRow>
         </TableFooter>
         <TableBody>
-          {productTypes === undefined ? (
-            <TableRow>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-            </TableRow>
-          ) : productTypes.length > 0 ? (
-            productTypes.map(productType => (
-              <TableRow key={productType.id}>
+          {renderCollection(
+            productTypes,
+            productType => (
+              <TableRow key={productType ? productType.id : "skeleton"}>
                 <TableCell
                   onClick={
-                    !!onRowClick ? onRowClick(productType.id) : undefined
+                    productType && onRowClick && onRowClick(productType.id)
                   }
-                  className={!!onRowClick ? classes.link : ""}
+                  className={productType && onRowClick && classes.link}
                 >
-                  {productType.name}
+                  {productType ? productType.name : <Skeleton />}
                 </TableCell>
                 <TableCell>
                   {productType &&
@@ -120,20 +110,21 @@ const ProductTypeList = decorate<ProductTypeListProps>(
                     productType.variantAttributes.edges
                       .map(edge => edge.node.name)
                       .join(", ")
-                  ) : productType && productType.hasVariants === undefined ? (
-                    <Skeleton />
-                  ) : (
+                  ) : productType && productType.hasVariants === false ? (
                     "-"
+                  ) : (
+                    <Skeleton />
                   )}
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={3}>
-                {i18n.t("No product types found")}
-              </TableCell>
-            </TableRow>
+            ),
+            () => (
+              <TableRow>
+                <TableCell colSpan={3}>
+                  {i18n.t("No product types found")}
+                </TableCell>
+              </TableRow>
+            )
           )}
         </TableBody>
       </Table>

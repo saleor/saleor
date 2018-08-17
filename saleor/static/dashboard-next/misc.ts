@@ -84,3 +84,21 @@ export function createPaginationData(
     pageInfo: newPageInfo
   };
 }
+
+export function renderCollection<T>(
+  collection: T[],
+  renderItem: (
+    item: T | undefined,
+    index: number | undefined,
+    collection: T[]
+  ) => any,
+  renderEmpty: (collection: T[]) => any
+) {
+  if (collection === undefined) {
+    return renderItem(undefined, undefined, collection);
+  }
+  if (collection.length === 0) {
+    return renderEmpty(collection);
+  }
+  return collection.map(renderItem);
+}

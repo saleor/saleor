@@ -55,12 +55,8 @@ const AttributeDetailsPage = decorate<AttributeDetailsPageProps>(
       {(openedDeleteDialog, { toggle: toggleDeleteDialog }) => (
         <Form
           initial={{
-            name:
-              attribute && attribute.name !== undefined ? attribute.name : "",
-            values:
-              attribute && attribute.values !== undefined
-                ? attribute.values
-                : []
+            name: attribute && attribute.name,
+            values: attribute && attribute.values
           }}
           onSubmit={onSubmit}
           key={JSON.stringify(attribute)}
@@ -81,7 +77,7 @@ const AttributeDetailsPage = decorate<AttributeDetailsPageProps>(
                     />
                     <AttributeValueList
                       disabled={disabled}
-                      loading={!(attribute && attribute.values)}
+                      loading={!attribute || !attribute.values}
                       values={data.values}
                       onChange={change}
                     />

@@ -45,7 +45,7 @@ export const orders = [
   {
     id: "o3",
     number: 9,
-    status: "shipped",
+    status: "fulfilled",
     client: clients[1],
     created: "2018-04-07T10:44:44+00:00",
     paymentStatus: "rejected",
@@ -57,7 +57,7 @@ export const orders = [
   {
     id: "o4",
     number: 9,
-    status: "shipped",
+    status: "fulfilled",
     client: clients[2],
     created: "2018-04-07T10:33:19+00:00",
     paymentStatus: "unknown",
@@ -69,7 +69,7 @@ export const orders = [
   {
     id: "o5",
     number: 9,
-    status: "shipped",
+    status: "fulfilled",
     client: clients[3],
     created: "2018-04-07T07:39:19+00:00",
     paymentStatus: "waiting",

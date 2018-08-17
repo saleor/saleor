@@ -12,6 +12,7 @@ import { ListProps } from "../../..";
 import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
+import { renderCollection } from "../../../misc";
 
 interface AttributeListProps extends ListProps {
   attributes?: Array<{
@@ -63,45 +64,48 @@ const AttributeList = decorate<AttributeListProps>(
           </TableRow>
         </TableFooter>
         <TableBody>
-          {attributes === undefined ? (
-            <TableRow>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-            </TableRow>
-          ) : attributes.length > 0 ? (
-            attributes.map(attribute => (
-              <TableRow key={attribute.id}>
+          {renderCollection(
+            attributes,
+            attribute => (
+              <TableRow key={attribute ? attribute.id : "skeleton"}>
                 <TableCell>
-                  <span
-                    onClick={onRowClick(attribute.id)}
-                    className={classes.link}
-                  >
-                    {attribute.name}
-                  </span>
+                  {attribute ? (
+                    <span
+                      onClick={onRowClick(attribute.id)}
+                      className={classes.link}
+                    >
+                      {attribute.name}
+                    </span>
+                  ) : (
+                    <Skeleton />
+                  )}
                 </TableCell>
                 <TableCell>
-                  {attribute.values
-                    .sort(
-                      (a, b) =>
-                        a.sortOrder > b.sortOrder
-                          ? 1
-                          : a.sortOrder < b.sortOrder
-                            ? -1
-                            : 0
-                    )
-                    .map(v => v.name)
-                    .join(", ")}
+                  {attribute && attribute.values ? (
+                    attribute.values
+                      .sort(
+                        (a, b) =>
+                          a.sortOrder > b.sortOrder
+                            ? 1
+                            : a.sortOrder < b.sortOrder
+                              ? -1
+                              : 0
+                      )
+                      .map(v => v.name)
+                      .join(", ")
+                  ) : (
+                    <Skeleton />
+                  )}
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={2}>{i18n.t("No attributes found")}</TableCell>
-            </TableRow>
+            ),
+            () => (
+              <TableRow>
+                <TableCell colSpan={2}>
+                  {i18n.t("No attributes found")}
+                </TableCell>
+              </TableRow>
+            )
           )}
         </TableBody>
       </Table>
