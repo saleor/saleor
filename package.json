@@ -13,8 +13,8 @@
   },
   "homepage": "http://getsaleor.com/",
   "engines": {
-    "node": "^8.7.0",
-    "npm": "^5.4.2"
+    "node": ">=10.6.0",
+    "npm": ">=6.1.0"
   },
   "dependencies": {
     "@material-ui/core": "^1.2.0",
