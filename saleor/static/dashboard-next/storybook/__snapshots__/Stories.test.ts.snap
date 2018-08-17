@@ -1249,12 +1249,11 @@ exports[`Storyshots Generics / DateFormatter default 1`] = `
   <span
     class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
   >
-    <time
-      datetime="1523097884000"
-      title="2018-4-7 10:44:44"
+    <span
+      title="2018-04-07T10:44:44"
     >
-      4 months ago
-    </time>
+      2018-04-07T10:44:44
+    </span>
   </span>
 </div>
 `;
@@ -4056,12 +4055,11 @@ exports[`Storyshots Generics / Timeline default 1`] = `
         <span
           class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
         >
-          <time
-            datetime="1525712282000"
-            title="2018-5-7 16:58:02"
+          <span
+            title="2018-05-07T16:58:02+00:00"
           >
-            3 months ago
-          </time>
+            2018-05-07T16:58:02+00:00
+          </span>
         </span>
       </div>
     </div>
@@ -4082,12 +4080,11 @@ exports[`Storyshots Generics / Timeline default 1`] = `
         <span
           class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
         >
-          <time
-            datetime="1525711682000"
-            title="2018-5-7 16:48:02"
+          <span
+            title="2018-05-07T16:48:02+00:00"
           >
-            3 months ago
-          </time>
+            2018-05-07T16:48:02+00:00
+          </span>
         </span>
       </div>
     </div>
@@ -4108,12 +4105,11 @@ exports[`Storyshots Generics / Timeline default 1`] = `
         <span
           class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
         >
-          <time
-            datetime="1525625882000"
-            title="2018-5-6 16:58:02"
+          <span
+            title="2018-05-06T16:58:02+00:00"
           >
-            3 months ago
-          </time>
+            2018-05-06T16:58:02+00:00
+          </span>
         </span>
       </div>
     </div>
@@ -4155,12 +4151,11 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
               >
-                <time
-                  datetime="1525712282000"
-                  title="2018-5-7 16:58:02"
+                <span
+                  title="2018-05-07T16:58:02+00:00"
                 >
-                  3 months ago
-                </time>
+                  2018-05-07T16:58:02+00:00
+                </span>
               </span>
             </div>
           </div>
@@ -4245,12 +4240,11 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
               >
-                <time
-                  datetime="1525711682000"
-                  title="2018-5-7 16:48:02"
+                <span
+                  title="2018-05-07T16:48:02+00:00"
                 >
-                  3 months ago
-                </time>
+                  2018-05-07T16:48:02+00:00
+                </span>
               </span>
             </div>
           </div>
@@ -4335,12 +4329,11 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
               >
-                <time
-                  datetime="1525625882000"
-                  title="2018-5-6 16:58:02"
+                <span
+                  title="2018-05-06T16:58:02+00:00"
                 >
-                  3 months ago
-                </time>
+                  2018-05-06T16:58:02+00:00
+                </span>
               </span>
             </div>
           </div>
@@ -4434,12 +4427,11 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
               >
-                <time
-                  datetime="1525712282000"
-                  title="2018-5-7 16:58:02"
+                <span
+                  title="2018-05-07T16:58:02+00:00"
                 >
-                  3 months ago
-                </time>
+                  2018-05-07T16:58:02+00:00
+                </span>
               </span>
             </div>
           </div>
@@ -4529,12 +4521,11 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
           <span
             class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
           >
-            <time
-              datetime="1525712282000"
-              title="2018-5-7 16:58:02"
+            <span
+              title="2018-05-07T16:58:02+00:00"
             >
-              3 months ago
-            </time>
+              2018-05-07T16:58:02+00:00
+            </span>
           </span>
         </div>
       </div>
@@ -4583,12 +4574,11 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
           <span
             class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
           >
-            <time
-              datetime="1525712282000"
-              title="2018-5-7 16:58:02"
+            <span
+              title="2018-05-07T16:58:02+00:00"
             >
-              3 months ago
-            </time>
+              2018-05-07T16:58:02+00:00
+            </span>
           </span>
         </div>
       </div>
@@ -4632,12 +4622,11 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
               >
-                <time
-                  datetime="1525625882000"
-                  title="2018-5-6 16:58:02"
+                <span
+                  title="2018-05-06T16:58:02+00:00"
                 >
-                  3 months ago
-                </time>
+                  2018-05-06T16:58:02+00:00
+                </span>
               </span>
             </div>
           </div>
@@ -5204,12 +5193,11 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
             <span
               class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
             >
-              <time
-                datetime="1523186299000"
-                title="2018-4-8 11:18:19"
+              <span
+                title="2018-04-08T11:18:19+00:00"
               >
-                4 months ago
-              </time>
+                2018-04-08T11:18:19+00:00
+              </span>
             </span>
           </div>
         </div>
@@ -5252,12 +5240,11 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
                 <span
                   class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                 >
-                  <time
-                    datetime="1523107879000"
-                    title="2018-4-7 13:31:19"
+                  <span
+                    title="2018-04-07T13:31:19+00:00"
                   >
-                    4 months ago
-                  </time>
+                    2018-04-07T13:31:19+00:00
+                  </span>
                 </span>
               </div>
             </div>
@@ -5358,12 +5345,11 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
                 <span
                   class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                 >
-                  <time
-                    datetime="1523100799000"
-                    title="2018-4-7 11:33:19"
+                  <span
+                    title="2018-04-07T11:33:19+00:00"
                   >
-                    4 months ago
-                  </time>
+                    2018-04-07T11:33:19+00:00
+                  </span>
                 </span>
               </div>
             </div>
@@ -5452,12 +5438,11 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
                 <span
                   class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                 >
-                  <time
-                    datetime="1523099899000"
-                    title="2018-4-7 11:18:19"
+                  <span
+                    title="2018-04-07T11:18:19+00:00"
                   >
-                    4 months ago
-                  </time>
+                    2018-04-07T11:18:19+00:00
+                  </span>
                 </span>
               </div>
             </div>
@@ -16186,12 +16171,11 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-caption-id DateFormatter-root-id"
               >
-                <time
-                  datetime="1507728150831"
-                  title="2017-10-11 13:22:30"
+                <span
+                  title="2017-10-11T13:22:30.831Z"
                 >
-                  10 months ago
-                </time>
+                  2017-10-11T13:22:30.831Z
+                </span>
               </span>
             </div>
             <p
@@ -16323,12 +16307,11 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   <span
                     class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                   >
-                    <time
-                      datetime="1523099899000"
-                      title="2018-4-7 11:18:19"
+                    <span
+                      title="2018-04-07T11:18:19+00:00"
                     >
-                      4 months ago
-                    </time>
+                      2018-04-07T11:18:19+00:00
+                    </span>
                   </span>
                 </td>
                 <td
@@ -16363,12 +16346,11 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   <span
                     class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                   >
-                    <time
-                      datetime="1523099479000"
-                      title="2018-4-7 11:11:19"
+                    <span
+                      title="2018-04-07T11:11:19+00:00"
                     >
-                      4 months ago
-                    </time>
+                      2018-04-07T11:11:19+00:00
+                    </span>
                   </span>
                 </td>
                 <td
@@ -16403,12 +16385,11 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   <span
                     class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                   >
-                    <time
-                      datetime="1523097884000"
-                      title="2018-4-7 10:44:44"
+                    <span
+                      title="2018-04-07T10:44:44+00:00"
                     >
-                      4 months ago
-                    </time>
+                      2018-04-07T10:44:44+00:00
+                    </span>
                   </span>
                 </td>
                 <td
@@ -16443,12 +16424,11 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   <span
                     class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                   >
-                    <time
-                      datetime="1523097199000"
-                      title="2018-4-7 10:33:19"
+                    <span
+                      title="2018-04-07T10:33:19+00:00"
                     >
-                      4 months ago
-                    </time>
+                      2018-04-07T10:33:19+00:00
+                    </span>
                   </span>
                 </td>
                 <td
@@ -16483,12 +16463,11 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   <span
                     class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                   >
-                    <time
-                      datetime="1523086759000"
-                      title="2018-4-7 07:39:19"
+                    <span
+                      title="2018-04-07T07:39:19+00:00"
                     >
-                      4 months ago
-                    </time>
+                      2018-04-07T07:39:19+00:00
+                    </span>
                   </span>
                 </td>
                 <td
@@ -16523,12 +16502,11 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   <span
                     class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                   >
-                    <time
-                      datetime="1523042299000"
-                      title="2018-4-6 19:18:19"
+                    <span
+                      title="2018-04-06T19:18:19+00:00"
                     >
-                      4 months ago
-                    </time>
+                      2018-04-06T19:18:19+00:00
+                    </span>
                   </span>
                 </td>
                 <td
@@ -18253,12 +18231,11 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
       <span
         class="MuiTypography-root-id MuiTypography-caption-id DateFormatter-root-id"
       >
-        <time
-          datetime="1523099899000"
-          title="2018-4-7 11:18:19"
+        <span
+          title="2018-04-07T11:18:19+00:00"
         >
-          4 months ago
-        </time>
+          2018-04-07T11:18:19+00:00
+        </span>
       </span>
     </div>
     <div
@@ -18852,12 +18829,11 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                   <span
                     class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                   >
-                    <time
-                      datetime="1523186299000"
-                      title="2018-4-8 11:18:19"
+                    <span
+                      title="2018-04-08T11:18:19+00:00"
                     >
-                      4 months ago
-                    </time>
+                      2018-04-08T11:18:19+00:00
+                    </span>
                   </span>
                 </div>
               </div>
@@ -18900,12 +18876,11 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                       <span
                         class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                       >
-                        <time
-                          datetime="1523107879000"
-                          title="2018-4-7 13:31:19"
+                        <span
+                          title="2018-04-07T13:31:19+00:00"
                         >
-                          4 months ago
-                        </time>
+                          2018-04-07T13:31:19+00:00
+                        </span>
                       </span>
                     </div>
                   </div>
@@ -19006,12 +18981,11 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                       <span
                         class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                       >
-                        <time
-                          datetime="1523100799000"
-                          title="2018-4-7 11:33:19"
+                        <span
+                          title="2018-04-07T11:33:19+00:00"
                         >
-                          4 months ago
-                        </time>
+                          2018-04-07T11:33:19+00:00
+                        </span>
                       </span>
                     </div>
                   </div>
@@ -19100,12 +19074,11 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                       <span
                         class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                       >
-                        <time
-                          datetime="1523099899000"
-                          title="2018-4-7 11:18:19"
+                        <span
+                          title="2018-04-07T11:18:19+00:00"
                         >
-                          4 months ago
-                        </time>
+                          2018-04-07T11:18:19+00:00
+                        </span>
                       </span>
                     </div>
                   </div>
@@ -19383,12 +19356,11 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
       <span
         class="MuiTypography-root-id MuiTypography-caption-id DateFormatter-root-id"
       >
-        <time
-          datetime="1523099899000"
-          title="2018-4-7 11:18:19"
+        <span
+          title="2018-04-07T11:18:19+00:00"
         >
-          4 months ago
-        </time>
+          2018-04-07T11:18:19+00:00
+        </span>
       </span>
     </div>
     <div
@@ -20206,12 +20178,11 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                   <span
                     class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                   >
-                    <time
-                      datetime="1523186299000"
-                      title="2018-4-8 11:18:19"
+                    <span
+                      title="2018-04-08T11:18:19+00:00"
                     >
-                      4 months ago
-                    </time>
+                      2018-04-08T11:18:19+00:00
+                    </span>
                   </span>
                 </div>
               </div>
@@ -20254,12 +20225,11 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                       <span
                         class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                       >
-                        <time
-                          datetime="1523107879000"
-                          title="2018-4-7 13:31:19"
+                        <span
+                          title="2018-04-07T13:31:19+00:00"
                         >
-                          4 months ago
-                        </time>
+                          2018-04-07T13:31:19+00:00
+                        </span>
                       </span>
                     </div>
                   </div>
@@ -20360,12 +20330,11 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                       <span
                         class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                       >
-                        <time
-                          datetime="1523100799000"
-                          title="2018-4-7 11:33:19"
+                        <span
+                          title="2018-04-07T11:33:19+00:00"
                         >
-                          4 months ago
-                        </time>
+                          2018-04-07T11:33:19+00:00
+                        </span>
                       </span>
                     </div>
                   </div>
@@ -20454,12 +20423,11 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                       <span
                         class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                       >
-                        <time
-                          datetime="1523099899000"
-                          title="2018-4-7 11:18:19"
+                        <span
+                          title="2018-04-07T11:18:19+00:00"
                         >
-                          4 months ago
-                        </time>
+                          2018-04-07T11:18:19+00:00
+                        </span>
                       </span>
                     </div>
                   </div>
@@ -20692,12 +20660,11 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
       <span
         class="MuiTypography-root-id MuiTypography-caption-id DateFormatter-root-id"
       >
-        <time
-          datetime="1523099899000"
-          title="2018-4-7 11:18:19"
+        <span
+          title="2018-04-07T11:18:19+00:00"
         >
-          4 months ago
-        </time>
+          2018-04-07T11:18:19+00:00
+        </span>
       </span>
     </div>
     <div
@@ -21515,12 +21482,11 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                   <span
                     class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                   >
-                    <time
-                      datetime="1523186299000"
-                      title="2018-4-8 11:18:19"
+                    <span
+                      title="2018-04-08T11:18:19+00:00"
                     >
-                      4 months ago
-                    </time>
+                      2018-04-08T11:18:19+00:00
+                    </span>
                   </span>
                 </div>
               </div>
@@ -21563,12 +21529,11 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                       <span
                         class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                       >
-                        <time
-                          datetime="1523107879000"
-                          title="2018-4-7 13:31:19"
+                        <span
+                          title="2018-04-07T13:31:19+00:00"
                         >
-                          4 months ago
-                        </time>
+                          2018-04-07T13:31:19+00:00
+                        </span>
                       </span>
                     </div>
                   </div>
@@ -21669,12 +21634,11 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                       <span
                         class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                       >
-                        <time
-                          datetime="1523100799000"
-                          title="2018-4-7 11:33:19"
+                        <span
+                          title="2018-04-07T11:33:19+00:00"
                         >
-                          4 months ago
-                        </time>
+                          2018-04-07T11:33:19+00:00
+                        </span>
                       </span>
                     </div>
                   </div>
@@ -21763,12 +21727,11 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                       <span
                         class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
                       >
-                        <time
-                          datetime="1523099899000"
-                          title="2018-4-7 11:18:19"
+                        <span
+                          title="2018-04-07T11:18:19+00:00"
                         >
-                          4 months ago
-                        </time>
+                          2018-04-07T11:18:19+00:00
+                        </span>
                       </span>
                     </div>
                   </div>
@@ -22700,12 +22663,11 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
               >
-                <time
-                  datetime="1523099899000"
-                  title="2018-4-7 11:18:19"
+                <span
+                  title="2018-04-07T11:18:19+00:00"
                 >
-                  4 months ago
-                </time>
+                  2018-04-07T11:18:19+00:00
+                </span>
               </span>
             </td>
             <td
@@ -22757,12 +22719,11 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
               >
-                <time
-                  datetime="1523099479000"
-                  title="2018-4-7 11:11:19"
+                <span
+                  title="2018-04-07T11:11:19+00:00"
                 >
-                  4 months ago
-                </time>
+                  2018-04-07T11:11:19+00:00
+                </span>
               </span>
             </td>
             <td
@@ -22814,12 +22775,11 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
               >
-                <time
-                  datetime="1523097884000"
-                  title="2018-4-7 10:44:44"
+                <span
+                  title="2018-04-07T10:44:44+00:00"
                 >
-                  4 months ago
-                </time>
+                  2018-04-07T10:44:44+00:00
+                </span>
               </span>
             </td>
             <td
@@ -22871,12 +22831,11 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
               >
-                <time
-                  datetime="1523097199000"
-                  title="2018-4-7 10:33:19"
+                <span
+                  title="2018-04-07T10:33:19+00:00"
                 >
-                  4 months ago
-                </time>
+                  2018-04-07T10:33:19+00:00
+                </span>
               </span>
             </td>
             <td
@@ -22928,12 +22887,11 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
               >
-                <time
-                  datetime="1523086759000"
-                  title="2018-4-7 07:39:19"
+                <span
+                  title="2018-04-07T07:39:19+00:00"
                 >
-                  4 months ago
-                </time>
+                  2018-04-07T07:39:19+00:00
+                </span>
               </span>
             </td>
             <td
@@ -22985,12 +22943,11 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
               >
-                <time
-                  datetime="1523042299000"
-                  title="2018-4-6 19:18:19"
+                <span
+                  title="2018-04-06T19:18:19+00:00"
                 >
-                  4 months ago
-                </time>
+                  2018-04-06T19:18:19+00:00
+                </span>
               </span>
             </td>
             <td
@@ -36671,12 +36628,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1529575618079"
-                  title="2018-6-21 10:06:58"
+                <span
+                  title="2018-06-21T10:06:58.079Z"
                 >
-                  2 months ago
-                </time>
+                  2018-06-21T10:06:58.079Z
+                </span>
               </span>
             </td>
             <td
@@ -36721,12 +36677,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1529530856763"
-                  title="2018-6-20 21:40:56"
+                <span
+                  title="2018-06-20T21:40:56.763Z"
                 >
-                  2 months ago
-                </time>
+                  2018-06-20T21:40:56.763Z
+                </span>
               </span>
             </td>
             <td
@@ -36735,12 +36690,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1546391094677"
-                  title="2019-1-2 01:04:54"
+                <span
+                  title="2019-01-02T01:04:54.677Z"
                 >
-                  in 5 months
-                </time>
+                  2019-01-02T01:04:54.677Z
+                </span>
               </span>
             </td>
             <td
@@ -36776,12 +36730,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1529531599359"
-                  title="2018-6-20 21:53:19"
+                <span
+                  title="2018-06-20T21:53:19.359Z"
                 >
-                  2 months ago
-                </time>
+                  2018-06-20T21:53:19.359Z
+                </span>
               </span>
             </td>
             <td
@@ -36790,12 +36743,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1541991624030"
-                  title="2018-11-12 03:00:24"
+                <span
+                  title="2018-11-12T03:00:24.030Z"
                 >
-                  in 3 months
-                </time>
+                  2018-11-12T03:00:24.030Z
+                </span>
               </span>
             </td>
             <td
@@ -36831,12 +36783,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1529531047335"
-                  title="2018-6-20 21:44:07"
+                <span
+                  title="2018-06-20T21:44:07.335Z"
                 >
-                  2 months ago
-                </time>
+                  2018-06-20T21:44:07.335Z
+                </span>
               </span>
             </td>
             <td
@@ -36845,12 +36796,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1534759118594"
-                  title="2018-8-20 09:58:38"
+                <span
+                  title="2018-08-20T09:58:38.594Z"
                 >
-                  in 13 days
-                </time>
+                  2018-08-20T09:58:38.594Z
+                </span>
               </span>
             </td>
             <td
@@ -36886,12 +36836,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1529554869850"
-                  title="2018-6-21 04:21:09"
+                <span
+                  title="2018-06-21T04:21:09.850Z"
                 >
-                  2 months ago
-                </time>
+                  2018-06-21T04:21:09.850Z
+                </span>
               </span>
             </td>
             <td
@@ -36932,12 +36881,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1529507072639"
-                  title="2018-6-20 15:04:32"
+                <span
+                  title="2018-06-20T15:04:32.639Z"
                 >
-                  2 months ago
-                </time>
+                  2018-06-20T15:04:32.639Z
+                </span>
               </span>
             </td>
             <td
@@ -36982,12 +36930,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1529535221827"
-                  title="2018-6-20 22:53:41"
+                <span
+                  title="2018-06-20T22:53:41.827Z"
                 >
-                  2 months ago
-                </time>
+                  2018-06-20T22:53:41.827Z
+                </span>
               </span>
             </td>
             <td
@@ -36996,12 +36943,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1539018134587"
-                  title="2018-10-8 17:02:14"
+                <span
+                  title="2018-10-08T17:02:14.587Z"
                 >
-                  in 2 months
-                </time>
+                  2018-10-08T17:02:14.587Z
+                </span>
               </span>
             </td>
             <td
@@ -37041,12 +36987,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1529535137917"
-                  title="2018-6-20 22:52:17"
+                <span
+                  title="2018-06-20T22:52:17.917Z"
                 >
-                  2 months ago
-                </time>
+                  2018-06-20T22:52:17.917Z
+                </span>
               </span>
             </td>
             <td
@@ -37055,12 +37000,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1535007860010"
-                  title="2018-8-23 07:04:20"
+                <span
+                  title="2018-08-23T07:04:20.010Z"
                 >
-                  in 16 days
-                </time>
+                  2018-08-23T07:04:20.010Z
+                </span>
               </span>
             </td>
             <td
@@ -37096,12 +37040,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1529578091815"
-                  title="2018-6-21 10:48:11"
+                <span
+                  title="2018-06-21T10:48:11.815Z"
                 >
-                  2 months ago
-                </time>
+                  2018-06-21T10:48:11.815Z
+                </span>
               </span>
             </td>
             <td
@@ -37110,12 +37053,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1541427554950"
-                  title="2018-11-5 14:19:14"
+                <span
+                  title="2018-11-05T14:19:14.950Z"
                 >
-                  in 3 months
-                </time>
+                  2018-11-05T14:19:14.950Z
+                </span>
               </span>
             </td>
             <td
@@ -37151,12 +37093,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1529540774087"
-                  title="2018-6-21 00:26:14"
+                <span
+                  title="2018-06-21T00:26:14.087Z"
                 >
-                  2 months ago
-                </time>
+                  2018-06-21T00:26:14.087Z
+                </span>
               </span>
             </td>
             <td
@@ -37197,12 +37138,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1529503265834"
-                  title="2018-6-20 14:01:05"
+                <span
+                  title="2018-06-20T14:01:05.834Z"
                 >
-                  2 months ago
-                </time>
+                  2018-06-20T14:01:05.834Z
+                </span>
               </span>
             </td>
             <td
@@ -37243,12 +37183,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1529531521122"
-                  title="2018-6-20 21:52:01"
+                <span
+                  title="2018-06-20T21:52:01.122Z"
                 >
-                  2 months ago
-                </time>
+                  2018-06-20T21:52:01.122Z
+                </span>
               </span>
             </td>
             <td
@@ -37257,12 +37196,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1550310553242"
-                  title="2019-2-16 09:49:13"
+                <span
+                  title="2019-02-16T09:49:13.242Z"
                 >
-                  in 6 months
-                </time>
+                  2019-02-16T09:49:13.242Z
+                </span>
               </span>
             </td>
             <td
@@ -37298,12 +37236,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1529507495602"
-                  title="2018-6-20 15:11:35"
+                <span
+                  title="2018-06-20T15:11:35.602Z"
                 >
-                  2 months ago
-                </time>
+                  2018-06-20T15:11:35.602Z
+                </span>
               </span>
             </td>
             <td
@@ -37348,12 +37285,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1529541514746"
-                  title="2018-6-21 00:38:34"
+                <span
+                  title="2018-06-21T00:38:34.746Z"
                 >
-                  2 months ago
-                </time>
+                  2018-06-21T00:38:34.746Z
+                </span>
               </span>
             </td>
             <td
@@ -37362,12 +37298,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1553524910984"
-                  title="2019-3-25 14:41:50"
+                <span
+                  title="2019-03-25T14:41:50.984Z"
                 >
-                  in 8 months
-                </time>
+                  2019-03-25T14:41:50.984Z
+                </span>
               </span>
             </td>
             <td
@@ -37407,12 +37342,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1529535698092"
-                  title="2018-6-20 23:01:38"
+                <span
+                  title="2018-06-20T23:01:38.092Z"
                 >
-                  2 months ago
-                </time>
+                  2018-06-20T23:01:38.092Z
+                </span>
               </span>
             </td>
             <td
@@ -37421,12 +37355,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1537357626711"
-                  title="2018-9-19 11:47:06"
+                <span
+                  title="2018-09-19T11:47:06.711Z"
                 >
-                  in a month
-                </time>
+                  2018-09-19T11:47:06.711Z
+                </span>
               </span>
             </td>
             <td
@@ -37462,12 +37395,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1529547210164"
-                  title="2018-6-21 02:13:30"
+                <span
+                  title="2018-06-21T02:13:30.164Z"
                 >
-                  2 months ago
-                </time>
+                  2018-06-21T02:13:30.164Z
+                </span>
               </span>
             </td>
             <td
@@ -37476,12 +37408,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                <time
-                  datetime="1546098434014"
-                  title="2018-12-29 15:47:14"
+                <span
+                  title="2018-12-29T15:47:14.014Z"
                 >
-                  in 5 months
-                </time>
+                  2018-12-29T15:47:14.014Z
+                </span>
               </span>
             </td>
             <td

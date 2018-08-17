@@ -29,7 +29,7 @@ const DateFormatter = decorate<DateFormatterProps>(
                 className={classes.root}
                 {...typographyProps}
               >
-                <Tooltip
+                {/* <Tooltip
                   title={moment(date)
                     .locale(locale)
                     .toDate()
@@ -38,6 +38,9 @@ const DateFormatter = decorate<DateFormatterProps>(
                   <ReactMoment from={dateNow} locale={locale}>
                     {date}
                   </ReactMoment>
+                </Tooltip> */}
+                <Tooltip title={date}>
+                  <span>{date}</span>
                 </Tooltip>
               </Typography>
             )}
