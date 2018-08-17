@@ -32943,8 +32943,8 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                  data-shrink="false"
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
                   Description
                 </label>
@@ -32968,14 +32968,18 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
                       readonly=""
                       rows="1"
                       tabindex="-1"
-                    />
+                    >
+                      Lorem ipsum
+                    </textarea>
                     <textarea
                       aria-invalid="false"
                       class="Textarea-textarea-id MuiInput-input-id MuiInput-inputMultiline-id"
                       name="description"
                       rows="1"
                       type="text"
-                    />
+                    >
+                      Lorem ipsum
+                    </textarea>
                   </div>
                 </div>
                 <p
