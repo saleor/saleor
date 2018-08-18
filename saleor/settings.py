@@ -389,11 +389,26 @@ AWS_S3_CUSTOM_DOMAIN = os.environ.get('AWS_STATIC_CUSTOM_DOMAIN')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
 
+# Google cloud storage
+GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME')
+GS_MEDIA_BUCKET_NAME = os.environ.get('GS_MEDIA_BUCKET_NAME')
+GS_PROJECT_ID = os.environ.get('GS_PROJECT_ID')
+GS_CREDENTIALS = os.environ.get('GS_CREDENTIALS')
+GS_AUTO_CREATE_BUCKET = os.environ.get('GS_AUTO_CREATE_BUCKET', False)
+
+# Alternatively keep the ENV varibable GOOGLE_APPLICATION_CREDENTIALS instead of PROJ_ID and others
+
 if AWS_STORAGE_BUCKET_NAME:
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+elif GS_BUCKET_NAME:
+    STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 
 if AWS_MEDIA_BUCKET_NAME:
-    DEFAULT_FILE_STORAGE = 'saleor.core.storages.S3MediaStorage'
+    DEFAULT_FILE_STORAGE = 'saleor.core.storages.MediaStorage'
+    THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
+
+elif GS_MEDIA_BUCKET_NAME:
+    DEFAULT_FILE_STORAGE = 'saleor.core.storages.GCSMediaStorage'
     THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
