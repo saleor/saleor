@@ -7,10 +7,6 @@ class ShippingMethodType:
 
     CHOICES = [
         (PRICE_BASED, pgettext_lazy(
-            'Type of shipping',
-            'Price based shipping'
-        )),
+            'Type of shipping', 'Price based shipping')),
         (WEIGHT_BASED, pgettext_lazy(
-            'Type of shipping',
-            'Weight based shipping'
-        ))]
+            'Type of shipping', 'Weight based shipping'))]

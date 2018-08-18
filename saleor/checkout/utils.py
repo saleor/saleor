@@ -782,7 +782,7 @@ def shipping_method_applicable(price, weight, method):
         maximum=method.maximum_order_weight, value=weight)
 
 
-def check_shipping_method(cart, taxes, discounts):
+def is_valid_shipping_method(cart, taxes, discounts):
     """Check if shipping method is valid and remove (if not)."""
     if not cart.shipping_method:
         return False
@@ -790,20 +790,21 @@ def check_shipping_method(cart, taxes, discounts):
         cart.shipping_address.country.code not in
         cart.shipping_method.shipping_zone.countries)
     if shipping_outside_the_shipping_zone:
-        return clear_shipping_method(cart)
+        clear_shipping_method(cart)
+        return False
 
-    shipping_method_is_valid = shipping_method_applicable(
+    is_valid_shipping = shipping_method_applicable(
         price=cart.get_subtotal(discounts, taxes).gross,
         weight=cart.get_total_weight(), method=cart.shipping_method)
-    if not shipping_method_is_valid:
-        return clear_shipping_method(cart)
+    if not is_valid_shipping:
+        clear_shipping_method(cart)
+        return False
     return True
 
 
 def clear_shipping_method(cart):
     cart.shipping_method = None
     cart.save(update_fields=['shipping_method'])
-    return False
 
 
 def _process_voucher_data_for_order(cart):

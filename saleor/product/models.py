@@ -168,7 +168,7 @@ class Product(SeoModel):
         return images[0].image if images else None
 
     def get_price_range(self, discounts=None, taxes=None):
-        if self.variants.exists():
+        if self.variants.all():
             prices = [
                 variant.get_price(discounts=discounts, taxes=taxes)
                 for variant in self]

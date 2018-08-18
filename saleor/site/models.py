@@ -27,6 +27,9 @@ class SiteSettings(models.Model):
     homepage_collection = models.ForeignKey(
         'product.Collection', on_delete=models.SET_NULL, related_name='+',
         blank=True, null=True)
+    default_weight_unit = models.CharField(
+        max_length=10, choices=[],
+        default=0)
 
     translated = TranslationProxy()
 
