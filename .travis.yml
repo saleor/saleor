@@ -20,11 +20,22 @@ env:
   global:
     - DJANGO_SETTINGS_MODULE=tests.settings
     - DATABASE_URL='postgres://postgres@localhost:5432/saleor'
+    - HADOLINT=${HOME}/hadolint
+    - HADOLINT_VERSION=1.11.1
+    - HADOLINT_URL=https://github.com/hadolint/hadolint/releases/download
   matrix:
   - DJANGO="1.11"
   - DJANGO="2.0"
   - DJANGO="2.1"
   - DJANGO="master"
+jobs:
+  include:
+  - stage: lint
+    install:
+    - curl -sL "${HADOLINT_URL}/v${HADOLINT_VERSION}/hadolint-$(uname -s)-$(uname -m)" -o ${HADOLINT}
+    - chmod +x ${HADOLINT}
+    script:
+    - ${HADOLINT} ./Dockerfile
 matrix:
   include:
     - python: "3.7"
