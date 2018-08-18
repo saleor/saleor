@@ -3,12 +3,12 @@ FROM python:3.6 as build-python
 
 RUN \
   apt-get -y update && \
-  apt-get install --no-install-recommends -y gettext=0.19.8.1-2 && \
+  apt-get install --no-install-recommends -y gettext="0.19.8.1-2" && \
   # Cleanup apt cache
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
-ADD requirements.txt /app/
+COPY requirements.txt /app/
 RUN pip install -r /app/requirements.txt
 
 
@@ -18,13 +18,13 @@ FROM node:8.6.0 as build-nodejs
 ARG STATIC_URL
 
 # Install node_modules
-ADD webpack.config.js app.json package.json package-lock.json /app/
+COPY webpack.config.js app.json package.json package-lock.json /app/
 WORKDIR /app
 RUN npm install
 
 # Build static
-ADD ./saleor/static /app/saleor/static/
-ADD ./templates /app/templates/
+COPY ./saleor/static /app/saleor/static/
+COPY ./templates /app/templates/
 RUN \
   STATIC_URL=${STATIC_URL} \
   npm run build-assets --production && \
@@ -55,7 +55,7 @@ RUN \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
-ADD . /app
+COPY . /app
 COPY --from=build-python /usr/local/lib/python3.6/site-packages/ /usr/local/lib/python3.6/site-packages/
 COPY --from=build-python /usr/local/bin/ /usr/local/bin/
 COPY --from=build-nodejs /app/saleor/static /app/saleor/static
