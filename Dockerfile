@@ -3,7 +3,7 @@ FROM python:3.6 as build-python
 
 RUN \
   apt-get -y update && \
-  apt-get install -y gettext=0.19.8.1-2 && \
+  apt-get install --no-install-recommends -y gettext=0.19.8.1-2 && \
   # Cleanup apt cache
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
@@ -53,7 +53,7 @@ shared-mime-info=1.8-1+deb9u1 \
 
 RUN \
   apt-get update && \
-  apt-get install -y ${INSTALL_DEPS} && \
+  apt-get install --no-install-recommends -y ${INSTALL_DEPS} && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
