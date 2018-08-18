@@ -87,7 +87,14 @@ class ProductTypeForm(forms.ModelForm):
                 'Attributes common to all variants'),
             'is_shipping_required': pgettext_lazy(
                 'Shipping toggle',
-                'Require shipping')}
+                'Require shipping'),
+            'weight': pgettext_lazy(
+                'Product type weight', 'Weight')}
+        help_texts = {
+            'weight': pgettext_lazy(
+                'Weight help text',
+                'Default weight that will be used for calculating shipping'
+                ' price for products of that type.')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -223,6 +230,11 @@ class ProductForm(forms.ModelForm, AttributesMixin):
                 'Product published toggle', 'Published'),
             'charge_taxes': pgettext_lazy(
                 'Charge taxes on product', 'Charge taxes on this product')}
+        help_texts = {
+            'weight': pgettext_lazy(
+                'Weight field help text',
+                'Weight will be used to calculate shipping price, '
+                'if empty, equal to default value used on the ProductType.')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -247,6 +259,12 @@ class ProductForm(forms.ModelForm, AttributesMixin):
             self.fields['price'].label = pgettext_lazy(
                 'Currency net amount', 'Net price')
 
+        if not product_type.is_shipping_required:
+            del self.fields['weight']
+        else:
+            self.fields['weight'].widget.attrs['placeholder'] = (
+                product_type.weight.value)
+
     def clean_seo_description(self):
         seo_description = prepare_seo_description(
             seo_description=self.cleaned_data['seo_description'],
@@ -270,10 +288,11 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
     class Meta:
         model = ProductVariant
         fields = [
-            'sku', 'price_override',
+            'sku', 'price_override', 'weight',
             'quantity', 'cost_price', 'track_inventory']
         labels = {
             'sku': pgettext_lazy('SKU', 'SKU'),
+            'weight': pgettext_lazy('ProductVariant weight', 'Weight'),
             'price_override': pgettext_lazy(
                 'Override price', 'Selling price override'),
             'quantity': pgettext_lazy('Integer number', 'Number in stock'),
@@ -283,7 +302,11 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
         help_texts = {
             'track_inventory': pgettext_lazy(
                 'product variant handle stock field help text',
-                'Automatically track this product\'s inventory')}
+                'Automatically track this product\'s inventory'),
+            'weight': pgettext_lazy(
+                'ProductVariant weight help text',
+                'Weight will be used to calculate shipping price. '
+                'If empty, weight from Product or ProductType will be used.')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -306,6 +329,13 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
                 'Override price', 'Selling net price override')
             self.fields['cost_price'].label = pgettext_lazy(
                 'Currency amount', 'Cost net price')
+
+        if not self.instance.product.product_type.is_shipping_required:
+            del self.fields['weight']
+        else:
+            self.fields['weight'].widget.attrs['placeholder'] = (
+                getattr(self.instance.product.weight, 'value', None) or
+                self.instance.product.product_type.weight.value)
 
     def save(self, commit=True):
         attributes = self.get_saved_attributes()

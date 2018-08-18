@@ -2,28 +2,139 @@ import datetime
 from unittest.mock import Mock, patch
 
 import pytest
+
 from django.urls import reverse
 from django_countries.fields import Country
 from freezegun import freeze_time
+from measurement.measures import Mass
 from prices import Money, TaxedMoney
-
 from saleor.account.models import Address
 from saleor.checkout import views
 from saleor.checkout.forms import CartVoucherForm
 from saleor.checkout.utils import (
     add_variant_to_cart, change_billing_address_in_cart,
-    change_shipping_address_in_cart, create_order, get_cart_data_for_checkout,
+    change_shipping_address_in_cart, clear_shipping_method, create_order,
+    get_cart_data_for_checkout,
     get_prices_of_products_in_discounted_categories, get_taxes_for_cart,
     get_voucher_discount_for_cart, get_voucher_for_cart,
-    recalculate_cart_discount, remove_voucher_from_cart)
+    is_valid_shipping_method, recalculate_cart_discount,
+    remove_voucher_from_cart, shipping_method_applicable, value_in_range)
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import (
     ZERO_MONEY, ZERO_TAXED_MONEY, get_taxes_for_country)
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
 from saleor.product.models import Category
+from saleor.shipping import ShippingMethodType
 
 from .utils import compare_taxes, get_redirect_location
+
+
+@pytest.mark.parametrize(
+    'minimum, maximum, value, result',
+    (
+        (10, None, 1500, True),
+        (10, 20, 15, True),
+        (10, 20, 20, True),
+        (10, 20, 10, True),
+        (10, 20, 9, False),
+        (10, 21, 9, False)))
+def test_value_in_range(minimum, maximum, value, result):
+    assert result == value_in_range(minimum, maximum, value)
+
+
+@pytest.mark.parametrize(
+    'weight, minimum_order_weight, maximum_order_weight, result',
+    (
+        (Mass(kg=15), Mass(kg=10), Mass(kg=20), True),
+        (Mass(kg=15), Mass(kg=15), Mass(kg=20), True),
+        (Mass(kg=15), Mass(kg=10), Mass(kg=15), True),
+        (Mass(kg=15), Mass(kg=10), None, True),
+        (Mass(kg=26), Mass(kg=10), Mass(kg=25), False),
+        (Mass(kg=9), Mass(kg=10), Mass(kg=15), False)))
+def test_weight_shipping_method_applicable(
+        weight, minimum_order_weight, maximum_order_weight, result):
+    shipping_method = Mock(
+        type=ShippingMethodType.WEIGHT_BASED,
+        minimum_order_weight=minimum_order_weight,
+        maximum_order_weight=maximum_order_weight)
+    assert result == shipping_method_applicable(
+        Money(0, 'USD'), weight, shipping_method)
+
+
+@pytest.mark.parametrize(
+    'price, minimum_order_price, maximum_order_price, result',
+    (
+        (Money(15, 'USD'), Money(10, 'USD'), Money(20, 'USD'), True),
+        (Money(15, 'USD'), Money(15, 'USD'), Money(20, 'USD'), True),
+        (Money(15, 'USD'), Money(10, 'USD'), Money(15, 'USD'), True),
+        (Money(15, 'USD'), Money(10, 'USD'), None, True),
+        (Money(26, 'USD'), Money(10, 'USD'), Money(25, 'USD'), False),
+        (Money(9, 'USD'), Money(10, 'USD'), Money(15, 'USD'), False)))
+def test_price_shipping_method_applicable(
+        price, minimum_order_price, maximum_order_price, result):
+    shipping_method = Mock(
+        type=ShippingMethodType.PRICE_BASED,
+        minimum_order_price=minimum_order_price,
+        maximum_order_price=maximum_order_price)
+    assert result == shipping_method_applicable(
+        price, Mass(kg=0), shipping_method)
+
+
+def test_is_valid_shipping_method_no_shipping_method(vatlayer):
+    cart = Mock(shipping_method=False)
+    assert not is_valid_shipping_method(cart, vatlayer, None)
+
+
+@patch('saleor.checkout.utils.clear_shipping_method')
+def test_is_valid_shipping_method_shipping_outside_the_shipping_zone(
+        mock_clear_shipping_method, vatlayer):
+    cart = Mock(
+        shipping_address=Mock(country=Country('PL')),
+        shipping_method=Mock(shipping_zone=Mock(countries=['DE'])))
+    assert not is_valid_shipping_method(cart, vatlayer, None)
+    mock_clear_shipping_method.assert_called_once_with(cart)
+
+
+@patch('saleor.checkout.utils.clear_shipping_method')
+def test_is_valid_shipping_method_not_valid(
+        mock_clear_shipping_method, vatlayer):
+    cart = Mock(
+        shipping_address=Mock(country=Country('PL')),
+        shipping_method=Mock(
+            shipping_zone=Mock(countries=['PL']),
+            minimum_order_price=Money(10, 'USD'),
+            maximum_order_price=None,
+            type=ShippingMethodType.PRICE_BASED),
+        get_total_weight=Mock(return_value=Mass(kg=0)),
+        get_subtotal=Mock(
+            return_value=TaxedMoney(
+                gross=Money(5, 'USD'), net=Money(5, 'USD'))))
+    assert not is_valid_shipping_method(cart, vatlayer, None)
+    mock_clear_shipping_method.assert_called_once_with(cart)
+
+
+def test_is_valid_shipping_method(vatlayer):
+    cart = Mock(
+        shipping_address=Mock(country=Country('PL')),
+        shipping_method=Mock(
+            shipping_zone=Mock(countries=['PL']),
+            minimum_order_price=Money(10, 'USD'),
+            maximum_order_price=None,
+            type=ShippingMethodType.PRICE_BASED),
+        get_total_weight=Mock(return_value=Mass(kg=0)),
+        get_subtotal=Mock(
+            return_value=TaxedMoney(
+                gross=Money(15, 'USD'), net=Money(15, 'USD'))))
+    assert is_valid_shipping_method(cart, vatlayer, None)
+
+
+def test_clear_shipping_method(cart, shipping_method):
+    cart.shipping_method = shipping_method
+    cart.save()
+    clear_shipping_method(cart)
+    cart.refresh_from_db()
+    assert not cart.shipping_method
 
 
 @pytest.mark.parametrize('cart_length, is_shipping_required, redirect_url', [
@@ -505,7 +616,9 @@ def test_get_discount_for_cart_value_voucher(
         type=VoucherType.VALUE,
         discount_value_type=discount_type,
         discount_value=discount_value,
-        min_amount_spent=Money(min_amount_spent, 'USD') if min_amount_spent is not None else None)
+        min_amount_spent=(
+            Money(min_amount_spent, 'USD')
+            if min_amount_spent is not None else None))
     subtotal = TaxedMoney(net=Money(total, 'USD'), gross=Money(total, 'USD'))
     cart = Mock(get_subtotal=Mock(return_value=subtotal))
     discount = get_voucher_discount_for_cart(voucher, cart)
@@ -539,20 +652,17 @@ def test_get_discount_for_cart_shipping_voucher(
     subtotal = TaxedMoney(net=Money(100, 'USD'), gross=Money(100, 'USD'))
     shipping_total = TaxedMoney(
         net=Money(shipping_cost, 'USD'), gross=Money(shipping_cost, 'USD'))
-    #FIXME below should be the cart not the mock
     cart = Mock(
         get_subtotal=Mock(return_value=subtotal),
         is_shipping_required=Mock(return_value=True),
         shipping_method=Mock(
-            price=Money(shipping_cost, 'USD'),
-            country_code=shipping_country_code,
-            get_total_price=Mock(return_value=shipping_total)))
+            get_total_price=Mock(return_value=shipping_total)),
+        shipping_address=Mock(country=Country(shipping_country_code)))
     voucher = Voucher(
         code='unique', type=VoucherType.SHIPPING,
         discount_value_type=discount_type,
         discount_value=discount_value,
-        countries=countries,
-        min_amount_spent=None)
+        countries=countries)
     discount = get_voucher_discount_for_cart(voucher, cart)
     assert discount == Money(expected_value, 'USD')
 
@@ -573,14 +683,13 @@ def test_get_discount_for_cart_shipping_voucher(
          DiscountValueType.FIXED, [], 5, Money(2, 'USD'),
          'This offer is only valid for orders over $5.00.')])
 def test_get_discount_for_cart_shipping_voucher_not_applicable(
-        is_shipping_required, shipping_method, discount_value, cart_with_item,
+        is_shipping_required, shipping_method, discount_value,
         discount_type, countries, min_amount_spent, subtotal, error_msg):
-    variant = cart_with_item.lines.first().variant
-    variant.price_override = subtotal
-    variant.save()
-    cart_with_item.is_shipping_required = is_shipping_required
-    cart_with_item.shipping_method = shipping_method
-    cart_with_item.save()
+    subtotal_price = TaxedMoney(net=subtotal, gross=subtotal)
+    cart = Mock(
+        get_subtotal=Mock(return_value=subtotal_price),
+        is_shipping_required=Mock(return_value=is_shipping_required),
+        shipping_method=shipping_method)
     voucher = Voucher(
         code='unique', type=VoucherType.SHIPPING,
         discount_value_type=discount_type,
@@ -590,7 +699,7 @@ def test_get_discount_for_cart_shipping_voucher_not_applicable(
             if min_amount_spent is not None else None),
         countries=countries)
     with pytest.raises(NotApplicable) as e:
-        get_voucher_discount_for_cart(voucher, cart_with_item)
+        get_voucher_discount_for_cart(voucher, cart)
     assert str(e.value) == error_msg
 
 

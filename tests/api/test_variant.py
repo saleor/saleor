@@ -53,7 +53,7 @@ def test_fetch_variant(admin_api_client, product):
 
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
-    variables = json.dumps({ 'id': variant_id })
+    variables = json.dumps({ 'id': variant_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)

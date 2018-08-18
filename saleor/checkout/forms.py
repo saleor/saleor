@@ -15,7 +15,7 @@ from ..core.utils import format_money
 from ..core.utils.taxes import display_gross_prices, get_taxed_shipping_price
 from ..discount.models import NotApplicable, Voucher
 from ..shipping.models import ShippingMethod
-from ..shipping.utils import shipping_price_estimate
+from ..shipping.utils import get_shipping_price_estimate
 from .models import Cart
 
 
@@ -167,12 +167,12 @@ class CountryForm(forms.Form):
         self.taxes = kwargs.pop('taxes', {})
         super().__init__(*args, **kwargs)
 
-    def shipping_price_estimate(self, price, weight):
+    def get_shipping_price_estimate(self, price, weight):
         """Return a shipping price range for given order for the selected
         country.
         """
         code = self.cleaned_data['country']
-        return shipping_price_estimate(price, weight, code, self.taxes)
+        return get_shipping_price_estimate(price, weight, code, self.taxes)
 
 
 class AnonymousUserShippingForm(forms.ModelForm):

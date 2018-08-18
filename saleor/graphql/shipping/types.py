@@ -1,13 +1,12 @@
 import graphene
 from graphene import relay
+from graphene.types import Scalar
 from graphene_django import DjangoObjectType
+from measurement.measures import Mass
 
-from ...shipping import ShippingMethodType
-from ...shipping import models
+from ...shipping import ShippingMethodType, models
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import MoneyRange
-from graphene.types import Scalar
-from measurement.measures import Mass
 
 
 class ShippingZone(CountableDjangoObjectType):

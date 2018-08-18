@@ -106,7 +106,7 @@ def site_settings(db, settings):
 
 
 @pytest.fixture
-def cart(db):  # pylint: disable=W0613
+def cart(db):
     return Cart.objects.create()
 
 
