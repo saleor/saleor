@@ -41,19 +41,17 @@ ARG AWS_SECRET_ACCESS_KEY
 ARG AWS_STORAGE_BUCKET_NAME
 ARG STATIC_URL
 
-ENV INSTALL_DEPS=" \
-libcairo=1.14.8-1 \
-libgdk-pixbuf2.0-0=2.36.5-2+deb9u2 \
-libpango-1.0-0=1.40.5-1 \
-libpangocairo-1.0-0=1.40.5-1 \
-libssl1.1=1.1.0f-3+deb9u2 \
-libxml2=2.9.4+dfsg1-2.2+deb9u2 \
-shared-mime-info=1.8-1+deb9u1 \
-"
-
 RUN \
   apt-get update && \
-  apt-get install --no-install-recommends -y ${INSTALL_DEPS} && \
+  apt-get install -y --no-install-recommends \
+    libxml2="2.9.4+dfsg1-2.2+deb9u2" \
+    libssl1.1="1.1.0f-3+deb9u2" \
+    libcairo2="1.14.8-1" \
+    libpango-1.0-0="1.40.5-1" \
+    libpangocairo-1.0-0="1.40.5-1" \
+    libgdk-pixbuf2.0-0="2.36.5-2+deb9u2" \
+    shared-mime-info="1.8-1+deb9u1" \
+    mime-support="3.60" && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
