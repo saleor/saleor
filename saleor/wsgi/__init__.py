@@ -23,6 +23,6 @@ application = get_wsgi_application()
 # Apply WSGI middleware here.
 # from helloworld.wsgi import HelloWorldApplication
 # application = HelloWorldApplication(application)
-from .health_check import health_check  # noqa
+from saleor.wsgi.health_check import health_check  # noqa
 
 application = health_check(application, '/health/')
