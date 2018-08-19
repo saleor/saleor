@@ -40,13 +40,11 @@ def main():
         strid = 'msgid ' + stringIDArray[i][0]
         strmsg = strid + '\nmsgstr ' + stringIDArray[i][3] 
 
-# if msgid == "", we don't need it and it could screw things up
-# if strid not in SaveString, means this string is not used 
-        if stringIDArray[i][3] != '""' and stringIDArray[i][3] is not None:
-            saveString = saveString.replace(strid, strmsg)
-            print(strid + " \nreplaced with \n" + strmsg)
+        if '""' not in stringIDArray[i][3]:
+            saveString = saveString.replace(strid + '\r\nmsgstr ""\r\n', strmsg)
+            print(strid + " \nreplaced with \n" + stringIDArray[i][3] )
 
-    saveString = re.sub(r'msgstr (".*"?\s)*msgstr ""\n*', '', saveString)
+    saveString = re.sub(r'\n\nmsgstr ""\n\n', ' ', saveString)
 # finds all msgid without corresponding msgstr      
     notFoundStrings = re.findall(r'msgid ((".*"\s?)*)\nmsgstr ""\s*#' , saveString, re.MULTILINE)
     ToDoString = ""
