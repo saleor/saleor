@@ -116,3 +116,253 @@ def test_checkout_lines_add(user_api_client, cart_with_item, variant):
     line = cart.lines.latest('pk')
     assert line.variant == variant
     assert line.quantity == 1
+
+
+def test_checkout_lines_update(user_api_client, cart_with_item):
+    cart = cart_with_item
+    assert cart.lines.count() == 1
+    line = cart.lines.first()
+    variant = line.variant
+    assert line.quantity == 3
+    query = """
+        mutation checkoutLinesUpdate($checkoutId: ID!, $lines: [CheckoutLineInput!]!) {
+            checkoutLinesUpdate(checkoutId: $checkoutId, lines: $lines) {
+                checkout {
+                    token
+                    lines {
+                        edges {
+                            node {
+                                quantity
+                                variant {
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
+    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+
+    variables = json.dumps({
+        'checkoutId': checkout_id,
+        'lines': [{
+            'variantId': variant_id,
+            'quantity': 1
+        }]
+    })
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['checkoutLinesUpdate']
+    assert not data['errors']
+    cart.refresh_from_db()
+    assert cart.lines.count() == 1
+    line = cart.lines.first()
+    assert line.variant == variant
+    assert line.quantity == 1
+
+
+def test_checkout_line_delete(user_api_client, cart_with_item):
+    cart = cart_with_item
+    assert cart.lines.count() == 1
+    line = cart.lines.first()
+    variant = line.variant
+    assert line.quantity == 3
+    query = """
+        mutation checkoutLineDelete($checkoutId: ID!, $lineId: ID!) {
+            checkoutLineDelete(checkoutId: $checkoutId, lineId: $lineId) {
+                checkout {
+                    token
+                    lines {
+                        edges {
+                            node {
+                                quantity
+                                variant {
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+    line_id = graphene.Node.to_global_id('CheckoutLine', line.pk)
+
+    variables = json.dumps({
+        'checkoutId': checkout_id,
+        'lineId': line_id
+    })
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['checkoutLineDelete']
+    assert not data['errors']
+    cart.refresh_from_db()
+    assert cart.lines.count() == 0
+
+
+def test_checkout_customer_attach(user_api_client, cart_with_item, customer_user):
+    cart = cart_with_item
+    assert cart.user is None
+
+    query = """
+        mutation checkoutCustomerAttach($checkoutId: ID!, $customerId: ID!) {
+            checkoutCustomerAttach(checkoutId: $checkoutId, customerId: $customerId) {
+                checkout {
+                    token
+                }
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+    customer_id = graphene.Node.to_global_id('User', customer_user.pk)
+
+    variables = json.dumps({
+        'checkoutId': checkout_id,
+        'customerId': customer_id
+    })
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['checkoutCustomerAttach']
+    assert not data['errors']
+    cart.refresh_from_db()
+    assert cart.user == customer_user
+
+def test_checkout_customer_detach(user_api_client, cart_with_item, customer_user):
+    cart = cart_with_item
+    cart.user = customer_user
+    cart.save(update_fields=['user'])
+
+    query = """
+        mutation checkoutCustomerDetach($checkoutId: ID!) {
+            checkoutCustomerDetach(checkoutId: $checkoutId) {
+                checkout {
+                    token
+                }
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+    variables = json.dumps({
+        'checkoutId': checkout_id,
+    })
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['checkoutCustomerDetach']
+    assert not data['errors']
+    cart.refresh_from_db()
+    assert cart.user is None
+
+
+def test_checkout_shipping_address_update(user_api_client, cart_with_item):
+    cart = cart_with_item
+    assert cart.shipping_address is None
+    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+
+    query = """
+    mutation checkoutShippingAddressUpdate($checkoutId: ID!, $shippingAddress: AddressInput!) {
+        checkoutShippingAddressUpdate(checkoutId: $checkoutId, shippingAddress: $shippingAddress) {
+            checkout {
+                token,
+                id
+            },
+            errors {
+                field,
+                message
+            }
+        }
+    }
+    """
+    shipping_address = {
+        'firstName': "John",
+        'lastName': 'Doe',
+        'streetAddress1': 'Wall st.',
+        'streetAddress2': '',
+        'postalCode': '902010',
+        'country': 'US',
+        'city': 'New York'
+    }
+
+    variables = json.dumps({
+        'checkoutId': checkout_id,
+        'shippingAddress': shipping_address
+    })
+
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['checkoutShippingAddressUpdate']
+    assert not data['errors']
+    cart.refresh_from_db()
+    assert cart.shipping_address is not None
+    assert cart.shipping_address.first_name == shipping_address['firstName']
+    assert cart.shipping_address.last_name == shipping_address['lastName']
+    assert cart.shipping_address.street_address_1 == shipping_address['streetAddress1']
+    assert cart.shipping_address.street_address_2 == shipping_address['streetAddress2']
+    assert cart.shipping_address.postal_code == shipping_address['postalCode']
+    assert cart.shipping_address.country == shipping_address['country']
+    assert cart.shipping_address.city == shipping_address['city']
+
+
+
+def test_checkout_email_update(user_api_client, cart_with_item):
+    cart = cart_with_item
+    assert not cart.email
+    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+
+    query = """
+    mutation checkoutEmailUpdate($checkoutId: ID!, $email: String!) {
+        checkoutEmailUpdate(checkoutId: $checkoutId, email: $email) {
+            checkout {
+                id,
+                email
+            },
+            errors {
+                field,
+                message
+            }
+        }
+    }
+    """
+    email = 'test@example.com'
+    variables = json.dumps({
+        'checkoutId': checkout_id,
+        'email': email
+    })
+
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['checkoutEmailUpdate']
+    assert not data['errors']
+    cart.refresh_from_db()
+    assert cart.email == email
