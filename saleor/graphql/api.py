@@ -65,7 +65,7 @@ from .shipping.mutations import (
     ShippingPriceCreate, ShippingPriceDelete, ShippingPriceUpdate)
 from .utils import get_node
 from .checkout.types import CheckoutLine, Checkout
-from .checkout.mutations import CheckoutLineCreate, CheckoutCreate
+from .checkout.mutations import CheckoutCreate, CheckoutLinesAdd
 from .checkout.resolvers import resolve_checkouts
 
 from .shop.types import Shop
@@ -312,7 +312,7 @@ class Mutations(graphene.ObjectType):
     address_delete = AddressDelete.Field()
 
     checkout_create = CheckoutCreate.Field()
-    checkout_line_create = CheckoutLineCreate.Field()
+    checkout_lines_add = CheckoutLinesAdd.Field()
 
     collection_create = CollectionCreate.Field()
     collection_update = CollectionUpdate.Field()
