@@ -1,122 +1,97 @@
 import { transformOrderStatus, transformPaymentStatus } from "./";
 export const clients = [
   {
-    id: "c1",
-    email: "test.client1@example.com"
+    email: "test.client1@example.com",
+    id: "c1"
   },
   {
-    id: "c2",
-    email: "test.client2@example.com"
+    email: "test.client2@example.com",
+    id: "c2"
   },
   {
-    id: "c3",
-    email: "test.client3@example.com"
+    email: "test.client3@example.com",
+    id: "c3"
   },
   {
-    id: "c4",
-    email: "test.client4@example.com"
+    email: "test.client4@example.com",
+    id: "c4"
   }
 ];
 export const orders = [
   {
-    id: "o1",
-    number: 11,
-    status: "fulfilled",
     client: clients[0],
     created: "2018-04-07T11:18:19+00:00",
+    id: "o1",
+    number: 11,
     paymentStatus: "confirmed",
     price: {
       amount: 19.2,
       currency: "USD"
-    }
+    },
+    status: "fulfilled"
   },
   {
-    id: "o2",
-    number: 10,
-    status: "unfulfilled",
     client: clients[0],
     created: "2018-04-07T11:11:19+00:00",
+    id: "o2",
+    number: 10,
     paymentStatus: "confirmed",
     price: {
       amount: 28.9,
       currency: "USD"
-    }
+    },
+    status: "unfulfilled"
   },
   {
-    id: "o3",
-    number: 9,
-    status: "fulfilled",
     client: clients[1],
     created: "2018-04-07T10:44:44+00:00",
+    id: "o3",
+    number: 9,
     paymentStatus: "rejected",
     price: {
       amount: 289.0,
       currency: "USD"
-    }
+    },
+    status: "fulfilled"
   },
   {
-    id: "o4",
-    number: 9,
-    status: "fulfilled",
     client: clients[2],
     created: "2018-04-07T10:33:19+00:00",
+    id: "o4",
+    number: 9,
     paymentStatus: "unknown",
     price: {
       amount: 100.05,
       currency: "USD"
-    }
+    },
+    status: "fulfilled"
   },
   {
-    id: "o5",
-    number: 9,
-    status: "fulfilled",
     client: clients[3],
     created: "2018-04-07T07:39:19+00:00",
+    id: "o5",
+    number: 9,
     paymentStatus: "waiting",
     price: {
       amount: 14.87,
       currency: "USD"
-    }
+    },
+    status: "fulfilled"
   },
   {
-    id: "o6",
-    number: 8,
-    status: "unfulfilled",
     client: clients[3],
     created: "2018-04-06T19:18:19+00:00",
+    id: "o6",
+    number: 8,
     paymentStatus: "rejected",
     price: {
       amount: 14.87,
       currency: "USD"
-    }
+    },
+    status: "unfulfilled"
   }
 ];
 export const order = (placeholder, args?) => ({
-  id: "o1",
-  number: 11,
-  status: "partially fulfilled",
-  client: {
-    email: "test.client@example.com",
-    id: "c1",
-    name: "Test Client"
-  },
-  shippingAddress: {
-    city: "Keithport",
-    cityArea: "",
-    companyName: "",
-    country: "Cyprus",
-    countryArea: "",
-    firstName: "Test",
-    id: "a1",
-    lastName: "Client",
-    phone: {
-      number: "",
-      prefix: ""
-    },
-    postalCode: "95393-6818",
-    streetAddress_1: "9297 Barker Extension",
-    streetAddress_2: ""
-  },
   billingAddress: {
     city: "Keithport",
     cityArea: "",
@@ -134,30 +109,51 @@ export const order = (placeholder, args?) => ({
     streetAddress_1: "9297 Barker Extension",
     streetAddress_2: ""
   },
+  client: {
+    email: "test.client@example.com",
+    id: "c1",
+    name: "Test Client"
+  },
   created: "2018-04-07T11:18:19+00:00",
-  paymentStatus: "confirmed",
-  price: {
-    amount: 19.2,
-    currency: "USD"
-  },
-  payment: {
-    paid: {
-      amount: 19.2,
-      currency: "USD"
+  events: [
+    {
+      content: "Created order",
+      date: "2018-04-07T11:18:19+00:00",
+      id: "n1",
+      type: "created",
+      user: "richard.holder@example.com"
     },
-    refunded: {
-      amount: 13.2,
-      currency: "USD"
+    {
+      content: "Received payment",
+      date: "2018-04-07T11:33:19+00:00",
+      id: "n2",
+      params: { amount: 165.7, currency: "USD" },
+      type: "payment",
+      user: "richard.holder@example.com"
     },
-    net: {
-      amount: 6,
-      currency: "USD"
+    {
+      content: "Shipped order",
+      date: "2018-04-07T13:31:19+00:00",
+      id: "n3",
+      params: {
+        shippingAddress:
+          "Test Client<br />9297 Barker Extension<br />95393-6818 Keithport<br />Cyprus"
+      },
+      type: "shipped",
+      user: "megan.finger@example.com"
+    },
+    {
+      content:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur arcu nisi, dignissim non placerat id, varius imperdiet nisi. Duis lobortis, massa sed feugiat ultricies, massa felis commodo dui, tempor tempus tellus ligula id arcu. Nam erat dui, fermentum sed dui a, tincidunt molestie magna.",
+      date: "2018-04-08T11:18:19+00:00",
+      id: "n4",
+      type: "note",
+      user: "megan.finger@example.com"
     }
-  },
+  ],
   fulfillments: [
     {
       id: "f1",
-      status: "fulfilled",
       products: [
         {
           product: {
@@ -176,11 +172,11 @@ export const order = (placeholder, args?) => ({
           quantity: 1
         }
       ],
+      status: "fulfilled",
       trackingCode: "012391230412131239052"
     },
     {
       id: "f2",
-      status: "cancelled",
       products: [
         {
           product: {
@@ -191,89 +187,101 @@ export const order = (placeholder, args?) => ({
           quantity: 1
         }
       ],
+      status: "cancelled",
       trackingCode: "012391230412131239052"
     }
   ],
-  unfulfilled: [
-    {
-      id: "UHJvZHVjdDoy",
-      name: "Gardner and Graham",
-      sku: "9123022",
-      thumbnailUrl: placeholder,
-      quantity: 1
+  id: "o1",
+  number: 11,
+  payment: {
+    net: {
+      amount: 6,
+      currency: "USD"
     },
-    {
-      id: "UHJvZHVjdDoz",
-      name: "Gardner and King",
-      sku: "9123023",
-      thumbnailUrl: placeholder,
-      quantity: 7
+    paid: {
+      amount: 19.2,
+      currency: "USD"
     },
-    {
-      id: "UHJvZHVjdDoa",
-      name: "Graham and King",
-      sku: "9123024",
-      thumbnailUrl: placeholder,
-      quantity: 3
+    refunded: {
+      amount: 13.2,
+      currency: "USD"
     }
-  ],
+  },
+  paymentStatus: "confirmed",
+  price: {
+    amount: 19.2,
+    currency: "USD"
+  },
   products: [
     {
       id: "UHJvZHVjdDox",
       name: "Gardner, Graham and King",
-      sku: "9123021",
-      thumbnailUrl: placeholder,
       price: {
         gross: {
           amount: 12.4,
           currency: "USD"
         }
       },
-      quantity: 1
+      quantity: 1,
+      sku: "9123021",
+      thumbnailUrl: placeholder
     },
     {
       id: "UHJvZHVjdDoy",
       name: "Gardner and Graham",
-      sku: "9123022",
-      thumbnailUrl: placeholder,
       price: {
         gross: {
           amount: 11.6,
           currency: "USD"
         }
       },
-      quantity: 2
+      quantity: 2,
+      sku: "9123022",
+      thumbnailUrl: placeholder
     },
     {
       id: "UHJvZHVjdDoz",
       name: "Gardner and King",
-      sku: "9123023",
-      thumbnailUrl: placeholder,
       price: {
         gross: {
           amount: 22.4,
           currency: "USD"
         }
       },
-      quantity: 7
+      quantity: 7,
+      sku: "9123023",
+      thumbnailUrl: placeholder
     },
     {
       id: "UHJvZHVjdDoa",
       name: "Graham and King",
-      sku: "9123024",
-      thumbnailUrl: placeholder,
       price: {
         gross: {
           amount: 9.9,
           currency: "USD"
         }
       },
-      quantity: 3
+      quantity: 3,
+      sku: "9123024",
+      thumbnailUrl: placeholder
     }
   ],
-  subtotal: {
-    amount: 160.2,
-    currency: "USD"
+  shippingAddress: {
+    city: "Keithport",
+    cityArea: "",
+    companyName: "",
+    country: "Cyprus",
+    countryArea: "",
+    firstName: "Test",
+    id: "a1",
+    lastName: "Client",
+    phone: {
+      number: "",
+      prefix: ""
+    },
+    postalCode: "95393-6818",
+    streetAddress_1: "9297 Barker Extension",
+    streetAddress_2: ""
   },
   shippingMethod: {
     id: "s1"
@@ -283,44 +291,36 @@ export const order = (placeholder, args?) => ({
     amount: 5.5,
     currency: "USD"
   },
+  status: "partially fulfilled",
+  subtotal: {
+    amount: 160.2,
+    currency: "USD"
+  },
   total: {
     amount: 165.7,
     currency: "USD"
   },
-  events: [
+  unfulfilled: [
     {
-      id: "n1",
-      type: "created",
-      content: "Created order",
-      date: "2018-04-07T11:18:19+00:00",
-      user: "richard.holder@example.com"
+      id: "UHJvZHVjdDoy",
+      name: "Gardner and Graham",
+      quantity: 1,
+      sku: "9123022",
+      thumbnailUrl: placeholder
     },
     {
-      id: "n2",
-      type: "payment",
-      content: "Received payment",
-      date: "2018-04-07T11:33:19+00:00",
-      user: "richard.holder@example.com",
-      params: { amount: 165.7, currency: "USD" }
+      id: "UHJvZHVjdDoz",
+      name: "Gardner and King",
+      quantity: 7,
+      sku: "9123023",
+      thumbnailUrl: placeholder
     },
     {
-      id: "n3",
-      type: "shipped",
-      content: "Shipped order",
-      date: "2018-04-07T13:31:19+00:00",
-      user: "megan.finger@example.com",
-      params: {
-        shippingAddress:
-          "Test Client<br />9297 Barker Extension<br />95393-6818 Keithport<br />Cyprus"
-      }
-    },
-    {
-      id: "n4",
-      type: "note",
-      content:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur arcu nisi, dignissim non placerat id, varius imperdiet nisi. Duis lobortis, massa sed feugiat ultricies, massa felis commodo dui, tempor tempus tellus ligula id arcu. Nam erat dui, fermentum sed dui a, tincidunt molestie magna.",
-      date: "2018-04-08T11:18:19+00:00",
-      user: "megan.finger@example.com"
+      id: "UHJvZHVjdDoa",
+      name: "Graham and King",
+      quantity: 3,
+      sku: "9123024",
+      thumbnailUrl: placeholder
     }
   ],
   ...args

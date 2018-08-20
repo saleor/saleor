@@ -7,18 +7,18 @@ const pageInfo = {
 export const pageListProps: { [key: string]: PageListProps } = {
   default: {
     disabled: false,
-    onAdd: () => {},
-    onNextPage: () => {},
-    onPreviousPage: () => {},
-    onRowClick: (id: string) => () => {},
+    onAdd: undefined,
+    onNextPage: undefined,
+    onPreviousPage: undefined,
+    onRowClick: (id: string) => undefined,
     pageInfo
   },
   loading: {
     disabled: true,
-    onAdd: () => {},
-    onNextPage: () => {},
-    onPreviousPage: () => {},
-    onRowClick: (id: string) => () => {},
+    onAdd: undefined,
+    onNextPage: undefined,
+    onPreviousPage: undefined,
+    onRowClick: (id: string) => undefined,
     pageInfo
   }
 };
