@@ -13,7 +13,7 @@ interface PageCreateFormProps {
 export const PageCreateForm: React.StatelessComponent<PageCreateFormProps> = ({
   id
 }) => (
-  <TypedPageCreateMutation mutation={pageCreateMutation}>
+  <TypedPageCreateMutation>
     {(createPage, { called, data: createResult, error, loading }) => {
       if (called && !loading && !createResult.pageCreate.errors.length) {
         return <Redirect to={pageListUrl} push={false} />;

@@ -8,7 +8,7 @@ import {
   VerifyTokenMutation,
   VerifyTokenMutationVariables
 } from "../../gql-types";
-import { tokenVerifyMutation, TypedVerifyTokenMutation } from "../mutations";
+import { TypedVerifyTokenMutation } from "../mutations";
 
 interface TokenVerifyProviderProps
   extends PartialMutationProviderProps<VerifyTokenMutation> {
@@ -21,11 +21,7 @@ interface TokenVerifyProviderProps
 const TokenVerifyProvider: React.StatelessComponent<
   TokenVerifyProviderProps
 > = ({ children, onError, onSuccess }) => (
-  <TypedVerifyTokenMutation
-    mutation={tokenVerifyMutation}
-    onCompleted={onSuccess}
-    onError={onError}
-  >
+  <TypedVerifyTokenMutation onCompleted={onSuccess} onError={onError}>
     {(mutate, { called, data, error, loading }) =>
       children({ called, data, error, loading, mutate })
     }

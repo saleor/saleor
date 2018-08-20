@@ -5,15 +5,10 @@ import {
   PartialMutationProviderRenderProps
 } from "../..";
 import {
-  ProductVariantDetailsQuery,
   VariantImageUnassignMutation,
   VariantImageUnassignMutationVariables
 } from "../../gql-types";
-import {
-  TypedVariantImageUnassign,
-  variantImageUnassignMutation
-} from "../mutations";
-import { productVariantQuery } from "../queries";
+import { TypedVariantImageUnassignMutation } from "../mutations";
 
 interface VariantImageUnassignProviderProps
   extends PartialMutationProviderProps {
@@ -27,28 +22,7 @@ interface VariantImageUnassignProviderProps
 const VariantImageUnassignProvider: React.StatelessComponent<
   VariantImageUnassignProviderProps
 > = ({ id, children, onError, onSuccess }) => (
-  <TypedVariantImageUnassign
-    mutation={variantImageUnassignMutation}
-    update={(cache, { data: { variantImageUnassign } }) => {
-      if (variantImageUnassign.errors.length === 0) {
-        const data: ProductVariantDetailsQuery = cache.readQuery({
-          query: productVariantQuery,
-          variables: { id }
-        });
-        data.productVariant.images.edges = data.productVariant.images.edges.filter(
-          image => image.node.id !== variantImageUnassign.image.id
-        );
-        if (data.productVariant.images.edges.length === 0) {
-          data.productVariant.product.variants.edges.filter(
-            variant => variant.node.id === id
-          )[0].node.image.edges = [];
-        }
-        cache.writeQuery({ query: productVariantQuery, data });
-      }
-    }}
-    onCompleted={onSuccess}
-    onError={onError}
-  >
+  <TypedVariantImageUnassignMutation onCompleted={onSuccess} onError={onError}>
     {(mutate, { data, loading, error }) => {
       return children({
         data,
@@ -57,7 +31,7 @@ const VariantImageUnassignProvider: React.StatelessComponent<
         mutate
       });
     }}
-  </TypedVariantImageUnassign>
+  </TypedVariantImageUnassignMutation>
 );
 
 export default VariantImageUnassignProvider;

@@ -1,17 +1,15 @@
 import * as React from "react";
 
 import {
-  ProductDetailsQuery,
   ProductImageReorderMutation,
   ProductImageReorderMutationVariables
 } from "../../gql-types";
-import { productImagesReorder, TypedProductImagesReorder } from "../mutations";
+import { TypedProductImagesReorder } from "../mutations";
 
 import {
   PartialMutationProviderProps,
   PartialMutationProviderRenderProps
 } from "../..";
-import { productDetailsQuery } from "../queries";
 
 interface ProductImagesReorderProviderProps
   extends PartialMutationProviderProps<ProductImageReorderMutation> {
@@ -30,19 +28,8 @@ const ProductImagesReorderProvider: React.StatelessComponent<
   ProductImagesReorderProviderProps
 > = props => (
   <TypedProductImagesReorder
-    mutation={productImagesReorder}
     onCompleted={props.onSuccess}
     onError={props.onError}
-    update={(cache, { data: { productImageReorder } }) => {
-      const data: ProductDetailsQuery = cache.readQuery({
-        query: productDetailsQuery,
-        variables: { id: props.productId }
-      });
-      data.product.images.edges.forEach((item, index, array) => {
-        array[index].node = productImageReorder.productImages[index];
-      });
-      cache.writeQuery({ query: productDetailsQuery, data });
-    }}
   >
     {(mutate, { data, error, loading }) =>
       props.children({
