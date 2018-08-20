@@ -587,8 +587,21 @@
             }
             text-transform: uppercase;
             cursor: pointer;
+            & span {
+              padding: 0 calc(var(--spacer) * 0.5);
+              &:hover {
+                color: var(--primaryColor);
+                &::after {
+                  width: 0;
+                }
+              }
+            }
             &.react-tabs__tab--selected {
-              color: var(--primaryColor);
+              & span {
+                &::after {
+                  width: 100%;
+                }
+              }
             }
           }
         }

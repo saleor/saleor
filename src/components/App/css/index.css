@@ -161,7 +161,7 @@ ul {
         &::after {
           content: "";
           width: 0;
-          height: 5px;
+          height: 2px;
           bottom: 0;
           left: 0;
           position: absolute;
