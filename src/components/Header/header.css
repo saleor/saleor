@@ -99,6 +99,7 @@ header {
         & a {
           font-size: var(--font-size-base);
           font-weight: var(--font-weight-light);
+          text-decoration: none;
           @media (max-width: 1024px) {
             font-size: calc(var(--font-size-base) * 1.2);
           }
