@@ -7,6 +7,20 @@ from ..core.types.common import CountableDjangoObjectType, PermissionDisplay
 from ..utils import format_permissions_for_display
 
 
+class AddressInput(graphene.InputObjectType):
+    first_name = graphene.String(description='Given name.')
+    last_name = graphene.String(description='Family name.')
+    company_name = graphene.String(description='Company or organization.')
+    street_address_1 = graphene.String(description='Address.')
+    street_address_2 = graphene.String(description='Address.')
+    city = graphene.String(description='City.')
+    city_area = graphene.String(description='District.')
+    postal_code = graphene.String(description='Postal code.')
+    country = graphene.String(description='Country.')
+    country_area = graphene.String(description='State or province.')
+    phone = graphene.String(description='Phone number.')
+
+
 class Address(CountableDjangoObjectType):
     class Meta:
         exclude_fields = ['user_set', 'user_addresses']

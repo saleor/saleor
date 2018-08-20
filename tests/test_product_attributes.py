@@ -36,14 +36,17 @@ def test_get_attributes_display_map_empty(product_with_no_attributes):
 
 def test_get_name_from_attributes(product):
     variant = product.variants.first()
-    name = get_name_from_attributes(variant)
+    attributes = variant.product.product_type.variant_attributes.all()
+    name = get_name_from_attributes(variant, attributes)
     assert name == 'Small'
 
 
 def test_get_name_from_attributes_no_attributes(product_with_no_attributes):
     variant_without_attributes = product_with_no_attributes.variants.create(
         sku='example-sku')
-    name = get_name_from_attributes(variant_without_attributes)
+    variant = variant_without_attributes
+    attributes = variant.product.product_type.variant_attributes.all()
+    name = get_name_from_attributes(variant, attributes)
     assert name == ''
 
 

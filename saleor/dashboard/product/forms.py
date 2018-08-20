@@ -129,8 +129,9 @@ class ProductTypeForm(forms.ModelForm):
             product__product_type__variant_attributes__in=attributes_changed)
         variants_to_be_updated = variants_to_be_updated.prefetch_related(
             'product__product_type__variant_attributes__values').all()
+        attributes = self.instance.variant_attributes.all()
         for variant in variants_to_be_updated:
-            variant.name = get_name_from_attributes(variant)
+            variant.name = get_name_from_attributes(variant, attributes)
             variant.save()
 
     def check_if_variants_changed(self, has_variants):
@@ -220,9 +221,6 @@ class ProductForm(forms.ModelForm, AttributesMixin):
                 'Availability date', 'Publish product on'),
             'is_published': pgettext_lazy(
                 'Product published toggle', 'Published'),
-            'is_featured': pgettext_lazy(
-                'Featured product toggle',
-                'Feature this product on homepage'),
             'charge_taxes': pgettext_lazy(
                 'Charge taxes on product', 'Charge taxes on this product')}
 
@@ -312,7 +310,8 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
     def save(self, commit=True):
         attributes = self.get_saved_attributes()
         self.instance.attributes = attributes
-        self.instance.name = get_name_from_attributes(self.instance)
+        attrs = self.instance.product.product_type.variant_attributes.all()
+        self.instance.name = get_name_from_attributes(self.instance, attrs)
         return super().save(commit=commit)
 
 

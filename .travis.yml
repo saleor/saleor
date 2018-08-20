@@ -1,7 +1,6 @@
 language: python
 sudo: false
 python:
-  - "3.4"
   - "3.5"
   - "3.6"
 cache:
@@ -40,6 +39,7 @@ matrix:
       sudo: required
       dist: xenial
       env: DJANGO="master"
+  fast_finish: true
   allow_failures:
     - python: "3.5"
       env: DJANGO="2.1"
@@ -57,11 +57,6 @@ matrix:
       env: DJANGO="master"
       sudo: required
       dist: xenial
-  exclude:
-    - python: "3.4"
-      env: DJANGO="2.1"
-    - python: "3.4"
-      env: DJANGO="master"
 after_success:
   - codecov
 services:

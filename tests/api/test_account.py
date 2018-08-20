@@ -1,16 +1,17 @@
 import json
 from unittest.mock import patch
-from django.contrib.auth.tokens import default_token_generator
 
 import graphene
 import pytest
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
-from .utils import assert_no_permission
 
 from saleor.account.models import Address
 from saleor.graphql.account.mutations import SetPassword
+
+from .utils import assert_no_permission, convert_dict_keys_to_camel_case
 
 
 def test_create_token_mutation(admin_client, staff_user):
@@ -138,7 +139,7 @@ def test_query_user(admin_api_client, customer_user):
     assert address['postalCode'] == user_address.postal_code
     assert address['country'] == user_address.country.code
     assert address['countryArea'] == user_address.country_area
-    assert address['phone'] == user_address.phone.raw_input
+    assert address['phone'] == user_address.phone.as_e164
 
 
 def test_query_users(admin_api_client, user_api_client):
@@ -222,19 +223,33 @@ def test_who_can_see_user(
 
 @patch('saleor.account.emails.send_password_reset_email.delay')
 def test_customer_create(
-        send_password_reset_mock, admin_api_client, user_api_client):
+        send_password_reset_mock, admin_api_client, user_api_client, address):
     query = """
-    mutation CreateCustomer($email: String, $note: String, $send_mail: Boolean) {
-        customerCreate(input: {email: $email, note: $note, sendPasswordEmail: $send_mail}) {
+    mutation CreateCustomer(
+        $email: String, $note: String, $billing: AddressInput,
+        $shipping: AddressInput, $send_mail: Boolean) {
+        customerCreate(input: {
+            email: $email,
+            note: $note,
+            defaultShippingAddress: $shipping,
+            defaultBillingAddress: $billing
+            sendPasswordEmail: $send_mail
+        }) {
             errors {
                 field
                 message
             }
             user {
                 id
+                defaultBillingAddress {
+                    id
+                }
+                defaultShippingAddress {
+                    id
+                }
                 email
-                isStaff
                 isActive
+                isStaff
                 note
             }
         }
@@ -242,8 +257,11 @@ def test_customer_create(
     """
     email = 'api_user@example.com'
     note = 'Test user'
+    address_data = convert_dict_keys_to_camel_case(address.as_data())
 
-    variables = json.dumps({'email': email, 'note': note, 'send_mail': True})
+    variables = json.dumps(
+        {'email': email, 'note': note, 'shipping': address_data,
+        'billing': address_data, 'send_mail': True})
 
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
@@ -252,6 +270,14 @@ def test_customer_create(
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
+
+    User = get_user_model()
+    customer = User.objects.get(email=email)
+
+    assert customer.default_billing_address == address
+    assert customer.default_shipping_address == address
+    assert customer.default_shipping_address.pk != customer.default_billing_address.pk
+
     assert 'errors' not in content
     data = content['data']['customerCreate']
     assert data['errors'] == []
@@ -268,28 +294,50 @@ def test_customer_create(
     assert 'token' in call_context
 
 
-def test_customer_update(admin_api_client, customer_user, user_api_client):
+def test_customer_update(
+        admin_api_client, customer_user, user_api_client, address):
     query = """
-    mutation UpdateCustomer($id: ID!, $note: String) {
-        customerUpdate(id: $id, input: {note: $note}) {
+    mutation UpdateCustomer($id: ID!, $note: String, $billing: AddressInput, $shipping: AddressInput) {
+        customerUpdate(id: $id, input: {
+            note: $note,
+            defaultBillingAddress: $billing
+            defaultShippingAddress: $shipping
+        }) {
             errors {
                 field
                 message
             }
             user {
                 id
-                email
-                isStaff
-                isActive
                 note
+                defaultBillingAddress {
+                    id
+                }
+                defaultShippingAddress {
+                    id
+                }
             }
         }
     }
     """
 
+    # this test requires addresses to be set and checks whether new address
+    # instances weren't created, but the existing ones got updated
+    assert customer_user.default_billing_address
+    assert customer_user.default_shipping_address
+    billing_address_pk = customer_user.default_billing_address.pk
+    shipping_address_pk = customer_user.default_shipping_address.pk
+
     id = graphene.Node.to_global_id('User', customer_user.id)
     note = 'Test update note'
-    variables = json.dumps({'id': id, 'note': note})
+    address_data = convert_dict_keys_to_camel_case(address.as_data())
+
+    new_street_address = 'Updated street address'
+    address_data['streetAddress1'] = new_street_address
+
+    variables = json.dumps({
+        'id': id, 'note': note, 'billing': address_data,
+        'shipping': address_data})
 
     # check unauthorized access
     response = user_api_client.post(
@@ -299,6 +347,17 @@ def test_customer_update(admin_api_client, customer_user, user_api_client):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
+
+    User = get_user_model()
+    customer = User.objects.get(email=customer_user.email)
+
+    # check that existing instances are updated
+    assert customer.default_billing_address.pk == billing_address_pk
+    assert customer.default_shipping_address.pk == shipping_address_pk
+
+    assert customer.default_billing_address.street_address_1 == new_street_address
+    assert customer.default_shipping_address.street_address_1 == new_street_address
+
     assert 'errors' not in content
     data = content['data']['customerUpdate']
     assert data['errors'] == []

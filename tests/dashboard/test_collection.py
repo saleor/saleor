@@ -15,6 +15,16 @@ def test_list_view(admin_client, collection):
     assert list(context['collections']) == [collection]
 
 
+def test_set_homepage_collection(admin_client, collection, site_settings):
+    data = {'homepage_collection': collection.pk}
+    response = admin_client.post(reverse('dashboard:collection-list'), data)
+    assert response.status_code == 302
+    redirect_url = reverse('dashboard:collection-list')
+    assert get_redirect_location(response) == redirect_url
+    site_settings.refresh_from_db()
+    assert site_settings.homepage_collection == collection
+
+
 def test_collection_form_name():
     data = {'name': 'Test Collection', 'products': []}
     form = CollectionForm(data)

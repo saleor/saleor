@@ -16,7 +16,7 @@ Saleor uses ``gettext`` for translation. This is an industry standard for transl
 
 Saleor's storefront and dashboard are both prepared for translation. They use separate translation domains and can be translated separately. All translations provide accurate context descriptions to make translation an easier task.
 
-It is not currently possible to translate database content (like product descriptions) but it's planned for a future release.
+It is possible to translate database content (like product descriptions) with Saleor, more on it can be found in the :ref:`model-translations` section.
 
 Localization
 ------------

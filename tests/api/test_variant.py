@@ -131,7 +131,7 @@ def test_create_variant(admin_api_client, product, product_type):
     content = get_graphql_content(response)
     assert 'errors' not in content
     data = content['data']['productVariantCreate']['productVariant']
-    assert data['name'] == ""
+    assert data['name'] == variant_value
     assert data['quantity'] == quantity
     assert data['costPrice']['amount'] == cost_price
     assert data['priceOverride']['amount'] == price_override
@@ -185,10 +185,11 @@ def test_update_product_variant(admin_api_client, product):
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
+    variant.refresh_from_db()
     content = get_graphql_content(response)
     assert 'errors' not in content
     data = content['data']['productVariantUpdate']['productVariant']
-    assert data['name'] == ""
+    assert data['name'] == variant.name
     assert data['quantity'] == quantity
     assert data['costPrice']['amount'] == cost_price
     assert data['sku'] == sku

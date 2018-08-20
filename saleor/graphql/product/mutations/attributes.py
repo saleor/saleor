@@ -14,7 +14,8 @@ class ProductAttributesInput(graphene.InputObjectType):
 class AttributeChoiceValueInput(graphene.InputObjectType):
     attribute = graphene.ID(
         required=False,
-        description='Attribute to which value will be assigned.')
+        description='Attribute to which value will be assigned.',
+        name='attribute')
     slug = graphene.String(
         required=True, description='Internal name.')
     name = graphene.String(
