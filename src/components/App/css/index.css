@@ -183,6 +183,35 @@ ul {
       
     }
   }
+  &.menu-desktop {
+    & .underline {
+      & a, & span {
+        padding: 0 calc(var(--spacer) * 0.5);
+        position: relative;
+        &::after {
+          content: "";
+          width: 0;
+          height: 2px;
+          bottom: 0;
+          left: 0;
+          position: absolute;
+          transform: skewX(-20deg);
+          background: rgb(54,193,172);
+          transition: width 0.5s;
+        }
+        &:hover {
+          &::after {
+            width: 100%;
+          }
+        }
+        &.active {
+          &::after {
+            width: 100%;
+          }
+        }
+      }
+    }
+  }
 }
 
 .btn {
