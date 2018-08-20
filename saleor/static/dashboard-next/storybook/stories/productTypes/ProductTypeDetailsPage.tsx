@@ -23,10 +23,10 @@ storiesOf("Views / Product types / Product type details", module)
       searchLoading={false}
       searchResults={attributes}
       taxRates={taxRates}
-      onAttributeSearch={() => {}}
-      onBack={() => {}}
-      onDelete={() => {}}
-      onSubmit={() => {}}
+      onAttributeSearch={undefined}
+      onBack={() => undefined}
+      onDelete={undefined}
+      onSubmit={() => undefined}
     />
   ))
   .add("loading", () => (
@@ -36,9 +36,9 @@ storiesOf("Views / Product types / Product type details", module)
       searchLoading={false}
       searchResults={[]}
       taxRates={[]}
-      onAttributeSearch={() => {}}
-      onBack={() => {}}
-      onDelete={() => {}}
-      onSubmit={() => {}}
+      onAttributeSearch={undefined}
+      onBack={() => undefined}
+      onDelete={undefined}
+      onSubmit={() => undefined}
     />
   ));

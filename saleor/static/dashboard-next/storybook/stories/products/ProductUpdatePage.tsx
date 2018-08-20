@@ -13,8 +13,8 @@ storiesOf("Views / Products / Product edit", module)
   .add("when data is fully loaded", () => (
     <ProductUpdatePage
       errors={[]}
-      onBack={() => {}}
-      onSubmit={() => {}}
+      onBack={() => undefined}
+      onSubmit={() => undefined}
       product={product}
       header={product.name}
       collections={product.collections.edges.map(edge => edge.node)}
@@ -23,19 +23,19 @@ storiesOf("Views / Products / Product edit", module)
       images={product.images.edges.map(edge => edge.node)}
       variants={product.variants.edges.map(edge => edge.node)}
       productCollections={product.collections.edges.map(edge => edge.node)}
-      onAttributesEdit={() => {}}
-      onDelete={() => {}}
-      onProductShow={() => {}}
-      onVariantAdd={() => {}}
-      onVariantShow={() => () => {}}
-      onImageDelete={() => () => {}}
+      onAttributesEdit={undefined}
+      onDelete={undefined}
+      onProductShow={undefined}
+      onVariantAdd={undefined}
+      onVariantShow={() => undefined}
+      onImageDelete={() => undefined}
     />
   ))
   .add("when product has no images", () => (
     <ProductUpdatePage
       errors={[]}
-      onBack={() => {}}
-      onSubmit={() => {}}
+      onBack={() => undefined}
+      onSubmit={() => undefined}
       product={product}
       header={product.name}
       collections={product.collections.edges.map(edge => edge.node)}
@@ -44,19 +44,19 @@ storiesOf("Views / Products / Product edit", module)
       images={[]}
       variants={product.variants.edges.map(edge => edge.node)}
       productCollections={product.collections.edges.map(edge => edge.node)}
-      onAttributesEdit={() => {}}
-      onDelete={() => {}}
-      onProductShow={() => {}}
-      onImageDelete={() => () => {}}
-      onVariantAdd={() => {}}
-      onVariantShow={() => () => {}}
+      onAttributesEdit={undefined}
+      onDelete={undefined}
+      onProductShow={undefined}
+      onImageDelete={() => undefined}
+      onVariantAdd={undefined}
+      onVariantShow={() => undefined}
     />
   ))
   .add("when product has no variants", () => (
     <ProductUpdatePage
       errors={[]}
-      onBack={() => {}}
-      onSubmit={() => {}}
+      onBack={() => undefined}
+      onSubmit={() => undefined}
       product={
         {
           ...product,
@@ -70,12 +70,12 @@ storiesOf("Views / Products / Product edit", module)
       images={product.images.edges.map(edge => edge.node)}
       variants={product.variants.edges.map(edge => edge.node)}
       productCollections={product.collections.edges.map(edge => edge.node)}
-      onAttributesEdit={() => {}}
-      onDelete={() => {}}
-      onProductShow={() => {}}
-      onVariantAdd={() => {}}
-      onImageDelete={() => () => {}}
-      onVariantShow={() => () => {}}
+      onAttributesEdit={undefined}
+      onDelete={undefined}
+      onProductShow={undefined}
+      onVariantAdd={undefined}
+      onImageDelete={() => undefined}
+      onVariantShow={() => undefined}
     />
   ))
   .add("when loading data", () => (
@@ -83,12 +83,12 @@ storiesOf("Views / Products / Product edit", module)
       errors={[]}
       header={undefined}
       categories={[]}
-      onBack={() => {}}
-      onSubmit={() => {}}
+      onBack={() => undefined}
+      onSubmit={() => undefined}
       disabled={true}
       placeholderImage={placeholderImage}
-      onAttributesEdit={() => {}}
-      onImageDelete={() => () => {}}
-      onVariantShow={() => () => {}}
+      onAttributesEdit={undefined}
+      onImageDelete={() => undefined}
+      onVariantShow={() => undefined}
     />
   ));

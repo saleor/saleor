@@ -37,7 +37,7 @@ const FileUpload = decorate<FileUploadProps>(
       <TextField
         className={classes.textField}
         disabled={disabled}
-        onChange={() => {}}
+        onChange={undefined}
         value={value}
       />
       <Button disabled={disabled} onClick={() => this.upload.click()}>

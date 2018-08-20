@@ -13,13 +13,13 @@ import {
   PaymentVariants,
   transformOrderStatus
 } from "../..";
+import CardTitle from "../../../components/CardTitle";
 import PageHeader from "../../../components/PageHeader";
 import StatusLabel from "../../../components/StatusLabel/StatusLabel";
 import i18n from "../../../i18n";
 import OrderProducts, {
   OrderProductsProps
 } from "../OrderProducts/OrderProducts";
-import CardTitle from "../../../components/CardTitle";
 
 interface MoneyType {
   amount: number;
@@ -47,14 +47,14 @@ interface OrderSummaryProps extends OrderProductsProps {
 
 const decorate = withStyles(
   theme => ({
-    root: {},
     hr: {
-      height: 1,
-      display: "block",
+      backgroundColor: theme.palette.grey[200],
       border: "none",
-      width: "100%",
-      backgroundColor: theme.palette.grey[200]
+      display: "block",
+      height: 1,
+      width: "100%"
     },
+    root: {},
     statusBar: {
       paddingTop: 0
     }
@@ -112,12 +112,7 @@ const OrderSummary = decorate<OrderSummaryProps>(
           title={i18n.t("Order Summary")}
           toolbar={
             isDraft && (
-              <Button
-                color="secondary"
-                variant="flat"
-                disabled={!onProductAdd}
-                onClick={onProductAdd}
-              >
+              <Button color="secondary" variant="flat" onClick={onProductAdd}>
                 {i18n.t("Add product")}
               </Button>
             )
@@ -155,34 +150,24 @@ const OrderSummary = decorate<OrderSummaryProps>(
             isDraft) && (
             <CardActions>
               {isDraft ? (
-                <Button disabled={!onCreate} onClick={onCreate}>
-                  {i18n.t("Finalize")}
-                </Button>
+                <Button onClick={onCreate}>{i18n.t("Finalize")}</Button>
               ) : (
                 <>
                   {canGetInvoice && <Button>{i18n.t("Invoice")}</Button>}
                   {canFulfill && (
-                    <Button disabled={!onFulfill} onClick={onFulfill}>
-                      {i18n.t("Fulfill")}
-                    </Button>
+                    <Button onClick={onFulfill}>{i18n.t("Fulfill")}</Button>
                   )}
                   {canCapture && (
-                    <Button disabled={!onCapture} onClick={onCapture}>
-                      {i18n.t("Capture")}
-                    </Button>
+                    <Button onClick={onCapture}>{i18n.t("Capture")}</Button>
                   )}
                   {canRefund && (
-                    <Button disabled={!onRefund} onClick={onRefund}>
-                      {i18n.t("Refund")}
-                    </Button>
+                    <Button onClick={onRefund}>{i18n.t("Refund")}</Button>
                   )}
                   {canRelease && (
-                    <Button disabled={!onRelease} onClick={onRelease}>
-                      {i18n.t("Release")}
-                    </Button>
+                    <Button onClick={onRelease}>{i18n.t("Release")}</Button>
                   )}
                   {canCancel && (
-                    <Button disabled={!onOrderCancel} onClick={onOrderCancel}>
+                    <Button onClick={onOrderCancel}>
                       {i18n.t("Cancel order")}
                     </Button>
                   )}

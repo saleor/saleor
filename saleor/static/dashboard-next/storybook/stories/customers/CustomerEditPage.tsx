@@ -10,8 +10,8 @@ const errors = [
   { field: "note", message: "this field cannot be empty" }
 ];
 const callbacks = {
-  onBack: () => {},
-  onSubmit: () => {}
+  onBack: undefined,
+  onSubmit: () => undefined
 };
 
 storiesOf("Views / Customers / Edit customer", module)

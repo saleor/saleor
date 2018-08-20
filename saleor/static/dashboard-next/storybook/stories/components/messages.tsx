@@ -27,7 +27,7 @@ storiesOf("Generics / Global messages", module)
           color="primary"
           variant="raised"
           onClick={() =>
-            pushMessage({ text: "This is message", onUndo: () => {} })
+            pushMessage({ text: "This is message", onUndo: undefined })
           }
         >
           Push message

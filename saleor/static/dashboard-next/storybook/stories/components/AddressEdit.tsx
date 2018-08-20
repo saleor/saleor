@@ -15,7 +15,7 @@ storiesOf("Generics / AddressEdit", module)
         data={customer.defaultBillingAddress}
         prefixes={prefixes}
         countries={countries}
-        onChange={() => {}}
+        onChange={undefined}
       />
     </Container>
   ));

@@ -11,10 +11,10 @@ storiesOf("Orders / OrderCustomerEditDialog", module)
   .addDecorator(Decorator)
   .add("default", () => (
     <OrderCustomerEditDialog
-      fetchUsers={() => {}}
-      onChange={() => {}}
-      onClose={() => {}}
-      onConfirm={() => {}}
+      fetchUsers={undefined}
+      onChange={undefined}
+      onClose={undefined}
+      onConfirm={undefined}
       open={true}
       user={{
         label: user.email,

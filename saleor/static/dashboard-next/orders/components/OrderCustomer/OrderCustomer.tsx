@@ -104,7 +104,7 @@ const OrderCustomer = decorate<OrderCustomerProps>(
               onClick={
                 onCustomerEmailClick
                   ? onCustomerEmailClick(client.id)
-                  : () => {}
+                  : undefined
               }
             >
               {client.email}

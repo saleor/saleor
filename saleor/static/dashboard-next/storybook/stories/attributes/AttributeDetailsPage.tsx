@@ -12,18 +12,18 @@ storiesOf("Views / Attributes / Attribute details", module)
       attribute={attributes[0]}
       disabled={false}
       saveButtonBarState="default"
-      onBack={() => {}}
-      onDelete={() => {}}
-      onSubmit={() => {}}
+      onBack={() => undefined}
+      onDelete={undefined}
+      onSubmit={() => undefined}
     />
   ))
   .add("when loading", () => (
     <AttributeDetailsPage
       disabled={true}
       saveButtonBarState="default"
-      onBack={() => {}}
-      onDelete={() => {}}
-      onSubmit={() => {}}
+      onBack={() => undefined}
+      onDelete={undefined}
+      onSubmit={() => undefined}
     />
   ))
   .add("when no values", () => (
@@ -35,8 +35,8 @@ storiesOf("Views / Attributes / Attribute details", module)
       }}
       disabled={false}
       saveButtonBarState="default"
-      onBack={() => {}}
-      onDelete={() => {}}
-      onSubmit={() => {}}
+      onBack={() => undefined}
+      onDelete={undefined}
+      onSubmit={() => undefined}
     />
   ));

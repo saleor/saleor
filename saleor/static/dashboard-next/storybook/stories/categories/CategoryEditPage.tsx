@@ -15,23 +15,23 @@ storiesOf("Views / Categories / Category edit", module)
   .add("default", () => (
     <CategoryEditPage
       category={category}
-      onBack={() => {}}
-      onSubmit={() => {}}
+      onBack={() => undefined}
+      onSubmit={() => undefined}
     />
   ))
   .add("when loading", () => (
     <CategoryEditPage
       category={category}
       disabled={true}
-      onBack={() => {}}
-      onSubmit={() => {}}
+      onBack={() => undefined}
+      onSubmit={() => undefined}
     />
   ))
   .add("with errors", () => (
     <CategoryEditPage
       category={category}
       errors={errors}
-      onBack={() => {}}
-      onSubmit={() => {}}
+      onBack={() => undefined}
+      onSubmit={() => undefined}
     />
   ));

@@ -25,7 +25,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
       return (
         <Navigator>
           {navigate => {
-            const handleAttributesEdit = () => {};
+            const handleAttributesEdit = undefined;
             const handleBack = () => navigate(productListUrl);
 
             return (

@@ -10,7 +10,7 @@ storiesOf("Orders / OrderPaymentDialog", module)
     <OrderPaymentDialog
       variant="capture"
       open={true}
-      onChange={() => {}}
+      onChange={undefined}
       value={120}
     />
   ))
@@ -18,7 +18,7 @@ storiesOf("Orders / OrderPaymentDialog", module)
     <OrderPaymentDialog
       variant="refund"
       open={true}
-      onChange={() => {}}
+      onChange={undefined}
       value={140}
     />
   ));

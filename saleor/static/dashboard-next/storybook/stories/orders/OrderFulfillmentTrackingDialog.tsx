@@ -10,9 +10,9 @@ storiesOf("Orders / OrderFulfillmentTrackingDialog", module)
     <OrderFulfillmentTrackingDialog
       open={true}
       variant="add"
-      onChange={() => {}}
-      onConfirm={() => {}}
-      onClose={() => {}}
+      onChange={undefined}
+      onConfirm={undefined}
+      onClose={undefined}
       trackingCode="123"
     />
   ))
@@ -20,9 +20,9 @@ storiesOf("Orders / OrderFulfillmentTrackingDialog", module)
     <OrderFulfillmentTrackingDialog
       open={true}
       variant="edit"
-      onChange={() => {}}
-      onConfirm={() => {}}
-      onClose={() => {}}
+      onChange={undefined}
+      onConfirm={undefined}
+      onClose={undefined}
       trackingCode="123"
     />
   ));

@@ -11,8 +11,8 @@ storiesOf("Generics / TablePagination", module)
         colSpan={1}
         hasNextPage={false}
         hasPreviousPage={false}
-        onPreviousPage={() => {}}
-        onNextPage={() => {}}
+        onPreviousPage={undefined}
+        onNextPage={undefined}
       />
     </Table>
   ))
@@ -22,8 +22,8 @@ storiesOf("Generics / TablePagination", module)
         colSpan={1}
         hasNextPage={false}
         hasPreviousPage={true}
-        onPreviousPage={() => {}}
-        onNextPage={() => {}}
+        onPreviousPage={undefined}
+        onNextPage={undefined}
       />
     </Table>
   ))
@@ -33,8 +33,8 @@ storiesOf("Generics / TablePagination", module)
         colSpan={1}
         hasNextPage={true}
         hasPreviousPage={false}
-        onPreviousPage={() => {}}
-        onNextPage={() => {}}
+        onPreviousPage={undefined}
+        onNextPage={undefined}
       />
     </Table>
   ))
@@ -44,8 +44,8 @@ storiesOf("Generics / TablePagination", module)
         colSpan={1}
         hasNextPage={true}
         hasPreviousPage={true}
-        onPreviousPage={() => {}}
-        onNextPage={() => {}}
+        onPreviousPage={undefined}
+        onNextPage={undefined}
       />
     </Table>
   ));

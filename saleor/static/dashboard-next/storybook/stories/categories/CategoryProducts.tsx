@@ -9,38 +9,38 @@ const products = [
   {
     id: "UHJvZHVjdDox",
     name: "Gardner, Graham and King",
-    thumbnailUrl: placeholder,
     productType: {
       id: "1",
       name: "T-Shirt"
-    }
+    },
+    thumbnailUrl: placeholder
   },
   {
     id: "UHJvZHVjdDoy",
     name: "Gardner, Graham and King",
-    thumbnailUrl: placeholder,
     productType: {
       id: "1",
       name: "T-Shirt"
-    }
+    },
+    thumbnailUrl: placeholder
   },
   {
     id: "UHJvZHVjdDoz",
     name: "Gardner, Graham and King",
-    thumbnailUrl: placeholder,
     productType: {
       id: "1",
       name: "T-Shirt"
-    }
+    },
+    thumbnailUrl: placeholder
   },
   {
     id: "UHJvZHVjdDoa",
     name: "Gardner, Graham and King",
-    thumbnailUrl: placeholder,
     productType: {
       id: "1",
       name: "T-Shirt"
-    }
+    },
+    thumbnailUrl: placeholder
   }
 ];
 
@@ -51,9 +51,9 @@ storiesOf("Categories / CategoryProducts", module)
       hasNextPage={true}
       hasPreviousPage={false}
       products={[]}
-      onAddProduct={() => {}}
-      onNextPage={() => {}}
-      onPreviousPage={() => {}}
+      onAddProduct={undefined}
+      onNextPage={undefined}
+      onPreviousPage={undefined}
     />
   ))
   .add("with initial data", () => (
@@ -61,9 +61,9 @@ storiesOf("Categories / CategoryProducts", module)
       hasNextPage={true}
       hasPreviousPage={false}
       products={products}
-      onAddProduct={() => {}}
-      onNextPage={() => {}}
-      onPreviousPage={() => {}}
+      onAddProduct={undefined}
+      onNextPage={undefined}
+      onPreviousPage={undefined}
     />
   ))
   .add("with clickable rows", () => (
@@ -71,18 +71,18 @@ storiesOf("Categories / CategoryProducts", module)
       hasNextPage={true}
       hasPreviousPage={false}
       products={products}
-      onAddProduct={() => {}}
-      onNextPage={() => {}}
-      onPreviousPage={() => {}}
-      onRowClick={() => () => {}}
+      onAddProduct={undefined}
+      onNextPage={undefined}
+      onPreviousPage={undefined}
+      onRowClick={() => undefined}
     />
   ))
   .add("when loading data", () => (
     <CategoryProducts
       hasNextPage={true}
       hasPreviousPage={false}
-      onAddProduct={() => {}}
-      onNextPage={() => {}}
-      onPreviousPage={() => {}}
+      onAddProduct={undefined}
+      onNextPage={undefined}
+      onPreviousPage={undefined}
     />
   ));

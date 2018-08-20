@@ -13,8 +13,8 @@ storiesOf("Categories / CategoryDeleteDialog", module)
     <CategoryDeleteDialog
       name={category.name}
       open={true}
-      onClose={() => {}}
-      onConfirm={() => {}}
+      onClose={undefined}
+      onConfirm={undefined}
       productCount={0}
     />
   ))
@@ -23,7 +23,7 @@ storiesOf("Categories / CategoryDeleteDialog", module)
       name={category.name}
       open={true}
       productCount={100}
-      onClose={() => {}}
-      onConfirm={() => {}}
+      onClose={undefined}
+      onConfirm={undefined}
     />
   ));

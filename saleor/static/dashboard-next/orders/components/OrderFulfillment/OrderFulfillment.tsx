@@ -18,8 +18,8 @@ import { transformFulfillmentStatus } from "../..";
 import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel/StatusLabel";
-import i18n from "../../../i18n";
 import TableCellAvatar from "../../../components/TableCellAvatar";
+import i18n from "../../../i18n";
 
 interface OrderFulfillmentProps {
   id?: string;
@@ -79,7 +79,6 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
             <Button
               color="secondary"
               variant="flat"
-              disabled={!onPackingSlipClick}
               onClick={onPackingSlipClick}
             >
               {i18n.t("Packing slip")}
@@ -126,12 +125,12 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
       </Table>
       {status !== "cancelled" && (
         <CardActions>
-          <Button disabled={!onTrackingCodeAdd} onClick={onTrackingCodeAdd}>
+          <Button onClick={onTrackingCodeAdd}>
             {trackingCode
               ? i18n.t("Add tracking number")
               : i18n.t("Edit tracking number")}
           </Button>
-          <Button disabled={!onFulfillmentCancel} onClick={onFulfillmentCancel}>
+          <Button onClick={onFulfillmentCancel}>
             {i18n.t("Cancel shipment")}
           </Button>
         </CardActions>

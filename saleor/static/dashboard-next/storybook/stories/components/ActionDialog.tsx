@@ -10,8 +10,8 @@ storiesOf("Generics / ActionDialog", module)
     <ActionDialog
       title="Example title"
       open={true}
-      onClose={() => {}}
-      onConfirm={() => {}}
+      onClose={undefined}
+      onConfirm={undefined}
     >
       Example content
     </ActionDialog>

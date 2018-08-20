@@ -9,8 +9,8 @@ storiesOf("Pages / PageDeleteDialog", module)
   .add("default", () => (
     <PageDeleteDialog
       opened={true}
-      onConfirm={() => {}}
-      onClose={() => {}}
+      onConfirm={undefined}
+      onClose={undefined}
       title="Lorem Ipsum"
     />
   ));

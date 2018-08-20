@@ -7,13 +7,13 @@ import { flatOrders } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
 
 const callbacks = {
-  onBack: () => {},
-  onBillingAddressEdit: () => {},
-  onCustomerDelete: () => {},
-  onCustomerEdit: () => {},
-  onEmailClick: () => {},
-  onOrderClick: (id: string) => () => {},
-  onShippingAddressEdit: () => {}
+  onBack: undefined,
+  onBillingAddressEdit: undefined,
+  onCustomerDelete: undefined,
+  onCustomerEdit: undefined,
+  onEmailClick: undefined,
+  onOrderClick: (id: string) => undefined,
+  onShippingAddressEdit: undefined
 };
 
 storiesOf("Views / Customers / Customer details", module)

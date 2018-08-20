@@ -14,7 +14,7 @@ storiesOf("Orders / OrderFulfillmentDialog", module)
     <OrderFulfillmentDialog
       open={true}
       products={order.products}
-      onChange={() => {}}
+      onChange={undefined}
       data={{}}
     />
   ));

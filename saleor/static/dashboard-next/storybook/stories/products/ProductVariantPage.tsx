@@ -15,11 +15,11 @@ storiesOf("Views / Products / Product variant details", module)
       header={variant.name || variant.sku}
       errors={[]}
       variant={variant}
-      onBack={() => () => {}}
-      onDelete={() => {}}
-      onImageSelect={() => {}}
-      onSubmit={() => {}}
-      onVariantClick={() => () => {}}
+      onBack={() => undefined}
+      onDelete={undefined}
+      onImageSelect={() => undefined}
+      onSubmit={() => undefined}
+      onVariantClick={() => undefined}
     />
   ))
   .add("when loading data", () => (
@@ -27,11 +27,11 @@ storiesOf("Views / Products / Product variant details", module)
       header={undefined}
       errors={[]}
       loading={true}
-      onBack={() => () => {}}
+      onBack={() => undefined}
       placeholderImage={placeholderImage}
-      onDelete={() => {}}
-      onImageSelect={() => {}}
-      onSubmit={() => {}}
-      onVariantClick={() => () => {}}
+      onDelete={undefined}
+      onImageSelect={() => undefined}
+      onSubmit={() => undefined}
+      onVariantClick={() => undefined}
     />
   ));

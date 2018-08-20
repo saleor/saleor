@@ -7,7 +7,7 @@ import PointOfInterestField from "../../../components/PointOfInterestField";
 storiesOf("components / PointOfInterestField", module).add("default", () => (
   <PointOfInterestField
     src={placeholder}
-    onChange={() => {}}
+    onChange={undefined}
     value={"0.5x0.5"}
   />
 ));

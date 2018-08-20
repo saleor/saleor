@@ -14,10 +14,10 @@ storiesOf("Orders / OrderShippingMethodEditDialog", module)
   .addDecorator(Decorator)
   .add("default", () => (
     <OrderShippingMethodEditDialog
-      fetchShippingMethods={() => {}}
-      onChange={() => {}}
-      onClose={() => {}}
-      onConfirm={() => {}}
+      fetchShippingMethods={undefined}
+      onChange={undefined}
+      onClose={undefined}
+      onConfirm={undefined}
       open={true}
       shippingMethod={{
         label: order.shippingMethodName,
