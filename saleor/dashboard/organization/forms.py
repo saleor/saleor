@@ -1,10 +1,10 @@
 from django import forms
 from django.utils.translation import pgettext_lazy
 
-from ...account.models import Company
+from ...account.models import Organization
 
 
-class CompanyDeleteForm(forms.Form):
+class OrganizationDeleteForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.instance = kwargs.pop('instance')
@@ -18,18 +18,18 @@ class CompanyDeleteForm(forms.Form):
 
         if self.instance and self.instance.user_set.exists():
             raise forms.ValidationError(pgettext_lazy(
-                'Edit company details in order form error',
-                'You can\'t delete a company with associated users.'))
-        can_edit_company = self.user.has_perm('account.manage_companies')
-        if not can_edit_company:
+                'Edit organization details in order form error',
+                'You can\'t delete a organization with associated users.'))
+        can_edit_organization = self.user.has_perm('account.manage_organizations')
+        if not can_edit_organization:
             raise forms.ValidationError(pgettext_lazy(
-                'Edit company details in order form error',
-                'You have insufficient permissions to edit companies.'))
+                'Edit organization details in order form error',
+                'You have insufficient permissions to edit organizations.'))
         return data
 
 
-class CompanyForm(forms.ModelForm):
+class OrganizationForm(forms.ModelForm):
 
     class Meta:
-        model = Company
+        model = Organization
         fields = ['name', 'is_active']

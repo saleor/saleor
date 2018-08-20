@@ -201,8 +201,8 @@
                 {% if order.user.note %}
                   <p>{{ order.user.note|truncatechars:80 }}</p>
                 {% endif %}
-                {% if order.user.company %}
-                (<a href="{% url 'dashboard:company-details' pk=order.user.company.pk %}">{{ order.user.company }}</a>)
+                {% if order.user.organization %}
+                (<a href="{% url 'dashboard:organization-details' pk=order.user.organization.pk %}">{{ order.user.organization }}</a>)
                 {% endif %}
               {% elif order.user_email %}
                 {{ order.user_email }}

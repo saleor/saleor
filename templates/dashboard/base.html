@@ -153,9 +153,9 @@
                   </li>
                 {% endif %}
                 {% if perms.account.manage_users %}
-                  <li class="{% block menu_companies_class %}{% endblock %}">
-                    <a href="{% url 'dashboard:companies' %}">
-                      {% trans "Companies" context "Dashboard companies list" %}
+                  <li class="{% block menu_organizations_class %}{% endblock %}">
+                    <a href="{% url 'dashboard:organizations' %}">
+                      {% trans "Organizations" context "Dashboard organizations list" %}
                     </a>
                   </li>
                 {% endif %}

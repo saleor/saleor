@@ -3,7 +3,7 @@ from django.conf.urls import include, url
 from . import views as core_views
 from .category.urls import urlpatterns as category_urls
 from .collection.urls import urlpatterns as collection_urls
-from .company.urls import urlpatterns as company_urls
+from .organization.urls import urlpatterns as organization_urls
 from .customer.urls import urlpatterns as customer_urls
 from .discount.urls import urlpatterns as discount_urls
 from .menu.urls import urlpatterns as menu_urls
@@ -23,7 +23,7 @@ urlpatterns = [
     url(r'^orders/', include(order_urls)),
     url(r'^page/', include(page_urls)),
     url(r'^products/', include(product_urls)),
-    url(r'^companies/', include(company_urls)),
+    url(r'^organizations/', include(organization_urls)),
     url(r'^customers/', include(customer_urls)),
     url(r'^staff/', include(staff_urls)),
     url(r'^discounts/', include(discount_urls)),

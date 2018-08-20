@@ -4,7 +4,7 @@ from django.utils.translation import npgettext, pgettext_lazy
 from django_countries import countries
 from django_filters import CharFilter, ChoiceFilter, OrderingFilter
 
-from ...account.models import Company
+from ...account.models import Organization
 from ...core.filters import SortedFilterSet
 
 SORT_BY_FIELDS = (
@@ -13,35 +13,35 @@ SORT_BY_FIELDS = (
 
 SORT_BY_FIELDS_LABELS = {
     'name': pgettext_lazy(
-        'Company list sorting option', 'name'),
+        'Organization list sorting option', 'name'),
     'default_billing_address__city': pgettext_lazy(
-        'Company list sorting option', 'location')}
+        'Organization list sorting option', 'location')}
 
 IS_ACTIVE_CHOICES = (
     ('1', pgettext_lazy('Is active filter choice', 'Active')),
     ('0', pgettext_lazy('Is active filter choice', 'Not active')))
 
 
-class CompanyFilter(SortedFilterSet):
+class OrganizationFilter(SortedFilterSet):
     name_or_email = CharFilter(
-        label=pgettext_lazy('Company and contacts name or email filter',
+        label=pgettext_lazy('Organization and contacts name or email filter',
                             'Name or email'),
         method='filter_by_name_or_email')
     location = CharFilter(
-        label=pgettext_lazy('Company list filter label', 'Location'),
+        label=pgettext_lazy('Organization list filter label', 'Location'),
         method='filter_by_location')
     is_active = ChoiceFilter(
-        label=pgettext_lazy('Company list filter label', 'Is active'),
+        label=pgettext_lazy('Organization list filter label', 'Is active'),
         choices=IS_ACTIVE_CHOICES,
         empty_label=pgettext_lazy('Filter empty choice label', 'All'),
         widget=forms.Select)
     sort_by = OrderingFilter(
-        label=pgettext_lazy('Company list filter label', 'Sort by'),
+        label=pgettext_lazy('Organization list filter label', 'Sort by'),
         fields=SORT_BY_FIELDS,
         field_labels=SORT_BY_FIELDS_LABELS)
 
     class Meta:
-        model = Company
+        model = Organization
         fields = []
 
     def filter_by_name_or_email(self, queryset, name, value):
@@ -69,7 +69,7 @@ class CompanyFilter(SortedFilterSet):
     def get_summary_message(self):
         counter = self.qs.count()
         return npgettext(
-            'Number of matching records in the dashboard companies list',
-            'Found %(counter)d matching company',
-            'Found %(counter)d matching companies',
+            'Number of matching records in the dashboard organizations list',
+            'Found %(counter)d matching organization',
+            'Found %(counter)d matching organizations',
             number=counter) % {'counter': counter}

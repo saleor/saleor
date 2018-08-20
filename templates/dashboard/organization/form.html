@@ -4,36 +4,36 @@
 {% load staticfiles %}
 
 {% block title %}
-  {% if company.pk %}
-    {{ company }}
+  {% if organization.pk %}
+    {{ organization }}
   {% else %}
-    {% trans "Add new company" context "Dashboard add company" %}
+    {% trans "Add new organization" context "Dashboard add organization" %}
   {% endif %}
-     - {% trans "Company" context "Dashboard company" %} - {{ block.super }}
+     - {% trans "Organization" context "Dashboard organization" %} - {{ block.super }}
 {% endblock %}
 
-{% block body_class %}body-companies{% endblock %}
+{% block body_class %}body-organizations{% endblock %}
 
-{% block menu_companies_class %}active{% endblock %}
+{% block menu_organizations_class %}active{% endblock %}
 
 {% block header_menu %}
-  {% url "dashboard:companies" as url %}
+  {% url "dashboard:organizations" as url %}
   {% include "dashboard/includes/_back-link.html" with url=url %}
 {% endblock %}
 
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
-      <a href="{% url "dashboard:companies" %}">
-        {% trans "Companies" context "Dashboard companies list" %}
+      <a href="{% url "dashboard:organizations" %}">
+        {% trans "Organizations" context "Dashboard organizations list" %}
       </a>
     </li>
     <li class="back-mobile">
-      <a href="{% url "dashboard:companies" %}">
+      <a href="{% url "dashboard:organizations" %}">
         <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
-    <li><span class="breadcrumbs--elipsed-item">{% if company.pk %}{{ company }}{% else %}{% trans 'Add company' context 'Dashboard add company action' %}{% endif %}</span></li>
+    <li><span class="breadcrumbs--elipsed-item">{% if organization.pk %}{{ organization }}{% else %}{% trans 'Add organization' context 'Dashboard add organization action' %}{% endif %}</span></li>
   </ul>
 {% endblock %}
 
@@ -44,7 +44,7 @@
         <form class="card" method="post">
           <div class="card-content">
             <span class="card-title">
-              {% trans 'Company details' context 'Company details header' %}
+              {% trans 'Organization details' context 'Organization details header' %}
             </span>
             <div class="data">
               {% csrf_token %}
@@ -55,15 +55,15 @@
           </div>
           {% if perms.account.edit_user %}
           <div class="card-action right-align">
-            {% if company.pk %}
-              <a href="{% url 'dashboard:company-details' pk=company.pk %}" class="btn-flat waves-effect">
+            {% if organization.pk %}
+              <a href="{% url 'dashboard:organization-details' pk=organization.pk %}" class="btn-flat waves-effect">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect">
                 {% trans 'Update' context 'Dashboard update action' %}
               </button>
             {% else %}
-              <a href="{% url 'dashboard:companies' %}" class="btn-flat waves-effect">
+              <a href="{% url 'dashboard:organizations' %}" class="btn-flat waves-effect">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect">

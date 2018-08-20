@@ -6,32 +6,32 @@
 {% load status %}
 
 {% block title %}
-  {{ company }} - {% trans "Companies" context "Dashboard companies list" %} - {{ block.super }}
+  {{ organization }} - {% trans "Organizations" context "Dashboard organizations list" %} - {{ block.super }}
 {% endblock %}
 
-{% block body_class %}body-companies{% endblock %}
+{% block body_class %}body-organizations{% endblock %}
 
-{% block menu_companies_class %}active{% endblock %}
+{% block menu_organizations_class %}active{% endblock %}
 
 {% block header_menu %}
-  {% url "dashboard:companies" as url %}
+  {% url "dashboard:organizations" as url %}
   {% include "dashboard/includes/_back_link.html" with url=url %}
 {% endblock %}
 
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
-      <a href="{% url "dashboard:companies" %}">
-        {% trans "Companies" context "Dashboard companies list" %}
+      <a href="{% url "dashboard:organizations" %}">
+        {% trans "Organizations" context "Dashboard organizations list" %}
       </a>
     </li>
     <li class="back-mobile">
-      <a href="{% url "dashboard:companies" %}">
+      <a href="{% url "dashboard:organizations" %}">
         <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
     <li>
-      <span class="breadcrumbs--elipsed-item">{{ company }}</span>
+      <span class="breadcrumbs--elipsed-item">{{ organization }}</span>
     </li>
   </ul>
 {% endblock %}
@@ -42,16 +42,16 @@
       <div class="card">
         <div class="card-content">
           <span class="card-title">
-            {{ company.name }}
+            {{ organization.name }}
           </span>
           <div class="row">
-            {% if company.date_joined %}
+            {% if organization.date_joined %}
               <div class="col s12 m4 l12">
                 <h4>
-                  {% trans "Date joined" context "Company field" %}
+                  {% trans "Date joined" context "Organization field" %}
                 </h4>
                 <p>
-                  {{ company.date_joined }}
+                  {{ organization.date_joined }}
                 </p>
               </div>
             {% endif %}
@@ -59,43 +59,43 @@
         </div>
         <div class="card-action">
           {% if perms.account.edit_user %}
-            <a href="{% url 'dashboard:company-update' company.pk %}" class="btn-flat waves-effect">
-              {% trans "Edit company" context "Company action" %}
+            <a href="{% url 'dashboard:organization-update' organization.pk %}" class="btn-flat waves-effect">
+              {% trans "Edit organization" context "Organization action" %}
             </a>
-            <a href="#base-modal" data-href="{% url 'dashboard:company-delete' pk=company.pk %}" class="modal-trigger-custom btn-flat waves-effect">
-              {% trans "Remove company" context "Company action" %}
+            <a href="#base-modal" data-href="{% url 'dashboard:organization-delete' pk=organization.pk %}" class="modal-trigger-custom btn-flat waves-effect">
+              {% trans "Remove organization" context "Organization action" %}
             </a>
           {% endif %}
         </div>
       </div>
 
       <div class="card">
-        <div class="data-table-header{% if not company_orders %} data-table-header--no-data{% endif %}">
-          <h5 class="data-table-title {% if not company_orders %} data-table-title--no-data{% endif %}">
-            {% trans "Recent orders" context "Company recent orders table title" %}
+        <div class="data-table-header{% if not organization_orders %} data-table-header--no-data{% endif %}">
+          <h5 class="data-table-title {% if not organization_orders %} data-table-title--no-data{% endif %}">
+            {% trans "Recent orders" context "Organization recent orders table title" %}
           </h5>
         </div>
-        {% if company_orders %}
+        {% if organization_orders %}
           <div class="data-table-container">
             <table class="bordered highlight responsive data-table">
               <thead>
                 <tr>
                   <th>
-                    {% trans "Number" context "Company orders table header" %}
+                    {% trans "Number" context "Organization orders table header" %}
                   </th>
                   <th>
-                    {% trans "Placed on" context "Company orders table header" %}
+                    {% trans "Placed on" context "Organization orders table header" %}
                   </th>
                   <th>
-                    {% trans "Order status" context "Company orders table header" %}
+                    {% trans "Order status" context "Organization orders table header" %}
                   </th>
                   <th class="right-align">
-                    {% trans "Total" context "Company orders table header" %}
+                    {% trans "Total" context "Organization orders table header" %}
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {% for order in company_orders %}
+                {% for order in organization_orders %}
                   <tr data-action-go="{% if perms.order.view_order %}{% url 'dashboard:order-details' order_pk=order.pk %}{% endif %}">
                     <td>
                       {{ order }}
@@ -117,30 +117,30 @@
         {% else %}
           <div class="card-content card-content--no-data">
             <p>
-              {% trans "No orders found." context "Empty company orders table message" %}
+              {% trans "No orders found." context "Empty organization orders table message" %}
             </p>
           </div>
         {% endif %}
       </div>
 
       <div class="card">
-        <div class="data-table-header{% if not company_users %} data-table-header--no-data{% endif %}">
-          <h5 class="data-table-title {% if not company_users %} data-table-title--no-data{% endif %}">
-            {% trans "Users" context "Company users table title" %}
+        <div class="data-table-header{% if not organization_users %} data-table-header--no-data{% endif %}">
+          <h5 class="data-table-title {% if not organization_users %} data-table-title--no-data{% endif %}">
+            {% trans "Users" context "Organization users table title" %}
           </h5>
         </div>
-        {% if company_users %}
+        {% if organization_users %}
           <div class="data-table-container">
             <table class="bordered highlight responsive data-table">
               <thead>
                 <tr>
                   <th>
-                    {% trans "Email" context "Company users table header" %}
+                    {% trans "Email" context "Organization users table header" %}
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {% for user in company_users %}
+                {% for user in organization_users %}
                   <tr data-action-go="{% if perms.user.view_user %}{% url 'dashboard:customer-details' pk=user.pk %}{% endif %}">
                     <td>
                       {{ user.email }}
@@ -153,7 +153,7 @@
         {% else %}
           <div class="card-content card-content--no-data">
             <p>
-              {% trans "No users found." context "Empty company users table message" %}
+              {% trans "No users found." context "Empty organization users table message" %}
             </p>
           </div>
         {% endif %}
@@ -168,15 +168,15 @@
           <div class="card equal-height-on-med">
             <div class="card-content">
               <span class="card-title black-text">
-                {% trans "Default billing address" context "Company default billing address card title" %}
+                {% trans "Default billing address" context "Organization default billing address card title" %}
               </span>
-              {% if company.default_billing_address %}
-                {% with company.default_billing_address as address %}
+              {% if organization.default_billing_address %}
+                {% with organization.default_billing_address as address %}
                   {% include 'dashboard/includes/_address.html' with address=address only %}
                 {% endwith %}
               {% else %}
                 <div>
-                  {% trans "No default billing address." context "Company without default billing address message" %}
+                  {% trans "No default billing address." context "Organization without default billing address message" %}
                 </div>
               {% endif %}
             </div>

@@ -46,8 +46,8 @@
                   {% trans "Customer" context "Orders table header" as label %}
                   {% sorting_header 'email' label %}
 
-                  {% trans "Company" context "Orders table header" as label %}
-                  {% sorting_header 'company' label %}
+                  {% trans "Organization" context "Orders table header" as label %}
+                  {% sorting_header 'organization' label %}
 
                   {% trans "Placed on" context "Orders table header" as label %}
                   {% sorting_header 'created' label %}
@@ -73,8 +73,8 @@
                       {{ order.user|default:guest }}
                     </td>
                     <td>
-                      {% if order.user.company %}
-                        {{ order.user.company.name|default:"" }}
+                      {% if order.user.organization %}
+                        {{ order.user.organization.name|default:"" }}
                       {% endif %}
                     </td>
                     <td>

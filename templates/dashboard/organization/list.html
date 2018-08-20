@@ -5,17 +5,17 @@
 {% load utils %}
 
 {% block title %}
-  {% trans "Companies" context "Dashboard companies list" %} - {{ block.super }}
+  {% trans "Organizations" context "Dashboard organizations list" %} - {{ block.super }}
 {% endblock %}
 
-{% block body_class %}body-companies{% endblock %}
+{% block body_class %}body-organizations{% endblock %}
 
-{% block menu_companies_class %}active{% endblock %}
+{% block menu_organizations_class %}active{% endblock %}
 
 {% block header_extra %}
   {% if perms.account.edit_staff %}
     <div class="btn-fab-fixed">
-      <a href="{% url 'dashboard:company-create' %}" class="btn-fab-default waves-effect waves-light" title="{% trans "Add company" context "Company list add button text" %}" >
+      <a href="{% url 'dashboard:organization-create' %}" class="btn-fab-default waves-effect waves-light" title="{% trans "Add organization" context "Organization list add button text" %}" >
         <svg data-src="{% static "dashboard/images/add.svg" %}" />
       </a>
     </div>
@@ -25,7 +25,7 @@
 {% block breadcrumbs %}
   <ul class="breadcrumbs">
     <li class="visible-s">
-      {% trans "Companies" context "Dashboard companies list" %}
+      {% trans "Organizations" context "Dashboard organizations list" %}
     </li>
   </ul>
 {% endblock %}
@@ -33,22 +33,22 @@
 {% block content %}
   <div class="row">
     <div class="col s12 l9">
-      {% if companies %}
+      {% if organizations %}
         <div class="card">
           <div class="data-table-container">
             <table class="bordered highlight responsive data-table">
               <thead>
                 <tr>
-                  {% trans "Name" context "Company table header" as label %}
+                  {% trans "Name" context "Organization table header" as label %}
                   {% sorting_header 'name' label %}
                 </tr>
               </thead>
               <tbody>
-                {% for company in companies %}
-                  <tr data-action-go="{% url "dashboard:company-details" pk=company.pk %}">
-                    {% with company.default_billing_address as default_address %}
+                {% for organization in organizations %}
+                  <tr data-action-go="{% url "dashboard:organization-details" pk=organization.pk %}">
+                    {% with organization.default_billing_address as default_address %}
                       <td>
-                        {{ company.name }}
+                        {{ organization.name }}
                       </td>
                     {% endwith %}
                   </tr>
@@ -57,15 +57,15 @@
             </table>
           </div>
         </div>
-        {% paginate companies %}
+        {% paginate organizations %}
       {% else %}
         {% if is_empty %}
-          {% include 'dashboard/company/zero_page.html' %}
+          {% include 'dashboard/organization/zero_page.html' %}
         {% else %}
           <div class="col s12">
             <div class="not-found">
               <p class="grey-text">
-                {% trans "No companies found." context "Empty companies table message" %}
+                {% trans "No organizations found." context "Empty organizations table message" %}
               </p>
             </div>
           </div>

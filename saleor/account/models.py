@@ -73,7 +73,7 @@ class Address(models.Model):
         return Address.objects.create(**self.as_data())
 
 
-class Company(models.Model):
+class Organization(models.Model):
     name = models.CharField(max_length=256)
     addresses = models.ManyToManyField(Address, blank=True)
     default_billing_address = models.ForeignKey(
@@ -83,8 +83,8 @@ class Company(models.Model):
 
     class Meta:
         permissions = (
-            ('manage_companies',
-             pgettext_lazy('Permission description', 'Manage companies')),)
+            ('manage_organizations',
+             pgettext_lazy('Permission description', 'Manage organizations')),)
 
     def __str__(self):
         return self.name
@@ -126,8 +126,8 @@ def get_token():
 
 class User(PermissionsMixin, AbstractBaseUser):
     email = models.EmailField(unique=True)
-    company = models.ForeignKey(
-        Company, null=True, blank=True, on_delete=models.PROTECT)
+    organization = models.ForeignKey(
+        Organization, null=True, blank=True, on_delete=models.PROTECT)
     addresses = models.ManyToManyField(
         Address, blank=True, related_name='user_addresses')
     is_staff = models.BooleanField(default=False)
@@ -170,8 +170,8 @@ class User(PermissionsMixin, AbstractBaseUser):
         if address:
             label = '%s %s (%s)' % (
                 address.first_name, address.last_name, self.email)
-        if self.company:
-            label = '%s - %s' % (label, self.company.name)
+        if self.organization:
+            label = '%s - %s' % (label, self.organization.name)
         return label
 
 

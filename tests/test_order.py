@@ -7,7 +7,7 @@ from payments import FraudStatus, PaymentStatus
 from prices import Money, TaxedMoney
 from tests.utils import get_redirect_location
 
-from saleor.account.models import Company, User
+from saleor.account.models import Organization, User
 from saleor.checkout.utils import create_order
 from saleor.core.utils.taxes import (
     DEFAULT_TAX_RATE_NAME, get_tax_rate_by_name, get_taxes_for_country)
@@ -393,11 +393,11 @@ def test_update_order_prices(order_with_lines):
     assert order_with_lines.total == total
 
 
-def test_company_order_addresses(
-        request_cart_with_item, client, company_user, address,
+def test_organization_order_addresses(
+        request_cart_with_item, client, organization_user, address,
         shipping_method):
-    """ Verify that addresses are associated with company when user
-    is associated with a company. """
+    """ Verify that addresses are associated with organization when user
+    is associated with a organization. """
 
     shipping_address = address
     shipping_address.street_address_1 = '123 Shipping'
@@ -407,8 +407,8 @@ def test_company_order_addresses(
     billing_address.save()
     request_cart_with_item.shipping_address = shipping_address
     request_cart_with_item.billing_address = billing_address
-    request_cart_with_item.user = company_user
-    request_cart_with_item.email = company_user.email
+    request_cart_with_item.user = organization_user
+    request_cart_with_item.email = organization_user.email
     request_cart_with_item.shipping_method = (
         shipping_method.price_per_country.first())
     request_cart_with_item.save()
@@ -416,12 +416,13 @@ def test_company_order_addresses(
     create_order(
         request_cart_with_item, 'tracking_code', discounts=None, taxes=None)
 
-    company = Company.objects.get(id=company_user.company_id)
-    assert company.default_billing_address == billing_address
-    assert company.addresses.count() == 3
-    assert company_user.addresses.count() == 0
-    assert company_user.default_billing_address is None
-    assert company_user.default_shipping_address == shipping_address
+    organization = Organization.objects.get(
+        id=organization_user.organization_id)
+    assert organization.default_billing_address == billing_address
+    assert organization.addresses.count() == 3
+    assert organization_user.addresses.count() == 0
+    assert organization_user.default_billing_address is None
+    assert organization_user.default_shipping_address == shipping_address
 
 
 def test_order_payment_flow(

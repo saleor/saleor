@@ -5,24 +5,24 @@
 {% block form_class %}{% endblock %}
 
 {% block action_url %}
-{% url 'dashboard:company-delete' pk=company.pk %}
+{% url 'dashboard:organization-delete' pk=organization.pk %}
 {% endblock %}
 
 {% block title %}
-{% blocktrans trimmed context "Header of modal used for removing company" %}
-  Remove company {{ company }}
+{% blocktrans trimmed context "Header of modal used for removing organization" %}
+  Remove organization {{ organization }}
 {% endblocktrans %}
 {% endblock %}
 
 {% block content %}
   <div class="col s12">
     {% if allow_delete %}
-      {% blocktrans trimmed context "Modal remove company text" %}
-        Are you sure you want to remove company <strong>{{ company }}</strong>?
+      {% blocktrans trimmed context "Modal remove organization text" %}
+        Are you sure you want to remove organization <strong>{{ organization }}</strong>?
       {% endblocktrans %}
     {% else %}
-      {% blocktrans trimmed context "Modal reject remove company text" %}
-        All users must be disassociated with a company before it can be
+      {% blocktrans trimmed context "Modal reject remove organization text" %}
+        All users must be disassociated with a organization before it can be
         deleted.
       {% endblocktrans %}
     {% endif %}

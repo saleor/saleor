@@ -45,16 +45,16 @@
             {{ customer.email }}
           </span>
           <div class="row">
-            {% if customer.company %}
+            {% if customer.organization %}
               <div class="col s12 m4 l12">
                 <h4>
-                  {% trans "Company" context "Customer field" %}
+                  {% trans "Organization" context "Customer field" %}
                 </h4>
                 <p>
-                  {%if perms.user.manage_companies %}
-                    <a href="{% url 'dashboard:company-details' pk=customer.company.pk %}">{{ customer.company }}</a>
+                  {%if perms.user.manage_organizations %}
+                    <a href="{% url 'dashboard:organization-details' pk=customer.organization.pk %}">{{ customer.organization }}</a>
                   {% else %}
-                    {{ customer.company }}
+                    {{ customer.organization }}
                   {% endif %}
                 </p>
               </div>

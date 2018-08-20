@@ -18,7 +18,7 @@ from payments import FraudStatus, PaymentStatus
 from PIL import Image
 from prices import Money
 
-from saleor.account.models import Address, Company, User
+from saleor.account.models import Address, Organization, User
 from saleor.checkout import utils
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import add_variant_to_cart
@@ -157,32 +157,32 @@ def customer_user(address):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def company_user(db, company):
+def organization_user(db, organization):
     user = User.objects.create_user(
         'test@example.com',
         'password',
-        company=company)
+        organization=organization)
     return user
 
 
 @pytest.fixture
-def company_factory(db):
+def organization_factory(db):
     def factory(name, address_street):
         comp_address = address(db)
         comp_address.street = address_street
         comp_address.save()
 
-        company = Company.objects.create(name=name, is_active=True)
-        company.addresses.add(comp_address)
-        company.default_billing_address = comp_address
-        company.save()
-        return company
+        organization = Organization.objects.create(name=name, is_active=True)
+        organization.addresses.add(comp_address)
+        organization.default_billing_address = comp_address
+        organization.save()
+        return organization
     return factory
 
 
 @pytest.fixture
-def company(db, company_factory):
-    return company_factory("Mirumee", "123 Somewhere")
+def organization(db, organization_factory):
+    return organization_factory("Mirumee", "123 Somewhere")
 
 
 @pytest.fixture
