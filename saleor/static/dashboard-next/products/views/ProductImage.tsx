@@ -6,8 +6,6 @@ import Navigator from "../../components/Navigator";
 import { ProductImageUpdateMutation } from "../../gql-types";
 import ProductImagePage from "../components/ProductImagePage";
 import {
-  productImageDeleteMutation,
-  productImageUpdateMutation,
   TypedProductImageDeleteMutation,
   TypedProductImageUpdateMutation
 } from "../mutations";
@@ -48,14 +46,10 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
               {({ data, loading }) => {
                 return (
                   <TypedProductImageUpdateMutation
-                    mutation={productImageUpdateMutation}
                     onCompleted={handleUpdateSuccess}
                   >
                     {updateImage => (
-                      <TypedProductImageDeleteMutation
-                        mutation={productImageDeleteMutation}
-                        onCompleted={handleBack}
-                      >
+                      <TypedProductImageDeleteMutation onCompleted={handleBack}>
                         {deleteImage => {
                           const handleDelete = () =>
                             deleteImage({ variables: { id: imageId } });

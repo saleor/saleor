@@ -45,7 +45,7 @@ export class PageUpdateForm extends React.Component<
             );
           }
           return (
-            <TypedPageDeleteMutation mutation={pageDeleteMutation}>
+            <TypedPageDeleteMutation>
               {(
                 deletePage,
                 { called, data: deleteResult, error, loading: deleteInProgress }
@@ -67,7 +67,7 @@ export class PageUpdateForm extends React.Component<
                   return <Redirect to={pageListUrl} />;
                 }
                 return (
-                  <TypedPageUpdateMutation mutation={pageUpdateMutation}>
+                  <TypedPageUpdateMutation>
                     {(
                       updatePage,
                       {

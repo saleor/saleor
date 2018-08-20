@@ -7,10 +7,7 @@ import { ProductCreateMutation } from "../../gql-types";
 import i18n from "../../i18n";
 import ProductCreatePage from "../components/ProductCreatePage";
 import { productListUrl, productUrl } from "../index";
-import {
-  productCreateMutation,
-  TypedProductCreateMutation
-} from "../mutations";
+import { TypedProductCreateMutation } from "../mutations";
 import { productCreateQuery, TypedProductCreateQuery } from "../queries";
 
 interface ProductUpdateProps {
@@ -50,7 +47,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
 
                   return (
                     <TypedProductCreateMutation
-                      mutation={productCreateMutation}
                       onCompleted={handleSuccess}
                       onError={handleError}
                     >

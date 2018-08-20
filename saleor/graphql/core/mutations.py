@@ -144,7 +144,7 @@ class ModelMutation(BaseMutation):
                 # handle list of IDs field
                 if value is not None and (
                     isinstance(field.type, graphene.List)) and (
-                    field.type.of_type == graphene.ID):
+                        field.type.of_type == graphene.ID):
                     instances = cls.get_nodes_or_error(
                         value, errors=errors, field=field.name) if value else []
                     cleaned_input[field_name] = instances
@@ -317,9 +317,8 @@ class CreateToken(ObtainJSONWebToken):
 
 
 class VerifyToken(Verify):
-    """Mutation that confirm if token is valid and also return user data.
+    """Mutation that confirm if token is valid and also return user data."""
 
-    """
     user = graphene.Field(User)
 
     def resolve_user(self, info, **kwargs):

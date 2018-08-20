@@ -42,7 +42,6 @@ const CategoryDeleteProvider: React.StatelessComponent<
   CategoryDeleteProviderProps
 > = ({ category, children }) => (
   <TypedCategoryDeleteMutation
-    mutation={categoryDeleteMutation}
     variables={{
       id: (category && category.id) || ""
     }}

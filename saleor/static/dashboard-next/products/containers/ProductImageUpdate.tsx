@@ -4,7 +4,7 @@ import {
   ProductImageUpdateMutation,
   ProductImageUpdateMutationVariables
 } from "../../gql-types";
-import { productImagesUpdate, TypedProductImagesUpdate } from "../mutations";
+import { TypedProductImageUpdateMutation } from "../mutations";
 
 import {
   PartialMutationProviderProps,
@@ -24,11 +24,7 @@ interface ProductImagesUpdateProviderProps
 const ProductImagesUpdateProvider: React.StatelessComponent<
   ProductImagesUpdateProviderProps
 > = ({ children, onError, onSuccess }) => (
-  <TypedProductImagesUpdate
-    mutation={productImagesUpdate}
-    onCompleted={onSuccess}
-    onError={onError}
-  >
+  <TypedProductImageUpdateMutation onCompleted={onSuccess} onError={onError}>
     {(mutate, { data, error, loading }) =>
       children({
         data,
@@ -37,7 +33,7 @@ const ProductImagesUpdateProvider: React.StatelessComponent<
         mutate
       })
     }
-  </TypedProductImagesUpdate>
+  </TypedProductImageUpdateMutation>
 );
 
 export default ProductImagesUpdateProvider;

@@ -5,7 +5,7 @@ import {
   PartialMutationProviderRenderProps
 } from "../..";
 import { TokenAuthMutation, TokenAuthMutationVariables } from "../../gql-types";
-import { tokenAuthMutation, TypedTokenAuthMutation } from "../mutations";
+import { TypedTokenAuthMutation } from "../mutations";
 
 interface TokenAuthProviderProps
   extends PartialMutationProviderProps<TokenAuthMutation> {
@@ -20,11 +20,7 @@ const TokenAuthProvider: React.StatelessComponent<TokenAuthProviderProps> = ({
   onError,
   onSuccess
 }) => (
-  <TypedTokenAuthMutation
-    mutation={tokenAuthMutation}
-    onCompleted={onSuccess}
-    onError={onError}
-  >
+  <TypedTokenAuthMutation onCompleted={onSuccess} onError={onError}>
     {(mutate, { called, data, error, loading }) =>
       children({ called, data, error, loading, mutate })
     }
