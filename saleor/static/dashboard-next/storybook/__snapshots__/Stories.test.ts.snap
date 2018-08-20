@@ -11268,7 +11268,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
         <h2
           class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
         >
-          Savings Account
+          generating
         </h2>
         <div
           class="Component-action-id"
@@ -11301,7 +11301,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                     class="MuiInput-input-id"
                     name="name"
                     type="text"
-                    value="Savings Account"
+                    value="generating"
                   />
                 </div>
               </div>
@@ -11378,7 +11378,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                       <span
                         class="MuiTypography-root-id MuiTypography-caption-id Component-text-id"
                       >
-                        copying
+                        Open-source
                       </span>
                     </div>
                   </td>
@@ -11422,7 +11422,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                       <span
                         class="MuiTypography-root-id MuiTypography-caption-id Component-text-id"
                       >
-                        Soft
+                        knowledge base
                       </span>
                     </div>
                   </td>
@@ -11466,7 +11466,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                       <span
                         class="MuiTypography-root-id MuiTypography-caption-id Component-text-id"
                       >
-                        driver
+                        productize
                       </span>
                     </div>
                   </td>
@@ -11510,7 +11510,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                       <span
                         class="MuiTypography-root-id MuiTypography-caption-id Component-text-id"
                       >
-                        copy
+                        Investment Account
                       </span>
                     </div>
                   </td>
@@ -11875,7 +11875,7 @@ exports[`Storyshots Views / Attributes / Attribute details when no values 1`] = 
         <h2
           class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
         >
-          Savings Account
+          generating
         </h2>
         <div
           class="Component-action-id"
@@ -11908,7 +11908,7 @@ exports[`Storyshots Views / Attributes / Attribute details when no values 1`] = 
                     class="MuiInput-input-id"
                     name="name"
                     type="text"
-                    value="Savings Account"
+                    value="generating"
                   />
                 </div>
               </div>
@@ -12193,13 +12193,13 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               <span
                 class="Component-link-id"
               >
-                Savings Account
+                generating
               </span>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              copying, Soft, driver, copy
+              Open-source, knowledge base, productize, Investment Account
             </td>
           </tr>
           <tr
@@ -12211,13 +12211,13 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               <span
                 class="Component-link-id"
               >
-                driver
+                Buckinghamshire
               </span>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              indigo, International, Shoal
+              sky blue
             </td>
           </tr>
           <tr
@@ -12229,13 +12229,13 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               <span
                 class="Component-link-id"
               >
-                Colorado
+                connecting
               </span>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              Fresh
+              Licensed, secured line, implementation
             </td>
           </tr>
           <tr
@@ -12247,13 +12247,13 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               <span
                 class="Component-link-id"
               >
-                virtual
+                Vietnam
               </span>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              indigo, envisioneer, Practical, infrastructures
+              24 hour, online, sexy, grid-enabled
             </td>
           </tr>
           <tr
@@ -12265,13 +12265,13 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               <span
                 class="Component-link-id"
               >
-                Licensed Steel Fish
+                Product
               </span>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              Branding, Tala, blue
+              synergize, object-oriented
             </td>
           </tr>
           <tr
@@ -12283,13 +12283,13 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               <span
                 class="Component-link-id"
               >
-                Delaware
+                core
               </span>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              Soft, multi-byte, methodical, Outdoors, AI
+              Usability, Mount, Camp
             </td>
           </tr>
           <tr
@@ -12301,13 +12301,13 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               <span
                 class="Component-link-id"
               >
-                Georgia
+                application
               </span>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              Personal Loan Account, Wall, SSL, withdrawal
+              SMS, Steel, Investment Account
             </td>
           </tr>
           <tr
@@ -12319,13 +12319,13 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               <span
                 class="Component-link-id"
               >
-                Nebraska
+                Berkshire
               </span>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              Identity, Bedfordshire, Intelligent, Austria, Nuevo Sol
+              Computers, Lead, Road, Future
             </td>
           </tr>
           <tr
@@ -12337,13 +12337,13 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               <span
                 class="Component-link-id"
               >
-                Awesome Frozen Sausages
+                bypass
               </span>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              Metal, Books, Lodge, IB
+              system, teal, Cloned, internet solution, pixel
             </td>
           </tr>
           <tr
@@ -12355,13 +12355,13 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
               <span
                 class="Component-link-id"
               >
-                Designer
+                web-readiness
               </span>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              HTTP
+              magnetic, Triple-buffered, Berkshire
             </td>
           </tr>
         </tbody>
@@ -13320,13 +13320,13 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
                   <span
                     class="Component-link-id"
                   >
-                    Tasty Frozen Tuna
+                    Gorgeous Frozen Chips
                   </span>
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
-                  systemic
+                  Awesome Wooden Pizza
                 </td>
               </tr>
               <tr
@@ -13350,97 +13350,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
                   <span
                     class="Component-link-id"
                   >
-                    Incredible Rubber Computer
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  Villages
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
-                >
-                  <div
-                    class="MuiAvatar-root-id Component-avatar-id"
-                  >
-                    <img
-                      class="MuiAvatar-img-id"
-                      src="placeholder60x60.png"
-                    />
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-                >
-                  <span
-                    class="Component-link-id"
-                  >
-                    Intelligent Frozen Soap
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  efficient
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
-                >
-                  <div
-                    class="MuiAvatar-root-id Component-avatar-id"
-                  >
-                    <img
-                      class="MuiAvatar-img-id"
-                      src="placeholder60x60.png"
-                    />
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-                >
-                  <span
-                    class="Component-link-id"
-                  >
-                    Rustic Plastic Chips
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  Buckinghamshire
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
-                >
-                  <div
-                    class="MuiAvatar-root-id Component-avatar-id"
-                  >
-                    <img
-                      class="MuiAvatar-img-id"
-                      src="placeholder60x60.png"
-                    />
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-                >
-                  <span
-                    class="Component-link-id"
-                  >
-                    Awesome Fresh Chicken
+                    Handcrafted Wooden Towels
                   </span>
                 </td>
                 <td
@@ -13470,13 +13380,13 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
                   <span
                     class="Component-link-id"
                   >
-                    Refined Frozen Chicken
+                    Handcrafted Metal Cheese
                   </span>
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
-                  dot-com
+                  SMS
                 </td>
               </tr>
               <tr
@@ -13500,13 +13410,13 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
                   <span
                     class="Component-link-id"
                   >
-                    Practical Concrete Fish
+                    Refined Rubber Keyboard
                   </span>
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
-                  Public-key
+                  Virtual
                 </td>
               </tr>
               <tr
@@ -13530,13 +13440,13 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
                   <span
                     class="Component-link-id"
                   >
-                    Licensed Steel Ball
+                    Gorgeous Metal Gloves
                   </span>
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
-                  payment
+                  Vermont
                 </td>
               </tr>
               <tr
@@ -13560,13 +13470,13 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
                   <span
                     class="Component-link-id"
                   >
-                    Sleek Wooden Pants
+                    Small Cotton Shirt
                   </span>
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
-                  Music
+                  Gorgeous
                 </td>
               </tr>
               <tr
@@ -13590,13 +13500,103 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
                   <span
                     class="Component-link-id"
                   >
-                    Practical Steel Shirt
+                    Fantastic Cotton Tuna
                   </span>
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
-                  International
+                  TCP
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                >
+                  <div
+                    class="MuiAvatar-root-id Component-avatar-id"
+                  >
+                    <img
+                      class="MuiAvatar-img-id"
+                      src="placeholder60x60.png"
+                    />
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+                >
+                  <span
+                    class="Component-link-id"
+                  >
+                    Tasty Steel Pants
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  Buckinghamshire
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                >
+                  <div
+                    class="MuiAvatar-root-id Component-avatar-id"
+                  >
+                    <img
+                      class="MuiAvatar-img-id"
+                      src="placeholder60x60.png"
+                    />
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+                >
+                  <span
+                    class="Component-link-id"
+                  >
+                    Ergonomic Cotton Shoes
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  Jewelery
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                >
+                  <div
+                    class="MuiAvatar-root-id Component-avatar-id"
+                  >
+                    <img
+                      class="MuiAvatar-img-id"
+                      src="placeholder60x60.png"
+                    />
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+                >
+                  <span
+                    class="Component-link-id"
+                  >
+                    Unbranded Steel Tuna
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  Agent
                 </td>
               </tr>
             </tbody>
@@ -14503,7 +14503,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
         <h2
           class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
         >
-          Toys
+          Music
         </h2>
         <div
           class="Component-action-id"
@@ -14551,7 +14551,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                     class="MuiInput-input-id"
                     name="name"
                     type="text"
-                    value="Toys"
+                    value="Music"
                   />
                 </div>
               </div>
@@ -14751,12 +14751,38 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
                   >
-                    Small Wooden Gloves
+                    Incredible Frozen Cheese
                   </td>
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
-                    91937
+                    88720
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    <div
+                      class="Component-root-id "
+                    >
+                      <span
+                        class="Component-successDot-id"
+                      />
+                      Published
+                    </div>
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                  >
+                    Unbranded Granite Mouse
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    40275
                   </td>
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -14768,6 +14794,84 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                         class="Component-errorDot-id"
                       />
                       Not published
+                    </div>
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                  >
+                    Tasty Fresh Cheese
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    22544
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    <div
+                      class="Component-root-id "
+                    >
+                      <span
+                        class="Component-successDot-id"
+                      />
+                      Published
+                    </div>
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                  >
+                    Sleek Fresh Table
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    12875
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    <div
+                      class="Component-root-id "
+                    >
+                      <span
+                        class="Component-successDot-id"
+                      />
+                      Published
+                    </div>
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                  >
+                    Licensed Frozen Salad
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    11442
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    <div
+                      class="Component-root-id "
+                    >
+                      <span
+                        class="Component-successDot-id"
+                      />
+                      Published
                     </div>
                   </td>
                 </tr>
@@ -14904,9 +15008,9 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                     aria-invalid="false"
                     class="MuiInput-input-id"
                     name="slug"
-                    placeholder="Toys"
+                    placeholder="Music"
                     type="text"
-                    value="Toys"
+                    value="Music"
                   />
                 </div>
                 <p
@@ -15604,7 +15708,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
             >
-              Toys
+              Music
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -15621,6 +15725,32 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
+              5
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+            >
+              Outdoors
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id "
+              >
+                <span
+                  class="Component-errorDot-id"
+                />
+                Not published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
               1
             </td>
           </tr>
@@ -15630,7 +15760,59 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
             >
-              Beauty
+              Electronics
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id "
+              >
+                <span
+                  class="Component-errorDot-id"
+                />
+                Not published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              9
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+            >
+              Automotive
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id "
+              >
+                <span
+                  class="Component-successDot-id"
+                />
+                Published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              5
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+            >
+              Baby
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -15648,6 +15830,84 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
               6
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+            >
+              Home
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id "
+              >
+                <span
+                  class="Component-errorDot-id"
+                />
+                Not published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              0
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+            >
+              Shoes
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id "
+              >
+                <span
+                  class="Component-successDot-id"
+                />
+                Published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              8
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+            >
+              Shoes
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id "
+              >
+                <span
+                  class="Component-errorDot-id"
+                />
+                Not published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              2
             </td>
           </tr>
           <tr
@@ -15673,7 +15933,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              2
+              4
             </td>
           </tr>
           <tr
@@ -15682,137 +15942,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
             >
-              Games
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id "
-              >
-                <span
-                  class="Component-errorDot-id"
-                />
-                Not published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              6
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-            >
-              Music
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id "
-              >
-                <span
-                  class="Component-successDot-id"
-                />
-                Published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              6
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-            >
-              Movies
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id "
-              >
-                <span
-                  class="Component-successDot-id"
-                />
-                Published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              9
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-            >
-              Sports
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id "
-              >
-                <span
-                  class="Component-successDot-id"
-                />
-                Published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              9
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-            >
-              Books
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id "
-              >
-                <span
-                  class="Component-successDot-id"
-                />
-                Published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              6
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-            >
-              Industrial
+              Jewelery
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -15830,32 +15960,6 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
               4
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-            >
-              Music
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id "
-              >
-                <span
-                  class="Component-successDot-id"
-                />
-                Published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              7
             </td>
           </tr>
         </tbody>
@@ -24969,7 +25073,7 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInput-input-id"
-                      id="downshift-21-input"
+                      id="downshift-22-input"
                       type="text"
                     />
                     <svg
@@ -25061,7 +25165,7 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInput-input-id"
-                      id="downshift-22-input"
+                      id="downshift-23-input"
                       type="text"
                     />
                     <svg
@@ -25397,7 +25501,7 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
                       aria-invalid="false"
                       autocomplete="off"
                       class="MuiInput-input-id"
-                      id="downshift-23-input"
+                      id="downshift-24-input"
                       type="text"
                     />
                     <svg
@@ -25783,17 +25887,17 @@ exports[`Storyshots Views / Product types / Product types list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
             >
-              Steel
+              Granite
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              virtual, Shoes
+              Licensed Soft Chair, interfaces, Outdoors
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              experiences, Visionary
+              silver
             </td>
           </tr>
           <tr
@@ -25802,12 +25906,12 @@ exports[`Storyshots Views / Product types / Product types list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
             >
-              Steel two
+              Metal
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              array
+              THX, primary, calculate
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -25821,17 +25925,55 @@ exports[`Storyshots Views / Product types / Product types list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
             >
-              Frozen
+              Rubber
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              Computers, Parkway, bypass, Lead
+              override, backing up, Health
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              Burkina Faso, bluetooth
+              magenta, Buckinghamshire
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+            >
+              Wooden
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Som
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              payment, Trafficway
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+            >
+              Granite
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Metal
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              encompassing
             </td>
           </tr>
           <tr
@@ -25845,12 +25987,31 @@ exports[`Storyshots Views / Product types / Product types list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              Jordanian Dinar
+              auxiliary, synergize, out-of-the-box
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              payment
+              connect
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+            >
+              Rubber
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Tools, solid state
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              user-facing
             </td>
           </tr>
           <tr
@@ -25864,12 +26025,12 @@ exports[`Storyshots Views / Product types / Product types list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              Concrete
+              deposit, Borders, Hat
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              Ergonomic Granite Bike
+              Global
             </td>
           </tr>
           <tr
@@ -25878,12 +26039,12 @@ exports[`Storyshots Views / Product types / Product types list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
             >
-              Cotton
+              Granite
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              Iraq
+              payment, white, parsing, Soap
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -25897,74 +26058,17 @@ exports[`Storyshots Views / Product types / Product types list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
             >
-              Steel three
+              Concrete
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              Taiwan, maroon, Chair, client-driven
+              olive, Indian Rupee
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              online
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-            >
-              Cotton two
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              next generation
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Representative
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-            >
-              Frozen two
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Chile
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Balanced
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-            >
-              Soft
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              drive, needs-based, hard drive, Pants
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              interface, Kroon
+              wireless, back-end
             </td>
           </tr>
         </tbody>
@@ -33559,55 +33663,12 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
             >
-              Tasty Frozen Tuna
+              Gorgeous Frozen Chips
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              systemic
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id "
-              >
-                <span
-                  class="Component-successDot-id"
-                />
-                Published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              PYG 595
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
-            >
-              <div
-                class="MuiAvatar-root-id Component-avatar-id"
-              >
-                <img
-                  class="MuiAvatar-img-id"
-                  src="placeholder255x255.png"
-                />
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-            >
-              Incredible Rubber Computer
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Villages
+              Awesome Wooden Pizza
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -33624,7 +33685,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              GMD 432.08
+              XAG 274.99
             </td>
           </tr>
           <tr
@@ -33645,93 +33706,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
             >
-              Intelligent Frozen Soap
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              efficient
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id "
-              >
-                <span
-                  class="Component-errorDot-id"
-                />
-                Not published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              WST 73.74
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
-            >
-              <div
-                class="MuiAvatar-root-id Component-avatar-id"
-              >
-                <img
-                  class="MuiAvatar-img-id"
-                  src="placeholder255x255.png"
-                />
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-            >
-              Rustic Plastic Chips
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Buckinghamshire
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id "
-              >
-                <span
-                  class="Component-successDot-id"
-                />
-                Published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              MWK 27.68
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
-            >
-              <div
-                class="MuiAvatar-root-id Component-avatar-id"
-              >
-                <img
-                  class="MuiAvatar-img-id"
-                  src="placeholder255x255.png"
-                />
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-            >
-              Awesome Fresh Chicken
+              Handcrafted Wooden Towels
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -33745,15 +33720,15 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
                 class="Component-root-id "
               >
                 <span
-                  class="Component-errorDot-id"
+                  class="Component-successDot-id"
                 />
-                Not published
+                Published
               </div>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              WST 440.79
+              ZWL 432.30
             </td>
           </tr>
           <tr
@@ -33774,12 +33749,12 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
             >
-              Refined Frozen Chicken
+              Handcrafted Metal Cheese
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              dot-com
+              SMS
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -33796,7 +33771,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              HRK 398.96
+              XDR 688.35
             </td>
           </tr>
           <tr
@@ -33817,12 +33792,12 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
             >
-              Practical Concrete Fish
+              Refined Rubber Keyboard
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              Public-key
+              Virtual
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -33839,7 +33814,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              HUF 959.31
+              SLL 540
             </td>
           </tr>
           <tr
@@ -33860,12 +33835,12 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
             >
-              Licensed Steel Ball
+              Gorgeous Metal Gloves
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              payment
+              Vermont
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -33874,15 +33849,15 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
                 class="Component-root-id "
               >
                 <span
-                  class="Component-errorDot-id"
+                  class="Component-successDot-id"
                 />
-                Not published
+                Published
               </div>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              PKR 593
+              AMD 4
             </td>
           </tr>
           <tr
@@ -33903,12 +33878,12 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
             >
-              Sleek Wooden Pants
+              Small Cotton Shirt
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              Music
+              Gorgeous
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -33925,7 +33900,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              SHP 62.01
+              GMD 538.10
             </td>
           </tr>
           <tr
@@ -33946,12 +33921,12 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
             >
-              Practical Steel Shirt
+              Fantastic Cotton Tuna
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              International
+              TCP
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -33968,7 +33943,136 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              UZS 197
+              CVE 56.91
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            >
+              <div
+                class="MuiAvatar-root-id Component-avatar-id"
+              >
+                <img
+                  class="MuiAvatar-img-id"
+                  src="placeholder255x255.png"
+                />
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+            >
+              Tasty Steel Pants
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Buckinghamshire
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id "
+              >
+                <span
+                  class="Component-errorDot-id"
+                />
+                Not published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              XAG 981.06
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            >
+              <div
+                class="MuiAvatar-root-id Component-avatar-id"
+              >
+                <img
+                  class="MuiAvatar-img-id"
+                  src="placeholder255x255.png"
+                />
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+            >
+              Ergonomic Cotton Shoes
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Jewelery
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id "
+              >
+                <span
+                  class="Component-successDot-id"
+                />
+                Published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              WST 449.93
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            >
+              <div
+                class="MuiAvatar-root-id Component-avatar-id"
+              >
+                <img
+                  class="MuiAvatar-img-id"
+                  src="placeholder255x255.png"
+                />
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+            >
+              Unbranded Steel Tuna
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Agent
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id "
+              >
+                <span
+                  class="Component-errorDot-id"
+                />
+                Not published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              MGA 591
             </td>
           </tr>
         </tbody>
@@ -35465,7 +35569,7 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
         <h2
           class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
         >
-          odit est
+          aut odit
         </h2>
         <div
           class="Component-action-id"
@@ -35498,7 +35602,7 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
                     class="MuiInput-input-id"
                     name="code"
                     type="text"
-                    value="CAMBRIDGESHIRE"
+                    value="COPY"
                   />
                 </div>
               </div>
@@ -35522,7 +35626,7 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
                     class="MuiInput-input-id"
                     name="name"
                     type="text"
-                    value="odit est"
+                    value="aut odit"
                   />
                 </div>
                 <p
@@ -35555,7 +35659,7 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
                         class="MuiInput-input-id MuiInput-inputType-id"
                         name="discountValue"
                         type="number"
-                        value="17"
+                        value="71"
                       />
                     </div>
                   </div>
@@ -35642,7 +35746,7 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
                   class="MuiFormControlLabel-root-id"
                 >
                   <span
-                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiRadio-root-id MuiRadio-colorSecondary-id MuiSwitchBase-checked-id MuiRadio-checked-id"
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiRadio-root-id MuiRadio-colorSecondary-id"
                   >
                     <span
                       class="MuiIconButton-label-id"
@@ -35654,11 +35758,10 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
                         viewBox="0 0 24 24"
                       >
                         <path
-                          d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
                         />
                       </svg>
                       <input
-                        checked=""
                         class="MuiSwitchBase-input-id"
                         name="type"
                         type="radio"
@@ -35715,7 +35818,7 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
                   class="MuiFormControlLabel-root-id"
                 >
                   <span
-                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiRadio-root-id MuiRadio-colorSecondary-id"
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiRadio-root-id MuiRadio-colorSecondary-id MuiSwitchBase-checked-id MuiRadio-checked-id"
                   >
                     <span
                       class="MuiIconButton-label-id"
@@ -35727,10 +35830,11 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
                         viewBox="0 0 24 24"
                       >
                         <path
-                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
                         />
                       </svg>
                       <input
+                        checked=""
                         class="MuiSwitchBase-input-id"
                         name="type"
                         type="radio"
@@ -35789,33 +35893,87 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
               class="MuiCardContent-root-id"
             >
               <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                class="Component-container-id"
               >
-                <label
-                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                  data-shrink="true"
-                  for="limit"
-                >
-                  Minimal cart value
-                </label>
                 <div
-                  class="MuiInput-root-id MuiInput-formControl-id MuiInput-underline-id"
+                  class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
-                  <input
-                    aria-invalid="false"
-                    class="MuiInput-input-id MuiInput-inputType-id"
-                    name="limit"
-                    type="number"
-                    value="10"
-                  />
-                  <span />
+                  <label
+                    class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                    data-shrink="true"
+                  >
+                    Discounted product
+                  </label>
+                  <div
+                    aria-autocomplete="list"
+                    aria-expanded="false"
+                    class="MuiInput-root-id Component-inputRoot-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+                    role="combobox"
+                  >
+                    <input
+                      aria-invalid="false"
+                      autocomplete="off"
+                      class="MuiInput-input-id"
+                      id="downshift-21-input"
+                      type="text"
+                      value="Gorgeous Wooden Tuna"
+                    />
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <g
+                        style="fill-rule:evenodd"
+                      >
+                        <path
+                          d="M7 10l5 5 5-5z"
+                        />
+                      </g>
+                    </svg>
+                  </div>
                 </div>
-                <p
-                  class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
-                >
-                  Optional
-                </p>
               </div>
+              <div
+                class="Component-spacer-id"
+              />
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <span
+                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiSwitchBase-checked-id MuiCheckbox-checked-id"
+                >
+                  <span
+                    class="MuiIconButton-label-id"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root-id"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                      />
+                    </svg>
+                    <input
+                      checked=""
+                      class="MuiSwitchBase-input-id"
+                      name="applyToAll"
+                      type="checkbox"
+                    />
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </span>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                >
+                  Apply to whole cart
+                </span>
+              </label>
             </div>
           </div>
         </div>
@@ -35843,7 +36001,7 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
                     class="MuiInput-input-id MuiInput-inputType-id"
                     name="startDate"
                     type="date"
-                    value="2018-06-21T10:06:58.079Z"
+                    value="2018-08-17T07:26:05.192Z"
                   />
                 </div>
               </div>
@@ -35854,7 +36012,7 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
                   data-shrink="true"
                 >
                   Active until
@@ -35867,6 +36025,7 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
                     class="MuiInput-input-id MuiInput-inputType-id"
                     name="endDate"
                     type="date"
+                    value="2027-07-23T12:08:56.291Z"
                   />
                 </div>
               </div>
@@ -35877,8 +36036,8 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                  data-shrink="false"
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
                   Usage limit
                 </label>
@@ -35890,6 +36049,7 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
                     class="MuiInput-input-id"
                     name="usageLimit"
                     type="text"
+                    value="525"
                   />
                 </div>
               </div>
@@ -36647,7 +36807,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="Component-link-id"
               >
-                odit est
+                aut odit
               </span>
             </td>
             <td
@@ -36657,58 +36817,9 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
                 <span
-                  title="2018-06-21T10:06:58.079Z"
+                  title="2018-08-17T07:26:05.192Z"
                 >
-                  2018-06-21T10:06:58.079Z
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              -
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                $17.00
-              </p>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                RON 10.00
-              </p>
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="Component-link-id"
-              >
-                voluptatem magnam
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                <span
-                  title="2018-06-20T21:40:56.763Z"
-                >
-                  2018-06-20T21:40:56.763Z
+                  2018-08-17T07:26:05.192Z
                 </span>
               </span>
             </td>
@@ -36719,9 +36830,9 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
                 <span
-                  title="2019-01-02T01:04:54.677Z"
+                  title="2027-07-23T12:08:56.291Z"
                 >
-                  2019-01-02T01:04:54.677Z
+                  2027-07-23T12:08:56.291Z
                 </span>
               </span>
             </td>
@@ -36731,7 +36842,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                $56.00
+                $71.00
               </p>
             </td>
             <td
@@ -36749,7 +36860,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="Component-link-id"
               >
-                ut possimus
+                omnis quia
               </span>
             </td>
             <td
@@ -36759,9 +36870,9 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
                 <span
-                  title="2018-06-20T21:53:19.359Z"
+                  title="2018-08-15T23:58:54.945Z"
                 >
-                  2018-06-20T21:53:19.359Z
+                  2018-08-15T23:58:54.945Z
                 </span>
               </span>
             </td>
@@ -36772,154 +36883,11 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
                 <span
-                  title="2018-11-12T03:00:24.030Z"
+                  title="2018-12-25T18:36:26.959Z"
                 >
-                  2018-11-12T03:00:24.030Z
+                  2018-12-25T18:36:26.959Z
                 </span>
               </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                $49.00
-              </p>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              -
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="Component-link-id"
-              >
-                delectus totam
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                <span
-                  title="2018-06-20T21:44:07.335Z"
-                >
-                  2018-06-20T21:44:07.335Z
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                <span
-                  title="2018-08-20T09:58:38.594Z"
-                >
-                  2018-08-20T09:58:38.594Z
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                31%
-              </p>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              -
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="Component-link-id"
-              >
-                sapiente accusantium
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                <span
-                  title="2018-06-21T04:21:09.850Z"
-                >
-                  2018-06-21T04:21:09.850Z
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              -
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                52%
-              </p>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              -
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="Component-link-id"
-              >
-                61% discount for shipping
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                <span
-                  title="2018-06-20T15:04:32.639Z"
-                >
-                  2018-06-20T15:04:32.639Z
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              -
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
@@ -36936,7 +36904,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                PGK 20.00
+                CHF 20.00
               </p>
             </td>
           </tr>
@@ -36949,7 +36917,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="Component-link-id"
               >
-                quae est
+                89% discount for Steel
               </span>
             </td>
             <td
@@ -36959,24 +36927,16 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
                 <span
-                  title="2018-06-20T22:53:41.827Z"
+                  title="2018-08-12T12:12:04.133Z"
                 >
-                  2018-06-20T22:53:41.827Z
+                  2018-08-12T12:12:04.133Z
                 </span>
               </span>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                <span
-                  title="2018-10-08T17:02:14.587Z"
-                >
-                  2018-10-08T17:02:14.587Z
-                </span>
-              </span>
+              -
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
@@ -36984,64 +36944,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                $65.00
-              </p>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                KGS 80.00
-              </p>
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="Component-link-id"
-              >
-                distinctio facilis
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                <span
-                  title="2018-06-20T22:52:17.917Z"
-                >
-                  2018-06-20T22:52:17.917Z
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                <span
-                  title="2018-08-23T07:04:20.010Z"
-                >
-                  2018-08-23T07:04:20.010Z
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                37%
+                89%
               </p>
             </td>
             <td
@@ -37059,7 +36962,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="Component-link-id"
               >
-                dolor ratione
+                75% discount for shipping
               </span>
             </td>
             <td
@@ -37069,9 +36972,58 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
                 <span
-                  title="2018-06-21T10:48:11.815Z"
+                  title="2018-08-13T14:47:59.997Z"
                 >
-                  2018-06-21T10:48:11.815Z
+                  2018-08-13T14:47:59.997Z
+                </span>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              -
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                75%
+              </p>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                EEK 0.00
+              </p>
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="Component-link-id"
+              >
+                quod dolor
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                <span
+                  title="2018-08-19T14:24:09.321Z"
+                >
+                  2018-08-19T14:24:09.321Z
                 </span>
               </span>
             </td>
@@ -37082,9 +37034,9 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
                 <span
-                  title="2018-11-05T14:19:14.950Z"
+                  title="2021-02-25T06:05:33.803Z"
                 >
-                  2018-11-05T14:19:14.950Z
+                  2021-02-25T06:05:33.803Z
                 </span>
               </span>
             </td>
@@ -37094,7 +37046,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                65%
+                10%
               </p>
             </td>
             <td
@@ -37112,7 +37064,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <span
                 class="Component-link-id"
               >
-                praesentium rem
+                libero nemo
               </span>
             </td>
             <td
@@ -37122,9 +37074,9 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
                 <span
-                  title="2018-06-21T00:26:14.087Z"
+                  title="2018-08-12T11:31:45.570Z"
                 >
-                  2018-06-21T00:26:14.087Z
+                  2018-08-12T11:31:45.570Z
                 </span>
               </span>
             </td>
@@ -37132,316 +37084,6 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               -
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                36%
-              </p>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              -
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="Component-link-id"
-              >
-                eos et
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                <span
-                  title="2018-06-20T14:01:05.834Z"
-                >
-                  2018-06-20T14:01:05.834Z
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              -
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                $84.00
-              </p>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              -
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="Component-link-id"
-              >
-                quo illo
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                <span
-                  title="2018-06-20T21:52:01.122Z"
-                >
-                  2018-06-20T21:52:01.122Z
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                <span
-                  title="2019-02-16T09:49:13.242Z"
-                >
-                  2019-02-16T09:49:13.242Z
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                $53.00
-              </p>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              -
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="Component-link-id"
-              >
-                itaque rerum
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                <span
-                  title="2018-06-20T15:11:35.602Z"
-                >
-                  2018-06-20T15:11:35.602Z
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              -
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                $31.00
-              </p>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                DJF 30
-              </p>
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="Component-link-id"
-              >
-                cumque repellendus
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                <span
-                  title="2018-06-21T00:38:34.746Z"
-                >
-                  2018-06-21T00:38:34.746Z
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                <span
-                  title="2019-03-25T14:41:50.984Z"
-                >
-                  2019-03-25T14:41:50.984Z
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                $11.00
-              </p>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                GNF 70
-              </p>
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="Component-link-id"
-              >
-                43 USD discount for Tasty Wooden Car
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                <span
-                  title="2018-06-20T23:01:38.092Z"
-                >
-                  2018-06-20T23:01:38.092Z
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                <span
-                  title="2018-09-19T11:47:06.711Z"
-                >
-                  2018-09-19T11:47:06.711Z
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              <p
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                $43.00
-              </p>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              -
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="Component-link-id"
-              >
-                ea eaque
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                <span
-                  title="2018-06-21T02:13:30.164Z"
-                >
-                  2018-06-21T02:13:30.164Z
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
-              >
-                <span
-                  title="2018-12-29T15:47:14.014Z"
-                >
-                  2018-12-29T15:47:14.014Z
-                </span>
-              </span>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
@@ -37455,10 +37097,520 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
+              -
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="Component-link-id"
+              >
+                vel nobis
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                <span
+                  title="2018-08-11T17:03:15.977Z"
+                >
+                  2018-08-11T17:03:15.977Z
+                </span>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              -
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                RWF 30
+                41%
+              </p>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                XTS 0.00
+              </p>
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="Component-link-id"
+              >
+                non optio
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                <span
+                  title="2018-08-11T11:09:07.002Z"
+                >
+                  2018-08-11T11:09:07.002Z
+                </span>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              -
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                43%
+              </p>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              -
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="Component-link-id"
+              >
+                numquam modi
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                <span
+                  title="2018-08-20T01:27:59.891Z"
+                >
+                  2018-08-20T01:27:59.891Z
+                </span>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                <span
+                  title="2024-01-17T10:16:26.589Z"
+                >
+                  2024-01-17T10:16:26.589Z
+                </span>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                $83.00
+              </p>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              -
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="Component-link-id"
+              >
+                sunt odit
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                <span
+                  title="2018-08-19T03:42:51.965Z"
+                >
+                  2018-08-19T03:42:51.965Z
+                </span>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              -
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                38%
+              </p>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                CFA 70
+              </p>
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="Component-link-id"
+              >
+                distinctio aliquam
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                <span
+                  title="2018-08-20T08:29:30.527Z"
+                >
+                  2018-08-20T08:29:30.527Z
+                </span>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                <span
+                  title="2027-08-07T17:56:17.717Z"
+                >
+                  2027-08-07T17:56:17.717Z
+                </span>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                44%
+              </p>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                PKR 70
+              </p>
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="Component-link-id"
+              >
+                52 USD discount for Handmade Metal Computer
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                <span
+                  title="2018-08-11T22:44:57.412Z"
+                >
+                  2018-08-11T22:44:57.412Z
+                </span>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                <span
+                  title="2018-10-23T13:04:44.374Z"
+                >
+                  2018-10-23T13:04:44.374Z
+                </span>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                $52.00
+              </p>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              -
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="Component-link-id"
+              >
+                17 USD discount for shipping
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                <span
+                  title="2018-08-19T10:37:04.055Z"
+                >
+                  2018-08-19T10:37:04.055Z
+                </span>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                <span
+                  title="2024-06-04T13:48:28.823Z"
+                >
+                  2024-06-04T13:48:28.823Z
+                </span>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                $17.00
+              </p>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              -
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="Component-link-id"
+              >
+                id porro
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                <span
+                  title="2018-08-14T09:32:44.445Z"
+                >
+                  2018-08-14T09:32:44.445Z
+                </span>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              -
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              -
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="Component-link-id"
+              >
+                22% discount for Bedfordshire
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                <span
+                  title="2018-08-17T22:25:50.902Z"
+                >
+                  2018-08-17T22:25:50.902Z
+                </span>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                <span
+                  title="2028-08-06T13:03:06.531Z"
+                >
+                  2028-08-06T13:03:06.531Z
+                </span>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                22%
+              </p>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              -
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="Component-link-id"
+              >
+                non et
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                <span
+                  title="2018-08-14T22:23:22.199Z"
+                >
+                  2018-08-14T22:23:22.199Z
+                </span>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                <span
+                  title="2025-01-26T18:51:51.823Z"
+                >
+                  2025-01-26T18:51:51.823Z
+                </span>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                $97.00
+              </p>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
+              >
+                GTQ 90.00
               </p>
             </td>
           </tr>
