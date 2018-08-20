@@ -12,33 +12,33 @@ const choices = [
 
 storiesOf("Generics / MultiSelectField", module)
   .add("with no value", () => (
-    <MultiSelectField choices={choices} onChange={() => {}} />
+    <MultiSelectField choices={choices} onChange={undefined} />
   ))
   .add("with value", () => (
     <MultiSelectField
       choices={choices}
-      onChange={() => {}}
+      onChange={undefined}
       value={[choices[0].value]}
     />
   ))
   .add("with label", () => (
     <MultiSelectField
       choices={choices}
-      onChange={() => {}}
+      onChange={undefined}
       label="Lorem ipsum"
     />
   ))
   .add("with hint", () => (
     <MultiSelectField
       choices={choices}
-      onChange={() => {}}
+      onChange={undefined}
       hint="Lorem ipsum"
     />
   ))
   .add("with label and hint", () => (
     <MultiSelectField
       choices={choices}
-      onChange={() => {}}
+      onChange={undefined}
       label="Lorem"
       hint="Ipsum"
     />
@@ -46,7 +46,7 @@ storiesOf("Generics / MultiSelectField", module)
   .add("with value, label and hint", () => (
     <MultiSelectField
       choices={choices}
-      onChange={() => {}}
+      onChange={undefined}
       value={[choices[0].value]}
       label="Lorem"
       hint="Ipsum"
@@ -55,7 +55,7 @@ storiesOf("Generics / MultiSelectField", module)
   .add("with error hint", () => (
     <MultiSelectField
       choices={choices}
-      onChange={() => {}}
+      onChange={undefined}
       hint="Lorem error"
       error={true}
     />

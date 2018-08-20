@@ -71,18 +71,18 @@ const decorate = withStyles(
         paddingRight: theme.spacing.unit * 3
       }
     },
+    flexBox: {
+      display: "flex",
+      flexDirection: "column" as "column",
+      height: theme.spacing.unit * 12,
+      justifyContent: "space-evenly"
+    },
     link: {
       color: blue[500],
       cursor: "pointer"
     },
     textRight: {
       textAlign: "right" as "right"
-    },
-    flexBox: {
-      display: "flex",
-      flexDirection: "column" as "column",
-      height: theme.spacing.unit * 12,
-      justifyContent: "space-evenly"
     }
   }),
   { name: "OrderProducts" }
@@ -142,7 +142,7 @@ const OrderProducts = decorate<OrderProductsProps>(
                 {product ? (
                   <span
                     onClick={onRowClick && onRowClick(product.id)}
-                    className={onRowClick && classes.link}
+                    className={classes.link}
                   >
                     {product.name}
                   </span>

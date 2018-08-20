@@ -10,8 +10,8 @@ interface UserContext {
 }
 
 export const UserContext = React.createContext<UserContext>({
-  login: () => {},
-  logout: () => {}
+  login: undefined,
+  logout: undefined
 });
 
 export const getAuthToken = () =>

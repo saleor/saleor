@@ -19,9 +19,9 @@ storiesOf("Views / Products / Create product", module)
       collections={product.collections.edges.map(edge => edge.node)}
       productTypes={productTypes}
       categories={[product.category]}
-      onAttributesEdit={() => {}}
-      onBack={() => {}}
-      onSubmit={() => {}}
+      onAttributesEdit={undefined}
+      onBack={() => undefined}
+      onSubmit={() => undefined}
     />
   ))
   .add("When loading", () => (
@@ -33,8 +33,8 @@ storiesOf("Views / Products / Create product", module)
       collections={product.collections.edges.map(edge => edge.node)}
       productTypes={productTypes}
       categories={[product.category]}
-      onAttributesEdit={() => {}}
-      onBack={() => {}}
-      onSubmit={() => {}}
+      onAttributesEdit={undefined}
+      onBack={() => undefined}
+      onSubmit={() => undefined}
     />
   ));

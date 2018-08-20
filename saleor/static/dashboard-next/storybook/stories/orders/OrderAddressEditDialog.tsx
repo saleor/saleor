@@ -19,7 +19,7 @@ storiesOf("Orders / OrderAddressEditDialog", module)
       open={true}
       variant="shipping"
       data={transformAddressToForm(order.shippingAddress)}
-      onChange={() => {}}
+      onChange={undefined}
       countries={countries}
       prefixes={prefixes}
     />
@@ -29,7 +29,7 @@ storiesOf("Orders / OrderAddressEditDialog", module)
       open={true}
       variant="billing"
       data={transformAddressToForm(order.billingAddress)}
-      onChange={() => {}}
+      onChange={undefined}
       prefixes={prefixes}
       countries={countries}
     />

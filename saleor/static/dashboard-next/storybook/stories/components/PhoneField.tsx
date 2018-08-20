@@ -13,6 +13,6 @@ storiesOf("Generics / PhoneField", module)
       name="phone"
       prefix="41"
       number="123 987 456"
-      onChange={() => {}}
+      onChange={undefined}
     />
   ));

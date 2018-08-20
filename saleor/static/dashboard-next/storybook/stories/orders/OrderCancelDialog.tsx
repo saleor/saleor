@@ -10,7 +10,7 @@ storiesOf("Orders / OrderCancelDialog", module)
     <OrderCancelDialog
       open={true}
       id="123"
-      onConfirm={() => {}}
-      onClose={() => {}}
+      onConfirm={undefined}
+      onClose={undefined}
     />
   ));

@@ -11,7 +11,7 @@ const LoginView: React.StatelessComponent = () => (
       return (
         <LoginPage
           error={user === null}
-          onPasswordRecovery={() => {}}
+          onPasswordRecovery={undefined}
           onSubmit={handleSubmit}
         />
       );

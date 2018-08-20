@@ -23,21 +23,21 @@ const orderWithoutPayment = orderFixture(placeholderImage, {
 });
 
 const callbacks = {
-  onBack: () => {},
-  onCreate: () => {},
-  onCustomerEmailClick: id => () => {},
-  onOrderCancel: () => {},
-  onOrderLineChange: () => () => () => {},
-  onOrderLineRemove: () => () => {},
-  onPackingSlipClick: () => () => {},
-  onPaymentRelease: () => {},
-  onPrintClick: () => {},
-  onProductClick: () => {}
+  onBack: () => undefined,
+  onCreate: undefined,
+  onCustomerEmailClick: id => undefined,
+  onOrderCancel: undefined,
+  onOrderLineChange: () => () => () => undefined,
+  onOrderLineRemove: () => () => undefined,
+  onPackingSlipClick: () => undefined,
+  onPaymentRelease: undefined,
+  onPrintClick: undefined,
+  onProductClick: undefined
 };
 
 storiesOf("Views / Orders / Order details", module)
   .addDecorator(Decorator)
-  .add("when loading data", () => <OrderDetailsPage onBack={() => {}} />)
+  .add("when loading data", () => <OrderDetailsPage onBack={() => undefined} />)
   .add("when loaded data", () => (
     <OrderDetailsPage
       countries={countries}
@@ -57,9 +57,9 @@ storiesOf("Views / Orders / Order details", module)
       users={clients}
       variants={variants}
       variantsLoading={false}
-      fetchShippingMethods={() => {}}
-      fetchUsers={() => {}}
-      fetchVariants={() => {}}
+      fetchShippingMethods={undefined}
+      fetchUsers={undefined}
+      fetchVariants={undefined}
       {...callbacks}
     />
   ))
@@ -73,9 +73,9 @@ storiesOf("Views / Orders / Order details", module)
       users={clients}
       variants={variants}
       variantsLoading={false}
-      fetchShippingMethods={() => {}}
-      fetchUsers={() => {}}
-      fetchVariants={() => {}}
+      fetchShippingMethods={undefined}
+      fetchUsers={undefined}
+      fetchVariants={undefined}
       {...callbacks}
     />
   ));

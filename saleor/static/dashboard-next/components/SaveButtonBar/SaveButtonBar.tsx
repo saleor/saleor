@@ -127,15 +127,13 @@ export const SaveButtonBar = decorate<SaveButtonBarProps>(
           </Button>
         )}
         <div className={classes.spacer} />
-        {!!onCancel && (
-          <Button
-            className={classes.cancelButton}
-            variant="flat"
-            onClick={onCancel}
-          >
-            {labels && labels.cancel ? labels.cancel : i18n.t("Cancel")}
-          </Button>
-        )}
+        <Button
+          className={classes.cancelButton}
+          variant="flat"
+          onClick={onCancel}
+        >
+          {labels && labels.cancel ? labels.cancel : i18n.t("Cancel")}
+        </Button>
         <Button
           variant="contained"
           onClick={onSave}

@@ -20,30 +20,30 @@ storiesOf("Views / Categories / Category details", module)
         hasPreviousPage: true
       }}
       loading={false}
-      onAddCategory={() => {}}
-      onAddProduct={() => {}}
-      onBack={() => {}}
-      onCategoryClick={() => () => {}}
-      onDelete={() => {}}
-      onEdit={() => {}}
-      onNextPage={() => {}}
-      onPreviousPage={() => {}}
-      onProductClick={() => () => {}}
+      onAddCategory={undefined}
+      onAddProduct={undefined}
+      onBack={() => undefined}
+      onCategoryClick={() => undefined}
+      onDelete={undefined}
+      onEdit={undefined}
+      onNextPage={undefined}
+      onPreviousPage={undefined}
+      onProductClick={() => undefined}
     />
   ))
   .add("when in root", () => (
     <CategoryDetailsPage
       subcategories={category.children}
       loading={false}
-      onAddCategory={() => {}}
-      onAddProduct={() => {}}
-      onBack={() => {}}
-      onCategoryClick={() => () => {}}
-      onDelete={() => {}}
-      onEdit={() => {}}
-      onNextPage={() => {}}
-      onPreviousPage={() => {}}
-      onProductClick={() => () => {}}
+      onAddCategory={undefined}
+      onAddProduct={undefined}
+      onBack={() => undefined}
+      onCategoryClick={() => undefined}
+      onDelete={undefined}
+      onEdit={undefined}
+      onNextPage={undefined}
+      onPreviousPage={undefined}
+      onProductClick={() => undefined}
     />
   ))
   .add("when loading", () => <CategoryDetailsPage loading={true} />);

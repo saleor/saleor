@@ -23,7 +23,7 @@ storiesOf("Generics / EditableTableCell", module)
           <TableCell>Some value</TableCell>
           <EditableTableCell
             value={"Some editable text"}
-            onConfirm={() => () => {}}
+            onConfirm={() => undefined}
           />
           <TableCell>Some value</TableCell>
         </TableRow>

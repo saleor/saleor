@@ -14,10 +14,10 @@ storiesOf("Orders / OrderProductAddDialog", module)
         <OrderProductAddDialog
           open={true}
           onChange={change}
-          onConfirm={() => {}}
-          onClose={() => {}}
+          onConfirm={undefined}
+          onClose={undefined}
           variants={variants}
-          fetchVariants={() => {}}
+          fetchVariants={undefined}
           quantity={data.quantity}
           variant={data.variant}
         />

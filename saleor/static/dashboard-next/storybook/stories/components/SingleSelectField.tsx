@@ -12,33 +12,33 @@ const choices = [
 
 storiesOf("Generics / SingleSelectField", module)
   .add("with no value", () => (
-    <SingleSelectField choices={choices} onChange={() => {}} />
+    <SingleSelectField choices={choices} onChange={undefined} />
   ))
   .add("with value", () => (
     <SingleSelectField
       choices={choices}
-      onChange={() => {}}
+      onChange={undefined}
       value={choices[0].value}
     />
   ))
   .add("with label", () => (
     <SingleSelectField
       choices={choices}
-      onChange={() => {}}
+      onChange={undefined}
       label="Lorem ipsum"
     />
   ))
   .add("with hint", () => (
     <SingleSelectField
       choices={choices}
-      onChange={() => {}}
+      onChange={undefined}
       hint="Lorem ipsum"
     />
   ))
   .add("with label and hint", () => (
     <SingleSelectField
       choices={choices}
-      onChange={() => {}}
+      onChange={undefined}
       label="Lorem"
       hint="Ipsum"
     />
@@ -46,7 +46,7 @@ storiesOf("Generics / SingleSelectField", module)
   .add("with value, label and hint", () => (
     <SingleSelectField
       choices={choices}
-      onChange={() => {}}
+      onChange={undefined}
       value={choices[0].value}
       label="Lorem"
       hint="Ipsum"
@@ -55,7 +55,7 @@ storiesOf("Generics / SingleSelectField", module)
   .add("with error hint", () => (
     <SingleSelectField
       choices={choices}
-      onChange={() => {}}
+      onChange={undefined}
       hint="Lorem error"
       error={true}
     />

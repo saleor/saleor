@@ -13,7 +13,7 @@ storiesOf("Generics / PriceRangeField", module)
     <PriceRangeField
       currencySymbol="USD"
       name="priceField"
-      onChange={() => {}}
+      onChange={undefined}
       value={value}
     />
   ))
@@ -22,7 +22,7 @@ storiesOf("Generics / PriceRangeField", module)
       currencySymbol="USD"
       label="Lorem ipsum"
       name="priceField"
-      onChange={() => {}}
+      onChange={undefined}
       value={value}
     />
   ))
@@ -31,7 +31,7 @@ storiesOf("Generics / PriceRangeField", module)
       currencySymbol="USD"
       hint="Lorem ipsum"
       name="priceField"
-      onChange={() => {}}
+      onChange={undefined}
       value={value}
     />
   ))
@@ -40,7 +40,7 @@ storiesOf("Generics / PriceRangeField", module)
       currencySymbol="USD"
       disabled
       name="priceField"
-      onChange={() => {}}
+      onChange={undefined}
       value={value}
     />
   ))
@@ -50,7 +50,7 @@ storiesOf("Generics / PriceRangeField", module)
       hint="Ipsum"
       label="Lorem"
       name="priceField"
-      onChange={() => {}}
+      onChange={undefined}
       value={value}
     />
   ))
@@ -60,7 +60,7 @@ storiesOf("Generics / PriceRangeField", module)
       hint="Ipsum"
       label="Lorem"
       name="priceField"
-      onChange={() => {}}
+      onChange={undefined}
       value={value}
     />
   ))
@@ -71,31 +71,31 @@ storiesOf("Generics / PriceRangeField", module)
       hint="Ipsum"
       label="Lorem"
       name="priceField"
-      onChange={() => {}}
+      onChange={undefined}
       value={value}
     />
   ));
 
 storiesOf("Generics / PriceField", module)
-  .add("with no value", () => <PriceField onChange={() => {}} />)
-  .add("with value", () => <PriceField value={"30"} onChange={() => {}} />)
+  .add("with no value", () => <PriceField onChange={undefined} />)
+  .add("with value", () => <PriceField value={"30"} onChange={undefined} />)
   .add("with label", () => (
-    <PriceField label="Lorem ipsum" onChange={() => {}} />
+    <PriceField label="Lorem ipsum" onChange={undefined} />
   ))
-  .add("with hint", () => <PriceField hint="Lorem ipsum" onChange={() => {}} />)
+  .add("with hint", () => <PriceField hint="Lorem ipsum" onChange={undefined} />)
   .add("with currency symbol", () => (
-    <PriceField currencySymbol="$" onChange={() => {}} />
+    <PriceField currencySymbol="$" onChange={undefined} />
   ))
-  .add("disabled", () => <PriceField disabled onChange={() => {}} />)
+  .add("disabled", () => <PriceField disabled onChange={undefined} />)
   .add("with label and hint", () => (
-    <PriceField label="Lorem" hint="Ipsum" onChange={() => {}} />
+    <PriceField label="Lorem" hint="Ipsum" onChange={undefined} />
   ))
   .add("with value, label, currency symbol and hint", () => (
     <PriceField
       value={"30"}
       label="Lorem"
       hint="Ipsum"
-      onChange={() => {}}
+      onChange={undefined}
       currencySymbol="$"
     />
   ))
@@ -105,7 +105,7 @@ storiesOf("Generics / PriceField", module)
       label="Lorem"
       hint="Ipsum"
       error={true}
-      onChange={() => {}}
+      onChange={undefined}
       currencySymbol="$"
     />
   ));

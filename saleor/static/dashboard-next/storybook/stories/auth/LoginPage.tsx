@@ -9,10 +9,14 @@ storiesOf("Views / Authentication / Log in", module)
   .add("default", () => (
     <LoginPage
       error={false}
-      onPasswordRecovery={() => {}}
-      onSubmit={() => {}}
+      onPasswordRecovery={undefined}
+      onSubmit={() => undefined}
     />
   ))
   .add("error", () => (
-    <LoginPage error={true} onPasswordRecovery={() => {}} onSubmit={() => {}} />
+    <LoginPage
+      error={true}
+      onPasswordRecovery={undefined}
+      onSubmit={() => undefined}
+    />
   ));

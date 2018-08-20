@@ -6,17 +6,14 @@ import { page } from "../../../pages/fixtures";
 import Decorator from "../../Decorator";
 
 const callbacks = {
-  onBack: () => {},
-  onSubmit: () => {}
+  onBack: () => undefined,
+  onSubmit: () => undefined
 };
 
 storiesOf("Views / Pages / Page details", module)
   .addDecorator(Decorator)
   .add("with initial data", () => (
-    <PageDetailsPage page={page} {...callbacks} />
-  ))
-  .add("with delete button", () => (
-    <PageDetailsPage page={page} {...callbacks} onDelete={() => {}} />
+    <PageDetailsPage title="Lorem Ipsum" page={page} {...callbacks} />
   ))
   .add("when loading", () => (
     <PageDetailsPage disabled={true} {...callbacks} />

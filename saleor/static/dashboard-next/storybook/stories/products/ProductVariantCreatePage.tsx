@@ -34,9 +34,9 @@ storiesOf("Views / Products / Create product variant", module)
       header="Add variant"
       loading={false}
       product={product}
-      onBack={() => {}}
-      onSubmit={() => {}}
-      onVariantClick={() => {}}
+      onBack={() => undefined}
+      onSubmit={() => undefined}
+      onVariantClick={undefined}
     />
   ))
   .add("with errors", () => (
@@ -45,9 +45,9 @@ storiesOf("Views / Products / Create product variant", module)
       header="Add variant"
       loading={false}
       product={product}
-      onBack={() => {}}
-      onSubmit={() => {}}
-      onVariantClick={() => {}}
+      onBack={() => undefined}
+      onSubmit={() => undefined}
+      onVariantClick={undefined}
     />
   ))
   .add("when loading data", () => (
@@ -55,8 +55,8 @@ storiesOf("Views / Products / Create product variant", module)
       errors={[]}
       header="Add variant"
       loading={true}
-      onBack={() => {}}
-      onSubmit={() => {}}
-      onVariantClick={() => {}}
+      onBack={() => undefined}
+      onSubmit={() => undefined}
+      onVariantClick={undefined}
     />
   ));

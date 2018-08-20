@@ -9,7 +9,7 @@ storiesOf("Generics / PageHeader", module)
   .add("without title", () => <PageHeader />)
   .add("with title", () => <PageHeader title="Lorem ipsum" />)
   .add("with title and back button", () => (
-    <PageHeader title="Lorem ipsum" onBack={() => {}} />
+    <PageHeader title="Lorem ipsum" onBack={() => undefined} />
   ))
   .add("with title icon bar", () => (
     <PageHeader title="Lorem ipsum">
@@ -19,7 +19,7 @@ storiesOf("Generics / PageHeader", module)
     </PageHeader>
   ))
   .add("with title, back button and icon bar", () => (
-    <PageHeader title="Lorem ipsum" onBack={() => {}}>
+    <PageHeader title="Lorem ipsum" onBack={() => undefined}>
       <IconButton>
         <DeleteIcon />
       </IconButton>

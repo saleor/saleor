@@ -9,7 +9,7 @@ storiesOf("Orders / OrderPaymentReleaseDialog", module)
   .add("default", () => (
     <OrderPaymentReleaseDialog
       open={true}
-      onConfirm={() => {}}
-      onClose={() => {}}
+      onConfirm={undefined}
+      onClose={undefined}
     />
   ));
