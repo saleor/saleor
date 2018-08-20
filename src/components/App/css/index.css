@@ -159,25 +159,24 @@ ul {
       & a, & span {
         position: relative;
         &::after {
-          opacity: 0;
           content: "";
-          width: 100%;
+          width: 0;
           height: 5px;
           bottom: 0;
           left: 0;
           position: absolute;
+          transform: skewX(-20deg);
           background: rgb(54,193,172);
-          background: linear-gradient(135deg, rgba(54,193,172,0) 5%, rgba(54,193,172,1) 5%, rgba(54,193,172,1) 95%, rgba(54,193,172,0) 95%, rgba(54,193,172,0) 100%);
-          transition: opacity 0.5s;
+          transition: width 0.5s;
         }
         &:hover {
           &::after {
-            opacity: 1;
+            width: 100%;
           }
         }
         &.active {
           &::after {
-            opacity: 1;
+            width: 100%;
           }
         }
       }
@@ -193,11 +192,11 @@ ul {
   font-size: var(--font-size-lg);
   &.btn-primary {
     border: solid var(--border-width) var(--primaryColor);
+    background: var(--mobile-background);
     &:hover {
+      background: var(--primaryColor);
+      color: var(--mobile-background);
       text-decoration: none;
-      border-color: var(--secondaryColor);
-      background-color: var(--secondaryColor);
-      color: var(--body-color);
     }
   }
   &.btn-secondary {

@@ -96,10 +96,7 @@
           margin-right: var(--spacer);
           &.btn-primary {
             padding: calc(var(--spacer) / 2) calc(var(--spacer) * 5);
-            background: var(--mobile-background);
-            &:hover {
-              background: var(--secondaryColor);
-            }
+
             @media (max-width: 576px) {
               padding: calc(var(--spacer) / 2) calc(var(--spacer) * 3);
             }
