@@ -134,24 +134,24 @@ class PasswordResetForm(django_forms.PasswordResetForm, FormWithReCaptcha):
 
 
 class EmailChangeForm(forms.ModelForm):
-    """ Allow changing email """
+    """Allow changing email
+    This subclass handles user email address changes and sends email with
+    link verification.
+    """
 
     user_email = forms.EmailField(
         label=pgettext("Label of the user's email field", "User Email"))
 
     error_messages = {
-        'requests_exceeded':
-        pgettext_lazy(
+        'requests_exceeded': pgettext_lazy(
             'Max requests exceeded',
             'Sorry, but it looks like You actually trying to reset'
             ' Your email address again. Please check Your email inbox first.'),
-        'same_email':
-        pgettext_lazy(
+        'same_email': pgettext_lazy(
             "Email can't be the same", 'New email address cannot be the '
             'same as your current email address'),
-        'user_exists':
-        pgettext_lazy(
-            "User already exists",
+        'user_exists': pgettext_lazy(
+            'User already exists',
             'User with this email address already exists'), }
 
     class Meta:
