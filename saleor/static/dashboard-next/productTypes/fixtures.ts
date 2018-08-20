@@ -1,989 +1,1044 @@
 export const productTypes = [
   {
-    id: "pt44865",
-    name: "Steel",
     hasVariants: true,
-    productAttributes: {
-      totalCount: 2,
-      edges: [
-        {
-          node: {
-            id: "pta55837",
-            sortOrder: 0,
-            name: "virtual",
-            slug: "virtual",
-            values: [
-              {
-                id: "ptav37754",
-                sortOrder: 0,
-                name: "turquoise",
-                slug: "turquoise"
-              },
-              {
-                id: "ptav60615",
-                sortOrder: 1,
-                name: "Credit Card Account",
-                slug: "Credit-Card-Account"
-              },
-              { id: "ptav86191", sortOrder: 2, name: "Pants", slug: "Pants" },
-              {
-                id: "ptav14831",
-                sortOrder: 3,
-                name: "maximize",
-                slug: "maximize"
-              },
-              { id: "ptav15280", sortOrder: 4, name: "Movies", slug: "Movies" }
-            ]
-          }
-        },
-        {
-          node: {
-            id: "pta64310",
-            sortOrder: 1,
-            name: "Shoes",
-            slug: "Shoes",
-            values: [
-              { id: "ptav55703", sortOrder: 0, name: "feed", slug: "feed" }
-            ]
-          }
-        }
-      ]
-    },
-    variantAttributes: {
-      totalCount: 2,
-      edges: [
-        {
-          node: {
-            id: "pta35234",
-            sortOrder: 0,
-            name: "experiences",
-            slug: "experiences",
-            values: [
-              { id: "ptav25787", sortOrder: 0, name: "ADP", slug: "ADP" },
-              {
-                id: "ptav40095",
-                sortOrder: 1,
-                name: "action-items",
-                slug: "action-items"
-              },
-              {
-                id: "ptav85585",
-                sortOrder: 2,
-                name: "collaboration",
-                slug: "collaboration"
-              }
-            ]
-          }
-        },
-        {
-          node: {
-            id: "pta27033",
-            sortOrder: 1,
-            name: "Visionary",
-            slug: "Visionary",
-            values: [
-              {
-                id: "ptav22663",
-                sortOrder: 0,
-                name: "Argentine Peso",
-                slug: "Argentine-Peso"
-              },
-              {
-                id: "ptav89180",
-                sortOrder: 1,
-                name: "Clothing",
-                slug: "Clothing"
-              },
-              {
-                id: "ptav83896",
-                sortOrder: 2,
-                name: "Customer",
-                slug: "Customer"
-              },
-              {
-                id: "ptav79395",
-                sortOrder: 3,
-                name: "multimedia",
-                slug: "multimedia"
-              },
-              {
-                id: "ptav49687",
-                sortOrder: 4,
-                name: "interactive",
-                slug: "interactive"
-              }
-            ]
-          }
-        }
-      ]
-    },
+    id: "pt79303",
     isShippingRequired: false,
-    taxRate: "standard"
-  },
-  {
-    id: "pt27252",
-    name: "Steel two",
-    hasVariants: false,
+    name: "Granite",
     productAttributes: {
-      totalCount: 1,
       edges: [
         {
           node: {
-            id: "pta67389",
+            id: "pta69348",
+            name: "Licensed Soft Chair",
+            slug: "Licensed-Soft-Chair",
             sortOrder: 0,
-            name: "array",
-            slug: "array",
             values: [
               {
-                id: "ptav23966",
-                sortOrder: 0,
-                name: "Strategist",
-                slug: "Strategist"
+                id: "ptav55305",
+                name: "cross-platform",
+                slug: "cross-platform",
+                sortOrder: 0
               },
               {
-                id: "ptav34403",
-                sortOrder: 1,
-                name: "even-keeled",
-                slug: "even-keeled"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    variantAttributes: { totalCount: 0, edges: [] },
-    isShippingRequired: true,
-    taxRate: "standard"
-  },
-  {
-    id: "pt68725",
-    name: "Frozen",
-    hasVariants: true,
-    productAttributes: {
-      totalCount: 4,
-      edges: [
-        {
-          node: {
-            id: "pta28666",
-            sortOrder: 0,
-            name: "Computers",
-            slug: "Computers",
-            values: [
-              { id: "ptav51546", sortOrder: 0, name: "black", slug: "black" }
+                id: "ptav18686",
+                name: "Bolivar Fuerte",
+                slug: "Bolivar-Fuerte",
+                sortOrder: 1
+              },
+              {
+                id: "ptav55165",
+                name: "Algeria",
+                slug: "Algeria",
+                sortOrder: 2
+              },
+              { id: "ptav66704", name: "Tuna", slug: "Tuna", sortOrder: 3 },
+              { id: "ptav9030", name: "Car", slug: "Car", sortOrder: 4 }
             ]
           }
         },
         {
           node: {
-            id: "pta77888",
+            id: "pta41729",
+            name: "interfaces",
+            slug: "interfaces",
             sortOrder: 1,
-            name: "Parkway",
-            slug: "Parkway",
             values: [
+              { id: "ptav35163", name: "Steel", slug: "Steel", sortOrder: 0 },
               {
-                id: "ptav79471",
-                sortOrder: 0,
-                name: "unleash",
-                slug: "unleash"
+                id: "ptav40084",
+                name: "methodologies",
+                slug: "methodologies",
+                sortOrder: 1
               },
+              { id: "ptav18853", name: "Summit", slug: "Summit", sortOrder: 2 },
               {
-                id: "ptav52436",
-                sortOrder: 1,
-                name: "Investment Account",
-                slug: "Investment-Account"
-              },
-              {
-                id: "ptav3413",
-                sortOrder: 2,
-                name: "eyeballs",
-                slug: "eyeballs"
-              },
-              {
-                id: "ptav17339",
-                sortOrder: 3,
-                name: "Investment Account",
-                slug: "Investment-Account"
-              },
-              {
-                id: "ptav2231",
-                sortOrder: 4,
-                name: "California",
-                slug: "California"
+                id: "ptav78991",
+                name: "5th generation",
+                slug: "5th-generation",
+                sortOrder: 3
               }
             ]
           }
         },
         {
           node: {
-            id: "pta19754",
+            id: "pta63704",
+            name: "Outdoors",
+            slug: "Outdoors",
             sortOrder: 2,
-            name: "bypass",
-            slug: "bypass",
             values: [
               {
-                id: "ptav68887",
-                sortOrder: 0,
-                name: "calculate",
-                slug: "calculate"
+                id: "ptav36871",
+                name: "Handmade Concrete Tuna",
+                slug: "Handmade-Concrete-Tuna",
+                sortOrder: 0
               }
             ]
           }
-        },
-        {
-          node: {
-            id: "pta69254",
-            sortOrder: 3,
-            name: "Lead",
-            slug: "Lead",
-            values: [
-              { id: "ptav1674", sortOrder: 0, name: "orchid", slug: "orchid" }
-            ]
-          }
         }
-      ]
+      ],
+      totalCount: 3
     },
+    taxRate: "standard",
     variantAttributes: {
-      totalCount: 2,
       edges: [
         {
           node: {
-            id: "pta52751",
+            id: "pta42902",
+            name: "silver",
+            slug: "silver",
             sortOrder: 0,
-            name: "Burkina Faso",
-            slug: "Burkina-Faso",
             values: [
               {
-                id: "ptav51410",
-                sortOrder: 0,
-                name: "Andorra",
-                slug: "Andorra"
+                id: "ptav22950",
+                name: "Principal",
+                slug: "Principal",
+                sortOrder: 0
               },
               {
-                id: "ptav38446",
-                sortOrder: 1,
-                name: "Concrete",
-                slug: "Concrete"
+                id: "ptav35592",
+                name: "interface",
+                slug: "interface",
+                sortOrder: 1
               },
-              { id: "ptav62830", sortOrder: 2, name: "Guyana", slug: "Guyana" },
               {
-                id: "ptav35266",
-                sortOrder: 3,
-                name: "Reduced",
-                slug: "Reduced"
-              }
-            ]
-          }
-        },
-        {
-          node: {
-            id: "pta81728",
-            sortOrder: 1,
-            name: "bluetooth",
-            slug: "bluetooth",
-            values: [
-              {
-                id: "ptav85090",
-                sortOrder: 0,
-                name: "Colorado",
-                slug: "Colorado"
+                id: "ptav93692",
+                name: "scalable",
+                slug: "scalable",
+                sortOrder: 2
               },
-              { id: "ptav84747", sortOrder: 1, name: "Riel", slug: "Riel" }
+              { id: "ptav28320", name: "Fresh", slug: "Fresh", sortOrder: 3 },
+              { id: "ptav35474", name: "white", slug: "white", sortOrder: 4 }
             ]
           }
         }
-      ]
-    },
-    isShippingRequired: false,
-    taxRate: "standard"
+      ],
+      totalCount: 1
+    }
   },
   {
-    id: "pt44961",
-    name: "Fresh",
-    hasVariants: true,
+    hasVariants: false,
+    id: "pt74994",
+    isShippingRequired: true,
+    name: "Metal",
     productAttributes: {
-      totalCount: 1,
       edges: [
         {
           node: {
-            id: "pta48630",
+            id: "pta30527",
+            name: "THX",
+            slug: "THX",
             sortOrder: 0,
-            name: "Jordanian Dinar",
-            slug: "Jordanian-Dinar",
+            values: [
+              { id: "ptav4461", name: "Health", slug: "Health", sortOrder: 0 },
+              {
+                id: "ptav63442",
+                name: "infomediaries",
+                slug: "infomediaries",
+                sortOrder: 1
+              },
+              {
+                id: "ptav44484",
+                name: "Multi-channelled",
+                slug: "Multi-channelled",
+                sortOrder: 2
+              },
+              {
+                id: "ptav25378",
+                name: "compressing",
+                slug: "compressing",
+                sortOrder: 3
+              },
+              {
+                id: "ptav49406",
+                name: "Moldova",
+                slug: "Moldova",
+                sortOrder: 4
+              }
+            ]
+          }
+        },
+        {
+          node: {
+            id: "pta27975",
+            name: "primary",
+            slug: "primary",
+            sortOrder: 1,
+            values: [
+              { id: "ptav6173", name: "Lights", slug: "Lights", sortOrder: 0 },
+              {
+                id: "ptav95257",
+                name: "open-source",
+                slug: "open-source",
+                sortOrder: 1
+              },
+              {
+                id: "ptav74274",
+                name: "Rustic Steel Shirt",
+                slug: "Rustic-Steel-Shirt",
+                sortOrder: 2
+              }
+            ]
+          }
+        },
+        {
+          node: {
+            id: "pta30602",
+            name: "calculate",
+            slug: "calculate",
+            sortOrder: 2,
+            values: [
+              { id: "ptav62030", name: "purple", slug: "purple", sortOrder: 0 }
+            ]
+          }
+        }
+      ],
+      totalCount: 3
+    },
+    taxRate: "standard",
+    variantAttributes: { edges: [], totalCount: 0 }
+  },
+  {
+    hasVariants: true,
+    id: "pt11788",
+    isShippingRequired: false,
+    name: "Rubber",
+    productAttributes: {
+      edges: [
+        {
+          node: {
+            id: "pta17130",
+            name: "override",
+            slug: "override",
+            sortOrder: 0,
             values: [
               {
-                id: "ptav42680",
-                sortOrder: 0,
-                name: "discrete",
-                slug: "discrete"
+                id: "ptav46700",
+                name: "mint green",
+                slug: "mint-green",
+                sortOrder: 0
               },
               {
-                id: "ptav20274",
-                sortOrder: 1,
-                name: "Assurance",
-                slug: "Assurance"
+                id: "ptav84349",
+                name: "asymmetric",
+                slug: "asymmetric",
+                sortOrder: 1
+              }
+            ]
+          }
+        },
+        {
+          node: {
+            id: "pta31482",
+            name: "backing up",
+            slug: "backing-up",
+            sortOrder: 1,
+            values: [
+              { id: "ptav51776", name: "JBOD", slug: "JBOD", sortOrder: 0 },
+              {
+                id: "ptav70107",
+                name: "Investment Account",
+                slug: "Investment-Account",
+                sortOrder: 1
               },
               {
-                id: "ptav11748",
-                sortOrder: 2,
-                name: "Unbranded Cotton Soap",
-                slug: "Unbranded-Cotton-Soap"
+                id: "ptav96788",
+                name: "connecting",
+                slug: "connecting",
+                sortOrder: 2
+              },
+              {
+                id: "ptav90352",
+                name: "ability",
+                slug: "ability",
+                sortOrder: 3
+              }
+            ]
+          }
+        },
+        {
+          node: {
+            id: "pta11523",
+            name: "Health",
+            slug: "Health",
+            sortOrder: 2,
+            values: [
+              { id: "ptav19288", name: "index", slug: "index", sortOrder: 0 },
+              {
+                id: "ptav47297",
+                name: "Assimilated",
+                slug: "Assimilated",
+                sortOrder: 1
               }
             ]
           }
         }
-      ]
+      ],
+      totalCount: 3
     },
+    taxRate: "standard",
     variantAttributes: {
-      totalCount: 1,
       edges: [
         {
           node: {
-            id: "pta94377",
+            id: "pta63002",
+            name: "magenta",
+            slug: "magenta",
             sortOrder: 0,
+            values: [
+              {
+                id: "ptav73703",
+                name: "Arkansas",
+                slug: "Arkansas",
+                sortOrder: 0
+              },
+              {
+                id: "ptav48391",
+                name: "Dominican Republic",
+                slug: "Dominican-Republic",
+                sortOrder: 1
+              },
+              { id: "ptav4296", name: "hacking", slug: "hacking", sortOrder: 2 }
+            ]
+          }
+        },
+        {
+          node: {
+            id: "pta32365",
+            name: "Buckinghamshire",
+            slug: "Buckinghamshire",
+            sortOrder: 1,
+            values: [
+              {
+                id: "ptav25429",
+                name: "override",
+                slug: "override",
+                sortOrder: 0
+              },
+              {
+                id: "ptav49824",
+                name: "revolutionary",
+                slug: "revolutionary",
+                sortOrder: 1
+              }
+            ]
+          }
+        }
+      ],
+      totalCount: 2
+    }
+  },
+  {
+    hasVariants: true,
+    id: "pt98059",
+    isShippingRequired: false,
+    name: "Wooden",
+    productAttributes: {
+      edges: [
+        {
+          node: {
+            id: "pta94742",
+            name: "Som",
+            slug: "Som",
+            sortOrder: 0,
+            values: [
+              { id: "ptav22212", name: "driver", slug: "driver", sortOrder: 0 },
+              { id: "ptav56627", name: "Courts", slug: "Courts", sortOrder: 1 },
+              {
+                id: "ptav90083",
+                name: "navigate",
+                slug: "navigate",
+                sortOrder: 2
+              }
+            ]
+          }
+        }
+      ],
+      totalCount: 1
+    },
+    taxRate: "standard",
+    variantAttributes: {
+      edges: [
+        {
+          node: {
+            id: "pta22383",
             name: "payment",
             slug: "payment",
-            values: [
-              {
-                id: "ptav83614",
-                sortOrder: 0,
-                name: "disintermediate",
-                slug: "disintermediate"
-              },
-              { id: "ptav63941", sortOrder: 1, name: "online", slug: "online" },
-              {
-                id: "ptav99833",
-                sortOrder: 2,
-                name: "payment",
-                slug: "payment"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    isShippingRequired: false,
-    taxRate: "standard"
-  },
-  {
-    id: "pt18337",
-    name: "Concrete",
-    hasVariants: true,
-    productAttributes: {
-      totalCount: 1,
-      edges: [
-        {
-          node: {
-            id: "pta92580",
             sortOrder: 0,
-            name: "Concrete",
-            slug: "Concrete",
-            values: [
-              { id: "ptav4277", sortOrder: 0, name: "Refined", slug: "Refined" }
-            ]
-          }
-        }
-      ]
-    },
-    variantAttributes: {
-      totalCount: 1,
-      edges: [
-        {
-          node: {
-            id: "pta24190",
-            sortOrder: 0,
-            name: "Ergonomic Granite Bike",
-            slug: "Ergonomic-Granite-Bike",
             values: [
               {
-                id: "ptav15347",
-                sortOrder: 0,
-                name: "District",
-                slug: "District"
-              },
-              {
-                id: "ptav11413",
-                sortOrder: 1,
-                name: "calculate",
-                slug: "calculate"
-              },
-              { id: "ptav302", sortOrder: 2, name: "TCP", slug: "TCP" },
-              { id: "ptav48581", sortOrder: 3, name: "SDD", slug: "SDD" }
-            ]
-          }
-        }
-      ]
-    },
-    isShippingRequired: true,
-    taxRate: "standard"
-  },
-  {
-    id: "pt18750",
-    name: "Cotton",
-    hasVariants: false,
-    productAttributes: {
-      totalCount: 1,
-      edges: [
-        {
-          node: {
-            id: "pta21014",
-            sortOrder: 0,
-            name: "Iraq",
-            slug: "Iraq",
-            values: [
-              {
-                id: "ptav5033",
-                sortOrder: 0,
-                name: "one-to-one",
-                slug: "one-to-one"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    variantAttributes: { totalCount: 0, edges: [] },
-    isShippingRequired: true,
-    taxRate: "standard"
-  },
-  {
-    id: "pt48335",
-    name: "Steel three",
-    hasVariants: true,
-    productAttributes: {
-      totalCount: 4,
-      edges: [
-        {
-          node: {
-            id: "pta65049",
-            sortOrder: 0,
-            name: "Taiwan",
-            slug: "Taiwan",
-            values: [
-              {
-                id: "ptav22004",
-                sortOrder: 0,
-                name: "Unbranded",
-                slug: "Unbranded"
-              },
-              { id: "ptav60504", sortOrder: 1, name: "AGP", slug: "AGP" },
-              { id: "ptav51168", sortOrder: 2, name: "Sleek", slug: "Sleek" },
-              {
-                id: "ptav10708",
-                sortOrder: 3,
-                name: "Handcrafted Fresh Sausages",
-                slug: "Handcrafted-Fresh-Sausages"
-              },
-              {
-                id: "ptav99626",
-                sortOrder: 4,
-                name: "Implementation",
-                slug: "Implementation"
-              }
-            ]
-          }
-        },
-        {
-          node: {
-            id: "pta71171",
-            sortOrder: 1,
-            name: "maroon",
-            slug: "maroon",
-            values: [
-              { id: "ptav38842", sortOrder: 0, name: "Frozen", slug: "Frozen" },
-              {
-                id: "ptav51110",
-                sortOrder: 1,
-                name: "open system",
-                slug: "open-system"
-              },
-              { id: "ptav7718", sortOrder: 2, name: "matrix", slug: "matrix" },
-              {
-                id: "ptav67123",
-                sortOrder: 3,
-                name: "Orchard",
-                slug: "Orchard"
-              },
-              {
-                id: "ptav33391",
-                sortOrder: 4,
-                name: "incentivize",
-                slug: "incentivize"
-              }
-            ]
-          }
-        },
-        {
-          node: {
-            id: "pta42793",
-            sortOrder: 2,
-            name: "Chair",
-            slug: "Chair",
-            values: [
-              {
-                id: "ptav92542",
-                sortOrder: 0,
-                name: "frictionless",
-                slug: "frictionless"
-              },
-              {
-                id: "ptav18990",
-                sortOrder: 1,
-                name: "compress",
-                slug: "compress"
-              },
-              {
-                id: "ptav58568",
-                sortOrder: 2,
-                name: "Proactive",
-                slug: "Proactive"
-              },
-              {
-                id: "ptav95231",
-                sortOrder: 3,
-                name: "Program",
-                slug: "Program"
-              },
-              { id: "ptav93771", sortOrder: 4, name: "Web", slug: "Web" }
-            ]
-          }
-        },
-        {
-          node: {
-            id: "pta54549",
-            sortOrder: 3,
-            name: "client-driven",
-            slug: "client-driven",
-            values: [
-              {
-                id: "ptav42835",
-                sortOrder: 0,
-                name: "Quality",
-                slug: "Quality"
-              },
-              {
-                id: "ptav68828",
-                sortOrder: 1,
-                name: "Ergonomic Concrete Fish",
-                slug: "Ergonomic-Concrete-Fish"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    variantAttributes: {
-      totalCount: 1,
-      edges: [
-        {
-          node: {
-            id: "pta74620",
-            sortOrder: 0,
-            name: "online",
-            slug: "online",
-            values: [
-              {
-                id: "ptav91332",
-                sortOrder: 0,
-                name: "Engineer",
-                slug: "Engineer"
-              },
-              {
-                id: "ptav74475",
-                sortOrder: 1,
+                id: "ptav49178",
                 name: "approach",
-                slug: "approach"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    isShippingRequired: true,
-    taxRate: "standard"
-  },
-  {
-    id: "pt51010",
-    name: "Cotton two",
-    hasVariants: true,
-    productAttributes: {
-      totalCount: 1,
-      edges: [
-        {
-          node: {
-            id: "pta20254",
-            sortOrder: 0,
-            name: "next generation",
-            slug: "next-generation",
-            values: [
-              {
-                id: "ptav60750",
-                sortOrder: 0,
-                name: "Azerbaijanian Manat",
-                slug: "Azerbaijanian-Manat"
-              },
-              {
-                id: "ptav64861",
-                sortOrder: 1,
-                name: "navigating",
-                slug: "navigating"
-              },
-              {
-                id: "ptav51862",
-                sortOrder: 2,
-                name: "Incredible Wooden Car",
-                slug: "Incredible-Wooden-Car"
-              },
-              {
-                id: "ptav9749",
-                sortOrder: 3,
-                name: "disintermediate",
-                slug: "disintermediate"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    variantAttributes: {
-      totalCount: 1,
-      edges: [
-        {
-          node: {
-            id: "pta83800",
-            sortOrder: 0,
-            name: "Representative",
-            slug: "Representative",
-            values: [
-              {
-                id: "ptav21139",
-                sortOrder: 0,
-                name: "solid state",
-                slug: "solid-state"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    isShippingRequired: true,
-    taxRate: "standard"
-  },
-  {
-    id: "pt62770",
-    name: "Frozen two",
-    hasVariants: true,
-    productAttributes: {
-      totalCount: 1,
-      edges: [
-        {
-          node: {
-            id: "pta25934",
-            sortOrder: 0,
-            name: "Chile",
-            slug: "Chile",
-            values: [
-              {
-                id: "ptav79149",
-                sortOrder: 0,
-                name: "overriding",
-                slug: "overriding"
-              },
-              {
-                id: "ptav27362",
-                sortOrder: 1,
-                name: "invoice",
-                slug: "invoice"
-              },
-              {
-                id: "ptav94654",
-                sortOrder: 2,
-                name: "deposit",
-                slug: "deposit"
-              },
-              {
-                id: "ptav53571",
-                sortOrder: 3,
-                name: "3rd generation",
-                slug: "3rd-generation"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    variantAttributes: {
-      totalCount: 1,
-      edges: [
-        {
-          node: {
-            id: "pta68227",
-            sortOrder: 0,
-            name: "Balanced",
-            slug: "Balanced",
-            values: [
-              {
-                id: "ptav99727",
-                sortOrder: 0,
-                name: "infomediaries",
-                slug: "infomediaries"
-              }
-            ]
-          }
-        }
-      ]
-    },
-    isShippingRequired: true,
-    taxRate: "standard"
-  },
-  {
-    id: "pt43019",
-    name: "Soft",
-    hasVariants: true,
-    productAttributes: {
-      totalCount: 4,
-      edges: [
-        {
-          node: {
-            id: "pta45280",
-            sortOrder: 0,
-            name: "drive",
-            slug: "drive",
-            values: [
-              {
-                id: "ptav28113",
-                sortOrder: 0,
-                name: "web-readiness",
-                slug: "web-readiness"
-              },
-              {
-                id: "ptav61757",
-                sortOrder: 1,
-                name: "Pitcairn Islands",
-                slug: "Pitcairn-Islands"
-              },
-              { id: "ptav22934", sortOrder: 2, name: "sensor", slug: "sensor" },
-              {
-                id: "ptav39736",
-                sortOrder: 3,
-                name: "multi-tasking",
-                slug: "multi-tasking"
-              },
-              {
-                id: "ptav89720",
-                sortOrder: 4,
-                name: "disintermediate",
-                slug: "disintermediate"
+                slug: "approach",
+                sortOrder: 0
               }
             ]
           }
         },
         {
           node: {
-            id: "pta93764",
+            id: "pta80861",
+            name: "Trafficway",
+            slug: "Trafficway",
             sortOrder: 1,
-            name: "needs-based",
-            slug: "needs-based",
             values: [
               {
-                id: "ptav97013",
-                sortOrder: 0,
-                name: "firewall",
-                slug: "firewall"
+                id: "ptav46452",
+                name: "matrices",
+                slug: "matrices",
+                sortOrder: 0
               },
+              { id: "ptav85638", name: "Shirt", slug: "Shirt", sortOrder: 1 },
               {
-                id: "ptav50856",
-                sortOrder: 1,
-                name: "Plastic",
-                slug: "Plastic"
+                id: "ptav58144",
+                name: "Gorgeous",
+                slug: "Gorgeous",
+                sortOrder: 2
               },
-              { id: "ptav21173", sortOrder: 2, name: "Towels", slug: "Towels" },
-              { id: "ptav80307", sortOrder: 3, name: "matrix", slug: "matrix" },
+              { id: "ptav14423", name: "hub", slug: "hub", sortOrder: 3 },
               {
-                id: "ptav74059",
-                sortOrder: 4,
-                name: "hacking",
-                slug: "hacking"
-              }
-            ]
-          }
-        },
-        {
-          node: {
-            id: "pta65268",
-            sortOrder: 2,
-            name: "hard drive",
-            slug: "hard-drive",
-            values: [
-              {
-                id: "ptav27466",
-                sortOrder: 0,
-                name: "Unbranded Metal Soap",
-                slug: "Unbranded-Metal-Soap"
-              },
-              { id: "ptav88596", sortOrder: 1, name: "Small", slug: "Small" },
-              {
-                id: "ptav84969",
-                sortOrder: 2,
-                name: "Awesome",
-                slug: "Awesome"
-              }
-            ]
-          }
-        },
-        {
-          node: {
-            id: "pta43186",
-            sortOrder: 3,
-            name: "Pants",
-            slug: "Pants",
-            values: [
-              {
-                id: "ptav54874",
-                sortOrder: 0,
-                name: "seamless",
-                slug: "seamless"
-              },
-              {
-                id: "ptav59316",
-                sortOrder: 1,
-                name: "Awesome Metal Fish",
-                slug: "Awesome-Metal-Fish"
+                id: "ptav96207",
+                name: "navigate",
+                slug: "navigate",
+                sortOrder: 4
               }
             ]
           }
         }
-      ]
-    },
-    variantAttributes: {
-      totalCount: 2,
-      edges: [
-        {
-          node: {
-            id: "pta95449",
-            sortOrder: 0,
-            name: "interface",
-            slug: "interface",
-            values: [
-              {
-                id: "ptav65660",
-                sortOrder: 0,
-                name: "calculating",
-                slug: "calculating"
-              }
-            ]
-          }
-        },
-        {
-          node: {
-            id: "pta93300",
-            sortOrder: 1,
-            name: "Kroon",
-            slug: "Kroon",
-            values: [
-              {
-                id: "ptav73125",
-                sortOrder: 0,
-                name: "functionalities",
-                slug: "functionalities"
-              },
-              {
-                id: "ptav77865",
-                sortOrder: 1,
-                name: "architectures",
-                slug: "architectures"
-              },
-              {
-                id: "ptav64084",
-                sortOrder: 2,
-                name: "functionalities",
-                slug: "functionalities"
-              },
-              {
-                id: "ptav38597",
-                sortOrder: 3,
-                name: "Officer",
-                slug: "Officer"
-              }
-            ]
-          }
-        }
-      ]
-    },
+      ],
+      totalCount: 2
+    }
+  },
+  {
+    hasVariants: true,
+    id: "pt2515",
     isShippingRequired: false,
-    taxRate: "standard"
+    name: "Granite",
+    productAttributes: {
+      edges: [
+        {
+          node: {
+            id: "pta64711",
+            name: "Metal",
+            slug: "Metal",
+            sortOrder: 0,
+            values: [
+              {
+                id: "ptav33402",
+                name: "infomediaries",
+                slug: "infomediaries",
+                sortOrder: 0
+              },
+              {
+                id: "ptav10636",
+                name: "e-tailers",
+                slug: "e-tailers",
+                sortOrder: 1
+              },
+              { id: "ptav90325", name: "matrix", slug: "matrix", sortOrder: 2 }
+            ]
+          }
+        }
+      ],
+      totalCount: 1
+    },
+    taxRate: "standard",
+    variantAttributes: {
+      edges: [
+        {
+          node: {
+            id: "pta20692",
+            name: "encompassing",
+            slug: "encompassing",
+            sortOrder: 0,
+            values: [
+              {
+                id: "ptav46153",
+                name: "Engineer",
+                slug: "Engineer",
+                sortOrder: 0
+              },
+              { id: "ptav35859", name: "copy", slug: "copy", sortOrder: 1 },
+              {
+                id: "ptav86046",
+                name: "reinvent",
+                slug: "reinvent",
+                sortOrder: 2
+              }
+            ]
+          }
+        }
+      ],
+      totalCount: 1
+    }
+  },
+  {
+    hasVariants: true,
+    id: "pt84268",
+    isShippingRequired: true,
+    name: "Fresh",
+    productAttributes: {
+      edges: [
+        {
+          node: {
+            id: "pta44796",
+            name: "auxiliary",
+            slug: "auxiliary",
+            sortOrder: 0,
+            values: [
+              {
+                id: "ptav78424",
+                name: "mint green",
+                slug: "mint-green",
+                sortOrder: 0
+              },
+              {
+                id: "ptav46319",
+                name: "synergies",
+                slug: "synergies",
+                sortOrder: 1
+              },
+              {
+                id: "ptav14736",
+                name: "Cambodia",
+                slug: "Cambodia",
+                sortOrder: 2
+              },
+              {
+                id: "ptav8502",
+                name: "Forward",
+                slug: "Forward",
+                sortOrder: 3
+              },
+              { id: "ptav31965", name: "Ball", slug: "Ball", sortOrder: 4 }
+            ]
+          }
+        },
+        {
+          node: {
+            id: "pta60251",
+            name: "synergize",
+            slug: "synergize",
+            sortOrder: 1,
+            values: [
+              {
+                id: "ptav49015",
+                name: "Refined",
+                slug: "Refined",
+                sortOrder: 0
+              },
+              {
+                id: "ptav58572",
+                name: "solid state",
+                slug: "solid-state",
+                sortOrder: 1
+              },
+              {
+                id: "ptav79851",
+                name: "asynchronous",
+                slug: "asynchronous",
+                sortOrder: 2
+              }
+            ]
+          }
+        },
+        {
+          node: {
+            id: "pta22408",
+            name: "out-of-the-box",
+            slug: "out-of-the-box",
+            sortOrder: 2,
+            values: [
+              { id: "ptav93528", name: "Texas", slug: "Texas", sortOrder: 0 },
+              {
+                id: "ptav13773",
+                name: "homogeneous",
+                slug: "homogeneous",
+                sortOrder: 1
+              }
+            ]
+          }
+        }
+      ],
+      totalCount: 3
+    },
+    taxRate: "standard",
+    variantAttributes: {
+      edges: [
+        {
+          node: {
+            id: "pta67026",
+            name: "connect",
+            slug: "connect",
+            sortOrder: 0,
+            values: [
+              {
+                id: "ptav27987",
+                name: "sky blue",
+                slug: "sky-blue",
+                sortOrder: 0
+              },
+              {
+                id: "ptav48264",
+                name: "Granite",
+                slug: "Granite",
+                sortOrder: 1
+              },
+              {
+                id: "ptav64745",
+                name: "payment",
+                slug: "payment",
+                sortOrder: 2
+              },
+              { id: "ptav71939", name: "Beauty", slug: "Beauty", sortOrder: 3 },
+              {
+                id: "ptav63121",
+                name: "Buckinghamshire",
+                slug: "Buckinghamshire",
+                sortOrder: 4
+              }
+            ]
+          }
+        }
+      ],
+      totalCount: 1
+    }
+  },
+  {
+    hasVariants: true,
+    id: "pt72644",
+    isShippingRequired: true,
+    name: "Rubber",
+    productAttributes: {
+      edges: [
+        {
+          node: {
+            id: "pta5371",
+            name: "Tools",
+            slug: "Tools",
+            sortOrder: 0,
+            values: [
+              { id: "ptav88704", name: "input", slug: "input", sortOrder: 0 },
+              { id: "ptav18871", name: "Forges", slug: "Forges", sortOrder: 1 },
+              { id: "ptav97275", name: "Soft", slug: "Soft", sortOrder: 2 },
+              { id: "ptav96784", name: "1080p", slug: "1080p", sortOrder: 3 },
+              { id: "ptav30336", name: "Chips", slug: "Chips", sortOrder: 4 }
+            ]
+          }
+        },
+        {
+          node: {
+            id: "pta71197",
+            name: "solid state",
+            slug: "solid-state",
+            sortOrder: 1,
+            values: [
+              {
+                id: "ptav64739",
+                name: "Graphical User Interface",
+                slug: "Graphical-User-Interface",
+                sortOrder: 0
+              },
+              { id: "ptav54719", name: "pixel", slug: "pixel", sortOrder: 1 },
+              {
+                id: "ptav92895",
+                name: "calculating",
+                slug: "calculating",
+                sortOrder: 2
+              }
+            ]
+          }
+        }
+      ],
+      totalCount: 2
+    },
+    taxRate: "standard",
+    variantAttributes: {
+      edges: [
+        {
+          node: {
+            id: "pta30118",
+            name: "user-facing",
+            slug: "user-facing",
+            sortOrder: 0,
+            values: [
+              {
+                id: "ptav55703",
+                name: "transmitting",
+                slug: "transmitting",
+                sortOrder: 0
+              },
+              {
+                id: "ptav76397",
+                name: "Division",
+                slug: "Division",
+                sortOrder: 1
+              },
+              {
+                id: "ptav14897",
+                name: "Division",
+                slug: "Division",
+                sortOrder: 2
+              },
+              { id: "ptav42477", name: "indigo", slug: "indigo", sortOrder: 3 }
+            ]
+          }
+        }
+      ],
+      totalCount: 1
+    }
+  },
+  {
+    hasVariants: true,
+    id: "pt48595",
+    isShippingRequired: true,
+    name: "Concrete",
+    productAttributes: {
+      edges: [
+        {
+          node: {
+            id: "pta17108",
+            name: "deposit",
+            slug: "deposit",
+            sortOrder: 0,
+            values: [
+              { id: "ptav65920", name: "CSS", slug: "CSS", sortOrder: 0 },
+              {
+                id: "ptav36958",
+                name: "Associate",
+                slug: "Associate",
+                sortOrder: 1
+              }
+            ]
+          }
+        },
+        {
+          node: {
+            id: "pta19479",
+            name: "Borders",
+            slug: "Borders",
+            sortOrder: 1,
+            values: [
+              {
+                id: "ptav17219",
+                name: "invoice",
+                slug: "invoice",
+                sortOrder: 0
+              }
+            ]
+          }
+        },
+        {
+          node: {
+            id: "pta40010",
+            name: "Hat",
+            slug: "Hat",
+            sortOrder: 2,
+            values: [
+              {
+                id: "ptav91080",
+                name: "Nebraska",
+                slug: "Nebraska",
+                sortOrder: 0
+              },
+              { id: "ptav7571", name: "sexy", slug: "sexy", sortOrder: 1 }
+            ]
+          }
+        }
+      ],
+      totalCount: 3
+    },
+    taxRate: "standard",
+    variantAttributes: {
+      edges: [
+        {
+          node: {
+            id: "pta39257",
+            name: "Global",
+            slug: "Global",
+            sortOrder: 0,
+            values: [
+              {
+                id: "ptav51966",
+                name: "Computer",
+                slug: "Computer",
+                sortOrder: 0
+              }
+            ]
+          }
+        }
+      ],
+      totalCount: 1
+    }
+  },
+  {
+    hasVariants: false,
+    id: "pt24899",
+    isShippingRequired: false,
+    name: "Granite",
+    productAttributes: {
+      edges: [
+        {
+          node: {
+            id: "pta34336",
+            name: "payment",
+            slug: "payment",
+            sortOrder: 0,
+            values: [
+              { id: "ptav980", name: "HTTP", slug: "HTTP", sortOrder: 0 },
+              {
+                id: "ptav59919",
+                name: "Incredible",
+                slug: "Incredible",
+                sortOrder: 1
+              }
+            ]
+          }
+        },
+        {
+          node: {
+            id: "pta93863",
+            name: "white",
+            slug: "white",
+            sortOrder: 1,
+            values: [
+              {
+                id: "ptav79829",
+                name: "methodologies",
+                slug: "methodologies",
+                sortOrder: 0
+              },
+              {
+                id: "ptav760",
+                name: "capacity",
+                slug: "capacity",
+                sortOrder: 1
+              }
+            ]
+          }
+        },
+        {
+          node: {
+            id: "pta60318",
+            name: "parsing",
+            slug: "parsing",
+            sortOrder: 2,
+            values: [
+              { id: "ptav16773", name: "SAS", slug: "SAS", sortOrder: 0 },
+              { id: "ptav29993", name: "Wooden", slug: "Wooden", sortOrder: 1 }
+            ]
+          }
+        },
+        {
+          node: {
+            id: "pta76718",
+            name: "Soap",
+            slug: "Soap",
+            sortOrder: 3,
+            values: [
+              { id: "ptav28373", name: "alarm", slug: "alarm", sortOrder: 0 },
+              {
+                id: "ptav30263",
+                name: "connect",
+                slug: "connect",
+                sortOrder: 1
+              },
+              {
+                id: "ptav11584",
+                name: "Checking Account",
+                slug: "Checking-Account",
+                sortOrder: 2
+              }
+            ]
+          }
+        }
+      ],
+      totalCount: 4
+    },
+    taxRate: "standard",
+    variantAttributes: { edges: [], totalCount: 0 }
+  },
+  {
+    hasVariants: true,
+    id: "pt96158",
+    isShippingRequired: true,
+    name: "Concrete",
+    productAttributes: {
+      edges: [
+        {
+          node: {
+            id: "pta11427",
+            name: "olive",
+            slug: "olive",
+            sortOrder: 0,
+            values: [
+              {
+                id: "ptav69684",
+                name: "interface",
+                slug: "interface",
+                sortOrder: 0
+              },
+              { id: "ptav2418", name: "Rwanda", slug: "Rwanda", sortOrder: 1 },
+              {
+                id: "ptav38513",
+                name: "syndicate",
+                slug: "syndicate",
+                sortOrder: 2
+              }
+            ]
+          }
+        },
+        {
+          node: {
+            id: "pta18934",
+            name: "Indian Rupee",
+            slug: "Indian-Rupee",
+            sortOrder: 1,
+            values: [
+              {
+                id: "ptav34840",
+                name: "back up",
+                slug: "back-up",
+                sortOrder: 0
+              }
+            ]
+          }
+        }
+      ],
+      totalCount: 2
+    },
+    taxRate: "standard",
+    variantAttributes: {
+      edges: [
+        {
+          node: {
+            id: "pta37948",
+            name: "wireless",
+            slug: "wireless",
+            sortOrder: 0,
+            values: [
+              {
+                id: "ptav39010",
+                name: "transmitting",
+                slug: "transmitting",
+                sortOrder: 0
+              },
+              { id: "ptav47009", name: "Books", slug: "Books", sortOrder: 1 },
+              {
+                id: "ptav28891",
+                name: "Re-contextualized",
+                slug: "Re-contextualized",
+                sortOrder: 2
+              },
+              { id: "ptav24868", name: "Creek", slug: "Creek", sortOrder: 3 }
+            ]
+          }
+        },
+        {
+          node: {
+            id: "pta20337",
+            name: "back-end",
+            slug: "back-end",
+            sortOrder: 1,
+            values: [
+              {
+                id: "ptav47664",
+                name: "Home Loan Account",
+                slug: "Home-Loan-Account",
+                sortOrder: 0
+              },
+              {
+                id: "ptav80296",
+                name: "Stand-alone",
+                slug: "Stand-alone",
+                sortOrder: 1
+              },
+              {
+                id: "ptav17421",
+                name: "portals",
+                slug: "portals",
+                sortOrder: 2
+              },
+              { id: "ptav29970", name: "Small", slug: "Small", sortOrder: 3 }
+            ]
+          }
+        }
+      ],
+      totalCount: 2
+    }
   }
 ];
 export const productType = {
-  id: "pt77249",
-  name: "Cotton",
   hasVariants: true,
+  id: "pt77249",
+  isShippingRequired: true,
+  name: "Cotton",
   productAttributes: {
-    totalCount: 4,
     edges: [
       {
         node: {
           id: "pta27565",
-          sortNumber: 0,
           name: "Virginia",
-          slug: "Virginia"
+          slug: "Virginia",
+          sortNumber: 0
         }
       },
       {
         node: {
           id: "pta84650",
-          sortNumber: 1,
           name: "Tasty Granite Table",
-          slug: "Tasty-Granite-Table"
+          slug: "Tasty-Granite-Table",
+          sortNumber: 1
         }
       },
       { node: { id: "pta50103", sortNumber: 2, name: "Small", slug: "Small" } }
-    ]
+    ],
+    totalCount: 4
   },
+  taxRate: "standard",
   variantAttributes: {
-    totalCount: 2,
     edges: [
       {
         node: {
           id: "pta24175",
-          sortNumber: 4,
           name: "enhance",
-          slug: "enhance"
+          slug: "enhance",
+          sortNumber: 4
         }
       },
       {
         node: {
           id: "pta66068",
-          sortNumber: 5,
           name: "Djibouti Franc",
-          slug: "Djibouti-Franc"
+          slug: "Djibouti-Franc",
+          sortNumber: 5
         }
       }
-    ]
-  },
-  isShippingRequired: true,
-  taxRate: "standard"
+    ],
+    totalCount: 2
+  }
 };
 export const attributes = [
   { id: "pta27565", sortNumber: 0, name: "Virginia", slug: "Virginia" },
   {
     id: "pta84650",
-    sortNumber: 1,
     name: "Tasty Granite Table",
-    slug: "Tasty-Granite-Table"
+    slug: "Tasty-Granite-Table",
+    sortNumber: 1
   },
   { id: "pta50103", sortNumber: 2, name: "Small", slug: "Small" },
   {
     id: "pta95599",
-    sortNumber: 3,
     name: "Home Loan Account",
-    slug: "Home-Loan-Account"
+    slug: "Home-Loan-Account",
+    sortNumber: 3
   },
   { id: "pta24175", sortNumber: 4, name: "enhance", slug: "enhance" },
   {
     id: "pta66068",
-    sortNumber: 5,
     name: "Djibouti Franc",
-    slug: "Djibouti-Franc"
+    slug: "Djibouti-Franc",
+    sortNumber: 5
   },
   { id: "pta41930", sortNumber: 6, name: "Rustic", slug: "Rustic" },
   { id: "pta91235", sortNumber: 7, name: "Principal", slug: "Principal" },
