@@ -154,19 +154,19 @@ section {
 }
 
 ul {
-  &.hovered {
+  &.hovered, {
     & li {
       & a, & span {
         position: relative;
         &::after {
           content: "";
           width: 0;
-          height: 2px;
+          height: calc(var(--border-width) * 2);
           bottom: 0;
           left: 0;
           position: absolute;
           transform: skewX(-20deg);
-          background: rgb(54,193,172);
+          background: var(--primaryColor);
           transition: width 0.5s;
         }
         &:hover {
@@ -191,12 +191,12 @@ ul {
         &::after {
           content: "";
           width: 0;
-          height: 2px;
+          height: calc(var(--border-width) * 2);
           bottom: 0;
           left: 0;
           position: absolute;
           transform: skewX(-20deg);
-          background: rgb(54,193,172);
+          background: var(--primaryColor);
           transition: width 0.5s;
         }
         &:hover {
