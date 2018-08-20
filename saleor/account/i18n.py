@@ -90,34 +90,32 @@ class AddressForm(forms.ModelForm):
         model = Address
         exclude = []
         labels = {
-            'first_name':
-            pgettext_lazy('Personal name', 'Given name'),
-            'last_name':
-            pgettext_lazy('Personal name', 'Family name'),
-            'company_name':
-            pgettext_lazy(
+            'first_name': pgettext_lazy(
+                'Personal name', 'Given name'),
+            'last_name': pgettext_lazy(
+                'Personal name', 'Family name'),
+            'company_name': pgettext_lazy(
                 'Company or organization', 'Company or organization'),
-            'street_address_1':
-            pgettext_lazy('Address', 'Address'),
-            'street_address_2':
-            pgettext_lazy('Address', ''),
-            'city':
-            pgettext_lazy('City', 'City'),
-            'city_area':
-            pgettext_lazy('City area', 'District'),
-            'postal_code':
-            pgettext_lazy('Postal code', 'Postal code'),
-            'country':
-            pgettext_lazy('Country', 'Country'),
-            'country_area':
-            pgettext_lazy('Country area', 'State or province'),
-            'phone':
-            pgettext_lazy('Phone number', 'Phone number')}
+            'street_address_1': pgettext_lazy(
+                'Address', 'Address'),
+            'street_address_2': pgettext_lazy(
+                'Address', 'Address'),
+            'city': pgettext_lazy(
+                'City', 'City'),
+            'city_area': pgettext_lazy(
+                'City area', 'District'),
+            'postal_code': pgettext_lazy(
+                'Postal code', 'Postal code'),
+            'country': pgettext_lazy(
+                'Country', 'Country'),
+            'country_area': pgettext_lazy(
+                'Country area', 'State or province'),
+            'phone': pgettext_lazy(
+                'Phone number', 'Phone number')}
         placeholders = {
-            'street_address_1':
-            pgettext_lazy('Address', 'Street address, P.O. box, company name'),
-            'street_address_2':
-            pgettext_lazy(
+            'street_address_1': pgettext_lazy(
+                'Address', 'Street address, P.O. box, company name'),
+            'street_address_2': pgettext_lazy(
                 'Address', 'Apartment, suite, unit, building, floor, etc')}
 
     phone = PossiblePhoneNumberFormField(
@@ -193,8 +191,8 @@ def get_address_form_class(country_code):
 def get_form_i18n_lines(form_instance):
     country_code = form_instance.i18n_country_code
     try:
-        fields_order = i18naddress.get_field_order({
-            'country_code': country_code})
+        fields_order = i18naddress.get_field_order(
+            {'country_code': country_code})
     except ValueError:
         fields_order = i18naddress.get_field_order({})
     field_mapping = dict(form_instance.I18N_MAPPING)
@@ -210,9 +208,8 @@ def get_form_i18n_lines(form_instance):
         return bound_fields
 
     if fields_order:
-        return [
-            _convert_to_bound_fields(form_instance, line)
-            for line in fields_order]
+        return [_convert_to_bound_fields(form_instance, line)
+                for line in fields_order]
 
 
 def update_base_fields(form_class, i18n_rules):
@@ -261,9 +258,8 @@ def construct_address_form(country_code, i18n_rules):
 
 for country in COUNTRIES.keys():
     try:
-        country_rules = i18naddress.get_validation_rules({
-            'country_code':
-            country})
+        country_rules = i18naddress.get_validation_rules(
+            {'country_code': country})
     except ValueError:
         country_rules = i18naddress.get_validation_rules({})
         UNKNOWN_COUNTRIES.add(country)
