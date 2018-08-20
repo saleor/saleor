@@ -520,7 +520,7 @@ DEFAULT_MENUS = {
 
 # This enable the new 'No Captcha reCaptcha' version (the simple checkbox)
 # instead of the old (deprecated) one. For more information see:
-#   https://github.com/praekelt/django-recaptcha/blob/34af16ba1e/README.rst
+#   https://github.com/praekelt/django-recaptcha/blob/34af16ba1e/README.rstjj
 NOCAPTCHA = True
 
 # Set Google's reCaptcha keys
