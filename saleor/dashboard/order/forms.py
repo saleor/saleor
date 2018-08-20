@@ -15,7 +15,6 @@ from ...core.utils.taxes import ZERO_TAXED_MONEY
 from ...discount.models import Voucher
 from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
 from ...order import CustomPaymentChoices, OrderStatus
-from ...order.emails import send_note_confirmation
 from ...order.models import (
     Fulfillment, FulfillmentLine, Order, OrderLine, OrderNote, Payment)
 from ...order.utils import (
@@ -241,6 +240,9 @@ class OrderEditVoucherForm(forms.ModelForm):
                 decrease_voucher_usage(self.old_voucher)
             increase_voucher_usage(voucher)
         self.instance.discount_name = voucher.name or ''
+        self.instance.translated_discount_name = (
+            voucher.translated.name
+            if voucher.translated.name != voucher.name else '')
         recalculate_order(self.instance)
         return super().save(commit)
 
@@ -248,18 +250,10 @@ class OrderEditVoucherForm(forms.ModelForm):
 class OrderNoteForm(forms.ModelForm):
     class Meta:
         model = OrderNote
-        fields = ['content', 'is_public']
+        fields = ['content']
         widgets = {
             'content': forms.Textarea()}
-        labels = {
-            'content': pgettext_lazy('Order note', 'Note'),
-            'is_public': pgettext_lazy(
-                'Allow customers to see note toggle',
-                'Customer can see this note')}
-
-    def send_confirmation_email(self):
-        if self.instance.order.get_user_current_email():
-            send_note_confirmation.delay(self.instance.order.pk)
+        labels = {'content': pgettext_lazy('Order note', 'Note')}
 
 
 class ManagePaymentForm(forms.Form):
@@ -535,6 +529,7 @@ class OrderRemoveVoucherForm(forms.ModelForm):
         decrease_voucher_usage(self.instance.voucher)
         self.instance.discount_amount = 0
         self.instance.discount_name = ''
+        self.instance.translated_discount_name = ''
         self.instance.voucher = None
         recalculate_order(self.instance)
 

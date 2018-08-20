@@ -518,6 +518,22 @@
           {% endif %}
         </div>
       {% endfor %}
+
+      <div class="card order-notes{% if not order.customer_note %} print-hide{% endif %}" id="customer-note">
+        <div class="card-content">
+          <span class="card-title black-text">
+            {% trans "Customer note" context "Customer order note card title" %}
+          </span>
+          {% if order.customer_note %}
+            <p>{{ order.customer_note }}</p>
+          {% else %}
+            <p>
+              {% trans "There is no note from the customer associated with this order." context "No customer order note card message" %}
+            </p>
+          {% endif %}
+        </div>
+      </div>
+
       <div class="card order-notes{% if not notes %} print-hide{% endif %}" id="order-notes">
         <div class="card-content">
           <span class="card-title black-text">

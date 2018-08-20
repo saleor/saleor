@@ -6,9 +6,9 @@ from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 
 from saleor.discount import (
-    DiscountValueType, VoucherApplyToProduct, VoucherType)
+    DiscountValueType, VoucherType)
 from saleor.graphql.discount.types import (
-    ApplyToEnum, DiscountValueTypeEnum, VoucherTypeEnum)
+    DiscountValueTypeEnum, VoucherTypeEnum)
 
 from .utils import assert_no_permission
 
@@ -56,7 +56,6 @@ def test_voucher_query(
                     startDate
                     discountValueType
                     discountValue
-                    applyTo
                 }
             }
         }
@@ -74,7 +73,6 @@ def test_voucher_query(
     assert data['startDate'] == voucher.start_date.isoformat()
     assert data['discountValueType'] == voucher.discount_value_type.upper()
     assert data['discountValue'] == voucher.discount_value
-    assert data['applyTo'] == voucher.apply_to
 
 
 def test_sale_query(
@@ -87,6 +85,7 @@ def test_sale_query(
                         type
                         name
                         value
+                        startDate
                     }
                 }
             }
@@ -99,28 +98,28 @@ def test_sale_query(
     assert data['type'] == sale.type.upper()
     assert data['name'] == sale.name
     assert data['value'] == sale.value
+    assert data['startDate'] == sale.start_date.isoformat()
 
 
 def test_create_voucher(user_api_client, admin_api_client):
     query = """
     mutation  voucherCreate(
         $type: VoucherTypeEnum, $name: String, $code: String,
-        $applyTo: ApplyToEnum, $discountValueType: DiscountValueTypeEnum,
-        $discountValue: Decimal, $limit: Decimal) {
+        $discountValueType: DiscountValueTypeEnum,
+        $discountValue: Decimal, $minAmountSpent: Decimal) {
             voucherCreate(input: {
-            name: $name, type: $type, code: $code, applyTo: $applyTo, 
+            name: $name, type: $type, code: $code,
             discountValueType: $discountValueType, discountValue: $discountValue,
-            limit: $limit}) {
+            minAmountSpent: $minAmountSpent}) {
                 errors {
                     field
                     message
                 }
                 voucher {
                     type
-                    limit {
+                    minAmountSpent {
                         amount
                     }
-                    applyTo
                     name
                     code
                     discountValueType
@@ -132,10 +131,9 @@ def test_create_voucher(user_api_client, admin_api_client):
         'name': 'test voucher',
         'type': VoucherTypeEnum.VALUE.name,
         'code': 'testcode123',
-        'applyTo': ApplyToEnum.ALL_PRODUCTS.name,
         'discountValueType': DiscountValueTypeEnum.FIXED.name,
         'discountValue': '10.12',
-        'limit': '1.12'})
+        'minAmountSpent': '1.12'})
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     assert_no_permission(response)
@@ -146,8 +144,7 @@ def test_create_voucher(user_api_client, admin_api_client):
     assert 'errors' not in content
     data = content['data']['voucherCreate']['voucher']
     assert data['type'] == VoucherType.VALUE.upper()
-    assert data['limit']['amount'] == float('1.12')
-    assert data['applyTo'] == VoucherApplyToProduct.ALL_PRODUCTS
+    assert data['minAmountSpent']['amount'] == float('1.12')
     assert data['name'] == 'test voucher'
     assert data['code'] == 'testcode123'
     assert data['discountValueType'] == DiscountValueType.FIXED.upper()
@@ -325,34 +322,32 @@ def test_sale_delete_mutation(user_api_client, admin_api_client, sale):
         sale.refresh_from_db()
 
 
-def test_validate_voucher(voucher, admin_api_client, product):
+def test_validate_voucher(voucher, admin_api_client):
     query = """
     mutation  voucherUpdate(
-        $product_id: ID, $id: ID!, $type: VoucherTypeEnum) {
+        $id: ID!, $type: VoucherTypeEnum) {
             voucherUpdate(
-            id: $id, input: {product: $product_id, type: $type}) {
+            id: $id, input: {type: $type}) {
                 errors {
                     field
                     message
                 }
-                voucher {
-                    product {
-                        name
-                    }
-                }
             }
         }
     """
-
-    assert not voucher.product
-    variables = json.dumps({
-        'type': VoucherTypeEnum.PRODUCT.name,
-        'id': graphene.Node.to_global_id('Voucher', voucher.id),
-        'product': graphene.Node.to_global_id('Product', product.id)})
-
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    data = content['data']['voucherUpdate']['errors'][0]
-    assert data['field'] == 'product'
-    assert data['message'] == 'This field is required.'
+    # apparently can't do so via pytest parametrize
+    # as it parses VoucherTypeEnum into str format
+    fields = (
+        (VoucherTypeEnum.CATEGORY, 'categories'),
+        (VoucherTypeEnum.PRODUCT, 'products'),
+        (VoucherTypeEnum.COLLECTION, 'collections'))
+    for voucher_type, field_name in fields:
+        variables = json.dumps({
+            'type': voucher_type.name,
+            'id': graphene.Node.to_global_id('Voucher', voucher.id)})
+        response = admin_api_client.post(
+            reverse('api'), {'query': query, 'variables': variables})
+        content = get_graphql_content(response)
+        data = content['data']['voucherUpdate']['errors'][0]
+        assert data['field'] == field_name
+        assert data['message'] == 'This field is required.'

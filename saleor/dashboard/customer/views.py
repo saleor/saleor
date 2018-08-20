@@ -93,7 +93,7 @@ def ajax_users_list(request):
             Q(default_billing_address__first_name__icontains=search_query) |
             Q(default_billing_address__last_name__icontains=search_query) |
             Q(email__icontains=search_query))
-
+    queryset = queryset.order_by('email')
     users = [
         {'id': user.pk, 'text': user.get_ajax_label()} for user in queryset]
     return JsonResponse({'results': users})

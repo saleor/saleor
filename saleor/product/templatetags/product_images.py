@@ -45,31 +45,50 @@ def choose_placeholder(size=''):
     return placeholder
 
 
-@register.simple_tag()
-def get_thumbnail(instance, size, method='crop'):
-    size_name = '%s__%s' % (method, size)
+def get_available_sizes_by_method(method):
+    sizes = []
+    for available_size in AVAILABLE_SIZES:
+        available_method, avail_size_str = available_size.split('__')
+        if available_method == method:
+            sizes.append(min([int(s) for s in avail_size_str.split('x')]))
+    return sizes
+
+
+def get_thumbnail_size(size, method):
+    """ Return closest larger size if not more than 2 times larger, otherwise
+    return closest smaller size
+    """
     on_demand = settings.VERSATILEIMAGEFIELD_SETTINGS[
         'create_images_on_demand']
+    size_str = '%sx%s' % (size, size)
+    size_name = '%s__%s' % (method, size_str)
+    if size_name in AVAILABLE_SIZES or on_demand:
+        return size_str
+    avail_sizes = sorted(get_available_sizes_by_method(method))
+    larger = [x for x in avail_sizes if size < x <= size * 2]
+    smaller = [x for x in avail_sizes if x <= size]
+
+    if larger:
+        return '%sx%s' % (larger[0], larger[0])
+    elif smaller:
+        return'%sx%s' % (smaller[-1], smaller[-1])
+    msg = (
+        "Thumbnail size %s is not defined in settings "
+        "and it won't be generated automatically" % size_name)
+    warnings.warn(msg)
+    return None
+
+
+@register.simple_tag()
+def get_thumbnail(instance, size, method='crop'):
     if instance:
-        if size_name not in AVAILABLE_SIZES and not on_demand:
-            msg = (
-                "Thumbnail size %s is not defined in settings "
-                "and it won't be generated automatically" % size_name)
-            warnings.warn(msg)
+        used_size = get_thumbnail_size(size, method)
         try:
-            thumbnail = getattr(instance, method)[size]
+            thumbnail = getattr(instance, method)[used_size]
         except Exception:
             logger.exception(
                 'Thumbnail fetch failed',
                 extra={'instance': instance, 'size': size})
         else:
             return thumbnail.url
-    return static(choose_placeholder(size))
-
-
-@register.simple_tag()
-def product_first_image(product, size, method='crop'):
-    """Return the main image of the given product."""
-    all_images = product.images.all() if product else []
-    main_image = all_images[0].image if all_images else None
-    return get_thumbnail(main_image, size, method)
+    return static(choose_placeholder('%sx%s' % (size, size)))

@@ -10,14 +10,24 @@ from django.views.decorators.http import require_POST
 
 from ...core.utils import get_paginator_items
 from ...product.models import Collection
+from ..menu.utils import get_menus_that_needs_update, update_menus
 from ..views import staff_member_required
 from .filters import CollectionFilter
-from .forms import CollectionForm
+from .forms import AssignHomepageCollectionForm, CollectionForm
 
 
 @staff_member_required
 @permission_required('product.manage_products')
 def collection_list(request):
+    site_settings = request.site.settings
+    assign_homepage_col_form = AssignHomepageCollectionForm(
+        request.POST or None, instance=site_settings)
+    if request.method == 'POST' and assign_homepage_col_form.is_valid():
+        assign_homepage_col_form.save()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Updated homepage collection')
+        messages.success(request, msg)
+        return redirect('dashboard:collection-list')
     collections = Collection.objects.prefetch_related('products').all()
     collection_filter = CollectionFilter(request.GET, queryset=collections)
     collections = get_paginator_items(
@@ -25,7 +35,8 @@ def collection_list(request):
         request.GET.get('page'))
     ctx = {
         'collections': collections, 'filter_set': collection_filter,
-        'is_empty': not collection_filter.queryset.exists()}
+        'is_empty': not collection_filter.queryset.exists(),
+        'assign_homepage_col_form': assign_homepage_col_form}
     return TemplateResponse(
         request, 'dashboard/collection/list.html', ctx)
 
@@ -65,7 +76,10 @@ def collection_update(request, pk=None):
 def collection_delete(request, pk=None):
     collection = get_object_or_404(Collection, pk=pk)
     if request.method == 'POST':
+        menus = get_menus_that_needs_update(collection=collection)
         collection.delete()
+        if menus:
+            update_menus(menus)
         msg = pgettext_lazy('Collection message', 'Deleted collection')
         messages.success(request, msg)
         if request.is_ajax():

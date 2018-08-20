@@ -138,7 +138,6 @@ context_processors = [
     'django.template.context_processors.request',
     'saleor.core.context_processors.default_currency',
     'saleor.checkout.context_processors.cart_counter',
-    'saleor.core.context_processors.navigation',
     'saleor.core.context_processors.search_enabled',
     'saleor.site.context_processors.site',
     'social_django.context_processors.backends',
@@ -475,7 +474,8 @@ SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
 SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
 
 # CELERY SETTINGS
-CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL') or ''
+CELERY_BROKER_URL = os.environ.get(
+    'CELERY_BROKER_URL', os.environ.get('CLOUDAMQP_URL')) or ''
 CELERY_TASK_ALWAYS_EAGER = False if CELERY_BROKER_URL else True
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
@@ -535,3 +535,7 @@ if SENTRY_DSN:
     RAVEN_CONFIG = {
         'dsn': SENTRY_DSN,
         'release': __version__}
+
+
+SERIALIZATION_MODULES = {
+    'json': 'saleor.core.utils.json_serializer'}

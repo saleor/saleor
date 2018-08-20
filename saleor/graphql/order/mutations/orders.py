@@ -5,12 +5,12 @@ from payments import PaymentError, PaymentStatus
 
 from ....order import CustomPaymentChoices, models
 from ....order.utils import cancel_order
+from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelMutation
-from ...core.types import Decimal, Error
+from ...core.types.common import Decimal, Error
 from ...order.mutations.draft_orders import DraftOrderUpdate
 from ...order.types import Order
 from ...utils import get_node
-from .draft_orders import AddressInput
 
 
 def try_payment_action(action, money, errors):
@@ -66,11 +66,10 @@ class OrderUpdate(DraftOrderUpdate):
 
 
 class OrderAddNoteInput(graphene.InputObjectType):
-    order = graphene.ID(description='ID of the order.')
-    user = graphene.ID(description='ID of the user who added note.')
+    order = graphene.ID(description='ID of the order.', name='order')
+    user = graphene.ID(
+        description='ID of the user who added note.', name='user')
     content = graphene.String(description='Note content.')
-    is_public = graphene.Boolean(
-        description='Determine if note is visible by customer or not.')
 
 
 class OrderAddNote(ModelMutation):

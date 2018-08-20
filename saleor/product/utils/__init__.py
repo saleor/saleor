@@ -23,15 +23,27 @@ def products_visible_to_user(user):
 def products_with_details(user):
     products = products_visible_to_user(user)
     products = products.prefetch_related(
-        'category', 'collections', 'images', 'variants__variant_images__image',
-        'attributes__values', 'product_type__product_attributes__values')
+        'translations', 'category__translations', 'collections__translations',
+        'images', 'variants__variant_images__image',
+        'attributes__values__translations',
+        'product_type__product_attributes__translations',
+        'product_type__product_attributes__values__translations')
     return products
 
 
-def products_for_homepage():
+def products_for_products_list(user):
+    products = products_visible_to_user(user)
+    products = products.prefetch_related(
+        'translations', 'images', 'variants__variant_images__image')
+    return products
+
+
+def products_for_homepage(homepage_collection):
     user = AnonymousUser()
-    products = products_with_details(user)
-    products = products.filter(is_featured=True)
+    products = products_visible_to_user(user)
+    products = products.prefetch_related(
+        'translations', 'images', 'variants__variant_images__image')
+    products = products.filter(collections=homepage_collection)
     return products
 
 

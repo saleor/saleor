@@ -1,7 +1,7 @@
 import json
-import pytest
-from django.urls import reverse
+from unittest import mock
 
+from django.urls import reverse
 from saleor.dashboard.collection.forms import CollectionForm
 from saleor.product.models import Collection
 
@@ -13,6 +13,16 @@ def test_list_view(admin_client, collection):
     assert response.status_code == 200
     context = response.context
     assert list(context['collections']) == [collection]
+
+
+def test_set_homepage_collection(admin_client, collection, site_settings):
+    data = {'homepage_collection': collection.pk}
+    response = admin_client.post(reverse('dashboard:collection-list'), data)
+    assert response.status_code == 302
+    redirect_url = reverse('dashboard:collection-list')
+    assert get_redirect_location(response) == redirect_url
+    site_settings.refresh_from_db()
+    assert site_settings.homepage_collection == collection
 
 
 def test_collection_form_name():
@@ -63,7 +73,10 @@ def test_collection_update_view(admin_client, collection, product):
     assert list(collection.products.all()) == [product]
 
 
-def test_collection_delete_view(admin_client, collection):
+@mock.patch('saleor.dashboard.collection.views.get_menus_that_needs_update')
+@mock.patch('saleor.dashboard.collection.views.update_menus')
+def test_collection_delete_view(
+        mock_update_menus, mock_get_menus, admin_client, collection):
     # Test Http404 when collection doesn't exist
     url404 = reverse('dashboard:collection-delete', kwargs={'pk': 123123})
     response404 = admin_client.post(url404)
@@ -72,9 +85,24 @@ def test_collection_delete_view(admin_client, collection):
     # Test deleting object
     collections_count = Collection.objects.count()
     url = reverse('dashboard:collection-delete', kwargs={'pk': collection.id})
+    mock_get_menus.return_value = [collection.id]
     response = admin_client.post(url)
     assert response.status_code == 302
+    mock_update_menus.assert_called_once_with([collection.pk])
+
     assert Collection.objects.count() == (collections_count - 1)
+
+
+@mock.patch('saleor.dashboard.collection.views.get_menus_that_needs_update')
+@mock.patch('saleor.dashboard.collection.views.update_menus')
+def test_collection_delete_view_menus_not_updated(
+        mock_update_menus, mock_get_menus, admin_client, collection):
+    url = reverse('dashboard:collection-delete', kwargs={'pk': collection.id})
+    mock_get_menus.return_value = []
+    response = admin_client.post(url)
+    assert response.status_code == 302
+    assert mock_get_menus.called
+    assert not mock_update_menus.called
 
 
 def test_collection_is_published_toggle_view(db, admin_client, collection):

@@ -1,6 +1,7 @@
 var BundleTracker = require('webpack-bundle-tracker');
 var MiniCssExtractPlugin = require('mini-css-extract-plugin');
 var path = require('path');
+var url = require('url');
 var webpack = require('webpack');
 var autoprefixer = require('autoprefixer');
 
@@ -11,11 +12,13 @@ var fileLoaderPath;
 var output;
 
 if (process.env.NODE_ENV === 'production') {
+  const baseStaticPath = process.env.STATIC_URL || '/static/';
+  const publicPath = url.resolve(baseStaticPath, 'assets/');
   output = {
     path: resolve('saleor/static/assets/'),
     filename: '[name].[chunkhash].js',
     chunkFilename: '[name].[chunkhash].js',
-    publicPath: process.env.STATIC_URL || '/static/assets/'
+    publicPath: publicPath
   };
   fileLoaderPath = 'file-loader?name=[name].[hash].[ext]';
   extractCssPlugin = new MiniCssExtractPlugin({

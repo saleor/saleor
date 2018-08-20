@@ -1,15 +1,18 @@
 from django.db import models
 from django.utils.translation import pgettext_lazy
+from jsonfield import JSONField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 
 from ..core.models import SortableModel
+from ..core.utils.translations import TranslationProxy
 from ..page.models import Page
 from ..product.models import Category, Collection
 
 
 class Menu(models.Model):
     name = models.CharField(max_length=128)
+    json_content = JSONField(blank=True, default={})
 
     class Meta:
         permissions = ((
@@ -39,6 +42,7 @@ class MenuItem(MPTTModel, SortableModel):
 
     objects = models.Manager()
     tree = TreeManager()
+    translated = TranslationProxy()
 
     class Meta:
         ordering = ('sort_order',)
@@ -79,3 +83,21 @@ class MenuItem(MPTTModel, SortableModel):
     def get_url(self):
         linked_object = self.linked_object
         return linked_object.get_absolute_url() if linked_object else self.url
+
+
+class MenuItemTranslation(models.Model):
+    language_code = models.CharField(max_length=10)
+    menu_item = models.ForeignKey(
+        MenuItem, related_name='translations', on_delete=models.CASCADE)
+    name = models.CharField(max_length=128)
+
+    class Meta:
+        unique_together = (('language_code', 'menu_item'),)
+
+    def __repr__(self):
+        class_ = type(self)
+        return '%s(pk=%r, name=%r, menu_item_pk=%r)' % (
+            class_.__name__, self.pk, self.name, self.menu_item_id)
+
+    def __str__(self):
+        return self.name

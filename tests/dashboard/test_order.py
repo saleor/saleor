@@ -1,3 +1,4 @@
+import json
 from unittest.mock import Mock
 
 import pytest
@@ -9,7 +10,7 @@ from tests.utils import get_form_errors, get_redirect_location
 
 from saleor.checkout import AddressType
 from saleor.core.utils.taxes import ZERO_MONEY, ZERO_TAXED_MONEY
-from saleor.dashboard.order.forms import ChangeQuantityForm, OrderNoteForm
+from saleor.dashboard.order.forms import ChangeQuantityForm
 from saleor.dashboard.order.utils import (
     fulfill_order_line, remove_customer_from_order, save_address_in_order,
     update_order_with_user_addresses)
@@ -18,6 +19,39 @@ from saleor.order import FulfillmentStatus, OrderStatus
 from saleor.order.models import Order, OrderLine, OrderNote
 from saleor.order.utils import add_variant_to_order, change_order_line_quantity
 from saleor.product.models import ProductVariant
+
+
+def test_ajax_order_shipping_methods_list(
+        admin_client, order, shipping_method):
+    method = shipping_method.price_per_country.get()
+    shipping_methods_list = [
+        {'id': method.pk, 'text': method.get_ajax_label()}]
+    url = reverse(
+        'dashboard:ajax-order-shipping-methods', kwargs={'order_pk': order.pk})
+
+    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    resp_decoded = json.loads(response.content.decode('utf-8'))
+
+    assert response.status_code == 200
+    assert resp_decoded == {'results': shipping_methods_list}
+
+
+def test_ajax_order_shipping_methods_list_different_country(
+        admin_client, order, shipping_method):
+    order.shipping_address = order.billing_address.get_copy()
+    order.save()
+    method = shipping_method.price_per_country.get()
+    shipping_methods_list = [
+        {'id': method.pk, 'text': method.get_ajax_label()}]
+    shipping_method.price_per_country.create(price=15, country_code='DE')
+    url = reverse(
+        'dashboard:ajax-order-shipping-methods', kwargs={'order_pk': order.pk})
+
+    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    resp_decoded = json.loads(response.content.decode('utf-8'))
+
+    assert response.status_code == 200
+    assert resp_decoded == {'results': shipping_methods_list}
 
 
 @pytest.mark.integration
@@ -605,16 +639,6 @@ def test_view_add_variant_to_order(admin_client, order_with_lines):
     assert line.quantity == line_quantity_before + added_quantity
 
 
-def test_note_form_sent_email(monkeypatch, order_with_lines):
-    mock_send_mail = Mock(return_value=None)
-    monkeypatch.setattr(
-        'saleor.dashboard.order.forms.send_note_confirmation', mock_send_mail)
-    note = OrderNote(order=order_with_lines, user=order_with_lines.user)
-    form = OrderNoteForm({'content': 'test_note'}, instance=note)
-    form.send_confirmation_email()
-    assert mock_send_mail.called_once()
-
-
 def test_fulfill_order_line(order_with_lines):
     order = order_with_lines
     line = order.lines.first()
@@ -1172,3 +1196,17 @@ def test_render_cancel_fulfillment_page(admin_client, fulfilled_order):
         kwargs={'order_pk': fulfilled_order.pk})
     response = admin_client.get(url)
     assert response.status_code == 200
+
+
+def test_view_add_order_note(admin_client, order_with_lines):
+    url = reverse(
+        'dashboard:order-add-note',
+        kwargs={'order_pk': order_with_lines.pk})
+    note_content = 'this is a note'
+    data = {
+        'csrfmiddlewaretoken': 'hello',
+        'content': note_content}
+    response = admin_client.post(url, data)
+    assert response.status_code == 200
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.notes.first().content == note_content

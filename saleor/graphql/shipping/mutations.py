@@ -2,14 +2,15 @@ import graphene
 
 from ...shipping import models
 from ..core.mutations import ModelDeleteMutation, ModelMutation
-from ..core.types import Decimal
+from ..core.types.common import Decimal
 
 
 class ShippingPriceInput(graphene.InputObjectType):
     country_code = graphene.String(
         description='Shipping specific country code.')
     price = Decimal(description='Shipping price to a specified country.')
-    shipping_method = graphene.ID(description='Related shipping method name.')
+    shipping_method = graphene.ID(
+        description='Related shipping method name.', name='shippingMethod')
 
 
 class ShippingMethodInput(graphene.InputObjectType):

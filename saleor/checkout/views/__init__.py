@@ -12,7 +12,8 @@ from ..forms import CartShippingMethodForm, CountryForm, ReplaceCartLineForm
 from ..models import Cart
 from ..utils import (
     check_product_availability_and_warn, check_shipping_method, get_cart_data,
-    get_cart_data_for_checkout, get_or_empty_db_cart, get_taxes_for_cart)
+    get_cart_data_for_checkout, get_or_empty_db_cart, get_taxes_for_cart,
+    update_cart_quantity)
 from .discount import add_voucher_form, validate_voucher
 from .shipping import (
     anonymous_user_shipping_address_view, user_shipping_address_view)
@@ -107,12 +108,12 @@ def cart_index(request, cart):
     except Cart.DoesNotExist:
         pass
 
-    lines = cart.lines.select_related(
-        'variant__product__product_type',
-        'variant__product__category')
+    lines = cart.lines.select_related('variant__product__product_type')
     lines = lines.prefetch_related(
-        'variant__product__collections',
+        'variant__translations', 'variant__product__translations',
         'variant__product__images',
+        'variant__product__product_type__variant_attributes__translations',
+        'variant__images',
         'variant__product__product_type__variant_attributes')
     for line in lines:
         initial = {'quantity': line.quantity}
@@ -195,6 +196,17 @@ def update_cart_line(request, cart, variant_id):
     return JsonResponse(response, status=status)
 
 
+@get_or_empty_db_cart()
+def clear_cart(request, cart):
+    """Clear cart"""
+    if not request.is_ajax():
+        return redirect('cart:index')
+    cart.lines.all().delete()
+    update_cart_quantity(cart)
+    response = {'numItems': 0}
+    return JsonResponse(response)
+
+
 @get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
 def cart_summary(request, cart):
     """Display a cart summary suitable for displaying on all pages."""
@@ -205,7 +217,7 @@ def cart_summary(request, cart):
         first_image = line.variant.get_first_image()
         return {
             'product': line.variant.product,
-            'variant': line.variant.name,
+            'variant': line.variant,
             'quantity': line.quantity,
             'image': first_image,
             'line_total': line.get_total(discounts, taxes),

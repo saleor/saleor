@@ -1,6 +1,7 @@
 {% extends 'dashboard/base.html' %}
 
 {% load i18n %}
+{% load materializecss %}
 {% load staticfiles %}
 {% load status %}
 {% load utils %}
@@ -84,6 +85,27 @@
     </div>
     <div class="col s12 l3" id="filters">
       {% if not is_empty %}{% filters filter_set %}{% endif %}
+      <div class="card">
+        <form action="" method="post">
+        <div class="card-content">
+          <span class="card-title">
+            {% trans "Homepage collection" %}
+          </span>
+            {% csrf_token %}
+            <div class="row">
+                {{ assign_homepage_col_form.homepage_collection|materializecss }}
+            </div>
+        </div>
+        <div class="card-action right-align">
+          <div class="col s12">
+            <button type="submit" class="btn waves-effect right">
+              {% trans "Save" context "Homepage collection save" %}
+            </button>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+      </form>
+    </div>
     </div>
   </div>
 {% endblock %}

@@ -4,12 +4,29 @@ from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
 
 from ....product import models
+from ....product.utils.attributes import get_name_from_attributes
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types import Decimal, Error, SeoInput
+from ...core.types.common import Decimal, Error, SeoInput
 from ...core.utils import clean_seo_fields
 from ...file_upload.types import Upload
 from ...utils import get_attributes_dict_from_list, get_node, get_nodes
-from ..types import Collection, Product, ProductImage
+from ..types import Collection, Product, ProductImage, ProductVariant
+
+
+def update_variants_names(instance, saved_attributes):
+    initial_attributes = set(instance.variant_attributes.all())
+    attributes_changed = initial_attributes.intersection(saved_attributes)
+    if not attributes_changed:
+        return
+    variants_to_be_updated = models.ProductVariant.objects.filter(
+        product__in=instance.products.all(),
+        product__product_type__variant_attributes__in=attributes_changed)
+    variants_to_be_updated = variants_to_be_updated.prefetch_related(
+        'product__product_type__variant_attributes__values').all()
+    attributes = instance.variant_attributes.all()
+    for variant in variants_to_be_updated:
+        variant.name = get_name_from_attributes(variant, attributes)
+        variant.save()
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -18,7 +35,7 @@ class CategoryInput(graphene.InputObjectType):
     parent = graphene.ID(
         description='''
         ID of the parent category. If empty, category will be top level
-        category.''')
+        category.''', name='parent')
     slug = graphene.String(description='Category slug')
     seo = SeoInput(description='Search engine optimization fields.')
 
@@ -73,13 +90,13 @@ class CategoryDelete(ModelDeleteMutation):
 
 class CollectionInput(graphene.InputObjectType):
     is_published = graphene.Boolean(
-        description='Informs whether a collection is published.',
-        required=True)
+        description='Informs whether a collection is published.')
     name = graphene.String(description='Name of the collection.')
     slug = graphene.String(description='Slug of the collection.')
     products = graphene.List(
         graphene.ID,
-        description='List of products to be added to the collection.')
+        description='List of products to be added to the collection.',
+        name='products')
     background_image = Upload(description='Background image file.')
     seo = SeoInput(description='Search engine optimization fields.')
 
@@ -191,23 +208,21 @@ class ProductInput(graphene.InputObjectType):
         description='List of product attributes.')
     available_on = graphene.types.datetime.Date(
         description='Publication date. ISO 8601 standard.')
-    category = graphene.ID(description='ID of the product\'s category.')
+    category = graphene.ID(
+        description='ID of the product\'s category.', name='category')
     charge_taxes = graphene.Boolean(
-        required=True,
         description='Determine if taxes are being charged for the product.')
     collections = graphene.List(
         graphene.ID,
-        description='List of IDs of collections that the product belongs to.')
+        description='List of IDs of collections that the product belongs to.',
+        name='collections')
     description = graphene.String(description='Product description.')
     is_published = graphene.Boolean(
-        required=True,
         description='Determines if product is visible to customers.')
-    is_featured = graphene.Boolean(
-        required=True,
-        description='Determines if product is featured in the storefront.')
     name = graphene.String(description='Product name.')
     product_type = graphene.ID(
-        description='ID of the type that product belongs to.')
+        description='ID of the type that product belongs to.',
+        name='productType')
     price = Decimal(description='Product price.')
     tax_rate = graphene.String(description='Tax rate.')
     seo = SeoInput(description='Search engine optimization fields.')
@@ -289,12 +304,12 @@ class ProductVariantInput(graphene.InputObjectType):
     price_override = Decimal(
         description='Special price of the particular variant.')
     product = graphene.ID(
-        description='Product ID of which type is the variant.')
+        description='Product ID of which type is the variant.',
+        name='product')
     sku = graphene.String(description='Stock keeping unit.')
     quantity = graphene.Int(
         description='The total quantity of this variant available for sale.')
     track_inventory = graphene.Boolean(
-        required=True,
         description="""Determines if the inventory of this variant should
         be tracked. If false, the quantity won't change when customers
         buy this item.""")
@@ -333,6 +348,12 @@ class ProductVariantCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
+    def save(cls, info, instance, cleaned_input):
+        attributes = instance.product.product_type.variant_attributes.all()
+        instance.name = get_name_from_attributes(instance, attributes)
+        instance.save()
+
+    @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('product.manage_products')
 
@@ -365,23 +386,22 @@ class ProductVariantDelete(ModelDeleteMutation):
 
 
 class ProductTypeInput(graphene.InputObjectType):
-
     name = graphene.String(description='Name of the product type.')
     has_variants = graphene.Boolean(
-        required=True,
         description="""Determines if product of this type has multiple
         variants. This option mainly simplifies product management
         in the dashboard. There is always at least one variant created under
         the hood.""")
     product_attributes = graphene.List(
         graphene.ID,
-        description='List of attributes shared among all product variants.')
+        description='List of attributes shared among all product variants.',
+        name='productAttributes')
     variant_attributes = graphene.List(
         graphene.ID,
         description="""List of attributes used to distinguish between
-        different variants of a product.""")
+        different variants of a product.""",
+        name='variantAttributes')
     is_shipping_required = graphene.Boolean(
-        required=True,
         description="""Determines if shipping is required for products
         of this variant.""")
 
@@ -413,6 +433,14 @@ class ProductTypeUpdate(ProductTypeCreate):
         description = 'Updates an existing product type.'
         model = models.ProductType
 
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        variant_attr = cleaned_input.get('variant_attributes')
+        if variant_attr:
+            variant_attr = set(variant_attr)
+            update_variants_names(instance, variant_attr)
+        super().save(info, instance, cleaned_input)
+
 
 class ProductTypeDelete(ModelDeleteMutation):
     class Arguments:
@@ -428,20 +456,24 @@ class ProductTypeDelete(ModelDeleteMutation):
         return user.has_perm('product.manage_products')
 
 
-class ProductImageInput(graphene.InputObjectType):
+class ProductImageCreateInput(graphene.InputObjectType):
     alt = graphene.String(description='Alt text for an image.')
-    image = Upload(required=True, description='Image file.')
-    product = graphene.ID(description='ID of an product.')
+    image = Upload(
+        required=True,
+        description='Represents an image file in a multipart request.')
+    product = graphene.ID(description='ID of an product.', name='product')
 
 
 class ProductImageCreate(ModelMutation):
     class Arguments:
-        input = ProductImageInput(
+        input = ProductImageCreateInput(
             required=True,
             description='Fields required to create a product image.')
 
     class Meta:
-        description = 'Creates a product image.'
+        description = '''Create a product image. This mutation must be sent
+        as a `multipart` request. More detailed specs of the upload format can
+        be found here: https://github.com/jaydenseric/graphql-multipart-request-spec'''
         model = models.ProductImage
 
     @classmethod
@@ -457,17 +489,25 @@ class ProductImageCreate(ModelMutation):
         return user.has_perm('product.manage_products')
 
 
-class ProductImageUpdate(ProductImageCreate):
+class ProductImageUpdateInput(graphene.InputObjectType):
+    alt = graphene.String(description='Alt text for an image.')
+
+
+class ProductImageUpdate(ModelMutation):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a product image to update.')
-        input = ProductImageInput(
+        input = ProductImageUpdateInput(
             required=True,
             description='Fields required to update a product image.')
 
     class Meta:
         description = 'Updates a product image.'
         model = models.ProductImage
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.manage_products')
 
 
 class ProductImageReorder(BaseMutation):
@@ -515,3 +555,73 @@ class ProductImageDelete(ModelDeleteMutation):
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('product.manage_products')
+
+
+class VariantImageAssign(BaseMutation):
+    image = graphene.Field(
+        ProductImage, description='Assigned product image.')
+
+    class Arguments:
+        image_id = graphene.ID(
+            required=True,
+            description='ID of a product image to assign to a variant.')
+        variant_id = graphene.ID(
+            required=True,
+            description='ID of a product variant.')
+
+    class Meta:
+        description = 'Assign an image to a product variant'
+
+    @classmethod
+    @permission_required('product.manage_products')
+    def mutate(cls, root, info, image_id, variant_id):
+        errors = []
+        image = cls.get_node_or_error(
+            info, image_id, errors, 'imageId', ProductImage)
+        variant = cls.get_node_or_error(
+            info, variant_id, errors, 'variantId', ProductVariant)
+        if image and variant:
+            # check if the given image and variant can be matched together
+            image_belongs_to_product = variant.product.images.filter(
+                pk=image.pk).first()
+            if image_belongs_to_product:
+                image.variant_images.create(variant=variant)
+            else:
+                cls.add_error(
+                    errors, 'imageId', 'Image must be for this product')
+        return VariantImageAssign(image=image, errors=errors)
+
+
+class VariantImageUnassign(BaseMutation):
+    class Arguments:
+        image_id = graphene.ID(
+            required=True,
+            description='ID of a product image to unassign from a variant.')
+        variant_id = graphene.ID(
+            required=True, description='ID of a product variant.')
+
+    image = graphene.Field(
+        ProductImage, description='Unassigned product image.')
+
+    class Meta:
+        description = 'Unassign an image from a product variant'
+
+    @classmethod
+    @permission_required('product.manage_products')
+    def mutate(cls, root, info, image_id, variant_id):
+        errors = []
+        image = cls.get_node_or_error(
+            info, image_id, errors, 'imageId', ProductImage)
+        variant = cls.get_node_or_error(
+            info, variant_id, errors, 'variantId', ProductVariant)
+        if image and variant:
+            try:
+                variant_image = models.VariantImage.objects.get(
+                    image=image, variant=variant)
+            except models.VariantImage.DoesNotExist:
+                cls.add_error(
+                    errors, 'imageId',
+                    'Image is not assigned to this variant.')
+            else:
+                variant_image.delete()
+        return VariantImageUnassign(image=image, errors=errors)

@@ -2,7 +2,7 @@ import graphene
 from graphene import relay
 
 from ...menu import models
-from ..core.types import CountableDjangoObjectType
+from ..core.types.common import CountableDjangoObjectType
 
 
 class Menu(CountableDjangoObjectType):
