@@ -94,7 +94,6 @@ def start_payment(request, order, variant):
         'total': total.gross.amount,
         'tax': total.tax.amount,
         'currency': total.currency,
-        'delivery': order.shipping_price.net.amount,
         'billing_first_name': billing.first_name,
         'billing_last_name': billing.last_name,
         'billing_address_1': billing.street_address_1,
@@ -103,9 +102,6 @@ def start_payment(request, order, variant):
         'billing_postcode': billing.postal_code,
         'billing_country_code': billing.country.code,
         'billing_email': order.user_email,
-        'description': pgettext_lazy(
-            'Payment description', 'Order %(order_number)s') % {
-                'order_number': order},
         'billing_country_area': billing.country_area,
         'customer_ip_address': get_client_ip(request)}
     variant_choices = settings.CHECKOUT_PAYMENT_CHOICES
