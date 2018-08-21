@@ -9,18 +9,14 @@ import { IMessage, MessageContext } from "./";
 interface Message extends IMessage {
   key: string;
 }
-interface MessageManagerProps {}
 interface MessageManagerState {
   message: Message;
   opened: boolean;
 }
 
-export class MessageManager extends React.Component<
-  MessageManagerProps,
-  MessageManagerState
-> {
+export class MessageManager extends React.Component<{}, MessageManagerState> {
   state = {
-    message: { text: "", key: "0" } as Message,
+    message: { text: "", key: "0", onUndo: undefined },
     opened: false
   };
   queue = [];
@@ -93,7 +89,6 @@ export class MessageManager extends React.Component<
               key="close"
               aria-label="Close"
               color="inherit"
-              // className={classes.close}
               onClick={this.handleClose as any}
             >
               <CloseIcon />

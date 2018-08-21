@@ -26,29 +26,6 @@ interface SaveButtonBarProps {
 }
 
 const decorate = withStyles(theme => ({
-  cancelButton: {
-    marginRight: theme.spacing.unit * 2
-  },
-  deleteButton: {
-    "&:hover": {
-      backgroundColor: theme.palette.error.dark
-    },
-    backgroundColor: theme.palette.error.main,
-    color: theme.palette.error.contrastText
-  },
-  root: {
-    borderTop: `1px ${gray[300]} solid`,
-    display: "flex",
-    marginBottom: theme.spacing.unit * 2,
-    marginTop: theme.spacing.unit * 2,
-    paddingTop: theme.spacing.unit * 2,
-    [theme.breakpoints.down("sm")]: {
-      marginTop: theme.spacing.unit
-    }
-  },
-  spacer: {
-    flex: "1"
-  },
   button: {
     marginRight: theme.spacing.unit
   },
@@ -63,12 +40,15 @@ const decorate = withStyles(theme => ({
     marginTop: -theme.spacing.unit * 1.5,
     position: "relative" as "relative"
   },
-  success: {
+  cancelButton: {
+    marginRight: theme.spacing.unit * 2
+  },
+  deleteButton: {
     "&:hover": {
-      backgroundColor: theme.palette.primary.main
+      backgroundColor: theme.palette.error.dark
     },
-    backgroundColor: theme.palette.primary.main,
-    color: theme.palette.primary.contrastText
+    backgroundColor: theme.palette.error.main,
+    color: theme.palette.error.contrastText
   },
   error: {
     "&:hover": {
@@ -82,6 +62,26 @@ const decorate = withStyles(theme => ({
     marginRight: theme.spacing.unit * 0.5,
     marginTop: -theme.spacing.unit * 1.5,
     position: "relative" as "relative"
+  },
+  root: {
+    borderTop: `1px ${gray[300]} solid`,
+    display: "flex",
+    marginBottom: theme.spacing.unit * 2,
+    marginTop: theme.spacing.unit * 2,
+    paddingTop: theme.spacing.unit * 2,
+    [theme.breakpoints.down("sm")]: {
+      marginTop: theme.spacing.unit
+    }
+  },
+  spacer: {
+    flex: "1"
+  },
+  success: {
+    "&:hover": {
+      backgroundColor: theme.palette.primary.main
+    },
+    backgroundColor: theme.palette.primary.main,
+    color: theme.palette.primary.contrastText
   }
 }));
 export const SaveButtonBar = decorate<SaveButtonBarProps>(

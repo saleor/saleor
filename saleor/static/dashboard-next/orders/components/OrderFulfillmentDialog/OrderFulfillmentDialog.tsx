@@ -1,6 +1,6 @@
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
-import Dialog, { DialogProps } from "@material-ui/core/Dialog";
+import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import Input from "@material-ui/core/Input";
@@ -36,13 +36,12 @@ const decorate = withStyles(
       paddingRight: theme.spacing.unit * 3,
       width: theme.spacing.unit * 5
     },
-    textRight: {
-      textAlign: "right" as "right"
-    },
     quantityInput: {
       width: "4rem"
     },
-    root: {}
+    textRight: {
+      textAlign: "right" as "right"
+    }
   }),
   { name: "OrderFulfillmentDialog" }
 );

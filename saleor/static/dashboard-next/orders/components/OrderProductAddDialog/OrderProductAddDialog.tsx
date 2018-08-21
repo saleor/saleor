@@ -1,5 +1,5 @@
 import Button from "@material-ui/core/Button";
-import Dialog, { DialogProps } from "@material-ui/core/Dialog";
+import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
@@ -36,16 +36,16 @@ const decorate = withStyles(
     dialog: {
       overflowY: "visible" as "visible"
     },
-    select: {
-      flex: 1,
-      marginRight: theme.spacing.unit * 2
-    },
     root: {
       display: "grid" as "grid",
       gridColumnGap: theme.spacing.unit * 2 + "px",
       gridTemplateColumns: "1fr 6rem",
       overflowY: "visible" as "visible",
       width: theme.breakpoints.values.sm
+    },
+    select: {
+      flex: 1,
+      marginRight: theme.spacing.unit * 2
     },
     textRight: {
       textAlign: "right" as "right"

@@ -95,7 +95,7 @@ interface ProductUpdateProps {
   onImageDelete: (id: string) => () => void;
   onAttributesEdit: () => void;
   onBack?();
-  onDelete?(id: string);
+  onDelete();
   onImageEdit?(id: string);
   onImageReorder?(event: { oldIndex: number; newIndex: number });
   onImageUpload?(event: React.ChangeEvent<any>);
@@ -129,8 +129,8 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
   ({
     classes,
     disabled,
-    categories,
-    collections,
+    categories: categoryChoiceList,
+    collections: collectionChoiceList,
     errors: userErrors,
     images,
     header,
@@ -151,56 +151,91 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
     onVariantAdd,
     onVariantShow
   }) => {
-    const initialData = {
-      attributes:
-        product && product.attributes
-          ? product.attributes.map(a => ({
-              slug: a.attribute.slug,
-              value: a.value ? a.value.slug : null
-            }))
-          : undefined,
-      available: product ? product.isPublished : undefined,
-      availableOn: product ? product.availableOn : "",
-      category: product && product.category ? product.category.id : undefined,
-      chargeTaxes: product && product.chargeTaxes ? product.chargeTaxes : false,
-      collections:
-        product && productCollections
-          ? productCollections.map(node => node.id)
-          : [],
-      description: product ? product.description : "",
-      featured: product && product.isFeatured ? product.isFeatured : false,
-      name: product ? product.name : "",
-      price:
-        product && product.price ? product.price.amount.toString() : undefined,
-      productType:
-        product && product.productType && product.attributes
-          ? {
-              label: product.productType.name,
-              value: {
-                hasVariants: product.productType.hasVariants,
-                id: product.productType.id,
-                name: product.productType.name,
-                productAttributes: {
-                  edges: product.attributes.map(a => ({ node: a.attribute }))
-                }
-              }
-            }
-          : undefined,
-      seoDescription: product ? product.seoDescription : "",
-      seoTitle: product && product.seoTitle ? product.seoTitle : "",
-      sku:
-        product && product.productType && product.productType.hasVariants
-          ? undefined
-          : variants && variants[0]
-            ? variants[0].sku
-            : undefined,
-      stockQuantity:
-        product && product.productType && product.productType.hasVariants
-          ? undefined
-          : variants && variants[0]
-            ? variants[0].stockQuantity
-            : undefined
+    const deleteDialogText = {
+      __html: i18n.t(
+        "Are you sure you want to remove <strong>{{ name }}</strong>?",
+        { name: product ? product.name : undefined }
+      )
     };
+    const initialData = product
+      ? {
+          attributes: product.attributes
+            ? product.attributes.map(a => ({
+                slug: a.attribute.slug,
+                value: a.value ? a.value.slug : null
+              }))
+            : undefined,
+          available: product.isPublished,
+          availableOn: product.availableOn,
+          category: product.category ? product.category.id : undefined,
+          chargeTaxes: product.chargeTaxes ? product.chargeTaxes : false,
+          collections: productCollections
+            ? productCollections.map(node => node.id)
+            : [],
+          description: product.description,
+          featured: product.isFeatured,
+          name: product.name,
+          price: product.price ? product.price.amount.toString() : undefined,
+          productType:
+            product.productType && product.attributes
+              ? {
+                  label: product.productType.name,
+                  value: {
+                    hasVariants: product.productType.hasVariants,
+                    id: product.productType.id,
+                    name: product.productType.name,
+                    productAttributes: {
+                      edges: product.attributes.map(a => ({
+                        node: a.attribute
+                      }))
+                    }
+                  }
+                }
+              : undefined,
+          seoDescription: product.seoDescription,
+          seoTitle: product.seoTitle,
+          sku:
+            product.productType && product.productType.hasVariants
+              ? undefined
+              : variants && variants[0]
+                ? variants[0].sku
+                : undefined,
+          stockQuantity:
+            product.productType && product.productType.hasVariants
+              ? undefined
+              : variants && variants[0]
+                ? variants[0].stockQuantity
+                : undefined
+        }
+      : {
+          availableOn: "",
+          chargeTaxes: false,
+          collections: [],
+          description: "",
+          featured: false,
+          name: "",
+          seoDescription: "",
+          seoTitle: ""
+        };
+    const categories =
+      categoryChoiceList !== undefined
+        ? categoryChoiceList.map(category => ({
+            label: category.name,
+            value: category.id
+          }))
+        : [];
+    const collections =
+      collectionChoiceList !== undefined
+        ? collectionChoiceList.map(collection => ({
+            label: collection.name,
+            value: collection.id
+          }))
+        : [];
+    const currency =
+      product && product.price ? product.price.currency : undefined;
+    const hasVariants =
+      product && product.productType && product.productType.hasVariants;
+
     return (
       <Toggle>
         {(openedDeleteDialog, { toggle: toggleDeleteDialog }) => (
@@ -211,144 +246,113 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
             key={product ? JSON.stringify(product) : "loading"}
           >
             {({ change, data, errors, hasChanged, submit }) => (
-              <Container width="md">
-                <PageHeader title={header} onBack={onBack} />
-                {product &&
-                  onDelete &&
-                  product.name && (
-                    <ActionDialog
-                      open={openedDeleteDialog}
-                      onClose={toggleDeleteDialog}
-                      onConfirm={() => {
-                        onDelete(product.id);
-                        toggleDeleteDialog();
-                      }}
-                      variant="delete"
-                      title={i18n.t("Remove product")}
-                    >
-                      <DialogContentText
-                        dangerouslySetInnerHTML={{
-                          __html: i18n.t(
-                            "Are you sure you want to remove <strong>{{ name }}</strong>?",
-                            { name: product.name }
-                          )
-                        }}
-                      />
-                    </ActionDialog>
-                  )}
-
-                <div className={classes.root}>
-                  <div>
-                    <ProductDetailsForm
-                      data={data}
-                      disabled={disabled}
-                      errors={errors}
-                      onChange={change}
-                    />
-                    <div className={classes.cardContainer}>
-                      <ProductImages
-                        images={images}
-                        placeholderImage={placeholderImage}
-                        onImageDelete={onImageDelete}
-                        onImageReorder={onImageReorder}
-                        onImageEdit={onImageEdit}
-                        onImageUpload={onImageUpload}
-                      />
-                    </div>
-                    <div className={classes.cardContainer}>
-                      <ProductPricing
-                        currency={
-                          product && product.price
-                            ? product.price.currency
-                            : undefined
-                        }
+              <>
+                <Container width="md">
+                  <PageHeader title={header} onBack={onBack} />
+                  <div className={classes.root}>
+                    <div>
+                      <ProductDetailsForm
                         data={data}
                         disabled={disabled}
+                        errors={errors}
                         onChange={change}
                       />
-                    </div>
-                    <div className={classes.cardContainer}>
-                      {product &&
-                      product.productType &&
-                      product.productType.hasVariants ? (
-                        <ProductVariants
-                          variants={variants}
-                          fallbackPrice={product ? product.price : undefined}
-                          onAttributesEdit={onAttributesEdit}
-                          onRowClick={onVariantShow}
-                          onVariantAdd={onVariantAdd}
+                      <div className={classes.cardContainer}>
+                        <ProductImages
+                          images={images}
+                          placeholderImage={placeholderImage}
+                          onImageDelete={onImageDelete}
+                          onImageReorder={onImageReorder}
+                          onImageEdit={onImageEdit}
+                          onImageUpload={onImageUpload}
                         />
-                      ) : (
-                        <ProductStock
+                      </div>
+                      <div className={classes.cardContainer}>
+                        <ProductPricing
+                          currency={currency}
                           data={data}
                           disabled={disabled}
                           onChange={change}
                         />
-                      )}
-                    </div>
-                    <div className={classes.cardContainer}>
-                      <SeoForm
-                        helperText={i18n.t(
-                          "Add search engine title and description to make this product easier to find"
+                      </div>
+                      <div className={classes.cardContainer}>
+                        {hasVariants ? (
+                          <ProductVariants
+                            variants={variants}
+                            fallbackPrice={product ? product.price : undefined}
+                            onAttributesEdit={onAttributesEdit}
+                            onRowClick={onVariantShow}
+                            onVariantAdd={onVariantAdd}
+                          />
+                        ) : (
+                          <ProductStock
+                            data={data}
+                            disabled={disabled}
+                            onChange={change}
+                          />
                         )}
-                        title={data.seoTitle}
-                        titlePlaceholder={data.name}
-                        description={data.seoDescription}
-                        descriptionPlaceholder={data.description}
-                        storefrontUrl={product ? product.url : undefined}
-                        loading={disabled}
-                        onClick={onSeoClick}
-                        onChange={change}
-                      />
+                      </div>
+                      <div className={classes.cardContainer}>
+                        <SeoForm
+                          helperText={i18n.t(
+                            "Add search engine title and description to make this product easier to find"
+                          )}
+                          title={data.seoTitle}
+                          titlePlaceholder={data.name}
+                          description={data.seoDescription}
+                          descriptionPlaceholder={data.description}
+                          storefrontUrl={product ? product.url : undefined}
+                          loading={disabled}
+                          onClick={onSeoClick}
+                          onChange={change}
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <ProductOrganization
-                      category={data.category}
-                      categories={
-                        categories !== undefined && categories !== null
-                          ? categories.map(category => ({
-                              label: category.name,
-                              value: category.id
-                            }))
-                          : []
-                      }
-                      errors={errors}
-                      productCollections={data.collections}
-                      collections={
-                        collections !== undefined && collections !== null
-                          ? collections.map(collection => ({
-                              label: collection.name,
-                              value: collection.id
-                            }))
-                          : []
-                      }
-                      product={product}
-                      data={data}
-                      disabled={disabled}
-                      onChange={change}
-                    />
-                    <div className={classes.cardContainer}>
-                      <ProductAvailabilityForm
-                        data={data}
+                    <div>
+                      <ProductOrganization
+                        category={data.category}
+                        categories={categories}
                         errors={errors}
-                        loading={disabled}
+                        productCollections={data.collections}
+                        collections={collections}
+                        product={product}
+                        data={data}
+                        disabled={disabled}
                         onChange={change}
                       />
+                      <div className={classes.cardContainer}>
+                        <ProductAvailabilityForm
+                          data={data}
+                          errors={errors}
+                          loading={disabled}
+                          onChange={change}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-                <SaveButtonBar
-                  labels={{
-                    delete: i18n.t("Remove product"),
-                    save: i18n.t("Save product")
-                  }}
-                  onDelete={toggleDeleteDialog}
-                  onSave={submit}
-                  state={saveButtonBarState}
-                  disabled={disabled || !onSubmit || !hasChanged}
-                />
-              </Container>
+                  <SaveButtonBar
+                    labels={{
+                      delete: i18n.t("Remove product"),
+                      save: i18n.t("Save product")
+                    }}
+                    onDelete={toggleDeleteDialog}
+                    onSave={submit}
+                    state={saveButtonBarState}
+                    disabled={disabled || !hasChanged}
+                  />
+                </Container>
+                <ActionDialog
+                  open={openedDeleteDialog}
+                  onClose={toggleDeleteDialog}
+                  onConfirm={onDelete}
+                  variant="delete"
+                  title={i18n.t("Remove product")}
+                >
+                  <DialogContentText
+                    dangerouslySetInnerHTML={deleteDialogText}
+                  />
+                </ActionDialog>
+              </>
             )}
           </Form>
         )}

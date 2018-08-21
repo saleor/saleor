@@ -38,15 +38,15 @@ interface CollectionProductsProps {
 }
 
 const decorate = withStyles(theme => ({
+  link: {
+    color: theme.palette.secondary.main,
+    cursor: "pointer" as "pointer"
+  },
   root: {
     marginTop: theme.spacing.unit * 2,
     [theme.breakpoints.down("md")]: {
       marginTop: theme.spacing.unit
     }
-  },
-  link: {
-    color: theme.palette.secondary.main,
-    cursor: "pointer" as "pointer"
   }
 }));
 const CollectionProducts = decorate<CollectionProductsProps>(

@@ -12,7 +12,6 @@ import SaveButtonBar, {
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
 import ProductVariantAttributes from "../ProductVariantAttributes";
-import ProductVariantImageSelectDialog from "../ProductVariantImageSelectDialog";
 import ProductVariantNavigation from "../ProductVariantNavigation";
 import ProductVariantPrice from "../ProductVariantPrice";
 import ProductVariantStock from "../ProductVariantStock";
@@ -93,7 +92,6 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
     onSubmit,
     onVariantClick
   }) => {
-    const handleImageSelect = (ids: string[]) => {};
     const initialForm = {
       attributes:
         product &&
