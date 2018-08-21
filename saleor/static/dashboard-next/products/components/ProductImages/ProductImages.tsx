@@ -77,9 +77,11 @@ const decorate = withStyles(theme => ({
     border: "1px solid #eaeaea",
     borderRadius: theme.spacing.unit,
     height: 140,
+    margin: "auto",
     overflow: "hidden" as "hidden",
     padding: theme.spacing.unit * 2,
-    position: "relative" as "relative"
+    position: "relative" as "relative",
+    width: 140
   },
   imageOverlay: {
     background: "rgba(0, 0, 0, 0.6)",
@@ -117,7 +119,13 @@ const decorate = withStyles(theme => ({
     display: "grid" as "grid",
     gridColumnGap: theme.spacing.unit * 2 + "px",
     gridRowGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "repeat(4, 1fr)"
+    gridTemplateColumns: "repeat(4, 1fr)",
+    [theme.breakpoints.down("sm")]: {
+      gridTemplateColumns: "repeat(3, 1fr)"
+    },
+    [theme.breakpoints.down("xs")]: {
+      gridTemplateColumns: "repeat(2, 1fr)"
+    }
   }
 }));
 
