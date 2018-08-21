@@ -45,3 +45,13 @@ class AssignHomepageCollectionForm(forms.ModelForm):
     class Meta:
         model = SiteSettings
         fields = ('homepage_collection',)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        homepage_collection = cleaned_data['homepage_collection']
+        if homepage_collection and not homepage_collection.is_published:
+            raise forms.ValidationError(
+                pgettext_lazy(
+                    'Homepage collection assign form error',
+                    'Selected collection is not published'))
+        return cleaned_data
