@@ -80,6 +80,13 @@ header {
   }
 
   & .menu {
+    &.newsbar {
+      & ul.mobile-btn {
+        & li.menu-icon {
+          top: calc(var(--spacer) * 4);
+        }
+      }
+    }
     & ul {
       display: flex;
       justify-content: space-between;
@@ -202,7 +209,8 @@ header {
             }
             width: 40px;
             height: 40px;
-            position: relative;
+            position: fixed;
+            top: calc(var(--spacer) * 1.7);
             right: var(--spacer);
             transform: rotate(0deg);
             cursor: pointer;
@@ -240,7 +248,6 @@ header {
             }
             &.open {
               display: block;
-              position: fixed;
               top: calc(var(--spacer) * 2);
               right: var(--spacer);
               z-index: 999;
