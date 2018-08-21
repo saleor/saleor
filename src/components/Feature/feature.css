@@ -79,13 +79,16 @@
               justify-self: center;
               position: relative;
               & .title {
-                width: 75%;
+                width: 85%;
                 margin-bottom: calc(var(--spacer) * 1.5);
                 word-break: break-word;
                 hyphens: auto;
                 @media (max-width: 576px) {
                   width: 100%;
                 }
+              }
+              & p {
+                font-weight: var(--font-weight-light)
               }
               & .decorator {
                 width: 5px;
@@ -122,6 +125,9 @@
           padding: calc(var(--spacer) * 4);
           width: fill-available;
           & .side-header {
+            & h2 {
+              margin-bottom: var(--spacer);
+            }
             & .sub-description {
               max-width: 360px;
             }
@@ -139,6 +145,9 @@
               & .title {
                 margin-bottom: calc(var(--spacer) * 0.5);
                 font-size: var(--font-size-lg);
+              }
+              & p {
+                font-weight: var(--font-weight-light);
               }
             }
           }
@@ -159,7 +168,7 @@
             margin-bottom: var(--spacer);
           }
           & .description {
-            font-weight: var(--font-weight-lighter);
+            font-weight: var(--font-weight-light);
             margin-bottom: calc(var(--spacer) * 3);
             line-height: var(--line-height-base);
           }

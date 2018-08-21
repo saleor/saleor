@@ -35,7 +35,7 @@ const Feature = () => (
         <ScrollLink to="#testimonial"> Learn more </ScrollLink>
       </section>
       <section id="testimonial" className="testimonial">
-        <p className="comment quote">“After actively using and developing our Saleor store for over a year, if I were to create a new shop today I would go for it again without a doubt.”</p>
+        <p className="comment quote text-light">“After actively using and developing our Saleor store for over a year, if I were to create a new shop today I would go for it again without a doubt.”</p>
         <div className="testimonial-author">
           <h5 className="name">Tyler Hildebrandt,</h5>
           <h5 className="position">Lead developer. Patch Garden</h5>
