@@ -14,3 +14,9 @@ class GCSMediaStorage(GoogleCloudStorage):
     def __init__(self, *args, **kwargs):
         self.bucket_name = settings.GS_MEDIA_BUCKET_NAME
         super().__init__(*args, **kwargs)
+
+
+class GCSStaticStorage(GoogleCloudStorage):
+    def __init__(self, *args, **kwargs):
+        self.bucket_name = settings.GS_STORAGE_BUCKET_NAME
+        super().__init__(*args, **kwargs)
