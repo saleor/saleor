@@ -12852,7 +12852,7 @@ exports[`Storyshots Views / Authentication / Log in default 1`] = `
         <button
           class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id Component-loginButton-id"
           tabindex="0"
-          type="button"
+          type="submit"
         >
           <span
             class="MuiButton-label-id"
@@ -12984,7 +12984,7 @@ exports[`Storyshots Views / Authentication / Log in error 1`] = `
         <button
           class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id Component-loginButton-id"
           tabindex="0"
-          type="button"
+          type="submit"
         >
           <span
             class="MuiButton-label-id"
@@ -13072,20 +13072,6 @@ exports[`Storyshots Views / Categories / Category details default 1`] = `
                 class="MuiTouchRipple-root-id"
               />
             </button>
-            <button
-              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-              tabindex="0"
-              type="button"
-            >
-              <span
-                class="MuiButton-label-id"
-              >
-                Remove category
-              </span>
-              <span
-                class="MuiTouchRipple-root-id"
-              />
-            </button>
           </div>
         </div>
         <div
@@ -13117,7 +13103,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
             <aside
               class="MuiTypography-root-id MuiTypography-body2-id Component-title-id"
             >
-              Categories
+              Subcategories
             </aside>
             <div
               class="Component-toolbar-id"
@@ -13130,7 +13116,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
                 <span
                   class="MuiButton-label-id"
                 >
-                  Add category
+                  Add subcategory
                 </span>
                 <span
                   class="MuiTouchRipple-root-id"
@@ -13655,6 +13641,24 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
         </div>
       </div>
     </div>
+    <div
+      class="Component-actions-id"
+    >
+      <button
+        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiButton-label-id"
+        >
+          Remove category
+        </span>
+        <span
+          class="MuiTouchRipple-root-id"
+        />
+      </button>
+    </div>
   </div>
 </div>
 `;
@@ -13830,20 +13834,6 @@ exports[`Storyshots Views / Categories / Category details when loading 1`] = `
                 class="MuiTouchRipple-root-id"
               />
             </button>
-            <button
-              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-              tabindex="0"
-              type="button"
-            >
-              <span
-                class="MuiButton-label-id"
-              >
-                Remove category
-              </span>
-              <span
-                class="MuiTouchRipple-root-id"
-              />
-            </button>
           </div>
         </div>
         <div
@@ -13874,7 +13864,7 @@ exports[`Storyshots Views / Categories / Category details when loading 1`] = `
             <aside
               class="MuiTypography-root-id MuiTypography-body2-id Component-title-id"
             >
-              Categories
+              Subcategories
             </aside>
             <div
               class="Component-toolbar-id"
@@ -13887,7 +13877,7 @@ exports[`Storyshots Views / Categories / Category details when loading 1`] = `
                 <span
                   class="MuiButton-label-id"
                 >
-                  Add category
+                  Add subcategory
                 </span>
                 <span
                   class="MuiTouchRipple-root-id"
@@ -14118,6 +14108,24 @@ exports[`Storyshots Views / Categories / Category details when loading 1`] = `
           </table>
         </div>
       </div>
+    </div>
+    <div
+      class="Component-actions-id"
+    >
+      <button
+        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiButton-label-id"
+        >
+          Remove category
+        </span>
+        <span
+          class="MuiTouchRipple-root-id"
+        />
+      </button>
     </div>
   </div>
 </div>
