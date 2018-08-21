@@ -101,7 +101,8 @@ var config = {
       },
       {
         test: /\.tsx?$/,
-        loader: 'ts-loader'
+        exclude: /node_modules/,
+        loader: 'awesome-typescript-loader'
       },
       {
         test: /\.(eot|otf|png|svg|jpg|ttf|woff|woff2)(\?v=[0-9.]+)?$/,
