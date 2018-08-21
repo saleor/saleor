@@ -5,6 +5,7 @@ from graphene.types import Scalar
 from graphene_django import DjangoObjectType
 from graphql.language import ast
 
+from ....core.weight import WeightUnits
 from ..connection import CountableConnection
 
 
@@ -85,6 +86,13 @@ class PermissionDisplay(graphene.ObjectType):
 class SeoInput(graphene.InputObjectType):
     title = graphene.String(description='SEO title.')
     description = graphene.String(description='SEO description.')
+
+
+class WeightUnitEnum(graphene.Enum):
+    KILOGRAM = WeightUnits.KILOGRAM
+    POUND = WeightUnits.POUND
+    OUNCE = WeightUnits.OUNCE
+    GRAM = WeightUnits.GRAM
 
 
 class Weight(graphene.ObjectType):

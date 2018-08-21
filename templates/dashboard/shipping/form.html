@@ -6,10 +6,9 @@
 
 {% block title %}
   {% if shipping_zone.pk %}
-    {% trans "Edit" context "Dashboard shipping zones" %}
-    - {{ shipping_zone }}
+    {% trans "Edit" context "Dashboard shipping zones" %} - {{ shipping_zone }}
   {% else %}
-    {% trans "Add new method" context "Shipping zone form page title" %}
+    {% trans "Add new shipping zone" context "Shipping zone form page title" %}
   {% endif %}
   - {{ block.super }}
 {% endblock %}
@@ -22,19 +21,19 @@
   {% if shipping_zone.pk %}
     {{ shipping_zone }}
   {% else %}
-    {% trans "Add new method" context "Shipping zone form page title" %}
+    {% trans "Add new shipping zone" context "Shipping zone form page title" %}
   {% endif %}
 {% endblock %}
 
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
-      <a href="{% url 'dashboard:shipping-zones' %}">
+      <a href="{% url 'dashboard:shipping-zone-list' %}">
         {% trans "Shipping zones" context "Dashboard shipping zone" %}
       </a>
     </li>
     <li class="back-mobile">
-      <a href="{% url 'dashboard:shipping-zones' %}">
+      <a href="{% url 'dashboard:shipping-zone-list' %}">
         <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
@@ -52,7 +51,7 @@
     {% else %}
     <li>
       <span class="breadcrumbs--ellipsed-item">
-        {% trans "Add new method" context "Shipping zone form breadcrumbs" %}
+        {% trans "Add new shipping zone" context "Shipping zone form breadcrumbs" %}
       </span>
     </li>
     {% endif %}
@@ -81,7 +80,7 @@
                 {% trans "Save" context "Dashboard update action" %}
               </button>
             {% else %}
-              <a href="{% url 'dashboard:shipping-zones' %}" class="btn-flat waves-effect">
+              <a href="{% url 'dashboard:shipping-zone-list' %}" class="btn-flat waves-effect">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect">

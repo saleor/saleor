@@ -177,7 +177,7 @@ class OrderShippingForm(forms.ModelForm):
 
     def save(self, commit=True):
         method = self.instance.shipping_method
-        self.instance.shipping_method_name = method.shipping_zone.name
+        self.instance.shipping_method_name = method.name
         self.instance.shipping_price = method.get_total_price(self.taxes)
         recalculate_order(self.instance)
         return super().save(commit)

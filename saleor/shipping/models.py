@@ -12,7 +12,7 @@ from . import ShippingMethodType
 from ..core.utils import format_money
 from ..core.utils.taxes import get_taxed_shipping_price
 from ..core.utils.translations import TranslationProxy
-from ..core.weight import zero_weight
+from ..core.weight import zero_weight, WeightUnits
 from .utils import (
     applicable_price_based_methods, applicable_weight_based_methods,
     get_price_type_display, get_weight_type_display)
@@ -27,7 +27,7 @@ class ShippingZone(models.Model):
 
     def get_countries_display(self):
         if len(self.countries) <= 3:
-            return ','.join((country.name for country in self.countries))
+            return ', '.join((country.name for country in self.countries))
         return pgettext_lazy(
             'Number of countries shipping zone apply to',
             '%(num_of_countries)d countries' % {
@@ -85,10 +85,10 @@ class ShippingMethod(models.Model):
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, blank=True, null=True)
     minimum_order_weight = MeasurementField(
-        measurement=Weight, unit_choices=settings.DEFAULT_WEIGHT_UNITS,
+        measurement=Weight, unit_choices=WeightUnits.CHOICES,
         default=zero_weight, blank=True, null=True)
     maximum_order_weight = MeasurementField(
-        measurement=Weight, unit_choices=settings.DEFAULT_WEIGHT_UNITS,
+        measurement=Weight, unit_choices=WeightUnits.CHOICES,
         blank=True, null=True)
 
     objects = ShippingMethodQueryset.as_manager()

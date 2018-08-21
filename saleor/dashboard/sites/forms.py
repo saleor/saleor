@@ -19,7 +19,8 @@ class SiteForm(forms.ModelForm):
 class SiteSettingsForm(forms.ModelForm):
     class Meta:
         model = SiteSettings
-        fields = ['header_text', 'description', 'track_inventory_by_default']
+        fields = [
+            'header_text', 'description', 'track_inventory_by_default']
         labels = {
             'header_text': pgettext_lazy(
                 'Header text', 'Header text'),

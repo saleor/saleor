@@ -196,7 +196,7 @@
                   {% endif %}
                   {% if perms.shipping.manage_shipping %}
                     <li class="{% block menu_delivery_class %}{% endblock %}">
-                      <a href="{% url 'dashboard:shipping-zones' %}">
+                      <a href="{% url 'dashboard:shipping-zone-list' %}">
                         {% trans "Shipping" context "Dashboard shipping zones list" %}
                       </a>
                     </li>

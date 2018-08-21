@@ -932,7 +932,7 @@ def test_view_order_shipping_edit(
         'dashboard:order-details', kwargs={'order_pk': draft_order.pk})
     assert get_redirect_location(response) == redirect_url
     draft_order.refresh_from_db()
-    assert draft_order.shipping_method_name == shipping_zone.name
+    assert draft_order.shipping_method_name == method.name
     assert draft_order.shipping_price == method.get_total_price(taxes=vatlayer)
     assert draft_order.shipping_method == method
 

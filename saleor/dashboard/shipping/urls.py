@@ -3,7 +3,7 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    url(r'^$', views.shipping_zone_list, name='shipping-zones'),
+    url(r'^$', views.shipping_zone_list, name='shipping-zone-list'),
     url(r'^add/$', views.shipping_zone_add, name='shipping-zone-add'),
     url(r'^(?P<pk>\d+)/update/$', views.shipping_zone_edit,
         name='shipping-zone-update'),

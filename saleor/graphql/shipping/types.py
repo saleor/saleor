@@ -2,7 +2,7 @@ import graphene
 from graphene import relay
 from graphene.types import Scalar
 from graphene_django import DjangoObjectType
-from measurement.measures import Mass
+from measurement.measures import Weight
 
 from ...shipping import ShippingMethodType, models
 from ..core.types.common import CountableDjangoObjectType
@@ -40,12 +40,12 @@ class WeightScalar(Scalar):
         separated by a single space.
         """
         amount, unit = value.split(' ')
-        return Mass(**{unit: amount})
+        return Weight(**{unit: amount})
 
     @staticmethod
-    def serialize(mass):
-        if isinstance(mass, Mass):
-            return str(mass)
+    def serialize(weight):
+        if isinstance(weight, Weight):
+            return str(weight)
         return None
 
     @staticmethod

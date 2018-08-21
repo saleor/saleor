@@ -3,6 +3,7 @@ from django.utils.translation import pgettext_lazy
 from prices import MoneyRange
 
 from ..core.utils.taxes import get_taxed_shipping_price
+from ..core.weight import get_default_weight_unit, convert_weight
 
 
 def get_shipping_price_estimate(price, weight, country_code, taxes):
@@ -43,29 +44,33 @@ def applicable_price_based_methods(price, qs):
         min_price_matched & (no_price_limit | max_price_matched))
 
 
-def get_price_type_display(minimum_order_price, maximum_order_price):
+def get_price_type_display(min_price, max_price):
     from ..core.utils import format_money
 
-    if maximum_order_price is None:
+    if max_price is None:
         return pgettext_lazy(
             'Applies to orders more expensive than the min value',
-            '%(minimum_order_price)s and up') % {
-                'minimum_order_price': format_money(minimum_order_price)}
+            '%(min_price)s and up') % {'min_price': format_money(min_price)}
     return pgettext_lazy(
         'Applies to order valued within this price range',
-        '%(minimum_order_price)s to %(maximum_order_price)s') % {
-            'minimum_order_price': format_money(minimum_order_price),
-            'maximum_order_price': format_money(maximum_order_price)}
+        '%(min_price)s to %(max_price)s') % {
+            'min_price': format_money(min_price),
+            'max_price': format_money(max_price)}
 
 
-def get_weight_type_display(minimum_order_weight, maximum_order_weight):
-    if maximum_order_weight is None:
+def get_weight_type_display(min_weight, max_weight):
+    default_unit = get_default_weight_unit()
+
+    if min_weight.unit != default_unit:
+        min_weight = convert_weight(min_weight, default_unit)
+    if max_weight and max_weight.unit != default_unit:
+        max_weight = convert_weight(max_weight, default_unit)
+
+    if max_weight is None:
         return pgettext_lazy(
             'Applies to orders heavier than the threshold',
-            '%(minimum_order_weight)s and up') % {
-                'minimum_order_weight': minimum_order_weight}
+            '%(min_weight)s and up') % {'min_weight': min_weight}
     return pgettext_lazy(
         'Applies to orders of total weight within this range',
-        '%(minimum_order_weight)s to %(maximum_order_weight)s' % {
-            'minimum_order_weight': minimum_order_weight,
-            'maximum_order_weight': maximum_order_weight})
+        '%(min_weight)s to %(max_weight)s' % {
+            'min_weight': min_weight, 'max_weight': max_weight})

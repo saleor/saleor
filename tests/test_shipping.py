@@ -6,7 +6,7 @@ from prices import Money, TaxedMoney
 from saleor.core.utils import format_money
 from saleor.core.utils.taxes import get_taxed_shipping_price
 from saleor.shipping.models import ShippingMethod, ShippingMethodType
-from measurement.measures import Mass
+from measurement.measures import Weight
 
 
 def money(amount):
@@ -64,18 +64,18 @@ def test_applicable_shipping_methods_price(
         type=ShippingMethodType.PRICE_BASED)
     assert 'PL' in shipping_zone.countries
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=price, weight=Mass(kg=0), country_code='PL')
+        price=price, weight=Weight(kg=0), country_code='PL')
     assert (method in result) == shipping_included
 
 
 @pytest.mark.parametrize(
     'weight, min_weight, max_weight, shipping_included', (
-        (Mass(kg=1), Mass(kg=1), Mass(kg=2), True),  # equal min weight
-        (Mass(kg=10), Mass(kg=1), Mass(kg=10), True),  # equal max weight
-        (Mass(kg=5), Mass(kg=8), Mass(kg=15), False),  # below min weight
-        (Mass(kg=10), Mass(kg=1), Mass(kg=9), False),  # above max weight
-        (Mass(kg=10000000), Mass(kg=1), None, True),  # no max weight limit
-        (Mass(kg=10), Mass(kg=5), Mass(kg=15), True)))  # regular case
+        (Weight(kg=1), Weight(kg=1), Weight(kg=2), True),  # equal min weight
+        (Weight(kg=10), Weight(kg=1), Weight(kg=10), True),  # equal max weight
+        (Weight(kg=5), Weight(kg=8), Weight(kg=15), False),  # below min weight
+        (Weight(kg=10), Weight(kg=1), Weight(kg=9), False),  # above max weight
+        (Weight(kg=10000000), Weight(kg=1), None, True),  # no max weight limit
+        (Weight(kg=10), Weight(kg=5), Weight(kg=15), True)))  # regular case
 def test_applicable_shipping_methods_weight(
         weight, min_weight, max_weight, shipping_included, shipping_zone):
     method = shipping_zone.shipping_methods.create(
@@ -95,7 +95,7 @@ def test_applicable_shipping_methods_country_code_outside_shipping_zone(
     shipping_zone.countries = ['DE']
     shipping_zone.save()
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=money(5), weight=Mass(kg=0), country_code='PL')
+        price=money(5), weight=Weight(kg=0), country_code='PL')
     assert method not in result
 
 
@@ -106,13 +106,13 @@ def test_applicable_shipping_methods_inproper_shipping_method_type(
     """
     price_method = shipping_zone.shipping_methods.create(
         minimum_order_price=money(1), maximum_order_price=money(10),
-        minimum_order_weight=Mass(kg=100),
+        minimum_order_weight=Weight(kg=100),
         type=ShippingMethodType.WEIGHT_BASED)
     weight_method = shipping_zone.shipping_methods.create(
-        minimum_order_weight=Mass(kg=1), maximum_order_weight=Mass(kg=10),
+        minimum_order_weight=Weight(kg=1), maximum_order_weight=Weight(kg=10),
         minimum_order_price=1000, type=ShippingMethodType.PRICE_BASED)
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=money(5), weight=Mass(kg=5), country_code='PL')
+        price=money(5), weight=Weight(kg=5), country_code='PL')
     assert price_method not in result
     assert weight_method not in result
 
@@ -122,9 +122,9 @@ def test_applicable_shipping_methods(shipping_zone):
         minimum_order_price=money(1), maximum_order_price=money(10),
         type=ShippingMethodType.PRICE_BASED)
     weight_method = shipping_zone.shipping_methods.create(
-        minimum_order_weight=Mass(kg=1), maximum_order_weight=Mass(kg=10),
+        minimum_order_weight=Weight(kg=1), maximum_order_weight=Weight(kg=10),
         type=ShippingMethodType.WEIGHT_BASED)
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=money(5), weight=Mass(kg=5), country_code='PL')
+        price=money(5), weight=Weight(kg=5), country_code='PL')
     assert price_method in result
     assert weight_method in result

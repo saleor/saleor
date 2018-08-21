@@ -86,36 +86,35 @@ class ShippingPriceMixin(object):
     @classmethod
     def clean_input(cls, info, instance, input, errors):
         cleaned_input = super().clean_input(info, instance, input, errors)
-        type = cleaned_input.get('type', None)
+        type = cleaned_input.get('type')
         if not type:
             return cleaned_input
 
         field_errors = []
         if type == ShippingMethodTypeEnum.PRICE_BASED:
-            min_price = cleaned_input.get('minimum_order_price', None)
-            max_price = cleaned_input.get('maximum_order_price', None)
+            min_price = cleaned_input.get('minimum_order_price')
+            max_price = cleaned_input.get('maximum_order_price')
             if min_price is None:
                 field_errors.append((
                     'minimum_order_price',
                     'Minimum order price is required'
                     ' for Price Based shipping.'))
-            elif max_price is not None and max_price < min_price:
+            elif max_price is not None and max_price <= min_price:
                 field_errors.append((
                     'maximum_order_price',
-                    'Maximum order price cannot be smaller than the minimum.'))
+                    'Maximum order price should be larger than the minimum.'))
         else:
-            min_weight = cleaned_input.get('minimum_order_weight', None)
-            max_weight = cleaned_input.get('maximum_order_weight', None)
+            min_weight = cleaned_input.get('minimum_order_weight')
+            max_weight = cleaned_input.get('maximum_order_weight')
             if min_weight is None:
                 field_errors.append((
                     'minimum_order_weight',
                     'Minimum order weight is required for'
                     ' Weight Based shipping.'))
-            elif max_weight is not None and max_weight < min_price:
+            elif max_weight is not None and max_weight <= min_price:
                 field_errors.append((
                     'maximum_order_weight',
-                    'Maximum order weight cannot be'
-                    ' smaller than the minimum.'))
+                    'Maximum order weight should be larger than the minimum.'))
         for err in field_errors:
             cls.add_error(errors, field=err[0], message=err[1])
         return cleaned_input
