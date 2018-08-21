@@ -95,10 +95,10 @@ header {
         top: 0;
         transition: top 0.5s;
         padding: calc(var(--spacer) * 3.5) 0;
-        & .count, &:first-child { display: none; }
         & a {
           font-size: var(--font-size-base);
           font-weight: var(--font-weight-light);
+          text-decoration: none;
           @media (max-width: 1024px) {
             font-size: calc(var(--font-size-base) * 1.2);
           }
@@ -120,6 +120,9 @@ header {
         @media (max-width: 768px) {
           padding: calc(var(--spacer) * 1.5) 0;
         }
+      }
+      &.menu-desktop {
+        & .count, & li:first-child { display: none; }
       }
       &.menu-mobile {
         width: calc(100% - 4rem);

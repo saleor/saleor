@@ -96,10 +96,7 @@
           margin-right: var(--spacer);
           &.btn-primary {
             padding: calc(var(--spacer) / 2) calc(var(--spacer) * 5);
-            background: var(--mobile-background);
-            &:hover {
-              background: var(--secondaryColor);
-            }
+
             @media (max-width: 576px) {
               padding: calc(var(--spacer) / 2) calc(var(--spacer) * 3);
             }
@@ -590,8 +587,21 @@
             }
             text-transform: uppercase;
             cursor: pointer;
+            & span {
+              padding: 0 calc(var(--spacer) * 0.5);
+              &:hover {
+                color: var(--primaryColor);
+                &::after {
+                  width: 0;
+                }
+              }
+            }
             &.react-tabs__tab--selected {
-              color: var(--primaryColor);
+              & span {
+                &::after {
+                  width: 100%;
+                }
+              }
             }
           }
         }

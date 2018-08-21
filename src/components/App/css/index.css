@@ -154,34 +154,62 @@ section {
 }
 
 ul {
-  &.hovered {
+  &.hovered, {
     & li {
       & a, & span {
         position: relative;
         &::after {
-          opacity: 0;
           content: "";
-          width: 100%;
-          height: 5px;
+          width: 0;
+          height: calc(var(--border-width) * 2);
           bottom: 0;
           left: 0;
           position: absolute;
-          background: rgb(54,193,172);
-          background: linear-gradient(135deg, rgba(54,193,172,0) 5%, rgba(54,193,172,1) 5%, rgba(54,193,172,1) 95%, rgba(54,193,172,0) 95%, rgba(54,193,172,0) 100%);
-          transition: opacity 0.5s;
+          transform: skewX(-20deg);
+          background: var(--primaryColor);
+          transition: width 0.5s;
         }
         &:hover {
           &::after {
-            opacity: 1;
+            width: 100%;
           }
         }
         &.active {
           &::after {
-            opacity: 1;
+            width: 100%;
           }
         }
       }
       
+    }
+  }
+  &.menu-desktop {
+    & .underline {
+      & a, & span {
+        padding: 0 calc(var(--spacer) * 0.5);
+        position: relative;
+        &::after {
+          content: "";
+          width: 0;
+          height: calc(var(--border-width) * 2);
+          bottom: 0;
+          left: 0;
+          position: absolute;
+          transform: skewX(-20deg);
+          background: var(--primaryColor);
+          transition: width 0.5s;
+        }
+        &:hover {
+          &::after {
+            width: 100%;
+          }
+        }
+        &.active {
+          &::after {
+            width: 100%;
+          }
+        }
+      }
     }
   }
 }
@@ -193,11 +221,11 @@ ul {
   font-size: var(--font-size-lg);
   &.btn-primary {
     border: solid var(--border-width) var(--primaryColor);
+    background: transparent;
     &:hover {
+      background: var(--primaryColor);
+      color: var(--mobile-background);
       text-decoration: none;
-      border-color: var(--secondaryColor);
-      background-color: var(--secondaryColor);
-      color: var(--body-color);
     }
   }
   &.btn-secondary {
