@@ -12,6 +12,7 @@ import { withStyles, WithStyles } from "@material-ui/core/styles";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import MenuIcon from "@material-ui/icons/Menu";
+import PersonIcon from "@material-ui/icons/Person";
 import * as React from "react";
 import SVG from "react-inlinesvg";
 
@@ -70,7 +71,7 @@ const decorate = withStyles(
       zIndex: 1
     },
     arrow: {
-      marginLeft: theme.spacing.unit * 3,
+      marginLeft: theme.spacing.unit * 2,
       position: "relative" as "relative",
       top: 6,
       transition: theme.transitions.duration.standard + "ms"
@@ -96,6 +97,9 @@ const decorate = withStyles(
       position: "relative" as "relative",
       width: drawerWidth
     },
+    drawerMobile: {
+      width: drawerWidth
+    },
     email: {
       cursor: "pointer" as "pointer",
       display: "inline" as "inline"
@@ -115,7 +119,8 @@ const decorate = withStyles(
       marginRight: theme.spacing.unit
     },
     menuList: {
-      marginLeft: theme.spacing.unit * 4
+      marginLeft: theme.spacing.unit * 4,
+      marginTop: theme.spacing.unit * 2
     },
     menuListItem: {
       "&:hover": {
@@ -156,6 +161,9 @@ const decorate = withStyles(
     toolBarMenu: {
       minHeight: 56,
       paddingLeft: theme.spacing.unit
+    },
+    userIcon: {
+      marginRight: theme.spacing.unit
     }
   }),
   { name: "ResponsiveDrawer" }
@@ -181,7 +189,12 @@ const ResponsiveDrawer = decorate<ResponsiveDrawerProps>(
         </Drawer>
       </Hidden>
       <Hidden mdUp>
-        <Drawer variant="temporary" onClose={onClose} open={open}>
+        <Drawer
+          variant="temporary"
+          onClose={onClose}
+          open={open}
+          classes={{ paper: classes.drawerMobile }}
+        >
           {children}
         </Drawer>
       </Hidden>
@@ -266,6 +279,7 @@ export const AppRoot = decorate(
       | "contentShift"
       | "container"
       | "drawerDesktop"
+      | "drawerMobile"
       | "email"
       | "emailLabel"
       | "hide"
@@ -280,6 +294,7 @@ export const AppRoot = decorate(
       | "spacer"
       | "toolBarContent"
       | "toolBarMenu"
+      | "userIcon"
     >,
     AppRootState
   > {
@@ -302,6 +317,7 @@ export const AppRoot = decorate(
                   event: React.MouseEvent<any>
                 ) => {
                   event.preventDefault();
+                  this.closeDrawer();
                   navigate(url);
                 };
                 return (
@@ -343,19 +359,26 @@ export const AppRoot = decorate(
                                     className={classes.email}
                                     onClick={!!anchor ? closeMenu : openMenu}
                                   >
-                                    <Typography
-                                      className={classes.emailLabel}
-                                      component="span"
-                                      variant="subheading"
-                                    >
-                                      {user.email}
-                                    </Typography>
-                                    <ArrowDropdown
-                                      className={[
-                                        classes.arrow,
-                                        !!anchor ? classes.rotate : undefined
-                                      ].join(" ")}
-                                    />
+                                    <Hidden smDown>
+                                      <Typography
+                                        className={classes.emailLabel}
+                                        component="span"
+                                        variant="subheading"
+                                      >
+                                        {user.email}
+                                      </Typography>
+                                      <ArrowDropdown
+                                        className={[
+                                          classes.arrow,
+                                          !!anchor ? classes.rotate : undefined
+                                        ].join(" ")}
+                                      />
+                                    </Hidden>
+                                    <Hidden mdUp>
+                                      <IconButton className={classes.userIcon}>
+                                        <PersonIcon />
+                                      </IconButton>
+                                    </Hidden>
                                   </div>
                                   <Popper
                                     open={!!anchor}
