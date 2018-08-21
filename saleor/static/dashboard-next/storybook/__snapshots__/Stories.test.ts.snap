@@ -10980,6 +10980,97 @@ exports[`Storyshots Pages / PageContent when loading 1`] = `
 </div>
 `;
 
+exports[`Storyshots Pages / PageContent with errors 1`] = `
+<div>
+  <div
+    class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+  >
+    <div
+      class="MuiCardContent-root-id"
+    >
+      <div
+        class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+      >
+        <label
+          class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+          data-shrink="false"
+        >
+          Title
+        </label>
+        <div
+          class="MuiInput-root-id MuiInput-disabled-id MuiInput-error-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+        >
+          <input
+            aria-invalid="true"
+            autofocus=""
+            class="MuiInput-input-id MuiInput-disabled-id"
+            disabled=""
+            name="title"
+            type="text"
+            value=""
+          />
+        </div>
+        <p
+          class="MuiFormHelperText-root-id MuiFormHelperText-error-id"
+        >
+          Generic error
+        </p>
+      </div>
+      <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="MuiFormControl-root-id"
+        style="width:100%"
+      >
+        <label
+          class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+          data-shrink="false"
+        >
+          Content
+        </label>
+        <div
+          class="MuiInput-root-id MuiInput-disabled-id MuiInput-error-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
+        >
+          <div
+            class="Textarea-root-id"
+            style="height:19px"
+          >
+            <textarea
+              aria-hidden="true"
+              class="Textarea-textarea-id Textarea-shadow-id"
+              readonly=""
+              rows="1"
+              tabindex="-1"
+            />
+            <textarea
+              aria-hidden="true"
+              class="Textarea-textarea-id Textarea-shadow-id"
+              readonly=""
+              rows="1"
+              tabindex="-1"
+            />
+            <textarea
+              aria-invalid="true"
+              class="Textarea-textarea-id MuiInput-input-id MuiInput-disabled-id MuiInput-inputMultiline-id"
+              disabled=""
+              name="content"
+              rows="1"
+              type="text"
+            />
+          </div>
+        </div>
+        <p
+          class="MuiFormHelperText-root-id MuiFormHelperText-error-id"
+        >
+          Generic error
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Storyshots Pages / PageDeleteDialog default 1`] = `<div />`;
 
 exports[`Storyshots Pages / PageProperties when loaded 1`] = `

@@ -7,7 +7,18 @@ import Decorator from "../../Decorator";
 
 storiesOf("Pages / PageContent", module)
   .addDecorator(Decorator)
-  .add("when loaded", () => <PageContent {...page} />)
+  .add("when loaded", () => <PageContent errors={{}} {...page} />)
   .add("when loading", () => (
-    <PageContent loading={true} content="" title="" />
+    <PageContent errors={{}} loading={true} content="" title="" />
+  ))
+  .add("with errors", () => (
+    <PageContent
+      errors={{
+        content: "Generic error",
+        title: "Generic error"
+      }}
+      loading={true}
+      content=""
+      title=""
+    />
   ));
