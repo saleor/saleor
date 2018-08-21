@@ -5,7 +5,7 @@ from saleor.payment import (
 
 
 def test_authorize(payment_method_dummy):
-    txn = payment_method_dummy.authorize()
+    txn = payment_method_dummy.authorize(client_token='Fake')
     assert txn.is_success
     assert txn.transaction_type == TransactionType.AUTH
     assert txn.payment_method == payment_method_dummy
@@ -17,7 +17,7 @@ def test_authorize_gateway_error(payment_method_dummy, monkeypatch):
     monkeypatch.setattr(
         'saleor.payment.providers.dummy.dummy_success', lambda: False)
     with pytest.raises(PaymentError):
-        txn = payment_method_dummy.authorize()
+        txn = payment_method_dummy.authorize(client_token='Fake')
         assert txn.transaction_type == TransactionType.AUTH
         assert not txn.is_success
         assert txn.payment_method == payment_method_dummy
@@ -55,7 +55,7 @@ def test_void_gateway_error(payment_method_dummy, monkeypatch):
     monkeypatch.setattr(
         'saleor.payment.providers.dummy.dummy_success', lambda: False)
     with pytest.raises(PaymentError):
-        txn = payment_method_dummy.authorize()
+        txn = payment_method_dummy.void()
         assert txn.transaction_type == TransactionType.VOID
         assert not txn.is_success
         assert txn.payment_method == payment_method_dummy

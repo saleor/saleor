@@ -43,13 +43,14 @@ def gateway_authorize(payment_method, transaction_token) -> Transaction:
 
     provider, provider_params = get_provider(payment_method.variant)
     with transaction.atomic():
-        txn = provider.authorize(payment_method, transaction_token, **provider_params)
+        txn, error = provider.authorize(
+            payment_method, transaction_token, **provider_params)
         if txn.is_success:
             payment_method.charge_status = PaymentMethodChargeStatus.NOT_CHARGED
             payment_method.save(update_fields=['charge_status'])
     if not txn.is_success:
         # TODO: Handle gateway response here somehow
-        raise PaymentError('Unable to authorize transaction')
+        raise PaymentError(error)
     return txn
 
 
@@ -65,7 +66,7 @@ def gateway_charge(payment_method, amount) -> Transaction:
         raise PaymentError('Unable to charge more than authozied amount')
     provider, provider_params = get_provider(payment_method.variant)
     with transaction.atomic():
-        txn = provider.charge(payment_method, amount=amount, **provider_params)
+        txn, error = provider.charge(payment_method, amount=amount, **provider_params)
         if txn.is_success:
             payment_method.charge_status = PaymentMethodChargeStatus.CHARGED
             payment_method.captured_amount += txn.amount
@@ -74,7 +75,7 @@ def gateway_charge(payment_method, amount) -> Transaction:
 
     if not txn.is_success:
         # TODO: Handle gateway response here somehow
-        raise PaymentError('Unable to process transaction')
+        raise PaymentError(error)
     return txn
 
 
@@ -85,12 +86,12 @@ def gateway_void(payment_method) -> Transaction:
         raise PaymentError('Only pre-authorized transactions can be void')
     provider, provider_params = get_provider(payment_method.variant)
     with transaction.atomic():
-        txn = provider.void(payment_method, **provider_params)
+        txn, error = provider.void(payment_method, **provider_params)
         if txn.is_success:
             payment_method.is_active = False
             payment_method.save(update_fields=['is_active'])
     if not txn.is_success:
-        raise PaymentError('Unable to void transaction')
+        raise PaymentError(error)
     return txn
 
 
@@ -105,7 +106,7 @@ def gateway_refund(payment_method, amount) -> Transaction:
 
     provider, provider_params = get_provider(payment_method.variant)
     with transaction.atomic():
-        txn = provider.refund(payment_method, amount, **provider_params)
+        txn, error = provider.refund(payment_method, amount, **provider_params)
         if txn.is_success:
             changed_fields = ['captured_amount']
             if txn.amount == payment_method.total:
@@ -115,5 +116,5 @@ def gateway_refund(payment_method, amount) -> Transaction:
             payment_method.captured_amount -= amount
             payment_method.save(update_fields=changed_fields)
     if not txn.is_success:
-        raise PaymentError('Unable to process refund')
+        raise PaymentError(error)
     return txn
