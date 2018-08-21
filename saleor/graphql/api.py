@@ -114,7 +114,7 @@ class Query(ProductQueries):
         Page, query=graphene.String(
             description=DESCRIPTIONS['page']),
         description='List of the shop\'s pages.')
-    payment = graphene.Field(Payment, id=graphene.Argument(graphene.ID))
+    payment = graphene.Field(PaymentMethod, id=graphene.Argument(graphene.ID))
     payment_client_token = graphene.Field(
         graphene.String, args={'gateway': PaymentGatewayEnum()})
     payments = DjangoFilterConnectionField(
@@ -205,7 +205,7 @@ class Query(ProductQueries):
         return resolve_payment_client_token(gateway)
 
     def resolve_payments(self, info, query=None, **kwargs):
-        return resolve_payments(info, query)
+        return resolve_payment_methods(info, query)
 
     @login_required
     def resolve_orders(
@@ -282,6 +282,7 @@ class Mutations(ProductMutations):
     checkout_customer_detach = CheckoutCustomerDetach.Field()
     checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
     checkout_email_update = CheckoutEmailUpdate.Field()
+    checkout_payment_method_create = CheckoutPaymentMethodCreate.Field()
 
     menu_create = MenuCreate.Field()
     menu_delete = MenuDelete.Field()
