@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
     "jsx": "react",
-    "lib": ["es5", "es2015.promise", "dom"],
+    "lib": ["es2017", "dom", "esnext"],
+    "sourceMap": true,
     "target": "es5"
   },
-  "include": ["saleor/static/dashboard-next/index.tsx", "webpack.d.ts"]
+  "include": ["webpack.d.ts"]
 }
