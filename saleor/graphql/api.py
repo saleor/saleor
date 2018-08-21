@@ -45,6 +45,9 @@ from .page.types import Page
 from .product.schema import ProductMutations, ProductQueries
 from .payment.types import Payment, PaymentGatewayEnum
 from .payment.resolvers import resolve_payments, resolve_payment_client_token
+from .payment.mutations import (
+    CheckoutPaymentMethodCreate, PaymentMethodCharge, PaymentMethodRefund,
+    PaymentMethodVoid)
 from .shipping.resolvers import resolve_shipping_zones
 from .shipping.types import ShippingZone
 from .shipping.mutations import (

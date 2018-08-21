@@ -2,7 +2,9 @@ import graphene
 from graphql_jwt.decorators import permission_required
 
 from ...payment import PaymentError
-from ...payment.utils import create_payment_method, gateway_authorize, gateway_charge
+from ...payment.utils import (
+    create_payment_method, gateway_authorize, gateway_charge, gateway_refund,
+    gateway_void)
 from ..account.types import AddressInput
 from ..checkout.types import Checkout
 from ..core.mutations import BaseMutation
@@ -31,8 +33,8 @@ class CheckoutPaymentMethodCreate(BaseMutation):
         input = PaymentMethodInput(
             required=True, description='Payment method details')
 
-    transaction_id = graphene.String()
-    transaction_success = graphene.String()
+    payment_method = graphene.Field(
+        PaymentMethod, description='Updated payment method')
 
     class Meta:
         description = 'Creates credit card transaction.'
@@ -62,14 +64,13 @@ class CheckoutPaymentMethodCreate(BaseMutation):
             **billing_data)
         # authorize payment
         try:
-            transaction = gateway_authorize(payment_method, input['transaction_token'])
+            gateway_authorize(payment_method, input['transaction_token'])
         except PaymentError as exc:
             msg = str(exc)
-            cls.add_error(field='transaction_token', message=msg, errors=errors)
+            cls.add_error(field=None, message=msg, errors=errors)
 
         return CheckoutPaymentMethodCreate(
-            transaction_id=transaction.token,
-            transaction_success=transaction.is_success, errors=errors)
+            payment_method=payment_method, errors=errors)
 
     @classmethod
     def clean_billing_address(cls, billing_address):
@@ -95,6 +96,7 @@ class CheckoutPaymentMethodCreate(BaseMutation):
             'customer_user_agent': user_agent}
 
 
+
 class PaymentMethodCharge(BaseMutation):
 
     class Arguments:
@@ -105,7 +107,6 @@ class PaymentMethodCharge(BaseMutation):
 
     payment_method = graphene.Field(
         PaymentMethod, description='Updated payment method')
-
 
     @classmethod
     @permission_required('order.manage_orders')
@@ -122,6 +123,56 @@ class PaymentMethodCharge(BaseMutation):
             gateway_charge(payment_method, amount=amount)
         except PaymentError as exc:
             msg = str(exc)
-            cls.add_error(field='payment_method_id', message=msg, errors=errors)
+            cls.add_error(field=None, message=msg, errors=errors)
 
         return PaymentMethodCharge(payment_method=payment_method, errors=errors)
+
+
+class PaymentMethodRefund(PaymentMethodCharge):
+
+    @classmethod
+    @permission_required('order.manage_orders')
+    def mutate(cls, root, info, payment_method_id, amount=None):
+        errors = []
+        payment_method = cls.get_node_or_error(
+            info, payment_method_id, errors, 'payment_method_id',
+            only_type=PaymentMethod)
+
+        if not payment_method:
+            return PaymentMethodRefund(errors=errors)
+
+        try:
+            gateway_refund(payment_method, amount=amount)
+        except PaymentError as exc:
+            msg = str(exc)
+            cls.add_error(field=None, message=msg, errors=errors)
+
+        return PaymentMethodRefund(payment_method=payment_method, errors=errors)
+
+
+class PaymentMethodVoid(BaseMutation):
+    class Arguments:
+        payment_method_id = graphene.ID(
+            required=True, description='Payment method ID')
+
+    payment_method = graphene.Field(
+        PaymentMethod, description='Updated payment method')
+
+    @classmethod
+    @permission_required('order.manage_orders')
+    def mutate(cls, root, info, payment_method_id, amount=None):
+        errors = []
+        payment_method = cls.get_node_or_error(
+            info, payment_method_id, errors, 'payment_method_id',
+            only_type=PaymentMethod)
+
+        if not payment_method:
+            return PaymentMethodVoid(errors=errors)
+
+        try:
+            gateway_void(payment_method)
+        except PaymentError as exc:
+            msg = str(exc)
+            cls.add_error(field=None, message=msg, errors=errors)
+
+        return PaymentMethodVoid(payment_method=payment_method, errors=errors)

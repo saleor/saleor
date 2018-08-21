@@ -98,6 +98,17 @@ def address(db):  # pylint: disable=W0613
         country='PL',
         phone='+48713988102')
 
+@pytest.fixture
+def graphql_address_data():
+    return {
+        'firstName': 'John',
+        'lastName': 'Doe',
+        'streetAddress1': 'Wall st.',
+        'streetAddress2': '',
+        'postalCode': '902010',
+        'country': 'US',
+        'city': 'New York',
+        'countryArea': ''}
 
 @pytest.fixture
 def customer_user(address):  # pylint: disable=W0613
