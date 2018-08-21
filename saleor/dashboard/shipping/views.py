@@ -9,7 +9,7 @@ from ...core.utils import get_paginator_items
 from ...shipping.models import ShippingMethod, ShippingZone
 from ..views import staff_member_required
 from .filters import ShippingZoneFilter
-from .forms import ShippingMethodForm, ShippingZoneForm
+from .forms import ShippingZoneForm, get_shipping_form
 
 
 @staff_member_required
@@ -92,7 +92,8 @@ def shipping_method_add(request, shipping_zone_pk, type):
     shipping_zone = get_object_or_404(ShippingZone, pk=shipping_zone_pk)
     shipping_method = ShippingMethod(
         shipping_zone_id=shipping_zone_pk, type=type)
-    form = ShippingMethodForm(request.POST or None, instance=shipping_method)
+    form = get_shipping_form(shipping_method.type)
+    form = form(request.POST or None, instance=shipping_method)
     if form.is_valid():
         shipping_method = form.save()
         msg = pgettext_lazy(
@@ -114,8 +115,8 @@ def shipping_method_edit(request, shipping_zone_pk, shipping_method_pk):
     shipping_zone = get_object_or_404(ShippingZone, pk=shipping_zone_pk)
     shipping_method = get_object_or_404(ShippingMethod, pk=shipping_method_pk)
 
-    form = ShippingMethodForm(
-        request.POST or None, instance=shipping_method)
+    form = get_shipping_form(shipping_method.type)
+    form = form(request.POST or None, instance=shipping_method)
     if form.is_valid():
         country = form.save()
         msg = pgettext_lazy(

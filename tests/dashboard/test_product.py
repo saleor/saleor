@@ -291,7 +291,7 @@ def test_view_product_type_create(
         'product_attributes': [color_attribute.pk],
         'variant_attributes': [size_attribute.pk],
         'has_variants': True,
-        'weight_0': ['3.47'], 'weight_1': ['kg']}
+        'weight': ['3.47']}
 
     response = admin_client.post(url, data)
 
@@ -310,7 +310,7 @@ def test_view_product_type_create_invalid(
         'product_attributes': [size_attribute.pk],
         'variant_attributes': [color_attribute.pk, size_attribute.pk],
         'has_variants': True,
-        'weight_0': ['3.47'], 'weight_1': ['kg']}
+        'weight': ['3.47']}
 
     response = admin_client.post(url, data)
 
@@ -326,7 +326,7 @@ def test_view_product_type_create_missing_variant_attributes(
         'product_attributes': [color_attribute.pk],
         'variant_attributes': [size_attribute.pk],
         'has_variants': False,
-        'weight_0': ['3.47'], 'weight_1': ['kg']}
+        'weight': ['3.47']}
     response = admin_client.post(url, data)
 
     assert response.status_code == 200
@@ -341,7 +341,7 @@ def test_view_product_type_create_variantless(
         'product_attributes': [color_attribute.pk],
         'variant_attributes': [],
         'has_variants': False,
-        'weight_0': ['3.47'], 'weight_1': ['kg']}
+        'weight': ['3.47']}
     response = admin_client.post(url, data)
 
     assert response.status_code == 302
@@ -359,7 +359,7 @@ def test_view_product_type_create_variantless_invalid(
         'product_attributes': [color_attribute.pk],
         'variant_attributes': [size_attribute.pk],
         'has_variants': False,
-        'weight_0': ['3.47'], 'weight_1': ['kg']}
+        'weight': ['3.47']}
     response = admin_client.post(url, data)
 
     assert response.status_code == 200
@@ -383,7 +383,7 @@ def test_view_product_type_edit_to_no_variants_valid(admin_client, product):
         'variant_attributes': product_type.variant_attributes.values_list(
             'pk', flat=True),
         'has_variants': False,
-        'weight_0': ['3.47'], 'weight_1': ['kg']}
+        'weight': ['3.47']}
 
     response = admin_client.post(url, data)
 
@@ -413,7 +413,7 @@ def test_view_product_type_edit_to_no_variants_invalid(admin_client, product):
         'variant_attributes': product_type.variant_attributes.values_list(
             'pk', flat=True),
         'has_variants': False,
-        'weight_0': ['3.47'], 'weight_1': ['kg']}
+        'weight': ['3.47']}
 
     response = admin_client.post(url, data)
 

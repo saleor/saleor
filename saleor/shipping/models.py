@@ -11,6 +11,8 @@ from prices import MoneyRange
 from . import ShippingMethodType
 from ..core.utils import format_money
 from ..core.utils.taxes import get_taxed_shipping_price
+from ..core.utils.translations import TranslationProxy
+from ..core.weight import zero_weight
 from .utils import (
     applicable_price_based_methods, applicable_weight_based_methods,
     get_price_type_display, get_weight_type_display)
@@ -84,12 +86,13 @@ class ShippingMethod(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, blank=True, null=True)
     minimum_order_weight = MeasurementField(
         measurement=Weight, unit_choices=settings.DEFAULT_WEIGHT_UNITS,
-        default=0, blank=True, null=True)
+        default=zero_weight, blank=True, null=True)
     maximum_order_weight = MeasurementField(
         measurement=Weight, unit_choices=settings.DEFAULT_WEIGHT_UNITS,
         blank=True, null=True)
 
     objects = ShippingMethodQueryset.as_manager()
+    translated = TranslationProxy()
 
     def __str__(self):
         return self.name
@@ -123,3 +126,13 @@ class ShippingMethod(models.Model):
                 self.minimum_order_price, self.maximum_order_price)
         return get_weight_type_display(
             self.minimum_order_weight, self.maximum_order_weight)
+
+
+class ShippingMethodTranslation(models.Model):
+    language_code = models.CharField(max_length=10)
+    name = models.CharField(max_length=255, null=True, blank=True)
+    shipping_method = models.ForeignKey(
+        ShippingMethod, related_name='translations', on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('language_code', 'shipping_method'),)
