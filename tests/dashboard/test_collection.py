@@ -25,6 +25,18 @@ def test_set_homepage_collection(admin_client, collection, site_settings):
     assert site_settings.homepage_collection == collection
 
 
+def test_set_unpublished_homepage_collection(
+        admin_client, collection, site_settings):
+    collection.is_published = False
+    collection.save()
+    data = {'homepage_collection': collection.pk}
+    response = admin_client.post(reverse('dashboard:collection-list'), data)
+    assert response.status_code == 200
+    site_settings.refresh_from_db()
+    assert site_settings.homepage_collection is None
+    assert not response.context['assign_homepage_col_form'].is_valid()
+
+
 def test_collection_form_name():
     data = {'name': 'Test Collection', 'products': []}
     form = CollectionForm(data)
