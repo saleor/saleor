@@ -5,41 +5,41 @@ interface MenuToggleProps {
   children:
     | ((
         props: {
-          anchor: HTMLElement;
           actions: {
             open: (event: React.MouseEvent<any>) => void;
             close: () => void;
           };
+          open: boolean;
         }
       ) => React.ReactElement<any>)
     | React.ReactNode;
 }
 
 interface MenuToggleState {
-  anchor: HTMLElement | null;
+  open: boolean;
 }
 
 class MenuToggle extends React.Component<MenuToggleProps, MenuToggleState> {
   state = {
-    anchor: null
+    open: false
   };
 
   handleClick = (event: React.MouseEvent<any>) => {
-    this.setState({ anchor: event.currentTarget });
+    this.setState({ open: true });
   };
 
   handleClose = () => {
-    this.setState({ anchor: null });
+    this.setState({ open: false });
   };
 
   render() {
     const { children } = this.props;
-    const { anchor } = this.state;
+    const { open } = this.state;
 
     if (typeof children === "function") {
       return children({
         actions: { open: this.handleClick, close: this.handleClose },
-        anchor
+        open
       });
     }
     return children;
