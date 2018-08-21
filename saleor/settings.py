@@ -400,7 +400,7 @@ if 'GOOGLE_APPLICATION_CREDENTIALS' not in os.environ:
     GS_CREDENTIALS = os.environ.get('GS_CREDENTIALS')
 
 GS_PROJECT_ID = os.environ.get('GS_PROJECT_ID')
-GS_AUTO_CREATE_BUCKET = os.environ.get('GS_AUTO_CREATE_BUCKET', False)
+GS_AUTO_CREATE_BUCKET = get_bool_from_env('GS_AUTO_CREATE_BUCKET', False)
 
 if AWS_STORAGE_BUCKET_NAME:
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
