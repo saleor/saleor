@@ -4,6 +4,7 @@ from django.utils.translation import pgettext_lazy
 from ...core.weight import WeightField
 from ...shipping import ShippingMethodType
 from ...shipping.models import ShippingMethod, ShippingZone
+from ...site.models import SiteSettings
 
 
 def currently_used_countries(shipping_zone_pk=None):
@@ -15,13 +16,28 @@ def currently_used_countries(shipping_zone_pk=None):
     return used_countries
 
 
-class ShippingZoneForm(forms.ModelForm):
+class ChangeDefaultWeightUnit(forms.ModelForm):
+    class Meta:
+        model = SiteSettings
+        fields = ['default_weight_unit']
+        labels = {
+            'default_weight_unit': pgettext_lazy(
+                'Label of the default weight unit picker',
+                'Default weight unit')}
+        help_texts = {
+            'default_weight_unit': pgettext_lazy(
+                'Default weight unit help text',
+                'Default unit for weights entered from the dashboard.'
+                'All weights will be recalculated to the new unit.')}
 
+
+class ShippingZoneForm(forms.ModelForm):
     class Meta:
         model = ShippingZone
         exclude = ['shipping_methods']
         labels = {
-            'name': pgettext_lazy('Shippment Zone field name', 'Zone Name'),
+            'name': pgettext_lazy(
+                'Shippment Zone field name', 'Shipping zone name'),
             'countries': pgettext_lazy(
                 'List of countries to pick from', 'Countries')}
         help_texts = {
@@ -47,10 +63,11 @@ class ShippingZoneForm(forms.ModelForm):
             currently_used_countries())
         if duplicated_countries:
             self.add_error(
-                'countries',
-                'Countries already exists in another '
-                'shipping zone: %(list_of_countries)s' % {
-                    'list_of_countries': ', '.join(duplicated_countries)})
+                'countries', pgettext_lazy(
+                    'Shipping zone containing duplicated countries form error',
+                    'Countries already exists in another '
+                    'shipping zone: %(list_of_countries)s' % {
+                        'list_of_countries': ', '.join(duplicated_countries)}))
         return countries
 
 
@@ -65,9 +82,6 @@ class ShippingMethodForm(forms.ModelForm):
             'name': pgettext_lazy(
                 'Shipping method name help text',
                 'Customers will see this at the checkout.')}
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
 
 class PriceShippingMethodForm(forms.ModelForm):

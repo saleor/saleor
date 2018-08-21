@@ -24,7 +24,7 @@ from ..core.exceptions import InsufficientStock
 from ..core.models import SortableModel
 from ..core.utils.taxes import DEFAULT_TAX_RATE_NAME, apply_tax_to_price
 from ..core.utils.translations import TranslationProxy
-from ..core.weight import zero_weight
+from ..core.weight import zero_weight, WeightUnits
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
 
@@ -82,7 +82,7 @@ class ProductType(models.Model):
     tax_rate = models.CharField(
         max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True)
     weight = MeasurementField(
-        measurement=Weight, unit_choices=settings.DEFAULT_WEIGHT_UNITS,
+        measurement=Weight, unit_choices=WeightUnits.CHOICES,
         default=zero_weight)
 
     class Meta:
@@ -123,7 +123,7 @@ class Product(SeoModel):
     tax_rate = models.CharField(
         max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True)
     weight = MeasurementField(
-        measurement=Weight, unit_choices=settings.DEFAULT_WEIGHT_UNITS,
+        measurement=Weight, unit_choices=WeightUnits.CHOICES,
         blank=True, null=True)
 
     objects = ProductQuerySet.as_manager()
@@ -220,7 +220,7 @@ class ProductVariant(models.Model):
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, blank=True, null=True)
     weight = MeasurementField(
-        measurement=Weight, unit_choices=settings.DEFAULT_WEIGHT_UNITS,
+        measurement=Weight, unit_choices=WeightUnits.CHOICES,
         blank=True, null=True)
     translated = TranslationProxy()
 
@@ -235,7 +235,7 @@ class ProductVariant(models.Model):
         return max(self.quantity - self.quantity_allocated, 0)
 
     def check_quantity(self, quantity):
-        """ Check if there is at least the given quantity in stock
+        """Check if there is at least the given quantity in stock
         if stock handling is enabled.
         """
         if self.track_inventory and quantity > self.quantity_available:

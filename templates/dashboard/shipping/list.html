@@ -4,6 +4,7 @@
 {% load status %}
 {% load taxed_prices %}
 {% load utils %}
+{% load materializecss %}
 
 {% block title %}
   {% trans "Shipping zones" context "Dashboard shipping zones list" %} - {{ block.super }}
@@ -88,6 +89,25 @@
     </div>
     <div class="col s12 l3" id="filters">
       {% if not is_empty %}{% filters filter_set %}{% endif %}
+      <div class="card">
+        <form action="" method="post">
+          <div class="card-content">
+            <span class="card-title">{% trans "Default Weight Unit" %}</span>
+            {% csrf_token %}
+            <div class="row">
+              {{ form|materializecss }}
+            </div>
+          </div>
+          <div class="card-action right-align">
+            <div class="col s12">
+              <button type="submit" class="btn waves-effect right">
+                {% trans "Save" context "Dashboard update action" %}
+              </button>
+            </div>
+            <div class="clearfix"></div>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 {% endblock %}

@@ -4,6 +4,7 @@ from django.utils.translation import pgettext_lazy
 
 from . import AuthenticationBackends
 from ..core.utils.translations import TranslationProxy
+from ..core.weight import WeightUnits
 from .patch_sites import patch_contrib_sites
 
 patch_contrib_sites()
@@ -28,8 +29,8 @@ class SiteSettings(models.Model):
         'product.Collection', on_delete=models.SET_NULL, related_name='+',
         blank=True, null=True)
     default_weight_unit = models.CharField(
-        max_length=10, choices=[],
-        default=0)
+        max_length=10, choices=WeightUnits.CHOICES, blank=True,
+        default=WeightUnits.KILOGRAM)
 
     translated = TranslationProxy()
 

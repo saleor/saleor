@@ -68,7 +68,7 @@ def test_weight_shipping_method_form(min_weight, max_weight, result):
 
 
 def test_shipping_zone_list(admin_client, shipping_zone):
-    url = reverse('dashboard:shipping-zones')
+    url = reverse('dashboard:shipping-zone-list')
     response = admin_client.get(url)
     assert response.status_code == 200
 

@@ -8,7 +8,7 @@ from django.db import models
 from django.utils.encoding import smart_str
 from django_prices.models import MoneyField
 from jsonfield import JSONField
-from measurement.measures import Mass
+from measurement.measures import Weight
 
 from ..account.models import Address
 from ..core.utils.taxes import ZERO_TAXED_MONEY
@@ -99,7 +99,7 @@ class Cart(models.Model):
 
     def get_total_weight(self):
         # Cannot use `sum` as it parses an empty Weight to an int
-        weights = Mass(kg=0)
+        weights = Weight(kg=0)
         for line in self:
             weights += line.variant.get_weight()
         return weights

@@ -12,7 +12,7 @@ from django.template.defaultfilters import slugify
 from django_countries.fields import Country
 from faker import Factory
 from faker.providers import BaseProvider
-from measurement.measures import Mass
+from measurement.measures import Weight
 from payments import PaymentStatus
 from prices import Money
 
@@ -244,7 +244,7 @@ class SaleorProvider(BaseProvider):
             fake.pydecimal(2, 2, positive=True), settings.DEFAULT_CURRENCY)
 
     def weight(self):
-        return Mass(kg=fake.pydecimal(1, 2, positive=True))
+        return Weight(kg=fake.pydecimal(1, 2, positive=True))
 
 
 fake.add_provider(SaleorProvider)
@@ -468,7 +468,7 @@ def create_fake_order(discounts, taxes):
 
     order.total = sum(
         [line.get_total() for line in lines], order.shipping_price)
-    weight = Mass(kg=0)
+    weight = Weight(kg=0)
     for line in order:
         weight += line.variant.get_weight()
     order.weight = weight

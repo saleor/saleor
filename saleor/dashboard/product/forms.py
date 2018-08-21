@@ -13,7 +13,7 @@ from mptt.forms import TreeNodeChoiceField
 from . import ProductBulkAction
 from ...core.i18n import VAT_RATE_TYPE_TRANSLATIONS
 from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME, include_taxes_in_prices
-from ...core.weight import WeightField
+from ...core.weight import WeightField, get_default_weight_unit
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, VariantImage)
@@ -216,8 +216,7 @@ class ProductForm(forms.ModelForm, AttributesMixin):
     description = RichTextField(
         label=pgettext_lazy('Description', 'Description'))
     weight = WeightField(
-        required=False,
-        label=pgettext_lazy('ProductType weight', 'Weight'),
+        required=False, label=pgettext_lazy('ProductType weight', 'Weight'),
         help_text=pgettext_lazy(
             'Product weight field help text',
             'Weight will be used to calculate shipping price, '
@@ -287,8 +286,7 @@ class ProductForm(forms.ModelForm, AttributesMixin):
 class ProductVariantForm(forms.ModelForm, AttributesMixin):
     model_attributes_field = 'attributes'
     weight = WeightField(
-        required=False,
-        label=pgettext_lazy('ProductVariant weight', 'Weight'),
+        required=False, label=pgettext_lazy('ProductVariant weight', 'Weight'),
         help_text=pgettext_lazy(
             'ProductVariant weight help text',
             'Weight will be used to calculate shipping price. '

@@ -442,8 +442,8 @@ def order_with_lines(
         tax_rate=taxes['standard']['value'])
 
     order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = shipping_zone.name
     method = shipping_zone.shipping_methods.get()
+    order.shipping_method_name = method.name
     order.shipping_method = method
     order.shipping_price = method.get_total_price(taxes)
     order.save()

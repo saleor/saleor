@@ -6,7 +6,7 @@ import pytest
 from django.urls import reverse
 from django_countries.fields import Country
 from freezegun import freeze_time
-from measurement.measures import Mass
+from measurement.measures import Weight
 from prices import Money, TaxedMoney
 from saleor.account.models import Address
 from saleor.checkout import views
@@ -46,12 +46,12 @@ def test_value_in_range(minimum, maximum, value, result):
 @pytest.mark.parametrize(
     'weight, minimum_order_weight, maximum_order_weight, result',
     (
-        (Mass(kg=15), Mass(kg=10), Mass(kg=20), True),
-        (Mass(kg=15), Mass(kg=15), Mass(kg=20), True),
-        (Mass(kg=15), Mass(kg=10), Mass(kg=15), True),
-        (Mass(kg=15), Mass(kg=10), None, True),
-        (Mass(kg=26), Mass(kg=10), Mass(kg=25), False),
-        (Mass(kg=9), Mass(kg=10), Mass(kg=15), False)))
+        (Weight(kg=15), Weight(kg=10), Weight(kg=20), True),
+        (Weight(kg=15), Weight(kg=15), Weight(kg=20), True),
+        (Weight(kg=15), Weight(kg=10), Weight(kg=15), True),
+        (Weight(kg=15), Weight(kg=10), None, True),
+        (Weight(kg=26), Weight(kg=10), Weight(kg=25), False),
+        (Weight(kg=9), Weight(kg=10), Weight(kg=15), False)))
 def test_weight_shipping_method_applicable(
         weight, minimum_order_weight, maximum_order_weight, result):
     shipping_method = Mock(
@@ -78,7 +78,7 @@ def test_price_shipping_method_applicable(
         minimum_order_price=minimum_order_price,
         maximum_order_price=maximum_order_price)
     assert result == shipping_method_applicable(
-        price, Mass(kg=0), shipping_method)
+        price, Weight(kg=0), shipping_method)
 
 
 def test_is_valid_shipping_method_no_shipping_method(vatlayer):
@@ -106,7 +106,7 @@ def test_is_valid_shipping_method_not_valid(
             minimum_order_price=Money(10, 'USD'),
             maximum_order_price=None,
             type=ShippingMethodType.PRICE_BASED),
-        get_total_weight=Mock(return_value=Mass(kg=0)),
+        get_total_weight=Mock(return_value=Weight(kg=0)),
         get_subtotal=Mock(
             return_value=TaxedMoney(
                 gross=Money(5, 'USD'), net=Money(5, 'USD'))))
@@ -122,7 +122,7 @@ def test_is_valid_shipping_method(vatlayer):
             minimum_order_price=Money(10, 'USD'),
             maximum_order_price=None,
             type=ShippingMethodType.PRICE_BASED),
-        get_total_weight=Mock(return_value=Mass(kg=0)),
+        get_total_weight=Mock(return_value=Weight(kg=0)),
         get_subtotal=Mock(
             return_value=TaxedMoney(
                 gross=Money(15, 'USD'), net=Money(15, 'USD'))))
