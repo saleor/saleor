@@ -67,15 +67,20 @@ const ProductVariantNavigation = decorate<ProductVariantNavigationProps>(
               >
                 <TableCellAvatar
                   className={
-                    variant && variant.id === current && classes.tabActive
+                    variant && variant.id === current
+                      ? classes.tabActive
+                      : undefined
                   }
                   thumbnail={
                     variant &&
                     variant.image &&
-                    variant.image.edges &&
-                    variant.image.edges[0] &&
-                    variant.image.edges[0].node &&
-                    variant.image.edges[0].node.url
+                    variant.image.edges !== undefined
+                      ? variant.image.edges.length > 0
+                        ? variant.image.edges[0] &&
+                          variant.image.edges[0].node &&
+                          variant.image.edges[0].node.url
+                        : null
+                      : undefined
                   }
                 />
                 <TableCell className={classes.textLeft}>
