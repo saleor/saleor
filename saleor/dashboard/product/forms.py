@@ -13,6 +13,7 @@ from mptt.forms import TreeNodeChoiceField
 from . import ProductBulkAction
 from ...core.i18n import VAT_RATE_TYPE_TRANSLATIONS
 from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME, include_taxes_in_prices
+from ...core.weight import WeightField
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, VariantImage)
@@ -68,6 +69,12 @@ class ProductTypeForm(forms.ModelForm):
     tax_rate = forms.ChoiceField(
         required=False,
         label=pgettext_lazy('Product type tax rate type', 'Tax rate'))
+    weight = WeightField(
+        label=pgettext_lazy('ProductType weight', 'Weight'),
+        help_text=pgettext_lazy(
+            'ProductVariant weight help text',
+            'Default weight that will be used for calculating shipping'
+            ' price for products of that type.'))
 
     class Meta:
         model = ProductType
@@ -87,14 +94,7 @@ class ProductTypeForm(forms.ModelForm):
                 'Attributes common to all variants'),
             'is_shipping_required': pgettext_lazy(
                 'Shipping toggle',
-                'Require shipping'),
-            'weight': pgettext_lazy(
-                'Product type weight', 'Weight')}
-        help_texts = {
-            'weight': pgettext_lazy(
-                'Weight help text',
-                'Default weight that will be used for calculating shipping'
-                ' price for products of that type.')}
+                'Require shipping')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -215,6 +215,13 @@ class ProductForm(forms.ModelForm, AttributesMixin):
         label=pgettext_lazy('Add to collection select', 'Collections'))
     description = RichTextField(
         label=pgettext_lazy('Description', 'Description'))
+    weight = WeightField(
+        required=False,
+        label=pgettext_lazy('ProductType weight', 'Weight'),
+        help_text=pgettext_lazy(
+            'Product weight field help text',
+            'Weight will be used to calculate shipping price, '
+            'if empty, equal to default value used on the ProductType.'))
 
     model_attributes_field = 'attributes'
 
@@ -230,11 +237,6 @@ class ProductForm(forms.ModelForm, AttributesMixin):
                 'Product published toggle', 'Published'),
             'charge_taxes': pgettext_lazy(
                 'Charge taxes on product', 'Charge taxes on this product')}
-        help_texts = {
-            'weight': pgettext_lazy(
-                'Weight field help text',
-                'Weight will be used to calculate shipping price, '
-                'if empty, equal to default value used on the ProductType.')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -284,6 +286,13 @@ class ProductForm(forms.ModelForm, AttributesMixin):
 
 class ProductVariantForm(forms.ModelForm, AttributesMixin):
     model_attributes_field = 'attributes'
+    weight = WeightField(
+        required=False,
+        label=pgettext_lazy('ProductVariant weight', 'Weight'),
+        help_text=pgettext_lazy(
+            'ProductVariant weight help text',
+            'Weight will be used to calculate shipping price. '
+            'If empty, weight from Product or ProductType will be used.'))
 
     class Meta:
         model = ProductVariant
@@ -292,7 +301,6 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
             'quantity', 'cost_price', 'track_inventory']
         labels = {
             'sku': pgettext_lazy('SKU', 'SKU'),
-            'weight': pgettext_lazy('ProductVariant weight', 'Weight'),
             'price_override': pgettext_lazy(
                 'Override price', 'Selling price override'),
             'quantity': pgettext_lazy('Integer number', 'Number in stock'),
@@ -302,11 +310,7 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
         help_texts = {
             'track_inventory': pgettext_lazy(
                 'product variant handle stock field help text',
-                'Automatically track this product\'s inventory'),
-            'weight': pgettext_lazy(
-                'ProductVariant weight help text',
-                'Weight will be used to calculate shipping price. '
-                'If empty, weight from Product or ProductType will be used.')}
+                'Automatically track this product\'s inventory')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

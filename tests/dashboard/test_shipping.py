@@ -1,7 +1,9 @@
 from django.urls import reverse
 from prices import Money
+import pytest
 from saleor.dashboard.shipping.forms import (
-    ShippingMethodForm, ShippingZoneForm, currently_used_countries)
+    PriceShippingMethodForm, ShippingZoneForm, WeightShippingMethodForm,
+    currently_used_countries)
 from saleor.shipping import ShippingMethodType
 from saleor.shipping.models import ShippingMethod, ShippingZone
 
@@ -27,6 +29,42 @@ def test_shipping_zone_form():
         instance=zone_1, data={'name': 'Zone 2', 'countries': ['DE']})
     assert not form.is_valid()
     assert 'countries' in form.errors
+
+
+@pytest.mark.parametrize(
+    'min_price, max_price, result',
+    (
+        (10, 20, True),
+        (None, None, True),
+        (None, 10, True),
+        (0, None, True),
+        (20, 20, False)))
+def test_price_shipping_method_form(min_price, max_price, result):
+    data = {
+        'name': 'Name',
+        'price': 10,
+        'minimum_order_price': min_price,
+        'maximum_order_price': max_price}
+    form = PriceShippingMethodForm(data=data)
+    assert form.is_valid() == result
+
+
+@pytest.mark.parametrize(
+    'min_weight, max_weight, result',
+    (
+        (10, 20, True),
+        (None, None, True),
+        (None, 10, True),
+        (0, None, True),
+        (20, 20, False)))
+def test_weight_shipping_method_form(min_weight, max_weight, result):
+    data = {
+        'name': 'Name',
+        'price': 10,
+        'minimum_order_weight': min_weight,
+        'maximum_order_weight': max_weight}
+    form = WeightShippingMethodForm(data=data)
+    assert form.is_valid() == result
 
 
 def test_shipping_zone_list(admin_client, shipping_zone):

@@ -24,6 +24,7 @@ from ..core.exceptions import InsufficientStock
 from ..core.models import SortableModel
 from ..core.utils.taxes import DEFAULT_TAX_RATE_NAME, apply_tax_to_price
 from ..core.utils.translations import TranslationProxy
+from ..core.weight import zero_weight
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
 
@@ -82,7 +83,7 @@ class ProductType(models.Model):
         max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True)
     weight = MeasurementField(
         measurement=Weight, unit_choices=settings.DEFAULT_WEIGHT_UNITS,
-        default=0)
+        default=zero_weight)
 
     class Meta:
         app_label = 'product'
