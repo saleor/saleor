@@ -101,8 +101,10 @@ const decorate = withStyles(
       width: drawerWidth
     },
     email: {
-      cursor: "pointer" as "pointer",
-      display: "inline" as "inline"
+      cursor: "pointer",
+      display: "inline-block",
+      height: 48,
+      lineHeight: 48 + "px"
     },
     emailLabel: {
       color: theme.palette.primary.contrastText,
@@ -164,6 +166,9 @@ const decorate = withStyles(
     },
     userIcon: {
       marginRight: theme.spacing.unit
+    },
+    userMenuItem: {
+      textAlign: "right" as "right"
     }
   }),
   { name: "ResponsiveDrawer" }
@@ -295,10 +300,12 @@ export const AppRoot = decorate(
       | "toolBarContent"
       | "toolBarMenu"
       | "userIcon"
+      | "userMenuItem"
     >,
     AppRootState
   > {
     state = { open: false };
+    anchor = React.createRef<HTMLDivElement>();
 
     closeDrawer = () => {
       this.setState({ open: false });
@@ -346,7 +353,7 @@ export const AppRoot = decorate(
                           <div className={classes.spacer} />
                           <MenuToggle ariaOwns="user-menu">
                             {({
-                              anchor,
+                              open: menuOpen,
                               actions: { open: openMenu, close: closeMenu }
                             }) => {
                               const handleLogout = () => {
@@ -357,7 +364,8 @@ export const AppRoot = decorate(
                                 <>
                                   <div
                                     className={classes.email}
-                                    onClick={!!anchor ? closeMenu : openMenu}
+                                    ref={this.anchor}
+                                    onClick={!menuOpen ? openMenu : undefined}
                                   >
                                     <Hidden smDown>
                                       <Typography
@@ -370,7 +378,7 @@ export const AppRoot = decorate(
                                       <ArrowDropdown
                                         className={[
                                           classes.arrow,
-                                          !!anchor ? classes.rotate : undefined
+                                          menuOpen ? classes.rotate : undefined
                                         ].join(" ")}
                                       />
                                     </Hidden>
@@ -381,15 +389,17 @@ export const AppRoot = decorate(
                                     </Hidden>
                                   </div>
                                   <Popper
-                                    open={!!anchor}
-                                    anchorEl={anchor}
+                                    open={menuOpen}
+                                    anchorEl={this.anchor.current}
                                     transition
                                     disablePortal
+                                    placement="bottom-end"
                                   >
                                     {({ TransitionProps, placement }) => (
                                       <Grow
                                         {...TransitionProps}
                                         style={{
+                                          minWidth: "10rem",
                                           transformOrigin:
                                             placement === "bottom"
                                               ? "right top"
@@ -399,10 +409,14 @@ export const AppRoot = decorate(
                                         <Paper>
                                           <ClickAwayListener
                                             onClickAway={closeMenu}
+                                            mouseEvent="onClick"
                                           >
                                             <Menu>
-                                              <MenuItem onClick={handleLogout}>
-                                                {i18n.t("Logout", {
+                                              <MenuItem
+                                                className={classes.userMenuItem}
+                                                onClick={handleLogout}
+                                              >
+                                                {i18n.t("Log out", {
                                                   context: "button"
                                                 })}
                                               </MenuItem>
