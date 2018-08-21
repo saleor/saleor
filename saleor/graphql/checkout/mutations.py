@@ -134,7 +134,8 @@ class CheckoutLineDelete(BaseMutation):
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
         line = cls.get_node_or_error(
             info, line_id, errors, 'line_id', only_type=CheckoutLine)
-        line.delete()
+        if line and line in checkout.lines.all():
+            line.delete()
         return CheckoutLinesAdd(checkout=checkout, errors=errors)
 
 
