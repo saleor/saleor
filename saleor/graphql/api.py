@@ -35,9 +35,9 @@ from .order.mutations.orders import (
 from .page.resolvers import resolve_pages, resolve_page
 from .page.types import Page
 from .page.mutations import PageCreate, PageDelete, PageUpdate
-from .payment.types import Payment, PaymentGatewayEnum
-from .payment.resolvers import resolve_payments, resolve_payment_client_token
-from .payment.mutations import CompleteCheckoutWithCreditCard
+from .payment.types import PaymentGatewayEnum, PaymentMethod
+from .payment.resolvers import resolve_payment_methods, resolve_payment_client_token
+from .payment.mutations import CheckoutPaymentMethodCreate, PaymentMethodCharge
 from .product.filters import ProductFilterSet
 from .product.mutations.attributes import (
     AttributeChoiceValueCreate, AttributeChoiceValueDelete,
@@ -132,11 +132,11 @@ class Query(graphene.ObjectType):
         Page, filterset_class=DistinctFilterSet, query=graphene.String(
             description=DESCRIPTIONS['page']),
         description='List of the shop\'s pages.')
-    payment = graphene.Field(Payment, id=graphene.Argument(graphene.ID))
+    payment = graphene.Field(PaymentMethod, id=graphene.Argument(graphene.ID))
     payment_client_token = graphene.Field(
         graphene.String, args={'gateway': PaymentGatewayEnum()})
     payments = DjangoFilterConnectionField(
-        Payment, description='List of payments',
+        PaymentMethod, description='List of payments',
         filterset_class=DistinctFilterSet)
     product = graphene.Field(
         Product, id=graphene.Argument(graphene.ID),
@@ -243,7 +243,7 @@ class Query(graphene.ObjectType):
         return resolve_payment_client_token(gateway)
 
     def resolve_payments(self, info, query=None, **kwargs):
-        return resolve_payments(info, query)
+        return resolve_payment_methods(info, query)
 
     def resolve_product(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, Product)
@@ -322,6 +322,7 @@ class Mutations(graphene.ObjectType):
     checkout_customer_detach = CheckoutCustomerDetach.Field()
     checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
     checkout_email_update = CheckoutEmailUpdate.Field()
+    checkout_payment_method_create = CheckoutPaymentMethodCreate.Field()
 
     collection_create = CollectionCreate.Field()
     collection_update = CollectionUpdate.Field()
@@ -356,7 +357,7 @@ class Mutations(graphene.ObjectType):
     page_delete = PageDelete.Field()
     page_update = PageUpdate.Field()
 
-    payment_transaction_create = CompleteCheckoutWithCreditCard.Field() # FIXME
+    payment_method_charge = PaymentMethodCharge.Field()
 
     product_attribute_create = ProductAttributeCreate.Field()
     product_attribute_delete = ProductAttributeDelete.Field()
