@@ -84,8 +84,8 @@ class Home extends Component {
             <div className="grid feature-item software-stack">
               <div className="col-xs-12 col-sm-6 text">
                 <h2><span>01<br/>-</span>State of the art<br /> software stack</h2>
-                <p><strong>Saleor is powered by a GraphQL server running on top of Python 3 and Django 2.</strong></p>
-                <p>Both the storefront and the dashboard are React applications written in TypeScript and use Apollo GraphQL. Strict code quality checks and code reviews make the code easy to read and understand. High test coverage ensures it’s also safe to deploy in a continuous manner.</p>
+                <p>Saleor is powered by a GraphQL server running on top of Python 3 and Django 2.</p>
+                <p className="text-light">Both the storefront and the dashboard are React applications written in TypeScript and use Apollo GraphQL. Strict code quality checks and code reviews make the code easy to read and understand. High test coverage ensures it’s also safe to deploy in a continuous manner.</p>
               </div>
               <div className="col-xs-12 col-sm-6 image"></div>
               <div className="decoration">
@@ -96,8 +96,8 @@ class Home extends Component {
               <div className="col-xs-12 col-sm-6 image"></div>
               <div className="col-xs-12 col-sm-6 text">
                 <h2><span>02<br/>-</span>Build to scale</h2>
-                <p><strong>Serve millions of products and thousands of customers without breaking a sweat. </strong></p>
-                <p>Saleor is optimized for cloud deployments using Docker. Horizontal scalability allows Saleor to take advantage of platforms such as AWS and Google Cloud and adapt to your traffic. Multi-container deployments allow your software to scale without downtimes. Persistent GraphQL Queries take advantage of CDN to ensure snappy performance under even the heaviest of loads.</p>
+                <p>Serve millions of products and thousands of customers without breaking a sweat.</p>
+                <p className="text-light">Saleor is optimized for cloud deployments using Docker. Horizontal scalability allows Saleor to take advantage of platforms such as AWS and Google Cloud and adapt to your traffic. Multi-container deployments allow your software to scale without downtimes. Persistent GraphQL Queries take advantage of CDN to ensure snappy performance under even the heaviest of loads.</p>
               </div>
               <div className="decoration">
                 <img src={decoration02} />
@@ -106,8 +106,8 @@ class Home extends Component {
             <div className="grid feature-item easy-to-customize">
               <div className="col-xs-12 col-sm-6 text">
                 <h2><span>03<br/>-</span>Easy to customize</h2>
-                <p><strong>Saleor’s outstanding out-of-the-box experience may not be enough for everyone.</strong></p>
-                <p>Take it even further to automate any commerce process like ordering, shipping or payment. Whether you’re a local florist or a government agency, Saleor is a solid foundation to build and deliver bespoke solutions to your specific problems. Build the store that you want instead of trying to bend your requirements around enterprise platforms.</p>
+                <p>Saleor’s outstanding out-of-the-box experience may not be enough for everyone.</p>
+                <p className="text-light">Take it even further to automate any commerce process like ordering, shipping or payment. Whether you’re a local florist or a government agency, Saleor is a solid foundation to build and deliver bespoke solutions to your specific problems. Build the store that you want instead of trying to bend your requirements around enterprise platforms.</p>
               </div>
               <div className="col-xs-12 col-sm-6 image"></div>
             </div>
@@ -129,8 +129,8 @@ class Home extends Component {
                    <div className="col-xs-12 col-sm-6 image"></div>
                    <div className="col-xs-12 col-sm-6 text">
                      <h2>Dashboard</h2>
-                     <p><strong>Easy-to-use dashboard makes managing your store a pleasant experience whether you’re using the latest Macbook or a two-year-old smartphone. </strong></p>
-                     <p>Its intuitive interface is designed to aid your staff in daily routines like order management, inventory tracking or reporting. Saleor dashboard’s friendly home screen will also suggest items that may need your attention so you always stay on top of things.</p>
+                     <p>Easy-to-use dashboard makes managing your store a pleasant experience whether you’re using the latest Macbook or a two-year-old smartphone.</p>
+                     <p className="text-light">Its intuitive interface is designed to aid your staff in daily routines like order management, inventory tracking or reporting. Saleor dashboard’s friendly home screen will also suggest items that may need your attention so you always stay on top of things.</p>
                    </div>
                    <div className="decoration">
                      <img src={decoration03} />
@@ -141,8 +141,8 @@ class Home extends Component {
                  <div className="grid feature-item storefront">
                    <div className="col-xs-12 col-sm-6 text">
                      <h2>Storefront</h2>
-                     <p><strong>Saleor takes advantage of PWA standards  to optimize mobile experiences of the rapidly growing group of people shopping on the run. </strong></p>
-                     <p>Allow your customers to buy their next pair of jeans while enjoying a virgin margarita on a plane. They will only need an internet connection when they go to pay with Apple Pay or one of the cards stored by their phone. </p>
+                     <p>Saleor takes advantage of PWA standards  to optimize mobile experiences of the rapidly growing group of people shopping on the run.</p>
+                     <p className="text-light">Allow your customers to buy their next pair of jeans while enjoying a virgin margarita on a plane. They will only need an internet connection when they go to pay with Apple Pay or one of the cards stored by their phone. </p>
                    </div>
                    <div className="col-xs-12 col-sm-6 image"></div>
                    <div className="decoration">
@@ -156,8 +156,8 @@ class Home extends Component {
                 <div className="grid feature-item storefront">
                   <div className="col-xs-12 col-sm-6 text">
                     <h2>Storefront</h2>
-                    <p><strong>Saleor takes advantage of PWA standards  to optimize mobile experiences of the rapidly growing group of people shopping on the run. </strong></p>
-                    <p>Allow your customers to buy their next pair of jeans while enjoying a virgin margarita on a plane. They will only need an internet connection when they go to pay with Apple Pay or one of the cards stored by their phone. </p>
+                    <p>Saleor takes advantage of PWA standards  to optimize mobile experiences of the rapidly growing group of people shopping on the run.</p>
+                    <p className="text-light">Allow your customers to buy their next pair of jeans while enjoying a virgin margarita on a plane. They will only need an internet connection when they go to pay with Apple Pay or one of the cards stored by their phone. </p>
                   </div>
                   <div className="col-xs-12 col-sm-6 image">
                     <div className="label-wrapper">
@@ -179,8 +179,8 @@ class Home extends Component {
                   <div className="col-xs-12 col-sm-6 image"></div>
                   <div className="col-xs-12 col-sm-6 text">
                     <h2>Dashboard</h2>
-                    <p><strong>Easy-to-use dashboard makes managing your store a pleasant experience whether you’re using the latest Macbook or a two-year-old smartphone. </strong></p>
-                    <p>Its intuitive interface is designed to aid your staff in daily routines like order management, inventory tracking or reporting. Saleor dashboard’s friendly home screen will also suggest items that may need your attention so you always stay on top of things.</p>
+                    <p>Easy-to-use dashboard makes managing your store a pleasant experience whether you’re using the latest Macbook or a two-year-old smartphone.</p>
+                    <p className="text-light">Its intuitive interface is designed to aid your staff in daily routines like order management, inventory tracking or reporting. Saleor dashboard’s friendly home screen will also suggest items that may need your attention so you always stay on top of things.</p>
                   </div>
                   <div className="decoration">
                     <img src={decoration03} />
@@ -200,8 +200,8 @@ class Home extends Component {
           <div className="section-container">
             <div className="text">
               <h2>Open source</h2>
-              <p><strong>While built and maintained by Mirumee Software, Saleor’s community is among the fastest growing open source ecommerce platforms. </strong></p>
-              <p>What started in 2010 as a humble solution to a local problem has over the years become a platform that many of you rely on in your day to day job. We wouldn’t be here if it wasn’t for all of our great contributors and supporters.</p>
+              <p>While built and maintained by Mirumee Software, Saleor’s community is among the fastest growing open source ecommerce platforms.</p>
+              <p className="text-light">What started in 2010 as a humble solution to a local problem has over the years become a platform that many of you rely on in your day to day job. We wouldn’t be here if it wasn’t for all of our great contributors and supporters.</p>
             </div>
             <div className="stars-bg">
               {isMobileOnly ? (
@@ -303,7 +303,7 @@ class Home extends Component {
         <section className="enterprice-consulting">
           <div className="section-container">
             <h2>Enterprise consulting</h2>
-            <h3>Some situations however call for a custom solution and extra code to be written. In that case, our team can help.</h3>
+            <h4>Some situations however call for a custom solution and extra code to be written. In that case, our team can help.</h4>
             <div className="list grid">
               <div className="col-xs-12 col-sm-6 col-lg-5">
                 <ul>
