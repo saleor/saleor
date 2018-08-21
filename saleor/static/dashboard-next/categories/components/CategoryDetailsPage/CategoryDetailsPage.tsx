@@ -1,4 +1,5 @@
 import Button from "@material-ui/core/Button";
+import gray from "@material-ui/core/colors/grey";
 import { withStyles } from "@material-ui/core/styles";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
@@ -48,11 +49,28 @@ interface CategoryDetailsPageProps {
 }
 
 const decorate = withStyles(theme => ({
+  actions: {
+    borderTop: `1px ${gray[300]} solid`,
+    display: "flex",
+    marginBottom: theme.spacing.unit * 2,
+    marginTop: theme.spacing.unit * 2,
+    paddingTop: theme.spacing.unit * 2,
+    [theme.breakpoints.down("sm")]: {
+      marginTop: theme.spacing.unit
+    }
+  },
   cardContainer: {
     marginTop: theme.spacing.unit * 2,
     [theme.breakpoints.down("md")]: {
       marginTop: theme.spacing.unit
     }
+  },
+  deleteButton: {
+    "&:hover": {
+      backgroundColor: theme.palette.error.dark
+    },
+    backgroundColor: theme.palette.error.main,
+    color: theme.palette.error.contrastText
   }
 }));
 const CategoryDetailsPage = decorate<CategoryDetailsPageProps>(
@@ -105,13 +123,12 @@ const CategoryDetailsPage = decorate<CategoryDetailsPageProps>(
                   <CategoryProperties
                     description={category ? category.description : undefined}
                     onEdit={onEdit}
-                    onDelete={toggleDialog}
                   />
                 )}
                 <div className={isRoot ? undefined : classes.cardContainer}>
                   <CategoryList
                     categories={subcategories}
-                    displayTitle={!isRoot}
+                    isRoot={isRoot}
                     onAdd={onAddCategory}
                     onRowClick={onCategoryClick}
                   />
@@ -132,6 +149,17 @@ const CategoryDetailsPage = decorate<CategoryDetailsPageProps>(
                   </div>
                 )}
               </div>
+              {!isRoot && (
+                <div className={classes.actions}>
+                  <Button
+                    variant="contained"
+                    onClick={toggleDialog}
+                    className={classes.deleteButton}
+                  >
+                    {i18n.t("Remove category")}
+                  </Button>
+                </div>
+              )}
             </Container>
             {category && (
               <CategoryDeleteDialog
