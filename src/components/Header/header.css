@@ -80,13 +80,6 @@ header {
   }
 
   & .menu {
-    &.newsbar {
-      & ul.mobile-btn {
-        & li.menu-icon {
-          top: calc(var(--spacer) * 4);
-        }
-      }
-    }
     & ul {
       display: flex;
       justify-content: space-between;
@@ -137,7 +130,7 @@ header {
         display: block;
         visibility: visible;
         opacity: 1;
-        position: fixed;
+        position: absolute;
         left: 0;
         top: 0;
         z-index: 998;
@@ -209,7 +202,7 @@ header {
             }
             width: 40px;
             height: 40px;
-            position: fixed;
+            position: absolute;
             top: calc(var(--spacer) * 1.7);
             right: var(--spacer);
             transform: rotate(0deg);
@@ -248,8 +241,9 @@ header {
             }
             &.open {
               display: block;
+              position: fixed;
               top: calc(var(--spacer) * 2);
-              right: var(--spacer);
+              right: calc(var(--spacer) * 1.4);
               z-index: 999;
             }
           }
