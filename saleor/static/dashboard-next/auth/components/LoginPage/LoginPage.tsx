@@ -125,6 +125,7 @@ const LoginCard = decorate<LoginCardProps>(
                 color="secondary"
                 variant="raised"
                 onClick={handleSubmit}
+                type="submit"
               >
                 {i18n.t("Login")}
               </Button>
