@@ -18,24 +18,24 @@ interface CategoryListProps {
     id: string;
     name: string;
   }>;
-  displayTitle?: boolean;
+  isRoot: boolean;
   onAdd?();
   onRowClick?(id: string): () => void;
 }
 
 const CategoryList: React.StatelessComponent<CategoryListProps> = ({
   categories,
-  displayTitle,
+  isRoot,
   onAdd,
   onRowClick
 }) => (
   <Card>
-    {displayTitle && (
+    {!isRoot && (
       <CardTitle
-        title={i18n.t("Categories")}
+        title={i18n.t("Subcategories")}
         toolbar={
           <Button color="secondary" variant="flat" onClick={onAdd}>
-            {i18n.t("Add category")}
+            {i18n.t("Add subcategory")}
           </Button>
         }
       />

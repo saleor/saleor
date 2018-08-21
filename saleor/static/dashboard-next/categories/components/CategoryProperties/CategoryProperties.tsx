@@ -11,26 +11,19 @@ import i18n from "../../../i18n";
 interface CategoryPropertiesProps {
   description?: string;
   onEdit?();
-  onDelete?();
 }
 
 const CategoryProperties: React.StatelessComponent<CategoryPropertiesProps> = ({
   description,
-  onDelete,
   onEdit
 }) => (
   <Card>
     <CardTitle
       title={i18n.t("Details")}
       toolbar={
-        <>
-          <Button variant="flat" color="secondary" onClick={onEdit}>
-            {i18n.t("Edit category")}
-          </Button>
-          <Button variant="flat" color="secondary" onClick={onDelete}>
-            {i18n.t("Remove category")}
-          </Button>
-        </>
+        <Button variant="flat" color="secondary" onClick={onEdit}>
+          {i18n.t("Edit category")}
+        </Button>
       }
     />
     <CardContent>
