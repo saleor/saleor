@@ -62,11 +62,16 @@ class PaymentMethod(models.Model):
     def get_tax_money(self):
         return self._get_money(self.tax)
 
-    def authorize(self):
+    def get_auth_transaction(self):
+        txn = self.transactions.get(
+            transaction_type=TransactionType.AUTH, is_success=True)
+        return txn
+
+    def authorize(self, client_token):
         # FIXME
         from . import utils
-
-        return utils.gateway_authorize(payment_method=self)
+        return utils.gateway_authorize(
+            payment_method=self, transaction_token=client_token)
 
     def void(self):
         # FIXME
