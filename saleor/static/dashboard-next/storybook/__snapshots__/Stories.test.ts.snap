@@ -27284,7 +27284,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
                   >
                     <div
                       class="MuiAvatar-root-id Component-avatar-id"
@@ -27305,7 +27305,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
                   >
                     <div
                       class="MuiAvatar-root-id Component-avatar-id"
@@ -28070,7 +28070,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
                   >
                     <div
                       class="MuiAvatar-root-id Component-avatar-id"
@@ -28091,7 +28091,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
                   >
                     <div
                       class="MuiAvatar-root-id Component-avatar-id"
@@ -34331,7 +34331,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
                   >
                     <div
                       class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
@@ -34360,7 +34360,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
                   >
                     <div
                       class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
@@ -34389,7 +34389,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id false"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
                   >
                     <div
                       class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
