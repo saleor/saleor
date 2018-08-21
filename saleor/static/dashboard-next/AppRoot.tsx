@@ -126,6 +126,7 @@ const decorate = withStyles(
       display: "flex" as "flex",
       height: 40,
       paddingLeft: 0,
+      textDecoration: "none" as "none",
       transition: theme.transitions.duration.standard + "ms"
     },
     menuListItemText: {
@@ -197,7 +198,7 @@ interface IMenuItem {
 }
 interface MenuListProps {
   menuItems: IMenuItem[];
-  onMenuItemClick: (url: string) => void;
+  onMenuItemClick: (url: string, event: React.MouseEvent<any>) => void;
 }
 const MenuList = decorate<MenuListProps>(
   ({ classes, menuItems, onMenuItemClick }) => (
@@ -231,9 +232,10 @@ const MenuList = decorate<MenuListProps>(
           );
         }
         return (
-          <div
+          <a
             className={classes.menuListItem}
-            onClick={() => onMenuItemClick(menuItem.url)}
+            href={"/dashboard/next" + menuItem.url}
+            onClick={event => onMenuItemClick(menuItem.url, event)}
             key={menuItem.label}
           >
             {menuItem.icon}
@@ -243,7 +245,7 @@ const MenuList = decorate<MenuListProps>(
             >
               {menuItem.label}
             </Typography>
-          </div>
+          </a>
         );
       })}
     </div>
@@ -294,106 +296,118 @@ export const AppRoot = decorate(
         <UserContext.Consumer>
           {({ logout, user }) => (
             <Navigator>
-              {navigate => (
-                <div className={classes.appFrame}>
-                  <AppBar className={classes.appBar}>
-                    <Toolbar disableGutters className={classes.toolBarMenu}>
-                      <IconButton
-                        color="inherit"
-                        aria-label="open drawer"
-                        onClick={() =>
-                          this.setState(({ open }) => ({
-                            open: !open
-                          }))
-                        }
-                        className={classes.menuButton}
+              {navigate => {
+                const handleMenuItemClick = (
+                  url: string,
+                  event: React.MouseEvent<any>
+                ) => {
+                  event.preventDefault();
+                  navigate(url);
+                };
+                return (
+                  <div className={classes.appFrame}>
+                    <AppBar className={classes.appBar}>
+                      <Toolbar disableGutters className={classes.toolBarMenu}>
+                        <IconButton
+                          color="inherit"
+                          aria-label="open drawer"
+                          onClick={() =>
+                            this.setState(({ open }) => ({
+                              open: !open
+                            }))
+                          }
+                          className={classes.menuButton}
+                        >
+                          <MenuIcon />
+                        </IconButton>
+                        <SVG className={classes.logo} src={saleorLogo} />
+                      </Toolbar>
+                      <Toolbar
+                        disableGutters
+                        className={classes.toolBarContent}
                       >
-                        <MenuIcon />
-                      </IconButton>
-                      <SVG className={classes.logo} src={saleorLogo} />
-                    </Toolbar>
-                    <Toolbar disableGutters className={classes.toolBarContent}>
-                      <Container className={classes.container} width="md">
-                        <div className={classes.spacer} />
-                        <MenuToggle ariaOwns="user-menu">
-                          {({
-                            anchor,
-                            actions: { open: openMenu, close: closeMenu }
-                          }) => {
-                            const handleLogout = () => {
-                              close();
-                              logout();
-                            };
-                            return (
-                              <>
-                                <div
-                                  className={classes.email}
-                                  onClick={!!anchor ? closeMenu : openMenu}
-                                >
-                                  <Typography
-                                    className={classes.emailLabel}
-                                    component="span"
-                                    variant="subheading"
+                        <Container className={classes.container} width="md">
+                          <div className={classes.spacer} />
+                          <MenuToggle ariaOwns="user-menu">
+                            {({
+                              anchor,
+                              actions: { open: openMenu, close: closeMenu }
+                            }) => {
+                              const handleLogout = () => {
+                                close();
+                                logout();
+                              };
+                              return (
+                                <>
+                                  <div
+                                    className={classes.email}
+                                    onClick={!!anchor ? closeMenu : openMenu}
                                   >
-                                    {user.email}
-                                  </Typography>
-                                  <ArrowDropdown
-                                    className={[
-                                      classes.arrow,
-                                      !!anchor ? classes.rotate : undefined
-                                    ].join(" ")}
-                                  />
-                                </div>
-                                <Popper
-                                  open={!!anchor}
-                                  anchorEl={anchor}
-                                  transition
-                                  disablePortal
-                                >
-                                  {({ TransitionProps, placement }) => (
-                                    <Grow
-                                      {...TransitionProps}
-                                      style={{
-                                        transformOrigin:
-                                          placement === "bottom"
-                                            ? "right top"
-                                            : "right bottom"
-                                      }}
+                                    <Typography
+                                      className={classes.emailLabel}
+                                      component="span"
+                                      variant="subheading"
                                     >
-                                      <Paper>
-                                        <ClickAwayListener
-                                          onClickAway={closeMenu}
-                                        >
-                                          <Menu>
-                                            <MenuItem onClick={handleLogout}>
-                                              {i18n.t("Logout", {
-                                                context: "button"
-                                              })}
-                                            </MenuItem>
-                                          </Menu>
-                                        </ClickAwayListener>
-                                      </Paper>
-                                    </Grow>
-                                  )}
-                                </Popper>
-                              </>
-                            );
-                          }}
-                        </MenuToggle>
-                      </Container>
-                    </Toolbar>
-                  </AppBar>
-                  <ResponsiveDrawer onClose={this.closeDrawer} open={open}>
-                    <div className={classes.menuList}>
-                      <MenuList
-                        menuItems={menuStructure}
-                        onMenuItemClick={navigate}
-                      />
-                    </div>
-                  </ResponsiveDrawer>
-                  <main className={classes.content}>{children}</main>
-                </div>
-              )}
+                                      {user.email}
+                                    </Typography>
+                                    <ArrowDropdown
+                                      className={[
+                                        classes.arrow,
+                                        !!anchor ? classes.rotate : undefined
+                                      ].join(" ")}
+                                    />
+                                  </div>
+                                  <Popper
+                                    open={!!anchor}
+                                    anchorEl={anchor}
+                                    transition
+                                    disablePortal
+                                  >
+                                    {({ TransitionProps, placement }) => (
+                                      <Grow
+                                        {...TransitionProps}
+                                        style={{
+                                          transformOrigin:
+                                            placement === "bottom"
+                                              ? "right top"
+                                              : "right bottom"
+                                        }}
+                                      >
+                                        <Paper>
+                                          <ClickAwayListener
+                                            onClickAway={closeMenu}
+                                          >
+                                            <Menu>
+                                              <MenuItem onClick={handleLogout}>
+                                                {i18n.t("Logout", {
+                                                  context: "button"
+                                                })}
+                                              </MenuItem>
+                                            </Menu>
+                                          </ClickAwayListener>
+                                        </Paper>
+                                      </Grow>
+                                    )}
+                                  </Popper>
+                                </>
+                              );
+                            }}
+                          </MenuToggle>
+                        </Container>
+                      </Toolbar>
+                    </AppBar>
+                    <ResponsiveDrawer onClose={this.closeDrawer} open={open}>
+                      <div className={classes.menuList}>
+                        <MenuList
+                          menuItems={menuStructure}
+                          onMenuItemClick={handleMenuItemClick}
+                        />
+                      </div>
+                    </ResponsiveDrawer>
+                    <main className={classes.content}>{children}</main>
+                  </div>
+                );
+              }}
             </Navigator>
           )}
         </UserContext.Consumer>
