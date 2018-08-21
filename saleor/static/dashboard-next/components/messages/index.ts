@@ -4,7 +4,7 @@ export interface IMessage {
   text: string;
   onUndo?: () => void;
 }
-export const MessageContext = createContext((message: IMessage) => {});
+export const MessageContext = createContext(undefined);
 
 export * from "./MessageManager";
 export default MessageContext.Consumer;
