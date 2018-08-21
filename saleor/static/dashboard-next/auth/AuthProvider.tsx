@@ -11,10 +11,12 @@ import {
 import TokenAuthProvider from "./containers/TokenAuth";
 import TokenVerifyProvider from "./containers/TokenVerify";
 
-const AuthProviderOperations: React.StatelessComponent<any> = ({
-  children,
-  onError
-}) => {
+interface AuthProviderOperationsProps {
+  onError?: () => void;
+}
+const AuthProviderOperations: React.StatelessComponent<
+  AuthProviderOperationsProps
+> = ({ children, onError }) => {
   return (
     <TokenAuthProvider onError={onError}>
       {tokenAuth => (

@@ -19,7 +19,6 @@ import * as React from "react";
 import i18n from "../../i18n";
 import DateFormatter from "../DateFormatter";
 
-interface TimelineProps {}
 interface TimelineNodeProps {
   date: string;
   title: string;
@@ -37,85 +36,19 @@ interface TimelineAddNoteProps {
 }
 
 const decorate = withStyles(theme => ({
-  root: {
-    marginLeft: theme.spacing.unit * 5.5,
-    paddingLeft: theme.spacing.unit * 3,
-    borderStyle: "solid",
-    borderWidth: "0 0 0 2px",
-    borderColor: grey[300]
-  },
   avatar: {
     alignSelf: "flex-start" as "flex-start",
     marginRight: theme.spacing.unit * 5.5
   },
   cardActions: {
     direction: "rtl" as "rtl",
+    display: "block" as "block",
     maxHeight: 0,
-    transitionDuration: "200ms",
     overflow: "hidden" as "hidden",
-    display: "block" as "block"
+    transitionDuration: "200ms"
   },
   cardActionsExpanded: {
     maxHeight: theme.spacing.unit * 6
-  },
-  nodeDot: {
-    position: "relative" as "relative",
-    left: -theme.spacing.unit * 4 - 1,
-    width: theme.spacing.unit * 2,
-    height: theme.spacing.unit * 2,
-    backgroundColor: theme.palette.secondary.main,
-    borderRadius: "100%",
-    borderStyle: "solid",
-    borderWidth: 2,
-    borderColor: grey[300]
-  },
-  nodeRoot: {
-    marginBottom: theme.spacing.unit * 3,
-    display: "flex",
-    width: "100%",
-    position: "relative" as "relative",
-    alignItems: "center",
-    minHeight: theme.spacing.unit * 8,
-    "&:last-child:after": {
-      content: "''",
-      position: "absolute" as "absolute",
-      width: "2px",
-      height: `calc(50% - ${theme.spacing.unit}px)`,
-      background: theme.palette.background.default,
-      top: `calc(50% + ${theme.spacing.unit}px)`,
-      left: `${-theme.spacing.unit * 3 - 2}px`
-    }
-  },
-  nodeDate: {
-    position: "absolute" as "absolute",
-    right: theme.spacing.unit * 3
-  },
-  noteRoot: {
-    position: "relative" as "relative",
-    left: -theme.spacing.unit * 8.5 - 1,
-    width: `calc(100% + ${theme.spacing.unit * 8.5}px)`,
-    marginBottom: theme.spacing.unit * 3
-  },
-  noteTitle: {
-    display: "flex" as "flex",
-    alignItems: "center" as "center"
-  },
-  noteUser: {
-    marginLeft: theme.spacing.unit * 5.5
-  },
-  noteDate: {
-    position: "absolute" as "absolute",
-    right: theme.spacing.unit * 7
-  },
-  noteContent: {
-    paddingLeft: theme.spacing.unit * 10.5
-  },
-  panel: {
-    background: "none",
-    width: "100%",
-    "&:before": {
-      display: "none"
-    }
   },
   noExpander: {
     marginLeft: theme.spacing.unit * 3
@@ -123,6 +56,73 @@ const decorate = withStyles(theme => ({
   noExpanderNodeDate: {
     position: "absolute" as "absolute",
     right: theme.spacing.unit * 7
+  },
+  nodeDate: {
+    position: "absolute" as "absolute",
+    right: theme.spacing.unit * 3
+  },
+  nodeDot: {
+    backgroundColor: theme.palette.secondary.main,
+    borderColor: grey[300],
+    borderRadius: "100%",
+    borderStyle: "solid",
+    borderWidth: 2,
+    height: theme.spacing.unit * 2,
+    left: -theme.spacing.unit * 4 - 1,
+    position: "relative" as "relative",
+    width: theme.spacing.unit * 2
+  },
+  nodeRoot: {
+    "&:last-child:after": {
+      background: theme.palette.background.default,
+      content: "''",
+      height: `calc(50% - ${theme.spacing.unit}px)`,
+      left: `${-theme.spacing.unit * 3 - 2}px`,
+      position: "absolute" as "absolute",
+      top: `calc(50% + ${theme.spacing.unit}px)`,
+      width: "2px"
+    },
+    alignItems: "center",
+    display: "flex",
+    marginBottom: theme.spacing.unit * 3,
+    minHeight: theme.spacing.unit * 8,
+    position: "relative" as "relative",
+    width: "100%"
+  },
+  noteContent: {
+    paddingLeft: theme.spacing.unit * 10.5
+  },
+  noteDate: {
+    position: "absolute" as "absolute",
+    right: theme.spacing.unit * 7
+  },
+  noteRoot: {
+    left: -theme.spacing.unit * 8.5 - 1,
+    marginBottom: theme.spacing.unit * 3,
+    position: "relative" as "relative",
+    width: `calc(100% + ${theme.spacing.unit * 8.5}px)`
+  },
+  noteTitle: {
+    alignItems: "center" as "center",
+    display: "flex" as "flex"
+  },
+  noteUser: {
+    marginLeft: theme.spacing.unit * 5.5
+  },
+  panel: {
+    "&:before": {
+      display: "none"
+    },
+    background: "none",
+    width: "100%"
+  },
+
+  root: {
+    borderColor: grey[300],
+    borderStyle: "solid",
+    borderWidth: "0 0 0 2px",
+    marginLeft: theme.spacing.unit * 5.5,
+    paddingLeft: theme.spacing.unit * 3
   }
 }));
 const palette = [
@@ -144,7 +144,7 @@ const palette = [
   colors.yellow
 ].map(color => color[500]);
 
-export const Timeline = decorate<TimelineProps>(({ classes, children }) => (
+export const Timeline = decorate(({ classes, children }) => (
   <div className={classes.root}>{children}</div>
 ));
 export const TimelineNode = decorate<TimelineNodeProps>(

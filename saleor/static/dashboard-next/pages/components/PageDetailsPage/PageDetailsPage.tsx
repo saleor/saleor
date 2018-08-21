@@ -1,5 +1,4 @@
 import { withStyles } from "@material-ui/core/styles";
-import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
 import { Container } from "../../../components/Container";
@@ -64,11 +63,12 @@ const PageDetailsPage = decorate<PageDetailsPageProps>(
     onSubmit
   }) => (
     <PageForm
+      errors={errors}
       key={page ? "ready" : "loading"}
       initial={page ? page : defaultPage}
       onSubmit={onSubmit}
     >
-      {({ change, data, hasChanged, submit }) => (
+      {({ change, data, errors, hasChanged, submit }) => (
         <Toggle>
           {(opened, { toggle: togglePageDeleteDialog }) => (
             <Container width="md">
@@ -77,6 +77,7 @@ const PageDetailsPage = decorate<PageDetailsPageProps>(
                 <div className={classes.root}>
                   <div>
                     <PageContent
+                      errors={errors}
                       loading={disabled}
                       onChange={change}
                       content={data.content}

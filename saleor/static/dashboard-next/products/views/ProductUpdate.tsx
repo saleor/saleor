@@ -152,7 +152,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                             onBack={() => {
                               navigate(productListUrl);
                             }}
-                            onDelete={deleteProduct.mutate}
+                            onDelete={() => deleteProduct.mutate({ id })}
                             onProductShow={() => {
                               if (product) {
                                 window.open(product.url);

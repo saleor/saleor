@@ -88,6 +88,7 @@ storiesOf("Views / Products / Product edit", module)
       disabled={true}
       placeholderImage={placeholderImage}
       onAttributesEdit={undefined}
+      onDelete={undefined}
       onImageDelete={() => undefined}
       onVariantShow={() => undefined}
     />
