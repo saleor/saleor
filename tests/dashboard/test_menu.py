@@ -266,7 +266,7 @@ def test_view_ajax_menu_links(admin_client, collection, category, page):
         'text': str(category)}
     page_repr = {
         'id': str(page.pk) + '_' + 'Page',
-        'text': str(page)}
+        'text': str(page) + ' (Not published)'}
     groups = [
         {'text': 'Collection', 'children': [collection_repr]},
         {'text': 'Category', 'children': [category_repr]},
@@ -361,3 +361,28 @@ def test_get_menus_that_needs_update(category, collection, page):
     result = get_menus_that_needs_update(
         categories=[category], collection=collection, page=page)
     assert sorted(list(result)) == sorted([m.pk for m in menus])
+
+
+def test_menu_item_status(menu, default_category, collection, page):
+    item = MenuItem.objects.create(name='Name', menu=menu)
+    assert item.is_public()
+
+    item = MenuItem.objects.create(
+        name='Name', menu=menu, collection=collection)
+    assert item.is_public()
+    collection.is_published = False
+    collection.save()
+    item.refresh_from_db()
+    assert not item.is_public()
+
+    item = MenuItem.objects.create(
+        name='Name', menu=menu, category=default_category)
+    assert item.is_public()
+
+    item = MenuItem.objects.create(
+        name='Name', menu=menu, page=page)
+    assert not item.is_public()
+    page.is_visible = True
+    page.save()
+    item.refresh_from_db()
+    assert item.is_public()
