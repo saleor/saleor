@@ -396,7 +396,7 @@ GS_MEDIA_BUCKET_NAME = os.environ.get('GS_MEDIA_BUCKET_NAME')
 # If GOOGLE_APPLICATION_CREDENTIALS is set with path to JSON credentials,
 # there is no need to load OAuth token
 # See https://django-storages.readthedocs.io/en/latest/backends/gcloud.html
-if not os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
+if 'GOOGLE_APPLICATION_CREDENTIALS' not in os.environ:
     GS_CREDENTIALS = os.environ.get('GS_CREDENTIALS')
 
 GS_PROJECT_ID = os.environ.get('GS_PROJECT_ID')
