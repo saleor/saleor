@@ -45,7 +45,7 @@ Make sure that "**Set up PATH environment variable to include GTK+**" is selecte
 Compilers
 ~~~~~~~~~
 
-Please download and install the latest version of `Visual C++ build tools <https://landinghub.visualstudio.com/visual-cpp-build-tools>`_.
+Please download and install the latest version of `Visual C++ build tools <https://go.microsoft.com/fwlink/?linkid=840931>`_.
 
 
 Installation
