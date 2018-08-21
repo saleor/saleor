@@ -51,6 +51,6 @@ class AssignHomepageCollectionForm(forms.ModelForm):
         homepage_collection = cleaned_data['homepage_collection']
         if homepage_collection and not homepage_collection.is_published:
             self.add_error('homepage_collection', pgettext_lazy(
-                'Homepage collection assign form error', 
+                'Homepage collection assign form error',
                 'Selected collection is not published'))
         return cleaned_data
