@@ -1,6 +1,7 @@
 import * as React from "react";
-import i18n from "../i18n";
+import Navigator from "../components/Navigator";
 
+import i18n from "../i18n";
 import AccountCircle from "../icons/AccountCircle";
 import Ballot from "../icons/Ballot";
 import Folder from "../icons/Folder";
@@ -9,6 +10,7 @@ import Monetization from "../icons/Monetization";
 import Navigation from "../icons/Navigation";
 import Pages from "../icons/Pages";
 import StoreMall from "../icons/StoreMall";
+import ConfigurationPage from "./ConfigurationPage";
 
 export const configurationMenu = [
   {
@@ -68,3 +70,12 @@ export const configurationMenu = [
     url: "/pages/"
   }
 ];
+
+export const ConfigurationSection: React.StatelessComponent = () => (
+  <Navigator>
+    {navigate => (
+      <ConfigurationPage menu={configurationMenu} onSectionClick={navigate} />
+    )}
+  </Navigator>
+);
+export default ConfigurationSection;
