@@ -33,7 +33,7 @@ class CheckoutCreateInput(graphene.InputObjectType):
 class CheckoutCreate(ModelMutation):
     class Arguments:
         input = CheckoutCreateInput(
-            required=True, description='Data required to create Checkout')
+            required=True, description='Fields required to create Checkout')
 
     class Meta:
         description = 'Create a new Checkout'

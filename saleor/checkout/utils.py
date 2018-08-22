@@ -901,6 +901,6 @@ def ready_to_place_order(cart: Cart):
                 'order placement error', 'Shipping address is not set')
     if not is_fully_paid(cart):
         return False, pgettext_lazy(
-            'order placement error', 'CHeckout is not fully paid')
+            'order placement error', 'Checkout is not fully paid')
 
     return True, None
