@@ -52,7 +52,7 @@ export function createPaginationData(
       url +
         "?" +
         stringify({
-          after: pageInfo.endCursor
+          after: encodeURIComponent(pageInfo.endCursor)
         }),
       true
     );
@@ -65,7 +65,7 @@ export function createPaginationData(
       url +
         "?" +
         stringify({
-          before: pageInfo.startCursor
+          before: encodeURIComponent(pageInfo.startCursor)
         }),
       true
     );
