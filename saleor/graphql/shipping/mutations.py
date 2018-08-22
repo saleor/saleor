@@ -111,7 +111,7 @@ class ShippingPriceMixin(object):
                     'minimum_order_weight',
                     'Minimum order weight is required for'
                     ' Weight Based shipping.'))
-            elif max_weight is not None and max_weight <= min_price:
+            elif max_weight is not None and max_weight <= min_weight:
                 field_errors.append((
                     'maximum_order_weight',
                     'Maximum order weight should be larger than the minimum.'))
