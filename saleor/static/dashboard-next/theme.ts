@@ -103,9 +103,6 @@ export default createMuiTheme({
           paddingLeft: 24 + "px",
           textAlign: "left" as "left"
         },
-        "&:last-child": {
-          textAlign: "right" as "right"
-        },
         paddingLeft: 0,
         textAlign: "center" as "center"
       }

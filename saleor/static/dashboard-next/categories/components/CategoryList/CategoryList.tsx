@@ -1,11 +1,11 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListItemText from "@material-ui/core/ListItemText";
-import ListSubheader from "@material-ui/core/ListSubheader";
-import Folder from "@material-ui/icons/Folder";
+import { withStyles } from "@material-ui/core/styles";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableHead from "@material-ui/core/TableHead";
+import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
@@ -17,51 +17,106 @@ interface CategoryListProps {
   categories?: Array<{
     id: string;
     name: string;
+    children: {
+      totalCount: number;
+    };
+    products: {
+      totalCount: number;
+    };
   }>;
   isRoot: boolean;
   onAdd?();
   onRowClick?(id: string): () => void;
 }
 
-const CategoryList: React.StatelessComponent<CategoryListProps> = ({
-  categories,
-  isRoot,
-  onAdd,
-  onRowClick
-}) => (
-  <Card>
-    {!isRoot && (
-      <CardTitle
-        title={i18n.t("Subcategories")}
-        toolbar={
-          <Button color="secondary" variant="flat" onClick={onAdd}>
-            {i18n.t("Add subcategory")}
-          </Button>
-        }
-      />
-    )}
-    <List>
-      {renderCollection(
-        categories,
-        category => (
-          <ListItem
-            button={!!category && !!onRowClick}
-            key={category ? category.id : "skeleton"}
-            onClick={category && onRowClick && onRowClick(category.id)}
-          >
-            <ListItemIcon>
-              <Folder />
-            </ListItemIcon>
-            <ListItemText>
-              {category ? category.name : <Skeleton />}
-            </ListItemText>
-          </ListItem>
-        ),
-        () => (
-          <ListSubheader>{i18n.t("No categories found")}</ListSubheader>
-        )
+const decorate = withStyles(theme => ({
+  centerText: {
+    textAlign: "center" as "center"
+  },
+  tableRow: {
+    cursor: "pointer" as "pointer"
+  },
+  wideColumn: {
+    width: "100%"
+  }
+}));
+
+const CategoryList = decorate<CategoryListProps>(
+  ({ categories, classes, isRoot, onAdd, onRowClick }) => (
+    <Card>
+      {!isRoot && (
+        <CardTitle
+          title={i18n.t("Subcategories")}
+          toolbar={
+            <Button color="secondary" variant="flat" onClick={onAdd}>
+              {i18n.t("Add subcategory")}
+            </Button>
+          }
+        />
       )}
-    </List>
-  </Card>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell className={classes.wideColumn}>
+              {i18n.t("Name", { context: "object" })}
+            </TableCell>
+            <TableCell>
+              {i18n.t("Subcategories", { context: "object" })}
+            </TableCell>
+            <TableCell className={classes.centerText}>
+              {i18n
+                .t("No. Products", { context: "object" })
+                .replace(" ", "\xa0")}
+            </TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {renderCollection(
+            categories,
+            category => (
+              <TableRow
+                className={classes.tableRow}
+                hover={!!category}
+                onClick={category ? onRowClick(category.id) : undefined}
+                key={category ? category.id : "skeleton"}
+              >
+                <TableCell>
+                  {category && category.name ? category.name : <Skeleton />}
+                </TableCell>
+                <TableCell>
+                  {category &&
+                  category.children &&
+                  category.children.totalCount !== undefined ? (
+                    category.children.totalCount
+                  ) : (
+                    <Skeleton />
+                  )}
+                </TableCell>
+                <TableCell className={classes.centerText}>
+                  {category &&
+                  category.products &&
+                  category.products.totalCount !== undefined ? (
+                    category.products.totalCount
+                  ) : (
+                    <Skeleton />
+                  )}
+                </TableCell>
+              </TableRow>
+            ),
+            () => (
+              <TableRow>
+                <TableCell colSpan={3}>
+                  {isRoot
+                    ? i18n.t("No categories found")
+                    : i18n.t("No subcategories found")}
+                </TableCell>
+              </TableRow>
+            )
+          )}
+        </TableBody>
+      </Table>
+    </Card>
+  )
 );
+CategoryList.displayName = "CategoryList";
 export default CategoryList;

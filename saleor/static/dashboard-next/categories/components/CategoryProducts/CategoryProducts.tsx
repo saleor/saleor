@@ -66,7 +66,7 @@ export const ProductList = decorate<ProductListProps>(
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell />
+            {(products === undefined || products.length > 0) && <TableCell />}
             <TableCell className={classes.textLeft}>
               {i18n.t("Name", { context: "object" })}
             </TableCell>

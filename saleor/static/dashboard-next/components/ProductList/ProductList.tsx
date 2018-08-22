@@ -28,6 +28,9 @@ const decorate = withStyles(theme => ({
   },
   textLeft: {
     textAlign: "left" as "left"
+  },
+  textRight: {
+    textAlign: "right" as "right"
   }
 }));
 
@@ -59,13 +62,15 @@ export const ProductList = decorate<ProductListProps>(
     <Table>
       <TableHead>
         <TableRow>
-          <TableCell />
+          {(products === undefined || products.length > 0) && <TableCell />}
           <TableCell className={classes.textLeft}>
             {i18n.t("Name", { context: "object" })}
           </TableCell>
           <TableCell>{i18n.t("Type", { context: "object" })}</TableCell>
           <TableCell>{i18n.t("Published", { context: "object" })}</TableCell>
-          <TableCell>{i18n.t("Price", { context: "object" })}</TableCell>
+          <TableCell className={classes.textRight}>
+            {i18n.t("Price", { context: "object" })}
+          </TableCell>
         </TableRow>
       </TableHead>
       <TableFooter>
@@ -120,7 +125,7 @@ export const ProductList = decorate<ProductListProps>(
                   <Skeleton />
                 )}
               </TableCell>
-              <TableCell>
+              <TableCell className={classes.textRight}>
                 {product &&
                 product.price &&
                 product.price.amount !== undefined &&
