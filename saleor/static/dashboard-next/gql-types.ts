@@ -395,6 +395,60 @@ export interface PageDetailsQuery {
   } | null,
 };
 
+export interface ProductTypeListQueryVariables {
+  after?: string | null,
+  before?: string | null,
+  first?: number | null,
+  last?: number | null,
+};
+
+export interface ProductTypeListQuery {
+  // List of the shop's product types.
+  productTypes:  {
+    edges:  Array< {
+      // The item at the end of the edge
+      node:  {
+        // The ID of the object.
+        id: string,
+        name: string,
+        hasVariants: boolean,
+        productAttributes:  {
+          edges:  Array< {
+            // The item at the end of the edge
+            node:  {
+              // The ID of the object.
+              id: string,
+              // Visible name for display purposes.
+              name: string | null,
+            },
+          } >,
+        } | null,
+        variantAttributes:  {
+          edges:  Array< {
+            // The item at the end of the edge
+            node:  {
+              // The ID of the object.
+              id: string,
+              // Visible name for display purposes.
+              name: string | null,
+            },
+          } >,
+        } | null,
+      },
+    } >,
+    pageInfo:  {
+      // When paginating forwards, are there more items?
+      hasNextPage: boolean,
+      // When paginating backwards, are there more items?
+      hasPreviousPage: boolean,
+      // When paginating backwards, the cursor to continue.
+      startCursor: string | null,
+      // When paginating forwards, the cursor to continue.
+      endCursor: string | null,
+    },
+  } | null,
+};
+
 export interface ProductImageCreateMutationVariables {
   product: string,
   image: string,

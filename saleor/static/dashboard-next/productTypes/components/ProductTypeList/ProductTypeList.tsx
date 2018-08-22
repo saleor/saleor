@@ -106,7 +106,7 @@ const ProductTypeList = decorate<ProductTypeListProps>(
                   {productType &&
                   productType.hasVariants &&
                   productType.variantAttributes &&
-                  productType.variantAttributes.edges ? (
+                  productType.variantAttributes.edges !== undefined ? (
                     productType.variantAttributes.edges
                       .map(edge => edge.node.name)
                       .join(", ")
