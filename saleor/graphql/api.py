@@ -59,7 +59,7 @@ from .checkout.mutations import (
     CheckoutCreate, CheckoutLinesAdd, CheckoutLinesUpdate, CheckoutLineDelete,
     CheckoutCustomerAttach, CheckoutCustomerDetach,
     CheckoutShippingAddressUpdate, CheckoutEmailUpdate, CheckoutComplete)
-from .checkout.resolvers import resolve_checkouts
+from .checkout.resolvers import resolve_checkouts, resolve_checkout_lines
 from .shop.mutations import (
     AuthorizationKeyAdd, AuthorizationKeyDelete, HomepageCollectionUpdate,
     ShopDomainUpdate, ShopSettingsUpdate)
@@ -153,8 +153,11 @@ class Query(ProductQueries):
         query=graphene.String(description=DESCRIPTIONS['user']))
     node = graphene.Node.Field()
 
-    def resolve_cart_line(self, info, id):
+    def resolve_checkout_line(self, info, id):
         return get_node(info, id, only_type=CheckoutLine)
+
+    def resolve_checkout_lines(self, info, query=None, **kwargs):
+        return resolve_checkout_lines(info, query)
 
     def resolve_checkouts(self, info, query=None, **kwargs):
         resolve_checkouts(info, query)
