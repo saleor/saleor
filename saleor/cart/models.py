@@ -116,6 +116,13 @@ class AbstractCartModel(models.Model):
                 try:
                     new_line = self.lines.get(release=line.release, backorder=line.backorder)
                     new_line.quantity = new_line.quantity + line.quantity
+                    logger.info('Convert anonymous cart for user {}: {} -> {} + {} = {}'.format(
+                        user,
+                        line.release,
+                        new_line.quantity - line.quantity,
+                        line.quantity,
+                        new_line.quantity
+                    ))
                     new_line.save(update_fields=['quantity'])
                 except line.__class__.DoesNotExist:
                     line.__class__.objects.create(

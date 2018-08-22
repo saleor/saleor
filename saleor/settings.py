@@ -300,6 +300,10 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'CHARTS_ALLOWED_ITEMS',
         'OYE_ORDERS_MAIL',
         'UNPAID_ORDER_RESERVATION_TIMEOUT_MINUTES',
+        'DISCOVER_DISCOGS_RELEASES_ENABLED',
+        'RESERVATION_CANCELLED_RECIPIENT',
+        'SEND_RESERVATION_CANCELLED_MAIL',
+
     )
 }
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -326,7 +330,10 @@ CONSTANCE_CONFIG = {
     'OYE_ORDERS_MAIL': ('orders@oye-records.com', 'Support order mail'),
     'PAYPAL_PAYMENT_ENABLED': (False, 'If set to True Paypal payment is enabled'),
     'DISCOGS_RELEASE_UPTODATE_HOURS': (48, 'Re-evaluate discogs release after this amount of hours'),
-    'UNPAID_ORDER_RESERVATION_TIMEOUT_MINUTES': (30, 'Cancel an unpaid order after this amount of minutes')
+    'UNPAID_ORDER_RESERVATION_TIMEOUT_MINUTES': (30, 'Cancel an unpaid order after this amount of minutes'),
+    'DISCOVER_DISCOGS_RELEASES_ENABLED': (False, 'If set to true fetch for Discogs releases'),
+    'RESERVATION_CANCELLED_RECIPIENT': ('order@oye-records.com,mail@oye-records.com', 'Comma separated list of receipients for order cancellations'),
+    'SEND_RESERVATION_CANCELLED_MAIL': (False, 'If set to True a mail is send out after a reservation has been cancelled'),
 }
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
@@ -465,11 +472,15 @@ APPEND_SLASH = True
 CORS_ORIGIN_WHITELIST = [
     'google.com',
     '127.0.0.1',
+    '192.168.0.3',
+    '192.168.0.3:3000',
     'localhost:8000',
     'localhost:3000',
     'localhost:8080',
     '127.0.0.1:9000',
     '127.0.0.1:8000',
+    '192.168.2.38:3000',
+    '192.168.2.38',
     'local.oye.com:8000',
 ] + os.environ.get('CORS_ORIGIN_WHITELIST', '').split()
 
@@ -516,8 +527,12 @@ CELERY_BROKER_URL = 'amqp://{user}:{password}@{host}:5672/{vhost}'.format(
 CELERY_BROKER_USER = os.environ.get('RABBITMQ_USER', 'guest')
 CELERY_BROKER_PASSWORD = os.environ.get('RABBITMQ_PASSWORD', 'guest')
 CELERY_BROKER_PORT = 5672
-CELERY_BROKER_HOST = 'localhost'
+CELERY_BROKER_HOST = os.environ.get('RABBITMQ_HOST', 'localhost')
 CELERY_TASK_ALWAYS_EAGER = False
+# CELERY_TIMEZONE = 'Europe/Berlin'
+# CELERY_TASK_ACKS_LATE = True
+# CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+# BROKER_POOL_LIMIT
 
 
 CORS_ALLOW_HEADERS = (
@@ -573,3 +588,8 @@ RAVEN_CONFIG = {
     # release based on the git info.
     # 'release': raven.fetch_git_sha(os.path.abspath(os.pardir)),
 }
+
+
+MAILCHIMP_API_KEY = os.environ.get('MAILCHIMP_API_KEY')
+MAILCHIMP_USER = os.environ.get('MAILCHIMP_USER')
+MAILCHIMP_DEFAULT_LIST_ID = os.environ.get('MAILCHIMP_DEFAULT_LIST_ID')
