@@ -130,6 +130,7 @@
             }
             & .sub-description {
               max-width: 360px;
+              font-weight: var(--font-weight-light);
             }
           }
           & .card-grid {

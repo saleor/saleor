@@ -196,7 +196,7 @@
           }
           & p {
             font-size: var(--font-size-base);
-            font-weight: var(--font-weight-medium);
+            font-weight: var(--font-weight-light);
             margin-bottom: calc(var(--spacer) * 2);
             @media (max-width: 1024px) {
               font-size: var(--font-size-base);
@@ -206,9 +206,10 @@
             }
             &:first-of-type {
               width: 60%;
+              font-weight: var(--font-weight-medium);
               @media (max-width: 768px) {
                 width: 100%;
-            }
+              }
             }
           }
         }
@@ -440,6 +441,12 @@
       & .text {
         & h2, & p {
           margin-bottom: calc(var(--spacer) * 2);
+        }
+        & p {
+          font-weight: var(--font-weight-medium);
+        }
+        & .text-light {
+          font-weight: var(--font-weight-light);
         }
         width: 40%;
         @media (max-width: 768px) {

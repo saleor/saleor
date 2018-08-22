@@ -28,6 +28,7 @@
         padding: calc(var(--spacer) * 15) calc(var(--spacer) * 10);
         & p {
           font-size: calc(var(--font-size-base) * 1.3);
+          font-weight: var(--font-weight-light);
         }
         @media (max-width: 1024px) {
           width: 40%;
@@ -129,11 +130,12 @@
             padding-right: calc(var(--spacer) * 3);
             font-size: var(--font-size-base);
             text-transform: initial;
-            font-weight: var(--font-weight-bold);
+            font-weight: var(--font-weight-medium);
           }
           & p {
             padding-bottom: var(--spacer);
             padding-right: calc(var(--spacer) * 3);
+            font-weight: var(--font-weight-light);
             @media (max-width: 578px) {
               padding: 0;
             }
