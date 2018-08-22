@@ -1,5 +1,3 @@
-import datetime
-
 from django.template import Library
 from payments import PaymentStatus
 
