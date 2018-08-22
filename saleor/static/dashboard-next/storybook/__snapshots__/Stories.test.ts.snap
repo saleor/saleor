@@ -756,10 +756,6 @@ exports[`Storyshots Categories / CategoryProducts without initial data 1`] = `
           class="MuiTableRow-root-id MuiTableRow-head-id"
         >
           <th
-            class="MuiTableCell-root-id MuiTableCell-head-id"
-            scope="col"
-          />
-          <th
             class="MuiTableCell-root-id MuiTableCell-head-id Component-textLeft-id"
             scope="col"
           >
@@ -13130,70 +13126,79 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
           <hr
             class="Component-hr-id"
           />
-          <ul
-            class="MuiList-root-id MuiList-padding-id"
+          <table
+            class="MuiTable-root-id"
+            padding="default"
           >
-            <div
-              class="MuiButtonBase-root-id MuiListItem-root-id MuiListItem-default-id MuiListItem-gutters-id MuiListItem-button-id"
-              role="button"
-              tabindex="0"
+            <thead
+              class="MuiTableHead-root-id"
             >
-              <svg
-                aria-hidden="true"
-                class="MuiSvgIcon-root-id MuiListItemIcon-root-id"
-                focusable="false"
-                viewBox="0 0 24 24"
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-head-id"
               >
-                <g>
-                  <path
-                    d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
-                  />
-                </g>
-              </svg>
-              <div
-                class="MuiListItemText-root-id"
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id Component-wideColumn-id"
+                  scope="col"
+                >
+                  Name
+                </th>
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id"
+                  scope="col"
+                >
+                  Subcategories
+                </th>
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
+                  scope="col"
+                >
+                  No. Products
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              class="MuiTableBody-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
               >
-                <span
-                  class="MuiTypography-root-id MuiTypography-subheading-id MuiListItemText-primary-id"
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   Lorem ipsum dolor
-                </span>
-              </div>
-              <span
-                class="MuiTouchRipple-root-id"
-              />
-            </div>
-            <div
-              class="MuiButtonBase-root-id MuiListItem-root-id MuiListItem-default-id MuiListItem-gutters-id MuiListItem-button-id"
-              role="button"
-              tabindex="0"
-            >
-              <svg
-                aria-hidden="true"
-                class="MuiSvgIcon-root-id MuiListItemIcon-root-id"
-                focusable="false"
-                viewBox="0 0 24 24"
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  2
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+                >
+                  4
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
               >
-                <g>
-                  <path
-                    d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
-                  />
-                </g>
-              </svg>
-              <div
-                class="MuiListItemText-root-id"
-              >
-                <span
-                  class="MuiTypography-root-id MuiTypography-subheading-id MuiListItemText-primary-id"
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   Mauris vehicula tortor vulputate
-                </span>
-              </div>
-              <span
-                class="MuiTouchRipple-root-id"
-              />
-            </div>
-          </ul>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  18
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+                >
+                  2
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
       <div
@@ -13712,70 +13717,79 @@ exports[`Storyshots Views / Categories / Category details when in root 1`] = `
         <div
           class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
         >
-          <ul
-            class="MuiList-root-id MuiList-padding-id"
+          <table
+            class="MuiTable-root-id"
+            padding="default"
           >
-            <div
-              class="MuiButtonBase-root-id MuiListItem-root-id MuiListItem-default-id MuiListItem-gutters-id MuiListItem-button-id"
-              role="button"
-              tabindex="0"
+            <thead
+              class="MuiTableHead-root-id"
             >
-              <svg
-                aria-hidden="true"
-                class="MuiSvgIcon-root-id MuiListItemIcon-root-id"
-                focusable="false"
-                viewBox="0 0 24 24"
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-head-id"
               >
-                <g>
-                  <path
-                    d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
-                  />
-                </g>
-              </svg>
-              <div
-                class="MuiListItemText-root-id"
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id Component-wideColumn-id"
+                  scope="col"
+                >
+                  Name
+                </th>
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id"
+                  scope="col"
+                >
+                  Subcategories
+                </th>
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
+                  scope="col"
+                >
+                  No. Products
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              class="MuiTableBody-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
               >
-                <span
-                  class="MuiTypography-root-id MuiTypography-subheading-id MuiListItemText-primary-id"
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   Lorem ipsum dolor
-                </span>
-              </div>
-              <span
-                class="MuiTouchRipple-root-id"
-              />
-            </div>
-            <div
-              class="MuiButtonBase-root-id MuiListItem-root-id MuiListItem-default-id MuiListItem-gutters-id MuiListItem-button-id"
-              role="button"
-              tabindex="0"
-            >
-              <svg
-                aria-hidden="true"
-                class="MuiSvgIcon-root-id MuiListItemIcon-root-id"
-                focusable="false"
-                viewBox="0 0 24 24"
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  2
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+                >
+                  4
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
               >
-                <g>
-                  <path
-                    d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
-                  />
-                </g>
-              </svg>
-              <div
-                class="MuiListItemText-root-id"
-              >
-                <span
-                  class="MuiTypography-root-id MuiTypography-subheading-id MuiListItemText-primary-id"
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   Mauris vehicula tortor vulputate
-                </span>
-              </div>
-              <span
-                class="MuiTouchRipple-root-id"
-              />
-            </div>
-          </ul>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  18
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+                >
+                  2
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -13891,39 +13905,72 @@ exports[`Storyshots Views / Categories / Category details when loading 1`] = `
           <hr
             class="Component-hr-id"
           />
-          <ul
-            class="MuiList-root-id MuiList-padding-id"
+          <table
+            class="MuiTable-root-id"
+            padding="default"
           >
-            <li
-              class="MuiListItem-root-id MuiListItem-default-id MuiListItem-gutters-id"
+            <thead
+              class="MuiTableHead-root-id"
             >
-              <svg
-                aria-hidden="true"
-                class="MuiSvgIcon-root-id MuiListItemIcon-root-id"
-                focusable="false"
-                viewBox="0 0 24 24"
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-head-id"
               >
-                <g>
-                  <path
-                    d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
-                  />
-                </g>
-              </svg>
-              <div
-                class="MuiListItemText-root-id"
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id Component-wideColumn-id"
+                  scope="col"
+                >
+                  Name
+                </th>
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id"
+                  scope="col"
+                >
+                  Subcategories
+                </th>
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
+                  scope="col"
+                >
+                  No. Products
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              class="MuiTableBody-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id Component-tableRow-id"
               >
-                <span
-                  class="MuiTypography-root-id MuiTypography-subheading-id MuiListItemText-primary-id"
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <span
                     class="Skeleton-skeleton-id"
                   >
                     ‌
                   </span>
-                </span>
-              </div>
-            </li>
-          </ul>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
       <div
@@ -26575,7 +26622,7 @@ exports[`Storyshots Views / Products / Create product When loading 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save product
+            Save
           </span>
         </button>
       </div>
@@ -27204,7 +27251,7 @@ exports[`Storyshots Views / Products / Create product default 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save product
+            Save
           </span>
         </button>
       </div>
@@ -29682,7 +29729,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
           <span
             class="MuiButton-label-id"
           >
-            Remove product
+            Remove
           </span>
           <span
             class="MuiTouchRipple-root-id"
@@ -29714,7 +29761,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
           <span
             class="MuiButton-label-id"
           >
-            Save product
+            Save
           </span>
         </button>
       </div>
@@ -30465,7 +30512,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Remove product
+            Remove
           </span>
           <span
             class="MuiTouchRipple-root-id"
@@ -30497,7 +30544,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Save product
+            Save
           </span>
         </button>
       </div>
@@ -31445,7 +31492,7 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
           <span
             class="MuiButton-label-id"
           >
-            Remove product
+            Remove
           </span>
           <span
             class="MuiTouchRipple-root-id"
@@ -31477,7 +31524,7 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
           <span
             class="MuiButton-label-id"
           >
-            Save product
+            Save
           </span>
         </button>
       </div>
@@ -32682,7 +32729,7 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
           <span
             class="MuiButton-label-id"
           >
-            Remove product
+            Remove
           </span>
           <span
             class="MuiTouchRipple-root-id"
@@ -32714,7 +32761,7 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
           <span
             class="MuiButton-label-id"
           >
-            Save product
+            Save
           </span>
         </button>
       </div>
@@ -33318,7 +33365,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               Published
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-textRight-id"
               scope="col"
             >
               Price
@@ -33434,7 +33481,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               </div>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
               XAG 274.99
             </td>
@@ -33477,7 +33524,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               </div>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
               ZWL 432.30
             </td>
@@ -33520,7 +33567,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               </div>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
               XDR 688.35
             </td>
@@ -33563,7 +33610,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               </div>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
               SLL 540
             </td>
@@ -33606,7 +33653,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               </div>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
               AMD 4
             </td>
@@ -33649,7 +33696,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               </div>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
               GMD 538.10
             </td>
@@ -33692,7 +33739,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               </div>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
               CVE 56.91
             </td>
@@ -33735,7 +33782,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               </div>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
               XAG 981.06
             </td>
@@ -33778,7 +33825,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               </div>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
               WST 449.93
             </td>
@@ -33821,7 +33868,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               </div>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
               MGA 591
             </td>
@@ -33913,7 +33960,7 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
               Published
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-textRight-id"
               scope="col"
             >
               Price
@@ -34040,7 +34087,7 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -34114,10 +34161,6 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
-              scope="col"
-            />
-            <th
               class="MuiTableCell-root-id MuiTableCell-head-id Component-textLeft-id"
               scope="col"
             >
@@ -34136,7 +34179,7 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
               Published
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-textRight-id"
               scope="col"
             >
               Price
@@ -34822,7 +34865,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
           <span
             class="MuiButton-label-id"
           >
-            Remove variant
+            Remove
           </span>
           <span
             class="MuiTouchRipple-root-id"
@@ -34854,7 +34897,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
           <span
             class="MuiButton-label-id"
           >
-            Save variant
+            Save
           </span>
         </button>
       </div>
@@ -35242,7 +35285,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
           <span
             class="MuiButton-label-id"
           >
-            Remove variant
+            Remove
           </span>
           <span
             class="MuiTouchRipple-root-id"
@@ -35274,7 +35317,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
           <span
             class="MuiButton-label-id"
           >
-            Save variant
+            Save
           </span>
         </button>
       </div>

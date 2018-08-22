@@ -212,10 +212,6 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                         </div>
                         <SaveButtonBar
                           disabled={loading || !onSubmit || !hasChanged}
-                          labels={{
-                            delete: i18n.t("Remove variant"),
-                            save: i18n.t("Save variant")
-                          }}
                           state={saveButtonBarState}
                           onCancel={onBack}
                           onDelete={toggleDeleteModal}
