@@ -88,13 +88,6 @@ class SeoInput(graphene.InputObjectType):
     description = graphene.String(description='SEO description.')
 
 
-class WeightUnitEnum(graphene.Enum):
-    KILOGRAM = WeightUnits.KILOGRAM
-    POUND = WeightUnits.POUND
-    OUNCE = WeightUnits.OUNCE
-    GRAM = WeightUnits.GRAM
-
-
 class Weight(graphene.ObjectType):
     unit = graphene.String(description='Weight unit', required=True)
     value = graphene.Float(description='Weight value', required=True)

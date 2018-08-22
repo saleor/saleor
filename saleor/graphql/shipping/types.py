@@ -1,9 +1,12 @@
+import decimal
+
 import graphene
 from graphene import relay
 from graphene.types import Scalar
 from graphene_django import DjangoObjectType
 from measurement.measures import Weight
 
+from ...core.weight import convert_weight, get_default_weight_unit
 from ...shipping import ShippingMethodType, models
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import MoneyRange
@@ -39,12 +42,19 @@ class WeightScalar(Scalar):
         """Excepts value to be a string "amount unit"
         separated by a single space.
         """
-        amount, unit = value.split(' ')
-        return Weight(**{unit: amount})
+        try:
+            value = decimal.Decimal(value)
+        except decimal.DecimalException:
+            return None
+        default_unit = get_default_weight_unit()
+        return Weight(**{default_unit: value})
 
     @staticmethod
     def serialize(weight):
         if isinstance(weight, Weight):
+            default_unit = get_default_weight_unit()
+            if weight.unit != default_unit:
+                weight = convert_weight(weight, default_unit)
             return str(weight)
         return None
 

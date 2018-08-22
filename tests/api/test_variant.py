@@ -129,7 +129,7 @@ def test_create_variant(admin_api_client, product, product_type):
         'quantity': quantity,
         'costPrice': cost_price,
         'priceOverride': price_override,
-        'weight': '10 kg',
+        'weight': '10',
         'attributes': [
             {'slug': variant_slug, 'value': variant_value}],
         'trackInventory': True})
