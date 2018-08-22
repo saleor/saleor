@@ -3,11 +3,17 @@ from django.db import transaction
 
 from ...account.models import Address
 from ...checkout import models
-from ...checkout.utils import add_variant_to_cart
+from ...checkout.utils import (
+    add_variant_to_cart, change_shipping_address_in_cart, create_order,
+    ready_to_place_order)
+from ...core import analytics
+from ...core.exceptions import InsufficientStock
 from ..account.types import AddressInput, User
 from ..core.mutations import BaseMutation, ModelMutation
 from ..order.mutations.draft_orders import check_lines_quantity
+from ..order.types import Order
 from ..product.types import ProductVariant
+from ..shipping.types import ShippingMethod
 from ..utils import get_node, get_nodes
 from .types import Checkout, CheckoutLine
 
@@ -193,8 +199,7 @@ class CheckoutShippingAddressUpdate(BaseMutation):
         if checkout and shipping_address:
             with transaction.atomic():
                 shipping_address.save()
-                checkout.shipping_address = shipping_address
-                checkout.save(update_fields=['shipping_address'])
+                change_shipping_address_in_cart(checkout, shipping_address)
         return CheckoutShippingAddressUpdate(checkout=checkout, errors=errors)
 
 class CheckoutEmailUpdate(BaseMutation):
@@ -217,3 +222,58 @@ class CheckoutEmailUpdate(BaseMutation):
             checkout.save(update_fields=['email'])
 
         return CheckoutEmailUpdate(checkout=checkout, errors=errors)
+
+class CheckoutShippingMethodUpdate(BaseMutation):
+    class Arguments:
+        checkout_id = graphene.ID(description='Checkout ID')
+        shipping_method_id = graphene.ID(required=True, description='Shipping method')
+
+    checkout = graphene.Field(Checkout, description='An updated checkout')
+
+    @classmethod
+    def mutate(cls, root, info, checkout_id, shipping_method_id):
+        errors = []
+        checkout = cls.get_node_or_error(
+            info, checkout_id, errors, 'checkout_id', only_type=Checkout)
+        shipping_method = cls.get_node_or_error(
+            info, shipping_method_id, errors, 'shipping_method_id',
+            only_type=ShippingMethod)
+        if checkout:
+            checkout.shipping_method = shipping_method
+            checkout.save(update_fields=['shipping_method'])
+        return CheckoutShippingMethodUpdate(checkout=checkout, errors=errors)
+
+class CheckoutComplete(BaseMutation):
+    class Arguments:
+        checkout_id = graphene.ID(description='Checkout ID')
+
+    order = graphene.Field(Order, description='Placed order')
+
+    @classmethod
+    def mutate(cls, root, info, checkout_id):
+        errors = []
+        checkout = cls.get_node_or_error(
+            info, checkout_id, errors, 'checkout_id', only_type=Checkout)
+        # Check if checkout is ready
+        if not checkout:
+            return CheckoutComplete(errors=errors)
+        ready, checkout_error = ready_to_place_order(checkout)
+        if not ready:
+            cls.add_error(
+                field=None, message=checkout_error, errors=errors)
+            return CheckoutComplete(errors=errors)
+
+        try:
+            order = create_order(
+                cart=checkout,
+                tracking_code=analytics.get_client_id(info.context),
+                # discounts=request.discounts, # FIXME
+                # taxes=get_taxes_for_cart(cart, request.taxes) # FIXME
+                taxes=None,
+                discounts=None)
+        except InsufficientStock:
+            order = None
+            cls.add_error(
+                field=None, message='Insufficient product stock', errors=errors)
+
+        return CheckoutComplete(order=order, errors=errors)

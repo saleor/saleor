@@ -31,6 +31,7 @@ class PaymentMethod(models.Model):
     extra_data = models.TextField(blank=True, default='')
     token = models.CharField(max_length=36, blank=True, default='')
 
+    # refactor to MoneyField
     total = models.DecimalField(
         max_digits=9, decimal_places=2, default=Decimal('0.0'))
     currency = models.CharField(max_length=10)

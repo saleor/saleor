@@ -1,10 +1,12 @@
 import json
+import pytest
 
 import graphene
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 from saleor.checkout.models import Cart
-
+from saleor.payment import TransactionType
+from saleor.order.models import Order
 
 def test_checkout_create(user_api_client, variant):
     """
@@ -366,3 +368,63 @@ def test_checkout_email_update(user_api_client, cart_with_item):
     assert not data['errors']
     cart.refresh_from_db()
     assert cart.email == email
+
+
+@pytest.mark.integration
+def test_checkout_complete(user_api_client, cart_with_item, payment_method_dummy, address, shipping_price):
+    checkout = cart_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_price
+    checkout.save()
+    total = checkout.get_total().gross
+    payment_method = payment_method_dummy
+    payment_method.total = total.amount
+    payment_method.currency = total.currency
+    payment_method.checkout = checkout
+    payment_method.transactions.create(
+        transaction_type=TransactionType.AUTH,
+        is_success=True,
+        gateway_response={},
+        amount=total.amount)
+    payment_method.save()
+
+    checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
+
+    query = """
+    mutation checkoutComplete($checkoutId: ID!) {
+        checkoutComplete(checkoutId: $checkoutId) {
+            order {
+                id,
+                token
+            },
+            errors {
+                field,
+                message
+            }
+        }
+    }
+    """
+    variables = json.dumps({
+        'checkoutId': checkout_id,
+    })
+    assert not Order.objects.exists()
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['checkoutComplete']
+    assert not data['errors']
+    order_token = data['order']['token']
+    order = Order.objects.first()
+    assert order is not None
+    assert order.token == order_token
+    assert order.total.gross == total
+    checkout_line = checkout.lines.first()
+    order_line = order.lines.first()
+    assert checkout_line.quantity == order_line.quantity
+    assert checkout_line.variant == order_line.variant
+    assert order.shipping_address == address
+    assert order.shipping_method == checkout.shipping_method
+    assert order.payment_methods.exists()
+    order_payment_method = order.payment_methods.first()
+    assert order_payment_method == payment_method
