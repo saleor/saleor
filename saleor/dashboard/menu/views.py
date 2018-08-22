@@ -225,12 +225,15 @@ def ajax_menu_links(request):
 
     Response format is that of a Select2 JS widget.
     """
+    def get_obj_text(obj):
+        return str(obj) + ('' if obj.is_published else pgettext(
+            'Menu item pubslished status', ' (Not published)'))
+
     def get_obj_repr(obj):
         obj_id = str(obj.pk) + '_' + obj.__class__.__name__
         return {
             'id': obj_id,
-            'text': str(obj) + ('' if obj.is_published else pgettext(
-                'Menu item pubslished status', ' (Not published)'))}
+            'text': get_obj_text(obj)}
 
     def get_group_repr(model, label, filter_fields, query):
         queryset = model.objects.all()
