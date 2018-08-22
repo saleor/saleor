@@ -2,12 +2,24 @@ import { products } from "../products/fixtures";
 
 export const categories = [
   {
+    children: {
+      totalCount: 2
+    },
     id: "123123",
-    name: "Lorem ipsum dolor"
+    name: "Lorem ipsum dolor",
+    products: {
+      totalCount: 4
+    }
   },
   {
+    children: {
+      totalCount: 18
+    },
     id: "876752",
-    name: "Mauris vehicula tortor vulputate"
+    name: "Mauris vehicula tortor vulputate",
+    products: {
+      totalCount: 2
+    }
   }
 ];
 export const category = (placeholderImage: string) => ({
