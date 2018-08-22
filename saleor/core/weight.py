@@ -16,11 +16,10 @@ from decimal import Decimal
 
 from django import forms
 from django.contrib.sites.models import Site
+from django.core.validators import MinValueValidator
 from django.template.loader import render_to_string
 from django.utils.translation import pgettext_lazy
 from measurement.measures import Weight
-
-from django.core.validators import MinValueValidator
 
 
 class WeightUnits:

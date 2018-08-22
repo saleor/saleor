@@ -24,7 +24,7 @@ from ..core.exceptions import InsufficientStock
 from ..core.models import SortableModel
 from ..core.utils.taxes import DEFAULT_TAX_RATE_NAME, apply_tax_to_price
 from ..core.utils.translations import TranslationProxy
-from ..core.weight import zero_weight, WeightUnits
+from ..core.weight import WeightUnits, zero_weight
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
 

@@ -5,7 +5,6 @@ from graphene.types import Scalar
 from graphene_django import DjangoObjectType
 from graphql.language import ast
 
-from ....core.weight import WeightUnits
 from ..connection import CountableConnection
 
 
