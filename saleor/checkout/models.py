@@ -101,7 +101,7 @@ class Cart(models.Model):
         # Cannot use `sum` as it parses an empty Weight to an int
         weights = Weight(kg=0)
         for line in self:
-            weights += line.variant.get_weight()
+            weights += line.variant.get_weight() * line.quantity
         return weights
 
     def get_line(self, variant):

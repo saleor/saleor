@@ -3,19 +3,20 @@ from unittest.mock import MagicMock, Mock
 from uuid import uuid4
 
 import pytest
+
 from django.contrib.auth.models import AnonymousUser
 from django.core import signing
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.urls import reverse
+from measurement.measures import Weight
 from prices import Money, TaxedMoney
-
 from saleor.checkout import forms, utils
 from saleor.checkout.context_processors import cart_counter
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import (
     add_variant_to_cart, change_cart_user, find_open_cart_for_user)
-from saleor.checkout.views import update_cart_line, clear_cart
+from saleor.checkout.views import clear_cart, update_cart_line
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.discount.models import Sale
@@ -681,3 +682,13 @@ def test_clear_cart(request_cart_with_item, client):
         HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     assert response.status_code == 200
     assert len(cart.lines.all()) == 0
+
+
+def test_get_total_weight(cart_with_item):
+    line = cart_with_item.lines.first()
+    variant = line.variant
+    variant.weight = Weight(kg=10)
+    variant.save()
+    line.quantity = 6
+    line.save()
+    assert cart_with_item.get_total_weight() == Weight(kg=60)
