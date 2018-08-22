@@ -207,10 +207,6 @@ export const ProductCreatePage = decorate<ProductCreatePageProps>(
               </div>
             </div>
             <SaveButtonBar
-              labels={{
-                delete: i18n.t("Remove product"),
-                save: i18n.t("Save product")
-              }}
               onCancel={onBack}
               onSave={submit}
               state={saveButtonBarState}
