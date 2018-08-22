@@ -72,6 +72,7 @@ export const ConfigurationPage = decorate<ConfigurationPageProps>(
               className={
                 menuItem.disabled ? classes.cardDisabled : classes.card
               }
+              onClick={() => onSectionClick(menuItem.url)}
             >
               <CardContent className={classes.cardContent}>
                 <Icon className={classes.icon} />

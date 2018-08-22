@@ -18,6 +18,7 @@ import CategorySection from "./categories";
 import { DateProvider } from "./components/DateFormatter";
 import { LocaleProvider } from "./components/Locale";
 import { MessageManager } from "./components/messages";
+import { ConfigurationSection } from "./configuration";
 import "./i18n";
 import PageSection from "./pages";
 import ProductSection from "./products";
@@ -78,6 +79,11 @@ render(
                         <Route path="/categories" component={CategorySection} />
                         <Route path="/pages" component={PageSection} />
                         <Route path="/products" component={ProductSection} />
+                        <Route
+                          exact
+                          path="/configuration"
+                          component={ConfigurationSection}
+                        />
                       </Switch>
                     </AppRoot>
                   ) : (
