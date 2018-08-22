@@ -58,7 +58,7 @@ h2 {
     font-size: calc(var(--font-size-base) * 2.5);
   }
   @media (max-width: 576px) {
-    font-size: calc(var(--font-size-base) * 2);
+    font-size: calc(var(--font-size-base) * 1.8);
   }
 }
 
@@ -85,6 +85,7 @@ h5 {
 a {
   color: var(--primaryColor);
   text-decoration: none;
+  font-weight: var(--font-weight-light);
   &:hover {
     text-decoration: underline;
   }
