@@ -21,7 +21,7 @@ Saleor requires Python 3.5 or later. A compatible version comes preinstalled wit
 Node.js
 ~~~~~~~
 
-Version 8 or later is required. See the `installation instructions <https://nodejs.org/en/download/package-manager/>`_.
+Version 10 or later is required. See the `installation instructions <https://nodejs.org/en/download/package-manager/>`_.
 
 .. note::
 
