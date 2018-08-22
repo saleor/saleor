@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
-from django.utils.translation import pgettext, pgettext_lazy
+from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ...menu.models import Menu, MenuItem
@@ -15,7 +15,7 @@ from ...product.models import Category, Collection
 from ..views import staff_member_required
 from .filters import MenuFilter, MenuItemFilter
 from .forms import AssignMenuForm, MenuForm, MenuItemForm, ReorderMenuItemsForm
-from .utils import update_menu
+from .utils import get_menu_obj_text, update_menu
 
 
 @staff_member_required
@@ -225,15 +225,11 @@ def ajax_menu_links(request):
 
     Response format is that of a Select2 JS widget.
     """
-    def get_obj_text(obj):
-        return str(obj) + ('' if obj.is_published else pgettext(
-            'Menu item pubslished status', ' (Not published)'))
-
     def get_obj_repr(obj):
         obj_id = str(obj.pk) + '_' + obj.__class__.__name__
         return {
             'id': obj_id,
-            'text': get_obj_text(obj)}
+            'text': get_menu_obj_text(obj)}
 
     def get_group_repr(model, label, filter_fields, query):
         queryset = model.objects.all()

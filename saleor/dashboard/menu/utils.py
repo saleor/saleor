@@ -1,4 +1,5 @@
 from django.db.models import Q
+from django.utils.translation import pgettext
 
 from ...menu.models import Menu, MenuItem
 from ...page.models import Page
@@ -90,3 +91,8 @@ def get_menus_that_needs_update(collection=None, categories=None, page=None):
     menus_to_be_updated = MenuItem.objects.filter(q).distinct().values_list(
         'menu', flat=True)
     return menus_to_be_updated
+
+
+def get_menu_obj_text(obj):
+    return str(obj) + ('' if obj.is_published else pgettext(
+        'Menu item pubslished status', ' (Not published)'))
