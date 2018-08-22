@@ -170,6 +170,16 @@ export interface RootCategoryChildrenQuery {
         // The ID of the object.
         id: string,
         name: string,
+        // List of children of the category.
+        children:  {
+          // A total count of items in the collection
+          totalCount: number | null,
+        } | null,
+        // List of products in the category.
+        products:  {
+          // A total count of items in the collection
+          totalCount: number | null,
+        } | null,
       },
     } >,
   } | null,
@@ -202,6 +212,16 @@ export interface CategoryPropertiesQuery {
           // The ID of the object.
           id: string,
           name: string,
+          // List of children of the category.
+          children:  {
+            // A total count of items in the collection
+            totalCount: number | null,
+          } | null,
+          // List of products in the category.
+          products:  {
+            // A total count of items in the collection
+            totalCount: number | null,
+          } | null,
         },
       } >,
     } | null,

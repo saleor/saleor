@@ -22,6 +22,12 @@ interface CategoryDetailsPageProps {
   subcategories?: Array<{
     id: string;
     name: string;
+    children?: {
+      totalCount: number;
+    };
+    products?: {
+      totalCount: number;
+    };
   }>;
   products?: Array<{
     id: string;

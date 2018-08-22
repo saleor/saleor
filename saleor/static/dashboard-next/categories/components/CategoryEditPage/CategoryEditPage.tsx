@@ -97,6 +97,7 @@ const CategoryEditPage: React.StatelessComponent<CategoryEditPageProps> = ({
           <SaveButtonBar
             disabled={disabled || !onSubmit || !hasChanged}
             state={saveButtonBarState}
+            onCancel={onBack}
             onSave={submit}
           />
         </Container>

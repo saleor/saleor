@@ -37,6 +37,12 @@ export const rootCategoryChildrenQuery = gql`
         node {
           id
           name
+          children {
+            totalCount
+          }
+          products {
+            totalCount
+          }
         }
       }
     }
@@ -66,6 +72,12 @@ export const categoryPropertiesQuery = gql`
           node {
             id
             name
+            children {
+              totalCount
+            }
+            products {
+              totalCount
+            }
           }
         }
       }
