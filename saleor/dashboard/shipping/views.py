@@ -9,7 +9,7 @@ from ...core.utils import get_paginator_items
 from ...shipping.models import ShippingMethod, ShippingZone
 from ..views import staff_member_required
 from .filters import ShippingZoneFilter
-from .forms import ShippingZoneForm, get_shipping_form, ChangeDefaultWeightUnit
+from .forms import ChangeDefaultWeightUnit, ShippingZoneForm, get_shipping_form
 
 
 @staff_member_required

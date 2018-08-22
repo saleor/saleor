@@ -3,7 +3,7 @@ from django.utils.translation import pgettext_lazy
 from prices import MoneyRange
 
 from ..core.utils.taxes import get_taxed_shipping_price
-from ..core.weight import get_default_weight_unit, convert_weight
+from ..core.weight import convert_weight, get_default_weight_unit
 
 
 def get_shipping_price_estimate(price, weight, country_code, taxes):
