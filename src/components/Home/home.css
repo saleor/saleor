@@ -624,11 +624,9 @@
             padding-top: calc(var(--spacer) * 2)
           }
           & svg {
-            width: 80px;
-            @media (max-width: 1024px) {
-              width: 60px;
-              height: 60px;
-            }
+            width: 60px;
+            height: 50px;
+            margin-bottom: calc(var(--spacer) * 1.5);
             @media (max-width: 768px) {
               width: 40px;
               height: 40px;
