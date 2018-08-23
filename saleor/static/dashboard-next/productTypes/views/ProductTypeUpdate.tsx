@@ -12,12 +12,11 @@ import i18n from "../../i18n";
 import ProductTypeDetailsPage, {
   ProductTypeForm
 } from "../components/ProductTypeDetailsPage";
+import { AttributeSearchProvider } from "../containers/AttributeSearch";
 import ProductTypeOperations from "../containers/ProductTypeOperations";
 import {
   productTypeDetailsQuery,
-  searchAttributeQuery,
-  TypedProductTypeDetailsQuery,
-  TypedSearchAttributeQuery
+  TypedProductTypeDetailsQuery
 } from "../queries";
 
 const taxRates = ["standard", "electronics", "food", "apparel"]; // FIXME: delet dis
@@ -46,10 +45,8 @@ export const ProductTypeUpdate: React.StatelessComponent<
                 );
               }
               return (
-                <TypedSearchAttributeQuery query={searchAttributeQuery}>
-                  {searchAttribute => {
-                    const handleSearchAttribute = (search: string) =>
-                      search ? searchAttribute.refetch({ search }) : undefined;
+                <AttributeSearchProvider>
+                  {(searchAttribute, searchState) => {
                     const handleDeleteSuccess = (
                       deleteData: ProductTypeDeleteMutation
                     ) => {
@@ -131,27 +128,31 @@ export const ProductTypeUpdate: React.StatelessComponent<
                               saveButtonBarState={
                                 loading ? "loading" : "default"
                               }
-                              searchLoading={searchAttribute.loading}
+                              searchLoading={
+                                searchState ? searchState.loading : false
+                              }
                               searchResults={
-                                searchAttribute.data &&
-                                searchAttribute.data.attributes
-                                  ? searchAttribute.data.attributes.edges.map(
+                                searchState &&
+                                searchState.data &&
+                                searchState.data.attributes
+                                  ? searchState.data.attributes.edges.map(
                                       edge => edge.node
                                     )
                                   : []
                               }
                               taxRates={taxRates}
-                              onAttributeSearch={handleSearchAttribute}
+                              onAttributeSearch={searchAttribute}
                               onBack={() => navigate(productTypeListUrl)}
                               onDelete={handleDelete}
                               onSubmit={handleUpdate}
+                              key={searchState ? undefined : "search"}
                             />
                           );
                         }}
                       </ProductTypeOperations>
                     );
                   }}
-                </TypedSearchAttributeQuery>
+                </AttributeSearchProvider>
               );
             }}
           </TypedProductTypeDetailsQuery>
