@@ -6,8 +6,7 @@ jobs:
       - image: docker:17.09.0-ce-git
     steps:
       - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
+      - setup_remote_docker
       - run:
           name: Set version
           command: |
@@ -15,6 +14,7 @@ jobs:
       - run:
           name: Build application Docker image
           command: |
+            docker pull mirumee/saleor:latest
             docker build \
               --build-arg AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
               --build-arg AWS_LOCATION=$AWS_LOCATION \
@@ -39,20 +39,21 @@ jobs:
             docker tag mirumee/saleor:latest mirumee/saleor:$CIRCLE_SHA1
             docker push mirumee/saleor:$CIRCLE_SHA1
             docker push mirumee/saleor:latest
-            apk add --upgrade --no-cache curl libcurl
 
       - run:
           name: Deploy saleor-demo
           command: |
             if [ -n "$CIRCLE_TAG" ]; then
+              apk add --upgrade --no-cache curl libcurl
               curl -u $DEMO_DEPLOY_KEY: \
                 -d build_parameters[CIRCLE_JOB]=deploy \
                 https://circleci.com/api/v1.1/project/github/mirumee/saleor-demo/tree/master
+            fi
+
       - run:
           name: Deploy saleor master
           command: |
-            ./deploy_master.sh
-
+            sh ./deploy_master.sh > /dev/null 2>&1
 
 
 workflows:
