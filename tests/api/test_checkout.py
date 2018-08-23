@@ -371,7 +371,9 @@ def test_checkout_email_update(user_api_client, cart_with_item):
 
 
 @pytest.mark.integration
-def test_checkout_complete(user_api_client, cart_with_item, payment_method_dummy, address, shipping_price):
+def test_checkout_complete(
+        user_api_client, cart_with_item, payment_method_dummy, address,
+        shipping_price):
     checkout = cart_with_item
     checkout.shipping_address = address
     checkout.shipping_method = shipping_price
