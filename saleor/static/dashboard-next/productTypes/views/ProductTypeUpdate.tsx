@@ -4,8 +4,14 @@ import Navigator from "../../components/Navigator";
 import { productTypeListUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
+import {
+  ProductTypeDeleteMutation,
+  ProductTypeUpdateMutation
+} from "../../gql-types";
 import i18n from "../../i18n";
-import ProductTypeDetailsPage from "../components/ProductTypeDetailsPage";
+import ProductTypeDetailsPage, {
+  ProductTypeForm
+} from "../components/ProductTypeDetailsPage";
 import ProductTypeOperations from "../containers/ProductTypeOperations";
 import {
   productTypeDetailsQuery,
@@ -13,7 +19,6 @@ import {
   TypedProductTypeDetailsQuery,
   TypedSearchAttributeQuery
 } from "../queries";
-import { ProductTypeDeleteMutation } from "../../gql-types";
 
 const taxRates = ["standard", "electronics", "food", "apparel"]; // FIXME: delet dis
 
@@ -55,14 +60,44 @@ export const ProductTypeUpdate: React.StatelessComponent<
                         navigate(productTypeListUrl);
                       }
                     };
+                    const handleUpdateSuccess = (
+                      updateData: ProductTypeUpdateMutation
+                    ) => {
+                      if (updateData.productTypeUpdate.errors.length === 0) {
+                        pushMessage({
+                          text: i18n.t("Successfully updated product type")
+                        });
+                      }
+                    };
                     return (
                       <ProductTypeOperations
                         id={id}
                         onDelete={handleDeleteSuccess}
+                        onUpdate={handleUpdateSuccess}
                       >
-                        {({ deleteProductType, loading: mutationLoading }) => {
+                        {({
+                          deleteProductType,
+                          loading: mutationLoading,
+                          updateProductType
+                        }) => {
                           const handleDelete = () =>
                             deleteProductType.mutate({ id });
+                          const handleUpdate = (formData: ProductTypeForm) => {
+                            updateProductType.mutate({
+                              id,
+                              input: {
+                                hasVariants: formData.hasVariants,
+                                isShippingRequired: formData.isShippingRequired,
+                                name: formData.name,
+                                productAttributes: formData.productAttributes.map(
+                                  choice => choice.value
+                                ),
+                                variantAttributes: formData.variantAttributes.map(
+                                  choice => choice.value
+                                )
+                              }
+                            });
+                          };
                           const loading = mutationLoading || dataLoading;
                           return (
                             <ProductTypeDetailsPage
@@ -104,7 +139,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                               onAttributeSearch={handleSearchAttribute}
                               onBack={() => navigate(productTypeListUrl)}
                               onDelete={handleDelete}
-                              onSubmit={() => undefined}
+                              onSubmit={handleUpdate}
                             />
                           );
                         }}

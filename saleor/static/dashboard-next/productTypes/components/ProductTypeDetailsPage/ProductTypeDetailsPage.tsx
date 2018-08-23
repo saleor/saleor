@@ -18,7 +18,7 @@ interface ChoiceType {
   label: string;
   value: string;
 }
-interface ProductTypeForm {
+export interface ProductTypeForm {
   name: string;
   hasVariants: boolean;
   isShippingRequired: boolean;

@@ -3,7 +3,9 @@ import { Mutation, MutationProps } from "react-apollo";
 
 import {
   ProductTypeDeleteMutation,
-  ProductTypeDeleteMutationVariables
+  ProductTypeDeleteMutationVariables,
+  ProductTypeUpdateMutation,
+  ProductTypeUpdateMutationVariables
 } from "../gql-types";
 
 export const TypedProductTypeDeleteMutation = Mutation as React.ComponentType<
@@ -18,6 +20,44 @@ export const productTypeDeleteMutation = gql`
       }
       productType {
         id
+      }
+    }
+  }
+`;
+
+export const TypedProductTypeUpdateMutation = Mutation as React.ComponentType<
+  MutationProps<ProductTypeUpdateMutation, ProductTypeUpdateMutationVariables>
+>;
+export const productTypeUpdateMutation = gql`
+  mutation ProductTypeUpdate($id: ID!, $input: ProductTypeInput!) {
+    productTypeUpdate(id: $id, input: $input) {
+      errors {
+        field
+        message
+      }
+      productType {
+        id
+        name
+        hasVariants
+        productAttributes {
+          edges {
+            node {
+              id
+              slug
+              name
+            }
+          }
+        }
+        variantAttributes {
+          edges {
+            node {
+              id
+              slug
+              name
+            }
+          }
+        }
+        isShippingRequired
       }
     }
   }
