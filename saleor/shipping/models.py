@@ -25,7 +25,7 @@ class ShippingZone(models.Model):
     def __str__(self):
         return self.name
 
-    def get_countries_display(self):
+    def countries_display(self):
         if len(self.countries) <= 3:
             return ', '.join((country.name for country in self.countries))
         return pgettext_lazy(

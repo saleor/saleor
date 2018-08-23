@@ -36,7 +36,7 @@
       <div class="card">
         <div class="card-content">
           <span class="card-title">
-            {% blocktrans with shipping_name=shipping_zone.name list_of_countries=shipping_zone.get_countries_display %}
+            {% blocktrans with shipping_name=shipping_zone.name list_of_countries=shipping_zone.countries_display %}
               {{ shipping_name }}  <small>(ships to {{ list_of_countries }})</small>
             {% endblocktrans %}
           </span>

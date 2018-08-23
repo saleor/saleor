@@ -24,7 +24,7 @@
 
 {% block header_extra %}
   <div class="btn-fab-fixed">
-    <a href="{% url 'dashboard:shipping-zone-add' %}" class="btn-fab-default waves-effect waves-light" title="{% trans "Add method" context "Shipping zone list add button text" %}">
+    <a href="{% url 'dashboard:shipping-zone-add' %}" class="btn-fab-default waves-effect waves-light" title="{% trans "Add shipping zone" context "Shipping zone list add button text" %}">
       <svg data-src="{% static "dashboard/images/add.svg" %}" />
     </a>
   </div>
@@ -51,20 +51,20 @@
                 </tr>
               </thead>
               <tbody>
-                {% for method in shipping_zones %}
-                  <tr data-action-go="{% url 'dashboard:shipping-zone-details' pk=method.pk %}">
+                {% for shipping_zone in shipping_zones %}
+                  <tr data-action-go="{% url 'dashboard:shipping-zone-details' pk=shipping_zone.pk %}">
                     <td>
-                      {{ method }}
+                      {{ shipping_zone }}
                     </td>
                     <td>
-                      {% if not method.price_range %}
+                      {% if not shipping_zone.price_range %}
                         -
                       {% else %}
-                        {% price method.price_range %}
+                        {% price shipping_zone.price_range %}
                       {% endif %}
                     </td>
                     <td>
-                      {{ method.get_countries_display }}
+                      {{ shipping_zone.countries_display }}
                     </td>
                   </tr>
                 {% endfor %}
