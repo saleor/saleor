@@ -40,7 +40,7 @@ PROVIDERS_ENUM = Enum(
 def get_provider(provider_name):
     if provider_name not in settings.PAYMENT_PROVIDERS:
         raise ImproperlyConfigured(
-            f'Payment provider {provider_name} is not configured.')
+            'Payment provider %s is not configured.' % provider_name)
     provider_module = importlib.import_module(
         settings.PAYMENT_PROVIDERS[provider_name]['module'])
     provider_params = settings.PAYMENT_PROVIDERS[provider_name]['connection_params']
