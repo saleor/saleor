@@ -18,6 +18,10 @@ def get_list(text):
 def get_bool_from_env(name, default_value):
     if name in os.environ:
         value = os.environ[name]
+        # Enable Pythonic environment variables,
+        # i.e. DEBUG='' or DEBUG= is Falsy but would generate an error
+        if value == '':
+            return False
         try:
             return ast.literal_eval(value)
         except ValueError as e:
