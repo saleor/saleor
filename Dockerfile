@@ -13,12 +13,12 @@ RUN pip install -r /app/requirements.txt
 
 
 ### Build static assets
-FROM node:8.6.0 as build-nodejs
+FROM node:10 as build-nodejs
 
 ARG STATIC_URL
 
 # Install node_modules
-ADD webpack.config.js app.json package.json package-lock.json /app/
+ADD webpack.config.js app.json package.json package-lock.json tsconfig.json webpack.d.ts /app/
 WORKDIR /app
 RUN npm install
 

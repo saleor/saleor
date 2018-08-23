@@ -4,6 +4,8 @@ from tests.utils import get_graphql_content
 
 from saleor.graphql.core.utils import snake_to_camel_case
 
+from saleor.graphql.core.utils import snake_to_camel_case
+
 
 def assert_no_permission(response):
     content = get_graphql_content(response)
