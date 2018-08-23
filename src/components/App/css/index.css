@@ -149,7 +149,7 @@ img {
 
 section {
   & .section-container {
-    padding: calc(var(--spacer) * 5);
+    padding: calc(var(--spacer) * 8);
     position: relative;
     @media (max-width: 768px) {
       padding: calc(var(--spacer) * 2);

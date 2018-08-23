@@ -233,7 +233,7 @@ const Feature = () => (
             </div>
         </div>
       </section>
-      <section className="documentation">
+      <section className="documentation section-container">
         <div className="content">
           <h2>Documentation</h2>
           <h4 className="description">Check our comprehensive documentation which can guide
