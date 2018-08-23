@@ -12,6 +12,7 @@ storiesOf("Views / Product types / Product type details", module)
   .add("default", () => (
     <ProductTypeDetailsPage
       disabled={false}
+      pageTitle={productType.name}
       productType={productType}
       productAttributes={productType.productAttributes.edges.map(
         edge => edge.node
@@ -32,6 +33,7 @@ storiesOf("Views / Product types / Product type details", module)
   .add("loading", () => (
     <ProductTypeDetailsPage
       disabled={true}
+      pageTitle={undefined}
       saveButtonBarState="default"
       searchLoading={false}
       searchResults={[]}
