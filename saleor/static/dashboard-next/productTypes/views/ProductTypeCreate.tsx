@@ -8,11 +8,11 @@ import i18n from "../../i18n";
 import ProductTypeDetailsPage, {
   ProductTypeForm
 } from "../components/ProductTypeDetailsPage";
+import { AttributeSearchProvider } from "../containers/AttributeSearch";
 import {
   productTypeCreateMutation,
   TypedProductTypeCreateMutation
 } from "../mutations";
-import { searchAttributeQuery, TypedSearchAttributeQuery } from "../queries";
 
 const taxRates = ["standard", "electronics", "food", "apparel"]; // FIXME: delet dis
 
@@ -30,10 +30,8 @@ export const ProductTypeUpdate: React.StatelessComponent = () => (
     {pushMessage => (
       <Navigator>
         {navigate => (
-          <TypedSearchAttributeQuery query={searchAttributeQuery}>
-            {searchAttribute => {
-              const handleSearchAttribute = (search: string) =>
-                search ? searchAttribute.refetch({ search }) : undefined;
+          <AttributeSearchProvider>
+            {(searchAttribute, searchState) => {
               const handleCreateSuccess = (
                 updateData: ProductTypeCreateMutation
               ) => {
@@ -85,17 +83,20 @@ export const ProductTypeUpdate: React.StatelessComponent = () => (
                         saveButtonBarState={
                           loadingCreate ? "loading" : "default"
                         }
-                        searchLoading={searchAttribute.loading}
+                        searchLoading={
+                          searchState ? searchState.loading : false
+                        }
                         searchResults={
-                          searchAttribute.data &&
-                          searchAttribute.data.attributes
-                            ? searchAttribute.data.attributes.edges.map(
+                          searchState &&
+                          searchState.data &&
+                          searchState.data.attributes
+                            ? searchState.data.attributes.edges.map(
                                 edge => edge.node
                               )
                             : []
                         }
                         taxRates={taxRates}
-                        onAttributeSearch={handleSearchAttribute}
+                        onAttributeSearch={searchAttribute}
                         onBack={() => navigate(productTypeListUrl)}
                         onSubmit={handleCreate}
                       />
@@ -104,7 +105,7 @@ export const ProductTypeUpdate: React.StatelessComponent = () => (
                 </TypedProductTypeCreateMutation>
               );
             }}
-          </TypedSearchAttributeQuery>
+          </AttributeSearchProvider>
         )}
       </Navigator>
     )}
