@@ -8,7 +8,7 @@ footer {
     @media (max-width: 768px) {
       padding-left: calc(var(--spacer) * 2);
     }
-    @media (max-width: 576px) {
+    @media (max-width: 450px) {
       width: 80px;
       padding-left: calc(var(--spacer) / 2);
     }
@@ -21,7 +21,7 @@ footer {
       @media (max-width: 768px) {
         padding: calc(var(--spacer) * 2) calc(var(--spacer) * 2);
       }
-      @media (max-width: 576px) {
+      @media (max-width: 450px) {
         padding: calc(var(--spacer) * 2) calc(var(--spacer) / 2);
       }
       & h4 {
@@ -46,7 +46,7 @@ footer {
         height: 25px;
         margin: 0 calc(var(--spacer) / 2);
       }
-      @media (max-width: 576px) {
+      @media (max-width: 450px) {
         position: absolute;
         width: 30%;
         top: 5%;

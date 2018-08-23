@@ -43,7 +43,7 @@ h1 {
   @media (max-width: 768px) {
     font-size: calc(var(--h1-font-size) * 0.7);
   }
-  @media (max-width: 576px) {
+  @media (max-width: 450px) {
     font-size: calc(var(--h1-font-size) * 0.6);
   }
 }
@@ -56,7 +56,7 @@ h2 {
   @media (max-width: 1024px) {
     font-size: calc(var(--font-size-base) * 2.5);
   }
-  @media (max-width: 576px) {
+  @media (max-width: 450px) {
     font-size: calc(var(--font-size-base) * 1.8);
   }
 }
@@ -138,7 +138,7 @@ img {
   @media (max-width: 768px) {
     padding: 0 var(--spacer);
   }
-  @media (max-width: 576px) {
+  @media (max-width: 450px) {
     padding: 0 calc(var(--spacer) * 0.5);
   }
 }
@@ -239,7 +239,7 @@ ul {
       color: var(--primaryColor);
     }
   }
-  @media (max-width: 576px) {
+  @media (max-width: 450px) {
     font-size: calc(var(--font-size-base));
   }
   @media (max-width: 320px) {

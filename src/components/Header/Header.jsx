@@ -39,10 +39,10 @@ class Header extends Component {
         </div> : null}
         <div className="container">
           <div className="grid">
-            <div className={this.state.mobileMenu ? 'logo open col-xs-3 col-sm-6' : 'logo col-xs-3 col-sm-6'}>
+            <div className={this.state.mobileMenu ? 'logo open col-xs-3 col-ls-6 col-sm-6' : 'logo col-xs-3 col-sm-6'}>
               <NavLink to="/"><ReactSVG className="logo-svg" path="images/saleor-logo.svg" /></NavLink>
             </div>
-            <nav className={this.state.visibleNewsBar ? 'menu newsbar col-xs-9 col-sm-6' : 'menu col-xs-9 col-sm-6'}>
+            <nav className={this.state.visibleNewsBar ? 'menu newsbar col-xs-9 col-ls-6 col-sm-6' : 'menu col-xs-9 col-sm-6'}>
               <ul className={this.state.mobileMenu ? 'menu-mobile hovered' : 'menu-desktop'}>
                 <li><span className="count">01. </span><NavLink exact to="/" onClick={this.closeMenu}>Home</NavLink></li>
                 <li className="underline"><span className="count">02. </span><NavLink to="/features" onClick={this.closeMenu}>Features</NavLink></li>

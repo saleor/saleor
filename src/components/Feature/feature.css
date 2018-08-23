@@ -14,7 +14,7 @@
               opacity: 0.5;
               background-position: 400% 0%;
             }
-            @media (max-width: 576px) {
+            @media (max-width: 450px) {
               background-position: 60% 0%;
               background-size: cover;
             }
@@ -28,7 +28,7 @@
             @media (max-width: 768px) {
               padding: calc(var(--spacer) * 10) 0 calc(var(--spacer) * 10) calc(var(--spacer) * 5);
             }
-            @media (max-width: 576px) {
+            @media (max-width: 450px) {
               padding: calc(var(--spacer) * 2) var(--spacer);
               width: auto;
               position: absolute;
@@ -64,7 +64,7 @@
           @media (max-width: 768px) {
             padding: calc(var(--spacer) * 4) calc(var(--spacer) * 2);
           }
-          @media (max-width: 576px) {
+          @media (max-width: 450px) {
             padding: calc(var(--spacer) * 2) var(--spacer);
           }
         }
@@ -83,7 +83,7 @@
                 margin-bottom: calc(var(--spacer) * 1.5);
                 word-break: break-word;
                 hyphens: auto;
-                @media (max-width: 576px) {
+                @media (max-width: 450px) {
                   width: 100%;
                 }
               }
@@ -107,7 +107,7 @@
               }
             }
           }
-          @media (max-width: 576px) {
+          @media (max-width: 450px) {
             padding: calc(var(--spacer) * 2) var(--spacer);
             & .icons {
               grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -157,7 +157,7 @@
               margin-bottom: calc(var(--spacer) * 2);
             }
           }
-          @media (max-width: 576px) {
+          @media (max-width: 450px) {
             padding: calc(var(--spacer) * 2) var(--spacer);
           }
         }
@@ -173,7 +173,7 @@
             margin-bottom: calc(var(--spacer) * 3);
             line-height: var(--line-height-base);
           }
-          @media (max-width: 576px) {
+          @media (max-width: 450px) {
             padding: calc(var(--spacer) * 2) var(--spacer);
             & .description {
               margin-top: calc(var(--spacer) * 0.5);

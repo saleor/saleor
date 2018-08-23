@@ -21,7 +21,7 @@
         opacity: 0.5;
         background-position: 400% 0%;
       }
-      @media (max-width: 576px) {
+      @media (max-width: 450px) {
         background-position: 35% 0%;
       }
     }
@@ -36,7 +36,7 @@
 					font-size: calc(var(--font-size-base) * 1.2);
 					width: 70%;
         }
-        @media (max-width: 576px) {
+        @media (max-width: 450px) {
           padding: 0 var(--spacer);
           width: auto;
           position: absolute;
@@ -54,7 +54,7 @@
           left: 0;
           right: 0;
         }
-        @media (max-width: 576px) {
+        @media (max-width: 450px) {
           bottom: 10%;
         }
       }

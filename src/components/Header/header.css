@@ -1,7 +1,7 @@
 header {
   & .news {
     display: none;
-    @media (max-width: 576px) {
+    @media (max-width: 450px) {
       position: relative;
       width: 100%;
       top: 0;
@@ -57,7 +57,7 @@ header {
       @media (max-width: 1024px) {
         width: 130px;
       }
-      @media (max-width: 576px) {
+      @media (max-width: 450px) {
         width: 80px;
       }
     }
@@ -70,7 +70,7 @@ header {
       @media (max-width: 768px) {
         left: calc(var(--spacer) * 2);
       }
-      @media (max-width: 576px) {
+      @media (max-width: 450px) {
         left: calc(var(--spacer) * 1.2);
       }
       & .logo-svg {
@@ -186,7 +186,7 @@ header {
         }
         & li {
           grid-column: -6 / span 4;
-          @media (max-width: 576px) {
+          @media (max-width: 450px) {
             grid-column: -9 / span 6;
           }
           padding: 0;      
