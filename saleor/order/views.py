@@ -116,6 +116,7 @@ def start_payment(request, order, variant):
         form.method = "POST"
         if form.is_valid():
             form.save()
+            form.authorize_payment()
             return redirect(order.get_absolute_url())
     template = 'order/payment/%s.html' % variant
     ctx = {'form': form, 'payment': payment_method}
