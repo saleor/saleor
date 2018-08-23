@@ -12,7 +12,7 @@
             z-index: -1;
             @media (max-width: 768px) {
               opacity: 0.5;
-              background-position: 400% 0%;
+              background-position: 150% 0%;
             }
             @media (max-width: 450px) {
               background-position: 60% 0%;
@@ -48,6 +48,12 @@
               right: 0;
             }
           }
+          @media (max-width: 700px) {
+            height: 160vh;
+          }
+          @media (max-width: 450px) {
+            height: 80vh;
+          }
         }
         &.testimonial {
           background-color: #100A35;
@@ -70,6 +76,9 @@
         }
         &.features {
           padding: calc(var(--spacer) * 2) calc(var(--spacer) * 10) calc(var(--spacer) * 4);
+          @media (max-width: 700px) {
+            padding: calc(var(--spacer) * 2) calc(var(--spacer) * 2) calc(var(--spacer) * 2);
+          }
           & .icons {
             width: 100%;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -142,6 +151,9 @@
             @media (max-width: 768px) {
               padding-left: 0;
             }
+            @media (max-width: 700px) {
+              grid-template-columns: repeat(auto-fit, 100%);
+            }
             & .icon-card {
               & .title {
                 margin-bottom: calc(var(--spacer) * 0.5);
@@ -173,11 +185,18 @@
             margin-bottom: calc(var(--spacer) * 3);
             line-height: var(--line-height-base);
           }
+          @media (max-width: 700px) {
+            padding: calc(var(--spacer) * 2) var(--spacer);
+            & .description {
+              margin-top: calc(var(--spacer) * 0.5);
+              font-size: calc(var(--font-size-base) * 1.2);
+            }
+          }
           @media (max-width: 450px) {
             padding: calc(var(--spacer) * 2) var(--spacer);
             & .description {
               margin-top: calc(var(--spacer) * 0.5);
-              font-size: calc(var(--font-size-base) * 1.5);
+              font-size: calc(var(--font-size-base) * 1.2);
             }
           }
         }

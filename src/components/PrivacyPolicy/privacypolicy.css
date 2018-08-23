@@ -21,6 +21,9 @@
         opacity: 0.5;
         background-position: 400% 0%;
       }
+      @media (max-width: 700px) {
+        background-position: -250% 0%;
+      }
       @media (max-width: 450px) {
         background-position: 35% 0%;
       }
@@ -32,6 +35,9 @@
 			& .plane {
 				width: 50%;
 				padding: calc(var(--spacer) * 14) calc(var(--spacer) * 7);
+        @media (max-width: 700px) {
+          padding: calc(var(--spacer) * 10) calc(var(--spacer) * 7);
+        }
 				& p {
 					font-size: calc(var(--font-size-base) * 1.2);
 					width: 70%;
@@ -66,6 +72,12 @@
       }
 
       @media (max-width: 768px) {
+        height: 80vh;
+      }
+      @media (max-width: 700px) {
+        height: 180vh;
+      }
+      @media (max-width: 450px) {
         height: 80vh;
       }
 

@@ -18,7 +18,7 @@
       & .col-xs-12 { grid-column: span 12; }
     }
     // landscape
-    @media (max-width: 700px) {
+    @media (min-width: 700px) {
       & .col-ls-1 { grid-column: span 1; }
       & .col-ls-2 { grid-column: span 2; }
       & .col-ls-3 { grid-column: span 3; }
@@ -32,7 +32,7 @@
       & .col-ls-11 { grid-column: span 11; }
       & .col-ls-12 { grid-column: span 12; }
     }
-    @media (min-width: 768px) {
+    @media (max-width: 768px) and (min-width: 500px) {
       & .col-sm-1 { grid-column: span 1; }
       & .col-sm-2 { grid-column: span 2; }
       & .col-sm-3 { grid-column: span 3; }

@@ -56,6 +56,10 @@ h2 {
   @media (max-width: 1024px) {
     font-size: calc(var(--font-size-base) * 2.5);
   }
+  @media (max-width: 700px) {
+    font-size: calc(var(--font-size-base) * 2);
+  }
+  
   @media (max-width: 450px) {
     font-size: calc(var(--font-size-base) * 1.8);
   }

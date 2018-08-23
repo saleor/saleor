@@ -38,7 +38,7 @@
           padding: calc(var(--spacer) * 10) calc(var(--spacer) * 5);
         }
         @media (max-width: 578px) {
-          width: 100%;
+          width: calc(100% - 4rem);
           padding: calc(var(--spacer) * 12) calc(var(--spacer) * 2);
         }
       }
@@ -149,11 +149,16 @@
         @media (max-width: 1024px) {
           top: 13%;
         }
+        @media (max-width: 700px) {
+          top: 16%;
+        }
+        @media (max-width: 450px) { display: none; }
       }
       & .decoration02 {
         width: 17%;
         top: 39%;
         left: -5%;
+        @media (max-width: 450px) { display: none; }
       }
       & .decoration03 {
         width: 30%;
@@ -162,6 +167,10 @@
         @media (max-width: 768px) {
           top: 60%;
         }
+        @media (max-width: 700px) {
+          top: 62%;
+        }
+        @media (max-width: 450px) { display: none; }
       }
     }
   }

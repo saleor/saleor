@@ -82,19 +82,19 @@ class Home extends Component {
           </div>
           <div className="section-container">
             <div className="grid feature-item software-stack">
-              <div className="col-xs-12 col-sm-6 text">
+              <div className="col-xs-12 col-sm-6 col-md-6 text">
                 <h2><span>01<br/>-</span>State of the art<br /> software stack</h2>
                 <p>Saleor is powered by a GraphQL server running on top of Python 3 and Django 2.</p>
                 <p className="text-light">Both the storefront and the dashboard are React applications written in TypeScript and use Apollo GraphQL. Strict code quality checks and code reviews make the code easy to read and understand. High test coverage ensures it’s also safe to deploy in a continuous manner.</p>
               </div>
-              <div className="col-xs-12 col-sm-6 image"></div>
+              <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
               <div className="decoration">
                 <img src={decoration01} />
               </div>
             </div>
             <div className="grid feature-item build-to-scale">
-              <div className="col-xs-12 col-sm-6 image"></div>
-              <div className="col-xs-12 col-sm-6 text">
+              <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
+              <div className="col-xs-12 col-sm-6 col-md-6 text">
                 <h2><span>02<br/>-</span>Build to scale</h2>
                 <p>Serve millions of products and thousands of customers without breaking a sweat.</p>
                 <p className="text-light">Saleor is optimized for cloud deployments using Docker. Horizontal scalability allows Saleor to take advantage of platforms such as AWS and Google Cloud and adapt to your traffic. Multi-container deployments allow your software to scale without downtimes. Persistent GraphQL Queries take advantage of CDN to ensure snappy performance under even the heaviest of loads.</p>
@@ -104,30 +104,30 @@ class Home extends Component {
               </div>
             </div>
             <div className="grid feature-item easy-to-customize">
-              <div className="col-xs-12 col-sm-6 text">
+              <div className="col-xs-12 col-sm-6 col-md-6 text">
                 <h2><span>03<br/>-</span>Easy to customize</h2>
                 <p>Saleor’s outstanding out-of-the-box experience may not be enough for everyone.</p>
                 <p className="text-light">Take it even further to automate any commerce process like ordering, shipping or payment. Whether you’re a local florist or a government agency, Saleor is a solid foundation to build and deliver bespoke solutions to your specific problems. Build the store that you want instead of trying to bend your requirements around enterprise platforms.</p>
               </div>
-              <div className="col-xs-12 col-sm-6 image"></div>
+              <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
             </div>
             <div className="grid feature-item user-experience text-center">
-              <div className="col-xs-12 col-sm-12 text">
+              <div className="col-xs-12 col-sm-12 col-md-12 text">
                 <h2><span>04<br/>-</span>User experience that simply rocks</h2>
                 <h4>Unlike what you might expect from open source software Saleor’s user experience rivals that of the best commercial solutions.</h4>
               </div>
-              <div className="col-xs-12 col-sm-0 image"></div>
+              <div className="col-xs-12 col-sm-0 col-md-0 image"></div>
             </div>
             {isMobileOnly ? (
               <Tabs className="feature-tabs">
                <TabList className="grid">
-                 <Tab className="col-xs-6">Dashboard</Tab>
-                 <Tab className="col-xs-6">Storefront</Tab>
+                 <Tab className="col-xs-6 col-sm-6">Dashboard</Tab>
+                 <Tab className="col-xs-6 col-sm-6">Storefront</Tab>
                </TabList>
                <TabPanel>
                  <div className="grid feature-item dashboard">
-                   <div className="col-xs-12 col-sm-6 image"></div>
-                   <div className="col-xs-12 col-sm-6 text">
+                   <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
+                   <div className="col-xs-12 col-sm-6 col-md-6 text">
                      <h2>Dashboard</h2>
                      <p>Easy-to-use dashboard makes managing your store a pleasant experience whether you’re using the latest Macbook or a two-year-old smartphone.</p>
                      <p className="text-light">Its intuitive interface is designed to aid your staff in daily routines like order management, inventory tracking or reporting. Saleor dashboard’s friendly home screen will also suggest items that may need your attention so you always stay on top of things.</p>
@@ -139,12 +139,12 @@ class Home extends Component {
                </TabPanel>
                <TabPanel>
                  <div className="grid feature-item storefront">
-                   <div className="col-xs-12 col-sm-6 text">
+                   <div className="col-xs-12 col-sm-6 col-md-6 text">
                      <h2>Storefront</h2>
                      <p>Saleor takes advantage of PWA standards  to optimize mobile experiences of the rapidly growing group of people shopping on the run.</p>
                      <p className="text-light">Allow your customers to buy their next pair of jeans while enjoying a virgin margarita on a plane. They will only need an internet connection when they go to pay with Apple Pay or one of the cards stored by their phone. </p>
                    </div>
-                   <div className="col-xs-12 col-sm-6 image"></div>
+                   <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
                    <div className="decoration">
                      <img src="../../images/decoration01.png" />
                    </div>
@@ -154,12 +154,12 @@ class Home extends Component {
             ) : (
               <div>
                 <div className="grid feature-item storefront">
-                  <div className="col-xs-12 col-sm-6 text">
+                  <div className="col-xs-12 col-sm-6 col-md-6 text">
                     <h2>Storefront</h2>
                     <p>Saleor takes advantage of PWA standards  to optimize mobile experiences of the rapidly growing group of people shopping on the run.</p>
                     <p className="text-light">Allow your customers to buy their next pair of jeans while enjoying a virgin margarita on a plane. They will only need an internet connection when they go to pay with Apple Pay or one of the cards stored by their phone. </p>
                   </div>
-                  <div className="col-xs-12 col-sm-6 image">
+                  <div className="col-xs-12 col-sm-6 col-md-6 image">
                     <div className="label-wrapper">
                       <div className="label">
                         <span className="rectangle primary"></span>
@@ -176,8 +176,8 @@ class Home extends Component {
                   </div>
                 </div>
                 <div className="grid feature-item dashboard">
-                  <div className="col-xs-12 col-sm-6 image"></div>
-                  <div className="col-xs-12 col-sm-6 text">
+                  <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
+                  <div className="col-xs-12 col-sm-6 col-md-6 text">
                     <h2>Dashboard</h2>
                     <p>Easy-to-use dashboard makes managing your store a pleasant experience whether you’re using the latest Macbook or a two-year-old smartphone.</p>
                     <p className="text-light">Its intuitive interface is designed to aid your staff in daily routines like order management, inventory tracking or reporting. Saleor dashboard’s friendly home screen will also suggest items that may need your attention so you always stay on top of things.</p>
@@ -214,23 +214,23 @@ class Home extends Component {
               <GitHubLink owner="mirumee" name="saleor" text="Github Stars" />
             </div>
             <div className="grid icons">
-              <div className="icon col-xs-5 col-sm-2">
+              <div className="icon col-xs-5 col-sm-2 col-md-2">
                 <ReactSVG className="github-icon" path="images/github-icon.svg" />
                 <h5>Suggest features <br/>and propose changes</h5>
               </div>
-              <div className="icon col-xs-5 col-sm-2">
+              <div className="icon col-xs-5 col-sm-2 col-md-2">
                 <ReactSVG className="transifex-icon" path="images/transifex-icon.svg" />
                 <h5>Translate Saleor <br/>to your language</h5>
               </div>
-              <div className="icon col-xs-5 col-sm-2">
+              <div className="icon col-xs-5 col-sm-2 col-md-2">
                 <ReactSVG className="gitter-icon" path="images/gitter-icon.svg" />
                 <h5>Discuss the <br/>featre of Saleor</h5>
               </div>
-              <div className="icon col-xs-5 col-sm-2">
+              <div className="icon col-xs-5 col-sm-2 col-md-2">
                 <ReactSVG className="stackoverflow-icon" path="images/stackoverflow-icon.svg" />
                 <h5>Ask for <br />help</h5>
               </div>
-              <div className="icon col-xs-5 col-sm-2">
+              <div className="icon col-xs-5 col-sm-2 col-md-2">
                 <ReactSVG className="medium-icon" path="images/medium-icon.svg" />
                 <h5>Follow Saleor's<br/> development</h5>
               </div>
@@ -252,8 +252,8 @@ class Home extends Component {
                 </div>
                 <div className="col-xs-12 col-sm-12 col-md-6">
                   <TabList className="tabs grid hovered">
-                    <Tab className="col-xs-6 col-sm-6"><span>Case studies</span></Tab>
-                    <Tab className="col-xs-6 col-sm-6"><span>Implementations</span></Tab>
+                    <Tab className="col-xs-6 col-sm-6 col-md-6"><span>Case studies</span></Tab>
+                    <Tab className="col-xs-6 col-sm-6 col-md-6"><span>Implementations</span></Tab>
                   </TabList>
                 </div>
               </div>
@@ -305,14 +305,14 @@ class Home extends Component {
             <h2>Enterprise consulting</h2>
             <h4>Some situations however call for a custom solution and extra code to be written. In that case, our team can help.</h4>
             <div className="list grid">
-              <div className="col-xs-12 col-sm-6 col-lg-5">
+              <div className="col-xs-12 col-sm-6 col-md-6 col-lg-5">
                 <ul>
                   <li><span>if you're looking for b2b or entreprise solutions</span></li>
                   <li><span>if a licensed platform is not enough</span></li>
                   <li><span>if you’re outgrowing your existing solution</span></li>
                 </ul>
               </div>
-              <div className="col-xs-12 col-sm-6 col-lg-7">
+              <div className="col-xs-12 col-sm-6 col-md-6 col-lg-7">
                 <ul>
                   <li><span>if you need unlimited integration possibilities</span></li>
                   <li><span>if you’re a high-volume business</span></li>

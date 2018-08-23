@@ -28,6 +28,15 @@ footer {
         font-size: var(--font-size);
         color: var(--primaryColor);
         line-height: var(--line-height-lg);
+        @media (max-width: 570px) {
+          font-size: calc(var(--font-size-base) * 0.8);
+        }
+        @media (max-width: 450px) {
+          font-size: calc(var(--font-size-base));
+        }
+        @media (max-width: 320px) {
+          font-size: calc(var(--font-size-base) * 0.8);
+        }
       }
       & ul {
         & li {
@@ -35,6 +44,15 @@ footer {
             font-size: var(--font-size);
             color: var(--body-color);
             line-height: var(--line-height-lg);
+            @media (max-width: 570px) {
+              font-size: calc(var(--font-size-base) * 0.8);
+            }
+            @media (max-width: 450px) {
+              font-size: calc(var(--font-size-base));
+            }
+            @media (max-width: 320px) {
+              font-size: calc(var(--font-size-base) * 0.8);
+            }
           }
         }
       }

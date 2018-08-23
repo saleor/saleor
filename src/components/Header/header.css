@@ -12,7 +12,7 @@ header {
         background: var(--accentColor);
         & a {
           color: var(--mobile-background);
-          padding-left: calc(var(--spacer) * 2);
+          padding-left: calc(var(--spacer) / 2);
         }
         & .close-icon {
           position: absolute;
@@ -130,12 +130,21 @@ header {
         display: block;
         visibility: visible;
         opacity: 1;
-        position: absolute;
+        position: fixed;
         left: 0;
         top: 0;
         z-index: 998;
         background: var(--mobile-background);
         padding: calc(var(--spacer) * 5) calc(var(--spacer) * 2) 0 calc(var(--spacer) * 2);
+        @media (max-width: 700px) {
+          padding: calc(var(--spacer) * 3) calc(var(--spacer) * 2) 0 calc(var(--spacer) * 2);
+        }
+        @media (max-width: 570px) {
+          padding: calc(var(--spacer) * 4) calc(var(--spacer) * 2) 0 calc(var(--spacer) * 2);
+        }
+         @media (max-width: 450px) {
+          padding: calc(var(--spacer) * 5) calc(var(--spacer) * 2) 0 calc(var(--spacer) * 2);
+        }
         & li {
           position: relative;
           padding: 0 calc(var(--spacer) * 4);
@@ -143,6 +152,12 @@ header {
           top: 1rem;
           text-transform: uppercase;
           font-size: calc(var(--font-size-base) * 2);
+          @media (max-width: 570px) {
+            font-size: calc(var(--font-size-base) * 1.5);
+          }
+          @media (max-width: 450px) {
+            font-size: calc(var(--font-size-base) * 2);
+          }
           &:first-child {
             display: block;
           }
@@ -166,6 +181,19 @@ header {
             left: calc(var(--spacer) * 2);
             top: initial;
             bottom: calc(var(--spacer) * 7);
+            @media (max-width: 700px) {
+              left: initial;
+              right: calc(var(--spacer) * -2);
+              bottom: calc(var(--spacer) * 4.5);
+            }
+            @media (max-width: 570px) {
+              bottom: calc(var(--spacer) * 5.5);
+            }
+            @media (max-width: 450px) {
+              left: calc(var(--spacer) * 2);
+              right: initial;
+              bottom: calc(var(--spacer) * 7);
+            }
             & a {
               color: var(--primaryColor);
             }
@@ -186,6 +214,12 @@ header {
         }
         & li {
           grid-column: -6 / span 4;
+          @media (max-width: 700px) {
+            grid-column: -8 / span 4;
+          }
+          @media (max-width: 570px) {
+            grid-column: -9 / span 5;
+          }
           @media (max-width: 450px) {
             grid-column: -9 / span 6;
           }

@@ -22,13 +22,13 @@ const Roadmap = (props) => (
     </section>
     <section id="roadmap-section" className="roadmap-content">
       <div className="grid roadmap-item">
-        <div className="col-xs-4 col-sm-4 line">
+        <div className="col-xs-4 col-sm-4 col-md-4 line">
           <div className="icon parrot"></div>
         </div>
-        <div className="col-xs-8 col-sm-8 text">
+        <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>Long-Term Goals</h2>
           <div className="grid">
-            <div className="col-xs-12 col-sm-6">
+            <div className="col-xs-12 col-sm-6 col-md-6">
               <h4>Storefront 2.0</h4>
               <p>Mobile-first storefront with full PWA support. Support for browser-based payment methods (Google Pay, Apple Pay).</p>
               <h4>Architecture changes (Stable core)</h4>
@@ -36,7 +36,7 @@ const Roadmap = (props) => (
               <h4>Avalara integration</h4>
               <p>Integration with Avalara for tax calculations.</p>
             </div>
-            <div className="col-xs-12 col-sm-6">
+            <div className="col-xs-12 col-sm-6 col-md-6">
               <h4>CSV export</h4>
               <p>Exporting products, orders and customers to CSV files.</p>
               <h4>Data import</h4>
@@ -48,20 +48,20 @@ const Roadmap = (props) => (
         </div>
       </div>
       <div className="grid roadmap-item">
-        <div className="col-xs-4 col-sm-4 line">
+        <div className="col-xs-4 col-sm-4 col-md-4 line">
         <div className="icon lantern"></div>
         </div>
-        <div className="col-xs-8 col-sm-8 text">
+        <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>Upcoming Release</h2>
           <h4>Dashboard 2.0 - Product Management</h4>
           <p>A refreshed version of product management views implemented as a single-page application.</p>
         </div>
       </div>
       <div className="grid roadmap-item">
-        <div className="col-xs-4 col-sm-4 line">
+        <div className="col-xs-4 col-sm-4 col-md-4 line">
           <div className="icon"></div>
         </div>
-        <div className="col-xs-8 col-sm-8 text">
+        <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>June Release</h2>
           <h4>GraphQL Api (Beta)</h4>
           <h4>Sentry Integration</h4>
@@ -69,10 +69,10 @@ const Roadmap = (props) => (
         </div>
       </div>
       <div className="grid roadmap-item">
-        <div className="col-xs-4 col-sm-4 line">
+        <div className="col-xs-4 col-sm-4 col-md-4 line">
           <div className="icon"></div>
         </div>
-        <div className="col-xs-8 col-sm-8 text">
+        <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>May Release</h2>
           <h4>Ability to remove customer’s data</h4>
           <h4>reCAPTCHA integration</h4>
@@ -80,10 +80,10 @@ const Roadmap = (props) => (
         </div>
       </div>
       <div className="grid roadmap-item">
-        <div className="col-xs-4 col-sm-4 line">
+        <div className="col-xs-4 col-sm-4 col-md-4 line">
           <div className="icon"></div>
         </div>
-        <div className="col-xs-8 col-sm-8 text">
+        <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>April Release</h2>
           <h4>Tax support for european countries</h4>
           <h4>Simplified stock management</h4>
@@ -93,10 +93,10 @@ const Roadmap = (props) => (
         </div>
       </div>
       <div className="grid roadmap-item">
-        <div className="col-xs-4 col-sm-4 line">
+        <div className="col-xs-4 col-sm-4 col-md-4 line">
           <div className="icon"></div>
         </div>
-        <div className="col-xs-8 col-sm-8 text">
+        <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>March Release</h2>
           <h4>Multilingual storefront</h4>
           <h4>Creating orders through the dashboard</h4>
@@ -106,10 +106,10 @@ const Roadmap = (props) => (
         </div>
       </div>
       <div className="grid roadmap-item">
-        <div className="col-xs-4 col-sm-4 line">
+        <div className="col-xs-4 col-sm-4 col-md-4 line">
           <div className="icon"></div>
         </div>
-        <div className="col-xs-8 col-sm-8 text">
+        <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>February Release</h2>
           <h4>Upgraded prices handling</h4>
           <h4>Adding custom pages through the  dashboard</h4>
@@ -118,10 +118,10 @@ const Roadmap = (props) => (
         </div>
       </div>
       <div className="grid roadmap-item">
-        <div className="col-xs-4 col-sm-4 line">
+        <div className="col-xs-4 col-sm-4 col-md-4 line">
           <div className="icon"></div>
         </div>
-        <div className="col-xs-8 col-sm-8 text">
+        <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>January Release</h2>
           <h4>Added support for Django 2.0</h4>
           <h4>MJML templates for emails</h4>
@@ -132,10 +132,10 @@ const Roadmap = (props) => (
         </div>
       </div>
       <div className="grid roadmap-item">
-        <div className="col-xs-4 col-sm-4 line">
+        <div className="col-xs-4 col-sm-4 col-md-4 line">
           <div className="icon last"></div>
         </div>
-        <div className="col-xs-8 col-sm-8 text">
+        <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>December Release</h2>
           <h4>Dropped Python 2.7</h4>
           <h4>Added OpenGraph tags and canonical links</h4>
