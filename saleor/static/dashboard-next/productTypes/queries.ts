@@ -2,6 +2,7 @@ import gql from "graphql-tag";
 import { Query, QueryProps } from "react-apollo";
 
 import {
+  ProductTypeCreateDataQuery,
   ProductTypeDetailsQuery,
   ProductTypeDetailsQueryVariables,
   ProductTypeListQuery,
@@ -83,6 +84,30 @@ export const productTypeDetailsQuery = gql`
       }
       isShippingRequired
       taxRate
+    }
+    shop {
+      taxRate(countryCode: "PL") {
+        standardRate
+        reducedRates {
+          rateType
+        }
+      }
+    }
+  }
+`;
+
+export const TypedProductTypeCreateDataQuery = Query as React.ComponentType<
+  QueryProps<ProductTypeCreateDataQuery>
+>;
+export const productTypeCreateQuery = gql`
+  query ProductTypeCreateData {
+    shop {
+      taxRate(countryCode: "PL") {
+        standardRate
+        reducedRates {
+          rateType
+        }
+      }
     }
   }
 `;
