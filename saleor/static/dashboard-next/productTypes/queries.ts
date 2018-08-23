@@ -2,8 +2,12 @@ import gql from "graphql-tag";
 import { Query, QueryProps } from "react-apollo";
 
 import {
+  ProductTypeDetailsQuery,
+  ProductTypeDetailsQueryVariables,
   ProductTypeListQuery,
-  ProductTypeListQueryVariables
+  ProductTypeListQueryVariables,
+  SearchAttributeQuery,
+  SearchAttributeQueryVariables
 } from "../gql-types";
 
 export const TypedProductTypeListQuery = Query as React.ComponentType<
@@ -45,6 +49,56 @@ export const productTypeListQuery = gql`
         hasPreviousPage
         startCursor
         endCursor
+      }
+    }
+  }
+`;
+
+export const TypedProductTypeDetailsQuery = Query as React.ComponentType<
+  QueryProps<ProductTypeDetailsQuery, ProductTypeDetailsQueryVariables>
+>;
+export const productTypeDetailsQuery = gql`
+  query ProductTypeDetails($id: ID!) {
+    productType(id: $id) {
+      id
+      name
+      hasVariants
+      productAttributes {
+        edges {
+          node {
+            id
+            slug
+            name
+          }
+        }
+      }
+      variantAttributes {
+        edges {
+          node {
+            id
+            slug
+            name
+          }
+        }
+      }
+      isShippingRequired
+      taxRate
+    }
+  }
+`;
+
+export const TypedSearchAttributeQuery = Query as React.ComponentType<
+  QueryProps<SearchAttributeQuery, SearchAttributeQueryVariables>
+>;
+export const searchAttributeQuery = gql`
+  query SearchAttribute($search: String!) {
+    attributes(query: $search, first: 5) {
+      edges {
+        node {
+          id
+          slug
+          name
+        }
       }
     }
   }

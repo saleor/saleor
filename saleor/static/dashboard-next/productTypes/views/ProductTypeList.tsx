@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { productTypeListUrl } from "../";
+import { productTypeDetailsUrl, productTypeListUrl } from "../";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import { createPaginationData, createPaginationState } from "../../misc";
@@ -14,7 +14,7 @@ interface ProductTypeListProps {
   };
 }
 
-const PAGINATE_BY = 3;
+const PAGINATE_BY = 20;
 
 export const ProductTypeList: React.StatelessComponent<
   ProductTypeListProps
@@ -57,7 +57,7 @@ export const ProductTypeList: React.StatelessComponent<
                 onAdd={() => undefined}
                 onNextPage={loadNextPage}
                 onPreviousPage={loadPreviousPage}
-                onRowClick={id => () => undefined}
+                onRowClick={id => () => navigate(productTypeDetailsUrl(id))}
               />
             );
           }}
