@@ -2,6 +2,8 @@ import gql from "graphql-tag";
 import { Mutation, MutationProps } from "react-apollo";
 
 import {
+  ProductTypeCreateMutation,
+  ProductTypeCreateMutationVariables,
   ProductTypeDeleteMutation,
   ProductTypeDeleteMutationVariables,
   ProductTypeUpdateMutation,
@@ -31,6 +33,44 @@ export const TypedProductTypeUpdateMutation = Mutation as React.ComponentType<
 export const productTypeUpdateMutation = gql`
   mutation ProductTypeUpdate($id: ID!, $input: ProductTypeInput!) {
     productTypeUpdate(id: $id, input: $input) {
+      errors {
+        field
+        message
+      }
+      productType {
+        id
+        name
+        hasVariants
+        productAttributes {
+          edges {
+            node {
+              id
+              slug
+              name
+            }
+          }
+        }
+        variantAttributes {
+          edges {
+            node {
+              id
+              slug
+              name
+            }
+          }
+        }
+        isShippingRequired
+      }
+    }
+  }
+`;
+
+export const TypedProductTypeCreateMutation = Mutation as React.ComponentType<
+  MutationProps<ProductTypeCreateMutation, ProductTypeCreateMutationVariables>
+>;
+export const productTypeCreateMutation = gql`
+  mutation ProductTypeCreate($input: ProductTypeInput!) {
+    productTypeCreate(input: $input) {
       errors {
         field
         message

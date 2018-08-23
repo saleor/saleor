@@ -1,6 +1,10 @@
 import * as React from "react";
 
-import { productTypeDetailsUrl, productTypeListUrl } from "../";
+import {
+  productTypeAddUrl,
+  productTypeDetailsUrl,
+  productTypeListUrl
+} from "../";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import { createPaginationData, createPaginationState } from "../../misc";
@@ -54,7 +58,7 @@ export const ProductTypeList: React.StatelessComponent<
                     : undefined
                 }
                 pageInfo={pageInfo}
-                onAdd={() => undefined}
+                onAdd={() => navigate(productTypeAddUrl)}
                 onNextPage={loadNextPage}
                 onPreviousPage={loadPreviousPage}
                 onRowClick={id => () => navigate(productTypeDetailsUrl(id))}

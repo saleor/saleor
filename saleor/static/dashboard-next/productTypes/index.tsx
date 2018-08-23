@@ -2,11 +2,13 @@ import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
+import ProductTypeCreate from "./views/ProductTypeCreate";
 import ProductTypeListComponent from "./views/ProductTypeList";
 import ProductTypeUpdateComponent from "./views/ProductTypeUpdate";
 
-export const productTypeListUrl = "/productTypes";
+export const productTypeAddUrl = "/productTypes/add/";
 export const productTypeDetailsUrl = (id: string) => `/productTypes/${id}/`;
+export const productTypeListUrl = "/productTypes";
 
 const ProductTypeList: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
@@ -35,6 +37,7 @@ export const ProductTypeRouter: React.StatelessComponent<
 > = ({ match }) => (
   <Switch>
     <Route exact path={match.url} component={ProductTypeList} />
+    <Route exact path={match.url + "/add/"} component={ProductTypeCreate} />
     <Route exact path={match.url + "/:id/"} component={ProductTypeUpdate} />
   </Switch>
 );

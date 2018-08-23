@@ -487,6 +487,57 @@ export interface ProductTypeUpdateMutation {
   } | null,
 };
 
+export interface ProductTypeCreateMutationVariables {
+  input: ProductTypeInput,
+};
+
+export interface ProductTypeCreateMutation {
+  productTypeCreate:  {
+    // List of errors that occurred executing the mutation.
+    errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
+      field: string | null,
+      // The error message.
+      message: string | null,
+    } | null > | null,
+    productType:  {
+      // The ID of the object.
+      id: string,
+      name: string,
+      hasVariants: boolean,
+      productAttributes:  {
+        edges:  Array< {
+          // The item at the end of the edge
+          node:  {
+            // The ID of the object.
+            id: string,
+            // Internal representation of an attribute name.
+            slug: string | null,
+            // Visible name for display purposes.
+            name: string | null,
+          },
+        } >,
+      } | null,
+      variantAttributes:  {
+        edges:  Array< {
+          // The item at the end of the edge
+          node:  {
+            // The ID of the object.
+            id: string,
+            // Internal representation of an attribute name.
+            slug: string | null,
+            // Visible name for display purposes.
+            name: string | null,
+          },
+        } >,
+      } | null,
+      isShippingRequired: boolean,
+    } | null,
+  } | null,
+};
+
 export interface ProductTypeListQueryVariables {
   after?: string | null,
   before?: string | null,

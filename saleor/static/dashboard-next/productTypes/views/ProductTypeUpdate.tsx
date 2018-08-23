@@ -101,7 +101,12 @@ export const ProductTypeUpdate: React.StatelessComponent<
                           const loading = mutationLoading || dataLoading;
                           return (
                             <ProductTypeDetailsPage
-                              disabled={false}
+                              disabled={loading}
+                              pageTitle={
+                                data && data.productType
+                                  ? data.productType.name
+                                  : undefined
+                              }
                               productType={data ? data.productType : undefined}
                               productAttributes={
                                 data &&
