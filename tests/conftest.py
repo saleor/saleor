@@ -74,10 +74,7 @@ class ApiClient(Client):
 
 @pytest.fixture
 def admin_api_client(admin_user):
-    client = ApiClient(user=admin_user)
-    # FIXME: Remove client.login() when JWT authentication is re-enabled.
-    client.login(username=admin_user.email, password='password')
-    return client
+    return ApiClient(user=admin_user)
 
 
 @pytest.fixture
@@ -87,10 +84,7 @@ def user_api_client(customer_user):
 
 @pytest.fixture
 def staff_api_client(staff_user):
-    client = ApiClient(user=staff_user)
-    # FIXME: Remove client.login() when JWT authentication is re-enabled.
-    client.login(username=staff_user.email, password='password')
-    return client
+    return ApiClient(user=staff_user)
 
 
 @pytest.fixture(autouse=True)

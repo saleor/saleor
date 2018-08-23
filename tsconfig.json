@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "lib": ["es2017", "dom", "esnext"],
+    "sourceMap": true,
+    "target": "es5"
+  },
+  "include": ["webpack.d.ts"]
+}

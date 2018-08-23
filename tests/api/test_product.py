@@ -818,10 +818,8 @@ def test_product_image_create_mutation(admin_api_client, product):
     query = """
     mutation createProductImage($image: Upload!, $product: ID!) {
         productImageCreate(input: {image: $image, product: $product}) {
-            productImage {
+            image {
                 id
-                url
-                sortOrder
             }
         }
     }
@@ -843,7 +841,7 @@ def test_invalid_product_image_create_mutation(admin_api_client, product):
     query = """
     mutation createProductImage($image: Upload!, $product: ID!) {
         productImageCreate(input: {image: $image, product: $product}) {
-            productImage {
+            image {
                 id
                 url
                 sortOrder
@@ -862,6 +860,7 @@ def test_invalid_product_image_create_mutation(admin_api_client, product):
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = admin_api_client.post_multipart(reverse('api'), body)
     content = get_graphql_content(response)
+    assert 'errors' not in content
     assert content['data']['productImageCreate']['errors'] == [{
         'field': 'image',
         'message': 'Invalid file type'}]
@@ -873,7 +872,7 @@ def test_product_image_update_mutation(admin_api_client, product_with_image):
     query = """
     mutation updateProductImage($imageId: ID!, $alt: String) {
         productImageUpdate(id: $imageId, input: {alt: $alt}) {
-            productImage {
+            image {
                 alt
             }
         }
@@ -888,7 +887,7 @@ def test_product_image_update_mutation(admin_api_client, product_with_image):
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    data = content['data']['productImageUpdate']['productImage']['alt'] == alt
+    data = content['data']['productImageUpdate']['image']['alt'] == alt
 
 
 def test_product_image_delete(admin_api_client, product_with_image):
@@ -896,9 +895,9 @@ def test_product_image_delete(admin_api_client, product_with_image):
     query = """
             mutation deleteProductImage($id: ID!) {
                 productImageDelete(id: $id) {
-                    productImage {
-                        url
+                    image {
                         id
+                        url
                     }
                 }
             }
@@ -911,17 +910,17 @@ def test_product_image_delete(admin_api_client, product_with_image):
     content = get_graphql_content(response)
     assert 'errors' not in content
     data = content['data']['productImageDelete']
-    assert data['productImage']['url'] == image_obj.image.url
+    assert data['image']['url'] == image_obj.image.url
     with pytest.raises(image_obj._meta.model.DoesNotExist):
         image_obj.refresh_from_db()
-    assert node_id == data['productImage']['id']
+    assert node_id == data['image']['id']
 
 
 def test_reorder_images(admin_api_client, product_with_images):
     query = """
     mutation reorderImages($product_id: ID!, $images_ids: [ID]!) {
         productImageReorder(productId: $product_id, imagesIds: $images_ids) {
-            productImages {
+            product {
                 id
             }
         }
@@ -1090,7 +1089,7 @@ def test_add_products_to_collection(
         'products']['totalCount'] == no_products_before + len(product_ids)
 
 
-def test_remove_products_to_collection(
+def test_remove_products_from_collection(
         admin_api_client, collection, product_list):
     query = """
         mutation collectionRemoveProducts(
@@ -1120,7 +1119,8 @@ def test_remove_products_to_collection(
         'products']['totalCount'] == no_products_before - len(product_ids)
 
 
-def test_assign_variant_image(admin_api_client, user_api_client, product_with_image):
+def test_assign_variant_image(
+        admin_api_client, user_api_client, product_with_image):
     query = """
     mutation assignVariantImageMutation($variantId: ID!, $imageId: ID!) {
         variantImageAssign(variantId: $variantId, imageId: $imageId) {
@@ -1128,7 +1128,7 @@ def test_assign_variant_image(admin_api_client, user_api_client, product_with_im
                 field
                 message
             }
-            image {
+            productVariant {
                 id
             }
         }
@@ -1166,7 +1166,8 @@ def test_assign_variant_image(admin_api_client, user_api_client, product_with_im
     assert_no_permission(response)
 
 
-def test_unassign_variant_image(admin_api_client, user_api_client, product_with_image):
+def test_unassign_variant_image(
+        admin_api_client, user_api_client, product_with_image):
     image = product_with_image.images.first()
     variant = product_with_image.variants.first()
     variant.variant_images.create(image=image)
@@ -1178,7 +1179,7 @@ def test_unassign_variant_image(admin_api_client, user_api_client, product_with_
                 field
                 message
             }
-            image {
+            productVariant {
                 id
             }
         }

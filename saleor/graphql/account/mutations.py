@@ -29,10 +29,21 @@ BILLING_ADDRESS_FIELD = 'default_billing_address'
 SHIPPING_ADDRESS_FIELD = 'default_shipping_address'
 
 
+BILLING_ADDRESS_FIELD = 'default_billing_address'
+SHIPPING_ADDRESS_FIELD = 'default_shipping_address'
+
+
 class UserInput(graphene.InputObjectType):
     email = graphene.String(
         description='The unique email address of the user.')
     note = graphene.String(description='A note about the user.')
+
+
+class CustomerInput(UserInput):
+    default_billing_address = AddressInput(
+        description='Billing address of the customer.')
+    default_shipping_address = AddressInput(
+        description='Shipping address of the customer.')
 
 
 class CustomerInput(UserInput):
@@ -113,7 +124,6 @@ class CustomerCreate(ModelMutation):
         if default_shipping_address:
             default_shipping_address.save()
             instance.default_shipping_address = default_shipping_address
-
         default_billing_address = cleaned_input.get(BILLING_ADDRESS_FIELD)
         if default_billing_address:
             default_billing_address.save()
