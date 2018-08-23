@@ -4,11 +4,17 @@
   margin-bottom: calc(var(--spacer) * 2);
   position: relative;
   padding: calc(var(--spacer) * 2) 0;
-  & h1 span {
-    font-weight: var(--font-weight-light)
+  & h1 { 
+    & span {
+      font-weight: var(--font-weight-light);
+    }
+    @media (max-width: 450px) {
+      font-size: calc(var(--h1-font-size) * 0.5);
+    }
   }
   & .btn {
     margin: calc(var(--spacer) * 2) 0;
+    padding: calc(var(--spacer) / 2) calc(var(--spacer) * 4);
     display: inline-block;
   }
   & .decoration-left {
