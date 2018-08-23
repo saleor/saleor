@@ -1,6 +1,8 @@
 import gql from "graphql-tag";
 import { Mutation, MutationProps } from "react-apollo";
 
+import { TypedMutation } from "../mutations";
+
 import {
   PageCreateMutation,
   PageCreateMutationVariables,
@@ -10,9 +12,6 @@ import {
   PageUpdateMutationVariables
 } from "../gql-types";
 
-export const TypedPageDeleteMutation = Mutation as React.ComponentType<
-  MutationProps<PageDeleteMutation, PageDeleteMutationVariables>
-  >;
 export const pageDeleteMutation = gql`
   mutation PageDelete($id: ID!) {
     pageDelete(id: $id) {
@@ -23,10 +22,11 @@ export const pageDeleteMutation = gql`
     }
   }
 `;
+export const TypedPageDeleteMutation = TypedMutation<
+  PageDeleteMutation,
+  PageDeleteMutationVariables
+>(pageDeleteMutation);
 
-export const TypedPageUpdateMutation = Mutation as React.ComponentType<
-  MutationProps<PageUpdateMutation, PageUpdateMutationVariables>
-  >;
 export const pageUpdateMutation = gql`
   mutation PageUpdate(
     $id: ID!
@@ -61,10 +61,11 @@ export const pageUpdateMutation = gql`
     }
   }
 `;
+export const TypedPageUpdateMutation = TypedMutation<
+  PageUpdateMutation,
+  PageUpdateMutationVariables
+>(pageUpdateMutation);
 
-export const TypedPageCreateMutation = Mutation as React.ComponentType<
-  MutationProps<PageCreateMutation, PageCreateMutationVariables>
-  >;
 export const pageCreateMutation = gql`
   mutation PageCreate(
     $title: String!
@@ -98,3 +99,7 @@ export const pageCreateMutation = gql`
     }
   }
 `;
+export const TypedPageCreateMutation = TypedMutation<
+  PageCreateMutation,
+  PageCreateMutationVariables
+>(pageCreateMutation);

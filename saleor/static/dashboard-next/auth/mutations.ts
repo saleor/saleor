@@ -2,6 +2,8 @@ import gql from "graphql-tag";
 import * as React from "react";
 import { Mutation, MutationProps } from "react-apollo";
 
+import { TypedMutation } from "../mutations";
+
 import {
   TokenAuthMutation,
   TokenAuthMutationVariables,
@@ -38,9 +40,10 @@ export const tokenAuthMutation = gql`
   }
 `;
 
-export const TypedTokenAuthMutation: React.ComponentType<
-  MutationProps<TokenAuthMutation, TokenAuthMutationVariables>
-> = Mutation;
+export const TypedTokenAuthMutation = TypedMutation<
+  TokenAuthMutation,
+  TokenAuthMutationVariables
+>(tokenAuthMutation);
 
 export const tokenVerifyMutation = gql`
   ${fragmentUser}
@@ -54,6 +57,7 @@ export const tokenVerifyMutation = gql`
   }
 `;
 
-export const TypedVerifyTokenMutation: React.ComponentType<
-  MutationProps<VerifyTokenMutation, VerifyTokenMutationVariables>
-> = Mutation;
+export const TypedVerifyTokenMutation = TypedMutation<
+  VerifyTokenMutation,
+  VerifyTokenMutationVariables
+>(tokenVerifyMutation);

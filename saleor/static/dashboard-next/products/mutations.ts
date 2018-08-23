@@ -1,11 +1,11 @@
 import gql from "graphql-tag";
-import { Mutation, MutationProps } from "react-apollo";
 
 import {
   ProductCreateMutation,
   ProductCreateMutationVariables,
   ProductDeleteMutation,
   ProductDeleteMutationVariables,
+  ProductDetailsQuery,
   ProductImageCreateMutation,
   ProductImageCreateMutationVariables,
   ProductImageDeleteMutation,
@@ -27,6 +27,7 @@ import {
   VariantUpdateMutation,
   VariantUpdateMutationVariables
 } from "../gql-types";
+import { TypedMutation } from "../mutations";
 
 import {
   fragmentProduct,
@@ -34,30 +35,24 @@ import {
   fragmentVariant
 } from "./queries";
 
-export const TypedProductImageCreateMutation = Mutation as React.ComponentType<
-  MutationProps<ProductImageCreateMutation, ProductImageCreateMutationVariables>
->;
-
 export const productImageCreateMutation = gql`
+  ${fragmentProduct}
   mutation ProductImageCreate($product: ID!, $image: Upload!, $alt: String) {
     productImageCreate(input: { alt: $alt, image: $image, product: $product }) {
       errors {
         field
         message
       }
-      productImage {
-        id
-        sortOrder
-        alt
-        url
+      product {
+        ...Product
       }
     }
   }
 `;
-
-export const TypedProductDeleteMutation = Mutation as React.ComponentType<
-  MutationProps<ProductDeleteMutation, ProductDeleteMutationVariables>
->;
+export const TypedProductImageCreateMutation = TypedMutation<
+  ProductImageCreateMutation,
+  ProductImageCreateMutationVariables
+>(productImageCreateMutation);
 
 export const productDeleteMutation = gql`
   mutation ProductDelete($id: ID!) {
@@ -72,32 +67,29 @@ export const productDeleteMutation = gql`
     }
   }
 `;
-
-export const TypedProductImagesReorder = Mutation as React.ComponentType<
-  MutationProps<
-    ProductImageReorderMutation,
-    ProductImageReorderMutationVariables
-  >
->;
+export const TypedProductDeleteMutation = TypedMutation<
+  ProductDeleteMutation,
+  ProductDeleteMutationVariables
+>(productDeleteMutation);
 
 export const productImagesReorder = gql`
-  ${fragmentProductImage}
+  ${fragmentProduct}
   mutation ProductImageReorder($productId: ID!, $imagesIds: [ID]!) {
     productImageReorder(productId: $productId, imagesIds: $imagesIds) {
       errors {
         field
         message
       }
-      productImages {
-        ...ProductImage
+      product {
+        ...Product
       }
     }
   }
 `;
-
-export const TypedProductUpdateMutation = Mutation as React.ComponentType<
-  MutationProps<ProductUpdateMutation, ProductUpdateMutationVariables>
->;
+export const TypedProductImagesReorder = TypedMutation<
+  ProductImageReorderMutation,
+  ProductImageReorderMutationVariables
+>(productImagesReorder);
 
 export const productUpdateMutation = gql`
   ${fragmentProduct}
@@ -137,10 +129,10 @@ export const productUpdateMutation = gql`
     }
   }
 `;
-
-export const TypedProductCreateMutation = Mutation as React.ComponentType<
-  MutationProps<ProductCreateMutation, ProductCreateMutationVariables>
->;
+export const TypedProductUpdateMutation = TypedMutation<
+  ProductUpdateMutation,
+  ProductUpdateMutationVariables
+>(productUpdateMutation);
 
 export const productCreateMutation = gql`
   ${fragmentProduct}
@@ -180,10 +172,10 @@ export const productCreateMutation = gql`
     }
   }
 `;
-
-export const TypedVariantDeleteMutation = Mutation as React.ComponentType<
-  MutationProps<VariantDeleteMutation, VariantDeleteMutationVariables>
->;
+export const TypedProductCreateMutation = TypedMutation<
+  ProductCreateMutation,
+  ProductCreateMutationVariables
+>(productCreateMutation);
 
 export const variantDeleteMutation = gql`
   mutation VariantDelete($id: ID!) {
@@ -198,10 +190,10 @@ export const variantDeleteMutation = gql`
     }
   }
 `;
-
-export const TypedVariantUpdateMutation = Mutation as React.ComponentType<
-  MutationProps<VariantUpdateMutation, VariantUpdateMutationVariables>
->;
+export const TypedVariantDeleteMutation = TypedMutation<
+  VariantDeleteMutation,
+  VariantDeleteMutationVariables
+>(variantDeleteMutation);
 
 export const variantUpdateMutation = gql`
   ${fragmentVariant}
@@ -237,10 +229,10 @@ export const variantUpdateMutation = gql`
     }
   }
 `;
-
-export const TypedVariantCreateMutation = Mutation as React.ComponentType<
-  MutationProps<VariantCreateMutation, VariantCreateMutationVariables>
->;
+export const TypedVariantUpdateMutation = TypedMutation<
+  VariantUpdateMutation,
+  VariantUpdateMutationVariables
+>(variantUpdateMutation);
 
 export const variantCreateMutation = gql`
   ${fragmentVariant}
@@ -274,76 +266,84 @@ export const variantCreateMutation = gql`
     }
   }
 `;
-
-export const TypedProductImageDeleteMutation = Mutation as React.ComponentType<
-  MutationProps<ProductImageDeleteMutation, ProductImageDeleteMutationVariables>
->;
+export const TypedVariantCreateMutation = TypedMutation<
+  VariantCreateMutation,
+  VariantCreateMutationVariables
+>(variantCreateMutation);
 
 export const productImageDeleteMutation = gql`
   mutation ProductImageDelete($id: ID!) {
     productImageDelete(id: $id) {
-      productImage {
-        id
+      product {
+        images {
+          edges {
+            node {
+              id
+            }
+          }
+        }
       }
     }
   }
 `;
-
-export const TypedProductImageUpdateMutation = Mutation as React.ComponentType<
-  MutationProps<ProductImageUpdateMutation, ProductImageUpdateMutationVariables>
->;
+export const TypedProductImageDeleteMutation = TypedMutation<
+  ProductImageDeleteMutation,
+  ProductImageDeleteMutationVariables
+>(productImageDeleteMutation);
 
 export const productImageUpdateMutation = gql`
+  ${fragmentProduct}
   mutation ProductImageUpdate($id: ID!, $alt: String!) {
     productImageUpdate(id: $id, input: { alt: $alt }) {
       errors {
         field
         message
       }
-      productImage {
-        id
-        alt
+      product {
+        ...Product
       }
     }
   }
 `;
-
-export const TypedVariantImageAssign = Mutation as React.ComponentType<
-  MutationProps<VariantImageAssignMutation, VariantImageAssignMutationVariables>
->;
+export const TypedProductImageUpdateMutation = TypedMutation<
+  ProductImageUpdateMutation,
+  ProductImageUpdateMutationVariables
+>(productImageUpdateMutation);
 
 export const variantImageAssignMutation = gql`
+  ${fragmentVariant}
   mutation VariantImageAssign($variantId: ID!, $imageId: ID!) {
     variantImageAssign(variantId: $variantId, imageId: $imageId) {
       errors {
         field
         message
       }
-      image {
-        id
-        url
+      productVariant {
+        ...ProductVariant
       }
     }
   }
 `;
-
-export const TypedVariantImageUnassign = Mutation as React.ComponentType<
-  MutationProps<
-    VariantImageUnassignMutation,
-    VariantImageAssignMutationVariables
-  >
->;
+export const TypedVariantImageAssignMutation = TypedMutation<
+  VariantImageAssignMutation,
+  VariantImageAssignMutationVariables
+>(variantImageAssignMutation);
 
 export const variantImageUnassignMutation = gql`
+  ${fragmentVariant}
   mutation VariantImageUnassign($variantId: ID!, $imageId: ID!) {
     variantImageUnassign(variantId: $variantId, imageId: $imageId) {
       errors {
         field
         message
       }
-      image {
-        id
+      productVariant {
+        ...ProductVariant
       }
     }
   }
 `;
+export const TypedVariantImageUnassignMutation = TypedMutation<
+  VariantImageUnassignMutation,
+  VariantImageUnassignMutationVariables
+>(variantImageUnassignMutation);

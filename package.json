@@ -164,11 +164,11 @@
     ]
   },
   "scripts": {
-    "build-assets": "webpack -p --progress",
+    "build-assets": "webpack -p",
     "build-schema": "python manage.py graphql_schema --schema saleor.graphql.api.schema --out saleor/static/dashboard-next/schema.json",
     "generate-types": "apollo-codegen generate 'saleor/static/dashboard-next/**/*.ts' --schema saleor/static/dashboard-next/schema.json --target typescript --output saleor/static/dashboard-next/gql-types.ts",
     "heroku-postbuild": "npm run build-assets && npm run build-emails",
-    "start": "webpack -d --watch --progress",
+    "start": "webpack -d --watch",
     "build-emails": "mjml --config.beautify false -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled",
     "storybook": "start-storybook -p 3000 -c saleor/static/dashboard-next/storybook/",
     "build-storybook": "build-storybook -c saleor/static/dashboard-next/storybook/ -o build",

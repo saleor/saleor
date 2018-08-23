@@ -40,10 +40,7 @@ export const CategoryUpdateForm: React.StatelessComponent<
                 }
               };
               return (
-                <TypedCategoryUpdateMutation
-                  mutation={categoryUpdateMutation}
-                  onCompleted={handleUpdateSuccess}
-                >
+                <TypedCategoryUpdateMutation onCompleted={handleUpdateSuccess}>
                   {(
                     updateCategory,
                     { called, data: updateResult, loading: updateInProgress }
