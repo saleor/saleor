@@ -8,10 +8,7 @@ import {
   VariantDeleteMutation,
   VariantDeleteMutationVariables
 } from "../../gql-types";
-import {
-  TypedVariantDeleteMutation,
-  variantDeleteMutation
-} from "../mutations";
+import { TypedVariantDeleteMutation } from "../mutations";
 
 interface VariantDeleteProviderProps extends PartialMutationProviderProps {
   id: string;
@@ -25,7 +22,6 @@ const VariantDeleteProvider: React.StatelessComponent<
   VariantDeleteProviderProps
 > = ({ id, children, onError, onSuccess }) => (
   <TypedVariantDeleteMutation
-    mutation={variantDeleteMutation}
     variables={{ id }}
     onCompleted={onSuccess}
     onError={onError}

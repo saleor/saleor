@@ -7,10 +7,7 @@ import Navigator from "../../components/Navigator";
 import { VariantCreateMutation } from "../../gql-types";
 import i18n from "../../i18n";
 import ProductVariantCreatePage from "../components/ProductVariantCreatePage";
-import {
-  TypedVariantCreateMutation,
-  variantCreateMutation
-} from "../mutations";
+import { TypedVariantCreateMutation } from "../mutations";
 import {
   productVariantCreateQuery,
   TypedProductVariantCreateQuery
@@ -67,10 +64,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
               };
 
               return (
-                <TypedVariantCreateMutation
-                  mutation={variantCreateMutation}
-                  onCompleted={handleCreateSuccess}
-                >
+                <TypedVariantCreateMutation onCompleted={handleCreateSuccess}>
                   {(variantCreate, variantCreateResult) => {
                     if (variantCreateResult.error) {
                       return (

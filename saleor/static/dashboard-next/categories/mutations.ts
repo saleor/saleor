@@ -10,6 +10,7 @@ import {
   CategoryUpdateMutation,
   CategoryUpdateMutationVariables
 } from "../gql-types";
+import { TypedMutation } from "../mutations";
 
 export const categoryDeleteMutation = gql`
   mutation CategoryDelete($id: ID!) {
@@ -21,19 +22,15 @@ export const categoryDeleteMutation = gql`
     }
   }
 `;
-
-export const TypedCategoryDeleteMutation: React.ComponentType<
-  MutationProps<CategoryDeleteMutation, CategoryDeleteMutationVariables>
-  > = Mutation;
+export const TypedCategoryDeleteMutation = TypedMutation<
+  CategoryDeleteMutation,
+  CategoryDeleteMutationVariables
+>(categoryDeleteMutation);
 
 export const categoryCreateMutation = gql`
   mutation CategoryCreate($name: String, $description: String, $parent: ID) {
     categoryCreate(
-      input: {
-        name: $name
-        description: $description
-        parent: $parent
-      }
+      input: { name: $name, description: $description, parent: $parent }
     ) {
       errors {
         field
@@ -50,14 +47,14 @@ export const categoryCreateMutation = gql`
     }
   }
 `;
-
-export const TypedCategoryCreateMutation: React.ComponentType<
-  MutationProps<CategoryCreateMutation, CategoryCreateMutationVariables>
-  > = Mutation;
+export const TypedCategoryCreateMutation = TypedMutation<
+  CategoryCreateMutation,
+  CategoryCreateMutationVariables
+>(categoryCreateMutation);
 
 export const categoryUpdateMutation = gql`
   mutation CategoryUpdate($id: ID!, $name: String, $description: String) {
-    categoryUpdate(id: $id, input: {name: $name, description: $description}) {
+    categoryUpdate(id: $id, input: { name: $name, description: $description }) {
       errors {
         field
         message
@@ -73,7 +70,7 @@ export const categoryUpdateMutation = gql`
     }
   }
 `;
-
-export const TypedCategoryUpdateMutation: React.ComponentType<
-  MutationProps<CategoryUpdateMutation, CategoryUpdateMutationVariables>
-  > = Mutation;
+export const TypedCategoryUpdateMutation = TypedMutation<
+  CategoryUpdateMutation,
+  CategoryUpdateMutationVariables
+>(categoryUpdateMutation);

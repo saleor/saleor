@@ -29,10 +29,7 @@ export const CategoryCreateForm: React.StatelessComponent<
             }
           };
           return (
-            <TypedCategoryCreateMutation
-              mutation={categoryCreateMutation}
-              onCompleted={handleSuccess}
-            >
+            <TypedCategoryCreateMutation onCompleted={handleSuccess}>
               {(
                 mutate,
                 { called, data: createResult, loading: createInProgress }

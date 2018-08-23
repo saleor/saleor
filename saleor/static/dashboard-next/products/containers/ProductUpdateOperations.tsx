@@ -21,14 +21,10 @@ import {
   ProductUpdateMutationVariables
 } from "../../gql-types";
 import {
-  productDeleteMutation,
-  productImageCreateMutation,
-  productImageDeleteMutation,
   TypedProductDeleteMutation,
   TypedProductImageCreateMutation,
   TypedProductImageDeleteMutation
 } from "../mutations";
-import { productDetailsQuery } from "../queries";
 import ProductImagesReorderProvider from "./ProductImagesReorder";
 import ProductUpdateProvider from "./ProductUpdate";
 
@@ -45,7 +41,6 @@ const ProductDeleteProvider: React.StatelessComponent<
   ProductDeleteProviderProps
 > = ({ productId, children, onError, onSuccess }) => (
   <TypedProductDeleteMutation
-    mutation={productDeleteMutation}
     variables={{ id: productId }}
     onCompleted={onSuccess}
     onError={onError}
@@ -73,23 +68,7 @@ interface ProductImageCreateProviderProps
 const ProductImageCreateProvider: React.StatelessComponent<
   ProductImageCreateProviderProps
 > = ({ productId, children, onError, onSuccess }) => (
-  <TypedProductImageCreateMutation
-    mutation={productImageCreateMutation}
-    update={(cache, { data: { productImageCreate } }) => {
-      const data: ProductDetailsQuery = cache.readQuery({
-        query: productDetailsQuery,
-        variables: { id: productId }
-      });
-      const edge = {
-        __typename: "ProductImageCountableEdge",
-        node: productImageCreate.productImage
-      };
-      data.product.images.edges.push(edge);
-      cache.writeQuery({ query: productDetailsQuery, data });
-    }}
-    onCompleted={onSuccess}
-    onError={onError}
-  >
+  <TypedProductImageCreateMutation onCompleted={onSuccess} onError={onError}>
     {(mutate, { data, error, loading }) =>
       children({
         data,
@@ -113,21 +92,7 @@ interface ProductImageDeleteProviderProps
 const ProductImageDeleteProvider: React.StatelessComponent<
   ProductImageDeleteProviderProps
 > = ({ children, productId, onError, onSuccess }) => (
-  <TypedProductImageDeleteMutation
-    mutation={productImageDeleteMutation}
-    onCompleted={onSuccess}
-    onError={onError}
-    update={(cache, { data: { productImageDelete } }) => {
-      const data: ProductDetailsQuery = cache.readQuery({
-        query: productDetailsQuery,
-        variables: { id: productId }
-      });
-      data.product.images.edges = data.product.images.edges.filter(
-        edge => edge.node.id !== productImageDelete.productImage.id
-      );
-      cache.writeQuery({ query: productDetailsQuery, data });
-    }}
-  >
+  <TypedProductImageDeleteMutation onCompleted={onSuccess} onError={onError}>
     {(mutate, { data, error, loading }) =>
       children({
         data,
