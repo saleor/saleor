@@ -376,6 +376,7 @@
           }
         }
         &.storefront {
+          padding: calc(var(--spacer) * 2) 0;
           @media (max-width: 768px) {
             padding-top: 0;
           }
@@ -394,6 +395,7 @@
               & .label {
                 margin: calc(var(--spacer) * 0.5) 0;
                 font-weight: var(--font-weight-lighter);
+                width: 110px;
                 & .rectangle {
                   height: calc(var(--spacer) * 0.4);
                   width: calc(var(--spacer) * 3);
@@ -423,6 +425,7 @@
           }
         }
         &.dashboard {
+          padding: calc(var(--spacer) * 2) 0;
           @media (max-width: 768px) {
             padding-top: 0;
           }
