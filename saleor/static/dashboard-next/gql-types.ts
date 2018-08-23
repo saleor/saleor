@@ -1,6 +1,24 @@
 /* tslint:disable */
 //  This file was automatically generated and should not be edited.
 
+export interface ProductTypeInput {
+  // Name of the product type.
+  name?: string | null,
+  // Determines if product of this type has multiple
+  // variants. This option mainly simplifies product management
+  // in the dashboard. There is always at least one variant created under
+  // the hood.
+  hasVariants?: boolean | null,
+  // List of attributes shared among all product variants.
+  productAttributes?: Array< string | null > | null,
+  // List of attributes used to distinguish between
+  // different variants of a product.
+  variantAttributes?: Array< string | null > | null,
+  // Determines if shipping is required for products
+  // of this variant.
+  isShippingRequired?: boolean | null,
+};
+
 export interface AttributeValueInput {
   // Slug of an attribute.
   slug: string,
@@ -413,6 +431,58 @@ export interface ProductTypeDeleteMutation {
     productType:  {
       // The ID of the object.
       id: string,
+    } | null,
+  } | null,
+};
+
+export interface ProductTypeUpdateMutationVariables {
+  id: string,
+  input: ProductTypeInput,
+};
+
+export interface ProductTypeUpdateMutation {
+  productTypeUpdate:  {
+    // List of errors that occurred executing the mutation.
+    errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
+      field: string | null,
+      // The error message.
+      message: string | null,
+    } | null > | null,
+    productType:  {
+      // The ID of the object.
+      id: string,
+      name: string,
+      hasVariants: boolean,
+      productAttributes:  {
+        edges:  Array< {
+          // The item at the end of the edge
+          node:  {
+            // The ID of the object.
+            id: string,
+            // Internal representation of an attribute name.
+            slug: string | null,
+            // Visible name for display purposes.
+            name: string | null,
+          },
+        } >,
+      } | null,
+      variantAttributes:  {
+        edges:  Array< {
+          // The item at the end of the edge
+          node:  {
+            // The ID of the object.
+            id: string,
+            // Internal representation of an attribute name.
+            slug: string | null,
+            // Visible name for display purposes.
+            name: string | null,
+          },
+        } >,
+      } | null,
+      isShippingRequired: boolean,
     } | null,
   } | null,
 };

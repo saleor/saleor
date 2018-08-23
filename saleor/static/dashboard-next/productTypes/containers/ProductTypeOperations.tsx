@@ -7,9 +7,12 @@ import {
 } from "../..";
 import {
   ProductTypeDeleteMutation,
-  ProductTypeDeleteMutationVariables
+  ProductTypeDeleteMutationVariables,
+  ProductTypeUpdateMutation,
+  ProductTypeUpdateMutationVariables
 } from "../../gql-types";
 import ProductTypeDeleteProvider from "./ProductTypeDelete";
+import ProductTypeUpdateProvider from "./ProductTypeUpdate";
 
 interface ProductTypeOperationsProps extends MutationProviderProps {
   id: string;
@@ -18,27 +21,41 @@ interface ProductTypeOperationsProps extends MutationProviderProps {
       ProductTypeDeleteMutation,
       ProductTypeDeleteMutationVariables
     >;
+    updateProductType: PartialMutationProviderOutput<
+      ProductTypeUpdateMutation,
+      ProductTypeUpdateMutationVariables
+    >;
     loading: boolean;
   }>;
   onDelete?: (data: ProductTypeDeleteMutation) => void;
+  onUpdate?: (data: ProductTypeUpdateMutation) => void;
 }
 
 const ProductTypeOperations: React.StatelessComponent<
   ProductTypeOperationsProps
-> = ({ id, children, onError, onDelete }) => {
+> = ({ id, children, onError, onDelete, onUpdate }) => {
   return (
     <ProductTypeDeleteProvider id={id} onError={onError} onSuccess={onDelete}>
-      {deleteProductType =>
-        children({
-          deleteProductType: {
-            data: deleteProductType.data,
-            loading: deleteProductType.loading,
-            mutate: () => deleteProductType.mutate({ variables: { id } })
-          },
-          errors: [],
-          loading: deleteProductType.loading
-        })
-      }
+      {deleteProductType => (
+        <ProductTypeUpdateProvider onError={onError} onSuccess={onUpdate}>
+          {updateProductType =>
+            children({
+              deleteProductType: {
+                data: deleteProductType.data,
+                loading: deleteProductType.loading,
+                mutate: () => deleteProductType.mutate({ variables: { id } })
+              },
+              errors: [],
+              loading: deleteProductType.loading,
+              updateProductType: {
+                data: updateProductType.data,
+                loading: updateProductType.loading,
+                mutate: variables => updateProductType.mutate({ variables })
+              }
+            })
+          }
+        </ProductTypeUpdateProvider>
+      )}
     </ProductTypeDeleteProvider>
   );
 };
