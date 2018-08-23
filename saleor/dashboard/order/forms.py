@@ -264,7 +264,7 @@ class ManagePaymentForm(forms.Form):
         super().__init__(*args, **kwargs)
 
     def clean(self):
-        if self.payment.status != self.clean_status:
+        if self.payment.charge_status != self.clean_status:
             raise forms.ValidationError(self.clean_error)
 
     def payment_error(self, message):
