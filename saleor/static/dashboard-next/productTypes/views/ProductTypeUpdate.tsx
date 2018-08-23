@@ -19,8 +19,6 @@ import {
   TypedProductTypeDetailsQuery
 } from "../queries";
 
-const taxRates = ["standard", "electronics", "food", "apparel"]; // FIXME: delet dis
-
 interface ProductTypeUpdateProps {
   id: string;
 }
@@ -140,7 +138,16 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                     )
                                   : []
                               }
-                              taxRates={taxRates}
+                              taxRates={
+                                data &&
+                                data.shop &&
+                                data.shop.taxRate &&
+                                data.shop.taxRate.reducedRates
+                                  ? data.shop.taxRate.reducedRates
+                                      .map(rate => rate.rateType)
+                                      .concat(["standard"])
+                                  : ["standard"]
+                              }
                               onAttributeSearch={searchAttribute}
                               onBack={() => navigate(productTypeListUrl)}
                               onDelete={handleDelete}

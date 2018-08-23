@@ -632,6 +632,37 @@ export interface ProductTypeDetailsQuery {
     isShippingRequired: boolean,
     taxRate: string,
   } | null,
+  // Represents a shop resources.
+  shop:  {
+    // VAT tax rates for a specific country.
+    taxRate:  {
+      // Standard VAT rate in percent.
+      standardRate: number | null,
+      // 
+      // Country's VAT rate exceptions for specific types of goods.
+      reducedRates:  Array< {
+        // A type of goods.
+        rateType: string,
+      } | null > | null,
+    },
+  } | null,
+};
+
+export interface ProductTypeCreateDataQuery {
+  // Represents a shop resources.
+  shop:  {
+    // VAT tax rates for a specific country.
+    taxRate:  {
+      // Standard VAT rate in percent.
+      standardRate: number | null,
+      // 
+      // Country's VAT rate exceptions for specific types of goods.
+      reducedRates:  Array< {
+        // A type of goods.
+        rateType: string,
+      } | null > | null,
+    },
+  } | null,
 };
 
 export interface SearchAttributeQueryVariables {
