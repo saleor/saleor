@@ -395,6 +395,28 @@ export interface PageDetailsQuery {
   } | null,
 };
 
+export interface ProductTypeDeleteMutationVariables {
+  id: string,
+};
+
+export interface ProductTypeDeleteMutation {
+  productTypeDelete:  {
+    // List of errors that occurred executing the mutation.
+    errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
+      field: string | null,
+      // The error message.
+      message: string | null,
+    } | null > | null,
+    productType:  {
+      // The ID of the object.
+      id: string,
+    } | null,
+  } | null,
+};
+
 export interface ProductTypeListQueryVariables {
   after?: string | null,
   before?: string | null,
@@ -446,6 +468,69 @@ export interface ProductTypeListQuery {
       // When paginating forwards, the cursor to continue.
       endCursor: string | null,
     },
+  } | null,
+};
+
+export interface ProductTypeDetailsQueryVariables {
+  id: string,
+};
+
+export interface ProductTypeDetailsQuery {
+  // Lookup a product type by ID.
+  productType:  {
+    // The ID of the object.
+    id: string,
+    name: string,
+    hasVariants: boolean,
+    productAttributes:  {
+      edges:  Array< {
+        // The item at the end of the edge
+        node:  {
+          // The ID of the object.
+          id: string,
+          // Internal representation of an attribute name.
+          slug: string | null,
+          // Visible name for display purposes.
+          name: string | null,
+        },
+      } >,
+    } | null,
+    variantAttributes:  {
+      edges:  Array< {
+        // The item at the end of the edge
+        node:  {
+          // The ID of the object.
+          id: string,
+          // Internal representation of an attribute name.
+          slug: string | null,
+          // Visible name for display purposes.
+          name: string | null,
+        },
+      } >,
+    } | null,
+    isShippingRequired: boolean,
+    taxRate: string,
+  } | null,
+};
+
+export interface SearchAttributeQueryVariables {
+  search: string,
+};
+
+export interface SearchAttributeQuery {
+  // List of the shop's product attributes.
+  attributes:  {
+    edges:  Array< {
+      // The item at the end of the edge
+      node:  {
+        // The ID of the object.
+        id: string,
+        // Internal representation of an attribute name.
+        slug: string | null,
+        // Visible name for display purposes.
+        name: string | null,
+      },
+    } >,
   } | null,
 };
 
