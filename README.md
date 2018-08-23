@@ -19,7 +19,7 @@ Built with top-notch technologies. Django, PostgreSQL, ElasticSearch, GraphQL an
 
 ## 💾 Installation and requirements
 
-Saleor requires Python 3.4+, Node.js 8.0+, PostgreSQL and OS-specific dependency tools.
+Saleor requires Python 3.5+, Node.js 10.0+, PostgreSQL and OS-specific dependency tools.
 
 [See the Saleor docs](https://saleor.readthedocs.io) for step-by-step installation and deployment instructions.
 
@@ -54,6 +54,14 @@ Some of them however might not be listed yet. Check [our roadmap](https://github
 If you have any ideas, just [open an issue](https://github.com/mirumee/saleor/issues/new) and tell us what you think!
 
 Get more details in our [Contributing Guide](https://saleor.readthedocs.io/en/latest/contributing.html).
+
+## 🌎 Translate
+
+Did you know that Saleor is available in almost 30 languages, translated entirely by our community?
+
+If you'd like to help us, you can join one of our translation teams on [the localization platform Transifex](https://www.transifex.com/mirumee/saleor-1/languages/).
+
+The repository gets synchronized weekly with the latest contributions. 
 
 ## 📝 Your feedback
 

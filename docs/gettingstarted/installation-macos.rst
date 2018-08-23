@@ -10,7 +10,7 @@ Before you are ready to run Saleor you will need additional software installed o
 Node.js
 ~~~~~~~
 
-Version 8 or later is required. Download the macOS installer from the `Node.js downloads page <https://nodejs.org/en/download/>`_.
+Version 10 or later is required. Download the macOS installer from the `Node.js downloads page <https://nodejs.org/en/download/>`_.
 
 
 PostgreSQL
