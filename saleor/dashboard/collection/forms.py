@@ -48,5 +48,5 @@ class AssignHomepageCollectionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['homepage_collection'].queryset = Collection.objects.\
-            filter(is_published=True)
+        self.fields['homepage_collection'].queryset = \
+            Collection.objects.filter(is_published=True)
