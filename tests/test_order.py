@@ -460,29 +460,26 @@ def test_order_payment_flow(
         'gateway_response': '3ds-disabled',
         'verification_result': 'waiting'}
 
+    data = {
+        'variant': 'dummy',
+        'is_active': True,
+        'total': order.total.gross.amount,
+        'charge_status': 'not-charged'}
+
     response = client.post(redirect_url, data)
 
     assert response.status_code == 302
     redirect_url = reverse(
-        'order:payment-success', kwargs={'token': order.token})
-    assert get_redirect_location(response) == redirect_url
-
-    # Complete payment, go to checkout success page
-    data = {'status': 'ok'}
-    response = client.post(redirect_url, data)
-    assert response.status_code == 302
-    redirect_url = reverse(
-        'order:checkout-success', kwargs={'token': order.token})
+        'order:details', kwargs={'token': order.token})
     assert get_redirect_location(response) == redirect_url
 
     # Assert that payment object was created and contains correct data
-    payment = order.payments.all()[0]
+    payment = order.payment_methods.all()[0]
     assert payment.total == order.total.gross.amount
     assert payment.tax == order.total.tax.amount
     assert payment.currency == order.total.currency
-    assert payment.delivery == order.shipping_price.net.amount
-    assert len(payment.get_purchased_items()) == len(order.lines.all())
-
+    assert payment.transactions.count() == 1
+    assert payment.transactions.first().transaction_type == 'auth'
 
 def test_create_user_after_order(order, client):
     order.user_email = 'hello@mirumee.com'

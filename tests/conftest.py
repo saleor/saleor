@@ -30,6 +30,7 @@ from saleor.order.models import Order, OrderEvent
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.payment.models import PaymentMethod
+from saleor.payment import TransactionType, PaymentMethodChargeStatus
 from saleor.product.models import (
     Attribute, AttributeTranslation, AttributeValue, Category, Collection,
     Product, ProductImage, ProductTranslation, ProductType, ProductVariant)
@@ -480,6 +481,55 @@ def payment_preauth(order_with_lines):
         total=order_with_lines.total.gross.amount,
         tax=order_with_lines.total.tax.amount)
 
+@pytest.fixture()
+def payment_method_txn_preauth(order_with_lines, payment_method_dummy):
+    order = order_with_lines
+    payment = payment_method_dummy
+    payment.order = order
+    payment.total = order.total.gross.amount
+    payment.save()
+
+    payment.transactions.create(
+        amount=payment.total,
+        transaction_type=TransactionType.AUTH,
+        gateway_response={},
+        is_success=True)
+    return payment
+
+@pytest.fixture()
+def payment_method_txn_charged(order_with_lines, payment_method_dummy):
+    order = order_with_lines
+    payment = payment_method_dummy
+    payment.order = order
+    payment.total = order.total.gross.amount
+    payment.charge_status = PaymentMethodChargeStatus.CHARGED
+    payment.captured_amount = payment.total
+    payment.save()
+
+    payment.transactions.create(
+        amount=payment.total,
+        transaction_type=TransactionType.CHARGE,
+        gateway_response={},
+        is_success=True)
+    return payment
+
+@pytest.fixture()
+def payment_method_txn_refunded(order_with_lines, payment_method_dummy):
+    order = order_with_lines
+    payment = payment_method_dummy
+    payment.order = order
+    payment.total = order.total.gross.amount
+    payment.charge_status = PaymentMethodChargeStatus.FULLY_REFUNDED
+    payment.captured_amount = 0
+    payment.is_active = False
+    payment.save()
+
+    payment.transactions.create(
+        amount=payment.total,
+        transaction_type=TransactionType.REFUND,
+        gateway_response={},
+        is_success=True)
+    return payment
 
 @pytest.fixture()
 def payment_confirmed(order_with_lines):
