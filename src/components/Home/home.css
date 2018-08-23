@@ -336,9 +336,12 @@
               font-size: calc(var(--spacer) * 1.8);
             }
             & span {
-              left: 2%;
+              left: calc(var(--spacer) * 3);
               @media (max-width: 1024px) {
-                left: 1%;
+                left: calc(var(--spacer) * 2);
+              }
+              @media (max-width: 992px) {
+                left: calc(var(--spacer) * -1);
               }
               @media (max-width: 450px) {
                 left: calc(var(--spacer) * -2)
