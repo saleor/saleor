@@ -158,7 +158,7 @@ section {
 }
 
 ul {
-  &.hovered, {
+  &.hovered {
     & li {
       & a, & span {
         position: relative;
@@ -190,7 +190,7 @@ ul {
   &.menu-desktop {
     & .underline {
       & a, & span {
-        padding: 0 calc(var(--spacer) * 0.5);
+        padding: 0 calc(var(--spacer) * 0.5) calc(var(--spacer) * 0.5) 0;
         position: relative;
         &::after {
           content: "";
@@ -238,9 +238,9 @@ ul {
     color: var(--body-color);
     &:hover {
       text-decoration: none;
-      border-color: var(--primaryColor);
-      background-color: transparent;
-      color: var(--primaryColor);
+      border-color: var(--primaryHoverColor);
+      background-color: var(--primaryHoverColor);
+      color: var(--body-color);
     }
   }
   @media (max-width: 450px) {

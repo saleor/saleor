@@ -110,9 +110,6 @@ header {
           }
         }
         &.github-link {
-          & .star-value {
-            vertical-align: text-top;
-          }
           @media (max-width: 1024px) {
             top: calc(var(--spacer) * -0.3)
           }
