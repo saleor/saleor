@@ -8,10 +8,9 @@ from graphql_jwt.decorators import permission_required
 
 from ...account import emails, models
 from ...core.permissions import MODELS_PERMISSIONS, get_permissions
-from ..account.types import AddressInput
+from ..account.types import AddressInput, User
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import Error
-from ..utils import get_node
 
 
 def send_user_password_reset_email(user, site):
@@ -279,8 +278,8 @@ class AddressCreate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, input, errors):
-        user_id = input.get('user_id')
-        user = get_node(info, user_id)
+        user_id = input.pop('user_id')
+        user = cls.get_node_or_error(info, user_id, errors, 'user_id', User)
         cleaned_input = super().clean_input(info, instance, input, errors)
         cleaned_input['user'] = user
         return cleaned_input

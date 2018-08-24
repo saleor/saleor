@@ -10,7 +10,6 @@ from ...core.mutations import BaseMutation, ModelMutation
 from ...core.types.common import Decimal, Error
 from ...order.mutations.draft_orders import DraftOrderUpdate
 from ...order.types import Order
-from ...utils import get_node
 
 
 def try_payment_action(action, money, errors):
@@ -20,9 +19,8 @@ def try_payment_action(action, money, errors):
         errors.append(Error(field='payment', message=str(e)))
 
 
-def clean_release_payment(payment):
+def clean_release_payment(payment, errors):
     """Check for payment errors."""
-    errors = []
     if payment.status != PaymentStatus.PREAUTH:
         errors.append(
             Error(field='payment',
@@ -34,8 +32,7 @@ def clean_release_payment(payment):
     return errors
 
 
-def clean_refund_payment(payment, amount):
-    errors = []
+def clean_refund_payment(payment, amount, errors):
     if payment.variant == CustomPaymentChoices.MANUAL:
         errors.append(
             Error(field='payment',
@@ -111,7 +108,11 @@ class OrderCancel(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, restock):
-        order = get_node(info, id, only_type=Order)
+        errors = []
+        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        if errors:
+            return OrderCancel(errors=errors)
+
         cancel_order(order=order, restock=restock)
         if restock:
             restock_msg = npgettext_lazy(
@@ -119,7 +120,8 @@ class OrderCancel(BaseMutation):
                 'Restocked %(quantity)d item',
                 'Restocked %(quantity)d items',
                 'quantity') % {'quantity': order.get_total_quantity()}
-            order.history.create(content=restock_msg, user=info.context.user)
+            order.history.create(
+                content=restock_msg, user=info.context.user)
         else:
             msg = pgettext_lazy(
                 'Dashboard message related to an order', 'Order canceled')
@@ -141,11 +143,17 @@ class OrderMarkAsPaid(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id):
-        order = get_node(info, id, only_type=Order)
-        if order.payments.exists():
-            field = 'payment'
-            msg = 'Orders with payments can not be manually marked as paid.'
-            return cls(errors=[Error(field=field, message=msg)])
+        errors = []
+        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        if order:
+            if order.payments.exists():
+                cls.add_error(
+                    errors, 'payment',
+                    'Orders with payments can not be manually marked as paid.')
+
+        if errors:
+            return OrderMarkAsPaid(errors=errors)
+
         defaults = {
             'total': order.total.gross.amount,
             'tax': order.total.tax.amount,
@@ -181,12 +189,14 @@ class OrderCapture(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, amount):
-        order = get_node(info, id, only_type=Order)
-        payment = order.get_last_payment()
         errors = []
-        try_payment_action(payment.capture, amount, errors)
+        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        if order:
+            payment = order.get_last_payment()
+            try_payment_action(payment.capture, amount, errors)
+
         if errors:
-            return cls(errors=errors)
+            return OrderCapture(errors=errors)
 
         msg = pgettext_lazy(
             'Dashboard message related to an order',
@@ -209,11 +219,14 @@ class OrderRelease(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id):
-        order = get_node(info, id, only_type=Order)
-        payment = order.get_last_payment()
-        errors = clean_release_payment(payment)
+        errors = []
+        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        if order:
+            payment = order.get_last_payment()
+            clean_release_payment(payment, errors)
+
         if errors:
-            return cls(errors=errors)
+            return OrderRelease(errors=errors)
 
         msg = pgettext_lazy(
             'Dashboard message related to an order',
@@ -238,11 +251,14 @@ class OrderRefund(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, amount):
-        order = get_node(info, id, only_type=Order)
-        payment = order.get_last_payment()
-        errors = clean_refund_payment(payment, amount)
+        errors = []
+        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        if order:
+            payment = order.get_last_payment()
+            clean_refund_payment(payment, amount, errors)
+
         if errors:
-            return cls(errors=errors)
+            return OrderRefund(errors=errors)
 
         msg = pgettext_lazy(
             'Dashboard message related to an order',

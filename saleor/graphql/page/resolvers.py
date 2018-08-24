@@ -1,5 +1,7 @@
+import graphene
+
 from ...page import models
-from ..utils import filter_by_query_param, get_node
+from ..utils import filter_by_query_param
 from .types import Page
 
 PAGE_SEARCH_FIELDS = ('content', 'slug', 'title')
@@ -8,16 +10,18 @@ PAGE_SEARCH_FIELDS = ('content', 'slug', 'title')
 def resolve_page(info, id=None, slug=None):
     assert id or slug, 'No page ID or slug provided.'
     if slug is not None:
-        return models.Page.objects.get(slug=slug)
-    return get_node(info, id, only_type=Page)
+        try:
+            return models.Page.objects.get(slug=slug)
+        except models.Page.DoesNotExist:
+            return None
+    return graphene.Node.get_node_from_global_id(info, id, Page)
 
 
-def resolve_pages(user, query):
-    if user.is_authenticated and user.is_active and user.is_staff:
-        # FIXME: check page permissions
-        queryset = models.Page.objects.all().distinct()
-        queryset = filter_by_query_param(queryset, query, PAGE_SEARCH_FIELDS)
-        return queryset
-    queryset = models.Page.objects.public().distinct()
-    queryset = filter_by_query_param(queryset, query, PAGE_SEARCH_FIELDS)
-    return queryset
+def resolve_pages(info, query):
+    user = info.context.user
+    if user.has_perm('page.manage_pages'):
+        qs = models.Page.objects.all()
+    else:
+        qs = models.Page.objects.public()
+    qs = filter_by_query_param(qs, query, PAGE_SEARCH_FIELDS)
+    return qs.distinct()

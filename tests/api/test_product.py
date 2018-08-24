@@ -950,12 +950,15 @@ def test_reorder_images(admin_api_client, product_with_images):
     assert image_1.id == reordered_image_0.id
 
 
-def test_collections_query(user_api_client, collection):
+def test_collections_query(
+        user_api_client, staff_api_client, collection, draft_collection,
+        permission_manage_products):
     query = """
         query Collections {
-            collections(first: 1) {
+            collections(first: 2) {
                 edges {
                     node {
+                        isPublished
                         name
                         slug
                         products {
@@ -966,13 +969,26 @@ def test_collections_query(user_api_client, collection):
             }
         }
     """
+
+    # query public collections only as regular user
     response = user_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    data = content['data']['collections']['edges'][0]['node']
-    assert data['name'] == collection.name
-    assert data['slug'] == collection.slug
-    assert data['products']['totalCount'] == collection.products.count()
+    edges = content['data']['collections']['edges']
+    assert len(edges) == 1
+    collection_data = edges[0]['node']
+    assert collection_data['isPublished']
+    assert collection_data['name'] == collection.name
+    assert collection_data['slug'] == collection.slug
+    assert collection_data['products']['totalCount'] == collection.products.count()
+
+    # query all collections only as a staff user with proper permissions
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post(reverse('api'), {'query': query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    edges = content['data']['collections']['edges']
+    assert len(edges) == 2
 
 
 def test_create_collection(admin_api_client, product_list):

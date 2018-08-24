@@ -21,15 +21,6 @@ def get_database_id(info, node_id, only_type):
     return _id
 
 
-def get_node(info, id, only_type=None):
-    """Return node or throw an error if the node does not exist."""
-    node = graphene.Node.get_node_from_global_id(info, id, only_type=only_type)
-    if not node:
-        raise GraphQLError(
-            "Could not resolve to a node with the global id of '%s'." % id)
-    return node
-
-
 def get_nodes(ids, graphene_type=None):
     """Return a list of nodes.
 
