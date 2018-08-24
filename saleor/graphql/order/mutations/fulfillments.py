@@ -8,7 +8,7 @@ from ....order.emails import send_fulfillment_confirmation
 from ....order.utils import cancel_fulfillment, update_order_status
 from ...core.mutations import BaseMutation, ModelMutation
 from ...order.types import Fulfillment
-from ...utils import get_node, get_nodes
+from ...utils import get_nodes
 from ..types import OrderLine
 
 
@@ -165,17 +165,21 @@ class FulfillmentCancel(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, input):
-        restock = input.get('restock')
-        fulfillment = get_node(info, id, only_type=Fulfillment)
-        order = fulfillment.order
         errors = []
-        if not fulfillment.can_edit():
-            err_msg = pgettext_lazy(
-                'Cancel fulfillment mutation error',
-                'This fulfillment can\'t be canceled')
-            cls.add_error(errors, 'fulfillment', err_msg)
+        restock = input.get('restock')
+        fulfillment = cls.get_node_or_error(
+            info, id, errors, 'id', Fulfillment)
+        if fulfillment:
+            order = fulfillment.order
+            if not fulfillment.can_edit():
+                err_msg = pgettext_lazy(
+                    'Cancel fulfillment mutation error',
+                    'This fulfillment can\'t be canceled')
+                cls.add_error(errors, 'fulfillment', err_msg)
+
         if errors:
             return cls(errors=errors)
+
         cancel_fulfillment(fulfillment, restock)
         if restock:
             msg = npgettext_lazy(

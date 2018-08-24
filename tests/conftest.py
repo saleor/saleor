@@ -42,6 +42,7 @@ class ApiClient(Client):
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user')
+        self.user = user
         self.token = get_token(user)
         super().__init__(*args, **kwargs)
 
@@ -595,7 +596,7 @@ def collection(db):
 @pytest.fixture
 def draft_collection(db):
     collection = Collection.objects.create(
-        name='Collection', slug='collection')
+        name='Draft collection', slug='draft-collection')
     return collection
 
 
@@ -620,8 +621,7 @@ def model_form_class():
 
 @pytest.fixture
 def menu(db):
-    # navbar menu object can be already created by default in migration
-    return Menu.objects.get_or_create(name='navbar', json_content={})[0]
+    return Menu.objects.get_or_create(name='test-navbar', json_content={})[0]
 
 
 @pytest.fixture
