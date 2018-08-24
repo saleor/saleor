@@ -6,7 +6,8 @@ jobs:
       - image: docker:17.09.0-ce-git
     steps:
       - checkout
-      - setup_remote_docker
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run:
           name: Set version
           command: |
@@ -14,7 +15,6 @@ jobs:
       - run:
           name: Build application Docker image
           command: |
-            docker pull mirumee/saleor:latest
             docker build \
               --build-arg AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
               --build-arg AWS_LOCATION=$AWS_LOCATION \
@@ -22,7 +22,7 @@ jobs:
               --build-arg AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
               --build-arg AWS_STORAGE_BUCKET_NAME=$AWS_STORAGE_BUCKET_NAME \
               --build-arg STATIC_URL=$STATIC_URL \
-              --cache-from=mirumee/saleor:latest -t mirumee/saleor:latest .
+              -t mirumee/saleor:latest .
       - run:
           name: Run tests
           command: |
