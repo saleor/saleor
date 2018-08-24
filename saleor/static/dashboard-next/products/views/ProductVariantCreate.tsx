@@ -77,8 +77,12 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                       variantCreate({
                         variables: {
                           attributes: formData.attributes,
-                          costPrice: formData.costPrice,
-                          priceOverride: formData.priceOverride,
+                          costPrice: formData.costPrice
+                            ? formData.costPrice
+                            : null,
+                          priceOverride: formData.priceOverride
+                            ? formData.priceOverride
+                            : null,
                           product: productId,
                           quantity: formData.stock,
                           sku: formData.sku,
