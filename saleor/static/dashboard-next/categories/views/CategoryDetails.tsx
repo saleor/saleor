@@ -14,7 +14,6 @@ import {
 import { productAddUrl, productUrl } from "../../products";
 import { categoryAddUrl, categoryEditUrl, categoryShowUrl } from "../index";
 import {
-  categoryDeleteMutation,
   TypedCategoryDeleteMutation
 } from "../mutations";
 import {

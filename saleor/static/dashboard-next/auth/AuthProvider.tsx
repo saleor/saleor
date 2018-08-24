@@ -93,10 +93,9 @@ class AuthProvider extends React.Component<
   };
 
   render() {
-    const { children, tokenAuth, tokenVerify } = this.props;
+    const { children } = this.props;
     const { user } = this.state;
     const isAuthenticated = !!user;
-    const loading = tokenAuth.loading || tokenVerify.loading;
     return (
       <UserContext.Provider
         value={{ user, login: this.login, logout: this.logout }}

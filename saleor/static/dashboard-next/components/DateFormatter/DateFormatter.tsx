@@ -1,9 +1,7 @@
 import { withStyles } from "@material-ui/core/styles";
 import Tooltip from "@material-ui/core/Tooltip";
 import Typography, { TypographyProps } from "@material-ui/core/Typography";
-import * as moment from "moment";
 import * as React from "react";
-import ReactMoment from "react-moment";
 
 import { LocaleConsumer } from "../Locale";
 import { Consumer } from "./DateContext";

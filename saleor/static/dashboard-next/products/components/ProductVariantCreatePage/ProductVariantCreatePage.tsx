@@ -124,14 +124,6 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
               key={product ? JSON.stringify(product) : "noproduct"}
             >
               {({ change, data, errors, hasChanged, submit }) => {
-                const images = data.images
-                  ? data.images.map(
-                      id =>
-                        product.images.edges
-                          .map(edge => edge.node)
-                          .filter(image => image.id === id)[0]
-                    )
-                  : undefined;
                 return (
                   <>
                     <div className={classes.root}>

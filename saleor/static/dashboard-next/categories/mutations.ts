@@ -1,6 +1,4 @@
 import gql from "graphql-tag";
-import * as React from "react";
-import { Mutation, MutationProps } from "react-apollo";
 
 import {
   CategoryCreateMutation,

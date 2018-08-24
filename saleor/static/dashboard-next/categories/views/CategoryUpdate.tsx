@@ -1,5 +1,4 @@
 import * as React from "react";
-import { Redirect } from "react-router-dom";
 
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
@@ -9,7 +8,6 @@ import i18n from "../../i18n";
 import CategoryEditPage from "../components/CategoryEditPage";
 import { categoryShowUrl } from "../index";
 import {
-  categoryUpdateMutation,
   TypedCategoryUpdateMutation
 } from "../mutations";
 import { categoryDetailsQuery, TypedCategoryDetailsQuery } from "../queries";

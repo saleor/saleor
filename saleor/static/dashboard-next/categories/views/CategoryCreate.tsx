@@ -7,7 +7,6 @@ import i18n from "../../i18n";
 import CategoryEditPage from "../components/CategoryEditPage";
 import { categoryShowUrl } from "../index";
 import {
-  categoryCreateMutation,
   TypedCategoryCreateMutation
 } from "../mutations";
 
