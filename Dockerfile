@@ -17,6 +17,7 @@ RUN pip install -r /app/requirements.txt
 FROM node:10 as build-nodejs
 
 ARG STATIC_URL
+ENV STATIC_URL ${STATIC_URL:-/static/}
 
 # Install node_modules
 ADD webpack.config.js app.json package.json package-lock.json tsconfig.json webpack.d.ts /app/
@@ -36,6 +37,7 @@ RUN \
 FROM python:3.6-slim
 
 ARG STATIC_URL
+ENV STATIC_URL ${STATIC_URL:-/static/}
 
 RUN \
   apt-get update && \
