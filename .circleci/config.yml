@@ -11,7 +11,13 @@ jobs:
       - run:
           name: Set version
           command: |
-            sed -i.bak "s#'dev'#'$(git describe --tags)'#" saleor/__init__.py
+            export SALEOR_VERSION=$(git rev-parse --short HEAD)
+            if [ -n "$CIRCLE_TAG" ]; then
+              export SALEOR_VERSION=$(git describe --tags)
+            fi
+            sed -i.bak "s#'dev'#'$SALEOR_VERSION'#" saleor/__init__.py
+
+
       - run:
           name: Build application Docker image
           command: |
@@ -66,8 +72,6 @@ workflows:
         - build:
             filters:
               branches:
-                only:
-                  - master
-                  - feature/master-deployment
+                only: master
               tags:
                 only: /demo.*/
