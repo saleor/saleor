@@ -3,18 +3,20 @@ from contextlib import redirect_stdout
 from unittest.mock import Mock, patch
 
 import pytest
+
 from django.conf import settings
 from django.db.models import Case, F, When
 from django.shortcuts import reverse
 from django.urls import translate_url
+from measurement.measures import Weight
 from prices import Money
-
 from saleor.account.models import Address, User
 from saleor.core.storages import S3MediaStorage
 from saleor.core.utils import (
     Country, create_superuser, create_thumbnails, format_money,
     get_country_by_ip, get_currency_for_country, random_data)
 from saleor.core.utils.text import get_cleaner, strip_html
+from saleor.core.weight import WeightUnits, convert_weight
 from saleor.discount.models import Sale, Voucher
 from saleor.order.models import Order
 from saleor.product.models import Product, ProductImage, ProductVariant
@@ -291,3 +293,9 @@ def test_set_language_redirects_to_current_endpoint(client):
     # now check if we got redirect the endpoint we wanted to go back
     # in the new language (cart:index)
     assert expected_url == new_url
+
+
+def test_convert_weight():
+    weight = Weight(kg=1)
+    expected_result = Weight(g=1000)
+    assert convert_weight(weight, WeightUnits.GRAM) == expected_result

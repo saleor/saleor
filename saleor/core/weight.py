@@ -74,7 +74,7 @@ class WeightInput(forms.TextInput):
 
 
 class WeightField(forms.DecimalField):
-    def __init__(self, widget=WeightInput, min_value=0, *args, **kwargs):
+    def __init__(self, *args, widget=WeightInput, min_value=0, **kwargs):
         if isinstance(widget, type):
             widget = widget(attrs={'type': 'number', 'step': 'any'})
         super().__init__(*args, widget=widget, **kwargs)
