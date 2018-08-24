@@ -49,6 +49,9 @@ const decorate = withStyles(theme => ({
     fontSize: 48
   },
   root: {
+    [theme.breakpoints.down("md")]: {
+      gridTemplateColumns: "1fr"
+    },
     display: "grid" as "grid",
     gridColumnGap: theme.spacing.unit * 4 + "px",
     gridTemplateColumns: "1fr 1fr"

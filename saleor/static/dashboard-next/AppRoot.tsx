@@ -94,6 +94,7 @@ const decorate = withStyles(
       marginTop: 56,
       padding: theme.spacing.unit,
       [theme.breakpoints.up("sm")]: {
+        marginLeft: drawerWidth,
         padding: theme.spacing.unit * 2
       }
     },
@@ -102,7 +103,7 @@ const decorate = withStyles(
       borderRight: "0 none",
       height: `calc(100vh - ${navigationBarHeight + theme.spacing.unit * 2}px)`,
       marginTop: navigationBarHeight + theme.spacing.unit * 2,
-      position: "relative" as "relative",
+      position: "fixed" as "fixed",
       width: drawerWidth
     },
     drawerMobile: {
