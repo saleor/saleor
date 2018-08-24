@@ -9,8 +9,8 @@ from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import Decimal, SeoInput
 from ...core.utils import clean_seo_fields
 from ...file_upload.types import Upload
-from ...utils import get_attributes_dict_from_list
 from ...shipping.types import WeightScalar
+from ...utils import get_attributes_dict_from_list
 from ..types import Collection, Product, ProductImage, ProductVariant
 
 
