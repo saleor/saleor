@@ -45,6 +45,7 @@ jobs:
           command: |
             if [ -n "$CIRCLE_TAG" ]; then
               apk add --upgrade --no-cache curl libcurl
+              sh ./scripts/push_static.sh
               curl -u $DEMO_DEPLOY_KEY: \
                 -d build_parameters[CIRCLE_JOB]=deploy \
                 https://circleci.com/api/v1.1/project/github/mirumee/saleor-demo/tree/master
@@ -53,7 +54,9 @@ jobs:
       - run:
           name: Deploy saleor master
           command: |
-            sh ./deploy_master.sh > /dev/null 2>&1
+            apk add --upgrade --no-cache zip py-pip
+            pip install awscli
+            sh ./scripts/deploy_master.sh > /dev/null 2>&1
 
 
 workflows:
