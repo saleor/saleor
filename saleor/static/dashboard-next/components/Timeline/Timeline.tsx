@@ -13,6 +13,7 @@ import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import PersonIcon from "@material-ui/icons/Person";
+import * as classNames from "classnames";
 import * as CRC from "crc-32";
 import * as React from "react";
 
@@ -214,10 +215,10 @@ export const TimelineAddNote = decorate<TimelineAddNoteProps>(
         />
       </CardContent>
       <CardActions
-        className={[
+        className={classNames([
           classes.cardActions,
-          content ? classes.cardActionsExpanded : ""
-        ].join(" ")}
+          { [classes.cardActionsExpanded]: content }
+        ])}
       >
         <Button onClick={onSubmit}>{i18n.t("Add note")}</Button>
       </CardActions>

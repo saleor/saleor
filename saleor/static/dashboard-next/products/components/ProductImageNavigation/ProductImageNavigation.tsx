@@ -1,6 +1,7 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import { withStyles } from "@material-ui/core/styles";
+import * as classNames from "classnames";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
@@ -59,12 +60,9 @@ const ProductImageNavigation = decorate<ProductImageNavigationProps>(
           <div className={classes.root}>
             {images.map(image => (
               <div
-                className={[
-                  classes.imageContainer,
-                  image.id === highlighted
-                    ? classes.highlightedImageContainer
-                    : undefined
-                ].join(" ")}
+                className={classNames(classes.imageContainer, {
+                  [classes.highlightedImageContainer]: image.id === highlighted
+                })}
                 onClick={onRowClick(image.id)}
                 key={image.id}
               >

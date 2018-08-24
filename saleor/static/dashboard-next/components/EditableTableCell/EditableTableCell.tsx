@@ -4,6 +4,7 @@ import { withStyles } from "@material-ui/core/styles";
 import TableCell from "@material-ui/core/TableCell";
 import TextField, { TextFieldProps } from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
+import * as classNames from "classnames";
 import * as React from "react";
 
 import Form from "../../components/Form";
@@ -53,7 +54,7 @@ export const EditableTableCell = decorate<EditableTableCellProps>(
     value,
     onConfirm
   }) => (
-    <TableCell className={[classes.container, className].join(" ")}>
+    <TableCell className={classNames(classes.container, className)}>
       <Toggle initial={focused}>
         {(opened, { enable, disable }) => {
           const handleConfirm = (data: { value: string }) => {
