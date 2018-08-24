@@ -51,11 +51,11 @@ CACHES = {'default': django_cache_url.config()}
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgres://saleor:saleor@localhost:5432/saleor',
+        default='postgres://isaac:morzy@localhost:5432/saleor',
         conn_max_age=600)}
 
 
-TIME_ZONE = 'America/Chicago'
+TIME_ZONE = 'Africa/Nairobi'
 LANGUAGE_CODE = 'en'
 LANGUAGES = [
     ('bg', _('Bulgarian')),
@@ -370,7 +370,7 @@ bootstrap4 = {
 TEST_RUNNER = ''
 
 ALLOWED_HOSTS = get_list(
-    os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1'))
+    os.environ.get('ALLOWEDHOSTS','localhost,127.0.0.1'))
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
@@ -520,7 +520,7 @@ DEFAULT_MENUS = {
 
 # This enable the new 'No Captcha reCaptcha' version (the simple checkbox)
 # instead of the old (deprecated) one. For more information see:
-#   https://github.com/praekelt/django-recaptcha/blob/34af16ba1e/README.rst
+#   https://github.com/praekelt/django-recaptcha/blob/34af16ba1e/README.rstjj
 NOCAPTCHA = True
 
 # Set Google's reCaptcha keys
