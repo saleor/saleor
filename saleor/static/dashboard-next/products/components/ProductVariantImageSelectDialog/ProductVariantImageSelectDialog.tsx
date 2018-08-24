@@ -4,6 +4,7 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import { withStyles } from "@material-ui/core/styles";
+import * as classNames from "classnames";
 import * as React from "react";
 
 import { ProductImageType } from "../..";
@@ -62,12 +63,13 @@ const ProductVariantImageSelectDialog = decorate<
           .sort((prev, next) => (prev.sortOrder > next.sortOrder ? 1 : -1))
           .map(tile => (
             <div
-              className={[
+              className={classNames([
                 classes.imageContainer,
-                selectedImages.indexOf(tile.id) === -1
-                  ? undefined
-                  : classes.selectedImageContainer
-              ].join(" ")}
+                {
+                  [classes.selectedImageContainer]:
+                    selectedImages.indexOf(tile.id) === -1
+                }
+              ])}
               onClick={onImageSelect(tile.id)}
               key={tile.id}
             >

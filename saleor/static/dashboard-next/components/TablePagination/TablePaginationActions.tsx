@@ -2,6 +2,7 @@ import IconButton from "@material-ui/core/IconButton";
 import KeyboardArrowLeft from "@material-ui/core/internal/svg-icons/KeyboardArrowLeft";
 import KeyboardArrowRight from "@material-ui/core/internal/svg-icons/KeyboardArrowRight";
 import { withStyles } from "@material-ui/core/styles";
+import * as classNames from "classnames";
 import * as React from "react";
 
 const decorate = withStyles(
@@ -42,7 +43,7 @@ export const TablePaginationActions = decorate<TablePaginationActionsProps>(
     theme,
     ...other
   }) => (
-    <div className={[classes.root, className].join(" ")} {...other}>
+    <div className={classNames(classes.root, className)} {...other}>
       <IconButton
         onClick={onPreviousPage}
         disabled={!hasPreviousPage}
