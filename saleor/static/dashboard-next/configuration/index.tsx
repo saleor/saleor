@@ -10,64 +10,65 @@ import Monetization from "../icons/Monetization";
 import Navigation from "../icons/Navigation";
 import Pages from "../icons/Pages";
 import StoreMall from "../icons/StoreMall";
+import { pageListUrl } from "../pages";
 import ConfigurationPage from "./ConfigurationPage";
 
 export const configurationMenu = [
   {
     description: i18n.t("Define types of products you sell"),
     disabled: true,
-    icon: Folder,
+    icon: <Folder fontSize="inherit" />,
     title: i18n.t("Product Types"),
-    url: "/product/"
+    url: undefined
   },
   {
     description: i18n.t("Define attributes of products yousell"),
     disabled: true,
-    icon: Ballot,
+    icon: <Ballot fontSize="inherit" />,
     title: i18n.t("Attributes"),
-    url: "/attributes/"
+    url: undefined
   },
   {
     description: i18n.t("Manage your employees and their permissions"),
     disabled: true,
-    icon: AccountCircle,
+    icon: <AccountCircle fontSize="inherit" />,
     title: i18n.t("Staff Members"),
-    url: "/staff/"
+    url: undefined
   },
   {
     description: i18n.t("Manage how you ship out orders."),
     disabled: true,
-    icon: LocalShipping,
+    icon: <LocalShipping fontSize="inherit" />,
     title: i18n.t("Shipping Methods"),
-    url: "/shipping/"
+    url: undefined
   },
   {
     description: i18n.t("Manage how your store charges tax"),
     disabled: true,
-    icon: Monetization,
+    icon: <Monetization fontSize="inherit" />,
     title: i18n.t("Taxes"),
-    url: "/taxes/"
+    url: undefined
   },
   {
     description: i18n.t("Define how users can navigate through your store"),
     disabled: true,
-    icon: Navigation,
+    icon: <Navigation fontSize="inherit" />,
     title: i18n.t("Navigation"),
-    url: "/navigation/"
+    url: undefined
   },
   {
     description: i18n.t("View and update your site settings"),
     disabled: true,
-    icon: StoreMall,
+    icon: <StoreMall fontSize="inherit" />,
     title: i18n.t("Site Settings"),
-    url: "/settings/"
+    url: undefined
   },
   {
     description: i18n.t("Manage and add additional pages"),
     disabled: false,
-    icon: Pages,
+    icon: <Pages fontSize="inherit" />,
     title: i18n.t("Pages"),
-    url: "/pages/"
+    url: pageListUrl
   }
 ];
 

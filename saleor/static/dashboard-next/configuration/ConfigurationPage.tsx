@@ -13,7 +13,7 @@ interface ConfigurationPageProps {
   menu: Array<{
     description: string;
     disabled: boolean;
-    icon: () => React.Component<IconProps>;
+    icon: React.ReactElement<IconProps>;
     title: string;
     url: string;
   }>;
@@ -23,7 +23,7 @@ interface ConfigurationPageProps {
 const decorate = withStyles(theme => ({
   card: {
     "&:hover": {
-      boxShadow: "0 12px 12px rgba(0, 0, 0, 0.1)"
+      boxShadow: theme.shadows[12]
     },
     cursor: "pointer" as "pointer",
     marginBottom: theme.spacing.unit * 3,
@@ -46,8 +46,7 @@ const decorate = withStyles(theme => ({
   },
   icon: {
     color: theme.palette.primary.main,
-    height: 48,
-    width: 48
+    fontSize: 48
   },
   root: {
     display: "grid" as "grid",
@@ -65,29 +64,25 @@ export const ConfigurationPage = decorate<ConfigurationPageProps>(
     <Container width="md">
       <PageHeader title={i18n.t("Configure")} />
       <div className={classes.root}>
-        {menu.map(menuItem => {
-          const Icon = menuItem.icon;
-          return (
-            <Card
-              className={
-                menuItem.disabled ? classes.cardDisabled : classes.card
-              }
-              onClick={() => onSectionClick(menuItem.url)}
-            >
-              <CardContent className={classes.cardContent}>
-                <Icon className={classes.icon} />
-                <div>
-                  <Typography className={classes.sectionTitle} color="primary">
-                    {menuItem.title}
-                  </Typography>
-                  <Typography className={classes.sectionDescription}>
-                    {menuItem.description}
-                  </Typography>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {menu.map((menuItem, menuItemIndex) => (
+          <Card
+            className={menuItem.disabled ? classes.cardDisabled : classes.card}
+            onClick={() => onSectionClick(menuItem.url)}
+            key={menuItemIndex}
+          >
+            <CardContent className={classes.cardContent}>
+              <div className={classes.icon}>{menuItem.icon}</div>
+              <div>
+                <Typography className={classes.sectionTitle} color="primary">
+                  {menuItem.title}
+                </Typography>
+                <Typography className={classes.sectionDescription}>
+                  {menuItem.description}
+                </Typography>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </Container>
   )
