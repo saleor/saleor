@@ -8,10 +8,7 @@ import {
   ProductTypeDeleteMutation,
   ProductTypeDeleteMutationVariables
 } from "../../gql-types";
-import {
-  productTypeDeleteMutation,
-  TypedProductTypeDeleteMutation
-} from "../mutations";
+import { TypedProductTypeDeleteMutation } from "../mutations";
 
 interface ProductTypeDeleteProviderProps extends PartialMutationProviderProps {
   id: string;
@@ -25,7 +22,6 @@ const ProductTypeDeleteProvider: React.StatelessComponent<
   ProductTypeDeleteProviderProps
 > = ({ id, children, onError, onSuccess }) => (
   <TypedProductTypeDeleteMutation
-    mutation={productTypeDeleteMutation}
     variables={{ id }}
     onCompleted={onSuccess}
     onError={onError}

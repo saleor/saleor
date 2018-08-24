@@ -9,10 +9,8 @@ import {
   ProductTypeUpdateMutation,
   ProductTypeUpdateMutationVariables
 } from "../gql-types";
+import { TypedMutation } from "../mutations";
 
-export const TypedProductTypeDeleteMutation = Mutation as React.ComponentType<
-  MutationProps<ProductTypeDeleteMutation, ProductTypeDeleteMutationVariables>
->;
 export const productTypeDeleteMutation = gql`
   mutation ProductTypeDelete($id: ID!) {
     productTypeDelete(id: $id) {
@@ -26,10 +24,11 @@ export const productTypeDeleteMutation = gql`
     }
   }
 `;
+export const TypedProductTypeDeleteMutation = TypedMutation<
+  ProductTypeDeleteMutation,
+  ProductTypeDeleteMutationVariables
+>(productTypeDeleteMutation);
 
-export const TypedProductTypeUpdateMutation = Mutation as React.ComponentType<
-  MutationProps<ProductTypeUpdateMutation, ProductTypeUpdateMutationVariables>
->;
 export const productTypeUpdateMutation = gql`
   mutation ProductTypeUpdate($id: ID!, $input: ProductTypeInput!) {
     productTypeUpdate(id: $id, input: $input) {
@@ -64,10 +63,11 @@ export const productTypeUpdateMutation = gql`
     }
   }
 `;
+export const TypedProductTypeUpdateMutation = TypedMutation<
+  ProductTypeUpdateMutation,
+  ProductTypeUpdateMutationVariables
+>(productTypeUpdateMutation);
 
-export const TypedProductTypeCreateMutation = Mutation as React.ComponentType<
-  MutationProps<ProductTypeCreateMutation, ProductTypeCreateMutationVariables>
->;
 export const productTypeCreateMutation = gql`
   mutation ProductTypeCreate($input: ProductTypeInput!) {
     productTypeCreate(input: $input) {
@@ -102,3 +102,7 @@ export const productTypeCreateMutation = gql`
     }
   }
 `;
+export const TypedProductTypeCreateMutation = TypedMutation<
+  ProductTypeCreateMutation,
+  ProductTypeCreateMutationVariables
+>(productTypeCreateMutation);

@@ -8,10 +8,7 @@ import {
   ProductTypeUpdateMutation,
   ProductTypeUpdateMutationVariables
 } from "../../gql-types";
-import {
-  productTypeUpdateMutation,
-  TypedProductTypeUpdateMutation
-} from "../mutations";
+import { TypedProductTypeUpdateMutation } from "../mutations";
 
 interface ProductTypeUpdateProviderProps extends PartialMutationProviderProps {
   children: PartialMutationProviderRenderProps<
@@ -23,11 +20,7 @@ interface ProductTypeUpdateProviderProps extends PartialMutationProviderProps {
 const ProductTypeUpdateProvider: React.StatelessComponent<
   ProductTypeUpdateProviderProps
 > = ({ children, onError, onSuccess }) => (
-  <TypedProductTypeUpdateMutation
-    mutation={productTypeUpdateMutation}
-    onCompleted={onSuccess}
-    onError={onError}
-  >
+  <TypedProductTypeUpdateMutation onCompleted={onSuccess} onError={onError}>
     {(mutate, { data, loading, error }) => {
       return children({
         data,

@@ -9,10 +9,7 @@ import ProductTypeDetailsPage, {
   ProductTypeForm
 } from "../components/ProductTypeDetailsPage";
 import { AttributeSearchProvider } from "../containers/AttributeSearch";
-import {
-  productTypeCreateMutation,
-  TypedProductTypeCreateMutation
-} from "../mutations";
+import { TypedProductTypeCreateMutation } from "../mutations";
 import {
   productTypeCreateQuery,
   TypedProductTypeCreateDataQuery
@@ -52,7 +49,6 @@ export const ProductTypeUpdate: React.StatelessComponent = () => (
                   };
                   return (
                     <TypedProductTypeCreateMutation
-                      mutation={productTypeCreateMutation}
                       onCompleted={handleCreateSuccess}
                     >
                       {(
