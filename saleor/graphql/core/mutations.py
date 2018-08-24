@@ -134,14 +134,14 @@ class ModelMutation(BaseMutation):
 
         def is_list_of_ids(field):
             return (
-                isinstance(field.type, graphene.List) and
-                    field.type.of_type == graphene.ID)
+                isinstance(field.type, graphene.List)
+                and field.type.of_type == graphene.ID)
 
         def is_id_field(field):
             return (
-                field.type == graphene.ID or
-                    isinstance(field.type, graphene.NonNull) and
-                        field.type.of_type == graphene.ID)
+                field.type == graphene.ID
+                or isinstance(field.type, graphene.NonNull)
+                and field.type.of_type == graphene.ID)
 
         def is_upload_field(field):
             if hasattr(field.type, 'of_type'):
@@ -158,7 +158,8 @@ class ModelMutation(BaseMutation):
                 # handle list of IDs field
                 if value is not None and is_list_of_ids(field):
                     instances = cls.get_nodes_or_error(
-                        value, errors=errors, field=field_name) if value else []
+                        value, errors=errors,
+                        field=field_name) if value else []
                     cleaned_input[field_name] = instances
 
                 # handle ID field
