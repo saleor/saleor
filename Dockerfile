@@ -9,6 +9,7 @@ RUN \
   rm -rf /var/lib/apt/lists/*
 
 ADD requirements.txt /app/
+RUN pip install --upgrade pip
 RUN pip install -r /app/requirements.txt
 
 
@@ -34,11 +35,6 @@ RUN \
 ### Final image
 FROM python:3.6-slim
 
-ARG AWS_ACCESS_KEY_ID
-ARG AWS_LOCATION
-ARG AWS_MEDIA_BUCKET_NAME
-ARG AWS_SECRET_ACCESS_KEY
-ARG AWS_STORAGE_BUCKET_NAME
 ARG STATIC_URL
 
 RUN \
@@ -55,20 +51,18 @@ COPY --from=build-nodejs /app/webpack-bundle.json /app/
 COPY --from=build-nodejs /app/templates /app/templates
 WORKDIR /app
 
+
+RUN SECRET_KEY=dummy \
+    STATIC_URL=${STATIC_URL} \
+    python3 manage.py collectstatic --no-input
+
 RUN useradd --system saleor && \
-    mkdir /app/media /app/static && \
+    mkdir -p /app/media /app/static && \
     chown -R saleor:saleor /app/
 
 USER saleor
 
-RUN SECRET_KEY=dummy \
-    AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-    AWS_LOCATION=${AWS_LOCATION} \
-    AWS_MEDIA_BUCKET_NAME=${AWS_MEDIA_BUCKET_NAME} \
-    AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-    AWS_STORAGE_BUCKET_NAME=${AWS_STORAGE_BUCKET_NAME} \
-    STATIC_URL=${STATIC_URL} \
-    python3 manage.py collectstatic --no-input
+
 EXPOSE 8000
 ENV PORT 8000
 
