@@ -99,6 +99,7 @@ export const productTypeDetailsQuery = gql`
 export const TypedProductTypeCreateDataQuery = Query as React.ComponentType<
   QueryProps<ProductTypeCreateDataQuery>
 >;
+// FIXME: Country code should be supplied from API, not hardcoded
 export const productTypeCreateQuery = gql`
   query ProductTypeCreateData {
     shop {
