@@ -29,6 +29,7 @@ import Home from "./icons/Home";
 import Shop from "./icons/Shop";
 
 const drawerWidth = 256;
+const navigationBarHeight = 64;
 
 const menuStructure = [
   {
@@ -94,8 +95,8 @@ const decorate = withStyles(
     drawerDesktop: {
       backgroundColor: "transparent",
       borderRight: "0 none",
-      height: `calc(100vh - ${64 + theme.spacing.unit * 2}px)`,
-      marginTop: 64 + theme.spacing.unit * 2,
+      height: `calc(100vh - ${navigationBarHeight + theme.spacing.unit * 2}px)`,
+      marginTop: navigationBarHeight + theme.spacing.unit * 2,
       position: "relative" as "relative",
       width: drawerWidth
     },
