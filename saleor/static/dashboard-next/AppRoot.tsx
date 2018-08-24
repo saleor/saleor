@@ -18,15 +18,20 @@ import * as classNames from "classnames";
 import * as React from "react";
 import SVG from "react-inlinesvg";
 
+import { appMountPoint } from ".";
 import * as saleorLogo from "../images/logo.svg";
 import { UserContext } from "./auth";
+import { categoryListUrl } from "./categories";
 import MenuToggle from "./components/MenuToggle";
 import Navigator from "./components/Navigator";
 import Toggle from "./components/Toggle";
+import { configurationMenuUrl } from "./configuration";
 import i18n from "./i18n";
 import ArrowDropdown from "./icons/ArrowDropdown";
 import Home from "./icons/Home";
 import Shop from "./icons/Shop";
+import { removeDoubleSlashes } from "./misc";
+import { productListUrl } from "./products";
 
 const drawerWidth = 256;
 const navigationBarHeight = 64;
@@ -45,13 +50,13 @@ const menuStructure = [
         ariaLabel: "products",
         icon: <Shop />,
         label: i18n.t("Products", { context: "Menu label" }),
-        url: "/products/"
+        url: productListUrl
       },
       {
         ariaLabel: "categories",
         icon: <Shop />,
         label: i18n.t("Categories", { context: "Menu label" }),
-        url: "/categories/"
+        url: categoryListUrl
       }
     ],
     icon: <Shop />,
@@ -260,7 +265,7 @@ const MenuList = decorate<MenuListProps>(
         return (
           <a
             className={classes.menuListItem}
-            href={"/dashboard/next" + menuItem.url}
+            href={removeDoubleSlashes(appMountPoint + menuItem.url)}
             onClick={event => onMenuItemClick(menuItem.url, event)}
             key={menuItem.label}
           >
@@ -448,9 +453,11 @@ export const AppRoot = decorate(
                         <div className={classes.spacer} />
                         <a
                           className={classes.menuListItem}
-                          href={"/dashboard/next/configuration"}
+                          href={removeDoubleSlashes(
+                            appMountPoint + configurationMenuUrl
+                          )}
                           onClick={event =>
-                            handleMenuItemClick("/configuration", event)
+                            handleMenuItemClick(configurationMenuUrl, event)
                           }
                         >
                           <SettingsIcon />

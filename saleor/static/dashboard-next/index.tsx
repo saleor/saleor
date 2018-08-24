@@ -63,9 +63,11 @@ const apolloClient = new ApolloClient({
   link: invalidTokenLink.concat(authLink.concat(uploadLink))
 });
 
+export const appMountPoint = "/dashboard/next/";
+
 render(
   <ApolloProvider client={apolloClient}>
-    <BrowserRouter basename="/dashboard/next/">
+    <BrowserRouter basename={appMountPoint}>
       <MuiThemeProvider theme={theme}>
         <DateProvider>
           <LocaleProvider>
