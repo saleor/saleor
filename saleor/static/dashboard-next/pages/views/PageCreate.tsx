@@ -5,7 +5,7 @@ import { pageListUrl } from "..";
 import { NavigatorLink } from "../../components/Navigator";
 import i18n from "../../i18n";
 import PageDetailsPage from "../../pages/components/PageDetailsPage";
-import { pageCreateMutation, TypedPageCreateMutation } from "../mutations";
+import { TypedPageCreateMutation } from "../mutations";
 
 interface PageCreateFormProps {
   id: string;

@@ -5,7 +5,6 @@ import {
   ProductCreateMutationVariables,
   ProductDeleteMutation,
   ProductDeleteMutationVariables,
-  ProductDetailsQuery,
   ProductImageCreateMutation,
   ProductImageCreateMutationVariables,
   ProductImageDeleteMutation,
@@ -31,7 +30,6 @@ import { TypedMutation } from "../mutations";
 
 import {
   fragmentProduct,
-  fragmentProductImage,
   fragmentVariant
 } from "./queries";
 

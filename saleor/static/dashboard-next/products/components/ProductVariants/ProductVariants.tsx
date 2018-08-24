@@ -36,13 +36,6 @@ interface ProductVariantsProps {
 }
 
 const decorate = withStyles(theme => {
-  const dot = {
-    borderRadius: "100%",
-    display: "inline-block",
-    height: theme.spacing.unit,
-    marginRight: theme.spacing.unit,
-    width: theme.spacing.unit
-  };
   return {
     denseTable: {
       "& td, & th": {
@@ -66,7 +59,6 @@ export const ProductVariants = decorate<ProductVariantsProps>(
     classes,
     variants,
     fallbackPrice,
-    onAttributesEdit,
     onRowClick,
     onVariantAdd
   }) => (
