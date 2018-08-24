@@ -106,3 +106,6 @@ export function renderCollection<T>(
 export function decimal(value: string) {
   return value === "" ? null : value;
 }
+
+export const removeDoubleSlashes = (url: string) =>
+  url.replace(/([^:]\/)\/+/g, "$1");

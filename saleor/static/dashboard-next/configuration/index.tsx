@@ -72,6 +72,8 @@ export const configurationMenu = [
   }
 ];
 
+export const configurationMenuUrl = "/configuration/";
+
 export const ConfigurationSection: React.StatelessComponent = () => (
   <Navigator>
     {navigate => (
