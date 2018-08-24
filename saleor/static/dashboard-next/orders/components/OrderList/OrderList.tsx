@@ -6,6 +6,7 @@ import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
+import * as classNames from "classnames";
 import * as React from "react";
 
 import { ListProps } from "../../..";
@@ -102,7 +103,7 @@ export const OrderList = decorate<OrderListProps>(
               <TableRow key={order ? order.id : "skeleton"}>
                 <TableCell
                   onClick={order && onRowClick && onRowClick(order.id)}
-                  className={order && onRowClick && classes.link}
+                  className={classNames({ [classes.link]: !!order })}
                 >
                   {order ? order.number : <Skeleton />}
                 </TableCell>

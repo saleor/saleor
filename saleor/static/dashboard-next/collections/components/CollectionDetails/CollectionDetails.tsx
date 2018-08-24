@@ -3,6 +3,7 @@ import CardContent from "@material-ui/core/CardContent";
 import { withStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
+import * as classNames from "classnames";
 import * as React from "react";
 
 import FileUpload from "../../../components/FileUpload";
@@ -50,7 +51,9 @@ const CollectionDetails = decorate<CollectionDetailsProps>(
             <img src={collection.backgroundImage} className={classes.image} />
             <Typography
               variant="caption"
-              className={!!onImageRemove && !disabled ? classes.link : ""}
+              className={classNames({
+                [classes.link]: !!onImageRemove && !disabled
+              })}
               onClick={disabled ? undefined : onImageRemove}
             >
               {i18n.t("Remove")}

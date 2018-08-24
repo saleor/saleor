@@ -4,6 +4,7 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import { withStyles } from "@material-ui/core/styles";
+import * as classNames from "classnames";
 import * as React from "react";
 
 import i18n from "../../i18n";
@@ -38,7 +39,9 @@ const ActionDialog = decorate<ActionDialogProps>(
           color="primary"
           variant="raised"
           onClick={onConfirm}
-          className={variant === "delete" ? classes.deleteButton : ""}
+          className={classNames({
+            [classes.deleteButton]: variant === "delete"
+          })}
         >
           {variant === "delete"
             ? i18n.t("Delete", { context: "button" })

@@ -8,6 +8,7 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import CloseIcon from "@material-ui/icons/Close";
+import * as classNames from "classnames";
 import * as React from "react";
 
 import EditableTableCell from "../../../components/EditableTableCell";
@@ -200,7 +201,7 @@ const OrderProducts = decorate<OrderProductsProps>(
             <div className={classes.flexBox}>
               <Typography>{i18n.t("Subtotal")}</Typography>
               <Typography
-                className={isDraft && onShippingMethodClick && classes.link}
+                className={classNames({ [classes.link]: isDraft })}
                 onClick={onShippingMethodClick}
               >
                 {shippingMethod ? shippingMethod.name : i18n.t("Shipping")}

@@ -4,6 +4,7 @@ import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import InputLabel from "@material-ui/core/InputLabel";
 import { withStyles } from "@material-ui/core/styles";
+import * as classNames from "classnames";
 import * as React from "react";
 
 interface PriceRangeFieldProps {
@@ -66,7 +67,7 @@ export const PriceRangeField = decorate<PriceRangeFieldProps>(
                 <span />
               )
             }
-            className={label ? "" : classes.pullDown}
+            className={classNames({ [classes.pullDown]: !label })}
             fullWidth
             name={`${name}_min`}
             onChange={onChange}

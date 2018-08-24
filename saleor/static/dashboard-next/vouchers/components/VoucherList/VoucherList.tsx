@@ -95,7 +95,7 @@ const VoucherList = decorate<VoucherListProps>(
                   {voucher ? (
                     <span
                       onClick={onRowClick && onRowClick(voucher.id)}
-                      className={onRowClick && classes.link}
+                      className={classes.link}
                     >
                       {voucher ? (
                         voucher.name !== null ? (
