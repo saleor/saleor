@@ -24,7 +24,7 @@ const formData = {
   variantAttributes: []
 };
 
-export const ProductTypeUpdate: React.StatelessComponent = () => (
+export const ProductTypeCreate: React.StatelessComponent = () => (
   <Messages>
     {pushMessage => (
       <Navigator>
@@ -122,4 +122,4 @@ export const ProductTypeUpdate: React.StatelessComponent = () => (
     )}
   </Messages>
 );
-export default ProductTypeUpdate;
+export default ProductTypeCreate;
