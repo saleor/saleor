@@ -94,7 +94,7 @@ export const ProductList = decorate<ProductListProps>(
                   {product ? (
                     <span
                       onClick={onRowClick && onRowClick(product.id)}
-                      className={onRowClick && classes.link}
+                      className={classes.link}
                     >
                       {product.name}
                     </span>

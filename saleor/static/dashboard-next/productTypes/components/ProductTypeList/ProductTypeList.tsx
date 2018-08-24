@@ -6,6 +6,7 @@ import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
+import * as classNames from "classnames";
 import * as React from "react";
 
 import { ListProps } from "../../..";
@@ -87,7 +88,7 @@ const ProductTypeList = decorate<ProductTypeListProps>(
                   onClick={
                     productType && onRowClick && onRowClick(productType.id)
                   }
-                  className={productType && onRowClick && classes.link}
+                  className={classNames({ [classes.link]: !!productType })}
                 >
                   {productType ? productType.name : <Skeleton />}
                 </TableCell>

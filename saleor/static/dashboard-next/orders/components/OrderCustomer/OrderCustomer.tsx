@@ -97,7 +97,7 @@ const OrderCustomer = decorate<OrderCustomerProps>(
           <>
             <Typography>{client.name}</Typography>
             <Typography
-              className={onCustomerEmailClick ? classes.link : ""}
+              className={classes.link}
               onClick={
                 onCustomerEmailClick
                   ? onCustomerEmailClick(client.id)

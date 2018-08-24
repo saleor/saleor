@@ -7,6 +7,7 @@ import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
+import * as classNames from "classnames";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
@@ -102,7 +103,7 @@ const CollectionProducts = decorate<CollectionProductsProps>(
                   onClick={
                     product && onProductClick && onProductClick(product.id)
                   }
-                  className={product && onProductClick && classes.link}
+                  className={classNames({ [classes.link]: !!product })}
                 >
                   {product ? product.name : <Skeleton />}
                 </TableCell>
