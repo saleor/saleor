@@ -140,6 +140,13 @@
     &.features {
       position: relative;
       top: calc(var(--spacer) * -6);
+      & .grid {
+        padding: 0 calc(var(--spacer) * 3);
+        width: auto;
+        @media (max-width: 450px) {
+          padding: var(--spacer);
+        }
+      }
       & .section-container {
         @media (max-width: 450px) {
           padding: 0 calc(var(--spacer) * 1) 0 calc(var(--spacer) * 3);
@@ -153,7 +160,7 @@
         padding-left: calc(var(--spacer) * 5);
         & span {
           position: absolute;
-          top: calc(var(--spacer) * -1.5); 
+          top: calc(var(--spacer) * -1.4); 
           left: calc(var(--spacer) * 3);
           color: var(--body-color);
           font-size: var(--font-size-base);
@@ -202,17 +209,16 @@
             margin-bottom: calc(var(--spacer) * 2);
             & span {
               position: absolute;
-              top: calc(var(--spacer) * -2); 
-              left: calc(var(--spacer) * -3);
+              top: calc(var(--spacer) * -1); 
+              left: calc(var(--spacer) * -2);
               color: var(--body-color);
-              font-size: calc(var(--font-size-base) * 1.5);
+              font-size: var(--font-size-base);
               text-align: right;
             }
             @media (max-width: 768px) {
               margin-bottom: var(--spacer);
               & span {
                 left: calc(var(--spacer) * -1.8);
-                font-size: calc(var(--font-size-base) * 1.3);
               }
             }
             @media (max-width: 570px) {
@@ -336,11 +342,8 @@
               font-size: calc(var(--spacer) * 1.8);
             }
             & span {
-              left: calc(var(--spacer) * 3);
+              left: calc(var(--spacer) * -1);
               @media (max-width: 1024px) {
-                left: calc(var(--spacer) * 2);
-              }
-              @media (max-width: 992px) {
                 left: calc(var(--spacer) * -1);
               }
               @media (max-width: 450px) {
