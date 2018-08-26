@@ -258,3 +258,14 @@ ul {
     display: none;
   }
 }
+
+.bg-container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  z-index: -1;
+  background-repeat: no-repeat;
+  @media (max-width: 578px) {
+    opacity: 0.5;
+  }
+}
