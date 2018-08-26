@@ -79,10 +79,7 @@
           }
         }
         &.features {
-          padding: calc(var(--spacer) * 2) calc(var(--spacer) * 10) calc(var(--spacer) * 4);
-          @media (max-width: 700px) {
-            padding: calc(var(--spacer) * 2) calc(var(--spacer) * 2) calc(var(--spacer) * 2);
-          }
+          padding-top: calc(var(--spacer) * 2);
           & .icons {
             width: 100%;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));

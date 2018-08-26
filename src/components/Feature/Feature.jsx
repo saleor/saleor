@@ -41,7 +41,7 @@ const Feature = () => (
           <h5 className="position">Lead developer. Patch Garden</h5>
         </div>
       </section>
-      <section className="features">
+      <section className="features section-container">
         <div className="grid icons">
           <div className="icon-card">
             <img src={modernStackIcon} />

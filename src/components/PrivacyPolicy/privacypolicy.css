@@ -1,10 +1,7 @@
 #privacy-policy {
   border: solid var(--border-width) var(--primaryColor);
 	& section {
-    padding: calc(var(--spacer) * 2) calc(var(--spacer) * 7);
-    @media (max-width: 768px) {
-      padding: calc(var(--spacer) * 2) calc(var(--spacer))
-    }
+    padding-top: calc(var(--spacer) * 2);
 		& .title, & .description {
 			margin-bottom: var(--spacer);
     }
