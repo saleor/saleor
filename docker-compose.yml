@@ -5,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
+      args:
+        STATIC_URL: '/static/'
     container_name: saleor-web
     restart: unless-stopped
     networks:
@@ -44,6 +46,8 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
+      args:
+        STATIC_URL: '/static/'
     container_name: saleor-celery
     command: celery -A saleor worker --app=saleor.celeryconf:app --loglevel=info
     restart: unless-stopped
