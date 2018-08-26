@@ -12,6 +12,7 @@
         "eslint-config-prettier": "^2.9.0",
         "eslint-plugin-prettier": "^2.6.2",
         "react": "^16.4.1",
+        "react-cookie": "^3.0.4",
         "react-device-detect": "^1.5.9",
         "react-dom": "^16.4.1",
         "react-router": "^4.3.1",

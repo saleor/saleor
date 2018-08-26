@@ -5,16 +5,22 @@ import {
   Link,
   Switch
 } from 'react-router-dom';
-
+import { instanceOf } from 'prop-types';
+import { withCookies, Cookies } from 'react-cookie';
 import { Home, Header, Footer, PrivacyPolicy, Roadmap, Feature } from '..';
 import css from './css/index.css';
 
 class App extends Component {
+
+  static propTypes = {
+    cookies: instanceOf(Cookies).isRequired
+  };
+
   render() {
     return (
       <Router>
         <Fragment>
-          <Header />
+          <Header cookies={this.props.cookies} />
           <section className="container">
             <Switch>
               <Route exact path="/" component={Home} />
@@ -30,4 +36,4 @@ class App extends Component {
   }
 }
 
-export default App;
+export default withCookies(App);

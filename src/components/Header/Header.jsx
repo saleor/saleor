@@ -8,11 +8,14 @@ import { GitHubLink } from '..';
 import css from './header.css';
 
 class Header extends Component {
+
   constructor(props) {
     super(props);
+    const { cookies } = props;
     this.toggleMenu = this.toggleMenu.bind(this);
     this.closeNewsBar = this.closeNewsBar.bind(this);
-    this.state = { mobileMenu: false, visibleNewsBar: true };
+    const { cookieValue } = 
+    this.state = { mobileMenu: false, visibleNewsBar: cookies.get('newsbar') ? false : true}
   }
 
   toggleMenu = () => {
@@ -24,6 +27,9 @@ class Header extends Component {
   }
 
   closeNewsBar = () => {
+    const { cookies } = this.props;
+    const maxAge = 14 * (24 * 3600);
+    cookies.set('newsbar', 1, { path: '/', maxAge: maxAge });
     this.setState({visibleNewsBar: false});
   }
 
