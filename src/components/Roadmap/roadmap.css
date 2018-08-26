@@ -138,6 +138,7 @@
             font-weight: var(--font-weight-light);
             @media (max-width: 578px) {
               padding: 0;
+              margin-bottom: var(--spacer);
             }
           }
         }
