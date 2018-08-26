@@ -252,3 +252,9 @@ ul {
     font-size: calc(var(--font-size-sm));
   }
 }
+
+@media (max-width: 450px) {
+  .decoration {
+    display: none;
+  }
+}

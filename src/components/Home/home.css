@@ -281,9 +281,6 @@
             @media (max-width: 768px) {
               top: 50%;
             }
-            @media (max-width: 450px) {
-              display: none;
-            }
           }
           @media (max-width: 768px) {
             & h2 {
@@ -310,9 +307,6 @@
             left: -15%;
             top: 30%;
             right: initial;
-            @media (max-width: 450px) {
-              display: none;
-            }
           }
         }
         &.easy-to-customize {
@@ -422,9 +416,6 @@
             right: -15%;
             top: 50%;
             left: initial;
-            @media (max-width: 450px) {
-              display: none;
-            }
           }
         }
         &.dashboard {
@@ -441,9 +432,6 @@
             left: -13%;
             right: initial;
             top: -11%;
-            @media (max-width: 450px) {
-              display: none;
-            }
           }
         }
       }
@@ -496,9 +484,6 @@
         left: 5%;
         right: initial;
         bottom: -3%;
-        @media (max-width: 450px) {
-          display: none;
-        }
       }
     }
     &.open-source {
@@ -646,17 +631,11 @@
         width: 10%;
         left: 0;
         top: 0;
-        @media (max-width: 450px) {
-          display: none;
-        }
       }
       & .decoration02 {
         width: 15%;
         right: 5%;
         top: 35%;
-        @media (max-width: 450px) {
-          display: none;
-        }
       }
     }
     &.saleor-in-action {
@@ -781,17 +760,11 @@
         @media (max-width: 768px) {
           top: 1%;
         }
-        @media (max-width: 450px) {
-          display: none;
-        }
       }
       & .decoration02 {
         width: 15%;
         right: -5%;
         top: -10%;
-        @media (max-width: 450px) {
-          display: none;
-        }
       }
     }
     &.enterprice-consulting {
@@ -861,9 +834,6 @@
         width: 20%;
         left: -3%;
         top: -9%;
-        @media (max-width: 450px) {
-          display: none;
-        }
       }
       & .decoration02 {
         width: 40%;
@@ -871,9 +841,6 @@
         top: 0;
         @media (max-width: 768px) {
           top: -12%;
-        }
-        @media (max-width: 450px) {
-          display: none;
         }
       }
     }
