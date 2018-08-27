@@ -16662,7 +16662,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
         </div>
       </div>
       <div
-        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-card-id"
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-cardDisabled-id"
       >
         <div
           class="MuiCardContent-root-id Component-cardContent-id"
