@@ -1,64 +1,119 @@
-language: python
-sudo: false
-python:
-  - "3.5"
-  - "3.6"
-cache:
-  pip: true
-  directories:
-    - node_modules
-install:
-  - pip install -U pip setuptools wheel
-  - pip install tox-travis codecov
-  - nvm install 10
-  - npm i
-  - npm run build-assets --production
-  - npm run build-emails
-  - npm run test
-script:
-  - tox
+---
 env:
   global:
     - DJANGO_SETTINGS_MODULE=tests.settings
+    - NODEJS_VERSION=10
     - DATABASE_URL='postgres://postgres@localhost:5432/saleor'
-  matrix:
-  - DJANGO="1.11"
-  - DJANGO="2.0"
-  - DJANGO="2.1"
-  - DJANGO="master"
-matrix:
+
+stages:
+  - Python 3.5 tests
+  - Python 3.6 tests
+  - Python 3.7 tests
+
+jobs:
   include:
-    - python: "3.7"
+    #  +-----------+-----------+
+    #  | Python    | Django    |
+    #  +-----------+-----------+
+    #  | 3.5       | 1.1       |
+    #  | 3.5       | 2.0       |
+    #  | 3.5       | 2.1       |
+    #  | 3.5       | master    |
+    #  +-----------+-----------+
+    - &python_3_5_test
+      language: python
+      sudo: false
+      cache:
+        pip: true
+        directories:
+          - node_modules
+      install:
+        - pip install -U pip setuptools wheel
+        - pip install tox-travis codecov
+        - nvm install ${NODEJS_VERSION}
+        - npm i
+        - npm run build-assets --production
+        - npm run build-emails
+        - npm run test
+      script:
+        - tox
+      after_success:
+        - codecov
+      services:
+        - postgresql
+      stage: Python 3.5 tests
+      python: "3.5"
+      env: DJANGO=1.11
+    - <<: *python_3_5_test
+      env: DJANGO=2.0
+    - <<: *python_3_5_test
+      env: DJANGO=2.1
+    - <<: *python_3_5_test
+      env: DJANGO=master
+
+    #  +-----------+-----------+
+    #  | Python    | Django    |
+    #  +-----------+-----------+
+    #  | 3.6       | 1.1       |
+    #  | 3.6       | 2.0       |
+    #  | 3.6       | 2.1       |
+    #  | 3.6       | master    |
+    #  +-----------+-----------+
+    - &python_3_6_test
+      <<: *python_3_5_test
+      stage: Python 3.6 tests
+      python: "3.6"
+      env: DJANGO=1.11
+    - <<: *python_3_6_test
+      env: DJANGO=2.0
+    - <<: *python_3_6_test
+      env: DJANGO=2.1
+    - <<: *python_3_6_test
+      env: DJANGO=master
+
+    #  +-----------+-----------+
+    #  | Python    | Django    |
+    #  +-----------+-----------+
+    #  | 3.7       | 2.0       |
+    #  | 3.7       | 2.1       |
+    #  | 3.7       | master    |
+    #  +-----------+-----------+
+    - &python_3_7_test
+      <<: *python_3_6_test
+      stage: Python 3.7 tests
+      python: "3.7"
+      env: DJANGO=2.0
       sudo: required
       dist: xenial
-      env: DJANGO="2.0"
-    - python: "3.7"
-      sudo: required
-      dist: xenial
-      env: DJANGO="2.1"
-    - python: "3.7"
-      sudo: required
-      dist: xenial
-      env: DJANGO="master"
-  fast_finish: true
+    - <<: *python_3_7_test
+      env: DJANGO=2.1
+    - <<: *python_3_7_test
+      env: DJANGO=master
+
+  # Failures allowed for
+  #  +-----------+-----------+------------------------------------+
+  #  | Python    | Django    | Failure allowed justification      |
+  #  +-----------+-----------+------------------------------------+
+  #  | 3.5       | 2.1       |                                    |
+  #  | 3.5       | master    |                                    |
+  #  | 3.6       | 2.1       |                                    |
+  #  | 3.7       | 2.1       |                                    |
+  #  | 3.7       | master    |                                    |
+  #  +-----------+-----------+------------------------------------+
   allow_failures:
     - python: "3.5"
-      env: DJANGO="2.1"
+      env: DJANGO=2.1
     - python: "3.5"
-      env: DJANGO="master"
+      env: DJANGO=master
     - python: "3.6"
-      env: DJANGO="2.1"
+      env: DJANGO=2.1
     - python: "3.6"
-      env: DJANGO="master"
+      env: DJANGO=master
     - python: "3.7"
       sudo: required
       dist: xenial
-      env: DJANGO="2.1"
+      env: DJANGO=2.1
     - python: "3.7"
-      env: DJANGO="master"
+      env: DJANGO=master
       sudo: required
       dist: xenial
-after_success:
-  - codecov
-services:
-  - postgresql
