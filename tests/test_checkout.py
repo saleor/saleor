@@ -10,7 +10,7 @@ from measurement.measures import Weight
 from prices import Money, TaxedMoney
 from saleor.account.models import Address
 from saleor.checkout import views
-from saleor.checkout.forms import CartVoucherForm
+from saleor.checkout.forms import CartVoucherForm, CountryForm
 from saleor.checkout.utils import (
     add_variant_to_cart, change_billing_address_in_cart,
     change_shipping_address_in_cart, clear_shipping_method, create_order,
@@ -26,8 +26,23 @@ from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
 from saleor.product.models import Category
 from saleor.shipping import ShippingMethodType
+from saleor.shipping.models import ShippingZone
 
 from .utils import compare_taxes, get_redirect_location
+
+
+def test_country_form_country_choices():
+    form = CountryForm(data={'csrf': '', 'country': 'PL'})
+    assert form.fields['country'].choices == []
+
+    zone = ShippingZone.objects.create(countries=['PL', 'DE'], name='Europe')
+    form = CountryForm(data={'csrf': '', 'country': 'PL'})
+
+    expected_choices = [
+        (country.code, country.name) for country in zone.countries]
+    expected_choices = sorted(
+        expected_choices, key=lambda choice: choice[1])
+    assert form.fields['country'].choices == expected_choices
 
 
 @pytest.mark.parametrize(
