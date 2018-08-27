@@ -15464,7 +15464,7 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
                   class="MuiTableRow-root-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
                   >
                     <span
                       class="Skeleton-skeleton-id"
@@ -17051,7 +17051,7 @@ exports[`Storyshots Views / Customers / Customer details when loading 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
                 >
                   <span
                     class="Skeleton-skeleton-id"
@@ -23293,7 +23293,7 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
             class="MuiTableRow-root-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id OrderList-link-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -24465,7 +24465,7 @@ exports[`Storyshots Views / Pages / Page list loading 1`] = `
             class="MuiTableRow-root-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -25978,7 +25978,7 @@ exports[`Storyshots Views / Product types / Product types list loading 1`] = `
             class="MuiTableRow-root-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -27762,7 +27762,7 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
                 class="MuiTableBody-root-id"
               >
                 <tr
-                  class="MuiTableRow-root-id"
+                  class="MuiTableRow-root-id Component-link-id"
                 >
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
@@ -34047,7 +34047,7 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
           class="MuiTableBody-root-id"
         >
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id Component-link-id"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
@@ -34997,7 +34997,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
                 class="MuiTableBody-root-id"
               >
                 <tr
-                  class="MuiTableRow-root-id"
+                  class="MuiTableRow-root-id Component-link-id"
                 >
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
