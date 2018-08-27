@@ -12,7 +12,6 @@ from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import Decimal, Error
 from ...product.types import ProductVariant
-from ...utils import get_node
 from ..types import Order
 
 
@@ -166,13 +165,12 @@ class DraftOrderDelete(ModelDeleteMutation):
         return user.has_perm('order.manage_orders')
 
 
-def check_for_draft_order_errors(order):
+def check_for_draft_order_errors(order, errors):
     """Return a list of errors associated with the order.
 
     Checks, if given order has a proper shipping address and method
     set up and return list of errors if not.
     """
-    errors = []
     if order.get_total_quantity() == 0:
         errors.append(
             Error(
@@ -208,8 +206,9 @@ class DraftOrderComplete(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id):
-        order = get_node(info, id, only_type=Order)
-        errors = check_for_draft_order_errors(order)
+        errors = []
+        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        errors = check_for_draft_order_errors(order, errors)
         if errors:
             return cls(errors=errors)
 

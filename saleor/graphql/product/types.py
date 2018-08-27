@@ -221,6 +221,7 @@ class Collection(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents a collection of products."
+        exclude_fields = ['voucher_set', 'sale_set', 'menuitem_set']
         filter_fields = {
             'name': ['exact', 'icontains', 'istartswith']}
         interfaces = [relay.Node]
@@ -252,7 +253,9 @@ class Category(CountableDjangoObjectType):
         description = """Represents a single category of products. Categories
         allow to organize products in a tree-hierarchies which can be used for
         navigation in the storefront."""
-        exclude_fields = ['lft', 'rght', 'tree_id']
+        exclude_fields = [
+            'lft', 'rght', 'tree_id', 'voucher_set', 'sale_set',
+            'menuitem_set']
         interfaces = [relay.Node]
         filter_fields = ['id', 'name']
         model = models.Category

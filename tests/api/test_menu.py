@@ -29,6 +29,7 @@ def test_menu_query(user_api_client, menu, menu_item):
         }
     }
     """
+
     menu.items.add(menu_item)
     menu.save()
     menu_name = menu.name
