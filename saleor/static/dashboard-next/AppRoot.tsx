@@ -376,7 +376,8 @@ export const AppRoot = decorate(
                                       {user.email}
                                     </Typography>
                                     <ArrowDropdown
-                                      className={classNames(classes.arrow, {
+                                      className={classNames({
+                                        [classes.arrow]: true,
                                         [classes.rotate]: menuOpen
                                       })}
                                     />

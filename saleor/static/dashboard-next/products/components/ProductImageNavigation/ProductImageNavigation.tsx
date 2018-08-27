@@ -60,7 +60,8 @@ const ProductImageNavigation = decorate<ProductImageNavigationProps>(
           <div className={classes.root}>
             {images.map(image => (
               <div
-                className={classNames(classes.imageContainer, {
+                className={classNames({
+                  [classes.imageContainer]: true,
                   [classes.highlightedImageContainer]: image.id === highlighted
                 })}
                 onClick={onRowClick(image.id)}
