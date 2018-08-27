@@ -14,7 +14,7 @@ from ..order.mutations.draft_orders import check_lines_quantity
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
-from ..utils import get_node, get_nodes
+from ..utils import get_nodes
 from .types import Checkout, CheckoutLine
 
 
@@ -92,7 +92,7 @@ class CheckoutLinesAdd(BaseMutation):
 
     @classmethod
     def mutate(cls, root, info, checkout_id, lines, replace=False):
-        checkout = get_node(info, checkout_id, only_type=Checkout)
+        checkout = graphene.Node.get_node_from_global_id(info, checkout_id, Checkout)
         variants, quantities = None, None
         errors = []
         if lines:
@@ -174,7 +174,8 @@ class CheckoutCustomerDetach(BaseMutation):
 
     @classmethod
     def mutate(cls, root, info, checkout_id):
-        checkout = get_node(info, checkout_id, only_type=Checkout)
+        checkout = graphene.Node.get_node_from_global_id(
+            info, checkout_id, Checkout)
         if checkout:
             checkout.user = None
             checkout.save(update_fields=['user'])
