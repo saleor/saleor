@@ -241,13 +241,13 @@ def test_check_for_draft_order_errors_wrong_shipping(order_with_lines):
     shipping_zone.countries = ['DE']
     shipping_zone.save()
     assert order.shipping_address.country.code not in shipping_zone.countries
-    errors = check_for_draft_order_errors(order)
+    errors = check_for_draft_order_errors(order, [])
     msg = 'Shipping method is not valid for chosen shipping address'
     assert errors[0].message == msg
 
 
 def test_check_for_draft_order_errors_no_order_lines(order):
-    errors = check_for_draft_order_errors(order)
+    errors = check_for_draft_order_errors(order, [])
     assert errors[0].message == 'Could not create order without any products.'
 
 
