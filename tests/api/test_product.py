@@ -10,9 +10,9 @@ from prices import Money
 from tests.utils import (
     create_image, create_pdf_file_with_image_ext, get_graphql_content)
 
-from saleor.graphql.product.mutations.products import update_variants_names
+from saleor.graphql.product.utils import update_variants_names
 from saleor.product.models import (
-    Category, Collection, Product, ProductAttribute, ProductType, ProductImage)
+    Category, Collection, Product, ProductType, ProductImage)
 
 from .utils import assert_no_permission, get_multipart_request_body
 
@@ -316,60 +316,6 @@ def test_sort_products(user_api_client, product):
     assert price_0 > price_1
 
 
-def test_attributes_query(user_api_client, product):
-    attributes = ProductAttribute.objects.prefetch_related('values')
-    query = '''
-    query {
-        attributes {
-            edges {
-                node {
-                    id
-                    name
-                    slug
-                    values {
-                        id
-                        name
-                        slug
-                    }
-                }
-            }
-        }
-    }
-    '''
-    response = user_api_client.post(reverse('api'), {'query': query})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    attributes_data = content['data']['attributes']['edges']
-    assert len(attributes_data) == attributes.count()
-
-
-def test_attributes_in_category_query(user_api_client, product):
-    category = Category.objects.first()
-    query = '''
-    query {
-        attributes(inCategory: "%(category_id)s") {
-            edges {
-                node {
-                    id
-                    name
-                    slug
-                    values {
-                        id
-                        name
-                        slug
-                    }
-                }
-            }
-        }
-    }
-    ''' % {'category_id': graphene.Node.to_global_id('Category', category.id)}
-    response = user_api_client.post(reverse('api'), {'query': query})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    attributes_data = content['data']['attributes']['edges']
-    assert len(attributes_data) == ProductAttribute.objects.count()
-
-
 def test_create_product(
         admin_api_client, product_type, category, size_attribute):
     query = """
@@ -440,9 +386,9 @@ def test_create_product(
 
     # Default attribute defined in product_type fixture
     color_attr = product_type.product_attributes.get(name='Color')
-    color_attr_value = color_attr.values.first().name
     color_value_slug = color_attr.values.first().slug
     color_attr_slug = color_attr.slug
+
     # Add second attribute
     product_type.product_attributes.add(size_attribute)
     size_attr_slug = product_type.product_attributes.get(name='Size').slug
@@ -459,7 +405,7 @@ def test_create_product(
         'taxRate': product_taxRate,
         'price': product_price,
         'attributes': [
-            {'slug': color_attr_slug, 'value': color_attr_value},
+            {'slug': color_attr_slug, 'value': color_value_slug},
             {'slug': size_attr_slug, 'value': non_existent_attr_value}]})
 
     response = admin_api_client.post(
