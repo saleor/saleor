@@ -18,6 +18,7 @@ import {
   productVariantEditUrl
 } from "../index";
 import { productDetailsQuery, TypedProductDetailsQuery } from "../queries";
+import { decimal } from "../../misc";
 
 interface ProductUpdateProps {
   id: string;
@@ -112,7 +113,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               id: product.id,
                               isPublished: data.available,
                               name: data.name,
-                              price: data.price
+                              price: decimal(data.price)
                             });
                           }
                         };
