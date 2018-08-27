@@ -259,8 +259,8 @@
             background-size: 90%;
             background-position: 150%;
             @media (max-width: 768px) {
-              background-size: 120%;
-              background-position: 100% 0;
+              background-size: 100%;
+              background-position: 100% 50%;
             }
             @media (max-width: 700px) {
               background-position: -50% 50%;
