@@ -2,6 +2,7 @@ import Button from "@material-ui/core/Button";
 import gray from "@material-ui/core/colors/grey";
 import { withStyles } from "@material-ui/core/styles";
 import AddIcon from "@material-ui/icons/Add";
+import * as classNames from "classnames";
 import * as React from "react";
 
 import { Container } from "../../../components/Container";
@@ -131,7 +132,9 @@ const CategoryDetailsPage = decorate<CategoryDetailsPageProps>(
                     onEdit={onEdit}
                   />
                 )}
-                <div className={isRoot ? undefined : classes.cardContainer}>
+                <div
+                  className={classNames({ [classes.cardContainer]: !isRoot })}
+                >
                   <CategoryList
                     categories={subcategories}
                     isRoot={isRoot}

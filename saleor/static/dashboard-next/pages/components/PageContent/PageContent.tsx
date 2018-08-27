@@ -2,6 +2,7 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import { withStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
+import * as classNames from "classnames";
 import * as React from "react";
 
 import FormSpacer from "../../../components/FormSpacer";
@@ -37,7 +38,9 @@ const PageContent = decorate<PageContentProps>(
           label={i18n.t("Title", { context: "object" })}
           value={title}
           onChange={onChange}
-          className={!errors.title ? classes.addHelperTextPadding : ""}
+          className={classNames({
+            [classes.addHelperTextPadding]: !errors.title
+          })}
           error={!!errors.title}
           helperText={errors.title ? errors.title : undefined}
           fullWidth

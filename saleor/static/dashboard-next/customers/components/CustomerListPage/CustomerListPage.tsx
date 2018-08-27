@@ -92,7 +92,7 @@ const CustomerListPage = decorate<CustomerListPageProps>(
                     {customer ? (
                       <span
                         onClick={onRowClick && onRowClick(customer.id)}
-                        className={onRowClick && classes.link}
+                        className={classes.link}
                       >
                         {customer.defaultBillingAddress.firstName +
                           " " +

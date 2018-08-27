@@ -4,6 +4,7 @@ import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
+import * as classNames from "classnames";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
@@ -62,15 +63,13 @@ const ProductVariantNavigation = decorate<ProductVariantNavigationProps>(
               <TableRow
                 hover={!!variant}
                 key={variant ? variant.id : "skeleton"}
-                className={variant && classes.link}
+                className={classes.link}
                 onClick={variant ? () => onRowClick(variant.id) : undefined}
               >
                 <TableCellAvatar
-                  className={
-                    variant && variant.id === current
-                      ? classes.tabActive
-                      : undefined
-                  }
+                  className={classNames({
+                    [classes.tabActive]: variant && variant.id === current
+                  })}
                   thumbnail={
                     variant &&
                     variant.image &&

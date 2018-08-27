@@ -94,7 +94,7 @@ export const ProductList = decorate<ProductListProps>(
               hover={!!product}
               key={product ? product.id : "skeleton"}
               onClick={product && onRowClick(product.id)}
-              className={product && classes.link}
+              className={classes.link}
             >
               <TableCellAvatar thumbnail={product && product.thumbnailUrl} />
               <TableCell className={classes.textLeft}>

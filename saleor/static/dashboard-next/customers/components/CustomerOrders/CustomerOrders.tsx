@@ -7,6 +7,7 @@ import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
+import * as classNames from "classnames";
 import * as React from "react";
 
 import DateFormatter from "../../../components/DateFormatter";
@@ -90,7 +91,7 @@ const CustomerOrders = decorate<CustomerOrdersProps>(
               <TableRow key={order ? order.id : "skeleton"}>
                 <TableCell
                   onClick={order && onRowClick && onRowClick(order.id)}
-                  className={order && onRowClick && classes.link}
+                  className={classes.link}
                 >
                   {order ? order.number : <Skeleton />}
                 </TableCell>

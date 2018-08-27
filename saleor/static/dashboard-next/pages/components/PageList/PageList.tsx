@@ -74,7 +74,7 @@ export const PageList = decorate<PageListProps>(
               <TableRow key={page ? page.id : "skeleton"}>
                 <TableCell
                   onClick={page && onRowClick(page.id)}
-                  className={page && classes.link}
+                  className={classes.link}
                 >
                   {page ? page.title : <Skeleton />}
                 </TableCell>

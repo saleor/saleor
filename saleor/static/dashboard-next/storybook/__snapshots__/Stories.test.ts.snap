@@ -87,7 +87,7 @@ exports[`Storyshots Categories / CategoryProducts when loading data 1`] = `
                 class="TablePagination-spacer-id"
               />
               <div
-                class="TablePaginationActions-root-id "
+                class="TablePaginationActions-root-id"
               >
                 <button
                   class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -145,7 +145,7 @@ exports[`Storyshots Categories / CategoryProducts when loading data 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
@@ -272,7 +272,7 @@ exports[`Storyshots Categories / CategoryProducts with clickable rows 1`] = `
                 class="TablePagination-spacer-id"
               />
               <div
-                class="TablePaginationActions-root-id "
+                class="TablePaginationActions-root-id"
               >
                 <button
                   class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -330,7 +330,7 @@ exports[`Storyshots Categories / CategoryProducts with clickable rows 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -360,7 +360,7 @@ exports[`Storyshots Categories / CategoryProducts with clickable rows 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -390,7 +390,7 @@ exports[`Storyshots Categories / CategoryProducts with clickable rows 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -420,7 +420,7 @@ exports[`Storyshots Categories / CategoryProducts with clickable rows 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -535,7 +535,7 @@ exports[`Storyshots Categories / CategoryProducts with initial data 1`] = `
                 class="TablePagination-spacer-id"
               />
               <div
-                class="TablePaginationActions-root-id "
+                class="TablePaginationActions-root-id"
               >
                 <button
                   class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -593,7 +593,7 @@ exports[`Storyshots Categories / CategoryProducts with initial data 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -607,7 +607,9 @@ exports[`Storyshots Categories / CategoryProducts with initial data 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span>
+            <span
+              class="Component-link-id"
+            >
               Gardner, Graham and King
             </span>
           </td>
@@ -621,7 +623,7 @@ exports[`Storyshots Categories / CategoryProducts with initial data 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -635,7 +637,9 @@ exports[`Storyshots Categories / CategoryProducts with initial data 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span>
+            <span
+              class="Component-link-id"
+            >
               Gardner, Graham and King
             </span>
           </td>
@@ -649,7 +653,7 @@ exports[`Storyshots Categories / CategoryProducts with initial data 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -663,7 +667,9 @@ exports[`Storyshots Categories / CategoryProducts with initial data 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span>
+            <span
+              class="Component-link-id"
+            >
               Gardner, Graham and King
             </span>
           </td>
@@ -677,7 +683,7 @@ exports[`Storyshots Categories / CategoryProducts with initial data 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -691,7 +697,9 @@ exports[`Storyshots Categories / CategoryProducts with initial data 1`] = `
           <td
             class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
           >
-            <span>
+            <span
+              class="Component-link-id"
+            >
               Gardner, Graham and King
             </span>
           </td>
@@ -786,7 +794,7 @@ exports[`Storyshots Categories / CategoryProducts without initial data 1`] = `
                 class="TablePagination-spacer-id"
               />
               <div
-                class="TablePaginationActions-root-id "
+                class="TablePaginationActions-root-id"
               >
                 <button
                   class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -861,7 +869,7 @@ exports[`Storyshots Generics / ActionDialog default 1`] = `<div />`;
 exports[`Storyshots Generics / AddressEdit default 1`] = `
 <div>
   <div
-    class="Component-sm-id "
+    class="Component-sm-id"
   >
     <div
       class="Component-root-id"
@@ -1296,7 +1304,7 @@ exports[`Storyshots Generics / EditableTableCell default 1`] = `
           Some value
         </td>
         <td
-          class="MuiTableCell-root-id MuiTableCell-body-id Component-container-id "
+          class="MuiTableCell-root-id MuiTableCell-body-id Component-container-id"
         >
           <div>
             <span
@@ -3663,7 +3671,7 @@ exports[`Storyshots Generics / Skeleton default 1`] = `
 exports[`Storyshots Generics / StatusLabel when error 1`] = `
 <div>
   <div
-    class="Component-root-id "
+    class="Component-root-id"
   >
     <span
       class="Component-errorDot-id"
@@ -3676,7 +3684,7 @@ exports[`Storyshots Generics / StatusLabel when error 1`] = `
 exports[`Storyshots Generics / StatusLabel when neutral 1`] = `
 <div>
   <div
-    class="Component-root-id "
+    class="Component-root-id"
   >
     <span
       class="Component-neutralDot-id"
@@ -3689,7 +3697,7 @@ exports[`Storyshots Generics / StatusLabel when neutral 1`] = `
 exports[`Storyshots Generics / StatusLabel when success 1`] = `
 <div>
   <div
-    class="Component-root-id "
+    class="Component-root-id"
   >
     <span
       class="Component-successDot-id"
@@ -3717,7 +3725,7 @@ exports[`Storyshots Generics / TablePagination both previous and next pages are 
             class="TablePagination-spacer-id"
           />
           <div
-            class="TablePaginationActions-root-id "
+            class="TablePaginationActions-root-id"
           >
             <button
               class="MuiButtonBase-root-id MuiIconButton-root-id"
@@ -3791,7 +3799,7 @@ exports[`Storyshots Generics / TablePagination next page available 1`] = `
             class="TablePagination-spacer-id"
           />
           <div
-            class="TablePaginationActions-root-id "
+            class="TablePaginationActions-root-id"
           >
             <button
               class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -3863,7 +3871,7 @@ exports[`Storyshots Generics / TablePagination no previous / next page 1`] = `
             class="TablePagination-spacer-id"
           />
           <div
-            class="TablePaginationActions-root-id "
+            class="TablePaginationActions-root-id"
           >
             <button
               class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -3933,7 +3941,7 @@ exports[`Storyshots Generics / TablePagination previous page available 1`] = `
             class="TablePagination-spacer-id"
           />
           <div
-            class="TablePaginationActions-root-id "
+            class="TablePaginationActions-root-id"
           >
             <button
               class="MuiButtonBase-root-id MuiIconButton-root-id"
@@ -4678,7 +4686,7 @@ exports[`Storyshots Orders / OrderCustomer when loaded data 1`] = `
         Test Client
       </p>
       <p
-        class="MuiTypography-root-id MuiTypography-body1-id"
+        class="MuiTypography-root-id MuiTypography-body1-id OrderCustomer-link-id"
       >
         test.client@example.com
       </p>
@@ -4896,7 +4904,7 @@ exports[`Storyshots Orders / OrderCustomer with different addresses 1`] = `
         Test Client
       </p>
       <p
-        class="MuiTypography-root-id MuiTypography-body1-id"
+        class="MuiTypography-root-id MuiTypography-body1-id OrderCustomer-link-id"
       >
         test.client@example.com
       </p>
@@ -5094,7 +5102,7 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
             </div>
           </div>
           <div
-            class="MuiCardActions-root-id Component-cardActions-id "
+            class="MuiCardActions-root-id Component-cardActions-id"
           >
             <button
               class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiCardActions-action-id"
@@ -5496,7 +5504,7 @@ exports[`Storyshots Orders / OrderSummary order cancelled 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id "
+        class="Component-root-id"
       >
         <span
           class="Component-errorDot-id"
@@ -5564,7 +5572,7 @@ exports[`Storyshots Orders / OrderSummary order cancelled 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -5609,7 +5617,7 @@ exports[`Storyshots Orders / OrderSummary order cancelled 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -5654,7 +5662,7 @@ exports[`Storyshots Orders / OrderSummary order cancelled 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -5699,7 +5707,7 @@ exports[`Storyshots Orders / OrderSummary order cancelled 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -5920,7 +5928,7 @@ exports[`Storyshots Orders / OrderSummary order draft 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id "
+        class="Component-root-id"
       >
         <span
           class="Component-errorDot-id"
@@ -6272,7 +6280,7 @@ exports[`Storyshots Orders / OrderSummary order draft 1`] = `
                 Subtotal
               </p>
               <p
-                class="MuiTypography-root-id MuiTypography-body1-id"
+                class="MuiTypography-root-id MuiTypography-body1-id OrderProducts-link-id"
               >
                 Shipping
               </p>
@@ -6354,7 +6362,7 @@ exports[`Storyshots Orders / OrderSummary order fulfilled 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id "
+        class="Component-root-id"
       >
         <span
           class="Component-successDot-id"
@@ -6422,7 +6430,7 @@ exports[`Storyshots Orders / OrderSummary order fulfilled 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -6467,7 +6475,7 @@ exports[`Storyshots Orders / OrderSummary order fulfilled 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -6512,7 +6520,7 @@ exports[`Storyshots Orders / OrderSummary order fulfilled 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -6557,7 +6565,7 @@ exports[`Storyshots Orders / OrderSummary order fulfilled 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -6777,7 +6785,7 @@ exports[`Storyshots Orders / OrderSummary order partially fulfilled 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id "
+        class="Component-root-id"
       >
         <span
           class="Component-neutralDot-id"
@@ -6845,7 +6853,7 @@ exports[`Storyshots Orders / OrderSummary order partially fulfilled 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -6890,7 +6898,7 @@ exports[`Storyshots Orders / OrderSummary order partially fulfilled 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -6935,7 +6943,7 @@ exports[`Storyshots Orders / OrderSummary order partially fulfilled 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -6980,7 +6988,7 @@ exports[`Storyshots Orders / OrderSummary order partially fulfilled 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -7214,7 +7222,7 @@ exports[`Storyshots Orders / OrderSummary order unfulfilled 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id "
+        class="Component-root-id"
       >
         <span
           class="Component-errorDot-id"
@@ -7282,7 +7290,7 @@ exports[`Storyshots Orders / OrderSummary order unfulfilled 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -7327,7 +7335,7 @@ exports[`Storyshots Orders / OrderSummary order unfulfilled 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -7372,7 +7380,7 @@ exports[`Storyshots Orders / OrderSummary order unfulfilled 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -7417,7 +7425,7 @@ exports[`Storyshots Orders / OrderSummary order unfulfilled 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -7651,7 +7659,7 @@ exports[`Storyshots Orders / OrderSummary payment confirmed 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id "
+        class="Component-root-id"
       >
         <span
           class="Component-neutralDot-id"
@@ -7719,7 +7727,7 @@ exports[`Storyshots Orders / OrderSummary payment confirmed 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -7764,7 +7772,7 @@ exports[`Storyshots Orders / OrderSummary payment confirmed 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -7809,7 +7817,7 @@ exports[`Storyshots Orders / OrderSummary payment confirmed 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -7854,7 +7862,7 @@ exports[`Storyshots Orders / OrderSummary payment confirmed 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -8088,7 +8096,7 @@ exports[`Storyshots Orders / OrderSummary payment error 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id "
+        class="Component-root-id"
       >
         <span
           class="Component-neutralDot-id"
@@ -8156,7 +8164,7 @@ exports[`Storyshots Orders / OrderSummary payment error 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -8201,7 +8209,7 @@ exports[`Storyshots Orders / OrderSummary payment error 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -8246,7 +8254,7 @@ exports[`Storyshots Orders / OrderSummary payment error 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -8291,7 +8299,7 @@ exports[`Storyshots Orders / OrderSummary payment error 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -8497,7 +8505,7 @@ exports[`Storyshots Orders / OrderSummary payment input 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id "
+        class="Component-root-id"
       >
         <span
           class="Component-neutralDot-id"
@@ -8565,7 +8573,7 @@ exports[`Storyshots Orders / OrderSummary payment input 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -8610,7 +8618,7 @@ exports[`Storyshots Orders / OrderSummary payment input 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -8655,7 +8663,7 @@ exports[`Storyshots Orders / OrderSummary payment input 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -8700,7 +8708,7 @@ exports[`Storyshots Orders / OrderSummary payment input 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -8906,7 +8914,7 @@ exports[`Storyshots Orders / OrderSummary payment preauth 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id "
+        class="Component-root-id"
       >
         <span
           class="Component-neutralDot-id"
@@ -8974,7 +8982,7 @@ exports[`Storyshots Orders / OrderSummary payment preauth 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -9019,7 +9027,7 @@ exports[`Storyshots Orders / OrderSummary payment preauth 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -9064,7 +9072,7 @@ exports[`Storyshots Orders / OrderSummary payment preauth 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -9109,7 +9117,7 @@ exports[`Storyshots Orders / OrderSummary payment preauth 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -9343,7 +9351,7 @@ exports[`Storyshots Orders / OrderSummary payment refunded 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id "
+        class="Component-root-id"
       >
         <span
           class="Component-neutralDot-id"
@@ -9411,7 +9419,7 @@ exports[`Storyshots Orders / OrderSummary payment refunded 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -9456,7 +9464,7 @@ exports[`Storyshots Orders / OrderSummary payment refunded 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -9501,7 +9509,7 @@ exports[`Storyshots Orders / OrderSummary payment refunded 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -9546,7 +9554,7 @@ exports[`Storyshots Orders / OrderSummary payment refunded 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -9752,7 +9760,7 @@ exports[`Storyshots Orders / OrderSummary payment rejected 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id "
+        class="Component-root-id"
       >
         <span
           class="Component-neutralDot-id"
@@ -9820,7 +9828,7 @@ exports[`Storyshots Orders / OrderSummary payment rejected 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -9865,7 +9873,7 @@ exports[`Storyshots Orders / OrderSummary payment rejected 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -9910,7 +9918,7 @@ exports[`Storyshots Orders / OrderSummary payment rejected 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -9955,7 +9963,7 @@ exports[`Storyshots Orders / OrderSummary payment rejected 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -10161,7 +10169,7 @@ exports[`Storyshots Orders / OrderSummary payment waiting 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id "
+        class="Component-root-id"
       >
         <span
           class="Component-neutralDot-id"
@@ -10229,7 +10237,7 @@ exports[`Storyshots Orders / OrderSummary payment waiting 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -10274,7 +10282,7 @@ exports[`Storyshots Orders / OrderSummary payment waiting 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -10319,7 +10327,7 @@ exports[`Storyshots Orders / OrderSummary payment waiting 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -10364,7 +10372,7 @@ exports[`Storyshots Orders / OrderSummary payment waiting 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id Component-avatar-id"
@@ -10625,7 +10633,7 @@ exports[`Storyshots Orders / OrderSummary when loading data 1`] = `
           class="MuiTableRow-root-id"
         >
           <td
-            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+            class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
           >
             <div
               class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
@@ -11282,7 +11290,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -11419,7 +11427,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                   class="MuiTableRow-root-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-container-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-container-id"
                   >
                     <div>
                       <span
@@ -11463,7 +11471,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                   class="MuiTableRow-root-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-container-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-container-id"
                   >
                     <div>
                       <span
@@ -11507,7 +11515,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                   class="MuiTableRow-root-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-container-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-container-id"
                   >
                     <div>
                       <span
@@ -11551,7 +11559,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                   class="MuiTableRow-root-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-container-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-container-id"
                   >
                     <div>
                       <span
@@ -11652,7 +11660,7 @@ exports[`Storyshots Views / Attributes / Attribute details when loading 1`] = `
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -11889,7 +11897,7 @@ exports[`Storyshots Views / Attributes / Attribute details when no values 1`] = 
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -12092,7 +12100,7 @@ exports[`Storyshots Views / Attributes / Attribute details when no values 1`] = 
 exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -12177,7 +12185,7 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -12421,7 +12429,7 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
 exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -12504,7 +12512,7 @@ exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -12588,7 +12596,7 @@ exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
 exports[`Storyshots Views / Attributes / Attribute list no data 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -12673,7 +12681,7 @@ exports[`Storyshots Views / Attributes / Attribute list no data 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -13000,7 +13008,7 @@ exports[`Storyshots Views / Authentication / Log in error 1`] = `
 exports[`Storyshots Views / Categories / Category details default 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -13285,7 +13293,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
                       class="TablePagination-spacer-id"
                     />
                     <div
-                      class="TablePaginationActions-root-id "
+                      class="TablePaginationActions-root-id"
                     >
                       <button
                         class="MuiButtonBase-root-id MuiIconButton-root-id"
@@ -13345,7 +13353,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -13375,7 +13383,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -13405,7 +13413,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -13435,7 +13443,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -13465,7 +13473,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -13495,7 +13503,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -13525,7 +13533,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -13555,7 +13563,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -13585,7 +13593,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -13615,7 +13623,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -13671,7 +13679,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
 exports[`Storyshots Views / Categories / Category details when in root 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -13713,7 +13721,9 @@ exports[`Storyshots Views / Categories / Category details when in root 1`] = `
       </div>
     </div>
     <div>
-      <div>
+      <div
+        class=""
+      >
         <div
           class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
         >
@@ -13800,7 +13810,7 @@ exports[`Storyshots Views / Categories / Category details when in root 1`] = `
 exports[`Storyshots Views / Categories / Category details when loading 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -14057,7 +14067,7 @@ exports[`Storyshots Views / Categories / Category details when loading 1`] = `
                       class="TablePagination-spacer-id"
                     />
                     <div
-                      class="TablePaginationActions-root-id "
+                      class="TablePaginationActions-root-id"
                     >
                       <button
                         class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -14113,7 +14123,7 @@ exports[`Storyshots Views / Categories / Category details when loading 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
@@ -14182,7 +14192,7 @@ exports[`Storyshots Views / Categories / Category edit default 1`] = `
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -14325,7 +14335,7 @@ exports[`Storyshots Views / Categories / Category edit when loading 1`] = `
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -14470,7 +14480,7 @@ exports[`Storyshots Views / Categories / Category edit with errors 1`] = `
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -14618,7 +14628,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -14816,7 +14826,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                         class="TablePagination-spacer-id"
                       />
                       <div
-                        class="TablePaginationActions-root-id "
+                        class="TablePaginationActions-root-id"
                       >
                         <button
                           class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -14885,7 +14895,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                     class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
                     <div
-                      class="Component-root-id "
+                      class="Component-root-id"
                     >
                       <span
                         class="Component-successDot-id"
@@ -14911,7 +14921,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                     class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
                     <div
-                      class="Component-root-id "
+                      class="Component-root-id"
                     >
                       <span
                         class="Component-errorDot-id"
@@ -14937,7 +14947,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                     class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
                     <div
-                      class="Component-root-id "
+                      class="Component-root-id"
                     >
                       <span
                         class="Component-successDot-id"
@@ -14963,7 +14973,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                     class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
                     <div
-                      class="Component-root-id "
+                      class="Component-root-id"
                     >
                       <span
                         class="Component-successDot-id"
@@ -14989,7 +14999,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                     class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
                     <div
-                      class="Component-root-id "
+                      class="Component-root-id"
                     >
                       <span
                         class="Component-successDot-id"
@@ -15202,7 +15212,7 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -15398,7 +15408,7 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
                         class="TablePagination-spacer-id"
                       />
                       <div
-                        class="TablePaginationActions-root-id "
+                        class="TablePaginationActions-root-id"
                       >
                         <button
                           class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -15454,7 +15464,7 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
                   class="MuiTableRow-root-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
                   >
                     <span
                       class="Skeleton-skeleton-id"
@@ -15683,7 +15693,7 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
 exports[`Storyshots Views / Collections / Collection list default 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -15774,7 +15784,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -15840,7 +15850,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-successDot-id"
@@ -15866,7 +15876,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-errorDot-id"
@@ -15892,7 +15902,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-errorDot-id"
@@ -15918,7 +15928,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-successDot-id"
@@ -15944,7 +15954,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-successDot-id"
@@ -15970,7 +15980,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-errorDot-id"
@@ -15996,7 +16006,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-successDot-id"
@@ -16022,7 +16032,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-errorDot-id"
@@ -16048,7 +16058,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-successDot-id"
@@ -16074,7 +16084,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-successDot-id"
@@ -16098,7 +16108,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
 exports[`Storyshots Views / Collections / Collection list when loading 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -16187,7 +16197,7 @@ exports[`Storyshots Views / Collections / Collection list when loading 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -16280,7 +16290,7 @@ exports[`Storyshots Views / Collections / Collection list when loading 1`] = `
 exports[`Storyshots Views / Customers / Customer details default 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -16446,7 +16456,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                       class="TablePagination-spacer-id"
                     />
                     <div
-                      class="TablePaginationActions-root-id "
+                      class="TablePaginationActions-root-id"
                     >
                       <button
                         class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -16523,7 +16533,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <div
-                    class="Component-root-id "
+                    class="Component-root-id"
                   >
                     <span
                       class="Component-successDot-id"
@@ -16562,7 +16572,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <div
-                    class="Component-root-id "
+                    class="Component-root-id"
                   >
                     <span
                       class="Component-errorDot-id"
@@ -16601,7 +16611,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <div
-                    class="Component-root-id "
+                    class="Component-root-id"
                   >
                     <span
                       class="Component-successDot-id"
@@ -16640,7 +16650,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <div
-                    class="Component-root-id "
+                    class="Component-root-id"
                   >
                     <span
                       class="Component-successDot-id"
@@ -16679,7 +16689,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <div
-                    class="Component-root-id "
+                    class="Component-root-id"
                   >
                     <span
                       class="Component-successDot-id"
@@ -16718,7 +16728,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <div
-                    class="Component-root-id "
+                    class="Component-root-id"
                   >
                     <span
                       class="Component-errorDot-id"
@@ -16843,7 +16853,7 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
 exports[`Storyshots Views / Customers / Customer details when loading 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -16985,7 +16995,7 @@ exports[`Storyshots Views / Customers / Customer details when loading 1`] = `
                       class="TablePagination-spacer-id"
                     />
                     <div
-                      class="TablePaginationActions-root-id "
+                      class="TablePaginationActions-root-id"
                     >
                       <button
                         class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -17041,7 +17051,7 @@ exports[`Storyshots Views / Customers / Customer details when loading 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
                 >
                   <span
                     class="Skeleton-skeleton-id"
@@ -17152,7 +17162,7 @@ exports[`Storyshots Views / Customers / Customer details when loading 1`] = `
 exports[`Storyshots Views / Customers / Customer list default 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -17243,7 +17253,7 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -17675,7 +17685,7 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
 exports[`Storyshots Views / Customers / Customer list when loading 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -17764,7 +17774,7 @@ exports[`Storyshots Views / Customers / Customer list when loading 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -17860,7 +17870,7 @@ exports[`Storyshots Views / Customers / Edit customer default 1`] = `
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -17974,7 +17984,7 @@ exports[`Storyshots Views / Customers / Edit customer when adding new customer 1
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -18088,7 +18098,7 @@ exports[`Storyshots Views / Customers / Edit customer when loading 1`] = `
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -18204,7 +18214,7 @@ exports[`Storyshots Views / Customers / Edit customer with errors 1`] = `
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -18322,7 +18332,7 @@ exports[`Storyshots Views / Customers / Edit customer with errors 1`] = `
 exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -18412,7 +18422,7 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
             class="Component-children-id"
           >
             <div
-              class="Component-root-id "
+              class="Component-root-id"
             >
               <span
                 class="Component-errorDot-id"
@@ -18912,7 +18922,7 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                   </div>
                 </div>
                 <div
-                  class="MuiCardActions-root-id Component-cardActions-id "
+                  class="MuiCardActions-root-id Component-cardActions-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiCardActions-action-id"
@@ -19447,7 +19457,7 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
 exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -19522,7 +19532,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
             class="Component-children-id"
           >
             <div
-              class="Component-root-id "
+              class="Component-root-id"
             >
               <span
                 class="Component-neutralDot-id"
@@ -19590,7 +19600,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -19635,7 +19645,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -19680,7 +19690,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -19725,7 +19735,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -19974,7 +19984,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
             class="Component-children-id"
           >
             <div
-              class="Component-root-id "
+              class="Component-root-id"
             >
               <span
                 class="Component-successDot-id"
@@ -20018,7 +20028,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -20039,7 +20049,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -20111,7 +20121,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
             class="Component-children-id"
           >
             <div
-              class="Component-root-id "
+              class="Component-root-id"
             >
               <span
                 class="Component-neutralDot-id"
@@ -20155,7 +20165,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -20261,7 +20271,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                   </div>
                 </div>
                 <div
-                  class="MuiCardActions-root-id Component-cardActions-id "
+                  class="MuiCardActions-root-id Component-cardActions-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiCardActions-action-id"
@@ -20751,7 +20761,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
 exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -20826,7 +20836,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
             class="Component-children-id"
           >
             <div
-              class="Component-root-id "
+              class="Component-root-id"
             >
               <span
                 class="Component-neutralDot-id"
@@ -20894,7 +20904,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -20939,7 +20949,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -20984,7 +20994,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -21029,7 +21039,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -21278,7 +21288,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
             class="Component-children-id"
           >
             <div
-              class="Component-root-id "
+              class="Component-root-id"
             >
               <span
                 class="Component-successDot-id"
@@ -21322,7 +21332,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -21343,7 +21353,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -21415,7 +21425,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
             class="Component-children-id"
           >
             <div
-              class="Component-root-id "
+              class="Component-root-id"
             >
               <span
                 class="Component-neutralDot-id"
@@ -21459,7 +21469,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id Component-avatar-id"
@@ -21565,7 +21575,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                   </div>
                 </div>
                 <div
-                  class="MuiCardActions-root-id Component-cardActions-id "
+                  class="MuiCardActions-root-id Component-cardActions-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiCardActions-action-id"
@@ -22055,7 +22065,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
 exports[`Storyshots Views / Orders / Order details when loading data 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -22182,7 +22192,7 @@ exports[`Storyshots Views / Orders / Order details when loading data 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
@@ -22419,7 +22429,7 @@ exports[`Storyshots Views / Orders / Order details when loading data 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
                     class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
@@ -22611,7 +22621,7 @@ exports[`Storyshots Views / Orders / Order details when loading data 1`] = `
 exports[`Storyshots Views / Orders / Order list default 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -22720,7 +22730,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -22786,7 +22796,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-successDot-id"
@@ -22816,7 +22826,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-successDot-id"
@@ -22842,7 +22852,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-errorDot-id"
@@ -22872,7 +22882,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-successDot-id"
@@ -22898,7 +22908,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-successDot-id"
@@ -22928,7 +22938,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-errorDot-id"
@@ -22954,7 +22964,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-successDot-id"
@@ -22984,7 +22994,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-errorDot-id"
@@ -23010,7 +23020,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-successDot-id"
@@ -23040,7 +23050,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-neutralDot-id"
@@ -23066,7 +23076,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-errorDot-id"
@@ -23096,7 +23106,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-errorDot-id"
@@ -23120,7 +23130,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
 exports[`Storyshots Views / Orders / Order list loading 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -23227,7 +23237,7 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -23283,7 +23293,7 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
             class="MuiTableRow-root-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id OrderList-link-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -23347,7 +23357,7 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
 exports[`Storyshots Views / Orders / Order list when no data 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -23456,7 +23466,7 @@ exports[`Storyshots Views / Orders / Order list when no data 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -23531,7 +23541,7 @@ exports[`Storyshots Views / Pages / Page details when loading 1`] = `
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -23820,7 +23830,7 @@ exports[`Storyshots Views / Pages / Page details with initial data 1`] = `
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -24105,7 +24115,7 @@ exports[`Storyshots Views / Pages / Page details with initial data 1`] = `
 exports[`Storyshots Views / Pages / Page list default 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -24195,7 +24205,7 @@ exports[`Storyshots Views / Pages / Page list default 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -24266,7 +24276,7 @@ exports[`Storyshots Views / Pages / Page list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-successDot-id"
@@ -24292,7 +24302,7 @@ exports[`Storyshots Views / Pages / Page list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-errorDot-id"
@@ -24311,7 +24321,7 @@ exports[`Storyshots Views / Pages / Page list default 1`] = `
 exports[`Storyshots Views / Pages / Page list loading 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -24399,7 +24409,7 @@ exports[`Storyshots Views / Pages / Page list loading 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -24455,7 +24465,7 @@ exports[`Storyshots Views / Pages / Page list loading 1`] = `
             class="MuiTableRow-root-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -24492,7 +24502,7 @@ exports[`Storyshots Views / Pages / Page list loading 1`] = `
 exports[`Storyshots Views / Pages / Page list no data 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -24582,7 +24592,7 @@ exports[`Storyshots Views / Pages / Page list no data 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -24657,7 +24667,7 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -25142,7 +25152,7 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -25478,7 +25488,7 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
 exports[`Storyshots Views / Product types / Product types list default 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -25569,7 +25579,7 @@ exports[`Storyshots Views / Product types / Product types list default 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -25823,7 +25833,7 @@ exports[`Storyshots Views / Product types / Product types list default 1`] = `
 exports[`Storyshots Views / Product types / Product types list loading 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -25912,7 +25922,7 @@ exports[`Storyshots Views / Product types / Product types list loading 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -25968,7 +25978,7 @@ exports[`Storyshots Views / Product types / Product types list loading 1`] = `
             class="MuiTableRow-root-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -26006,7 +26016,7 @@ exports[`Storyshots Views / Products / Create product When loading 1`] = `
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -26635,7 +26645,7 @@ exports[`Storyshots Views / Products / Create product default 1`] = `
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -27263,7 +27273,7 @@ exports[`Storyshots Views / Products / Create product default 1`] = `
 exports[`Storyshots Views / Products / Create product variant default 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -27339,7 +27349,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                   >
                     <div
                       class="MuiAvatar-root-id Component-avatar-id"
@@ -27360,7 +27370,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                   >
                     <div
                       class="MuiAvatar-root-id Component-avatar-id"
@@ -27679,7 +27689,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
 exports[`Storyshots Views / Products / Create product variant when loading data 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -27752,10 +27762,10 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
                 class="MuiTableBody-root-id"
               >
                 <tr
-                  class="MuiTableRow-root-id"
+                  class="MuiTableRow-root-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                   >
                     <div
                       class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
@@ -28049,7 +28059,7 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
 exports[`Storyshots Views / Products / Create product variant with errors 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -28125,7 +28135,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                   >
                     <div
                       class="MuiAvatar-root-id Component-avatar-id"
@@ -28146,7 +28156,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                   >
                     <div
                       class="MuiAvatar-root-id Component-avatar-id"
@@ -28476,7 +28486,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -29207,7 +29217,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                       class="MuiTableCell-root-id MuiTableCell-body-id"
                     >
                       <div
-                        class="Component-root-id "
+                        class="Component-root-id"
                       >
                         <span
                           class="Component-successDot-id"
@@ -29233,7 +29243,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                       class="MuiTableCell-root-id MuiTableCell-body-id"
                     >
                       <div
-                        class="Component-root-id "
+                        class="Component-root-id"
                       >
                         <span
                           class="Component-successDot-id"
@@ -29774,7 +29784,7 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -30557,7 +30567,7 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -30970,7 +30980,7 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
                       class="MuiTableCell-root-id MuiTableCell-body-id"
                     >
                       <div
-                        class="Component-root-id "
+                        class="Component-root-id"
                       >
                         <span
                           class="Component-successDot-id"
@@ -30996,7 +31006,7 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
                       class="MuiTableCell-root-id MuiTableCell-body-id"
                     >
                       <div
-                        class="Component-root-id "
+                        class="Component-root-id"
                       >
                         <span
                           class="Component-successDot-id"
@@ -31537,7 +31547,7 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -32774,7 +32784,7 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -32845,7 +32855,7 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
                 class="Component-root-id"
               >
                 <div
-                  class="Component-imageContainer-id "
+                  class="Component-imageContainer-id"
                 >
                   <img
                     class="Component-image-id"
@@ -32853,7 +32863,7 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
                   />
                 </div>
                 <div
-                  class="Component-imageContainer-id "
+                  class="Component-imageContainer-id"
                 >
                   <img
                     class="Component-image-id"
@@ -32861,7 +32871,7 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
                   />
                 </div>
                 <div
-                  class="Component-imageContainer-id "
+                  class="Component-imageContainer-id"
                 >
                   <img
                     class="Component-image-id"
@@ -32869,7 +32879,7 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
                   />
                 </div>
                 <div
-                  class="Component-imageContainer-id "
+                  class="Component-imageContainer-id"
                 >
                   <img
                     class="Component-image-id"
@@ -32877,7 +32887,7 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
                   />
                 </div>
                 <div
-                  class="Component-imageContainer-id "
+                  class="Component-imageContainer-id"
                 >
                   <img
                     class="Component-image-id"
@@ -32885,7 +32895,7 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
                   />
                 </div>
                 <div
-                  class="Component-imageContainer-id "
+                  class="Component-imageContainer-id"
                 >
                   <img
                     class="Component-image-id"
@@ -32893,7 +32903,7 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
                   />
                 </div>
                 <div
-                  class="Component-imageContainer-id "
+                  class="Component-imageContainer-id"
                 >
                   <img
                     class="Component-image-id"
@@ -32901,7 +32911,7 @@ exports[`Storyshots Views / Products / Product image details when loaded data 1`
                   />
                 </div>
                 <div
-                  class="Component-imageContainer-id "
+                  class="Component-imageContainer-id"
                 >
                   <img
                     class="Component-image-id"
@@ -33066,7 +33076,7 @@ exports[`Storyshots Views / Products / Product image details when loading data 1
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -33288,7 +33298,7 @@ exports[`Storyshots Views / Products / Product image details when loading data 1
 exports[`Storyshots Views / Products / Product list default 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -33389,7 +33399,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -33447,7 +33457,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
             >
               <div
                 class="MuiAvatar-root-id Component-avatar-id"
@@ -33472,7 +33482,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-successDot-id"
@@ -33490,7 +33500,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
             >
               <div
                 class="MuiAvatar-root-id Component-avatar-id"
@@ -33515,7 +33525,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-successDot-id"
@@ -33533,7 +33543,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
             >
               <div
                 class="MuiAvatar-root-id Component-avatar-id"
@@ -33558,7 +33568,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-errorDot-id"
@@ -33576,7 +33586,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
             >
               <div
                 class="MuiAvatar-root-id Component-avatar-id"
@@ -33601,7 +33611,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-errorDot-id"
@@ -33619,7 +33629,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
             >
               <div
                 class="MuiAvatar-root-id Component-avatar-id"
@@ -33644,7 +33654,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-successDot-id"
@@ -33662,7 +33672,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
             >
               <div
                 class="MuiAvatar-root-id Component-avatar-id"
@@ -33687,7 +33697,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-errorDot-id"
@@ -33705,7 +33715,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
             >
               <div
                 class="MuiAvatar-root-id Component-avatar-id"
@@ -33730,7 +33740,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-errorDot-id"
@@ -33748,7 +33758,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
             >
               <div
                 class="MuiAvatar-root-id Component-avatar-id"
@@ -33773,7 +33783,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-errorDot-id"
@@ -33791,7 +33801,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
             >
               <div
                 class="MuiAvatar-root-id Component-avatar-id"
@@ -33816,7 +33826,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-successDot-id"
@@ -33834,7 +33844,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
             >
               <div
                 class="MuiAvatar-root-id Component-avatar-id"
@@ -33859,7 +33869,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id "
+                class="Component-root-id"
               >
                 <span
                   class="Component-errorDot-id"
@@ -33883,7 +33893,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
 exports[`Storyshots Views / Products / Product list loading 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -33984,7 +33994,7 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -34037,10 +34047,10 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
           class="MuiTableBody-root-id"
         >
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id Component-link-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
             >
               <div
                 class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
@@ -34106,7 +34116,7 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
 exports[`Storyshots Views / Products / Product list no data 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -34203,7 +34213,7 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -34277,7 +34287,7 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
 exports[`Storyshots Views / Products / Product variant details when loaded data 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -34382,7 +34392,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                   >
                     <div
                       class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
@@ -34411,7 +34421,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                   >
                     <div
                       class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
@@ -34440,7 +34450,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                   class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                   >
                     <div
                       class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
@@ -34909,7 +34919,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
 exports[`Storyshots Views / Products / Product variant details when loading data 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -34987,10 +34997,10 @@ exports[`Storyshots Views / Products / Product variant details when loading data
                 class="MuiTableBody-root-id"
               >
                 <tr
-                  class="MuiTableRow-root-id"
+                  class="MuiTableRow-root-id Component-link-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id "
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                   >
                     <div
                       class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
@@ -35330,7 +35340,7 @@ exports[`Storyshots Views / Vouchers / Voucher details default 1`] = `
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -35907,7 +35917,7 @@ exports[`Storyshots Views / Vouchers / Voucher details when loading 1`] = `
 <div>
   <form>
     <div
-      class="Component-md-id "
+      class="Component-md-id"
     >
       <div
         class="Component-root-id"
@@ -36435,7 +36445,7 @@ exports[`Storyshots Views / Vouchers / Voucher details when loading 1`] = `
 exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -36538,7 +36548,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -37418,7 +37428,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
 exports[`Storyshots Views / Vouchers / Voucher list no data 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -37519,7 +37529,7 @@ exports[`Storyshots Views / Vouchers / Voucher list no data 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
@@ -37591,7 +37601,7 @@ exports[`Storyshots Views / Vouchers / Voucher list no data 1`] = `
 exports[`Storyshots Views / Vouchers / Voucher list when loading 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
@@ -37692,7 +37702,7 @@ exports[`Storyshots Views / Vouchers / Voucher list when loading 1`] = `
                   class="TablePagination-spacer-id"
                 />
                 <div
-                  class="TablePaginationActions-root-id "
+                  class="TablePaginationActions-root-id"
                 >
                   <button
                     class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"

@@ -1,6 +1,7 @@
 import yellow from "@material-ui/core/colors/yellow";
 import { withStyles } from "@material-ui/core/styles";
 import Typography, { TypographyProps } from "@material-ui/core/Typography";
+import * as classNames from "classnames";
 import * as React from "react";
 
 interface StatusLabelProps {
@@ -42,7 +43,7 @@ const decorate = withStyles(theme => {
 });
 const StatusLabel = decorate<StatusLabelProps>(
   ({ classes, className, label, status, typographyProps }) => (
-    <div className={[classes.root, className].join(" ")}>
+    <div className={classNames(classes.root, className)}>
       <span
         className={
           status === "success"

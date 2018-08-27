@@ -6,6 +6,7 @@ import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
+import * as classNames from "classnames";
 import * as React from "react";
 
 import { ListProps } from "../../..";
@@ -81,7 +82,9 @@ const CollectionList = decorate<CollectionListProps>(
                       ? onRowClick(collection.id)
                       : undefined
                   }
-                  className={collection && onRowClick && classes.link}
+                  className={classNames({
+                    [classes.link]: collection
+                  })}
                 >
                   {collection ? collection.name : <Skeleton />}
                 </TableCell>
