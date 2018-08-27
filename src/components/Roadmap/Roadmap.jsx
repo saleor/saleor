@@ -22,7 +22,7 @@ const Roadmap = (props) => (
     </section>
     <section id="roadmap-section" className="roadmap-content">
       <div className="grid roadmap-item">
-        <div className="col-xs-4 col-sm-3 line">
+        <div className="col-xs-4 col-sm-3 col-md-3 line">
           <div className="icon parrot"></div>
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
@@ -48,7 +48,7 @@ const Roadmap = (props) => (
         </div>
       </div>
       <div className="grid roadmap-item">
-        <div className="col-xs-4 col-sm-3 line">
+        <div className="col-xs-4 col-sm-3 col-md-3 line">
         <div className="icon lantern"></div>
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
@@ -58,7 +58,7 @@ const Roadmap = (props) => (
         </div>
       </div>
       <div className="grid roadmap-item">
-        <div className="col-xs-4 col-sm-3 line">
+        <div className="col-xs-4 col-sm-3 col-md-3 line">
           <div className="icon"></div>
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
@@ -69,7 +69,7 @@ const Roadmap = (props) => (
         </div>
       </div>
       <div className="grid roadmap-item">
-        <div className="col-xs-4 col-sm-3 line">
+        <div className="col-xs-4 col-sm-3 col-md-3 line">
           <div className="icon"></div>
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
@@ -80,7 +80,7 @@ const Roadmap = (props) => (
         </div>
       </div>
       <div className="grid roadmap-item">
-        <div className="col-xs-4 col-sm-3 line">
+        <div className="col-xs-4 col-sm-3 col-md-3 line">
           <div className="icon"></div>
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
@@ -93,7 +93,7 @@ const Roadmap = (props) => (
         </div>
       </div>
       <div className="grid roadmap-item">
-        <div className="col-xs-4 col-sm-3 line">
+        <div className="col-xs-4 col-sm-3 col-md-3 line">
           <div className="icon"></div>
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
@@ -106,7 +106,7 @@ const Roadmap = (props) => (
         </div>
       </div>
       <div className="grid roadmap-item">
-        <div className="col-xs-4 col-sm-3 line">
+        <div className="col-xs-4 col-sm-3 col-md-3 line">
           <div className="icon"></div>
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
@@ -118,7 +118,7 @@ const Roadmap = (props) => (
         </div>
       </div>
       <div className="grid roadmap-item">
-        <div className="col-xs-4 col-sm-3 line">
+        <div className="col-xs-4 col-sm-3 col-md-3 line">
           <div className="icon"></div>
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
@@ -132,7 +132,7 @@ const Roadmap = (props) => (
         </div>
       </div>
       <div className="grid roadmap-item">
-        <div className="col-xs-4 col-sm-3 line">
+        <div className="col-xs-4 col-sm-3 col-md-3 line">
           <div className="icon last"></div>
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
