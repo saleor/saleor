@@ -26,7 +26,7 @@
         }
       }
       & .plane {
-        width: 60%;
+        width: 50%;
         padding: calc(var(--spacer) * 12) 0 calc(var(--spacer) * 12) calc(var(--spacer) * 5);
         @media (max-width: 768px) {
           width: 100%;
@@ -200,7 +200,7 @@
           }
           & h2 {
             position: relative;
-            margin-bottom: calc(var(--spacer) * 2);
+            margin-bottom: var(--spacer);
             & span {
               position: absolute;
               top: calc(var(--spacer) * -1); 
@@ -225,7 +225,7 @@
           & p {
             font-size: var(--font-size-base);
             font-weight: var(--font-weight-light);
-            margin-bottom: calc(var(--spacer) * 2);
+            margin-bottom: var(--spacer);
             @media (max-width: 1024px) {
               font-size: var(--font-size-base);
             }
@@ -321,6 +321,7 @@
             padding-top: 0;
           }
           & h2 {
+            margin-bottom: 0;
             font-size: var(--h2-font-size);
             @media (max-width: 1024px) {
               font-size: calc(var(--font-size-base) * 2.5);
@@ -487,7 +488,7 @@
       padding-top: calc(var(--spacer) * 3);
       & .text {
         & h2, & p {
-          margin-bottom: calc(var(--spacer) * 2);
+          margin-bottom: var(--spacer);
         }
         & p {
           font-weight: var(--font-weight-medium);

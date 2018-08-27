@@ -83,7 +83,7 @@
               justify-self: center;
               position: relative;
               & .title {
-                width: 85%;
+                width: 73%;
                 margin-bottom: calc(var(--spacer) * 1.5);
                 word-break: break-word;
                 hyphens: auto;
@@ -173,6 +173,7 @@
             margin-bottom: var(--spacer);
           }
           & .description {
+            font-size: calc(var(--font-size-base) * 2);
             font-weight: var(--font-weight-light);
             margin-bottom: calc(var(--spacer) * 3);
             line-height: var(--line-height-base);
