@@ -15,7 +15,7 @@ const PrivacyPolicy = () => (
 				<img src="../../images/decoration08.png" />
 			</div>
 		</section>
-		<section id="general-information" className="general-information">
+		<section id="general-information" className="general-information section-container">
 			<h3 className="title">General Information</h3>
 			<p className="description text-light">The Saleor website is operated by Mirumee Software sp. z.o.o. sp. k. operating at the following address:</p>
 			<div className="border-left bold">
@@ -25,11 +25,11 @@ const PrivacyPolicy = () => (
 				<h5>Poland</h5>
 			</div>
 		</section>
-		<section className="analytics">
+		<section className="analytics section-container">
 			<h3 className="title">Analytics</h3>
 			<p className="description text-light">This website includes Google Analytics software that collects anonymized information about visitors to help us provide better services. <a href="">See how Google uses your data.</a></p>
 		</section>
-		<section className="your-rights">
+		<section className="your-rights section-container">
 			<h3 className="title">Your Rights</h3>
 			<p className="description text-light">GDPR guarantees you a number of rights including but not limited to:</p>
 			<ul className="list text-light">

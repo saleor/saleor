@@ -41,7 +41,7 @@ const Feature = () => (
           <h5 className="position">Lead developer. Patch Garden</h5>
         </div>
       </section>
-      <section className="features">
+      <section className="features section-container">
         <div className="grid icons">
           <div className="icon-card">
             <img src={modernStackIcon} />
@@ -82,12 +82,12 @@ const Feature = () => (
         </div>
       </section>
       <section className="product-management management-section grid">
-        <div className="side-header col-md-5 col-sm-12 col-xs-12">
+        <div className="side-header col-lg-4 col-md-6 col-sm-12 col-xs-12">
           <h2>Product Management</h2>
           <p className="sub-description">Product offer attractiveness is the resultant of many factors - price,
           exposure and variety. Be in charge of that. </p>
         </div>
-        <div className="card-grid col-md-7 col-sm-12 col-xs-12">
+        <div className="card-grid col-lg-8 col-md-6 col-sm-12 col-xs-12">
           <div className="icon-card">
               <img src={productVariant} />
               <h5 className="title">Product & Variants</h5>
@@ -125,12 +125,12 @@ const Feature = () => (
         </div>
       </section>
       <section className="product-management management-section grid">
-        <div className="side-header col-md-5 col-sm-12 col-xs-12">
+        <div className="side-header col-lg-4 col-md-6 col-sm-12 col-xs-12">
           <h2>Order Management</h2>
           <p className="sub-description">Saleor gives you full control over placed orders
           - from the checkout to customer management and finishing  with product delivery.</p>
         </div>
-        <div className="card-grid col-md-7 col-sm-12 col-xs-12">
+        <div className="card-grid col-lg-8 col-md-6 col-sm-12 col-xs-12">
           <div className="icon-card">
               <img src={multiCareerShipping} />
               <h5 className="title">Multi-carrier shipping</h5>
@@ -167,12 +167,12 @@ const Feature = () => (
         </div>
       </section>
       <section className="management-section grid">
-        <div className="side-header col-md-5 col-sm-12 col-xs-12">
+        <div className="side-header col-lg-4 col-md-6 col-sm-12 col-xs-12">
           <h2>Cart & Checkout</h2>
           <p className="sub-description">Saleor is packed with a number of ready-to-use payment methods,
           sales optimization and discount options.</p>
         </div>
-        <div className="card-grid col-md-7 col-sm-12 col-xs-12">
+        <div className="card-grid col-lg-8 col-md-6 col-sm-12 col-xs-12">
           <div className="icon-card">
               <img src={paymentIntegration} />
               <h5 className="title">Payments integration</h5>
@@ -201,11 +201,11 @@ const Feature = () => (
         </div>
       </section>
       <section className="management-section grid">
-        <div className="side-header col-md-5 col-sm-12 col-xs-12">
+        <div className="side-header col-lg-4 col-md-6 col-sm-12 col-xs-12">
           <h2>Back Office</h2>
           <p className="sub-description">Manage your staff, search through thousands of products, accounts and orders.</p>
         </div>
-        <div className="card-grid col-md-7 col-sm-12 col-xs-12">
+        <div className="card-grid col-lg-8 col-md-6 col-sm-12 col-xs-12">
           <div className="icon-card">
               <img src={search} />
               <h5 className="title">Search</h5>
@@ -233,7 +233,7 @@ const Feature = () => (
             </div>
         </div>
       </section>
-      <section className="documentation">
+      <section className="documentation section-container">
         <div className="content">
           <h2>Documentation</h2>
           <h4 className="description">Check our comprehensive documentation which can guide

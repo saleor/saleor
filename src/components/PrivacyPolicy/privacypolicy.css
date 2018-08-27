@@ -1,24 +1,16 @@
 #privacy-policy {
   border: solid var(--border-width) var(--primaryColor);
 	& section {
-    padding: calc(var(--spacer) * 2) calc(var(--spacer) * 7);
-    @media (max-width: 768px) {
-      padding: calc(var(--spacer) * 2) calc(var(--spacer))
-    }
+    padding-top: var(--spacer);
+    padding-bottom: calc(var(--spacer) * 3);
 		& .title, & .description {
 			margin-bottom: var(--spacer);
     }
     & .bg-container {
       background-image: url('../../images/lock-bg.png');
       background-size: auto;
-      background-repeat: no-repeat;
       background-position: 110% 30%;
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      z-index: -1;
       @media (max-width: 768px) {
-        opacity: 0.5;
         background-position: 400% 0%;
       }
       @media (max-width: 700px) {
@@ -84,7 +76,7 @@
 		}
 		&.general-information {
 			& .border-left {
-				border-left: 4px solid;
+				border-left: calc(var(--border-width) * 4) solid;
 				padding: 0 0 0 var(--spacer);
 			}
 		}
@@ -105,11 +97,6 @@
           margin-bottom: calc(var(--spacer) * 1.5);
         }
       }
-    }
-  }
-  @media (max-width: 768px) {
-    & .decoration {
-      display: none;
     }
   }
 }
