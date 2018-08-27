@@ -154,16 +154,17 @@
         padding-left: calc(var(--spacer) * 5);
         & span {
           position: absolute;
-          top: calc(var(--spacer) * -1.4); 
+          top: 0;
+          transform: translateY(-50%);
           left: calc(var(--spacer) * 3);
           color: var(--body-color);
           font-size: var(--font-size-base);
           text-align: right;
           @media (max-width: 768px) {
+            transform: translateY(-65%);
             font-size: calc(var(--font-size-base) * 1.5);
           }
           @media (max-width: 450px) {
-            top: calc(var(--spacer) * -2.5); 
             left: calc(var(--spacer) * 0.5);
           }
         }
@@ -203,7 +204,8 @@
             margin-bottom: var(--spacer);
             & span {
               position: absolute;
-              top: calc(var(--spacer) * -1); 
+              transform: translateY(-50%);
+              top: 0;
               left: calc(var(--spacer) * -2);
               color: var(--body-color);
               font-size: var(--font-size-base);
@@ -213,6 +215,7 @@
               margin-bottom: var(--spacer);
               & span {
                 left: calc(var(--spacer) * -1.8);
+                
               }
             }
             @media (max-width: 570px) {
@@ -331,7 +334,7 @@
               font-size: calc(var(--spacer) * 1.8);
             }
             & span {
-              left: calc(var(--spacer) * -1);
+              left: calc(var(--spacer) * 5);
               @media (max-width: 1024px) {
                 left: calc(var(--spacer) * -1);
               }

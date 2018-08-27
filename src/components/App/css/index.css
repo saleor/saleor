@@ -191,7 +191,7 @@ ul {
   &.menu-desktop {
     & .underline {
       & a, & span {
-        padding: 0 calc(var(--spacer) * 0.5) calc(var(--spacer) * 0.5) 0;
+        padding: 0 calc(var(--spacer) * 0.5) calc(var(--spacer) * 0.5);
         position: relative;
         &::after {
           content: "";
