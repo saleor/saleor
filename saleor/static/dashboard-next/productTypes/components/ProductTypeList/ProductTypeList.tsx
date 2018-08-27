@@ -87,7 +87,7 @@ const ProductTypeList = decorate<ProductTypeListProps>(
                   onClick={
                     productType && onRowClick && onRowClick(productType.id)
                   }
-                  className={productType && onRowClick && classes.link}
+                  className={classes.link}
                 >
                   {productType ? productType.name : <Skeleton />}
                 </TableCell>

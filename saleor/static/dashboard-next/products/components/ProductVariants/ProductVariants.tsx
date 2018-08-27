@@ -9,6 +9,7 @@ import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
+import * as classNames from "classnames";
 import * as React from "react";
 
 import { MoneyType } from "../..";
@@ -106,7 +107,7 @@ export const ProductVariants = decorate<ProductVariantsProps>(
                 key={variant ? variant.id : "skeleton"}
               >
                 <TableCell
-                  className={[classes.textLeft, classes.link].join(" ")}
+                  className={classNames(classes.textLeft, classes.link)}
                   onClick={onRowClick(variant.id)}
                 >
                   {variant ? variant.name || variant.sku : <Skeleton />}

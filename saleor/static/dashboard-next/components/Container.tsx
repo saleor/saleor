@@ -1,4 +1,5 @@
 import { withStyles } from "@material-ui/core/styles";
+import * as classNames from "classnames";
 import * as React from "react";
 
 interface ContainerProps {
@@ -20,7 +21,7 @@ const decorate = withStyles(theme =>
 );
 export const Container = decorate<ContainerProps>(
   ({ classes, className, width, theme, ...props }) => (
-    <div className={[classes[width], className].join(" ")} {...props} />
+    <div className={classNames(classes[width], className)} {...props} />
   )
 );
 export default Container;

@@ -102,7 +102,7 @@ export const OrderList = decorate<OrderListProps>(
               <TableRow key={order ? order.id : "skeleton"}>
                 <TableCell
                   onClick={order && onRowClick && onRowClick(order.id)}
-                  className={order && onRowClick && classes.link}
+                  className={classes.link}
                 >
                   {order ? order.number : <Skeleton />}
                 </TableCell>

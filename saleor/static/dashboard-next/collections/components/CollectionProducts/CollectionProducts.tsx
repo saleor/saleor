@@ -102,7 +102,7 @@ const CollectionProducts = decorate<CollectionProductsProps>(
                   onClick={
                     product && onProductClick && onProductClick(product.id)
                   }
-                  className={product && onProductClick && classes.link}
+                  className={classes.link}
                 >
                   {product ? product.name : <Skeleton />}
                 </TableCell>
