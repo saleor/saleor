@@ -63,15 +63,13 @@ const ProductVariantNavigation = decorate<ProductVariantNavigationProps>(
               <TableRow
                 hover={!!variant}
                 key={variant ? variant.id : "skeleton"}
-                className={classNames({ [classes.link]: !!variant })}
+                className={classes.link}
                 onClick={variant ? () => onRowClick(variant.id) : undefined}
               >
                 <TableCellAvatar
-                  className={
-                    variant && variant.id === current
-                      ? classes.tabActive
-                      : undefined
-                  }
+                  className={classNames({
+                    [classes.tabActive]: variant && variant.id === current
+                  })}
                   thumbnail={
                     variant &&
                     variant.image &&

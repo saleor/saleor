@@ -83,7 +83,7 @@ const CollectionList = decorate<CollectionListProps>(
                       : undefined
                   }
                   className={classNames({
-                    [classes.link]: !!collection
+                    [classes.link]: collection
                   })}
                 >
                   {collection ? collection.name : <Skeleton />}

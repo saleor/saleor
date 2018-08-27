@@ -5,7 +5,6 @@ import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import * as classNames from "classnames";
 import * as React from "react";
 
 import { ListProps } from "../..";
@@ -95,7 +94,7 @@ export const ProductList = decorate<ProductListProps>(
               hover={!!product}
               key={product ? product.id : "skeleton"}
               onClick={product && onRowClick(product.id)}
-              className={classNames({ [classes.link]: !!product })}
+              className={classes.link}
             >
               <TableCellAvatar thumbnail={product && product.thumbnailUrl} />
               <TableCell className={classes.textLeft}>

@@ -52,7 +52,7 @@ const CollectionDetails = decorate<CollectionDetailsProps>(
             <Typography
               variant="caption"
               className={classNames({
-                [classes.link]: !!onImageRemove && !disabled
+                [classes.link]: !disabled
               })}
               onClick={disabled ? undefined : onImageRemove}
             >

@@ -6,7 +6,6 @@ import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import * as classNames from "classnames";
 import * as React from "react";
 
 import { ListProps } from "../../..";
@@ -75,7 +74,7 @@ export const PageList = decorate<PageListProps>(
               <TableRow key={page ? page.id : "skeleton"}>
                 <TableCell
                   onClick={page && onRowClick(page.id)}
-                  className={classNames({ [classes.link]: !!page })}
+                  className={classes.link}
                 >
                   {page ? page.title : <Skeleton />}
                 </TableCell>
