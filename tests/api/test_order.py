@@ -231,17 +231,17 @@ def test_draft_order_delete(admin_api_client, order_with_lines):
 
 
 def test_check_for_draft_order_errors(order_with_lines):
-    errors = check_for_draft_order_errors(order_with_lines)
+    errors = check_for_draft_order_errors(order_with_lines, [])
     assert not errors
 
     order_with_no_lines = Mock(spec=Order)
     order_with_no_lines.get_total_quantity = MagicMock(return_value=0)
-    errors = check_for_draft_order_errors(order_with_no_lines)
+    errors = check_for_draft_order_errors(order_with_no_lines, [])
     assert errors[0].message == 'Could not create order without any products.'
 
     order_with_wrong_shipping = Mock(spec=Order)
     order_with_wrong_shipping.shipping_method = False
-    errors = check_for_draft_order_errors(order_with_wrong_shipping)
+    errors = check_for_draft_order_errors(order_with_wrong_shipping, [])
     msg = 'Shipping method is not valid for chosen shipping address'
     assert errors[0].message == msg
 
@@ -498,14 +498,14 @@ def test_order_refund(admin_api_client, payment_confirmed):
 def test_clean_order_release_payment():
     payment = MagicMock(spec=Payment)
     payment.status = 'not preauth'
-    errors = clean_release_payment(payment)
+    errors = clean_release_payment(payment, [])
     assert errors[0].field == 'payment'
     assert errors[0].message == 'Only pre-authorized payments can be released'
 
     payment.status = PaymentStatus.PREAUTH
     error_msg = 'error has happened.'
     payment.release = Mock(side_effect=ValueError(error_msg))
-    errors = clean_release_payment(payment)
+    errors = clean_release_payment(payment, [])
     assert errors[0].field == 'payment'
     assert errors[0].message == error_msg
 
@@ -514,13 +514,13 @@ def test_clean_order_refund_payment():
     payment = MagicMock(spec=Payment)
     payment.variant = CustomPaymentChoices.MANUAL
     amount = Mock(spec='string')
-    errors = clean_refund_payment(payment, amount)
+    errors = clean_refund_payment(payment, amount, [])
     assert errors[0].field == 'payment'
     assert errors[0].message == 'Manual payments can not be refunded.'
 
     payment.variant = None
     error_msg = 'error has happened.'
     payment.refund = Mock(side_effect=ValueError(error_msg))
-    errors = clean_refund_payment(payment, amount)
+    errors = clean_refund_payment(payment, amount, [])
     assert errors[0].field == 'payment'
     assert errors[0].message == error_msg
