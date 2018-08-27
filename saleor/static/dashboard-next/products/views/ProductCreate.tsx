@@ -9,6 +9,7 @@ import ProductCreatePage from "../components/ProductCreatePage";
 import { productListUrl, productUrl } from "../index";
 import { TypedProductCreateMutation } from "../mutations";
 import { productCreateQuery, TypedProductCreateQuery } from "../queries";
+import { decimal } from "../../misc";
 
 interface ProductUpdateProps {
   id: string;
@@ -71,7 +72,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               description: formData.description,
                               isPublished: formData.available,
                               name: formData.name,
-                              price: formData.price,
+                              price: decimal(formData.price),
                               productType: formData.productType.value.id
                             }
                           });

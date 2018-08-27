@@ -10,6 +10,7 @@ import i18n from "../../i18n";
 import ProductVariantPage from "../components/ProductVariantPage";
 import ProductVariantOperations from "../containers/ProductVariantOperations";
 import { productVariantQuery, TypedProductVariantQuery } from "../queries";
+import { decimal } from "../../misc";
 
 interface ProductUpdateProps {
   variantId: string;
@@ -128,11 +129,9 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                               attributes: data.attributes
                                 ? data.attributes
                                 : null,
-                              costPrice: data.costPrice ? data.costPrice : null,
+                              costPrice: decimal(data.costPrice),
                               id: variantId,
-                              priceOverride: data.priceOverride
-                                ? data.priceOverride
-                                : null,
+                              priceOverride: decimal(data.priceOverride),
                               product: productId,
                               quantity: data.stock,
                               sku: data.sku,

@@ -102,3 +102,7 @@ export function renderCollection<T>(
   }
   return collection.map(renderItem);
 }
+
+export function decimal(value: string) {
+  return value === "" ? null : value;
+}

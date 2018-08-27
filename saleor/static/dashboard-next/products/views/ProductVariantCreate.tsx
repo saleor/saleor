@@ -12,6 +12,7 @@ import {
   productVariantCreateQuery,
   TypedProductVariantCreateQuery
 } from "../queries";
+import { decimal } from "../../misc";
 
 interface ProductUpdateProps {
   productId: string;
@@ -77,12 +78,8 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                       variantCreate({
                         variables: {
                           attributes: formData.attributes,
-                          costPrice: formData.costPrice
-                            ? formData.costPrice
-                            : null,
-                          priceOverride: formData.priceOverride
-                            ? formData.priceOverride
-                            : null,
+                          costPrice: decimal(formData.costPrice),
+                          priceOverride: decimal(formData.priceOverride),
                           product: productId,
                           quantity: formData.stock,
                           sku: formData.sku,
