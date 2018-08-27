@@ -12,7 +12,7 @@ services:
     ports:
       - 8000:8000
     volumes:
-      - saleor-app:/app:Z
+      - .:/app:Z
     env_file: common.env
     depends_on:
       - db
@@ -25,6 +25,8 @@ services:
     restart: unless-stopped
     networks:
       - saleor-backend-tier
+    volumes:
+      - saleor-db:/var/lib/postgresql
     ports:
       - 5432:5432
     environment:
@@ -37,6 +39,8 @@ services:
     restart: unless-stopped
     networks:
       - saleor-backend-tier
+    volumes:
+      - saleor-redis:/data
     ports:
       - 6379:6379
 
@@ -50,7 +54,7 @@ services:
     networks:
       - saleor-backend-tier
     volumes:
-      - saleor-app:/app:Z
+      - .:/app:Z
     env_file: common.env
     depends_on:
       - redis
@@ -61,6 +65,8 @@ services:
     restart: unless-stopped
     networks:
       - saleor-backend-tier
+    volumes:
+      - saleor-search:/usr/share/elasticsearch/
     ports:
       - 9200:9200
     # See https://github.com/docker/compose/issues/4513 if updating to version '3'
@@ -69,7 +75,11 @@ services:
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
 
 volumes:
-  saleor-app:
+  saleor-db:
+    driver: local
+  saleor-redis:
+    driver: local
+  saleor-search:
     driver: local
 
 networks:
