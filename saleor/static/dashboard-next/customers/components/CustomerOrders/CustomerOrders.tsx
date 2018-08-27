@@ -91,7 +91,7 @@ const CustomerOrders = decorate<CustomerOrdersProps>(
               <TableRow key={order ? order.id : "skeleton"}>
                 <TableCell
                   onClick={order && onRowClick && onRowClick(order.id)}
-                  className={classNames({ [classes.link]: !!order })}
+                  className={classes.link}
                 >
                   {order ? order.number : <Skeleton />}
                 </TableCell>
