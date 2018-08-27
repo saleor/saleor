@@ -46,8 +46,6 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                 );
               }
 
-              const handleError = () =>
-                pushMessage({ text: i18n.t("Something went wrong") });
               const handleCreateSuccess = (data: VariantCreateMutation) => {
                 if (
                   data.productVariantCreate.errors &&

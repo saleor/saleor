@@ -1,5 +1,4 @@
 import IconButton from "@material-ui/core/IconButton";
-import { withStyles } from "@material-ui/core/styles";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 

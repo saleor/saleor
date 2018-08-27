@@ -9,7 +9,6 @@ import * as React from "react";
 import i18n from "../../i18n";
 import CardTitle from "../CardTitle";
 import FormSpacer from "../FormSpacer";
-import Skeleton from "../Skeleton";
 import Toggle from "../Toggle";
 
 interface SeoFormProps {

@@ -15,7 +15,6 @@ import SaveButtonBar, {
   SaveButtonBarState
 } from "../../../components/SaveButtonBar";
 import Toggle from "../../../components/Toggle";
-import i18n from "../../../i18n";
 import ProductVariantAttributes from "../ProductVariantAttributes";
 import ProductVariantDeleteDialog from "../ProductVariantDeleteDialog";
 import ProductVariantImages from "../ProductVariantImages";
