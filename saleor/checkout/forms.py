@@ -10,11 +10,10 @@ from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_countries.fields import LazyTypedChoiceField
 
 from ..core.exceptions import InsufficientStock
-from ..core.i18n import COUNTRY_CODE_CHOICES
 from ..core.utils import format_money
 from ..core.utils.taxes import display_gross_prices, get_taxed_shipping_price
 from ..discount.models import NotApplicable, Voucher
-from ..shipping.models import ShippingMethod
+from ..shipping.models import ShippingMethod, ShippingZone
 from ..shipping.utils import get_shipping_price_estimate
 from .models import Cart
 
@@ -161,11 +160,17 @@ class CountryForm(forms.Form):
     """Country selection form."""
     country = LazyTypedChoiceField(
         label=pgettext_lazy('Country form field label', 'Country'),
-        choices=COUNTRY_CODE_CHOICES)
+        choices=[])
 
     def __init__(self, *args, **kwargs):
         self.taxes = kwargs.pop('taxes', {})
         super().__init__(*args, **kwargs)
+        available_countries = {
+            (country.code, country.name)
+            for shipping_zone in ShippingZone.objects.all()
+            for country in shipping_zone.countries}
+        self.fields['country'].choices = sorted(
+            available_countries, key=lambda choice: choice[1])
 
     def get_shipping_price_estimate(self, price, weight):
         """Return a shipping price range for given order for the selected
