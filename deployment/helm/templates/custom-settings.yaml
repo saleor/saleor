@@ -1,0 +1,92 @@
+---
+{{- if (not .Values.django.alternativeConfigMap) -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: saleor-custom-settings
+  namespace: {{ .Release.Namespace }}
+data:
+  custom-settings.py: |
+    from saleor.settings import *
+    ADMINS = (
+        (os.environ.get('PRIMARY_ADMIN'), os.environ.get('PRIMARY_ADMIN_EMAIL')),
+    )
+    TIME_ZONE = os.environ.get('TIME_ZONE', 'UTC')
+    LANGUAGE_CODE = os.environ.get('LANGUAGE_CODE', 'en')
+    USE_I18N = get_bool_from_env('USE_I18N', True)
+    USE_L10N = get_bool_from_env('USE_L10N', True)
+    USE_TZ = get_bool_from_env('USE_TZ', True)
+    STATIC_URL = os.environ.get('STATIC_URL', '/static/')
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'root': {
+            'level': os.environ.get('ROOT_LOG_LEVEL', 'INFO'),
+            'handlers': ['console']},
+        'formatters': {
+            'verbose': {
+                'format': (
+                    '%(levelname)s %(name)s %(message)s'
+                    ' [PID:%(process)d:%(threadName)s]')},
+            'simple': {
+                'format': '%(levelname)s %(message)s'}},
+        'filters': {
+            'require_debug_false': {
+                '()': 'django.utils.log.RequireDebugFalse'}},
+        'handlers': {
+            'mail_admins': {
+                'level': os.environ.get('MAIL_ADMINS_HANDLER_LEVEL', 'ERROR'),
+                'filters': ['require_debug_false'],
+                'class': 'django.utils.log.AdminEmailHandler'},
+            'console': {
+                'level': os.environ.get('CONSOLE_HANDLER_LEVEL', 'DEBUG'),
+                'class': 'logging.StreamHandler',
+                'formatter': 'verbose'}},
+        'loggers': {
+            'django': {
+                'handlers': ['console', 'mail_admins'],
+                'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
+                'propagate': True},
+            'django.server': {
+                'handlers': ['console'],
+                'level': os.environ.get('DJANGO_SERVER_LOG_LEVEL', 'INFO'),
+                'propagate': True},
+            'saleor': {
+                'handlers': ['console'],
+                'level': os.environ.get('SALEOR_LOG_LEVEL', 'DEBUG'),
+                'propagate': True}}}
+    DEFAULT_CURRENCY = os.environ.get('DEFAULT_CURRENCY', 'USD')
+    AVAILABLE_CURRENCIES = get_list(
+        os.environ.get('AVAILABLE_CURRENCIES')) or [DEFAULT_CURRENCY]
+    OPENEXCHANGERATES_API_KEY = os.environ.get('OPENEXCHANGERATES_API_KEY')
+    ACCOUNT_ACTIVATION_DAYS = int(os.environ.get('ACCOUNT_ACTIVATION_DAYS', 3))
+    LOGIN_REDIRECT_URL = os.environ.get('LOGIN_REDIRECT_URL', 'home')
+    LOW_STOCK_THRESHOLD = int(os.environ.get('LOW_STOCK_THRESHOLD', 10))
+    MAX_CART_LINE_QUANTITY = int(os.environ.get('MAX_CART_LINE_QUANTITY', 50))
+    PAGINATE_BY = int(os.environ.get('PAGINATE_BY', 16))
+    DASHBOARD_PAGINATE_BY = int(os.environ.get('DASHBOARD_PAGINATE_BY', 30))
+    DASHBOARD_SEARCH_LIMIT = int(os.environ.get('DASHBOARD_SEARCH_LIMIT', 5))
+    TEST_RUNNER = ''
+    VERSATILEIMAGEFIELD_SETTINGS = {
+        # Images should be pre-generated on Production environment
+        'create_images_on_demand': get_bool_from_env(
+            'CREATE_IMAGES_ON_DEMAND', True),
+    }
+    PLACEHOLDER_IMAGES = {
+        60: os.environ.get('PLACEHOLDER_IMAGE_60', 'images/placeholder60x60.png'),
+        120: os.environ.get('PLACEHOLDER_IMAGE_120', 'images/placeholder120x120.png'),
+        255: os.environ.get('PLACEHOLDER_IMAGE_255', 'images/placeholder255x255.png'),
+        540: os.environ.get('PLACEHOLDER_IMAGE_540', 'images/placeholder540x540.png'),
+        1080: os.environ.get('PLACEHOLDER_IMAGE_1080', 'images/placeholder1080x1080.png')}
+    DEFAULT_PLACEHOLDER = os.environ.get('DEFAULT_PLACEHOLDER_IMAGE', 'images/placeholder255x255.png')
+    LOGOUT_ON_PASSWORD_CHANGE = get_bool_from_env('LOGOUT_ON_PASSWORD_CHANGE', False)
+    DB_SEARCH_ENABLED = get_bool_from_env('DB_SEARCH_ENABLED', True)
+    SOCIAL_AUTH_USERNAME_IS_FULL_EMAIL = get_bool_from_env('SOCIAL_AUTH_USERNAME_IS_FULL_EMAIL', True)
+    NOCAPTCHA = get_bool_from_env('NOCAPTCHA', True)
+    if ES_URL:
+        ELASTICSEARCH_DSL = {
+            'default': {
+                'hosts': ES_URL,
+                'sniff_on_start': True,
+                'timeout': 60}}
+{{- end -}}

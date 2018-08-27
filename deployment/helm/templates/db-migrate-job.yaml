@@ -1,0 +1,55 @@
+---
+{{- if (eq .Values.django.init.migrations true) -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "saleor.fullname" . }}-db-migrate
+  labels:
+    app: {{ template "saleor.name" . }}
+    chart: {{ template "saleor.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
+spec:
+  activeDeadlineSeconds: 300
+  backoffLimit: 5
+  parallelism: 1
+  completions: 1
+  template:
+    metadata:
+      name: {{ template "saleor.fullname" . }}-db-migrate
+      labels:
+        app: {{ template "saleor.name" . }}
+        chart: {{ template "saleor.chart" . }}
+        release: {{ .Release.Name }}
+    spec:
+    {{- if .Values.image.pullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecret }}
+    {{- end }}
+      volumes:
+        - name: custom-settings
+          configMap:
+          {{- if (not .Values.django.alternativeConfigMap) }}
+            name: saleor-custom-settings
+          {{- else }}
+            name: {{ .Values.django.alternativeConfigMap }}
+          {{- end }}
+      restartPolicy: OnFailure
+      containers:
+        - name: {{ template "saleor.fullname" . }}-db-migrate
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["python3", "manage.py", "migrate"]
+          envFrom:
+            - configMapRef:
+                name: saleor-env-{{ .Release.Namespace }}
+          volumeMounts:
+            - name: custom-settings
+              mountPath: /app/saleor/custom-settings.py
+              subPath: custom-settings.py
+              readOnly: true
+{{- end -}}

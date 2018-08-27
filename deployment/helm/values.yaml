@@ -1,0 +1,636 @@
+# Default values for saleor.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: mirumee/saleor
+  tag: 6a32d2dee23811c91b50c43186328a1d18a04b63
+  pullPolicy: IfNotPresent
+  #  pullSecret:
+
+service:
+  type: ClusterIP
+  port: 80
+
+# Original values before applying project specific changes
+#ingress:
+#  enabled: false
+#  annotations: {}
+#    # kubernetes.io/ingress.class: nginx
+#    # kubernetes.io/tls-acme: "true"
+#  path: /
+#  hosts:
+#    - chart-example.local
+#  tls: []
+#  #  - secretName: chart-example-tls
+#  #    hosts:
+#  #      - chart-example.local
+
+livenessProbeSettings:
+  initialDelaySeconds: 90
+  periodSeconds: 5
+  failureThreshold: 5
+  successThreshold: 1
+  timeoutSeconds: 1
+readinessProbeSettings:
+  initialDelaySeconds: 30
+  periodSeconds: 5
+  failureThreshold: 5
+  successThreshold: 1
+  timeoutSeconds: 1
+
+# Enable persistence if serving images from a volume
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 15Gi
+  volumeMode: Filesystem
+  persistentVolumeReclaimPolicy: Delete
+  # Uncomment storageClass: "" to disable dynamic provisioning
+  # storageClass: ""
+  # To use an existingPvc rather than have it provisioned by this chart, uncommen and enter below
+  # existingPvc:
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 128Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+django:
+  # One can optionally set an alternative config map for the settings.py file
+  # alternativeConfigMapName: custom-django-config
+  uwsgi:
+    processes: 2
+  init:
+    migrations: true
+    populateDbDemo: true
+  debug: "True"
+  internalIps:
+    - 127.0.0.1
+  timezone: UTC
+  languageCode: en
+  internationalization: "True"
+  localization: "True"
+  enableSsl: "False"
+  defaultFromEmail:
+  staticUrl: /static/
+  mediaUrl: /media/
+  enableSilk: "False"
+  defaultCountry: US
+  defaultCurrency: USD
+  availableCurrencies:
+    - USD
+  accountActivationDays: 3
+  loginRedirectUrl: home
+  googleAnalyticsTrackingId: home
+  lowStockThreshold: 10
+  maxCartLineQuantity: 50
+  paginateBy: 16
+  dashboardPaginateBy: 30
+  dashboardSearchLimit: 5
+  allowedHosts:
+    - localhost
+    - 127.0.0.1
+    - shop.codinghere.com
+  primaryAdmin: saleor
+  primaryAdminEmail: saleor@example.com
+
+  levels:
+    saleorLogs: DEBUG
+    djangoServerLogs: INFO
+    djangoLogs: INFO
+    consoleHandler: DEBUG
+    mailAdminsHandler: ERROR
+    rootLogs: INFO
+
+  images:
+    placeholders:
+      default: images/placeholder255x255.png
+      size_60: images/placeholder60x60.png
+      size_120: images/placeholder120x120.png
+      size_255: images/placeholder255x255.png
+      size_540: images/placeholder540x540.png
+      size_1080: images/placeholder1080x1080.png
+    createOnDemand: "True"
+  logoutOnPasswordChange: "False"
+
+  captcha:
+    # See https://developers.google.com/recaptcha/docs/versions
+    version: 2
+    publicKey:
+
+  aws:
+    enabled: false
+    location:
+    storageBucketName:
+    mediaBucketName:
+    mediaCustomDomain:
+    queryStringAuth:
+    s3CustomDomain:
+
+celery:
+  replicas: 1
+  # choose between fixed or auto
+  concurrencyType: auto
+  fixedConcurrency: 2
+  minConcurrency: 2
+  maxConcurrency: 6
+  heartBeatIntervalSeconds: 10
+  # softTimeLimitSeconds: 300
+  # hardTimeLimitSeconds: 600
+  # Logging level, choose between DEBUG, INFO, WARNING, ERROR, CRITICAL, or FATAL.
+  logLevel: INFO
+  taskEventsMonitoringEnabled: true
+  resources:
+    requests:
+      cpu: 500m
+      memory: 128Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+
+# Overrides charts/postgresql/values.yaml (version 0.15),
+# Refer to https://github.com/helm/charts/blob/master/stable/postgresql/values.yaml
+postgresql:
+  enabled: true
+  # By setting alternateUrl, saleor will be directed to use an alternative postgresql instance
+  # alternateUrl:
+  image: "postgres"
+  imageTag: "9.6.2"
+  imagePullPolicy: IfNotPresent
+  postgresUser: saleor
+  postgresPassword: saleor
+  postgresDatabase: saleor
+  usePasswordFile: false
+  # existingSecret: 'secret'
+  # postgresInitdbArgs:
+  # schedulerName:
+  # postgresConfig: {"sharedBuffers": "500MB"}
+  # TODO enable persitence by default
+  persistence:
+    enabled: false
+    # existingClaim:
+    # storageClass: "-"
+    accessMode: ReadWriteOnce
+    size: 8Gi
+    subPath: "postgresql-db"
+    mountPath: /var/lib/postgresql/data/pgdata
+    # annotations: {}
+  metrics:
+    enabled: false
+  service:
+    type: ClusterIP
+    port: 5432
+    externalIPs: []
+    # nodePort:
+  networkPolicy:
+    enabled: false
+  allowExternal: true
+
+# overrides elasticsearch values.yaml
+# Refer to https://github.com/bitnami/charts/blob/master/bitnami/elasticsearch/
+elasticsearch:
+  enabled: true
+  # By setting alternateUrl, saleor will be directed to use an alternative elasticsearch instance
+  # alternateUrl:
+
+  appVersion: 6.3.2
+
+  image:
+    repository: docker.elastic.co/elasticsearch/elasticsearch-oss
+    tag: 6.3.2
+    pullPolicy: IfNotPresent
+
+  cluster:
+    name: elasticsearch
+    kubernetesDomain: cluster.local
+    # If you want X-Pack installed, switch to an image that includes it, enable this option and toggle the features you want
+    # enabled in the environment variables outlined in the README
+    xpackEnable: false
+    config:
+    env:
+      # IMPORTANT: https://www.elastic.co/guide/en/elasticsearch/reference/current/important-settings.html#minimum_master_nodes
+      # To prevent data loss, it is vital to configure the discovery.zen.minimum_master_nodes setting so that each master-eligible
+      # node knows the minimum number of master-eligible nodes that must be visible in order to form a cluster.
+      MINIMUM_MASTER_NODES: 2
+
+  client:
+    name: client
+    replicas: 1
+    serviceType: ClusterIP
+    loadBalancerIP: {}
+    loadBalancerSourceRanges: {}
+    ## (dict) If specified, apply these annotations to the client service
+    #  serviceAnnotations:
+    #    example: client-svc-foo
+    heapSize: 512m
+    antiAffinity: soft
+    nodeSelector: {}
+    tolerations: {}
+    resources:
+      requests:
+        cpu: 50m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 1024Mi
+    priorityClassName: 
+    ## (dict) If specified, apply these annotations to each client Pod
+    # podAnnotations:
+    #   example: client-foo
+    podDisruptionBudget:
+      enabled: false
+      minAvailable: 1
+      # maxUnavailable: 1
+
+  master:
+    name: master
+    exposeHttp: true
+    replicas: 3
+    heapSize: 512m
+    persistence:
+      enabled: false
+      accessMode: ReadWriteOnce
+      name: data
+      size: 4Gi
+      # storageClass: ssd
+    antiAffinity: soft
+    nodeSelector: {}
+    tolerations: {}
+    resources:
+      requests:
+        cpu: 50m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+       memory: 1Gi
+    priorityClassName: 
+    ## (dict) If specified, apply these annotations to each master Pod
+    # podAnnotations:
+    #   example: master-foo
+    podDisruptionBudget:
+      enabled: false
+      minAvailable: 2  # Same as `cluster.env.MINIMUM_MASTER_NODES`
+      # maxUnavailable: 1
+
+  data:
+    name: data
+    exposeHttp: true
+    replicas: 1
+    heapSize: 1536m
+    persistence:
+      enabled: false
+      accessMode: ReadWriteOnce
+      name: data
+      size: 10Gi
+      # storageClass: ssd
+    terminationGracePeriodSeconds: 3600
+    antiAffinity: soft
+    nodeSelector: {}
+    tolerations: {}
+    resources:
+      requests:
+        cpu: 50m
+        memory: 1536Mi
+      limits:
+        cpu: 1000m
+        memory: 2048Mi
+    priorityClassName: 
+    ## (dict) If specified, apply these annotations to each data Pod
+    # podAnnotations:
+    #   example: data-foo
+    podDisruptionBudget:
+      enabled: false
+      # minAvailable: 1
+      maxUnavailable: 1
+
+redis:
+  enabled: true
+  # If using external url, set it below
+  #  alternateUrl:
+  ## Bitnami Redis image version
+  ## ref: https://hub.docker.com/r/bitnami/redis/tags/
+  ##
+  image:
+    registry: docker.io
+    repository: bitnami/redis
+    tag: 4.0.11-debian-9
+    ## Specify a imagePullPolicy
+    ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+    ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+    ##
+    pullPolicy: IfNotPresent
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ##
+    # pullSecrets:
+    #   - myRegistrKeySecretName
+
+
+  ## Cluster settings
+  cluster:
+    enabled: false
+    slaveCount: 1
+
+  metrics:
+    enabled: false
+    # resources: {}
+    # podAnnotations: {}
+    service:
+      type: ClusterIP
+      annotations: {}
+      #   prometheus.io/scrape: "true"
+      #   prometheus.io/port: "9121"
+      loadBalancerIP:
+    image:
+      registry: docker.io
+      repository: oliver006/redis_exporter
+      tag: v0.20.2
+      pullPolicy: IfNotPresent
+      ## Optionally specify an array of imagePullSecrets.
+      ## Secrets must be manually created in the namespace.
+      ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+      ##
+      # pullSecrets:
+      #   - myRegistrKeySecretName
+
+    ## Extra arguments for Redis exporter, for example:
+    ## extraArgs:
+    ##   check-keys: myKey,myOtherKey
+    # extraArgs: {}
+
+    ## Metrics exporter labels and tolerations for pod assignment
+    # nodeSelector: {"beta.kubernetes.io/arch": "amd64"}
+    # tolerations: []
+
+    ## Metrics exporter pod Annotation and Labels
+    # podLabels: {}
+
+  networkPolicy:
+    ## Enable creation of NetworkPolicy resources.
+    ##
+    enabled: false
+
+    ## The Policy model to apply. When set to false, only pods with the correct
+    ## client label will have network access to the port Redis is listening
+    ## on. When true, Redis will accept connections from any source
+    ## (with the correct destination port).
+    ##
+    # allowExternal: true
+
+  serviceAccount:
+    # Specifies whether a ServiceAccount should be created
+    create: false
+    # The name of the ServiceAccount to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name:
+
+  rbac:
+    # Specifies whether RBAC resources should be created
+    create: false
+
+    role:
+      ## Rules to create. It follows the role specification
+      # rules:
+      #  - apiGroups:
+      #    - extensions
+      #    resources:
+      #      - podsecuritypolicies
+      #    verbs:
+      #      - use
+      #    resourceNames:
+      #      - gce.unprivileged
+      rules: []
+
+  ## Redis password (both master and slave)
+  ## Defaults to a random 10-character alphanumeric string if not set and usePassword is true
+  ## ref: https://github.com/bitnami/bitnami-docker-redis#setting-the-server-password-on-first-run
+  ##
+  usePassword: false
+  password:
+  ## Use existing secret (ignores previous password)
+  # existingSecret:
+
+  ## Persist data to a persistent volume
+  persistence: {}
+    ## A manually managed Persistent Volume and Claim
+    ## Requires persistence.enabled: true
+  ## If defined, PVC must be created manually before volume will be bound
+  # existingClaim:
+
+  ##
+  ## Redis Master parameters
+  ##
+  master:
+    ## Use password authentication
+    port: 6379
+    ## Redis command arguments
+    ##
+    ## Can be used to specify command line arguments, for example:
+    ##
+    ## args:
+    ##  - "redis-server"
+    ##  - "--maxmemory-policy volatile-ttl"
+    args: []
+    ## Redis additional command line flags
+    ##
+    ## Can be used to specify command line flags, for example:
+    ##
+    ## redisExtraFlags:
+    ##  - "--maxmemory-policy volatile-ttl"
+    ##  - "--repl-backlog-size 1024mb"
+    extraFlags: []
+    ## Comma-separated list of Redis commands to disable
+    ##
+    ## Can be used to disable Redis commands for security reasons.
+    ## ref: https://github.com/bitnami/bitnami-docker-redis#disabling-redis-commands
+    ##
+    disableCommands: "FLUSHDB,FLUSHALL"
+    ## Enable persistence using Persistent Volume Claims
+    ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+    ##
+    ## Redis Master additional pod labels
+    ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+    podLabels: {}
+    ## Redis Master resource requests and limits
+    ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+    # resources:
+    #   requests:
+    #     memory: 256Mi
+    #     cpu: 100m
+    ## Use an alternate scheduler, e.g. "stork".
+    ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+    ##
+    # schedulerName:
+
+
+    ## Redis Master Liveness Probe
+    livenessProbe:
+      enabled: true
+      initialDelaySeconds: 60
+      periodSeconds: 10
+      timeoutSeconds: 5
+      successThreshold: 1
+      failureThreshold: 5
+
+    ## Redis Master Readiness Probe
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 1
+      successThreshold: 1
+      failureThreshold: 5
+    ## Redis Master Node labels and tolerations for pod assignment
+    ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
+    ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#taints-and-tolerations-beta-feature
+    # nodeSelector: {"beta.kubernetes.io/arch": "amd64"}
+    # tolerations: []
+    ## Redis Master pod/node affinity/anti-affinity
+    affinity: {}
+    ## Redis Master pod annotations
+    podAnnotations: {}
+    ## Redis Master Service properties
+    service:
+      ##  Redis Master Service type
+      type: ClusterIP
+
+      ## Specify the nodePort value for the LoadBalancer and NodePort service types.
+      ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
+      ##
+      # nodePort:
+
+      ## Provide any additional annotations which may be required. This can be used to
+      ## set the LoadBalancer service type to internal only.
+      ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#internal-load-balancer
+      ##
+      annotations: {}
+      loadBalancerIP:
+    ## Redis Master Pod Security Context
+    securityContext:
+      enabled: true
+      fsGroup: 1001
+      runAsUser: 1001
+    persistence:
+      enabled: false
+
+      ## The path the volume will be mounted at, useful when using different
+      ## Redis images.
+      path: /bitnami/redis/data
+
+      ## The subdirectory of the volume to mount to, useful in dev environments and one PV for multiple services.
+      subPath: ""
+
+      ## redis data Persistent Volume Storage Class
+      ## If defined, storageClassName: <storageClass>
+      ## If set to "-", storageClassName: "", which disables dynamic provisioning
+      ## If undefined (the default) or set to null, no storageClassName spec is
+      ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+      ##   GKE, AWS & OpenStack)
+      ##
+      # storageClass: "-"
+      accessModes:
+      - ReadWriteOnce
+      size: 8Gi
+
+    ## Update strategy, can be set to RollingUpdate or onDelete by default.
+    ## https://kubernetes.io/docs/tutorials/stateful-application/basic-stateful-set/#updating-statefulsets
+    statefulset:
+      updateStrategy: OnDelete
+      ## Partition update strategy
+      ## https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#partitions
+      # rollingUpdatePartition:
+
+
+  ##
+  ## Redis Slave properties
+  ## Note: serviceType and service are mandatory parameters
+  ## The rest of the parameters, if undefined, will inherit those declared in Redis Master
+  ##
+  slave:
+    ## Slave Service properties
+    service:
+      ##  Redis Slave Service type
+      type: ClusterIP
+      ## Specify the nodePort value for the LoadBalancer and NodePort service types.
+      ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
+      ##
+      # nodePort:
+
+      ## Provide any additional annotations which may be required. This can be used to
+      ## set the LoadBalancer service type to internal only.
+      ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#internal-load-balancer
+      ##
+      annotations: {}
+      loadBalancerIP:
+
+    ## Redis port
+    # port: 6379
+    ## Redis command arguments
+    # args: []
+    ## Redis extra flags
+    # extraFlags: []
+    ## Comma-separated list of Redis commands to disable
+    # disableCommands: ""
+
+    affinity: {}
+
+    ## Redis slave Liveness Probe
+    # livenessProbe:
+    #   enabled: true
+    #   initialDelaySeconds: 30
+    #   periodSeconds: 10
+    #   timeoutSeconds: 5
+    #   successThreshold: 1
+    #   failureThreshold: 5
+
+    ## Redis slave Readiness Probe
+    # readinessProbe:
+    #   enabled: true
+    #   initialDelaySeconds: 5
+    #   periodSeconds: 10
+    #   timeoutSeconds: 10
+    #   successThreshold: 1
+    #   failureThreshold: 5
+
+    ## Redis slave Resource
+    # resources:
+    #   requests:
+    #     memory: 256Mi
+    #     cpu: 100m
+
+    ## Redis slave labels and tolerations for pod assignment
+    # nodeSelector: {"beta.kubernetes.io/arch": "amd64"}
+    # tolerations: []
+
+    ## Use an alternate scheduler, e.g. "stork".
+    ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+    ##
+    # schedulerName:
+
+    ## Redis slave pod Annotation and Labels
+    # podLabels: {}
+    ## annotations for redis pods
+    # podAnnotations: {}
+
+    ## Redis slave pod Security Context
+    # securityContext:
+    #   enabled: true
+    #   fsGroup: 1001
+    #   runAsUser: 1001

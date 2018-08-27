@@ -1,0 +1,103 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "saleor.fullname" . }}-app
+  labels:
+    app: {{ template "saleor.name" . }}
+    chart: {{ template "saleor.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "saleor.name" . }}-app
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "saleor.name" . }}-app
+        release: {{ .Release.Name }}
+    spec:
+      {{- if .Values.image.pullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecret }}
+      {{- end }}
+      volumes:
+        - name: custom-settings
+          configMap:
+          {{- if (not .Values.django.alternativeConfigMap) }}
+            name: saleor-custom-settings
+          {{- else }}
+            name: {{ .Values.django.alternativeConfigMap }}
+          {{- end }}
+        - name: saleor-data
+        # TODO Introduce another conditional for when one is using S3 based storage
+        {{- if and (eq .Values.persistence.enabled true) (.Values.persistence.existingClaim) }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim }}
+        {{- else if (eq .Values.persistence.enabled true) }}
+          persistentVolumeClaim:
+            claimName: {{ default (include "saleor.fullname" .) }}
+        {{- else }}
+          emptyDir:
+            medium: Memory
+        {{- end }}
+      # TODO Introduce a conditional for /app/media when one is using S3 based storage
+      initContainers:
+        - name: {{ template "saleor.fullname" . }}-app-init
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["chown", "-R", "saleor:saleor", "/app/media"]
+          volumeMounts:
+            - name: saleor-data
+              mountPath: /app/media
+          securityContext:
+            runAsUser: 0
+            privileged: true
+      containers:
+        - name: {{ template "saleor.fullname" . }}-app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+#          livenessProbe:
+#            httpGet:
+#              path: /health/
+#              port: 8000
+#{{ toYaml .Values.livenessProbeSettings | indent 10 }}
+#          readinessProbe:
+#            httpGet:
+#              path: /health/
+#              port: 8000
+#{{ toYaml .Values.readinessProbeSettings | indent 10 }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+          volumeMounts:
+            # TODO Introduce a conditional for /app/media when one is using S3 based storage
+            - name: saleor-data
+              mountPath: /app/media
+            - name: custom-settings
+              mountPath: /app/saleor/custom-settings.py
+              subPath: custom-settings.py
+              readOnly: true
+          envFrom:
+            - configMapRef:
+                name: saleor-env-{{ .Release.Namespace }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

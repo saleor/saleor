@@ -1,0 +1,112 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "saleor.fullname" . }}-celery-worker
+  labels:
+    app: {{ template "saleor.name" . }}
+    chart: {{ template "saleor.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.celery.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "saleor.name" . }}-celery-worker
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "saleor.name" . }}-celery-worker
+        release: {{ .Release.Name }}
+    spec:
+      {{- if .Values.image.pullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecret }}
+      {{- end }}
+      volumes:
+        - name: custom-settings
+          configMap:
+          {{- if (not .Values.django.alternativeConfigMap) }}
+            name: saleor-custom-settings
+          {{- else }}
+            name: {{ .Values.django.alternativeConfigMap }}
+          {{- end }}
+        - name: saleor-data
+        # TODO Introduce another conditional for when one is using S3 based storage
+        {{- if and (eq .Values.persistence.enabled true) (.Values.persistence.existingClaim) }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim }}
+        {{- else if (eq .Values.persistence.enabled true) }}
+          persistentVolumeClaim:
+            claimName: {{ default (include "saleor.fullname" .) }}
+        {{- else }}
+          emptyDir:
+            medium: Memory
+        {{- end }}
+      # TODO Introduce a conditional for /app/media when one is using S3 based storage
+      initContainers:
+        - name: {{ template "saleor.fullname" . }}-celery-worker-init
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["chown", "-R", "saleor:saleor", "/app/media"]
+          volumeMounts:
+            - name: saleor-data
+              mountPath: /app/media
+          securityContext:
+            runAsUser: 0
+            privileged: true
+      containers:
+        - name: {{ template "saleor.fullname" . }}-celery-worker
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["celery", "worker"]
+          args:
+            - --app=saleor.celeryconf:app
+            - --without-gossip
+            - --without-mingle
+            - --heartbeat-interval={{ .Values.celery.heartBeatIntervalSeconds }}
+            - --loglevel={{ .Values.celery.logLevel }}
+          {{- if (eq (.Values.celery.concurrencyType) "fixed") }}
+            - --concurrency={{ .Values.celery.fixedConcurrency }}
+          {{- else if (eq (.Values.celery.concurrencyType) "auto") }}
+            - --autoscale={{ .Values.celery.maxConcurrency }},{{ .Values.celery.minConcurrency }}
+          {{- end }}
+          {{- if (.Values.celery.hardTimeLimitSeconds) }}
+            - --time-limit={{ .Values.celery.hardTimeLimitSeconds }}
+          {{- end }}
+          {{- if (.Values.celery.softTimeLimitSeconds) }}
+            - --soft-time-limit={{ .Values.celery.softTimeLimitSeconds }}
+          {{- end }}
+          {{- if (eq .Values.celery.taskEventsMonitoringEnabled true) }}
+            - --task-events
+          {{- end }}
+#          livenessProbe:
+#          readinessProbe:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+          volumeMounts:
+            # TODO Introduce a conditional for /app/media when one is using S3 based storage
+            - name: saleor-data
+              mountPath: /app/media
+            - name: custom-settings
+              mountPath: /app/saleor/custom-settings.py
+              subPath: custom-settings.py
+              readOnly: true
+          envFrom:
+            - configMapRef:
+                name: saleor-env-{{ .Release.Namespace }}
+          resources:
+{{ toYaml .Values.celery.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.celery.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.celery.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

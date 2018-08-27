@@ -1,0 +1,83 @@
+---
+{{- if (eq .Values.django.init.populateDbDemo true) -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "saleor.fullname" . }}-db-populate-demo
+  labels:
+    app: {{ template "saleor.name" . }}
+    chart: {{ template "saleor.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "2"
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
+spec:
+  activeDeadlineSeconds: 300
+  backoffLimit: 5
+  parallelism: 1
+  completions: 1
+  template:
+    metadata:
+      name: {{ template "saleor.fullname" . }}-db-populate-demo
+      labels:
+        app: {{ template "saleor.name" . }}
+        chart: {{ template "saleor.chart" . }}
+        release: {{ .Release.Name }}
+    spec:
+    {{- if .Values.image.pullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecret }}
+    {{- end }}
+      volumes:
+        - name: custom-settings
+          configMap:
+          {{- if (not .Values.django.alternativeConfigMap) }}
+            name: saleor-custom-settings
+          {{- else }}
+            name: {{ .Values.django.alternativeConfigMap }}
+          {{- end }}
+        - name: saleor-data
+          # TODO Introduce another conditional for when one is using S3 based storage
+        {{- if and (eq .Values.persistence.enabled true) (.Values.persistence.existingClaim) }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim }}
+        {{- else if (eq .Values.persistence.enabled true) }}
+          persistentVolumeClaim:
+            claimName: {{ default (include "saleor.fullname" .) }}
+        {{- else }}
+          emptyDir:
+            medium: Memory
+        {{- end }}
+      restartPolicy: OnFailure
+      initContainers:
+        - name: {{ template "saleor.fullname" . }}-db-populate-demo-init
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["chown", "-R", "saleor:saleor", "/app/media"]
+          volumeMounts:
+            - name: saleor-data
+              mountPath: /app/media
+          securityContext:
+            runAsUser: 0
+            privileged: true
+      containers:
+        - name: {{ template "saleor.fullname" . }}-db-populate-demo
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["python3", "manage.py", "populatedb"]
+          envFrom:
+            - configMapRef:
+                name: saleor-env-{{ .Release.Namespace }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+          volumeMounts:
+            - name: saleor-data
+              mountPath: /app/media
+            - name: custom-settings
+              mountPath: /app/saleor/custom-settings.py
+              subPath: custom-settings.py
+              readOnly: true
+{{- end -}}
