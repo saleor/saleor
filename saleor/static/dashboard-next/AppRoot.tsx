@@ -18,7 +18,6 @@ import SVG from "react-inlinesvg";
 
 import * as saleorLogo from "../images/logo.svg";
 import { UserContext } from "./auth";
-import Container from "./components/Container";
 import MenuToggle from "./components/MenuToggle";
 import Navigator from "./components/Navigator";
 import Toggle from "./components/Toggle";

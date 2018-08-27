@@ -1,6 +1,5 @@
 import * as React from "react";
 
-import { withStyles } from "@material-ui/core/styles";
 import { productAddUrl, productListUrl, productUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";

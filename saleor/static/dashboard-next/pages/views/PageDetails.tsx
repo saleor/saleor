@@ -7,8 +7,6 @@ import { NavigatorLink } from "../../components/Navigator";
 import i18n from "../../i18n";
 import PageDetailsPage from "../components/PageDetailsPage";
 import {
-  pageDeleteMutation,
-  pageUpdateMutation,
   TypedPageDeleteMutation,
   TypedPageUpdateMutation
 } from "../mutations";

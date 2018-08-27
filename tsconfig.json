@@ -3,7 +3,8 @@
     "jsx": "react",
     "lib": ["es2017", "dom", "esnext"],
     "sourceMap": true,
-    "target": "es5"
+    "target": "es5",
+    "noUnusedLocals": true
   },
   "include": ["webpack.d.ts"]
 }
