@@ -1,7 +1,9 @@
 from decimal import Decimal
+
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from prices import Money
-from django.contrib.postgres.fields import JSONField
+
 from . import PaymentMethodChargeStatus, TransactionType
 from ..checkout.models import Cart
 from ..order.models import Order
