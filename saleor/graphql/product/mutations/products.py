@@ -10,24 +10,8 @@ from ...core.types.common import Decimal, SeoInput
 from ...core.utils import clean_seo_fields
 from ...file_upload.types import Upload
 from ...shipping.types import WeightScalar
-from ...utils import get_attributes_dict_from_list
 from ..types import Collection, Product, ProductImage, ProductVariant
-
-
-def update_variants_names(instance, saved_attributes):
-    initial_attributes = set(instance.variant_attributes.all())
-    attributes_changed = initial_attributes.intersection(saved_attributes)
-    if not attributes_changed:
-        return
-    variants_to_be_updated = models.ProductVariant.objects.filter(
-        product__in=instance.products.all(),
-        product__product_type__variant_attributes__in=attributes_changed)
-    variants_to_be_updated = variants_to_be_updated.prefetch_related(
-        'product__product_type__variant_attributes__values').all()
-    attributes = instance.variant_attributes.all()
-    for variant in variants_to_be_updated:
-        variant.name = get_name_from_attributes(variant, attributes)
-        variant.save()
+from ..utils import attributes_to_hstore, update_variants_names
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -262,11 +246,13 @@ class ProductCreate(ModelMutation):
             if instance.pk else cleaned_input.get('product_type'))
 
         if attributes and product_type:
-            slug_to_id_map = dict(
-                product_type.product_attributes.values_list('slug', 'id'))
-            attributes = get_attributes_dict_from_list(
-                attributes, slug_to_id_map)
-            cleaned_input['attributes'] = attributes
+            try:
+                attributes = attributes_to_hstore(
+                    attributes, product_type.product_attributes.all())
+            except ValueError as e:
+                cls.add_error(errors, 'attributes', str(e))
+            else:
+                cleaned_input['attributes'] = attributes
         clean_seo_fields(cleaned_input)
         return cleaned_input
 
@@ -353,11 +339,13 @@ class ProductVariantCreate(ModelMutation):
         product_type = product.product_type
 
         if attributes and product_type:
-            slug_to_id_map = dict(
-                product_type.variant_attributes.values_list('slug', 'id'))
-            attributes = get_attributes_dict_from_list(
-                attributes, slug_to_id_map)
-            cleaned_input['attributes'] = attributes
+            try:
+                attributes = attributes_to_hstore(
+                    attributes, product_type.variant_attributes.all())
+            except ValueError as e:
+                cls.add_error(errors, 'attributes', str(e))
+            else:
+                cleaned_input['attributes'] = attributes
         return cleaned_input
 
     @classmethod
@@ -575,7 +563,7 @@ class ProductImageReorder(BaseMutation):
                     cls.add_error(
                         errors, 'order',
                         "Image with id %r does not belong to product %r" % (
-                            image_id, product_id))
+                            image.id, product_id))
         if not errors:
             for order, image in enumerate(images):
                 image.sort_order = order
