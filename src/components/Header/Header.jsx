@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { NavLink } from 'react-router-dom';
 import { withRouter } from 'react-router';
 import ReactSVG from 'react-svg';
+import { withCookies, Cookies } from 'react-cookie';
 
 import { GitHubLink } from '..';
 
@@ -75,4 +76,4 @@ class Header extends Component {
   }
 }
 
-export default withRouter(Header);
+export default withRouter(withCookies(Header));
