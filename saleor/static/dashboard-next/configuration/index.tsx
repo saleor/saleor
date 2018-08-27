@@ -10,65 +10,55 @@ import Monetization from "../icons/Monetization";
 import Navigation from "../icons/Navigation";
 import Pages from "../icons/Pages";
 import StoreMall from "../icons/StoreMall";
-import { pageListUrl } from "../pages";
 import ConfigurationPage from "./ConfigurationPage";
 
 export const configurationMenu = [
   {
     description: i18n.t("Define types of products you sell"),
-    disabled: true,
     icon: <Folder fontSize="inherit" />,
-    title: i18n.t("Product Types"),
-    url: undefined
+    title: i18n.t("Product Types")
   },
   {
     description: i18n.t("Define attributes of products yousell"),
     disabled: true,
     icon: <Ballot fontSize="inherit" />,
-    title: i18n.t("Attributes"),
-    url: undefined
+    title: i18n.t("Attributes")
   },
   {
     description: i18n.t("Manage your employees and their permissions"),
     disabled: true,
     icon: <AccountCircle fontSize="inherit" />,
-    title: i18n.t("Staff Members"),
-    url: undefined
+    title: i18n.t("Staff Members")
   },
   {
     description: i18n.t("Manage how you ship out orders."),
     disabled: true,
     icon: <LocalShipping fontSize="inherit" />,
-    title: i18n.t("Shipping Methods"),
-    url: undefined
+    title: i18n.t("Shipping Methods")
   },
   {
     description: i18n.t("Manage how your store charges tax"),
     disabled: true,
     icon: <Monetization fontSize="inherit" />,
-    title: i18n.t("Taxes"),
-    url: undefined
+    title: i18n.t("Taxes")
   },
   {
     description: i18n.t("Define how users can navigate through your store"),
     disabled: true,
     icon: <Navigation fontSize="inherit" />,
-    title: i18n.t("Navigation"),
-    url: undefined
+    title: i18n.t("Navigation")
   },
   {
     description: i18n.t("View and update your site settings"),
     disabled: true,
     icon: <StoreMall fontSize="inherit" />,
-    title: i18n.t("Site Settings"),
-    url: undefined
+    title: i18n.t("Site Settings")
   },
   {
     description: i18n.t("Manage and add additional pages"),
     disabled: false,
     icon: <Pages fontSize="inherit" />,
-    title: i18n.t("Pages"),
-    url: pageListUrl
+    title: i18n.t("Pages")
   }
 ];
 

@@ -12,10 +12,9 @@ import i18n from "../i18n";
 interface ConfigurationPageProps {
   menu: Array<{
     description: string;
-    disabled: boolean;
     icon: React.ReactElement<IconProps>;
     title: string;
-    url: string;
+    url?: string;
   }>;
   onSectionClick: (sectionName: string) => void;
 }
@@ -69,7 +68,7 @@ export const ConfigurationPage = decorate<ConfigurationPageProps>(
       <div className={classes.root}>
         {menu.map((menuItem, menuItemIndex) => (
           <Card
-            className={menuItem.disabled ? classes.cardDisabled : classes.card}
+            className={menuItem.url ? classes.card : classes.cardDisabled}
             onClick={() => onSectionClick(menuItem.url)}
             key={menuItemIndex}
           >
