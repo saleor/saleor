@@ -31,12 +31,9 @@ class Domain(graphene.ObjectType):
         description = 'Represents shop\'s domain.'
 
 
-class Navigation(graphene.ObjectType):
-    main = graphene.Field(Menu, description='Main navigation bar.')
-    secondary = graphene.Field(Menu, description='Secondary navigation bar.')
-
-    class Meta:
-        description = 'Represents shop\'s navigation menus.'
+class TaxReducedRateGoodsDisplay(graphene.ObjectType):
+    code = graphene.String(description='Goods code name')
+    name = graphene.String(description='Translated name')
 
 
 class Shop(graphene.ObjectType):
@@ -77,8 +74,8 @@ class Shop(graphene.ObjectType):
         description='Enable inventory tracking')
     default_weight_unit = WeightUnitsEnum(description='Default weight unit')
     tax_reduced_rate_goods = graphene.List(
-        graphene.String,
-        description='List of all types of goods applicable to reduced tax rate.')
+        TaxReducedRateGoodsDisplay,
+        description='List of all types of goods applicable for reduced tax rates.')
 
     class Meta:
         description = '''
@@ -139,7 +136,9 @@ class Shop(graphene.ObjectType):
 
     @permission_required('site.manage_settings')
     def resolve_tax_reduced_rate_goods(self, info):
-        return list(VAT_RATE_TYPE_TRANSLATIONS.keys())
+        return [
+            TaxReducedRateGoodsDisplay(code=rate, name=name)
+            for rate, name in VAT_RATE_TYPE_TRANSLATIONS.items()]
 
 
     def resolve_include_taxes_in_prices(self, info):
