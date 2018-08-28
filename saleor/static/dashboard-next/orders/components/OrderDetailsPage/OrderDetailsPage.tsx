@@ -1,12 +1,7 @@
 import { withStyles, WithStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import {
-  AddressType,
-  OrderStatus,
-  transformAddressToForm,
-  transformOrderStatus
-} from "../..";
+import { AddressType, OrderStatus, transformAddressToForm } from "../..";
 import { Container } from "../../../components/Container";
 import DateFormatter from "../../../components/DateFormatter";
 import Form from "../../../components/Form";
@@ -229,7 +224,6 @@ class OrderDetailsPageComponent extends React.Component<
       shippingMethods,
       user,
       users,
-      usersLoading,
       variants,
       variantsLoading,
       fetchShippingMethods,
@@ -243,7 +237,6 @@ class OrderDetailsPageComponent extends React.Component<
       onOrderLineRemove,
       onPackingSlipClick,
       onPaymentRelease,
-      onPrintClick,
       onProductClick
     } = this.props;
     const {
