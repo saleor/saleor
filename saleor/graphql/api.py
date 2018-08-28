@@ -64,7 +64,7 @@ from .shipping.mutations import (
 
 from .site.types import SiteSettings
 from .site.mutations import SiteSettingsUpdate
-from .site.resolvers import resolve_site_settings_list
+
 
 class Query(graphene.ObjectType):
     attributes = DjangoFilterConnectionField(
@@ -136,9 +136,8 @@ class Query(graphene.ObjectType):
     sales = DjangoFilterConnectionField(
         Sale, query=graphene.String(description=DESCRIPTIONS['sale']),
         description="List of the shop\'s sales.")
-    site_settings = graphene.Field(SiteSettings, description='Current site settings')
-    site_settings_list = DjangoFilterConnectionField(
-        SiteSettings, filterset_class=DistinctFilterSet)
+    site_settings = graphene.Field(
+        SiteSettings, description='Current site settings')
     shop = graphene.Field(Shop, description='Represents a shop resources.')
     voucher = graphene.Field(
         Voucher, id=graphene.Argument(graphene.ID),
@@ -224,11 +223,8 @@ class Query(graphene.ObjectType):
     def resolve_shop(self, info):
         return Shop()
 
-    def resolve_site_settings(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, SiteSettings)
-
-    def resolve_site_settings_list(self, info):
-        return resolve_site_settings_list()
+    def resolve_site_settings(self, info):
+        return SiteSettings.get_node(info, id=info.context.site.settings.pk)
 
     @permission_required('discount.manage_discounts')
     def resolve_sale(self, info, id):

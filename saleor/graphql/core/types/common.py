@@ -1,12 +1,11 @@
 import decimal
 
 import graphene
-from graphene import relay
 from graphene.types import Scalar
 from graphene_django import DjangoObjectType
 from graphql.language import ast
-from ....core import weight
 
+from ....core import weight
 from ..connection import CountableConnection
 
 
