@@ -12,6 +12,7 @@ in terms of weight.
 In the end, it does not really matter unless you travel between
 different planets.
 """
+from enum import Enum
 from decimal import Decimal
 
 from django import forms
@@ -33,6 +34,11 @@ class WeightUnits:
         (POUND, pgettext_lazy('Pound weight unit symbol', 'lb')),
         (OUNCE, pgettext_lazy('Ounce weight unit symbol', 'oz')),
         (GRAM, pgettext_lazy('Gram weight unit symbol', 'g'))]
+
+
+WeightUnitsEnum = Enum(
+    'WeightUnitsEnum',
+    {unit: unit for unit in WeightUnits.CHOICES})
 
 
 def zero_weight():
