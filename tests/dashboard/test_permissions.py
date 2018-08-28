@@ -136,44 +136,44 @@ def test_staff_can_view_category_add_root(
 
 
 def test_staff_can_view_category_add_subcategory(
-        staff_client, staff_user, permission_manage_products, default_category):
+        staff_client, staff_user, permission_manage_products, category):
     assert not staff_user.has_perm('product.manage_products')
     response = staff_client.get(
-        reverse('dashboard:category-add', args=[default_category.pk]))
+        reverse('dashboard:category-add', args=[category.pk]))
     assert response.status_code == 302
     staff_user.user_permissions.add(permission_manage_products)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm('product.manage_products')
     response = staff_client.get(
-        reverse('dashboard:category-add', args=[default_category.pk]))
+        reverse('dashboard:category-add', args=[category.pk]))
     assert response.status_code == 200
 
 
 def test_staff_can_view_category_edit(
-        staff_client, staff_user, permission_manage_products, default_category):
+        staff_client, staff_user, permission_manage_products, category):
     assert not staff_user.has_perm('product.manage_products')
     response = staff_client.get(
-        reverse('dashboard:category-edit', args=[default_category.pk]))
+        reverse('dashboard:category-edit', args=[category.pk]))
     assert response.status_code == 302
     staff_user.user_permissions.add(permission_manage_products)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm('product.manage_products')
     response = staff_client.get(
-        reverse('dashboard:category-edit', args=[default_category.pk]))
+        reverse('dashboard:category-edit', args=[category.pk]))
     assert response.status_code == 200
 
 
 def test_staff_can_view_category_delete(
-        staff_client, staff_user, permission_manage_products, default_category):
+        staff_client, staff_user, permission_manage_products, category):
     assert not staff_user.has_perm('product.manage_products')
     response = staff_client.get(
-        reverse('dashboard:category-delete', args=[default_category.pk]))
+        reverse('dashboard:category-delete', args=[category.pk]))
     assert response.status_code == 302
     staff_user.user_permissions.add(permission_manage_products)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm('product.manage_products')
     response = staff_client.get(
-        reverse('dashboard:category-delete', args=[default_category.pk]))
+        reverse('dashboard:category-delete', args=[category.pk]))
     assert response.status_code == 200
 
 
