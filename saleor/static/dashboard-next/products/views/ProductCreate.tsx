@@ -5,11 +5,11 @@ import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import { ProductCreateMutation } from "../../gql-types";
 import i18n from "../../i18n";
+import { decimal } from "../../misc";
 import ProductCreatePage from "../components/ProductCreatePage";
 import { productListUrl, productUrl } from "../index";
 import { TypedProductCreateMutation } from "../mutations";
 import { productCreateQuery, TypedProductCreateQuery } from "../queries";
-import { decimal } from "../../misc";
 
 interface ProductUpdateProps {
   id: string;

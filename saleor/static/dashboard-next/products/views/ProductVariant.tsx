@@ -7,10 +7,10 @@ import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import i18n from "../../i18n";
+import { decimal } from "../../misc";
 import ProductVariantPage from "../components/ProductVariantPage";
 import ProductVariantOperations from "../containers/ProductVariantOperations";
 import { productVariantQuery, TypedProductVariantQuery } from "../queries";
-import { decimal } from "../../misc";
 
 interface ProductUpdateProps {
   variantId: string;
