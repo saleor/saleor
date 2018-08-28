@@ -23,31 +23,33 @@
       </div>
     </div>
   </div>
-  <div class="last table__row cart__delivery-info">
-    <div class="row">
-      <div class="col-7 cart__total__subtotal deliveryform" data-csrf="{{ csrf_token }}">
-        <div class="row">
-          <div class="col-12 col-md-4">
-            <p>{% trans "Shipping cost for:" context "Cart shipping cost form" %}</p>
-          </div>
-          <div class="col-12 col-md-8">
-            {{ country_form.country }}
+  {% if country_form.country.field.choices %}
+    <div class="last table__row cart__delivery-info">
+      <div class="row">
+        <div class="col-7 cart__total__subtotal deliveryform" data-csrf="{{ csrf_token }}">
+          <div class="row">
+            <div class="col-12 col-md-4">
+              <p>{% trans "Shipping cost for:" context "Cart shipping cost form" %}</p>
+            </div>
+            <div class="col-12 col-md-8">
+              {{ country_form.country }}
+            </div>
           </div>
         </div>
-      </div>
-      <div class="col-5">
-        <div class="row">
-          <div class="col-md-12 col-12 text-right">
-            <p class="cart__delivery-info__price">
-              {% if default_country_options %}
-                {% price_range default_country_options %}
-              {% endif %}
-            </p>
+        <div class="col-5">
+          <div class="row">
+            <div class="col-md-12 col-12 text-right">
+              <p class="cart__delivery-info__price">
+                {% if shipping_price_range %}
+                  {% price_range shipping_price_range %}
+                {% endif %}
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  {% endif %}
 {% endif %}
 <div class="cart__total">
   <div class="row">

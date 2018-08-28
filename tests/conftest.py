@@ -3,6 +3,7 @@ from io import BytesIO
 from unittest.mock import MagicMock, Mock
 
 import pytest
+
 from django.contrib.auth.models import Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
@@ -10,13 +11,13 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ModelForm
 from django.test.client import MULTIPART_CONTENT, Client
 from django.utils.encoding import smart_text
+from django_countries import countries
 from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
 from graphql_jwt.shortcuts import get_token
 from payments import FraudStatus, PaymentStatus
 from PIL import Image
 from prices import Money
-
 from saleor.account.models import Address, User
 from saleor.checkout import utils
 from saleor.checkout.models import Cart
@@ -30,10 +31,11 @@ from saleor.order.models import Order
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.product.models import (
-    AttributeChoiceValue, Category,
-    Collection, Product, ProductAttribute, ProductAttributeTranslation,
-    ProductImage, ProductTranslation, ProductType, ProductVariant)
-from saleor.shipping.models import ShippingMethod, ShippingMethodCountry
+    AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
+    ProductAttributeTranslation, ProductImage, ProductTranslation, ProductType,
+    ProductVariant)
+from saleor.shipping.models import (
+    ShippingMethod, ShippingMethodType, ShippingZone)
 from saleor.site.models import AuthorizationKey, SiteSettings
 
 
@@ -114,7 +116,7 @@ def site_settings(db, settings):
 
 
 @pytest.fixture
-def cart(db):  # pylint: disable=W0613
+def cart(db):
     return Cart.objects.create()
 
 
@@ -221,18 +223,20 @@ def authorized_client(client, customer_user):
 
 
 @pytest.fixture
-def shipping_method(db):  # pylint: disable=W0613
-    shipping_method = ShippingMethod.objects.create(name='DHL')
-    shipping_method.price_per_country.create(price=10)
-    return shipping_method
+def shipping_zone(db):  # pylint: disable=W0613
+    shipping_zone = ShippingZone.objects.create(
+        name='Europe', countries=[code for code, name in countries])
+    shipping_zone.shipping_methods.create(
+        name='DHL', minimum_order_price=0, type=ShippingMethodType.PRICE_BASED,
+        price=10, shipping_zone=shipping_zone)
+    return shipping_zone
 
 
 @pytest.fixture
-def shipping_price(shipping_method):
-    return ShippingMethodCountry.objects.create(
-        country_code='PL',
-        price=10,
-        shipping_method=shipping_method)
+def shipping_method(shipping_zone):
+    return ShippingMethod.objects.create(
+        name='DHL', minimum_order_price=0, type=ShippingMethodType.PRICE_BASED,
+        price=10, shipping_zone=shipping_zone)
 
 
 @pytest.fixture
@@ -415,7 +419,7 @@ def voucher(db):  # pylint: disable=W0613
 
 @pytest.fixture()
 def order_with_lines(
-        order, product_type, default_category, shipping_method, vatlayer):
+        order, product_type, default_category, shipping_zone, vatlayer):
     taxes = vatlayer
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
@@ -448,8 +452,8 @@ def order_with_lines(
         tax_rate=taxes['standard']['value'])
 
     order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = shipping_method.name
-    method = shipping_method.price_per_country.get()
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_method_name = method.name
     order.shipping_method = method
     order.shipping_price = method.get_total_price(taxes)
     order.save()

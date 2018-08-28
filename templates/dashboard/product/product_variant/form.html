@@ -81,6 +81,10 @@
                 {% empty %}
                   {% trans "No attributes found." %}
                 {% endfor %}
+                {% if variant.product.product_type.is_shipping_required %}
+                  <p class="card-title">{% trans "Shipping" %}</p>
+                  {{ form.weight|materializecss }}
+                {% endif %}
               </div>
               <div class="col s12 m4">
                 <div class="row">

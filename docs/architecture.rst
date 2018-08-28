@@ -13,6 +13,7 @@ Architecture
    architecture/translations
    architecture/search
    architecture/payments
+   architecture/shippings
    architecture/settings
    architecture/page
    architecture/gdpr

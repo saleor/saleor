@@ -77,28 +77,28 @@
       {% if not is_empty %}{% filters filter_set %}{% endif %}
       <div class="card">
         <form action="" method="post">
-        <div class="card-content">
-          <span class="card-title">
-            {% trans "Storefront Menus" %}
-          </span>
-            {% csrf_token %}
-            <div class="row">
-                {{ assign_menu_form.top_menu|materializecss }}
+          <div class="card-content">
+            <span class="card-title">
+              {% trans "Storefront Menus" %}
+            </span>
+              {% csrf_token %}
+              <div class="row">
+                  {{ assign_menu_form.top_menu|materializecss }}
+              </div>
+              <div class="row">
+                {{ assign_menu_form.bottom_menu|materializecss }}
             </div>
-            <div class="row">
-              {{ assign_menu_form.bottom_menu|materializecss }}
           </div>
-        </div>
-        <div class="card-action right-align">
-          <div class="col s12">
-            <button type="submit" class="btn waves-effect right">
-              {% trans "Save" context "Dashboard update action" %}
-            </button>
+          <div class="card-action right-align">
+            <div class="col s12">
+              <button type="submit" class="btn waves-effect right">
+                {% trans "Save" context "Dashboard update action" %}
+              </button>
+            </div>
+            <div class="clearfix"></div>
           </div>
-          <div class="clearfix"></div>
-        </div>
-      </form>
-    </div>
+        </form>
+      </div>
     </div>
   </div>
 {% endblock %}

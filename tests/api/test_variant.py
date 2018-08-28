@@ -53,7 +53,7 @@ def test_fetch_variant(admin_api_client, product):
 
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
-    variables = json.dumps({ 'id': variant_id })
+    variables = json.dumps({ 'id': variant_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
@@ -71,6 +71,7 @@ def test_create_variant(admin_api_client, product, product_type):
             $costPrice: Decimal,
             $quantity: Int!,
             $attributes: [AttributeValueInput],
+            $weight: WeightScalar,
             $trackInventory: Boolean!) {
                 productVariantCreate(
                     input: {
@@ -80,7 +81,8 @@ def test_create_variant(admin_api_client, product, product_type):
                         costPrice: $costPrice,
                         quantity: $quantity,
                         attributes: $attributes,
-                        trackInventory: $trackInventory
+                        trackInventory: $trackInventory,
+                        weight: $weight
                     }) {
                     productVariant {
                         name
@@ -104,6 +106,10 @@ def test_create_variant(admin_api_client, product, product_type):
                             amount
                             localized
                         }
+                        weight {
+                            value
+                            unit
+                        }
                     }
                 }
             }
@@ -123,6 +129,7 @@ def test_create_variant(admin_api_client, product, product_type):
         'quantity': quantity,
         'costPrice': cost_price,
         'priceOverride': price_override,
+        'weight': '10',
         'attributes': [
             {'slug': variant_slug, 'value': variant_value}],
         'trackInventory': True})
@@ -138,6 +145,8 @@ def test_create_variant(admin_api_client, product, product_type):
     assert data['sku'] == sku
     assert data['attributes'][0]['attribute']['slug'] == variant_slug
     assert data['attributes'][0]['value']['slug'] == variant_value
+    assert data['weight']['unit'] == 'kg'
+    assert data['weight']['value'] == float(10)
 
 
 def test_update_product_variant(admin_api_client, product):
