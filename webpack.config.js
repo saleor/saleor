@@ -7,10 +7,11 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const PostcssPresetEnv = require('postcss-preset-env');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 const sourceDir = path.join(__dirname, './src/');
 const distDir = path.join(__dirname, './dist/');
-const devMode = process.env.NODE_ENV !== 'production';
+const devMode = process.argv.indexOf('-p') < 0;
 
 module.exports = {
   resolve: {
@@ -30,7 +31,7 @@ module.exports = {
   },
   output: {
     path: distDir,
-    filename: 'js/[name].js',
+    filename: devMode ? 'js/[name].js' : 'js/[name].[contenthash].js',
     publicPath: '/',
   },
   devtool: 'source-map',
@@ -78,7 +79,7 @@ module.exports = {
           {
             loader: 'file-loader',
             options: {
-              name: '[name].[ext]',
+              name: '[name].[hash].[ext]',
               outputPath: 'fonts/',
             },
           },
@@ -90,7 +91,7 @@ module.exports = {
           {
             loader: 'file-loader',
             options: {
-              name: '[name].[ext]',
+              name: '[name].[hash].[ext]',
               outputPath: 'images/',
             }
           },
@@ -114,6 +115,11 @@ module.exports = {
       },
     ]
   },
+  optimization: {
+    minimizer: [
+      new OptimizeCSSAssetsPlugin({})
+    ]
+  },
   plugins: [
     new CleanWebpackPlugin([distDir]),
     new HtmlWebpackPlugin({
@@ -122,8 +128,8 @@ module.exports = {
       googleTagManager: 'GTM-KL4NB3Z'
     }),
     new MiniCssExtractPlugin({
-      filename: devMode ? '[name].css' : '[name].[hash].css',
-      chunkFilename: devMode ? '[id].css' : '[id].[hash].css'
+      filename: devMode ? 'css/[name].css' : 'css/[name].[contenthash].css',
+      chunkFilename: devMode ? '[id].css' : '[id].[contenthash].css'
     }),
     new CopyWebpackPlugin(
       [{ from: `${sourceDir}images/`, to: `${distDir}images/` }]),
