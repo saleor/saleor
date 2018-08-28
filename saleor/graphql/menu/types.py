@@ -10,8 +10,12 @@ class Menu(CountableDjangoObjectType):
         description = """Represents a single menu - an object that is used
         to help navigate through the store."""
         interfaces = [relay.Node]
+        exclude_fields = ['json_content']
         filter_fields = {}
         model = models.Menu
+
+    def resolve_items(self, info):
+        return self.items.filter(level=0)
 
 
 class MenuItem(CountableDjangoObjectType):

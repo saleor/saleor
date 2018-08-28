@@ -8,7 +8,7 @@ from .account.mutations import (
     StaffUpdate, AddressCreate, AddressUpdate, AddressDelete)
 from .account.resolvers import resolve_users
 from .account.types import User
-from .menu.resolvers import resolve_menus, resolve_menu_items
+from .menu.resolvers import resolve_menu, resolve_menus, resolve_menu_items
 from .menu.types import Menu, MenuItem
 # FIXME: sorting import by putting below line at the beginning breaks app
 from .menu.mutations import (
@@ -86,7 +86,8 @@ class Query(graphene.ObjectType):
         description='List of the shop\'s collections.')
     menu = graphene.Field(
         Menu, id=graphene.Argument(graphene.ID),
-        description='Lookup a menu by ID.')
+        name=graphene.Argument(graphene.String, description="Menu name."),
+        description='Lookup a menu by ID or name.')
     menus = DjangoFilterConnectionField(
         Menu, query=graphene.String(description=DESCRIPTIONS['menu']),
         description="List of the shop\'s menus.")
@@ -176,8 +177,8 @@ class Query(graphene.ObjectType):
     def resolve_users(self, info, query=None, **kwargs):
         return resolve_users(info, query=query)
 
-    def resolve_menu(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, Menu)
+    def resolve_menu(self, info, id=None, name=None):
+        return resolve_menu(info, id, name)
 
     def resolve_menus(self, info, query=None, **kwargs):
         return resolve_menus(info, query)
