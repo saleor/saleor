@@ -79,15 +79,15 @@ def test_collection_translation(settings, collection):
     assert collection.translated.name == french_name
 
 
-def test_category_translation(settings, default_category):
+def test_category_translation(settings, category):
     settings.LANGUAGE_CODE = 'fr'
     french_name = 'French name'
     french_description = 'French description'
     CategoryTranslation.objects.create(
         language_code='fr', name=french_name, description=french_description,
-        category=default_category)
-    assert default_category.translated.name == french_name
-    assert default_category.translated.description == french_description
+        category=category)
+    assert category.translated.name == french_name
+    assert category.translated.description == french_description
 
 
 def test_product_variant_translation(settings, variant):
