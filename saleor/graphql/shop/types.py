@@ -4,6 +4,7 @@ from django_countries import countries
 from graphql_jwt.decorators import permission_required
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
+from ...core.i18n import VAT_RATE_TYPE_TRANSLATIONS
 from ...core.permissions import get_permissions
 from ...site import models as site_models
 from ..core.types.common import (
@@ -75,6 +76,9 @@ class Shop(graphene.ObjectType):
     track_inventory_by_default = graphene.Boolean(
         description='Enable inventory tracking')
     default_weight_unit = WeightUnitsEnum(description='Default weight unit')
+    tax_reduced_rate_goods = graphene.List(
+        graphene.String,
+        description='List of all types of goods applicable to reduced tax rate.')
 
     class Meta:
         description = '''
@@ -132,6 +136,11 @@ class Shop(graphene.ObjectType):
 
     def resolve_header_text(self, info):
         return info.context.site.settings.header_text
+
+    @permission_required('site.manage_settings')
+    def resolve_tax_reduced_rate_goods(self, info):
+        return list(VAT_RATE_TYPE_TRANSLATIONS.keys())
+
 
     def resolve_include_taxes_in_prices(self, info):
         return info.context.site.settings.include_taxes_in_prices
