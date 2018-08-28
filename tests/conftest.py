@@ -100,6 +100,15 @@ def site_settings(db, settings):
         name="mirumee.com", domain="mirumee.com")[0]
     obj = SiteSettings.objects.get_or_create(site=site)[0]
     settings.SITE_ID = site.pk
+
+    # Default menus are created in migrations.
+    main_menu = Menu.objects.get(
+        name=settings.DEFAULT_MENUS['top_menu_name'])
+    secondary_menu = Menu.objects.get(
+        name=settings.DEFAULT_MENUS['bottom_menu_name'])
+    obj.top_menu = main_menu
+    obj.bottom_menu = secondary_menu
+    obj.save()
     return obj
 
 
