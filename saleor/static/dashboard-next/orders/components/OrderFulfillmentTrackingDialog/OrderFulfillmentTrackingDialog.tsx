@@ -1,5 +1,5 @@
 import Button from "@material-ui/core/Button";
-import Dialog, { DialogProps } from "@material-ui/core/Dialog";
+import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
@@ -19,15 +19,7 @@ interface OrderFulfillmentTrackingDialogProps {
 
 const OrderFulfillmentTrackingDialog: React.StatelessComponent<
   OrderFulfillmentTrackingDialogProps
-> = ({
-  children,
-  open,
-  variant,
-  trackingCode,
-  onConfirm,
-  onClose,
-  onChange
-}) => (
+> = ({ open, variant, trackingCode, onConfirm, onClose, onChange }) => (
   <Dialog open={open}>
     <DialogTitle>
       {variant === "edit"

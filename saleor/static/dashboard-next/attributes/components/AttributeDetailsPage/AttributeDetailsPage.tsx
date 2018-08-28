@@ -1,6 +1,4 @@
-import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
-import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
 import DialogContentText from "@material-ui/core/DialogContentText";
