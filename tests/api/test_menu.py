@@ -6,7 +6,42 @@ from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 
 
-def test_menu_query(user_api_client, menu, menu_item):
+def test_menu_query(user_api_client, menu):
+    query = """
+    query menu($id: ID, $menu_name: String){
+        menu(id: $id, name: $menu_name) {
+            name
+        }
+    }
+    """
+
+    # test query by name
+    variables = json.dumps({'menu_name': menu.name})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    assert content['data']['menu']['name'] == menu.name
+
+    # test query by id
+    menu_id = graphene.Node.to_global_id('Menu', menu.id)
+    variables = json.dumps({'id': menu_id})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    assert content['data']['menu']['name'] == menu.name
+
+    # test query by invalid name returns null
+    variables = json.dumps({'menu_name': 'not-a-menu'})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    assert not content['data']['menu']
+
+
+def test_menus_query(user_api_client, menu, menu_item):
     query = """
     query menus($menu_name: String){
         menus(query: $menu_name) {
