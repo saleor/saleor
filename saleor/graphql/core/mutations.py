@@ -90,6 +90,27 @@ class BaseMutation(graphene.Mutation):
         return instances
 
 
+    @classmethod
+    def clean_instance(cls, instance, errors):
+        """Clean the instance that was created using the input data.
+
+        Once a instance is created, this method runs `full_clean()` to perform
+        model fields' validation. Returns errors ready to be returned by
+        the GraphQL response (if any occured).
+        """
+        try:
+            instance.full_clean()
+        except ValidationError as validation_errors:
+            message_dict = validation_errors.message_dict
+            for field in message_dict:
+                if field in cls._meta.exclude:
+                    continue
+                for message in message_dict[field]:
+                    field = snake_to_camel_case(field)
+                    cls.add_error(errors, field, message)
+        return errors
+
+
 class ModelMutation(BaseMutation):
     class Meta:
         abstract = True
@@ -197,26 +218,6 @@ class ModelMutation(BaseMutation):
             else:
                 f.save_form_data(instance, cleaned_data[f.name])
         return instance
-
-    @classmethod
-    def clean_instance(cls, instance, errors):
-        """Clean the instance that was created using the input data.
-
-        Once a instance is created, this method runs `full_clean()` to perform
-        model fields' validation. Returns errors ready to be returned by
-        the GraphQL response (if any occured).
-        """
-        try:
-            instance.full_clean()
-        except ValidationError as validation_errors:
-            message_dict = validation_errors.message_dict
-            for field in message_dict:
-                if field in cls._meta.exclude:
-                    continue
-                for message in message_dict[field]:
-                    field = snake_to_camel_case(field)
-                    cls.add_error(errors, field, message)
-        return errors
 
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):
