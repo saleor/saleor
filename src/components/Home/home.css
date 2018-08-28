@@ -240,7 +240,6 @@
               margin-bottom: var(--spacer);
             }
             &:first-of-type {
-              width: 60%;
               font-weight: var(--font-weight-medium);
               @media (max-width: 768px) {
                 width: 100%;
@@ -553,12 +552,12 @@
         position: absolute;
         background: rgba(19,13,69,0.4);
         right: 20.5%;
-        top: 17%;
+        top: 14%;
         @media (max-width: 1024px) {
-          top: 14%;
+          top: 9%;
         }
         @media (max-width: 768px) {
-          top: 9%;
+          top: 12%;
         }
         @media (max-width: 450px) {
           top: -2%;

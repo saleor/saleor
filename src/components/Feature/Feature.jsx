@@ -23,18 +23,21 @@ import search from '../../images/search.png';
 import staffManagement from '../../images/staff-management.png';
 import gdprReady from '../../images/gdpr-ready.png';
 import analytics from '../../images/analytics.png';
-
+import patchGardenLogo from '../../images/patch-garden.png';
 
 const Feature = () => (
+  <div>
+    
     <div id="feature">
       <section className="hero">
-        <div className="bg-container"></div>
+        <div className="feature bg-container"></div>
         <div className="plane">
           <h1 className="title">A GraphQL-first ecommerce platform for perfectionists.</h1>
         </div>
         <ScrollLink to="#testimonial"> Learn more </ScrollLink>
       </section>
       <section id="testimonial" className="testimonial">
+        <img classname="logo" src={patchGardenLogo}  />
         <p className="comment quote text-light">“After actively using and developing our Saleor store for over a year, if I were to create a new shop today I would go for it again without a doubt.”</p>
         <div className="testimonial-author">
           <h5 className="name">Tyler Hildebrandt,</h5>
@@ -243,6 +246,7 @@ const Feature = () => (
       </section>
       <GitHubBanner />
     </div>
+  </div>
 );
 
 export default Feature;

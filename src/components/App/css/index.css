@@ -168,7 +168,7 @@ ul {
           height: calc(var(--border-width) * 2);
           bottom: 0;
           left: 0;
-          top: calc(var(--spacer) * 1.5);
+          top: calc(var(--spacer) * 2);
           position: absolute;
           transform: skewX(-20deg);
           background: var(--primaryColor);

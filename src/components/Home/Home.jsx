@@ -284,7 +284,7 @@ class Home extends Component {
                     </div>
                   </div>
                   <div className="col-xs-12 col-sm-12 col-md-6">
-                    <img src="../../images/implementation1.png" />
+                    <img src="../../images/implementation2.png" />
                     <div className="text-center">
                     <a className="btn btn-primary" href="#">Visit website</a>
                     </div>
