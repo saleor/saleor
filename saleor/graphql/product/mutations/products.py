@@ -246,9 +246,9 @@ class ProductCreate(ModelMutation):
             if instance.pk else cleaned_input.get('product_type'))
 
         if attributes and product_type:
+            qs = product_type.product_attributes.prefetch_related('values')
             try:
-                attributes = attributes_to_hstore(
-                    attributes, product_type.product_attributes.all())
+                attributes = attributes_to_hstore(attributes, qs)
             except ValueError as e:
                 cls.add_error(errors, 'attributes', str(e))
             else:
@@ -340,8 +340,8 @@ class ProductVariantCreate(ModelMutation):
 
         if attributes and product_type:
             try:
-                attributes = attributes_to_hstore(
-                    attributes, product_type.variant_attributes.all())
+                qs = product_type.variant_attributes.prefetch_related('values')
+                attributes = attributes_to_hstore(attributes, qs)
             except ValueError as e:
                 cls.add_error(errors, 'attributes', str(e))
             else:

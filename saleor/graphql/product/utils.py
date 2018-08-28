@@ -12,7 +12,7 @@ def attributes_to_hstore(attribute_value_input, attributes_queryset):
     a dict of IDs. This function transforms the list of `AttributeValueInput`
     objects to this format.
     """
-    attributes_map = dict(attributes_queryset.values_list('slug', 'id'))
+    attributes_map = {attr.slug: attr.id for attr in attributes_queryset}
 
     attributes_hstore = {}
     values_map = dict(
@@ -36,9 +36,8 @@ def attributes_to_hstore(attribute_value_input, attributes_queryset):
             # `value_id` was not found; create a new AttributeChoiceValue
             # instance from the provided `value`.
             attr_instance = ProductAttribute.objects.get(slug=attr_slug)
-            obj = AttributeChoiceValue.objects.get_or_create(
-                attribute_id=attr_instance.pk, name=value,
-                slug=slugify(value))[0]
+            obj = attr_instance.values.get_or_create(
+                name=value, slug=slugify(value))[0]
             value_id = obj.pk
 
         attributes_hstore[str(attribute_id)] = str(value_id)
