@@ -7,7 +7,6 @@ from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
 from ....core.permissions import get_permissions
 from ....site import models as site_models
-from ....menu import models as menu_models
 from ...menu.types import Menu
 from ...utils import format_permissions_for_display
 from .common import CountryDisplay, LanguageDisplay, PermissionDisplay
