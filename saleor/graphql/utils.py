@@ -1,12 +1,9 @@
 import graphene
 from django.db.models import Q
-from django.utils.encoding import smart_text
-from django.utils.text import slugify
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
 from graphql_relay import from_global_id
 
-from ..product.models import AttributeChoiceValue, ProductAttribute
 from .core.types.common import PermissionDisplay
 
 registry = get_global_registry()
@@ -61,39 +58,6 @@ def get_nodes(ids, graphene_type=None):
         assert pk in nodes_pk_list, (
             'There is no node of type {} with pk {}'.format(_type, pk))
     return nodes
-
-
-def get_attributes_dict_from_list(attributes, slug_to_id_map):
-    """
-    :param attributes: list
-    :return: dict
-    Takes list on form [{"slug": "attr_slug", "value": "attr_value"}, {...}]
-    and converts into dictionary {attr_pk: value_pk}
-    """
-    attr_ids = {}
-    value_slug_id = dict(
-        AttributeChoiceValue.objects.values_list('name', 'id'))
-    for attribute in attributes:
-        attr_slug = attribute.get('slug')
-        if attr_slug not in slug_to_id_map:
-            raise ValueError(
-                'Attribute %r doesn\'t belong to given product type.' % (
-                    attr_slug,))
-        value = attribute.get('value')
-        if not value:
-            continue
-
-        if not value_slug_id.get(value):
-            attr = ProductAttribute.objects.get(slug=attr_slug)
-            value = AttributeChoiceValue(
-                attribute_id=attr.pk, name=value, slug=slugify(value))
-            value.save()
-            attr_ids[smart_text(
-                slug_to_id_map.get(attr_slug))] = smart_text(value.pk)
-        else:
-            attr_ids[smart_text(slug_to_id_map.get(attr_slug))] = smart_text(
-                value_slug_id.get(value))
-    return attr_ids
 
 
 def filter_by_query_param(queryset, query, search_fields):
