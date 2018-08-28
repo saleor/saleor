@@ -16,7 +16,7 @@ class Header extends Component {
     this.toggleMenu = this.toggleMenu.bind(this);
     this.closeNewsBar = this.closeNewsBar.bind(this);
     const { cookieValue } = 
-    this.state = { mobileMenu: false, visibleNewsBar: cookies.get('newsbar') ? false : true}
+    this.state = { mobileMenu: false, visibleNewsBar: cookies.get('newsbar') ? false : true, sticky: false}
   }
 
   toggleMenu = () => {
@@ -34,9 +34,22 @@ class Header extends Component {
     this.setState({visibleNewsBar: false});
   }
 
+  componentDidMount() {
+    window.addEventListener('scroll', this.handleScroll.bind(this), true);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('scroll', this.handleScroll.bind(this), false);
+  }
+
+  handleScroll = (event) => {
+    const scrollPosition = document.body.scrollTop;
+    if (scrollPosition > 20) { this.setState({sticky: true}); } else { this.setState({sticky: false}); }
+  }
+
   render() {
     return (
-      <header>
+      <header className={this.state.sticky ? 'sticky' : null}>
         {this.state.visibleNewsBar ?
         <div className="news">
           <div className="content">
