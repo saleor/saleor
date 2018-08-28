@@ -12,8 +12,8 @@ in terms of weight.
 In the end, it does not really matter unless you travel between
 different planets.
 """
-from enum import Enum
 from decimal import Decimal
+from enum import Enum
 
 from django import forms
 from django.contrib.sites.models import Site

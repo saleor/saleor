@@ -1,9 +1,11 @@
 
 import graphene
-from ..core.mutations import ModelMutation
-from ..core.types.common import WeightUnitsEnum
 
 from ...site import models
+from ..core.mutations import BaseMutation
+from ..core.types.common import WeightUnitsEnum
+from .types import SiteSettings
+
 
 class SiteSettingsInput(graphene.InputObjectType):
     domain = graphene.String(description='Domain name for shop')
@@ -24,22 +26,30 @@ class SiteSettingsInput(graphene.InputObjectType):
     default_weight_unit = WeightUnitsEnum(description='Default weight unit')
 
 
-class SiteSettingsUpdate(ModelMutation):
+class SiteSettingsUpdate(BaseMutation):
     class Arguments:
-        id = graphene.ID(
-            description='ID of a customer to update.', required=True)
         input = SiteSettingsInput(
             description='Fields required to update site settings.',
             required=True)
 
-    class Meta:
-        model = models.SiteSettings
-        exclude = ['translated']
+    site_settings = graphene.Field(
+        SiteSettings, description='Current site settings')
 
     @classmethod
-    def save(cls, info, instance, cleaned_input):
-        domain = cleaned_input.get('domain')
+    def mutate(cls, root, info, input):
+        errors = []
+        instance = info.context.site.settings
+        domain = input.pop('domain', None)
         if domain:
             instance.site.domain = domain
-            instance.site.save()
-        super().save(info, instance, cleaned_input)
+            instance.site.save(update_fields=['domain'])
+
+        for field_name, desired_value in input.items():
+            current_value = getattr(instance, field_name)
+            if current_value != desired_value:
+                setattr(instance, field_name, desired_value)
+
+        cls.clean_instance(instance, errors)
+        if errors:
+            return SiteSettingsUpdate(errors=errors)
+        return SiteSettingsUpdate(site_settings=instance, errors=errors)

@@ -89,7 +89,6 @@ class BaseMutation(graphene.Mutation):
             cls.add_error(field=field, message=str(e), errors=errors)
         return instances
 
-
     @classmethod
     def clean_instance(cls, instance, errors):
         """Clean the instance that was created using the input data.
