@@ -12,8 +12,8 @@ from .menu.resolvers import resolve_menu, resolve_menus, resolve_menu_items
 from .menu.types import Menu, MenuItem
 # FIXME: sorting import by putting below line at the beginning breaks app
 from .menu.mutations import (
-    MenuCreate, MenuDelete, MenuUpdate, MenuItemCreate, MenuItemDelete,
-    MenuItemUpdate)
+    AssignMainNavigation, AssignSecondaryNavigation, MenuCreate, MenuDelete,
+    MenuUpdate, MenuItemCreate, MenuItemDelete, MenuItemUpdate)
 from .descriptions import DESCRIPTIONS
 from .discount.resolvers import resolve_sales, resolve_vouchers
 from .discount.types import Sale, Voucher
@@ -245,6 +245,9 @@ class Query(graphene.ObjectType):
 
 
 class Mutations(graphene.ObjectType):
+    assign_main_navigation = AssignMainNavigation.Field()
+    assign_secondary_navigation = AssignSecondaryNavigation.Field()
+
     token_create = CreateToken.Field()
     token_refresh = graphql_jwt.Refresh.Field()
     token_verify = VerifyToken.Field()
