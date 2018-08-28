@@ -37,7 +37,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                 variables={{ id }}
                 fetchPolicy="network-only"
               >
-                {({ data, loading, error, fetchMore }) => {
+                {({ data, loading, error }) => {
                   if (error) {
                     return <ErrorMessageCard message="Something went wrong" />;
                   }
@@ -121,7 +121,8 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                           createProductImage.loading ||
                           deleteProduct.loading ||
                           reorderProductImages.loading ||
-                          updateProduct.loading;
+                          updateProduct.loading ||
+                          loading;
                         const formSubmitState = disableFormSave
                           ? "loading"
                           : "idle";

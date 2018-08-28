@@ -50,7 +50,7 @@ const decorate = withStyles(theme => ({
   toolbar: { marginTop: -theme.spacing.unit / 2 }
 }));
 const ProductImageNavigation = decorate<ProductImageNavigationProps>(
-  ({ classes, disabled, highlighted, images, onRowClick }) => (
+  ({ classes, highlighted, images, onRowClick }) => (
     <Card className={classes.card}>
       <CardTitle title={i18n.t("All photos")} />
       <CardContent>

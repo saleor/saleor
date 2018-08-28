@@ -4,7 +4,8 @@
     "lib": ["es2017", "dom", "esnext"],
     "sourceMap": true,
     "target": "es5",
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   },
   "include": ["webpack.d.ts"]
 }

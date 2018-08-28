@@ -16,12 +16,11 @@ interface ProductVariantUpdateProviderProps
     VariantUpdateMutation,
     VariantUpdateMutationVariables
   >;
-  id: string;
 }
 
 const ProductVariantUpdateProvider: React.StatelessComponent<
   ProductVariantUpdateProviderProps
-> = ({ id, children, onError, onSuccess }) => (
+> = ({ children, onError, onSuccess }) => (
   <TypedVariantUpdateMutation onCompleted={onSuccess} onError={onError}>
     {(mutate, { data, error, loading }) => {
       return children({

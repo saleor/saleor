@@ -105,7 +105,6 @@ export const ProductCreatePage = decorate<ProductCreatePageProps>(
     header,
     productTypes,
     saveButtonBarState,
-    onAttributesEdit,
     onBack,
     onSubmit
   }) => {

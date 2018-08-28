@@ -12,16 +12,19 @@ interface DateFormatterProps {
   typographyProps?: TypographyProps;
 }
 
-const decorate = withStyles(theme => ({ root: { display: "inline" } }), {
-  name: "DateFormatter"
-});
+const decorate = withStyles(
+  { root: { display: "inline" } },
+  {
+    name: "DateFormatter"
+  }
+);
 const DateFormatter = decorate<DateFormatterProps>(
   ({ classes, date, typographyProps }) => {
     return (
       <LocaleConsumer>
-        {locale => (
+        {_ => (
           <Consumer>
-            {dateNow => (
+            {_ => (
               <Typography
                 component="span"
                 className={classes.root}

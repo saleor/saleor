@@ -69,11 +69,8 @@ const CustomerDetailsPage = decorate<CustomerDetailsPageProps>(
     pageInfo,
     onBack,
     onOrderClick,
-    onBillingAddressEdit,
     onCustomerDelete,
     onCustomerEdit,
-    onEmailClick,
-    onShippingAddressEdit,
     onPreviousPage,
     onNextPage
   }) => (

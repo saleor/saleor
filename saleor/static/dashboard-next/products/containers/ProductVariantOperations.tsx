@@ -47,15 +47,11 @@ const VariantUpdateOperations: React.StatelessComponent<
   VariantDeleteOperationsProps
 > = ({ id, children, onError, onDelete, onUpdate }) => {
   return (
-    <VariantImageAssignProvider id={id}>
+    <VariantImageAssignProvider>
       {assignImage => (
-        <VariantImageUnassignProvider id={id}>
+        <VariantImageUnassignProvider>
           {unassignImage => (
-            <VariantUpdateProvider
-              id={id}
-              onError={onError}
-              onSuccess={onUpdate}
-            >
+            <VariantUpdateProvider onError={onError} onSuccess={onUpdate}>
               {updateVariant => (
                 <VariantDeleteProvider
                   id={id}

@@ -116,7 +116,7 @@ export const SaveButtonBar = decorate<SaveButtonBarProps>(
         break;
     }
     return (
-      <div className={classes.root}>
+      <div className={classes.root} {...props}>
         {!!onDelete && (
           <Button
             variant="contained"
