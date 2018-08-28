@@ -9,6 +9,7 @@ import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import i18n from "../../i18n";
+import { decimal } from "../../misc";
 import ProductUpdatePage from "../components/ProductUpdatePage";
 import ProductUpdateOperations from "../containers/ProductUpdateOperations";
 import {
@@ -18,7 +19,6 @@ import {
   productVariantEditUrl
 } from "../index";
 import { productDetailsQuery, TypedProductDetailsQuery } from "../queries";
-import { decimal } from "../../misc";
 
 interface ProductUpdateProps {
   id: string;

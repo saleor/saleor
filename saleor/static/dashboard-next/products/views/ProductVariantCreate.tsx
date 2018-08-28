@@ -6,13 +6,13 @@ import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import { VariantCreateMutation } from "../../gql-types";
 import i18n from "../../i18n";
+import { decimal } from "../../misc";
 import ProductVariantCreatePage from "../components/ProductVariantCreatePage";
 import { TypedVariantCreateMutation } from "../mutations";
 import {
   productVariantCreateQuery,
   TypedProductVariantCreateQuery
 } from "../queries";
-import { decimal } from "../../misc";
 
 interface ProductUpdateProps {
   productId: string;
