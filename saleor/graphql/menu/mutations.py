@@ -1,7 +1,9 @@
 import graphene
+from graphql_jwt.decorators import permission_required
 
 from ...menu import models
-from ..core.mutations import ModelDeleteMutation, ModelMutation
+from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
+from .types import Menu
 
 
 class MenuInput(graphene.InputObjectType):
@@ -142,3 +144,52 @@ class MenuItemDelete(ModelDeleteMutation):
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('menu.manage_menus')
+
+
+class AssignMainNavigation(BaseMutation):
+    menu = graphene.Field(Menu, description='Main navigation bar.')
+
+    class Arguments:
+        menu = graphene.ID(
+            description='ID of the menu to assign as the main navigation bar.')
+
+    class Meta:
+        description = 'Assigns storefront\'s main navigation bar.'
+
+    @classmethod
+    @permission_required(['menu.manage_menus', 'site.manage_settings'])
+    def mutate(cls, root, info, menu=None):
+        errors = []
+        site_settings = info.context.site.settings
+        if menu is not None:
+            menu = cls.get_node_or_error(
+                info, menu, errors=errors, field='menu')
+        if not errors:
+            site_settings.top_menu = menu
+            site_settings.save(update_fields=['top_menu'])
+        return AssignMainNavigation(menu=menu, errors=errors)
+
+
+class AssignSecondaryNavigation(BaseMutation):
+    menu = graphene.Field(Menu, description='Secondary navigation bar.')
+
+    class Arguments:
+        menu = graphene.ID(
+            description=
+            'ID of the menu to assign as the secondary navigation bar.')
+
+    class Meta:
+        description = 'Assigns storefront\'s secondary navigation bar.'
+
+    @classmethod
+    @permission_required(['menu.manage_menus', 'site.manage_settings'])
+    def mutate(cls, root, info, menu=None):
+        errors = []
+        site_settings = info.context.site.settings
+        if menu is not None:
+            menu = cls.get_node_or_error(
+                info, menu, errors=errors, field='menu')
+        if not errors:
+            site_settings.bottom_menu = menu
+            site_settings.save(update_fields=['bottom_menu'])
+        return AssignSecondaryNavigation(menu=menu, errors=errors)
