@@ -10,8 +10,8 @@ from ..core.types.money import Money, TaxedMoney
 class Order(CountableDjangoObjectType):
     is_paid = graphene.Boolean(
         description='Informs if an order is fully paid.')
-    order_id = graphene.Int(
-        description='User-friendly ID of an order.')
+    number = graphene.String(
+        description='User-friendly number of an order.')
     payment_status = graphene.String(description='Internal payment status.')
     payment_status_display = graphene.String(
         description='User-friendly payment status.')
@@ -28,25 +28,31 @@ class Order(CountableDjangoObjectType):
             'shipping_price_gross', 'shipping_price_net', 'total_gross',
             'total_net']
 
-    def resolve_captured_amount(self, info):
-        payment = self.get_last_payment()
+    @staticmethod
+    def resolve_captured_amount(obj, info):
+        payment = obj.get_last_payment()
         if payment:
             return payment.get_captured_price()
 
-    def resolve_is_paid(self, info):
-        return self.is_fully_paid()
+    @staticmethod
+    def resolve_is_paid(obj, info):
+        return obj.is_fully_paid()
 
-    def resolve_order_id(self, info):
-        return self.pk
+    @staticmethod
+    def resolve_number(obj, info):
+        return str(obj.pk)
 
-    def resolve_payment_status(self, info):
-        return self.get_last_payment_status()
+    @staticmethod
+    def resolve_payment_status(obj, info):
+        return obj.get_last_payment_status()
 
-    def resolve_payment_status_display(self, info):
-        return self.get_last_payment_status_display()
+    @staticmethod
+    def resolve_payment_status_display(obj, info):
+        return obj.get_last_payment_status_display()
 
-    def resolve_status_display(self, info):
-        return self.get_status_display()
+    @staticmethod
+    def resolve_status_display(obj, info):
+        return obj.get_status_display()
 
 
 class OrderHistoryEntry(CountableDjangoObjectType):

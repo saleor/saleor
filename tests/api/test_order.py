@@ -22,7 +22,7 @@ def test_order_query(admin_api_client, fulfilled_order):
         orders(first: 1) {
             edges {
                 node {
-                    orderId
+                    number
                     status
                     statusDisplay
                     paymentStatus
@@ -65,7 +65,7 @@ def test_order_query(admin_api_client, fulfilled_order):
     content = get_graphql_content(response)
     assert 'errors' not in content
     order_data = content['data']['orders']['edges'][0]['node']
-    assert order_data['orderId'] == order.pk
+    assert order_data['number'] == str(order.pk)
     assert order_data['status'] == order.status.upper()
     assert order_data['statusDisplay'] == order.get_status_display()
     assert order_data['paymentStatus'] == order.get_last_payment_status()
@@ -90,7 +90,7 @@ def test_non_staff_user_can_only_see_his_order(user_api_client, order):
     query = """
     query OrderQuery($id: ID!) {
         order(id: $id) {
-            orderId
+            number
         }
     }
     """
@@ -100,7 +100,7 @@ def test_non_staff_user_can_only_see_his_order(user_api_client, order):
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     order_data = content['data']['order']
-    assert order_data['orderId'] == order.pk
+    assert order_data['number'] == str(order.pk)
 
     order.user = None
     order.save()
