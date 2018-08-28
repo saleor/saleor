@@ -50,6 +50,9 @@ function loadStories() {
   require("./stories/customers/CustomerEditPage");
   require("./stories/customers/CustomerListPage");
 
+  // Menus
+  require("./stories/menus/MenuListPage");
+
   // Pages
   require("./stories/pages/PageContent");
   require("./stories/pages/PageDeleteDialog");
