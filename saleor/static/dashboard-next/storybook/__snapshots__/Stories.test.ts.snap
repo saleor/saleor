@@ -16290,7 +16290,7 @@ exports[`Storyshots Views / Collections / Collection list when loading 1`] = `
 exports[`Storyshots Views / Configuration default 1`] = `
 <div>
   <div
-    class="Component-md-id "
+    class="Component-md-id"
   >
     <div
       class="Component-root-id"
