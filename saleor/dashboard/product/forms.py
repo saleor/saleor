@@ -13,6 +13,7 @@ from mptt.forms import TreeNodeChoiceField
 from . import ProductBulkAction
 from ...core.i18n import VAT_RATE_TYPE_TRANSLATIONS
 from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME, include_taxes_in_prices
+from ...core.weight import WeightField, get_default_weight_unit
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, VariantImage)
@@ -68,6 +69,12 @@ class ProductTypeForm(forms.ModelForm):
     tax_rate = forms.ChoiceField(
         required=False,
         label=pgettext_lazy('Product type tax rate type', 'Tax rate'))
+    weight = WeightField(
+        label=pgettext_lazy('ProductType weight', 'Weight'),
+        help_text=pgettext_lazy(
+            'ProductVariant weight help text',
+            'Default weight that will be used for calculating shipping'
+            ' price for products of that type.'))
 
     class Meta:
         model = ProductType
@@ -208,6 +215,12 @@ class ProductForm(forms.ModelForm, AttributesMixin):
         label=pgettext_lazy('Add to collection select', 'Collections'))
     description = RichTextField(
         label=pgettext_lazy('Description', 'Description'))
+    weight = WeightField(
+        required=False, label=pgettext_lazy('ProductType weight', 'Weight'),
+        help_text=pgettext_lazy(
+            'Product weight field help text',
+            'Weight will be used to calculate shipping price, '
+            'if empty, equal to default value used on the ProductType.'))
 
     model_attributes_field = 'attributes'
 
@@ -247,6 +260,12 @@ class ProductForm(forms.ModelForm, AttributesMixin):
             self.fields['price'].label = pgettext_lazy(
                 'Currency net amount', 'Net price')
 
+        if not product_type.is_shipping_required:
+            del self.fields['weight']
+        else:
+            self.fields['weight'].widget.attrs['placeholder'] = (
+                product_type.weight.value)
+
     def clean_seo_description(self):
         seo_description = prepare_seo_description(
             seo_description=self.cleaned_data['seo_description'],
@@ -266,11 +285,17 @@ class ProductForm(forms.ModelForm, AttributesMixin):
 
 class ProductVariantForm(forms.ModelForm, AttributesMixin):
     model_attributes_field = 'attributes'
+    weight = WeightField(
+        required=False, label=pgettext_lazy('ProductVariant weight', 'Weight'),
+        help_text=pgettext_lazy(
+            'ProductVariant weight help text',
+            'Weight will be used to calculate shipping price. '
+            'If empty, weight from Product or ProductType will be used.'))
 
     class Meta:
         model = ProductVariant
         fields = [
-            'sku', 'price_override',
+            'sku', 'price_override', 'weight',
             'quantity', 'cost_price', 'track_inventory']
         labels = {
             'sku': pgettext_lazy('SKU', 'SKU'),
@@ -306,6 +331,13 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
                 'Override price', 'Selling net price override')
             self.fields['cost_price'].label = pgettext_lazy(
                 'Currency amount', 'Cost net price')
+
+        if not self.instance.product.product_type.is_shipping_required:
+            del self.fields['weight']
+        else:
+            self.fields['weight'].widget.attrs['placeholder'] = (
+                getattr(self.instance.product.weight, 'value', None) or
+                self.instance.product.product_type.weight.value)
 
     def save(self, commit=True):
         attributes = self.get_saved_attributes()

@@ -258,8 +258,7 @@ def product_type_create(request):
 @permission_required('product.manage_products')
 def product_type_edit(request, pk):
     product_type = get_object_or_404(ProductType, pk=pk)
-    form = forms.ProductTypeForm(
-        request.POST or None, instance=product_type)
+    form = forms.ProductTypeForm(request.POST or None, instance=product_type)
     if form.is_valid():
         product_type = form.save()
         msg = pgettext_lazy(

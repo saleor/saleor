@@ -5,54 +5,53 @@
 {% load staticfiles %}
 
 {% block title %}
-  {% if shipping_method.pk %}
-    {% trans "Edit" context "Dashboard shipping methods" %}
-    - {{ shipping_method }}
+  {% if shipping_zone.pk %}
+    {% trans "Edit" context "Dashboard shipping zones" %} - {{ shipping_zone }}
   {% else %}
-    {% trans "Add new method" context "Shipping method form page title" %}
+    {% trans "Add new shipping zone" context "Shipping zone form page title" %}
   {% endif %}
   - {{ block.super }}
 {% endblock %}
 
-{% block body_class %}body-shipping-methods{% endblock %}
+{% block body_class %}body-shipping-zones{% endblock %}
 
 {% block menu_delivery_class %}active{% endblock %}
 
 {% block page_title %}
-  {% if shipping_method.pk %}
-    {{ shipping_method }}
+  {% if shipping_zone.pk %}
+    {{ shipping_zone }}
   {% else %}
-    {% trans "Add new method" context "Shipping method form page title" %}
+    {% trans "Add new shipping zone" context "Shipping zone form page title" %}
   {% endif %}
 {% endblock %}
 
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
-      <a href="{% url 'dashboard:shipping-methods' %}">
-        {% trans "Shipping methods" context "Dashboard shipping method" %}
+      <a href="{% url 'dashboard:shipping-zone-list' %}">
+        {% trans "Shipping zones" context "Dashboard shipping zone" %}
       </a>
     </li>
     <li class="back-mobile">
-      <a href="{% url 'dashboard:shipping-methods' %}">
+      <a href="{% url 'dashboard:shipping-zone-list' %}">
         <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
-    {% if shipping_method.pk %}
+    {% if shipping_zone.pk %}
     <li>
-      <a href="{% url 'dashboard:shipping-method-details' shipping_method.pk %}" class="breadcrumbs--ellipsed-item">
-        {{ shipping_method }}
+      <a href="{% url 'dashboard:shipping-zone-details' shipping_zone.pk %}" class="breadcrumbs--ellipsed-item">
+        {{ shipping_zone }}
       </a>
     </li>
     <li>
       <span class="breadcrumbs--ellipsed-item">
-        {% trans "Edit" context "Shipping method form page title" %}
+        {% trans "Edit" context "Shipping zone form page title" %}
       </span>
     </li>
     {% else %}
     <li>
       <span class="breadcrumbs--ellipsed-item">
-        {% trans "Add new method" context "Shipping method form breadcrumbs" %}
+        {% trans "Add new shipping zone" context "Shipping zone form breadcrumbs" %}
       </span>
     </li>
     {% endif %}
@@ -73,15 +72,15 @@
             </div>
           </div>
           <div class="card-action right-align">
-            {% if shipping_method.pk %}
-              <a href="{% url 'dashboard:shipping-method-details' shipping_method.pk %}" class="btn-flat waves-effect">
+            {% if shipping_zone.pk %}
+              <a href="{% url 'dashboard:shipping-zone-details' shipping_zone.pk %}" class="btn-flat waves-effect">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect">
                 {% trans "Save" context "Dashboard update action" %}
               </button>
             {% else %}
-              <a href="{% url 'dashboard:shipping-methods' %}" class="btn-flat waves-effect">
+              <a href="{% url 'dashboard:shipping-zone-list' %}" class="btn-flat waves-effect">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect">

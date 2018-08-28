@@ -1,0 +1,27 @@
+{% extends "dashboard/base_modal.html" %}
+
+{% load i18n %}
+
+{% block form_class %}{% endblock %}
+
+{% block action_url %}
+{% url "dashboard:shipping-method-delete" shipping_zone_pk=shipping_zone_pk shipping_method_pk=shipping_method.pk %}
+{% endblock %}
+
+{% block title %}
+{% blocktrans trimmed context "Modal remove shipping method title" %}
+  Remove shipping method {{ shipping_method }}
+{% endblocktrans %}
+{% endblock title %}
+
+{% block content %}
+  <div class="col s12">
+    {% blocktrans trimmed context "Modal remove shipping method shipping method text" %}
+      Are you sure you want to remove shipping method <strong>{{ shipping_method }}</strong>?
+    {% endblocktrans %}
+  </div>
+{% endblock content %}
+
+{% block primary_action %}
+{% trans "Remove" context "Dashboard delete action" %}
+{% endblock %}

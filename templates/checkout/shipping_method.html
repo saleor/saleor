@@ -8,14 +8,22 @@
   {% format_address cart.shipping_address %}
   <p><a href="{% url 'checkout:shipping-address' %}">{% trans "Select other address" %}</a></p>
   <hr>
-  <form method="post" novalidate>
-    {% csrf_token %}
-    <h2>{% trans "Shipping method" context "Checkout shipping method form title" %}</h2>
-    {% bootstrap_form shipping_method_form show_label=False %}
-    <p class="text-md-right">
-      <button type="submit" class="btn primary">
-        {% trans "Continue" context "Checkout shipping method primary action" %}
-      </button>
-    </p>
-  </form>
+  {% if shipping_method_form.shipping_method.field.choices %}
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <h2>{% trans "Shipping method" context "Checkout shipping method form title" %}</h2>
+      {% bootstrap_form shipping_method_form show_label=False %}
+      <p class="text-md-right">
+        <button type="submit" class="btn primary">
+          {% trans "Continue" context "Checkout shipping method primary action" %}
+        </button>
+      </p>
+    </form>
+  {% else %}
+    {% blocktrans context "Message displayed to the user if there's no shipping methods for his country" %}
+      Unfortunately we do not ship to your selected country.
+      <br>
+      Please enter an alternative shipping address or contact us, if you think that's a mistake.
+    {% endblocktrans %}
+  {% endif %}
 {% endblock %}

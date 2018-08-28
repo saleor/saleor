@@ -218,6 +218,7 @@ INSTALLED_APPS = [
     'versatileimagefield',
     'django_babel',
     'bootstrap4',
+    'django_measurement',
     'django_prices',
     'django_prices_openexchangerates',
     'django_prices_vatlayer',

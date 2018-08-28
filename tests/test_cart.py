@@ -3,23 +3,24 @@ from unittest.mock import MagicMock, Mock
 from uuid import uuid4
 
 import pytest
+
 from django.contrib.auth.models import AnonymousUser
 from django.core import signing
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.urls import reverse
+from measurement.measures import Weight
 from prices import Money, TaxedMoney
-
 from saleor.checkout import forms, utils
 from saleor.checkout.context_processors import cart_counter
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import (
     add_variant_to_cart, change_cart_user, find_open_cart_for_user)
-from saleor.checkout.views import update_cart_line, clear_cart
+from saleor.checkout.views import clear_cart, update_cart_line
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.discount.models import Sale
-from saleor.shipping.utils import get_shipment_options
+from saleor.shipping.utils import get_shipping_price_estimate
 
 
 @pytest.fixture()
@@ -626,10 +627,12 @@ def test_get_or_create_db_cart(customer_user, db, rf):
     assert Cart.objects.filter(user__isnull=True).count() == 1
 
 
-def test_get_cart_data(request_cart_with_item, shipping_method, vatlayer):
-    shipment_option = get_shipment_options('PL', vatlayer)
+def test_get_cart_data(request_cart_with_item, shipping_zone, vatlayer):
+    cart = request_cart_with_item
+    shipment_option = get_shipping_price_estimate(
+        cart.get_subtotal().gross, cart.get_total_weight(), 'PL', vatlayer)
     cart_data = utils.get_cart_data(
-        request_cart_with_item, shipment_option, 'USD', None, vatlayer)
+        cart, shipment_option, 'USD', None, vatlayer)
     assert cart_data['cart_total'] == TaxedMoney(
         net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
     assert cart_data['total_with_shipping'].start == TaxedMoney(
@@ -637,9 +640,11 @@ def test_get_cart_data(request_cart_with_item, shipping_method, vatlayer):
 
 
 def test_get_cart_data_no_shipping(request_cart_with_item, vatlayer):
-    shipment_option = get_shipment_options('PL', vatlayer)
+    cart = request_cart_with_item
+    shipment_option = get_shipping_price_estimate(
+        cart.get_subtotal().gross, cart.get_total_weight(), 'PL', vatlayer)
     cart_data = utils.get_cart_data(
-        request_cart_with_item, shipment_option, 'USD', None, vatlayer)
+        cart, shipment_option, 'USD', None, vatlayer)
     cart_total = cart_data['cart_total']
     assert cart_total == TaxedMoney(
         net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
@@ -653,9 +658,9 @@ def test_cart_total_with_discount(request_cart_with_item, sale, vatlayer):
         net=Money('4.07', 'USD'), gross=Money('5.00', 'USD'))
 
 
-def test_cart_taxes(request_cart_with_item, shipping_method, vatlayer):
+def test_cart_taxes(request_cart_with_item, shipping_zone, vatlayer):
     cart = request_cart_with_item
-    cart.shipping_method = shipping_method.price_per_country.get()
+    cart.shipping_method = shipping_zone.shipping_methods.get()
     cart.save()
     taxed_price = TaxedMoney(net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
     assert cart.get_shipping_price(taxes=vatlayer) == taxed_price
@@ -677,3 +682,13 @@ def test_clear_cart(request_cart_with_item, client):
         HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     assert response.status_code == 200
     assert len(cart.lines.all()) == 0
+
+
+def test_get_total_weight(cart_with_item):
+    line = cart_with_item.lines.first()
+    variant = line.variant
+    variant.weight = Weight(kg=10)
+    variant.save()
+    line.quantity = 6
+    line.save()
+    assert cart_with_item.get_total_weight() == Weight(kg=60)
