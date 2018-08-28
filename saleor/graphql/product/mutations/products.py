@@ -553,21 +553,20 @@ class ProductImageReorder(BaseMutation):
         if len(images_ids) != product.images.count():
             cls.add_error(
                 errors, 'order', 'Incorrect number of image IDs provided.')
-        images = [
-            cls.get_node_or_error(
+        images = []
+        for image_id in images_ids:
+            image = cls.get_node_or_error(
                 info, image_id, errors, 'order', only_type=ProductImage)
-            for image_id in images_ids]
-        if not errors:
-            for image in images:
-                if image.product != product:
-                    cls.add_error(
-                        errors, 'order',
-                        "Image with id %r does not belong to product %r" % (
-                            image.id, product_id))
+            if image and image.product != product:
+                cls.add_error(
+                    errors, 'order',
+                    "Image with id %r does not belong to product %r" % (
+                        image_id, product_id))
+            images.append(image)
         if not errors:
             for order, image in enumerate(images):
                 image.sort_order = order
-                image.save()
+                image.save(update_fields=['sort_order'])
         return ProductImageReorder(
             product=product, images=images, errors=errors)
 
