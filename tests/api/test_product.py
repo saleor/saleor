@@ -371,7 +371,7 @@ def test_attributes_in_category_query(user_api_client, product):
 
 
 def test_create_product(
-        admin_api_client, product_type, default_category, size_attribute):
+        admin_api_client, product_type, category, size_attribute):
     query = """
         mutation createProduct(
             $productTypeId: ID!,
@@ -430,7 +430,7 @@ def test_create_product(
     product_type_id = graphene.Node.to_global_id(
         'ProductType', product_type.pk)
     category_id = graphene.Node.to_global_id(
-        'Category', default_category.pk)
+        'Category', category.pk)
     product_description = 'test description'
     product_name = 'test name'
     product_isPublished = True
@@ -474,7 +474,7 @@ def test_create_product(
     assert data['product']['chargeTaxes'] == product_chargeTaxes
     assert data['product']['taxRate'] == product_taxRate
     assert data['product']['productType']['name'] == product_type.name
-    assert data['product']['category']['name'] == default_category.name
+    assert data['product']['category']['name'] == category.name
     values = (
         data['product']['attributes'][0]['value']['slug'],
         data['product']['attributes'][1]['value']['slug'])
@@ -483,8 +483,7 @@ def test_create_product(
 
 
 def test_update_product(
-        admin_api_client, default_category, non_default_category,
-        product):
+        admin_api_client, category, non_default_category, product):
     query = """
         mutation updateProduct(
             $productId: ID!,
@@ -570,7 +569,7 @@ def test_update_product(
     assert data['product']['isPublished'] == product_isPublished
     assert data['product']['chargeTaxes'] == product_chargeTaxes
     assert data['product']['taxRate'] == product_taxRate
-    assert not data['product']['category']['name'] == default_category.name
+    assert not data['product']['category']['name'] == category.name
 
 
 def test_delete_product(admin_api_client, product):

@@ -268,7 +268,7 @@ def size_attribute(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def default_category(db):  # pylint: disable=W0613
+def category(db):  # pylint: disable=W0613
     return Category.objects.create(name='Default', slug='default')
 
 
@@ -297,15 +297,14 @@ def product_type(color_attribute, size_attribute):
 
 
 @pytest.fixture
-def product(product_type, default_category):
+def product(product_type, category):
     product_attr = product_type.product_attributes.first()
     attr_value = product_attr.values.first()
     attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
 
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
-        product_type=product_type, attributes=attributes,
-        category=default_category)
+        product_type=product_type, attributes=attributes, category=category)
 
     variant_attr = product_type.variant_attributes.first()
     variant_attr_value = variant_attr.values.first()
@@ -327,37 +326,34 @@ def variant(product):
 
 
 @pytest.fixture
-def product_without_shipping(default_category):
+def product_without_shipping(category):
     product_type = ProductType.objects.create(
         name='Type with no shipping', has_variants=False,
         is_shipping_required=False)
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
-        product_type=product_type, category=default_category)
+        product_type=product_type, category=category)
     ProductVariant.objects.create(product=product, sku='SKU_B')
     return product
 
 
 @pytest.fixture
-def product_list(product_type, default_category):
+def product_list(product_type, category):
     product_attr = product_type.product_attributes.first()
     attr_value = product_attr.values.first()
     attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
 
     product_1 = Product.objects.create(
-        name='Test product 1', price=Money('10.00', 'USD'),
-        product_type=product_type, attributes=attributes, is_published=True,
-        category=default_category)
+        name='Test product 1', price=Money('10.00', 'USD'), category=category,
+        product_type=product_type, attributes=attributes, is_published=True)
 
     product_2 = Product.objects.create(
-        name='Test product 2', price=Money('20.00', 'USD'),
-        product_type=product_type, attributes=attributes, is_published=False,
-        category=default_category)
+        name='Test product 2', price=Money('20.00', 'USD'), category=category,
+        product_type=product_type, attributes=attributes, is_published=False)
 
     product_3 = Product.objects.create(
-        name='Test product 3', price=Money('20.00', 'USD'),
-        product_type=product_type, attributes=attributes, is_published=True,
-        category=default_category)
+        name='Test product 3', price=Money('20.00', 'USD'), category=category,
+        product_type=product_type, attributes=attributes, is_published=True)
 
     return [product_1, product_2, product_3]
 
@@ -390,19 +386,18 @@ def product_with_image(product, product_image):
 
 
 @pytest.fixture
-def unavailable_product(product_type, default_category):
+def unavailable_product(product_type, category):
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
-        product_type=product_type, is_published=False,
-        category=default_category)
+        product_type=product_type, is_published=False, category=category)
     return product
 
 
 @pytest.fixture
-def product_with_images(product_type, default_category):
+def product_with_images(product_type, category):
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
-        product_type=product_type, category=default_category)
+        product_type=product_type, category=category)
     file_mock_0 = MagicMock(spec=File, name='FileMock0')
     file_mock_0.name = 'image0.jpg'
     file_mock_1 = MagicMock(spec=File, name='FileMock1')
@@ -419,11 +414,11 @@ def voucher(db):  # pylint: disable=W0613
 
 @pytest.fixture()
 def order_with_lines(
-        order, product_type, default_category, shipping_zone, vatlayer):
+        order, product_type, category, shipping_zone, vatlayer):
     taxes = vatlayer
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
-        product_type=product_type, category=default_category)
+        product_type=product_type, category=category)
     variant = ProductVariant.objects.create(
         product=product, sku='SKU_A', cost_price=Money(1, 'USD'), quantity=5,
         quantity_allocated=3)
@@ -438,7 +433,7 @@ def order_with_lines(
 
     product = Product.objects.create(
         name='Test product 2', price=Money('20.00', 'USD'),
-        product_type=product_type, category=default_category)
+        product_type=product_type, category=category)
     variant = ProductVariant.objects.create(
         product=product, sku='SKU_B', cost_price=Money(2, 'USD'), quantity=2,
         quantity_allocated=2)
@@ -551,9 +546,9 @@ def payment_input(order_with_lines):
 
 
 @pytest.fixture()
-def sale(default_category, collection):
+def sale(category, collection):
     sale = Sale.objects.create(name="Sale", value=5)
-    sale.categories.add(default_category)
+    sale.categories.add(category)
     sale.collections.add(collection)
     return sale
 
@@ -647,12 +642,10 @@ def menu_item(menu):
 
 
 @pytest.fixture
-def menu_with_items(menu, default_category, collection):
+def menu_with_items(menu, category, collection):
     menu.items.create(name='Link 1', url='http://example.com/')
     menu_item = menu.items.create(name='Link 2', url='http://example.com/')
-    menu.items.create(
-        name=default_category.name, category=default_category,
-        parent=menu_item)
+    menu.items.create(name=category.name, category=category, parent=menu_item)
     menu.items.create(
         name=collection.name, collection=collection, parent=menu_item)
     update_menu(menu)

@@ -49,13 +49,13 @@ def test_voucher_shipping_add(admin_client):
     assert voucher.min_amount_spent == Money('59.99', 'USD')
 
 
-def test_view_sale_add(admin_client, default_category, collection):
+def test_view_sale_add(admin_client, category, collection):
     url = reverse('dashboard:sale-add')
     data = {
         'name': 'Free products',
         'type': DiscountValueType.PERCENTAGE,
         'value': 100,
-        'categories': [default_category.id],
+        'categories': [category.id],
         'collections': [collection.id],
         'start_date': '2018-01-01'}
 
@@ -65,12 +65,12 @@ def test_view_sale_add(admin_client, default_category, collection):
     assert Sale.objects.count() == 1
     sale = Sale.objects.first()
     assert sale.name == data['name']
-    assert default_category in sale.categories.all()
+    assert category in sale.categories.all()
     assert collection in sale.collections.all()
 
 
 def test_view_sale_add_requires_product_category_or_collection(
-        admin_client, default_category, product, collection):
+        admin_client, category, product, collection):
     initial_sales_count = Sale.objects.count()
     url = reverse('dashboard:sale-add')
     data = {
@@ -84,7 +84,7 @@ def test_view_sale_add_requires_product_category_or_collection(
     assert response.status_code == 200
     assert Sale.objects.count() == initial_sales_count
     products_data = [
-        {'categories': [default_category.id]},
+        {'categories': [category.id]},
         {'products': [product.id]}, {'collections': [collection.pk]}]
     for count, proper_data in enumerate(products_data):
         proper_data.update(data)

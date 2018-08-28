@@ -108,7 +108,7 @@ def test_category_create_mutation(admin_api_client):
     assert data['category']['parent']['id'] == parent_id
 
 
-def test_category_update_mutation(admin_api_client, default_category):
+def test_category_update_mutation(admin_api_client, category):
     query = """
         mutation($id: ID!, $name: String, $slug: String, $description: String) {
             categoryUpdate(
@@ -136,7 +136,7 @@ def test_category_update_mutation(admin_api_client, default_category):
     """
     # create child category and test that the update mutation won't change
     # it's parent
-    child_category = default_category.children.create(name='child')
+    child_category = category.children.create(name='child')
 
     category_name = 'Updated name'
     category_slug = slugify(category_name)
@@ -156,11 +156,11 @@ def test_category_update_mutation(admin_api_client, default_category):
     assert data['category']['name'] == category_name
     assert data['category']['description'] == category_description
 
-    parent_id = graphene.Node.to_global_id('Category', default_category.pk)
+    parent_id = graphene.Node.to_global_id('Category', category.pk)
     assert data['category']['parent']['id'] == parent_id
 
 
-def test_category_delete_mutation(admin_api_client, default_category):
+def test_category_delete_mutation(admin_api_client, category):
     query = """
         mutation($id: ID!) {
             categoryDelete(id: $id) {
@@ -175,19 +175,18 @@ def test_category_delete_mutation(admin_api_client, default_category):
         }
     """
     variables = json.dumps({
-        'id': graphene.Node.to_global_id('Category', default_category.id)})
+        'id': graphene.Node.to_global_id('Category', category.id)})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
     data = content['data']['categoryDelete']
-    assert data['category']['name'] == default_category.name
-    with pytest.raises(default_category._meta.model.DoesNotExist):
-        default_category.refresh_from_db()
+    assert data['category']['name'] == category.name
+    with pytest.raises(category._meta.model.DoesNotExist):
+        category.refresh_from_db()
 
 
-def test_category_level(user_api_client, default_category):
-    category = default_category
+def test_category_level(user_api_client, category):
     query = """
     query leveled_categories($level: Int) {
         categories(level: $level) {
