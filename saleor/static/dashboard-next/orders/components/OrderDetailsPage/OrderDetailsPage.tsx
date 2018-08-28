@@ -381,7 +381,7 @@ class OrderDetailsPageComponent extends React.Component<
                     }
                   }}
                 >
-                  {({ change, data, submit }) => (
+                  {({ change, data }) => (
                     <OrderShippingMethodEditDialog
                       open={openedShippingMethodEditDialog}
                       shippingMethod={data.shippingMethod}
@@ -440,7 +440,7 @@ class OrderDetailsPageComponent extends React.Component<
                               trackingCode: fulfillment.trackingCode
                             }}
                           >
-                            {({ change, data, submit }) => (
+                            {({ change, data }) => (
                               <OrderFulfillmentTrackingDialog
                                 open={openedTrackingDialog}
                                 trackingCode={data.trackingCode}
@@ -486,7 +486,7 @@ class OrderDetailsPageComponent extends React.Component<
                       : { label: "", value: "" }
                   }}
                 >
-                  {({ change, data, submit }) => (
+                  {({ change, data }) => (
                     <OrderCustomerEditDialog
                       open={openedCustomerEditDialog}
                       user={data.email}

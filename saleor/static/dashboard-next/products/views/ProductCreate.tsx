@@ -14,9 +14,9 @@ interface ProductUpdateProps {
   id: string;
 }
 
-export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
-  id
-}) => (
+export const ProductUpdate: React.StatelessComponent<
+  ProductUpdateProps
+> = () => (
   <Messages>
     {pushMessage => {
       return (

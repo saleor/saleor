@@ -69,7 +69,7 @@ export const EditableTableCell = decorate<EditableTableCellProps>(
                 onSubmit={handleConfirm}
                 useForm={false}
               >
-                {({ change, data, submit }) => (
+                {({ change, data }) => (
                   <>
                     <Typography
                       variant="caption"

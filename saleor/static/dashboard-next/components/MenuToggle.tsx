@@ -6,7 +6,7 @@ interface MenuToggleProps {
     | ((
         props: {
           actions: {
-            open: (event: React.MouseEvent<any>) => void;
+            open: () => void;
             close: () => void;
           };
           open: boolean;
@@ -24,7 +24,7 @@ class MenuToggle extends React.Component<MenuToggleProps, MenuToggleState> {
     open: false
   };
 
-  handleClick = (event: React.MouseEvent<any>) => {
+  handleClick = () => {
     this.setState({ open: true });
   };
 

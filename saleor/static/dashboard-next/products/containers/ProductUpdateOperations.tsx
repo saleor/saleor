@@ -58,7 +58,6 @@ const ProductDeleteProvider: React.StatelessComponent<
 
 interface ProductImageCreateProviderProps
   extends PartialMutationProviderProps<ProductImageCreateMutation> {
-  productId: string;
   children: PartialMutationProviderRenderProps<
     ProductImageCreateMutation,
     ProductImageCreateMutationVariables
@@ -67,7 +66,7 @@ interface ProductImageCreateProviderProps
 
 const ProductImageCreateProvider: React.StatelessComponent<
   ProductImageCreateProviderProps
-> = ({ productId, children, onError, onSuccess }) => (
+> = ({ children, onError, onSuccess }) => (
   <TypedProductImageCreateMutation onCompleted={onSuccess} onError={onError}>
     {(mutate, { data, error, loading }) =>
       children({
@@ -86,12 +85,11 @@ interface ProductImageDeleteProviderProps
     ProductImageDeleteMutation,
     ProductImageDeleteMutationVariables
   >;
-  productId: string;
 }
 
 const ProductImageDeleteProvider: React.StatelessComponent<
   ProductImageDeleteProviderProps
-> = ({ children, productId, onError, onSuccess }) => (
+> = ({ children, onError, onSuccess }) => (
   <TypedProductImageDeleteMutation onCompleted={onSuccess} onError={onError}>
     {(mutate, { data, error, loading }) =>
       children({
@@ -160,11 +158,7 @@ const ProductUpdateOperations: React.StatelessComponent<
 }) => {
   const productId = product ? product.id : "";
   return (
-    <ProductUpdateProvider
-      productId={productId}
-      onError={onError}
-      onSuccess={onUpdate}
-    >
+    <ProductUpdateProvider onError={onError} onSuccess={onUpdate}>
       {updateProduct => (
         <ProductImagesReorderProvider
           productId={productId}
@@ -178,7 +172,6 @@ const ProductUpdateOperations: React.StatelessComponent<
         >
           {reorderProductImages => (
             <ProductImageCreateProvider
-              productId={productId}
               onError={onError}
               onSuccess={onImageCreate}
             >
@@ -190,7 +183,6 @@ const ProductUpdateOperations: React.StatelessComponent<
                 >
                   {deleteProduct => (
                     <ProductImageDeleteProvider
-                      productId={productId}
                       onError={onError}
                       onSuccess={onImageDelete}
                     >

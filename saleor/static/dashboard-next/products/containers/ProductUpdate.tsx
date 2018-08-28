@@ -12,7 +12,6 @@ import { TypedProductUpdateMutation } from "../mutations";
 
 interface ProductUpdateProviderProps
   extends PartialMutationProviderProps<ProductUpdateMutation> {
-  productId: string;
   children: PartialMutationProviderRenderProps<
     ProductUpdateMutation,
     ProductUpdateMutationVariables
@@ -21,7 +20,7 @@ interface ProductUpdateProviderProps
 
 const ProductUpdateProvider: React.StatelessComponent<
   ProductUpdateProviderProps
-> = ({ productId, children, onError, onSuccess }) => (
+> = ({ children, onError, onSuccess }) => (
   <TypedProductUpdateMutation onCompleted={onSuccess} onError={onError}>
     {(mutate, { data, error, loading }) =>
       children({

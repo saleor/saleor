@@ -9,7 +9,6 @@ import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar, {
   SaveButtonBarState
 } from "../../../components/SaveButtonBar";
-import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
 import ProductVariantAttributes from "../ProductVariantAttributes";
 import ProductVariantNavigation from "../ProductVariantNavigation";
@@ -113,87 +112,81 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
       stock: 0
     };
     return (
-      <Toggle>
-        {(isImageSelectModalActive, { toggle: toggleImageSelectModal }) => (
-          <Container width="md">
-            <PageHeader title={header} onBack={onBack} />
-            <Form
-              initial={initialForm}
-              errors={formErrors}
-              onSubmit={onSubmit}
-              key={product ? JSON.stringify(product) : "noproduct"}
-            >
-              {({ change, data, errors, hasChanged, submit }) => {
-                return (
-                  <>
-                    <div className={classes.root}>
-                      <div>
-                        <ProductVariantNavigation
-                          variants={
-                            product &&
-                            product.variants &&
-                            product.variants.edges
-                              ? product.variants.edges.map(edge => edge.node)
-                              : undefined
-                          }
-                          onRowClick={(variantId: string) => {
-                            if (product && product.variants) {
-                              return onVariantClick(variantId);
-                            }
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <ProductVariantAttributes
-                          attributes={
-                            product &&
-                            product.productType &&
-                            product.productType.variantAttributes &&
-                            product.productType.variantAttributes.edges
-                              ? product.productType.variantAttributes.edges.map(
-                                  edge => edge.node
-                                )
-                              : undefined
-                          }
-                          data={data}
-                          disabled={loading}
-                          onChange={change}
-                        />
-                        <ProductVariantPrice
-                          errors={errors}
-                          priceOverride={data.priceOverride}
-                          // FIXME: currency symbol should be fetched from API
-                          currencySymbol="USD"
-                          costPrice={data.costPrice}
-                          loading={loading}
-                          onChange={change}
-                        />
-                        <ProductVariantStock
-                          errors={errors}
-                          sku={data.sku}
-                          stock={data.stock}
-                          loading={loading}
-                          onChange={change}
-                        />
-                      </div>
-                    </div>
-                    <SaveButtonBar
-                      disabled={loading || !onSubmit || !hasChanged}
-                      labels={{
-                        delete: i18n.t("Remove variant"),
-                        save: i18n.t("Save variant")
+      <Container width="md">
+        <PageHeader title={header} onBack={onBack} />
+        <Form
+          initial={initialForm}
+          errors={formErrors}
+          onSubmit={onSubmit}
+          key={product ? JSON.stringify(product) : "noproduct"}
+        >
+          {({ change, data, errors, hasChanged, submit }) => {
+            return (
+              <>
+                <div className={classes.root}>
+                  <div>
+                    <ProductVariantNavigation
+                      variants={
+                        product && product.variants && product.variants.edges
+                          ? product.variants.edges.map(edge => edge.node)
+                          : undefined
+                      }
+                      onRowClick={(variantId: string) => {
+                        if (product && product.variants) {
+                          return onVariantClick(variantId);
+                        }
                       }}
-                      state={saveButtonBarState}
-                      onCancel={onBack}
-                      onSave={submit}
                     />
-                  </>
-                );
-              }}
-            </Form>
-          </Container>
-        )}
-      </Toggle>
+                  </div>
+                  <div>
+                    <ProductVariantAttributes
+                      attributes={
+                        product &&
+                        product.productType &&
+                        product.productType.variantAttributes &&
+                        product.productType.variantAttributes.edges
+                          ? product.productType.variantAttributes.edges.map(
+                              edge => edge.node
+                            )
+                          : undefined
+                      }
+                      data={data}
+                      disabled={loading}
+                      onChange={change}
+                    />
+                    <ProductVariantPrice
+                      errors={errors}
+                      priceOverride={data.priceOverride}
+                      // FIXME: currency symbol should be fetched from API
+                      currencySymbol="USD"
+                      costPrice={data.costPrice}
+                      loading={loading}
+                      onChange={change}
+                    />
+                    <ProductVariantStock
+                      errors={errors}
+                      sku={data.sku}
+                      stock={data.stock}
+                      loading={loading}
+                      onChange={change}
+                    />
+                  </div>
+                </div>
+                <SaveButtonBar
+                  disabled={loading || !onSubmit || !hasChanged}
+                  labels={{
+                    delete: i18n.t("Remove variant"),
+                    save: i18n.t("Save variant")
+                  }}
+                  state={saveButtonBarState}
+                  onCancel={onBack}
+                  onSave={submit}
+                />
+              </>
+            );
+          }}
+        </Form>
+      </Container>
     );
   }
 );
