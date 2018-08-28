@@ -54,6 +54,13 @@ class Order(CountableDjangoObjectType):
     def resolve_status_display(obj, info):
         return obj.get_status_display()
 
+    @staticmethod
+    def resolve_user_email(obj, info):
+        if obj.user_email:
+            return obj.user_email
+        if obj.user_id:
+            return obj.user.email
+
 
 class OrderHistoryEntry(CountableDjangoObjectType):
     class Meta:
