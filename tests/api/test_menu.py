@@ -32,6 +32,14 @@ def test_menu_query(user_api_client, menu):
     assert 'errors' not in content
     assert content['data']['menu']['name'] == menu.name
 
+    # test query by invalid name returns null
+    variables = json.dumps({'menu_name': 'not-a-menu'})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    assert not content['data']['menu']
+
 
 def test_menus_query(user_api_client, menu, menu_item):
     query = """
