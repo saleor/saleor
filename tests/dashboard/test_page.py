@@ -70,7 +70,7 @@ def test_page_delete_menu_not_updated(
     assert not mock_update_menus.called
 
 
-def test_sanitize_page_content(page, default_category):
+def test_sanitize_page_content(page, category):
     data = model_to_dict(page)
     data['content'] = (
         '<b>bold</b><p><i>italic</i></p><h2>Header</h2><h3>subheader</h3>'

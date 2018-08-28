@@ -40,7 +40,7 @@ def elasticsearch_autosync_disabled(settings):
 
 @pytest.mark.vcr()
 @pytest.fixture
-def indexed_products(product_type, default_category):
+def indexed_products(product_type, category):
     """Products to be found by search backend.
 
     We need existing objects with primary keys same as search service
@@ -54,7 +54,7 @@ def indexed_products(product_type, default_category):
             name='Test product ' + str(object_id),
             price=Decimal(10.0),
             product_type=product_type,
-            category=default_category)
+            category=category)
         return product
     return [gen_product_with_id(prod) for prod in PRODUCTS_INDEXED]
 

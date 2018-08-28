@@ -102,7 +102,7 @@ def test_nullboolean_field_chip():
     assert 'is_featured=1' not in chip['link']
 
 
-def test_model_choice_field_chip(default_category):
+def test_model_choice_field_chip(category):
     obj = Category.objects.first()
     data = querydict({'categories': obj.pk})
     filter_set = ModelChoiceFieldFilterSet(
