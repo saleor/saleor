@@ -18,7 +18,7 @@ from saleor.checkout.utils import (
     get_prices_of_products_in_discounted_categories, get_taxes_for_cart,
     get_voucher_discount_for_cart, get_voucher_for_cart,
     is_valid_shipping_method, recalculate_cart_discount,
-    remove_voucher_from_cart, shipping_method_applicable, value_in_range)
+    remove_voucher_from_cart)
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import (
     ZERO_MONEY, ZERO_TAXED_MONEY, get_taxes_for_country)
@@ -43,57 +43,6 @@ def test_country_form_country_choices():
     expected_choices = sorted(
         expected_choices, key=lambda choice: choice[1])
     assert form.fields['country'].choices == expected_choices
-
-
-@pytest.mark.parametrize(
-    'minimum, maximum, value, result',
-    (
-        (10, None, 1500, True),
-        (10, 20, 15, True),
-        (10, 20, 20, True),
-        (10, 20, 10, True),
-        (10, 20, 9, False),
-        (10, 21, 9, False)))
-def test_value_in_range(minimum, maximum, value, result):
-    assert result == value_in_range(minimum, maximum, value)
-
-
-@pytest.mark.parametrize(
-    'weight, minimum_order_weight, maximum_order_weight, result',
-    (
-        (Weight(kg=15), Weight(kg=10), Weight(kg=20), True),
-        (Weight(kg=15), Weight(kg=15), Weight(kg=20), True),
-        (Weight(kg=15), Weight(kg=10), Weight(kg=15), True),
-        (Weight(kg=15), Weight(kg=10), None, True),
-        (Weight(kg=26), Weight(kg=10), Weight(kg=25), False),
-        (Weight(kg=9), Weight(kg=10), Weight(kg=15), False)))
-def test_weight_shipping_method_applicable(
-        weight, minimum_order_weight, maximum_order_weight, result):
-    shipping_method = Mock(
-        type=ShippingMethodType.WEIGHT_BASED,
-        minimum_order_weight=minimum_order_weight,
-        maximum_order_weight=maximum_order_weight)
-    assert result == shipping_method_applicable(
-        Money(0, 'USD'), weight, shipping_method)
-
-
-@pytest.mark.parametrize(
-    'price, minimum_order_price, maximum_order_price, result',
-    (
-        (Money(15, 'USD'), Money(10, 'USD'), Money(20, 'USD'), True),
-        (Money(15, 'USD'), Money(15, 'USD'), Money(20, 'USD'), True),
-        (Money(15, 'USD'), Money(10, 'USD'), Money(15, 'USD'), True),
-        (Money(15, 'USD'), Money(10, 'USD'), None, True),
-        (Money(26, 'USD'), Money(10, 'USD'), Money(25, 'USD'), False),
-        (Money(9, 'USD'), Money(10, 'USD'), Money(15, 'USD'), False)))
-def test_price_shipping_method_applicable(
-        price, minimum_order_price, maximum_order_price, result):
-    shipping_method = Mock(
-        type=ShippingMethodType.PRICE_BASED,
-        minimum_order_price=minimum_order_price,
-        maximum_order_price=maximum_order_price)
-    assert result == shipping_method_applicable(
-        price, Weight(kg=0), shipping_method)
 
 
 def test_is_valid_shipping_method_no_shipping_method(vatlayer):
