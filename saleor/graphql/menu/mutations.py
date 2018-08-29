@@ -3,22 +3,13 @@ from graphql_jwt.decorators import permission_required
 
 from ...menu import models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
+from ..product.types import Category, Collection
+from ..page.types import Page
 from .types import Menu
 
 
-class MenuInput(graphene.InputObjectType):
-    name = graphene.String(description='Name of the menu.')
-
-
 class MenuItemInput(graphene.InputObjectType):
-    menu = graphene.ID(
-        description='Menu to which item belongs to.', name='menu')
     name = graphene.String(description='Name of the menu item.')
-    parent = graphene.ID(
-        description='''
-        ID of the parent menu. If empty, menu will be top level
-        menu.''',
-        name='parent')
     url = graphene.String(description='URL of the pointed item.')
     category = graphene.ID(
         description='Category to which item points.', name='category')
@@ -28,9 +19,28 @@ class MenuItemInput(graphene.InputObjectType):
         description='Page to which item points.', name='page')
 
 
+class MenuItemCreateInput(MenuItemInput):
+    menu = graphene.ID(
+        description='Menu to which item belongs to.', name='menu')
+    parent = graphene.ID(
+        description='''
+        ID of the parent menu. If empty, menu will be top level
+        menu.''',
+        name='parent')
+
+
+class MenuInput(graphene.InputObjectType):
+    name = graphene.String(description='Name of the menu.')
+
+
+class MenuCreateInput(MenuInput):
+    items = graphene.List(
+        MenuItemInput, description='List of menu items.')
+
+
 class MenuCreate(ModelMutation):
     class Arguments:
-        input = MenuInput(
+        input = MenuCreateInput(
             required=True,
             description='Fields required to create a menu.')
 
@@ -41,6 +51,44 @@ class MenuCreate(ModelMutation):
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('menu.manage_menus')
+
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        cleaned_input = super().clean_input(info, instance, input, errors)
+        items = []
+        for item in cleaned_input.get('items', []):
+            category = item.get('category')
+            collection = item.get('collection')
+            page = item.get('page')
+            url = item.get('url')
+
+            if len([i for i in [category, collection, page, url] if i]) > 1:
+                cls.add_error(
+                    errors, 'items', 'More than one item provided.')
+            else:
+                if category:
+                    category = cls.get_node_or_error(
+                        info, category, errors, 'items', Category)
+                    item['category'] = category
+                if collection:
+                    collection = cls.get_node_or_error(
+                        info, collection, errors, 'items',
+                        only_type=Collection)
+                    item['collection'] = collection
+                if page:
+                    page = cls.get_node_or_error(
+                        info, page, errors, 'items', only_type=Page)
+                    item['page'] = page
+                items.append(item)
+        cleaned_input['items'] = items
+        return cleaned_input
+
+    @classmethod
+    def _save_m2m(cls, info, instance, cleaned_data):
+        super()._save_m2m(info, instance, cleaned_data)
+        items = cleaned_data.get('items', [])
+        for item in items:
+            instance.items.create(**item)
 
 
 class MenuUpdate(ModelMutation):
@@ -76,7 +124,7 @@ class MenuDelete(ModelDeleteMutation):
 
 class MenuItemCreate(ModelMutation):
     class Arguments:
-        input = MenuItemInput(
+        input = MenuItemCreateInput(
             required=True,
             description="""Fields required to update a menu item.
             Only one of 'url', 'category', 'page', 'collection' is allowed
