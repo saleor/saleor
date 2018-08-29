@@ -4,6 +4,9 @@ import graphene
 import pytest
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
+
+from saleor.graphql.menu.mutations import NavigationType
+
 from .utils import assert_no_permission
 
 
@@ -271,12 +274,12 @@ def test_add_more_than_one_item(admin_api_client, menu, menu_item, page):
     assert data['message'] == 'More than one item provided.'
 
 
-def test_assign_main_menu(
+def test_assign_menu(
         staff_api_client, menu, permission_manage_menus,
-        permission_manage_settings):
+        permission_manage_settings, site_settings):
     query = """
-    mutation AssignMenu($menu: ID) {
-        assignMainNavigation(menu: $menu) {
+    mutation AssignMenu($menu: ID, $navigationType: NavigationType!) {
+        assignNavigation(menu: $menu, navigationType: $navigationType) {
             errors {
                 field
                 message
@@ -290,7 +293,8 @@ def test_assign_main_menu(
 
     # test mutations fails without proper permissions
     menu_id = graphene.Node.to_global_id('Menu', menu.pk)
-    variables = json.dumps({'menu': menu_id})
+    variables = json.dumps({
+        'menu': menu_id, 'navigationType': NavigationType.MAIN.name})
     response = staff_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     assert_no_permission(response)
@@ -298,60 +302,33 @@ def test_assign_main_menu(
     staff_api_client.user.user_permissions.add(permission_manage_menus)
     staff_api_client.user.user_permissions.add(permission_manage_settings)
 
-    # test assigning menu
+    # test assigning main menu
     response = staff_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    assert content['data']['assignMainNavigation']['menu']['name'] == menu.name
+    assert content['data']['assignNavigation']['menu']['name'] == menu.name
+    site_settings.refresh_from_db()
+    assert site_settings.top_menu.name == menu.name
+
+    # test assigning secondary menu
+    variables = json.dumps({
+        'menu': menu_id, 'navigationType': NavigationType.SECONDARY.name})
+    response = staff_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    assert content['data']['assignNavigation']['menu']['name'] == menu.name
+    site_settings.refresh_from_db()
+    assert site_settings.bottom_menu.name == menu.name
 
     # test unasigning menu
-    variables = json.dumps({'id': None})
+    variables = json.dumps({
+        'id': None, 'navigationType': NavigationType.MAIN.name})
     response = staff_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    assert not content['data']['assignMainNavigation']['menu']
-
-
-def test_assign_secondary_menu(
-        staff_api_client, menu, permission_manage_menus,
-        permission_manage_settings):
-    query = """
-    mutation AssignMenu($menu: ID) {
-        assignSecondaryNavigation(menu: $menu) {
-            errors {
-                field
-                message
-            }
-            menu {
-                name
-            }
-        }
-    }
-    """
-
-    # test mutations fails without proper permissions
-    menu_id = graphene.Node.to_global_id('Menu', menu.pk)
-    variables = json.dumps({'menu': menu_id})
-    response = staff_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    assert_no_permission(response)
-
-    staff_api_client.user.user_permissions.add(permission_manage_menus)
-    staff_api_client.user.user_permissions.add(permission_manage_settings)
-
-    # test assigning menu
-    response = staff_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    assert content['data']['assignSecondaryNavigation']['menu']['name'] == menu.name
-
-    # test unasigning menu
-    variables = json.dumps({'id': None})
-    response = staff_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    assert not content['data']['assignSecondaryNavigation']['menu']
+    assert not content['data']['assignNavigation']['menu']
+    site_settings.refresh_from_db()
+    assert site_settings.top_menu is None
