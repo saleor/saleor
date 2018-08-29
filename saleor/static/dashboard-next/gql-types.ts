@@ -311,6 +311,41 @@ export interface CategoryPropertiesQuery {
   } | null,
 };
 
+export interface MenuListQueryVariables {
+  first?: number | null,
+  after?: string | null,
+  last?: number | null,
+  before?: string | null,
+};
+
+export interface MenuListQuery {
+  // List of the shop's menus.
+  menus:  {
+    edges:  Array< {
+      // The item at the end of the edge
+      node:  {
+        // The ID of the object.
+        id: string,
+        name: string,
+        items:  {
+          // A total count of items in the collection
+          totalCount: number | null,
+        } | null,
+      },
+    } >,
+    pageInfo:  {
+      // When paginating backwards, are there more items?
+      hasPreviousPage: boolean,
+      // When paginating forwards, are there more items?
+      hasNextPage: boolean,
+      // When paginating backwards, the cursor to continue.
+      startCursor: string | null,
+      // When paginating forwards, the cursor to continue.
+      endCursor: string | null,
+    },
+  } | null,
+};
+
 export interface PageDeleteMutationVariables {
   id: string,
 };

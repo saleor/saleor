@@ -21,6 +21,7 @@ import { MessageManager } from "./components/messages";
 import { ConfigurationSection } from "./configuration";
 import HomePage from "./home";
 import "./i18n";
+import MenuSection from "./menus";
 import PageSection from "./pages";
 import ProductSection from "./products";
 import ProductTypesSection from "./productTypes";
@@ -84,6 +85,7 @@ render(
                         <Route path="/categories" component={CategorySection} />
                         <Route path="/pages" component={PageSection} />
                         <Route path="/products" component={ProductSection} />
+                        <Route path="/menus" component={MenuSection} />
                         <Route
                           path="/productTypes"
                           component={ProductTypesSection}
