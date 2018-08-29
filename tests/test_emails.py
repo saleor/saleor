@@ -11,12 +11,12 @@ from saleor.core.utils import build_absolute_uri
 
 def test_get_email_context(order, site_settings):
     site = site_settings.site
+    absolute_url = build_absolute_uri(location=None)
     order_url = build_absolute_uri(
         reverse('order:details', kwargs={'token': order.token}))
     proper_context = {
-        'protocol': 'https' if settings.ENABLE_SSL else 'http',
         'site_name': site.name,
-        'domain': site.domain,
+        'absolute_url': absolute_url,
         'url': order_url}
 
     received_context = emails.get_email_context(order.token)

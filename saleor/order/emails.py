@@ -18,12 +18,12 @@ CONFIRM_NOTE_TEMPLATE = 'order/note/confirm_note'
 def get_email_context(order_token):
     """Prepares context required for email template rendering."""
     site = Site.objects.get_current()
+    absolute_url = build_absolute_uri(location=None)
     order_url = build_absolute_uri(
         reverse('order:details', kwargs={'token': order_token}))
     ctx = {
-        'protocol': 'https' if settings.ENABLE_SSL else 'http',
         'site_name': site.name,
-        'domain': site.domain,
+        'absolute_url': absolute_url,
         'url': order_url}
     return ctx
 

@@ -24,9 +24,13 @@ def send_password_reset_email(context, recipient):
 @shared_task
 def send_account_delete_confirmation_email(token, recipient_email):
     site = Site.objects.get_current()
+    absolute_url = build_absolute_uri(location=None)
     delete_url = build_absolute_uri(
         reverse('account:delete-confirm', kwargs={'token': token}))
-    ctx = {'site_name': site.name, 'domain': site.domain, 'url': delete_url}
+    ctx = {
+        'site_name': site.name,
+        'absolute_url': absolute_url,
+        'url': delete_url}
     send_templated_mail(
         template_name='account/account_delete',
         from_email=settings.DEFAULT_FROM_EMAIL,

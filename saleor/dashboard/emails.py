@@ -13,9 +13,9 @@ from ..core.utils import build_absolute_uri
 @shared_task
 def send_set_password_email(staff):
     site = Site.objects.get_current()
+    absolute_url = build_absolute_uri(location=None)
     ctx = {
-        'protocol': 'https' if settings.ENABLE_SSL else 'http',
-        'domain': site.domain,
+        'absolute_url': absolute_url,
         'site_name': site.name,
         'uid': urlsafe_base64_encode(force_bytes(staff.pk)).decode(),
         'token': default_token_generator.make_token(staff)}
@@ -29,9 +29,9 @@ def send_set_password_email(staff):
 @shared_task
 def send_promote_customer_to_staff_email(staff):
     site = Site.objects.get_current()
+    absolute_url = build_absolute_uri(location=None)
     ctx = {
-        'protocol': 'https' if settings.ENABLE_SSL else 'http',
-        'domain': site.domain,
+        'absolute_url': absolute_url,
         'url': build_absolute_uri(reverse('dashboard:index')),
         'site_name': site.name}
     send_templated_mail(

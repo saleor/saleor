@@ -97,9 +97,9 @@ def test_staff_create_email_with_set_link_password(admin_client):
 
 def test_send_set_password_email(staff_user, site_settings):
     site = site_settings.site
+    absolute_url = build_absolute_uri(location=None)
     ctx = {
-        'protocol': 'http',
-        'domain': site.domain,
+        'absolute_url': absolute_url,
         'site_name': site.name,
         'uid': urlsafe_base64_encode(force_bytes(staff_user.pk)).decode(),
         'token': default_token_generator.make_token(staff_user)}
