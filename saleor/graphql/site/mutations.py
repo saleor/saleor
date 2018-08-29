@@ -48,8 +48,8 @@ class SiteSettingsUpdate(BaseMutation):
             current_value = getattr(instance, field_name)
             if current_value != desired_value:
                 setattr(instance, field_name, desired_value)
-
         cls.clean_instance(instance, errors)
         if errors:
             return SiteSettingsUpdate(errors=errors)
+        instance.save()
         return SiteSettingsUpdate(site_settings=instance, errors=errors)
