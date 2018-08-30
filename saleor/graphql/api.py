@@ -22,7 +22,6 @@ from .discount.mutations import (
     VoucherUpdate)
 from .core.filters import DistinctFilterSet
 from .core.mutations import CreateToken, VerifyToken
-from .core.types.shop import Shop
 from .order.filters import OrderFilter
 from .order.resolvers import resolve_order, resolve_orders
 from .order.types import Order
@@ -62,8 +61,10 @@ from .shipping.mutations import (
     ShippingZoneCreate, ShippingZoneDelete, ShippingZoneUpdate,
     ShippingPriceCreate, ShippingPriceDelete, ShippingPriceUpdate)
 
-from .site.types import SiteSettings
-from .site.mutations import SiteSettingsUpdate
+from .shop.types import Shop
+from .shop.mutations import (
+    ShopDomainUpdate, ShopSettingsUpdate, HomepageCollectionUpdate,
+    ShopNavigationUpdate)
 
 
 class Query(graphene.ObjectType):
@@ -136,8 +137,6 @@ class Query(graphene.ObjectType):
     sales = DjangoFilterConnectionField(
         Sale, query=graphene.String(description=DESCRIPTIONS['sale']),
         description="List of the shop\'s sales.")
-    site_settings = graphene.Field(
-        SiteSettings, description='Current site settings')
     shop = graphene.Field(Shop, description='Represents a shop resources.')
     voucher = graphene.Field(
         Voucher, id=graphene.Argument(graphene.ID),
@@ -222,9 +221,6 @@ class Query(graphene.ObjectType):
 
     def resolve_shop(self, info):
         return Shop()
-
-    def resolve_site_settings(self, info):
-        return SiteSettings.get_node(info, id=info.context.site.settings.pk)
 
     @permission_required('discount.manage_discounts')
     def resolve_sale(self, info, id):
@@ -338,10 +334,14 @@ class Mutations(graphene.ObjectType):
     sale_delete = SaleDelete.Field()
     sale_update = SaleUpdate.Field()
 
+    shop_domain_update = ShopDomainUpdate.Field()
+    shop_settings_update = ShopSettingsUpdate.Field()
+    shop_navigation_update = ShopNavigationUpdate.Field()
+    homepage_collection_update = HomepageCollectionUpdate.Field()
+
     voucher_create = VoucherCreate.Field()
     voucher_delete = VoucherDelete.Field()
     voucher_update = VoucherUpdate.Field()
-    site_settings_update = SiteSettingsUpdate.Field()
 
     shipping_zone_create = ShippingZoneCreate.Field()
     shipping_zone_delete = ShippingZoneDelete.Field()
