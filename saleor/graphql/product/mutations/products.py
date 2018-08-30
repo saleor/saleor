@@ -492,6 +492,9 @@ class ProductImageCreate(BaseMutation):
     @classmethod
     @permission_required('product.manage_products')
     def mutate(cls, root, info, input):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         product = cls.get_node_or_error(
             info, input['product'], errors, 'product', only_type=Product)
@@ -526,6 +529,9 @@ class ProductImageUpdate(BaseMutation):
     @classmethod
     @permission_required('product.manage_products')
     def mutate(cls, root, info, id, input):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         image = cls.get_node_or_error(
             info, id, errors, 'id', only_type=ProductImage)
@@ -595,6 +601,9 @@ class ProductImageDelete(BaseMutation):
     @classmethod
     @permission_required('product.manage_products')
     def mutate(cls, root, info, id):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         image = cls.get_node_or_error(
             info, id, errors, 'id', only_type=ProductImage)

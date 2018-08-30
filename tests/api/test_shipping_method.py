@@ -225,11 +225,7 @@ def test_create_weight_based_shipping_method(
         'type': ShippingMethodTypeEnum.WEIGHT_BASED.name})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['shippingPriceCreate']['shippingMethod']
-    assert data['minimumOrderWeight'] == expected_min_weight
-    assert data['maximumOrderWeight'] == expected_max_weight
+    assert_read_only_mode(response)
 
 
 @pytest.mark.parametrize(
@@ -255,10 +251,7 @@ def test_create_weight_shipping_method_errors(
         'type': ShippingMethodTypeEnum.WEIGHT_BASED.name})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['shippingPriceCreate']
-    assert data['errors'][0] == expected_error
+    assert_read_only_mode(response)
 
 
 @pytest.mark.parametrize(
@@ -284,10 +277,7 @@ def test_create_price_shipping_method_errors(
         'type': ShippingMethodTypeEnum.PRICE_BASED.name})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['shippingPriceCreate']
-    assert data['errors'][0] == expected_error
+    assert_read_only_mode(response)
 
 
 def test_update_shipping_method(admin_api_client, shipping_zone):

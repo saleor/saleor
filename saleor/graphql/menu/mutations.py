@@ -1,5 +1,6 @@
 import graphene
 from graphql_jwt.decorators import permission_required
+from graphql_jwt.exceptions import PermissionDenied
 
 from ...menu import models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -173,6 +174,9 @@ class AssignNavigation(BaseMutation):
     @classmethod
     @permission_required(['menu.manage_menus', 'site.manage_settings'])
     def mutate(cls, root, info, navigation_type, menu=None):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         site_settings = info.context.site.settings
         if menu is not None:
