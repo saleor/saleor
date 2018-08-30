@@ -63,8 +63,7 @@ from .shipping.mutations import (
 
 from .shop.types import Shop
 from .shop.mutations import (
-    ShopDomainUpdate, ShopSettingsUpdate, HomepageCollectionUpdate,
-    ShopNavigationUpdate)
+    ShopDomainUpdate, ShopSettingsUpdate, HomepageCollectionUpdate)
 
 
 class Query(graphene.ObjectType):
@@ -336,7 +335,6 @@ class Mutations(graphene.ObjectType):
 
     shop_domain_update = ShopDomainUpdate.Field()
     shop_settings_update = ShopSettingsUpdate.Field()
-    shop_navigation_update = ShopNavigationUpdate.Field()
     homepage_collection_update = HomepageCollectionUpdate.Field()
 
     voucher_create = VoucherCreate.Field()

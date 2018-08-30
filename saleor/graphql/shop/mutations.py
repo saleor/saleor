@@ -75,7 +75,8 @@ class ShopDomainUpdate(BaseMutation):
 
 class HomepageCollectionUpdate(BaseMutation):
     class Arguments:
-        collection = graphene.ID(description='Collection displayed on homepage')
+        collection = graphene.ID(
+            description='Collection displayed on homepage')
 
     shop = graphene.Field(
         Shop, description='Updated Shop')
@@ -95,42 +96,3 @@ class HomepageCollectionUpdate(BaseMutation):
             return HomepageCollectionUpdate(errors=errors)
         site_settings.save(update_fields=['homepage_collection'])
         return HomepageCollectionUpdate(shop=Shop(), errors=errors)
-
-
-class ShopNavigationUpdate(BaseMutation):
-    class Arguments:
-        input = ShopNavigationInput(
-            description='Fields required to update shop navigation')
-
-    shop = graphene.Field(
-        Shop, description='Updated Shop')
-
-    @classmethod
-    @permission_required('site.manage_settings')
-    def mutate(cls, root, info, input):
-        errors = []
-        main_menu_id = input.get('main')
-        secondary_menu_id = input.get('secondary')
-        main_menu, secondary_menu = None, None
-
-        if main_menu_id:
-            main_menu = cls.get_node_or_error(
-                info, main_menu_id, errors, 'main', Menu)
-
-        if secondary_menu_id:
-            secondary_menu = cls.get_node_or_error(
-                info, secondary_menu_id, errors, 'secondary', Menu)
-
-        if errors:
-            return ShopNavigationUpdate(errors=errors)
-
-        site_settings = info.context.site.settings
-        if main_menu:
-            site_settings.top_menu = main_menu
-        if secondary_menu:
-            site_settings.bottom_menu = secondary_menu
-        cls.clean_instance(site_settings, errors)
-        if errors:
-            return ShopNavigationUpdate(errors=errors)
-        site_settings.save()
-        return ShopNavigationUpdate(shop=Shop(), errors=errors)
