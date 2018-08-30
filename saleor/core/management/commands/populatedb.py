@@ -74,9 +74,6 @@ class Command(BaseCommand):
         for msg in create_menus():
             self.stdout.write(msg)
 
-        # create example page on demo
-        create_example_page()
-
         if options['createsuperuser']:
             credentials = {'email': 'admin@example.com', 'password': 'admin'}
             msg = create_superuser(credentials)
