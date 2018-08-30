@@ -61,7 +61,6 @@ class MenuCreate(ModelMutation):
             collection = item.get('collection')
             page = item.get('page')
             url = item.get('url')
-
             if len([i for i in [category, collection, page, url] if i]) > 1:
                 cls.add_error(
                     errors, 'items', 'More than one item provided.')
@@ -70,15 +69,17 @@ class MenuCreate(ModelMutation):
                     category = cls.get_node_or_error(
                         info, category, errors, 'items', Category)
                     item['category'] = category
-                if collection:
+                elif collection:
                     collection = cls.get_node_or_error(
                         info, collection, errors, 'items',
                         only_type=Collection)
                     item['collection'] = collection
-                if page:
+                elif page:
                     page = cls.get_node_or_error(
                         info, page, errors, 'items', only_type=Page)
                     item['page'] = page
+                elif not url:
+                    cls.add_error(errors, 'items', 'No menu item provided.')
                 items.append(item)
         cleaned_input['items'] = items
         return cleaned_input
