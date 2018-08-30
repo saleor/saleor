@@ -305,4 +305,12 @@ def test_assign_menu(
         'menu': menu_id, 'navigationType': NavigationType.MAIN.name})
     response = staff_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
+    assert_no_permission(response)
+
+    staff_api_client.user.user_permissions.add(permission_manage_menus)
+    staff_api_client.user.user_permissions.add(permission_manage_settings)
+
+    # test assigning main menu
+    response = staff_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
     assert_read_only_mode(response)
