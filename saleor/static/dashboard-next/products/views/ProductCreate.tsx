@@ -29,8 +29,6 @@ export const ProductUpdate: React.StatelessComponent<
             return (
               <TypedProductCreateQuery query={productCreateQuery}>
                 {({ data, error, loading }) => {
-                  const handleError = () =>
-                    pushMessage({ text: i18n.t("Something went wrong") });
                   const handleSuccess = (data: ProductCreateMutation) => {
                     if (data.productCreate.errors.length === 0) {
                       pushMessage({ text: i18n.t("Product created") });
@@ -49,7 +47,6 @@ export const ProductUpdate: React.StatelessComponent<
                   return (
                     <TypedProductCreateMutation
                       onCompleted={handleSuccess}
-                      onError={handleError}
                     >
                       {(
                         productCreate,

@@ -1,6 +1,5 @@
 import * as React from "react";
 
-import { ApolloError } from "apollo-client";
 import { productUrl, productVariantEditUrl } from "..";
 import * as placeholderImg from "../../../images/placeholder255x255.png";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
@@ -52,10 +51,6 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                 pushMessage({ text: i18n.t("Variant removed") });
                 navigate(productUrl(productId));
               };
-              const handleError = (error: ApolloError) => {
-                console.error(error.message);
-                pushMessage({ text: i18n.t("Something went wrong") });
-              };
               const handleUpdate = () =>
                 pushMessage({ text: i18n.t("Changes saved") });
 
@@ -64,7 +59,6 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                   productId={productId}
                   id={variantId}
                   onDelete={handleDelete}
-                  onError={handleError}
                   onUpdate={handleUpdate}
                 >
                   {({
