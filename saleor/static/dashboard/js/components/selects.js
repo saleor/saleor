@@ -38,7 +38,7 @@ function initSelects() {
       width: '100%',
       minimumInputLength: $select.data('min-input')
     });
-    $select.addClass('select2-enabled')
+    $select.addClass('select2-enabled');
   });
 }
 

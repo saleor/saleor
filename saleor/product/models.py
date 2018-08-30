@@ -10,8 +10,10 @@ from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
+from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
 from django_prices.templatetags import prices_i18n
+from measurement.measures import Weight
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from prices import TaxedMoneyRange
@@ -22,6 +24,7 @@ from ..core.exceptions import InsufficientStock
 from ..core.models import SortableModel
 from ..core.utils.taxes import DEFAULT_TAX_RATE_NAME, apply_tax_to_price
 from ..core.utils.translations import TranslationProxy
+from ..core.weight import WeightUnits, zero_weight
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
 
@@ -78,6 +81,9 @@ class ProductType(models.Model):
     is_shipping_required = models.BooleanField(default=False)
     tax_rate = models.CharField(
         max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True)
+    weight = MeasurementField(
+        measurement=Weight, unit_choices=WeightUnits.CHOICES,
+        default=zero_weight)
 
     class Meta:
         app_label = 'product'
@@ -116,6 +122,9 @@ class Product(SeoModel):
     charge_taxes = models.BooleanField(default=True)
     tax_rate = models.CharField(
         max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True)
+    weight = MeasurementField(
+        measurement=Weight, unit_choices=WeightUnits.CHOICES,
+        blank=True, null=True)
 
     objects = ProductQuerySet.as_manager()
     translated = TranslationProxy()
@@ -160,7 +169,7 @@ class Product(SeoModel):
         return images[0].image if images else None
 
     def get_price_range(self, discounts=None, taxes=None):
-        if self.variants.exists():
+        if self.variants.all():
             prices = [
                 variant.get_price(discounts=discounts, taxes=taxes)
                 for variant in self]
@@ -210,7 +219,9 @@ class ProductVariant(models.Model):
     cost_price = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, blank=True, null=True)
-
+    weight = MeasurementField(
+        measurement=Weight, unit_choices=WeightUnits.CHOICES,
+        blank=True, null=True)
     translated = TranslationProxy()
 
     class Meta:
@@ -224,7 +235,7 @@ class ProductVariant(models.Model):
         return max(self.quantity - self.quantity_allocated, 0)
 
     def check_quantity(self, quantity):
-        """ Check if there is at least the given quantity in stock
+        """Check if there is at least the given quantity in stock
         if stock handling is enabled.
         """
         if self.track_inventory and quantity > self.quantity_available:
@@ -242,6 +253,11 @@ class ProductVariant(models.Model):
         tax_rate = (
             self.product.tax_rate or self.product.product_type.tax_rate)
         return apply_tax_to_price(taxes, tax_rate, price)
+
+    def get_weight(self):
+        return (
+            self.weight or self.product.weight or
+            self.product.product_type.weight)
 
     def get_absolute_url(self):
         slug = self.product.get_slug()

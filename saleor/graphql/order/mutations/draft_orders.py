@@ -13,7 +13,6 @@ from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import Decimal, Error
 from ...product.types import ProductVariant
-from ...utils import get_node
 from ..types import Order
 
 
@@ -167,13 +166,12 @@ class DraftOrderDelete(ModelDeleteMutation):
         return user.has_perm('order.manage_orders')
 
 
-def check_for_draft_order_errors(order):
+def check_for_draft_order_errors(order, errors):
     """Return a list of errors associated with the order.
 
     Checks, if given order has a proper shipping address and method
     set up and return list of errors if not.
     """
-    errors = []
     if order.get_total_quantity() == 0:
         errors.append(
             Error(
@@ -182,10 +180,10 @@ def check_for_draft_order_errors(order):
     if order.is_shipping_required():
         method = order.shipping_method
         shipping_address = order.shipping_address
-        shipping_valid = (
+        shipping_not_valid = (
             method and shipping_address and
-            shipping_address.country.code != method.country_code)
-        if not shipping_valid:
+            shipping_address.country.code not in method.shipping_zone.countries)  # noqa
+        if shipping_not_valid:
             errors.append(
                 Error(
                     field='shipping',
@@ -212,8 +210,9 @@ class DraftOrderComplete(BaseMutation):
         # DEMO: disable mutations
         raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
 
-        order = get_node(info, id, only_type=Order)
-        errors = check_for_draft_order_errors(order)
+        errors = []
+        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        errors = check_for_draft_order_errors(order, errors)
         if errors:
             return cls(errors=errors)
 

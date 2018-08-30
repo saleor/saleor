@@ -10,10 +10,11 @@ cache:
 install:
   - pip install -U pip setuptools wheel
   - pip install tox-travis codecov
-  - nvm install 8
+  - nvm install 10
   - npm i
   - npm run build-assets --production
   - npm run build-emails
+  - npm run test
 script:
   - tox
 env:
@@ -39,6 +40,7 @@ matrix:
       sudo: required
       dist: xenial
       env: DJANGO="master"
+  fast_finish: true
   allow_failures:
     - python: "3.5"
       env: DJANGO="2.1"

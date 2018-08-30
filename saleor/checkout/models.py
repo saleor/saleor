@@ -8,10 +8,11 @@ from django.db import models
 from django.utils.encoding import smart_str
 from django_prices.models import MoneyField
 from jsonfield import JSONField
+from measurement.measures import Weight
 
 from ..account.models import Address
 from ..core.utils.taxes import ZERO_TAXED_MONEY
-from ..shipping.models import ShippingMethodCountry
+from ..shipping.models import ShippingMethod
 
 CENTS = Decimal('0.01')
 
@@ -50,7 +51,7 @@ class Cart(models.Model):
         Address, related_name='+', editable=False, null=True,
         on_delete=models.SET_NULL)
     shipping_method = models.ForeignKey(
-        ShippingMethodCountry, blank=True, null=True, related_name='carts',
+        ShippingMethod, blank=True, null=True, related_name='carts',
         on_delete=models.SET_NULL)
     note = models.TextField(blank=True, default='')
     discount_amount = MoneyField(
@@ -94,8 +95,14 @@ class Cart(models.Model):
         """Return the total cost of the cart."""
         return (
             self.get_subtotal(discounts, taxes)
-            + self.get_shipping_price(taxes)
-            - self.discount_amount)
+            + self.get_shipping_price(taxes) - self.discount_amount)
+
+    def get_total_weight(self):
+        # Cannot use `sum` as it parses an empty Weight to an int
+        weights = Weight(kg=0)
+        for line in self:
+            weights += line.variant.get_weight() * line.quantity
+        return weights
 
     def get_line(self, variant):
         """Return a line matching the given variant and data if any."""
@@ -129,8 +136,7 @@ class CartLine(models.Model):
             return NotImplemented
 
         return (
-            self.variant == other.variant and
-            self.quantity == other.quantity)
+            self.variant == other.variant and self.quantity == other.quantity)
 
     def __ne__(self, other):
         return not self == other  # pragma: no cover

@@ -7,14 +7,10 @@ import pytest
 
 from django.urls import reverse
 from prices import Money, TaxedMoney
-from saleor.core.i18n import ANY_COUNTRY, COUNTRY_CODE_CHOICES
-from saleor.core.utils import get_country_name_by_code
-from saleor.dashboard.discount.forms import country_choices
 from saleor.dashboard.order.utils import get_voucher_discount_for_order
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Sale, Voucher
 from saleor.product.models import Collection
-from saleor.shipping.models import ShippingMethodCountry
 
 
 def test_sales_list(admin_client, sale):
@@ -53,13 +49,13 @@ def test_voucher_shipping_add(admin_client):
     assert voucher.min_amount_spent == Money('59.99', 'USD')
 
 
-def test_view_sale_add(admin_client, default_category, collection):
+def test_view_sale_add(admin_client, category, collection):
     url = reverse('dashboard:sale-add')
     data = {
         'name': 'Free products',
         'type': DiscountValueType.PERCENTAGE,
         'value': 100,
-        'categories': [default_category.id],
+        'categories': [category.id],
         'collections': [collection.id],
         'start_date': '2018-01-01'}
 
@@ -69,12 +65,12 @@ def test_view_sale_add(admin_client, default_category, collection):
     assert Sale.objects.count() == 1
     sale = Sale.objects.first()
     assert sale.name == data['name']
-    assert default_category in sale.categories.all()
+    assert category in sale.categories.all()
     assert collection in sale.collections.all()
 
 
 def test_view_sale_add_requires_product_category_or_collection(
-        admin_client, default_category, product, collection):
+        admin_client, category, product, collection):
     initial_sales_count = Sale.objects.count()
     url = reverse('dashboard:sale-add')
     data = {
@@ -88,7 +84,7 @@ def test_view_sale_add_requires_product_category_or_collection(
     assert response.status_code == 200
     assert Sale.objects.count() == initial_sales_count
     products_data = [
-        {'categories': [default_category.id]},
+        {'categories': [category.id]},
         {'products': [product.id]}, {'collections': [collection.pk]}]
     for count, proper_data in enumerate(products_data):
         proper_data.update(data)
@@ -195,15 +191,3 @@ def test_ajax_voucher_list(admin_client, voucher):
 
     assert response.status_code == 200
     assert resp_decoded == {'results': vouchers_list}
-
-
-def test_country_choices(shipping_method):
-    any_country_shipping_method = ShippingMethodCountry.objects.filter(
-        country_code=ANY_COUNTRY)
-    assert any_country_shipping_method.exists()
-    assert country_choices() == COUNTRY_CODE_CHOICES
-
-    any_country_shipping_method.delete()
-    ShippingMethodCountry.objects.create(
-        country_code='PL', price=10, shipping_method=shipping_method)
-    assert country_choices() == [('PL', get_country_name_by_code('PL'))]

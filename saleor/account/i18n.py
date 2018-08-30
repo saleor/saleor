@@ -14,7 +14,6 @@ from .widgets import DatalistTextWidget, PhonePrefixWidget
 COUNTRY_FORMS = {}
 UNKNOWN_COUNTRIES = set()
 
-
 AREA_TYPE_TRANSLATIONS = {
     'area': pgettext_lazy('Address field', 'Area'),
     'county': pgettext_lazy('Address field', 'County'),
@@ -61,9 +60,7 @@ class AddressMetaForm(forms.ModelForm):
     class Meta:
         model = Address
         fields = ['country', 'preview']
-        labels = {
-            'country': pgettext_lazy(
-                'Country', 'Country')}
+        labels = {'country': pgettext_lazy('Country', 'Country')}
 
     def clean(self):
         data = super().clean()
@@ -115,6 +112,11 @@ class AddressForm(forms.ModelForm):
                 'Country area', 'State or province'),
             'phone': pgettext_lazy(
                 'Phone number', 'Phone number')}
+        placeholders = {
+            'street_address_1': pgettext_lazy(
+                'Address', 'Street address, P.O. box, company name'),
+            'street_address_2': pgettext_lazy(
+                'Address', 'Apartment, suite, unit, building, floor, etc')}
 
     phone = PossiblePhoneNumberFormField(
         widget=PhonePrefixWidget, required=False)
@@ -135,6 +137,8 @@ class AddressForm(forms.ModelForm):
             else:
                 autocomplete = autocomplete_dict[field_name]
             field.widget.attrs['autocomplete'] = autocomplete
+            field.widget.attrs['placeholder'] = field.label if not hasattr(
+                field, 'placeholder') else field.placeholder
 
 
 class CountryAwareAddressForm(AddressForm):
@@ -217,6 +221,10 @@ def update_base_fields(form_class, i18n_rules):
         field = form_class.base_fields[field_name]
         field.label = label_value
 
+    for field_name, placeholder_value in AddressForm.Meta.placeholders.items():
+        field = form_class.base_fields[field_name]
+        field.placeholder = placeholder_value
+
     if i18n_rules.country_area_choices:
         form_class.base_fields['country_area'] = CountryAreaChoiceField(
             choices=i18n_rules.country_area_choices)
@@ -245,7 +253,7 @@ def construct_address_form(country_code, i18n_rules):
     form_kwargs = {
         'Meta': type(str('Meta'), (base_class.Meta, object), {}),
         'formfield_callback': None}
-    class_ = type(base_class)(str(class_name), (base_class,), form_kwargs)
+    class_ = type(base_class)(str(class_name), (base_class, ), form_kwargs)
     update_base_fields(class_, i18n_rules)
     class_.i18n_country_code = country_code
     class_.i18n_fields_order = property(get_form_i18n_lines)

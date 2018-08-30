@@ -1,19 +1,19 @@
 import graphene
 import graphql_jwt
 from graphene_django.filter import DjangoFilterConnectionField
-from graphql_jwt.decorators import permission_required
+from graphql_jwt.decorators import login_required, permission_required
 
 from .account.mutations import (
     CustomerCreate, CustomerUpdate, PasswordReset, SetPassword, StaffCreate,
     StaffUpdate, AddressCreate, AddressUpdate, AddressDelete)
-from .account.resolvers import resolve_user, resolve_users
+from .account.resolvers import resolve_users
 from .account.types import User
-from .menu.resolvers import resolve_menus, resolve_menu_items
+from .menu.resolvers import resolve_menu, resolve_menus, resolve_menu_items
 from .menu.types import Menu, MenuItem
 # FIXME: sorting import by putting below line at the beginning breaks app
 from .menu.mutations import (
-    MenuCreate, MenuDelete, MenuUpdate, MenuItemCreate, MenuItemDelete,
-    MenuItemUpdate)
+    AssignNavigation, MenuCreate, MenuDelete, MenuUpdate, MenuItemCreate,
+    MenuItemDelete, MenuItemUpdate)
 from .descriptions import DESCRIPTIONS
 from .discount.resolvers import resolve_sales, resolve_vouchers
 from .discount.types import Sale, Voucher
@@ -56,12 +56,11 @@ from .product.resolvers import (
 from .product.types import (
     Category, Collection, Product, ProductAttribute, ProductType,
     ProductVariant)
-from .shipping.resolvers import resolve_shipping_methods
-from .shipping.types import ShippingMethod
+from .shipping.resolvers import resolve_shipping_zones
+from .shipping.types import ShippingZone
 from .shipping.mutations import (
-    ShippingMethodCreate, ShippingMethodDelete, ShippingMethodUpdate,
+    ShippingZoneCreate, ShippingZoneDelete, ShippingZoneUpdate,
     ShippingPriceCreate, ShippingPriceDelete, ShippingPriceUpdate)
-from .utils import get_node
 
 
 class Query(graphene.ObjectType):
@@ -87,7 +86,8 @@ class Query(graphene.ObjectType):
         description='List of the shop\'s collections.')
     menu = graphene.Field(
         Menu, id=graphene.Argument(graphene.ID),
-        description='Lookup a menu by ID.')
+        name=graphene.Argument(graphene.String, description="Menu name."),
+        description='Lookup a menu by ID or name.')
     menus = DjangoFilterConnectionField(
         Menu, query=graphene.String(description=DESCRIPTIONS['menu']),
         description="List of the shop\'s menus.")
@@ -105,11 +105,11 @@ class Query(graphene.ObjectType):
             description=DESCRIPTIONS['order']),
         description='List of the shop\'s orders.')
     page = graphene.Field(
-        Page, id=graphene.Argument(graphene.ID), slug=graphene.String(
-            description=DESCRIPTIONS['page']),
+        Page, id=graphene.Argument(graphene.ID), slug=graphene.String(),
         description='Lookup a page by ID or by slug.')
     pages = DjangoFilterConnectionField(
-        Page, filterset_class=DistinctFilterSet, query=graphene.String(),
+        Page, filterset_class=DistinctFilterSet, query=graphene.String(
+            description=DESCRIPTIONS['page']),
         description='List of the shop\'s pages.')
     product = graphene.Field(
         Product, id=graphene.Argument(graphene.ID),
@@ -140,11 +140,11 @@ class Query(graphene.ObjectType):
     vouchers = DjangoFilterConnectionField(
         Voucher, query=graphene.String(description=DESCRIPTIONS['product']),
         description="List of the shop\'s vouchers.")
-    shipping_method = graphene.Field(
-        ShippingMethod, id=graphene.Argument(graphene.ID),
-        description='Lookup a shipping method by ID.')
-    shipping_methods = DjangoFilterConnectionField(
-        ShippingMethod, description='List of the shop\'s shipping methods.')
+    shipping_zone = graphene.Field(
+        ShippingZone, id=graphene.Argument(graphene.ID),
+        description='Lookup a shipping zone by ID.')
+    shipping_zones = DjangoFilterConnectionField(
+        ShippingZone, description='List of the shop\'s shipping zones.')
     user = graphene.Field(
         User, id=graphene.Argument(graphene.ID),
         description='Lookup an user by ID.')
@@ -155,34 +155,36 @@ class Query(graphene.ObjectType):
     node = graphene.Node.Field()
 
     def resolve_attributes(self, info, in_category=None, query=None, **kwargs):
-        return resolve_attributes(in_category, info, query)
+        return resolve_attributes(info, in_category, query)
 
     def resolve_category(self, info, id):
-        return get_node(info, id, only_type=Category)
+        return graphene.Node.get_node_from_global_id(info, id, Category)
 
     def resolve_categories(self, info, level=None, query=None, **kwargs):
         return resolve_categories(info, level=level, query=query)
 
     def resolve_collection(self, info, id):
-        return get_node(info, id, only_type=Collection)
+        return graphene.Node.get_node_from_global_id(info, id, Collection)
 
     def resolve_collections(self, info, query=None, **kwargs):
-        resolve_collections(info, query)
+        return resolve_collections(info, query)
 
+    @permission_required(['account.manage_users'])
     def resolve_user(self, info, id):
-        return resolve_user(info, id)
+        return graphene.Node.get_node_from_global_id(info, id, User)
 
+    @permission_required('account.manage_users')
     def resolve_users(self, info, query=None, **kwargs):
         return resolve_users(info, query=query)
 
-    def resolve_menu(self, info, id):
-        return get_node(info, id, only_type=Menu)
+    def resolve_menu(self, info, id=None, name=None):
+        return resolve_menu(info, id, name)
 
     def resolve_menus(self, info, query=None, **kwargs):
         return resolve_menus(info, query)
 
     def resolve_menu_item(self, info, id):
-        return get_node(info, id, only_type=MenuItem)
+        return graphene.Node.get_node_from_global_id(info, id, MenuItem)
 
     def resolve_menu_items(self, info, query=None, **kwargs):
         return resolve_menu_items(info, query)
@@ -191,22 +193,24 @@ class Query(graphene.ObjectType):
         return resolve_page(info, id, slug)
 
     def resolve_pages(self, info, query=None, **kwargs):
-        return resolve_pages(user=info.context.user, query=query)
+        return resolve_pages(info, query=query)
 
+    @login_required
     def resolve_order(self, info, id):
         return resolve_order(info, id)
 
+    @login_required
     def resolve_orders(self, info, query=None, **kwargs):
         return resolve_orders(info, query)
 
     def resolve_product(self, info, id):
-        return get_node(info, id, only_type=Product)
+        return graphene.Node.get_node_from_global_id(info, id, Product)
 
     def resolve_products(self, info, category_id=None, query=None, **kwargs):
         return resolve_products(info, category_id, query)
 
     def resolve_product_type(self, info, id):
-        return get_node(info, id, only_type=ProductType)
+        return graphene.Node.get_node_from_global_id(info, id, ProductType)
 
     def resolve_product_types(self, info, **kwargs):
         return resolve_product_types()
@@ -216,31 +220,33 @@ class Query(graphene.ObjectType):
 
     @permission_required('discount.manage_discounts')
     def resolve_sale(self, info, id):
-        return get_node(info, id, only_type=Sale)
+        return graphene.Node.get_node_from_global_id(info, id, Sale)
 
     @permission_required('discount.manage_discounts')
     def resolve_sales(self, info, query=None, **kwargs):
         return resolve_sales(info, query)
 
     def resolve_product_variant(self, info, id):
-        return get_node(info, id, only_type=ProductVariant)
+        return graphene.Node.get_node_from_global_id(info, id, ProductVariant)
 
     @permission_required('discount.manage_discounts')
     def resolve_voucher(self, info, id):
-        return get_node(info, id, only_type=Voucher)
+        return graphene.Node.get_node_from_global_id(info, id, Voucher)
 
     @permission_required('discount.manage_discounts')
     def resolve_vouchers(self, info, query=None, **kwargs):
         return resolve_vouchers(info, query)
 
-    def resolve_shipping_method(self, info, id):
-        return get_node(info, id, only_type=ShippingMethod)
+    def resolve_shipping_zone(self, info, id):
+        return graphene.Node.get_node_from_global_id(info, id, ShippingZone)
 
-    def resolve_shipping_methods(self, info, **kwargs):
-        return resolve_shipping_methods(info)
+    def resolve_shipping_zones(self, info, **kwargs):
+        return resolve_shipping_zones(info)
 
 
 class Mutations(graphene.ObjectType):
+    assign_navigation = AssignNavigation.Field()
+
     token_create = CreateToken.Field()
     token_refresh = graphql_jwt.Refresh.Field()
     token_verify = VerifyToken.Field()
@@ -328,9 +334,9 @@ class Mutations(graphene.ObjectType):
     voucher_delete = VoucherDelete.Field()
     voucher_update = VoucherUpdate.Field()
 
-    shipping_method_create = ShippingMethodCreate.Field()
-    shipping_method_delete = ShippingMethodDelete.Field()
-    shipping_method_update = ShippingMethodUpdate.Field()
+    shipping_zone_create = ShippingZoneCreate.Field()
+    shipping_zone_delete = ShippingZoneDelete.Field()
+    shipping_zone_update = ShippingZoneUpdate.Field()
 
     shipping_price_create = ShippingPriceCreate.Field()
     shipping_price_delete = ShippingPriceDelete.Field()

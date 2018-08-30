@@ -7,6 +7,7 @@ from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
 from ....core.permissions import get_permissions
 from ....site import models as site_models
+from ...menu.types import Menu
 from ...utils import format_permissions_for_display
 from .common import CountryDisplay, LanguageDisplay, PermissionDisplay
 from .money import VAT
@@ -29,6 +30,14 @@ class Domain(graphene.ObjectType):
         description = 'Represents shop\'s domain.'
 
 
+class Navigation(graphene.ObjectType):
+    main = graphene.Field(Menu, description='Main navigation bar.')
+    secondary = graphene.Field(Menu, description='Secondary navigation bar.')
+
+    class Meta:
+        description = 'Represents shop\'s navigation menus.'
+
+
 class Shop(graphene.ObjectType):
     authorization_keys = graphene.List(
         AuthorizationKey, description='List of configured authorization keys.',
@@ -48,6 +57,8 @@ class Shop(graphene.ObjectType):
         LanguageDisplay,
         description='List of the shops\'s supported languages.', required=True)
     name = graphene.String(description='Shop\'s name.', required=True)
+    navigation = graphene.Field(
+        Navigation, description='Shop\'s navigation.')
     permissions = graphene.List(
         PermissionDisplay, description='List of available permissions.',
         required=True)
@@ -98,6 +109,11 @@ class Shop(graphene.ObjectType):
 
     def resolve_name(self, info):
         return info.context.site.name
+
+    def resolve_navigation(self, info):
+        site_settings = info.context.site.settings
+        return Navigation(
+            main=site_settings.top_menu, secondary=site_settings.bottom_menu)
 
     @permission_required('site.manage_settings')
     def resolve_permissions(self, info):

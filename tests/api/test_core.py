@@ -206,6 +206,29 @@ def test_query_permissions(admin_api_client, user_api_client):
     assert_no_permission(response)
 
 
+def test_query_navigation(user_api_client, site_settings):
+    query = """
+    query {
+        shop {
+            navigation {
+                main {
+                    name
+                }
+                secondary {
+                    name
+                }
+            }
+        }
+    }
+    """
+    response = user_api_client.post(reverse('api'), {'query': query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    navigation_data = content['data']['shop']['navigation']
+    assert navigation_data['main']['name'] == site_settings.top_menu.name
+    assert navigation_data['secondary']['name'] == site_settings.bottom_menu.name
+
+
 def test_clean_seo_fields():
     title = 'lady title'
     description = 'fantasy description'

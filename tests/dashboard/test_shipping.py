@@ -1,105 +1,192 @@
 from django.urls import reverse
 from prices import Money
+import pytest
+from saleor.dashboard.shipping.forms import (
+    PriceShippingMethodForm, ShippingZoneForm, WeightShippingMethodForm,
+    currently_used_countries)
+from saleor.shipping import ShippingMethodType
+from saleor.shipping.models import ShippingMethod, ShippingZone
+from saleor.core.weight import WeightUnits
 
-from saleor.shipping.models import ShippingMethod, ShippingMethodCountry
+
+def test_currently_used_countries():
+    zone_1 = ShippingZone.objects.create(name='Zone 1', countries=['PL'])
+    zone_2 = ShippingZone.objects.create(name='Zone 2', countries=['DE'])
+    result = currently_used_countries(zone_1.pk)
+    assert list(result)[0][0] == 'DE'
 
 
-def test_shipping_method_list(admin_client, shipping_method):
-    url = reverse('dashboard:shipping-methods')
+def test_shipping_zone_form():
+    zone_1 = ShippingZone.objects.create(name='Zone 1', countries=['PL'])
+    zone_2 = ShippingZone.objects.create(name='Zone 2', countries=['DE'])
+    form = ShippingZoneForm(
+        instance=zone_1, data={
+            'name': 'Zone 1',
+            'countries': ['PL']})
+
+    assert 'DE' not in [
+        code for code, name in form.fields['countries'].choices]
+    assert form.is_valid()
+
+    form = ShippingZoneForm(
+        instance=zone_1, data={
+            'name': 'Zone 2',
+            'countries': ['DE']})
+    assert not form.is_valid()
+    assert 'countries' in form.errors
+
+
+@pytest.mark.parametrize(
+    'min_price, max_price, result',
+    (
+        (10, 20, True), (None, None, True), (None, 10, True), (0, None, True),
+        (20, 20, False)))
+def test_price_shipping_method_form(min_price, max_price, result):
+    data = {
+        'name': 'Name',
+        'price': 10,
+        'minimum_order_price': min_price,
+        'maximum_order_price': max_price}
+    form = PriceShippingMethodForm(data=data)
+    assert form.is_valid() == result
+
+
+@pytest.mark.parametrize(
+    'min_weight, max_weight, result',
+    (
+        (10, 20, True), (None, None, True), (None, 10, True), (0, None, True),
+        (20, 20, False)))
+def test_weight_shipping_method_form(min_weight, max_weight, result):
+    data = {
+        'name': 'Name',
+        'price': 10,
+        'minimum_order_weight': min_weight,
+        'maximum_order_weight': max_weight}
+    form = WeightShippingMethodForm(data=data)
+    assert form.is_valid() == result
+
+
+def test_shipping_zone_list(admin_client, shipping_zone):
+    url = reverse('dashboard:shipping-zone-list')
     response = admin_client.get(url)
     assert response.status_code == 200
 
 
-def test_shipping_method_add(admin_client):
-    assert ShippingMethod.objects.count() == 0
-    url = reverse('dashboard:shipping-method-add')
-    data = {'name': 'Zium', 'description': 'Fastest zium'}
+def test_shipping_zone_update_default_weight_unit(admin_client, site_settings):
+    url = reverse('dashboard:shipping-zone-list')
+    data = {'default_weight_unit': WeightUnits.POUND}
+    response = admin_client.post(url, data=data)
+    assert response.status_code == 302
+    site_settings.refresh_from_db()
+    assert site_settings.default_weight_unit == WeightUnits.POUND
+
+
+def test_shipping_zone_add(admin_client):
+    assert ShippingZone.objects.count() == 0
+    url = reverse('dashboard:shipping-zone-add')
+    data = {'name': 'Zium', 'countries': ['PL']}
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
-    assert ShippingMethod.objects.count() == 1
+    assert ShippingZone.objects.count() == 1
 
 
-def test_shipping_method_add_not_valid(admin_client):
-    assert ShippingMethod.objects.count() == 0
-    url = reverse('dashboard:shipping-method-add')
+def test_shipping_zone_add_not_valid(admin_client):
+    assert ShippingZone.objects.count() == 0
+    url = reverse('dashboard:shipping-zone-add')
     data = {}
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
-    assert ShippingMethod.objects.count() == 0
+    assert ShippingZone.objects.count() == 0
 
 
-def test_shipping_method_edit(admin_client, shipping_method):
-    assert ShippingMethod.objects.count() == 1
-    url = reverse('dashboard:shipping-method-update',
-                  kwargs={'pk': shipping_method.pk})
-    data = {'name': 'Flash', 'description': 'In a flash!'}
+def test_shipping_zone_edit(admin_client, shipping_zone):
+    assert ShippingZone.objects.count() == 1
+    url = reverse(
+        'dashboard:shipping-zone-update', kwargs={'pk': shipping_zone.pk})
+    data = {'name': 'Flash', 'countries': ['PL']}
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
-    assert ShippingMethod.objects.count() == 1
-    assert ShippingMethod.objects.all()[0].name == 'Flash'
+    assert ShippingZone.objects.count() == 1
+    assert ShippingZone.objects.all()[0].name == 'Flash'
 
 
-def test_shipping_method_details(admin_client, shipping_method):
-    assert ShippingMethod.objects.count() == 1
-    url = reverse('dashboard:shipping-method-details',
-                  kwargs={'pk': shipping_method.pk})
+def test_shipping_zone_details(admin_client, shipping_zone):
+    assert ShippingZone.objects.count() == 1
+    url = reverse(
+        'dashboard:shipping-zone-details', kwargs={'pk': shipping_zone.pk})
     response = admin_client.post(url, follow=True)
     assert response.status_code == 200
 
 
-def test_shipping_method_delete(admin_client, shipping_method):
-    assert ShippingMethod.objects.count() == 1
-    url = reverse('dashboard:shipping-method-delete',
-                  kwargs={'pk': shipping_method.pk})
+def test_shipping_zone_delete(admin_client, shipping_zone):
+    assert ShippingZone.objects.count() == 1
+    url = reverse(
+        'dashboard:shipping-zone-delete', kwargs={'pk': shipping_zone.pk})
     response = admin_client.post(url, follow=True)
     assert response.status_code == 200
-    assert ShippingMethod.objects.count() == 0
+    assert ShippingZone.objects.count() == 0
 
 
-def test_shipping_method_country_add(admin_client, shipping_method):
-    assert ShippingMethodCountry.objects.count() == 1
-    url = reverse('dashboard:shipping-method-country-add',
-                  kwargs={'shipping_method_pk': shipping_method.pk})
-    data = {'country_code': 'FR', 'price': '50',
-            'shipping_method': shipping_method.pk}
+def test_shipping_method_add(admin_client, shipping_zone):
+    assert ShippingMethod.objects.count() == 1
+    url = reverse(
+        'dashboard:shipping-method-add',
+        kwargs={
+            'shipping_zone_pk': shipping_zone.pk,
+            'type': 'price'})
+    data = {
+        'name': 'DHL',
+        'price': '50',
+        'shipping_zone': shipping_zone.pk,
+        'type': ShippingMethodType.PRICE_BASED}
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
-    assert ShippingMethodCountry.objects.count() == 2
+    assert ShippingMethod.objects.count() == 2
 
 
-def test_shipping_method_country_add_not_valid(admin_client, shipping_method):
-    assert ShippingMethodCountry.objects.count() == 1
-    url = reverse('dashboard:shipping-method-country-add',
-                  kwargs={'shipping_method_pk': shipping_method.pk})
+def test_shipping_method_add_not_valid(admin_client, shipping_zone):
+    assert ShippingMethod.objects.count() == 1
+    url = reverse(
+        'dashboard:shipping-method-add',
+        kwargs={
+            'shipping_zone_pk': shipping_zone.pk,
+            'type': 'price'})
     data = {}
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
-    assert ShippingMethodCountry.objects.count() == 1
+    assert ShippingMethod.objects.count() == 1
 
 
-def test_shipping_method_country_edit(admin_client, shipping_method):
-    assert ShippingMethodCountry.objects.count() == 1
-    country = shipping_method.price_per_country.all()[0]
+def test_shipping_method_edit(admin_client, shipping_zone):
+    assert ShippingMethod.objects.count() == 1
+    country = shipping_zone.shipping_methods.all()[0]
     assert country.price == Money(10, 'USD')
-    url = reverse('dashboard:shipping-method-country-edit',
-                  kwargs={'shipping_method_pk': shipping_method.pk,
-                          'country_pk': country.pk})
-    data = {'country_code': '', 'price': '50',
-            'shipping_method': shipping_method.pk}
+    url = reverse(
+        'dashboard:shipping-method-edit',
+        kwargs={
+            'shipping_zone_pk': shipping_zone.pk,
+            'shipping_method_pk': country.pk})
+    data = {
+        'name': 'DHL',
+        'price': '50',
+        'shipping_zone': shipping_zone.pk,
+        'type': ShippingMethodType.PRICE_BASED}
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
-    assert ShippingMethodCountry.objects.count() == 1
+    assert ShippingMethod.objects.count() == 1
 
-    shipping_price = shipping_method.price_per_country.all()[0].price
+    shipping_price = shipping_zone.shipping_methods.all()[0].price
     assert shipping_price == Money(50, 'USD')
 
 
-def test_shipping_method_country_delete(admin_client, shipping_method):
-    assert ShippingMethodCountry.objects.count() == 1
-    country = shipping_method.price_per_country.all()[0]
-    url = reverse('dashboard:shipping-method-country-delete',
-                  kwargs={'shipping_method_pk': shipping_method.pk,
-                          'country_pk': country.pk})
+def test_shipping_method_delete(admin_client, shipping_zone):
+    assert ShippingMethod.objects.count() == 1
+    country = shipping_zone.shipping_methods.all()[0]
+    url = reverse(
+        'dashboard:shipping-method-delete',
+        kwargs={
+            'shipping_zone_pk': shipping_zone.pk,
+            'shipping_method_pk': country.pk})
     response = admin_client.post(url, follow=True)
     assert response.status_code == 200
-    assert ShippingMethodCountry.objects.count() == 0
+    assert ShippingMethod.objects.count() == 0
