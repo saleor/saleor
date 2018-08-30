@@ -2,6 +2,7 @@ from unittest import mock
 
 import pytest
 from django.conf import settings
+from django.templatetags.static import static
 from django.urls import reverse
 from templated_email import get_connection
 
@@ -11,12 +12,13 @@ from saleor.core.utils import build_absolute_uri
 
 def test_get_email_context(order, site_settings):
     site = site_settings.site
-    absolute_url = build_absolute_uri(location=None)
+    logo_url = build_absolute_uri(
+        location=None) + static('images/logo-document.svg')
     order_url = build_absolute_uri(
         reverse('order:details', kwargs={'token': order.token}))
     proper_context = {
         'site_name': site.name,
-        'absolute_url': absolute_url,
+        'logo_url': logo_url,
         'url': order_url}
 
     received_context = emails.get_email_context(order.token)

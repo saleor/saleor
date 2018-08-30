@@ -1,5 +1,6 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
@@ -97,12 +98,18 @@ def test_staff_create_email_with_set_link_password(admin_client):
 
 def test_send_set_password_email(staff_user, site_settings):
     site = site_settings.site
-    absolute_url = build_absolute_uri(location=None)
+    uid = urlsafe_base64_encode(force_bytes(staff_user.pk)).decode()
+    token = default_token_generator.make_token(staff_user)
+    logo_url = build_absolute_uri(
+        location=None) + static('images/logo-document.svg')
+    password_set_url = build_absolute_uri(
+        reverse(
+            'account:reset-password-confirm',
+            kwargs={'token': token, 'uidb64': uid}))
     ctx = {
-        'absolute_url': absolute_url,
-        'site_name': site.name,
-        'uid': urlsafe_base64_encode(force_bytes(staff_user.pk)).decode(),
-        'token': default_token_generator.make_token(staff_user)}
+        'logo_url': logo_url,
+        'password_set_url': password_set_url,
+        'site_name': site.name}
     send_templated_mail(
         template_name='dashboard/staff/set_password',
         from_email=DEFAULT_FROM_EMAIL,
@@ -112,8 +119,8 @@ def test_send_set_password_email(staff_user, site_settings):
     generated_link = reverse(
         'account:reset-password-confirm',
         kwargs={
-            'uidb64': ctx['uid'],
-            'token': ctx['token']})
+            'uidb64': uid,
+            'token': token})
     absolute_generated_link = build_absolute_uri(generated_link)
     sended_message = mail.outbox[0].body
     assert absolute_generated_link in sended_message

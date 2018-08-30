@@ -1,6 +1,7 @@
 from celery import shared_task
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.templatetags.static import static
 from django.urls import reverse
 from templated_email import send_templated_mail
 
@@ -18,13 +19,11 @@ CONFIRM_NOTE_TEMPLATE = 'order/note/confirm_note'
 def get_email_context(order_token):
     """Prepares context required for email template rendering."""
     site = Site.objects.get_current()
-    absolute_url = build_absolute_uri(location=None)
+    logo_url = build_absolute_uri(
+        location=None) + static('images/logo-document.svg')
     order_url = build_absolute_uri(
         reverse('order:details', kwargs={'token': order_token}))
-    ctx = {
-        'site_name': site.name,
-        'absolute_url': absolute_url,
-        'url': order_url}
+    ctx = {'site_name': site.name, 'logo_url': logo_url, 'url': order_url}
     return ctx
 
 
