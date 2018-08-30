@@ -67,7 +67,7 @@ class MenuCreate(ModelMutation):
             else:
                 if category:
                     category = cls.get_node_or_error(
-                        info, category, errors, 'items', Category)
+                        info, category, errors, 'items', only_type=Category)
                     item['category'] = category
                 elif collection:
                     collection = cls.get_node_or_error(
