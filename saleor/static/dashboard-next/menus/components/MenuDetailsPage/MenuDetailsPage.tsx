@@ -52,7 +52,7 @@ const MenuDetailsPage = decorate<MenuDetailsPageProps>(
       name: menu ? menu.name : ""
     };
     return (
-      <Form initial={initialForm}>
+      <Form initial={initialForm} key={JSON.stringify(menu)}>
         {({ data, change, errors, hasChanged, submit }) => (
           <Container width="md">
             <PageHeader title={menu ? menu.name : undefined} onBack={onBack} />

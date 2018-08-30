@@ -32,10 +32,7 @@ export const MenuDetails: React.StatelessComponent<MenuDetailsProps> = ({
     {navigate => {
       const paginationState = createPaginationState(PAGINATE_BY, params);
       return (
-        <TypedMenuDetailsQuery
-          query={menuDetailsQuery}
-          variables={{ id, ...paginationState }}
-        >
+        <TypedMenuDetailsQuery query={menuDetailsQuery} variables={{ id }}>
           {({ data, loading, error }) => {
             if (error) {
               return (
@@ -60,6 +57,7 @@ export const MenuDetails: React.StatelessComponent<MenuDetailsProps> = ({
             return (
               <MenuDetailsPage
                 disabled={loading}
+                menu={data ? data.menu : undefined}
                 menuItems={unrollMenuItemsConnection(data)}
                 onBack={() => navigate(menuListUrl)}
                 onAdd={() => navigate(menuItemAddUrl)}
