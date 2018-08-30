@@ -6,6 +6,7 @@ import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import { VariantCreateMutation } from "../../gql-types";
 import i18n from "../../i18n";
+import { decimal } from "../../misc";
 import ProductVariantCreatePage from "../components/ProductVariantCreatePage";
 import { TypedVariantCreateMutation } from "../mutations";
 import {
@@ -77,8 +78,8 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                       variantCreate({
                         variables: {
                           attributes: formData.attributes,
-                          costPrice: formData.costPrice,
-                          priceOverride: formData.priceOverride,
+                          costPrice: decimal(formData.costPrice),
+                          priceOverride: decimal(formData.priceOverride),
                           product: productId,
                           quantity: formData.stock,
                           sku: formData.sku,
