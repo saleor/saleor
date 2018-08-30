@@ -1,5 +1,6 @@
-import React, { Component, PropTypes } from 'react';
-import {gql} from 'react-apollo';
+import * as PropTypes from 'prop-types';
+import React, { Component } from 'react';
+import gql from 'graphql-tag';
 
 import ProductPrice from './ProductPrice';
 
@@ -38,8 +39,8 @@ class ProductItem extends Component {
         availability {
           ...ProductPriceFragmentQuery
         }
-        thumbnailUrl1x: thumbnailUrl(size: "255x255")
-        thumbnailUrl2x: thumbnailUrl(size: "510x510")
+        thumbnailUrl1x: thumbnailUrl(size: 255)
+        thumbnailUrl2x: thumbnailUrl(size: 510)
         url
       }
       ${ProductPrice.fragments.availability}
@@ -56,8 +57,8 @@ class ProductItem extends Component {
         <a href={product.url} className="link--clean">
           <div className="text-center">
             <div>
-                <img className="img-responsive" src={product.thumbnailUrl1x} srcSet={srcset} alt="" />
-                <span className="product-list-item-name" title={product.name}>{product.name}</span>
+              <img className="img-responsive" src={product.thumbnailUrl1x} srcSet={srcset} alt="" />
+              <span className="product-list-item-name" title={product.name}>{product.name}</span>
             </div>
             <div className="panel-footer">
               <ProductPrice availability={product.availability} />

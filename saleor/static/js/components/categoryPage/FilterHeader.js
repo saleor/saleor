@@ -1,5 +1,5 @@
-import React, { PropTypes } from 'react';
-import InlineSVG from 'react-inlinesvg';
+import * as PropTypes from 'prop-types';
+import React from 'react';
 
 import chevronDownIcon from '../../../images/chevron-down.svg';
 

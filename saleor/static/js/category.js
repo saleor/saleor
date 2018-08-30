@@ -1,30 +1,26 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import {ApolloProvider, ApolloClient, createNetworkInterface} from 'react-apollo';
-import 'jquery.cookie';
+import { ApolloClient } from 'apollo-client';
+import { createHttpLink } from 'apollo-link-http';
+import { InMemoryCache } from 'apollo-cache-inmemory';
+import { ApolloProvider } from 'react-apollo';
+import { render } from 'react-dom';
 
 import App from './components/categoryPage/App';
 
-import {ensureAllowedName, getAttributesFromQuery, getFromQuery} from './components/categoryPage/utils';
+import { ensureAllowedName, getAttributesFromQuery, getFromQuery } from './components/categoryPage/utils';
 
 const categoryPage = document.getElementById('category-page');
 const categoryData = JSON.parse(categoryPage.getAttribute('data-category'));
 const SORT_BY_FIELDS = ['name', 'price'];
 const PAGINATE_BY = 24;
 
-const networkInterface = createNetworkInterface({
-  uri: '/graphql/',
-  opts: {
-    credentials: 'same-origin',
-    headers: {
-      'X-CSRFToken': $.cookie('csrftoken')
-    }
-  }
+const client = new ApolloClient({
+  link: createHttpLink({ uri: '/graphql/' }),
+  cache: new InMemoryCache()
 });
-const apolloClient = new ApolloClient({networkInterface});
 
-ReactDOM.render(
-  <ApolloProvider client={apolloClient}>
+const WrappedApp = (
+  <ApolloProvider client={client}>
     <App
       categoryId={categoryData.id}
       minPrice={parseInt(getFromQuery('minPrice')) || null}
@@ -33,6 +29,7 @@ ReactDOM.render(
       sortBy={ensureAllowedName(getFromQuery('sortBy', 'name'), SORT_BY_FIELDS)}
       PAGINATE_BY={PAGINATE_BY}
     />
-  </ApolloProvider>,
-  categoryPage
+  </ApolloProvider>
 );
+
+render(WrappedApp, categoryPage);
