@@ -8,11 +8,11 @@ import { ScrollLink } from '..';
 
 import css from './home.css';
 
-import modernStackIcon from '../../images/modern-stack.png';
-import buildToScaleIcon from '../../images/build-to-scale.png';
-import easyToCustomizeIcon from '../../images/easy-to-customize.png';
-import greatExperienceIcon from '../../images/great-experience.png';
-import starsBg from '../../images/open-source-bg.png';
+import modernStackIcon from '../../images/modern-stack.svg';
+import buildToScaleIcon from '../../images/build-to-scale.svg';
+import easyToCustomizeIcon from '../../images/easy-to-customize.svg';
+import greatExperienceIcon from '../../images/great-experience.svg';
+import starsBg from '../../images/open-source-bg.svg';
 import mobileStarsBg from '../../images/open-source-bg2.png';
 
 import decoration01 from '../../images/decoration01.png';
@@ -69,7 +69,7 @@ class Home extends Component {
             </div>
             <div className="col-xs-6 col-sm-6 col-md-3">
               <img src={buildToScaleIcon} />
-              <h3><span>02<br/>-</span>Build to <br />scale</h3>
+              <h3><span>02<br/>-</span>Built to <br />scale</h3>
             </div>
             <div className="col-xs-6 col-sm-6 col-md-3">
               <img src={easyToCustomizeIcon} />

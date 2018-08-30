@@ -4,7 +4,7 @@ import { GitHubBanner } from '..';
 
 import css from './feature.css';
 
-import modernStackIcon from '../../images/modern-stack.png'
+import modernStackIcon from '../../images/modern-stack.svg'
 import productVariant from '../../images/products-variants.png';
 import collectionsIcon from '../../images/collections.png';
 import multipleImages from '../../images/multiple-images.png';

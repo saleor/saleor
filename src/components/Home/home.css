@@ -140,7 +140,7 @@
       top: calc(var(--spacer) * -6);
       & .grid {
         padding: 0 calc(var(--spacer) * 3);
-        width: auto;
+        width: 100%;
         @media (max-width: 450px) {
           padding: var(--spacer);
         }
@@ -148,6 +148,13 @@
       & .section-container {
         @media (max-width: 450px) {
           padding: 0 calc(var(--spacer) * 1) 0 calc(var(--spacer) * 3);
+        }
+      }
+      & img { 
+        padding: calc(var(--spacer) * 2); 
+        margin-left: calc(var(--spacer) * 2) 
+        @media (max-width: 450px) {
+          margin-left: 0;
         }
       }
       & h3 {
@@ -240,7 +247,8 @@
               margin-bottom: var(--spacer);
             }
             &:first-of-type {
-              font-weight: var(--font-weight-medium);
+              font-weight: var(--font-weight-normal);
+              font-size: calc(var(--font-size-base) * 1.2);
               @media (max-width: 768px) {
                 width: 100%;
               }
@@ -258,19 +266,20 @@
         }
         &.software-stack {
           & .image {
-            background-image: url('../../images/stack-icons.png');
-            background-size: 90%;
-            background-position: 150%;
+            background-image: url('../../images/stack-icons.svg');
+            background-size: 120%;
+            background-position: -20%;
             @media (max-width: 768px) {
-              background-size: 100%;
-              background-position: 100% 50%;
+              background-size: 140%;
+              background-position: 10% 50%;
             }
             @media (max-width: 700px) {
               background-position: -50% 50%;
             }
             @media (max-width: 450px) {
-              background-image: url('../../images/modern-stack.png');
-              background-position: 140% 0;
+              background-image: url('../../images/modern-stack.svg');
+              background-position: 10% 0;
+              background-size: 100%;
             }
           }
           & .decoration {
@@ -293,10 +302,10 @@
         }
         &.build-to-scale {
           & .image {
-            background-image: url('../../images/build-to-scale.png');
-            background-size: 100%;
+            background-image: url('../../images/build-to-scale.svg');
+            background-size: 60%;
             @media (max-width: 768px) {
-              background-size: 130%;
+              background-size: 100%;
             }
             @media (max-width: 450px) {
               background-position: 100%;
@@ -311,10 +320,10 @@
         }
         &.easy-to-customize {
           & .image {
-            background-image: url('../../images/easy-to-customize.png');
-            background-size: 80%;
+            background-image: url('../../images/easy-to-customize.svg');
+            background-size: 60%;
             @media (max-width: 768px) {
-              background-size: 130%;
+              background-size: 100%;
             }
             @media (max-width: 450px) {
               background-position: 120% ;
@@ -364,7 +373,7 @@
           }
           @media (max-width: 450px) {
             & .image {
-              background-image: url('../../images/great-experience.png');
+              background-image: url('../../images/great-experience.svg');
               background-size: 80%;
               @media (max-width: 768px) {
                 background-size: 110%;
@@ -382,8 +391,8 @@
             padding: calc(var(--spacer) * 4) 0;
           }
           & .image {
-            background-image: url('../../images/storefront-icon.png');
-            background-size: 40%;
+            background-image: url('../../images/storefront-icon.svg');
+            background-size: 120%;
             position: relative;
             & .label-wrapper {
               position: absolute;
@@ -425,8 +434,8 @@
             padding-top: 0;
           }
           & .image {
-            background-image: url('../../images/dashboard-icon.png');
-            background-size: 80%;
+            background-image: url('../../images/dashboard-icon.svg');
+            background-size: 120%;
           }
           & .decoration {
             width: 25%;
@@ -474,8 +483,8 @@
             background-position: 50% 0%;
             height: 300px;
             @media (max-width: 450px) {
-              background-size: 70%;
-              background-position: 0% 190%;
+              background-size: 200%;
+              background-position: 40% 70%;
             }
           }
         }
@@ -518,11 +527,12 @@
         }
       }
       & .stars-bg {
-        width: 80%;
+        width: 100%;
         position: absolute;
-        top: -17%;
-        right: -1.5%;
+        top: -16%;
+        right: -19%;
         z-index: -1;
+        opacity: 0.5;
         @media (max-width: 700px) {
           top: -53%;
           right: -8.5%;
