@@ -22,6 +22,7 @@
 
   /* Typography */
 
+
   --font-family-sans-serif:      'Heron Sans', sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-family-monospace:       monospace;
   --font-family-base:            var(--font-family-sans-serif);
@@ -36,7 +37,7 @@
   --font-weight-bold:            bold;
 
   --font-weight-base:            var(--font-weight-lighter);
-  --line-height-base:            1.5;
+  --line-height-base:            1.7;
 
   --h1-font-size:                calc(var(--font-size-base) * 3.5);
   --h2-font-size:                calc(var(--font-size-base) * 3);
