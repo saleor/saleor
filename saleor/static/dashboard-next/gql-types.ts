@@ -346,6 +346,49 @@ export interface MenuListQuery {
   } | null,
 };
 
+export interface MenuDetailsQueryVariables {
+  id: string,
+  first?: number | null,
+  after?: string | null,
+  last?: number | null,
+  before?: string | null,
+};
+
+export interface MenuDetailsQuery {
+  // Lookup a menu by ID.
+  menu:  {
+    // The ID of the object.
+    id: string,
+    name: string,
+    items:  {
+      edges:  Array< {
+        // The item at the end of the edge
+        node:  {
+          // The ID of the object.
+          id: string,
+          name: string,
+          // URL to the menu item.
+          url: string | null,
+          children:  {
+            // A total count of items in the collection
+            totalCount: number | null,
+          } | null,
+        },
+      } >,
+      pageInfo:  {
+        // When paginating backwards, are there more items?
+        hasPreviousPage: boolean,
+        // When paginating forwards, are there more items?
+        hasNextPage: boolean,
+        // When paginating backwards, the cursor to continue.
+        startCursor: string | null,
+        // When paginating forwards, the cursor to continue.
+        endCursor: string | null,
+      },
+    } | null,
+  } | null,
+};
+
 export interface PageDeleteMutationVariables {
   id: string,
 };

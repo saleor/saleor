@@ -1,5 +1,6 @@
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
+import { withStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
@@ -17,26 +18,25 @@ interface MenuPropertiesProps {
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
-const MenuProperties: React.StatelessComponent<MenuPropertiesProps> = ({
-  disabled,
-  errors,
-  menu,
-  onChange
-}) => (
-  <Card>
-    <CardTitle title={i18n.t("General Information")} />
-    <CardContent>
-      <TextField
-        error={!!errors.name}
-        fullWidth
-        helperText={errors.name}
-        name="name"
-        value={menu.name}
-        disabled={disabled}
-        onChange={onChange}
-      />
-    </CardContent>
-  </Card>
+const decorate = withStyles({ input: { width: "50%" } });
+const MenuProperties = decorate<MenuPropertiesProps>(
+  ({ classes, disabled, errors, menu, onChange }) => (
+    <Card>
+      <CardTitle title={i18n.t("General Information")} />
+      <CardContent>
+        <TextField
+          className={classes.input}
+          error={!!errors.name}
+          fullWidth
+          helperText={errors.name}
+          name="name"
+          value={menu.name}
+          disabled={disabled}
+          onChange={onChange}
+        />
+      </CardContent>
+    </Card>
+  )
 );
 MenuProperties.displayName = "MenuProperties";
 export default MenuProperties;

@@ -27,26 +27,26 @@ export const menu = {
 };
 export const menuItems = [
   {
-    id: "mi1283",
-    items: {
+    children: {
       totalCount: 21
     },
+    id: "mi1283",
     name: "Winter sale",
     url: "/some/fake/url/winter-sale"
   },
   {
-    id: "mi94852",
-    items: {
+    children: {
       totalCount: 4
     },
+    id: "mi94852",
     name: "Happy New Year sale",
     url: "/some/fake/url/new-year-sale"
   },
   {
-    id: "mi87243",
-    items: {
+    children: {
       totalCount: 0
     },
+    id: "mi87243",
     name: "Terms of use",
     url: "/some/fake/url/terms-of-use"
   }

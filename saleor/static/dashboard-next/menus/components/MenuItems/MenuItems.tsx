@@ -20,12 +20,12 @@ import { renderCollection } from "../../../misc";
 interface MenuItemsProps extends ListProps {
   menuItems?: Array<
     MenuItem & {
-      items: {
+      children: {
         totalCount: number;
       };
     }
   >;
-  onMenuItemAdd: () => void;
+  onAdd: () => void;
 }
 
 const decorate = withStyles({
@@ -38,7 +38,7 @@ const MenuItems = decorate<MenuItemsProps>(
     classes,
     menuItems,
     pageInfo,
-    onMenuItemAdd,
+    onAdd,
     onNextPage,
     onPreviousPage,
     onRowClick
@@ -47,7 +47,7 @@ const MenuItems = decorate<MenuItemsProps>(
       <CardTitle
         title={i18n.t("Menu Items")}
         toolbar={
-          <Button color="secondary" variant="flat" onClick={onMenuItemAdd}>
+          <Button color="secondary" variant="flat" onClick={onAdd}>
             {i18n.t("Add submenu")}
           </Button>
         }
@@ -62,7 +62,7 @@ const MenuItems = decorate<MenuItemsProps>(
         </TableHead>
         <TableFooter>
           <TablePagination
-            colSpan={2}
+            colSpan={3}
             hasNextPage={pageInfo ? pageInfo.hasNextPage : undefined}
             onNextPage={onNextPage}
             hasPreviousPage={pageInfo ? pageInfo.hasPreviousPage : undefined}
@@ -97,9 +97,9 @@ const MenuItems = decorate<MenuItemsProps>(
                 </TableCell>
                 <TableCell>
                   {menuItem &&
-                  menuItem.items &&
-                  menuItem.items.totalCount !== undefined ? (
-                    menuItem.items.totalCount
+                  menuItem.children &&
+                  menuItem.children.totalCount !== undefined ? (
+                    menuItem.children.totalCount
                   ) : (
                     <Skeleton />
                   )}

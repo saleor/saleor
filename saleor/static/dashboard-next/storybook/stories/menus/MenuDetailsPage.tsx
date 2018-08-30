@@ -13,23 +13,17 @@ storiesOf("Views / Menus / Menu details page", module)
       menu={menu}
       menuItems={menuItems}
       onBack={() => undefined}
-      onMenuItemAdd={undefined}
       {...pageListProps.default}
     />
   ))
   .add("loading", () => (
-    <MenuDetailsPage
-      onBack={() => undefined}
-      onMenuItemAdd={undefined}
-      {...pageListProps.loading}
-    />
+    <MenuDetailsPage onBack={() => undefined} {...pageListProps.loading} />
   ))
   .add("no items", () => (
     <MenuDetailsPage
       menu={menu}
       menuItems={[]}
       onBack={() => undefined}
-      onMenuItemAdd={undefined}
       {...pageListProps.noData}
     />
   ));

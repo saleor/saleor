@@ -18,13 +18,12 @@ interface MenuDetailsPageProps extends PageListProps {
   menu?: Menu;
   menuItems?: Array<
     MenuItem & {
-      items: {
+      children: {
         totalCount: number;
       };
     }
   >;
   onBack: () => void;
-  onMenuItemAdd: () => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -43,8 +42,8 @@ const MenuDetailsPage = decorate<MenuDetailsPageProps>(
     menu,
     menuItems,
     pageInfo,
+    onAdd,
     onBack,
-    onMenuItemAdd,
     onNextPage,
     onPreviousPage,
     onRowClick
@@ -71,7 +70,7 @@ const MenuDetailsPage = decorate<MenuDetailsPageProps>(
                   disabled={disabled}
                   menuItems={menuItems}
                   pageInfo={pageInfo}
-                  onMenuItemAdd={onMenuItemAdd}
+                  onAdd={onAdd}
                   onNextPage={onNextPage}
                   onPreviousPage={onPreviousPage}
                   onRowClick={onRowClick}
