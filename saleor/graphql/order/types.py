@@ -7,16 +7,40 @@ from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
 
 
+class Fulfillment(CountableDjangoObjectType):
+    status_display = graphene.String(
+        description='User-friendly fulfillment status.')
+
+    class Meta:
+        description = 'Represents order fulfillment.'
+        interfaces = [relay.Node]
+        model = models.Fulfillment
+        exclude_fields = ['order']
+
+    def resolve_status_display(self, info):
+        return self.get_status_display()
+
+
+class FulfillmentLine(CountableDjangoObjectType):
+    class Meta:
+        description = 'Represents line of the fulfillment.'
+        interfaces = [relay.Node]
+        model = models.FulfillmentLine
+        exclude_fields = ['fulfillment']
+
+
 class Order(CountableDjangoObjectType):
+    fulfillments = graphene.List(
+        Fulfillment,
+        required=True,
+        description='List of shipments for the order.')
     is_paid = graphene.Boolean(
         description='Informs if an order is fully paid.')
-    number = graphene.String(
-        description='User-friendly number of an order.')
+    number = graphene.String(description='User-friendly number of an order.')
     payment_status = graphene.String(description='Internal payment status.')
     payment_status_display = graphene.String(
         description='User-friendly payment status.')
-    status_display = graphene.String(
-        description='User-friendly order status.')
+    status_display = graphene.String(description='User-friendly order status.')
     captured_amount = graphene.Field(
         Money, description='Amount captured by payment.')
 
@@ -33,6 +57,10 @@ class Order(CountableDjangoObjectType):
         payment = obj.get_last_payment()
         if payment:
             return payment.get_captured_price()
+
+    @staticmethod
+    def resolve_fulfillments(obj, info):
+        return obj.fulfillments.all()
 
     @staticmethod
     def resolve_is_paid(obj, info):
@@ -85,25 +113,3 @@ class OrderNote(CountableDjangoObjectType):
         model = models.OrderNote
         interfaces = [relay.Node]
         exclude_fields = ['order']
-
-
-class Fulfillment(CountableDjangoObjectType):
-    status_display = graphene.String(
-        description='User-friendly fulfillment status.')
-
-    class Meta:
-        description = 'Represents order fulfillment.'
-        interfaces = [relay.Node]
-        model = models.Fulfillment
-        exclude_fields = ['order']
-
-    def resolve_status_display(self, info):
-        return self.get_status_display()
-
-
-class FulfillmentLine(CountableDjangoObjectType):
-    class Meta:
-        description = 'Represents line of the fulfillment.'
-        interfaces = [relay.Node]
-        model = models.FulfillmentLine
-        exclude_fields = ['fulfillment']
