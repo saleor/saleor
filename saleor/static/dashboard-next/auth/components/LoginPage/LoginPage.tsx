@@ -70,75 +70,73 @@ const decorate = withStyles(theme => ({
     height: "100vh"
   }
 }));
-const LoginCard = decorate<LoginCardProps>(
-  ({ classes, error, onPasswordRecovery, onSubmit }) => {
-    return (
-      <Form
-        initial={{ email: "", password: "", rememberMe: false }}
-        onSubmit={onSubmit}
-      >
-        {({ change: handleChange, data, submit: handleSubmit }) => (
-          <Container className={classes.root} width="sm">
-            <Card className={classes.card}>
-              <SVG className={classes.logo} src={saleorLogo} />
-              {error && (
-                <div className={classes.panel}>
-                  <Typography
-                    variant="caption"
-                    dangerouslySetInnerHTML={{
-                      __html: i18n.t(
-                        "Sorry, your username and/or password are incorrect. <br />Please try again."
-                      )
-                    }}
-                  />
-                </div>
-              )}
-              <TextField
-                autoFocus
-                fullWidth
-                autoComplete="username"
-                label={i18n.t("Email", { context: "form" })}
-                name="email"
-                onChange={handleChange}
-                value={data.email}
-              />
-              <FormSpacer />
-              <TextField
-                fullWidth
-                autoComplete="current-password"
-                label={i18n.t("Password")}
-                name="password"
-                onChange={handleChange}
-                type="password"
-                value={data.password}
-              />
-              <FormSpacer />
-              <ControlledCheckbox
-                checked={data.rememberMe}
-                label={i18n.t("Remember me")}
-                name="rememberMe"
-                onChange={handleChange}
-              />
-              <FormSpacer />
-              <Button
-                className={classes.loginButton}
-                color="secondary"
-                variant="raised"
-                onClick={handleSubmit}
-                type="submit"
-              >
-                {i18n.t("Login")}
-              </Button>
-              {/* <FormSpacer />
+const LoginCard = decorate<LoginCardProps>(({ classes, error, onSubmit }) => {
+  return (
+    <Form
+      initial={{ email: "", password: "", rememberMe: false }}
+      onSubmit={onSubmit}
+    >
+      {({ change: handleChange, data, submit: handleSubmit }) => (
+        <Container className={classes.root} width="sm">
+          <Card className={classes.card}>
+            <SVG className={classes.logo} src={saleorLogo} />
+            {error && (
+              <div className={classes.panel}>
+                <Typography
+                  variant="caption"
+                  dangerouslySetInnerHTML={{
+                    __html: i18n.t(
+                      "Sorry, your username and/or password are incorrect. <br />Please try again."
+                    )
+                  }}
+                />
+              </div>
+            )}
+            <TextField
+              autoFocus
+              fullWidth
+              autoComplete="username"
+              label={i18n.t("Email", { context: "form" })}
+              name="email"
+              onChange={handleChange}
+              value={data.email}
+            />
+            <FormSpacer />
+            <TextField
+              fullWidth
+              autoComplete="current-password"
+              label={i18n.t("Password")}
+              name="password"
+              onChange={handleChange}
+              type="password"
+              value={data.password}
+            />
+            <FormSpacer />
+            <ControlledCheckbox
+              checked={data.rememberMe}
+              label={i18n.t("Remember me")}
+              name="rememberMe"
+              onChange={handleChange}
+            />
+            <FormSpacer />
+            <Button
+              className={classes.loginButton}
+              color="secondary"
+              variant="raised"
+              onClick={handleSubmit}
+              type="submit"
+            >
+              {i18n.t("Login")}
+            </Button>
+            {/* <FormSpacer />
                 <Typography className={classes.link}>
                   {i18n.t("Reset your password")}
                 </Typography> */}
-            </Card>
-          </Container>
-        )}
-      </Form>
-    );
-  }
-);
+          </Card>
+        </Container>
+      )}
+    </Form>
+  );
+});
 
 export default LoginCard;

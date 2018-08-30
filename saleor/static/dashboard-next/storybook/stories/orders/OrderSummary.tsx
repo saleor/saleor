@@ -3,11 +3,7 @@ import * as React from "react";
 
 import * as placeholderImage from "../../../../images/placeholder60x60.png";
 import OrderSummary from "../../../orders/components/OrderSummary";
-import {
-  countries,
-  order as orderFixture,
-  prefixes
-} from "../../../orders/fixtures";
+import { order as orderFixture } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
 
 const order = orderFixture(placeholderImage);

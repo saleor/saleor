@@ -7,14 +7,9 @@ import i18n from "../../i18n";
 import PageDetailsPage from "../../pages/components/PageDetailsPage";
 import { TypedPageCreateMutation } from "../mutations";
 
-interface PageCreateFormProps {
-  id: string;
-}
-export const PageCreateForm: React.StatelessComponent<PageCreateFormProps> = ({
-  id
-}) => (
+export const PageCreateForm: React.StatelessComponent = () => (
   <TypedPageCreateMutation>
-    {(createPage, { called, data: createResult, error, loading }) => {
+    {(createPage, { called, data: createResult, loading }) => {
       if (called && !loading && !createResult.pageCreate.errors.length) {
         return <Redirect to={pageListUrl} push={false} />;
       }

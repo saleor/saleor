@@ -77,7 +77,6 @@ const VoucherProperties = decorate<VoucherPropertiesProps>(
     classes,
     data,
     disabled,
-    categorySearchResults,
     fetchCategories,
     fetchProducts,
     fetchShipping,
