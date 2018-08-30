@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import ReactSVG from 'react-svg';
 
 import css from './footer.css';
@@ -17,26 +17,26 @@ const Footer = () => (
               <div className="col-xs-4 col-sm-4 col-md-3">
                 <ul>
                   <li><h4>Company</h4></li>
-                  <li><a href="">About</a></li>
-                  <li><a href="">Carieers</a></li>
-                  <li><a href="">Contact</a></li>
+                  <li><a href="https://medium.com/saleor">Blog</a></li>
+                  <li><a href="https://mirumee.com/jobs/">Carieers</a></li>
+                  <li><a href="https://mirumee.com/hire-us/">Contact</a></li>
                 </ul>
               </div>
               <div className="col-xs-4 col-sm-4 col-md-3">
                 <ul>
                   <li><h4>Solution</h4></li>
-                  <li><a href="">Features</a></li>
-                  <li><a href="">Roadmap</a></li>
-                  <li><a href="">Docs</a></li>
-                  <li><a href="">Demo</a></li>
+                  <li><NavLink to="/features">Features</NavLink></li>
+                  <li><NavLink to="/roadmap">Roadmap</NavLink></li>
+                  <li><a href="https://saleor.readthedocs.io/en/latest/">Docs</a></li>
+                  <li><a href="https://demo.getsaleor.com/en/">Demo</a></li>
                 </ul>
               </div>
               <div className="col-xs-4 col-sm-4 col-md-3">
                 <ul>
                   <li><h4>Community</h4></li>
-                  <li><a href="">Contribute</a></li>
+                  <li><a href="https://github.com/mirumee/saleor">Contribute</a></li>
                   <li><a href="">Case studies</a></li>
-                  <li><a href="">Become a partner</a></li>
+                  <li><a href="mailto:hello@mirumee.com">Become a partner</a></li>
                 </ul>
               </div>
             </div>
