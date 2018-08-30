@@ -11,19 +11,18 @@ import OrderList from "../OrderList";
 
 interface OrderListPageProps extends PageListProps {
   orders?: Array<{
-    id: string;
-    number: number;
-    status: string;
-    client: {
-      id: string;
-      email: string;
-    };
     created: string;
+    id: string;
+    number: string;
     paymentStatus: string;
-    price: {
-      amount: number;
-      currency: string;
+    status: string;
+    total: {
+      gross: {
+        amount: number;
+        currency: string;
+      };
     };
+    userEmail: string;
   }>;
 }
 
@@ -39,8 +38,8 @@ const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
   const orderList = orders
     ? orders.map(order => ({
         ...order,
-        orderStatus: transformOrderStatus(order.status),
-        paymentStatus: transformPaymentStatus(order.paymentStatus)
+        paymentStatus: transformPaymentStatus(order.paymentStatus),
+        status: transformOrderStatus(order.status)
       }))
     : undefined;
   return (

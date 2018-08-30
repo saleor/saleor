@@ -3,15 +3,11 @@ import Card from "@material-ui/core/Card";
 import CardActions from "@material-ui/core/CardActions";
 import * as React from "react";
 
-import {
-  OrderStatus,
-  PaymentStatus,
-  PaymentVariants,
-  transformOrderStatus
-} from "../..";
+import { PaymentStatus, PaymentVariants, transformOrderStatus } from "../..";
 import CardTitle from "../../../components/CardTitle";
 import StatusLabel from "../../../components/StatusLabel/StatusLabel";
 import i18n from "../../../i18n";
+import { OrderStatus } from "../../../types/globalTypes";
 import OrderProducts, {
   OrderProductsProps
 } from "../OrderProducts/OrderProducts";
@@ -23,11 +19,11 @@ interface MoneyType {
 interface OrderSummaryProps extends OrderProductsProps {
   paymentStatus?: string;
   paymentVariant?: string;
-  shippingMethod?: {
-    name: string;
-    price: MoneyType;
+  shippingMethodName?: string;
+  shippingPrice: {
+    gross: MoneyType;
   };
-  status?: string;
+  status?: OrderStatus;
   onCapture?();
   onCreate?();
   onFulfill?();
@@ -41,13 +37,13 @@ interface OrderSummaryProps extends OrderProductsProps {
 }
 
 const OrderSummary: React.StatelessComponent<OrderSummaryProps> = ({
-  net,
+  authorized,
+  lines,
   paid,
   paymentStatus,
   paymentVariant,
-  products,
-  refunded,
-  shippingMethod,
+  shippingMethodName,
+  shippingPrice,
   status,
   subtotal,
   total,
@@ -67,7 +63,7 @@ const OrderSummary: React.StatelessComponent<OrderSummaryProps> = ({
   const canCapture =
     paymentStatus && status
       ? paymentStatus === PaymentStatus.PREAUTH &&
-        !([OrderStatus.DRAFT, OrderStatus.CANCELLED] as any).includes(status)
+        !([OrderStatus.DRAFT, OrderStatus.CANCELED] as any).includes(status)
       : false;
   const canRelease =
     paymentStatus && status ? paymentStatus === PaymentStatus.PREAUTH : false;
@@ -76,11 +72,11 @@ const OrderSummary: React.StatelessComponent<OrderSummaryProps> = ({
       ? paymentStatus === PaymentStatus.CONFIRMED &&
         paymentVariant !== PaymentVariants.MANUAL
       : false;
-  const canFulfill = ([
+  const canFulfill = [
     OrderStatus.UNFULFILLED,
     OrderStatus.PARTIALLY_FULFILLED
-  ] as any).includes(status);
-  const canCancel = status !== OrderStatus.CANCELLED;
+  ].includes(status);
+  const canCancel = status !== OrderStatus.CANCELED;
   const canGetInvoice = paymentStatus === PaymentStatus.CONFIRMED;
   const isDraft = status === OrderStatus.DRAFT;
   return (
@@ -104,12 +100,12 @@ const OrderSummary: React.StatelessComponent<OrderSummaryProps> = ({
         )}
       </CardTitle>
       <OrderProducts
+        authorized={authorized}
         isDraft={isDraft}
-        net={net}
+        lines={lines}
         paid={paid}
-        products={products}
-        refunded={refunded}
-        shippingMethod={shippingMethod}
+        shippingMethodName={shippingMethodName}
+        shippingPrice={shippingPrice}
         subtotal={subtotal}
         total={total}
         onOrderLineChange={onOrderLineChange}

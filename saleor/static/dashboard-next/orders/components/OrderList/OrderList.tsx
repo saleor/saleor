@@ -20,23 +20,22 @@ import { renderCollection } from "../../../misc";
 interface OrderListProps extends ListProps {
   orders?: Array<{
     id: string;
-    number: number;
-    orderStatus: {
-      localized: string;
+    number: string;
+    status: {
       status: string;
+      localized: string;
     };
-    client: {
-      id: string;
-      email: string;
-    };
+    userEmail: string;
     created: string;
     paymentStatus: {
-      localized: string;
       status: string;
+      localized: string;
     };
-    price: {
-      amount: number;
-      currency: string;
+    total: {
+      gross: {
+        amount: number;
+        currency: string;
+      };
     };
   }>;
 }
@@ -107,18 +106,16 @@ export const OrderList = decorate<OrderListProps>(
                   {order ? order.number : <Skeleton />}
                 </TableCell>
                 <TableCell>
-                  {order && order.orderStatus ? (
+                  {order && order.status ? (
                     <StatusLabel
-                      status={order.orderStatus.status}
-                      label={order.orderStatus.localized}
+                      status={order.status.status}
+                      label={order.status.localized}
                     />
                   ) : (
                     <Skeleton />
                   )}
                 </TableCell>
-                <TableCell>
-                  {order && order.client ? order.client.email : <Skeleton />}
-                </TableCell>
+                <TableCell>{order ? order.userEmail : <Skeleton />}</TableCell>
                 <TableCell>
                   {order ? (
                     <DateFormatter date={order.created} />
@@ -137,10 +134,10 @@ export const OrderList = decorate<OrderListProps>(
                   )}
                 </TableCell>
                 <TableCell className={classes.textRight}>
-                  {order && order.price ? (
+                  {order && order.total && order.total.gross ? (
                     <Money
-                      amount={order.price.amount}
-                      currency={order.price.currency}
+                      amount={order.total.gross.amount}
+                      currency={order.total.gross.currency}
                     />
                   ) : (
                     <Skeleton />

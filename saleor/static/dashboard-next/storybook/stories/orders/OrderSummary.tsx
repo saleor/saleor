@@ -27,7 +27,7 @@ storiesOf("Orders / OrderSummary", module)
       net={order.payment.net}
       paid={order.payment.paid}
       paymentStatus={order.paymentStatus}
-      products={order.products}
+      lines={order.products}
       refunded={order.payment.refunded}
       status={"unfulfilled"}
       subtotal={order.subtotal}
