@@ -5,7 +5,6 @@ import graphene
 from django.conf import settings
 from django.shortcuts import reverse
 from django_countries import countries
-from django_prices_vatlayer.models import VAT
 from tests.utils import get_graphql_content
 
 from saleor.core.permissions import MODELS_PERMISSIONS
@@ -107,58 +106,6 @@ def test_query_domain(user_api_client, site_settings):
     assert data['domain']['host'] == site_settings.site.domain
     assert data['domain']['sslEnabled'] == settings.ENABLE_SSL
     assert data['domain']['url']
-
-
-def test_query_tax_rates(admin_api_client, user_api_client, vatlayer):
-    vat = VAT.objects.order_by('country_code').first()
-    query = """
-    query {
-        shop {
-            taxRates {
-                countryCode
-                standardRate
-                reducedRates {
-                    rate
-                    rateType
-                }
-            }
-        }
-    }
-    """
-    response = admin_api_client.post(reverse('api'), {'query': query})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['shop']
-    assert data['taxRates'][0]['countryCode'] == vat.country_code
-    assert data['taxRates'][0]['standardRate'] == vat.data['standard_rate']
-    assert len(data['taxRates'][0]['reducedRates']) == len(vat.data['reduced_rates'])
-
-    response = user_api_client.post(reverse('api'), {'query': query})
-    assert_no_permission(response)
-
-
-def test_query_tax_rate(user_api_client, admin_api_client, vatlayer):
-    vat = VAT.objects.order_by('country_code').first()
-    query = """
-    query taxRate($countryCode: String!) {
-        shop {
-            taxRate(countryCode: $countryCode) {
-                countryCode
-            }
-        }
-    }
-    """
-    variables = json.dumps({'countryCode': vat.country_code})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['shop']
-    assert data['taxRate']['countryCode'] == vat.country_code
-
-    response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    assert_no_permission(response)
 
 
 def test_query_languages(settings, user_api_client):

@@ -1,7 +1,6 @@
 import graphene
 from django.conf import settings
 from django_countries import countries
-from django_prices_vatlayer import models as vatlayer_models
 from graphql_jwt.decorators import permission_required
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
@@ -9,7 +8,6 @@ from ...core.permissions import get_permissions
 from ...site import models as site_models
 from ..core.types.common import (
     CountryDisplay, LanguageDisplay, PermissionDisplay, WeightUnitsEnum)
-from ..core.types.money import VAT
 from ..menu.types import Menu
 from ..product.types import Collection
 from ..utils import format_permissions_for_display
@@ -69,12 +67,6 @@ class Shop(graphene.ObjectType):
     phone_prefixes = graphene.List(
         graphene.String, description='List of possible phone prefixes.',
         required=True)
-    tax_rates = graphene.List(
-        VAT, description='List of VAT tax rates configured in the shop.',
-        required=True)
-    tax_rate = graphene.Field(
-        VAT, description='VAT tax rates for a specific country.',
-        required=True, country_code=graphene.Argument(graphene.String))
     header_text = graphene.String(description='Header text')
     include_taxes_in_prices = graphene.Boolean(
         description='Include taxes in prices')
@@ -137,17 +129,6 @@ class Shop(graphene.ObjectType):
 
     def resolve_phone_prefixes(self, info):
         return list(COUNTRY_CODE_TO_REGION_CODE.keys())
-
-    @permission_required('site.manage_settings')
-    def resolve_tax_rates(self, info):
-        return vatlayer_models.VAT.objects.order_by('country_code')
-
-    @permission_required('site.manage_settings')
-    def resolve_tax_rate(self, info, country_code):
-        # country codes for VAT rates are stored uppercase
-        country_code = country_code.upper()
-        return vatlayer_models.VAT.objects.filter(
-            country_code=country_code).first()
 
     def resolve_header_text(self, info):
         return info.context.site.settings.header_text
