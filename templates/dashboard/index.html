@@ -11,6 +11,17 @@
   <div class="row">
     <div class="col s12">
       <div class="card">
+        <div class="card-content">
+          <p class="">
+            We have released a preview of the incoming Dashboard 2.0. Feel free to check it out!
+          </p>
+          <p>
+            <b>Note</b> The current Django-based dashboard is still the default one and will be fully supported while the new one is under construction.
+          </p>
+          <h3><a href="{% url "dashboard:dashboard-next" %}">Go to the Dashboard 2.0</a></h3>
+        </div>
+      </div>
+      <div class="card">
         <div class="data-table-header{% if not preauthorized_payments %} data-table-header--no-data{% endif %}">
           <span class="data-table-title" title="{% blocktrans trimmed with counter=preauthorized_payments.count context "Dashboard homepage summary header title" %}Showing last {{ counter }} results{% endblocktrans %}">
             {% trans "Preauthorized payments" context "Dashboard homepage table title" %}
