@@ -50,7 +50,7 @@ def resolve_collections(info, query):
     return filter_by_query_param(qs, query, COLLECTION_SEARCH_FIELDS)
 
 
-def resolve_products(info, category_id, query):
+def resolve_products(info, category_id=None, query=None):
     user = info.context.user
     queryset = products_with_details(user=user).distinct()
     queryset = filter_by_query_param(queryset, query, PRODUCT_SEARCH_FIELDS)
