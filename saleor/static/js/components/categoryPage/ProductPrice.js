@@ -1,15 +1,11 @@
-import React, {Component, PropTypes} from 'react';
+import * as PropTypes from 'prop-types';
+import React, { Component } from 'react';
 import InlineSVG from 'react-inlinesvg';
-import {gql} from 'react-apollo';
+import gql from 'graphql-tag';
 
 import SaleImg from '../../../images/sale-bg.svg';
 
-
 class ProductPrice extends Component {
-  constructor(props) {
-    super(props);
-  }
-
   static propTypes = {
     availability: PropTypes.object.isRequired,
     price: PropTypes.object.isRequired

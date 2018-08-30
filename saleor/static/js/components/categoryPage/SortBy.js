@@ -1,4 +1,5 @@
-import React, {Component, PropTypes} from 'react';
+import * as PropTypes from 'prop-types';
+import React, { Component } from 'react';
 import InlineSVG from 'react-inlinesvg';
 
 import arrowUpIcon from '../../../images/arrow-up.svg';
