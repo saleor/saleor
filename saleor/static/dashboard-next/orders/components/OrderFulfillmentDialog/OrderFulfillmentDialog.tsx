@@ -18,10 +18,11 @@ interface OrderFulfillmentDialogProps {
   open: boolean;
   products?: Array<{
     id: string;
-    name: string;
-    sku: string;
+    productName: string;
+    productSku: string;
     quantity: number;
-    thumbnailUrl: string;
+    quantityFulfilled: number;
+    thumbnailUrl?: string;
   }>;
   data: any;
   onChange(event: React.ChangeEvent<any>);
@@ -66,13 +67,13 @@ const OrderFulfillmentDialog = decorate<OrderFulfillmentDialogProps>(
               <TableCell className={classes.avatarCell}>
                 <Avatar src={product.thumbnailUrl} />
               </TableCell>
-              <TableCell>{product.name}</TableCell>
-              <TableCell>{product.sku}</TableCell>
+              <TableCell>{product.productName}</TableCell>
+              <TableCell>{product.productSku}</TableCell>
               <TableCell className={classes.textRight}>
                 <Input
                   type="number"
                   inputProps={{
-                    max: product.quantity,
+                    max: product.quantity - product.quantityFulfilled,
                     style: { textAlign: "right" }
                   }}
                   className={classes.quantityInput}

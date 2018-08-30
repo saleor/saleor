@@ -17,7 +17,6 @@ interface OrderAddressEditDialogProps {
     code: string;
     label: string;
   }>;
-  prefixes: string[];
   onChange(event: React.ChangeEvent<any>);
   onClose?();
   onConfirm?(event: React.FormEvent<any>);
@@ -25,16 +24,7 @@ interface OrderAddressEditDialogProps {
 
 const OrderAddressEditDialog: React.StatelessComponent<
   OrderAddressEditDialogProps
-> = ({
-  open,
-  variant,
-  countries,
-  data,
-  prefixes,
-  onConfirm,
-  onClose,
-  onChange
-}) => (
+> = ({ open, variant, countries, data, onConfirm, onClose, onChange }) => (
   <Dialog open={open}>
     <DialogTitle>
       {variant === "billing"
@@ -42,12 +32,7 @@ const OrderAddressEditDialog: React.StatelessComponent<
         : i18n.t("Edit shipping address", { context: "title" })}
     </DialogTitle>
     <DialogContent>
-      <AddressEdit
-        countries={countries}
-        data={data}
-        onChange={onChange}
-        prefixes={prefixes}
-      />
+      <AddressEdit countries={countries} data={data} onChange={onChange} />
     </DialogContent>
     <DialogActions>
       <Button onClick={onClose}>

@@ -18,7 +18,6 @@ interface OrderShippingMethodEditDialogProps {
   shippingMethods?: Array<{
     id: string;
     name: string;
-    country: string;
   }>;
   loading?: boolean;
   fetchShippingMethods(value: string);
@@ -63,7 +62,7 @@ const OrderShippingMethodEditDialog = decorate<
     const choices =
       !loading && shippingMethods
         ? shippingMethods.map(s => ({
-            label: `${s.name} (${s.country})`,
+            label: s.name,
             value: s.id
           }))
         : [];

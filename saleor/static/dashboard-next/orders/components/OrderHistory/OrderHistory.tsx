@@ -12,17 +12,25 @@ import {
   TimelineNote
 } from "../../../components/Timeline/Timeline";
 import i18n from "../../../i18n";
+import { OrderEvents } from "../../../types/globalTypes";
 
 interface OrderHistoryProps {
   history?: Array<{
-    id: string;
-    type: string;
-    content: string;
+    amount?: number;
     date: string;
-    user: string;
-    params?: any;
+    email?: string;
+    emailType?: string;
+    id: string;
+    message?: string;
+    quantity?: number;
+    type: OrderEvents;
+    user: {
+      email: string;
+    };
   }>;
-  user?: string;
+  user?: {
+    email: string;
+  };
 }
 
 const decorate = withStyles(
@@ -40,56 +48,42 @@ const OrderHistory = decorate<OrderHistoryProps>(
       <PageHeader title={i18n.t("Order history")} />
       {history ? (
         <Timeline>
-          <Form initial={{ content: "" }}>
-            {({ change, data, submit }) => (
-              <TimelineAddNote
-                content={data.content}
-                onChange={change}
-                onSubmit={submit}
-                user={user}
-              />
-            )}
-          </Form>
+          {user ? (
+            <Form initial={{ content: "" }}>
+              {({ change, data, submit }) => (
+                <TimelineAddNote
+                  content={data.content}
+                  onChange={change}
+                  onSubmit={submit}
+                  user={user}
+                />
+              )}
+            </Form>
+          ) : (
+            undefined
+          )}
           {history
             .slice()
             .reverse()
             .map(event => {
-              if (event.type === "note") {
+              if (event.type === OrderEvents.NOTE_ADDED) {
                 return (
                   <TimelineNote
                     user={event.user}
                     date={event.date}
-                    content={event.content}
+                    content={event.message}
                     key={event.id}
                   />
-                );
-              }
-              if (event.type === "shipped") {
-                return (
-                  <TimelineNode
-                    date={event.date}
-                    title={event.content}
-                    key={event.id}
-                  >
-                    <Typography variant="caption" className={classes.user}>
-                      {i18n.t("by {{ user }}", { user: event.user })}
-                    </Typography>
-                    <Typography
-                      dangerouslySetInnerHTML={{
-                        __html: event.params.shippingAddress
-                      }}
-                    />
-                  </TimelineNode>
                 );
               }
               return (
                 <TimelineNode
                   date={event.date}
-                  title={event.content}
+                  title={event.message}
                   key={event.id}
                 >
                   <Typography variant="caption">
-                    {i18n.t("by {{ user }}", { user: event.user })}
+                    {i18n.t("by {{ user }}", { user: event.user.email })}
                   </Typography>
                 </TimelineNode>
               );

@@ -154,7 +154,7 @@ export const order = (placeholder, args?) => ({
   fulfillments: [
     {
       id: "f1",
-      products: [
+      lines: [
         {
           product: {
             id: "UHJvZHVjdDoy",
@@ -177,7 +177,7 @@ export const order = (placeholder, args?) => ({
     },
     {
       id: "f2",
-      products: [
+      lines: [
         {
           product: {
             id: "UHJvZHVjdDoy",
@@ -192,27 +192,7 @@ export const order = (placeholder, args?) => ({
     }
   ],
   id: "o1",
-  number: 11,
-  payment: {
-    net: {
-      amount: 6,
-      currency: "USD"
-    },
-    paid: {
-      amount: 19.2,
-      currency: "USD"
-    },
-    refunded: {
-      amount: 13.2,
-      currency: "USD"
-    }
-  },
-  paymentStatus: "confirmed",
-  price: {
-    amount: 19.2,
-    currency: "USD"
-  },
-  products: [
+  lines: [
     {
       id: "UHJvZHVjdDox",
       name: "Gardner, Graham and King",
@@ -266,6 +246,26 @@ export const order = (placeholder, args?) => ({
       thumbnailUrl: placeholder
     }
   ],
+  number: 11,
+  payment: {
+    net: {
+      amount: 6,
+      currency: "USD"
+    },
+    paid: {
+      amount: 19.2,
+      currency: "USD"
+    },
+    refunded: {
+      amount: 13.2,
+      currency: "USD"
+    }
+  },
+  paymentStatus: "confirmed",
+  price: {
+    amount: 19.2,
+    currency: "USD"
+  },
   shippingAddress: {
     city: "Keithport",
     cityArea: "",
@@ -287,9 +287,11 @@ export const order = (placeholder, args?) => ({
     id: "s1"
   },
   shippingMethodName: "DHL",
-  shippingMethodPriceGross: {
-    amount: 5.5,
-    currency: "USD"
+  shippingPrice: {
+    gross: {
+      amount: 5.5,
+      currency: "USD"
+    }
   },
   status: "partially fulfilled",
   subtotal: {
@@ -300,29 +302,6 @@ export const order = (placeholder, args?) => ({
     amount: 165.7,
     currency: "USD"
   },
-  unfulfilled: [
-    {
-      id: "UHJvZHVjdDoy",
-      name: "Gardner and Graham",
-      quantity: 1,
-      sku: "9123022",
-      thumbnailUrl: placeholder
-    },
-    {
-      id: "UHJvZHVjdDoz",
-      name: "Gardner and King",
-      quantity: 7,
-      sku: "9123023",
-      thumbnailUrl: placeholder
-    },
-    {
-      id: "UHJvZHVjdDoa",
-      name: "Graham and King",
-      quantity: 3,
-      sku: "9123024",
-      thumbnailUrl: placeholder
-    }
-  ],
   ...args
 });
 export const flatOrders = orders.map(order => ({

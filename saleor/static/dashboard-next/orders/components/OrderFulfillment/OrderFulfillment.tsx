@@ -19,12 +19,12 @@ import i18n from "../../../i18n";
 interface OrderFulfillmentProps {
   id?: string;
   status?: string;
-  products?: Array<{
+  lines?: Array<{
     quantity: number;
-    product: {
+    orderLine: {
       id: string;
-      name: string;
-      thumbnailUrl: string;
+      productName: string;
+      thumbnailUrl?: string;
     };
   }>;
   trackingCode?: string;
@@ -59,8 +59,8 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
   ({
     classes,
     id,
+    lines,
     status,
-    products,
     trackingCode,
     onFulfillmentCancel,
     onTrackingCodeAdd,
@@ -99,12 +99,14 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
           </TableRow>
         </TableHead>
         <TableBody>
-          {products ? (
-            products.map(productLine => (
-              <TableRow key={productLine.product.id}>
-                <TableCellAvatar thumbnail={productLine.product.thumbnailUrl} />
+          {lines ? (
+            lines.map(productLine => (
+              <TableRow key={productLine.orderLine.id}>
+                <TableCellAvatar
+                  thumbnail={productLine.orderLine.thumbnailUrl}
+                />
                 <TableCell className={classes.textLeft}>
-                  {productLine.product.name} x {productLine.quantity}
+                  {productLine.orderLine.productName} x {productLine.quantity}
                 </TableCell>
               </TableRow>
             ))

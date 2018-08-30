@@ -144,3 +144,11 @@ export const translatedTaxRates = () => ({
   [TaxRateType.STANDARD]: i18n.t("Standard"),
   [TaxRateType.WATER]: i18n.t("Water")
 });
+
+export function Ø<T>(exp: () => T, d?: T) {
+  try {
+    return exp();
+  } catch {
+    return d;
+  }
+}
