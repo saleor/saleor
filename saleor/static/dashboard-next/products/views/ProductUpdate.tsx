@@ -1,7 +1,6 @@
 import * as React from "react";
 import { arrayMove } from "react-sortable-hoc";
 
-import { ApolloError } from "apollo-client";
 import * as placeholderImg from "../../../images/placeholder255x255.png";
 import { attributesListUrl } from "../../attributes";
 import { categoryShowUrl } from "../../categories";
@@ -47,10 +46,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                     pushMessage({ text: i18n.t("Product removed") });
                     navigate(categoryShowUrl(data.product.category.id));
                   };
-                  const handleError = (error: ApolloError) => {
-                    console.error(error.message);
-                    pushMessage({ text: i18n.t("Something went wrong") });
-                  };
                   const handleUpdate = () =>
                     pushMessage({ text: i18n.t("Saved changes") });
                   const handleImageCreate = () =>
@@ -81,7 +76,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                     <ProductUpdateOperations
                       product={product}
                       onDelete={handleDelete}
-                      onError={handleError}
                       onImageCreate={handleImageCreate}
                       onImageDelete={handleImageDeleteSuccess}
                       onUpdate={handleUpdate}
