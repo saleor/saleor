@@ -52,6 +52,7 @@ function loadStories() {
 
   // Menus
   require("./stories/menus/MenuListPage");
+  require("./stories/menus/MenuDetailsPage");
 
   // Pages
   require("./stories/pages/PageContent");

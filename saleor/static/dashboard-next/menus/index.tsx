@@ -28,6 +28,12 @@ export interface Menu {
   name: string;
 }
 
+export interface MenuItem {
+  id: string;
+  name: string;
+  url: string;
+}
+
 export const menuListUrl = "/menus/";
 export const menuAddUrl = "/menus/add/";
 export const menuUrl = (id: string) => `/menus/${id}/`;

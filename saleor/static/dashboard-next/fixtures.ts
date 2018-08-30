@@ -20,5 +20,16 @@ export const pageListProps: { [key: string]: PageListProps } = {
     onPreviousPage: undefined,
     onRowClick: () => undefined,
     pageInfo
+  },
+  noData: {
+    disabled: true,
+    onAdd: undefined,
+    onNextPage: undefined,
+    onPreviousPage: undefined,
+    onRowClick: () => undefined,
+    pageInfo: {
+      hasNextPage: false,
+      hasPreviousPage: false
+    }
   }
 };

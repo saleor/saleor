@@ -6,7 +6,7 @@ import MenuListPage from "../../../menus/components/MenuListPage";
 import { menus } from "../../../menus/fixtures";
 import Decorator from "../../Decorator";
 
-storiesOf("Views / Menus / MenuListPage", module)
+storiesOf("Views / Menus / Menu list page", module)
   .addDecorator(Decorator)
   .add("default", () => (
     <MenuListPage menus={menus} {...pageListProps.default} />
