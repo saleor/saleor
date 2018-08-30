@@ -9,6 +9,7 @@ import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import i18n from "../../i18n";
+import { decimal } from "../../misc";
 import ProductUpdatePage from "../components/ProductUpdatePage";
 import ProductUpdateOperations from "../containers/ProductUpdateOperations";
 import {
@@ -112,7 +113,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               id: product.id,
                               isPublished: data.available,
                               name: data.name,
-                              price: data.price
+                              price: decimal(data.price)
                             });
                           }
                         };
