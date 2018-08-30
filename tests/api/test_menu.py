@@ -179,6 +179,7 @@ def test_update_menu(admin_api_client, menu):
         reverse('api'), {'query': query, 'variables': variables})
     assert_read_only_mode(response)
 
+
 def test_delete_menu(admin_api_client, menu):
     query = """
         mutation deletemenu($id: ID!) {
@@ -302,14 +303,6 @@ def test_assign_menu(
     menu_id = graphene.Node.to_global_id('Menu', menu.pk)
     variables = json.dumps({
         'menu': menu_id, 'navigationType': NavigationType.MAIN.name})
-    response = staff_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    assert_no_permission(response)
-
-    staff_api_client.user.user_permissions.add(permission_manage_menus)
-    staff_api_client.user.user_permissions.add(permission_manage_settings)
-
-    # test assigning main menu
     response = staff_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     assert_read_only_mode(response)
