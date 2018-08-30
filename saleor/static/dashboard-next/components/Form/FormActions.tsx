@@ -5,11 +5,11 @@ import * as React from "react";
 
 import i18n from "../../i18n";
 
-const decorate = withStyles(theme => ({
+const decorate = withStyles({
   cardActions: {
     flexDirection: "row-reverse" as "row-reverse"
   }
-}));
+});
 
 interface FormActionsProps {
   submitLabel: string;
@@ -18,7 +18,7 @@ interface FormActionsProps {
 }
 
 const FormActions = decorate<FormActionsProps>(
-  ({ children, classes, onCancel, onSubmit, submitLabel }) => (
+  ({ classes, onCancel, onSubmit, submitLabel }) => (
     <Toolbar className={classes.cardActions}>
       <Button variant="raised" color="primary" onClick={onSubmit} type="submit">
         {submitLabel}

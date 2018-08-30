@@ -1,5 +1,5 @@
 import Button from "@material-ui/core/Button";
-import Dialog, { DialogProps } from "@material-ui/core/Dialog";
+import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
@@ -29,7 +29,7 @@ const decorate = withStyles(
   { name: "OrderCancelDialog" }
 );
 const OrderCancelDialog = decorate<OrderCancelDialogProps>(
-  ({ children, classes, id, open, onConfirm, onClose }) => (
+  ({ classes, id, open, onConfirm, onClose }) => (
     <Dialog open={open}>
       <DialogTitle>{i18n.t("Cancel order", { context: "title" })}</DialogTitle>
       <DialogContent>

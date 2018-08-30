@@ -29,7 +29,7 @@ interface CategoryListProps {
   onRowClick?(id: string): () => void;
 }
 
-const decorate = withStyles(theme => ({
+const decorate = withStyles({
   centerText: {
     textAlign: "center" as "center"
   },
@@ -39,7 +39,7 @@ const decorate = withStyles(theme => ({
   wideColumn: {
     width: "100%"
   }
-}));
+});
 
 const CategoryList = decorate<CategoryListProps>(
   ({ categories, classes, isRoot, onAdd, onRowClick }) => (
