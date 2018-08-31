@@ -13,7 +13,6 @@
           width: 100%;
           height: 100%;
           position: absolute;
-          z-index: -1;
           @media (max-width: 768px) {
             opacity: 0.5;
             background-position: 250% -20%;

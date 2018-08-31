@@ -4,6 +4,6 @@ import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { App } from './components';
 
 render(
-  <App />,
+    <App />,
   document.getElementById('root')
 );

@@ -17,22 +17,10 @@ body {
   line-height: var(--line-height-base);
   color: var(--body-color);
   text-align: left;
-  /* TODO: use color-mod function instead of rgba */
-  background-color: var(--background-color);
-  background-image: repeating-linear-gradient(
-    -45deg,
-    rgba(15, 8, 46, .5), rgba(15, 8, 46, .5) 10%,
-    rgba(16, 9, 57, .5) 10%, rgba(16, 9, 57, .5) 20%,
-    rgba(23, 14, 73, .5) 20%, rgba(23, 14, 73, .5) 30%,
-    rgba(49, 19, 100, .5) 30%, rgba(49, 19, 100, .5) 40%,
-    rgba(33, 18, 94, .5) 40%, rgba(33, 18, 94, .5) 50%,
-    rgba(24, 14, 76, .5) 50%, rgba(24, 14, 76, .5) 60%,
-    rgba(21, 13, 72, .5) 60%, rgba(21, 13, 72, .5) 70%,
-    rgba(26, 15, 81, .5) 70%, rgba(26, 15, 81, .5) 80%,
-    rgba(33, 18, 94, .5) 80%, rgba(33, 18, 94, .5) 90%,
-    rgba(15, 8, 46, .5) 90%, rgba(15, 8, 46, .5) 100%
-  );
-  background-attachment: fixed;
+  & #root {
+    background-color: var(--background-color);
+    background-image: linear-gradient(-150deg, rgba(254,62,62, 0.3) 0%, rgba(125,185,232,0) 6%, rgba(125,185,232,0) 100%), url('../../../images/background.svg');
+  }
 }
 
 h1 {
@@ -263,7 +251,6 @@ ul {
   width: 100%;
   height: 100%;
   position: absolute;
-  z-index: -1;
   background-repeat: no-repeat;
   @media (max-width: 578px) {
     opacity: 0.5;

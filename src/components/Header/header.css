@@ -4,19 +4,7 @@ header {
   z-index: 999;
   &.sticky {
     background-color: var(--background-color);
-    background-image: repeating-linear-gradient(
-      -45deg,
-      rgba(15, 8, 46, .5), rgba(15, 8, 46, .5) 10%,
-      rgba(16, 9, 57, .5) 10%, rgba(16, 9, 57, .5) 20%,
-      rgba(23, 14, 73, .5) 20%, rgba(23, 14, 73, .5) 30%,
-      rgba(49, 19, 100, .5) 30%, rgba(49, 19, 100, .5) 40%,
-      rgba(33, 18, 94, .5) 40%, rgba(33, 18, 94, .5) 50%,
-      rgba(24, 14, 76, .5) 50%, rgba(24, 14, 76, .5) 60%,
-      rgba(21, 13, 72, .5) 60%, rgba(21, 13, 72, .5) 70%,
-      rgba(26, 15, 81, .5) 70%, rgba(26, 15, 81, .5) 80%,
-      rgba(33, 18, 94, .5) 80%, rgba(33, 18, 94, .5) 90%,
-      rgba(15, 8, 46, .5) 90%, rgba(15, 8, 46, .5) 100%
-    );
+    background-image: url('../../images/background.svg');
     & .logo {
       transition: padding 0.3s ease;
       padding: calc(var(--spacer) * 1.5) 0;
