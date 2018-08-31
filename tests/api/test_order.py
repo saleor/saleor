@@ -373,7 +373,7 @@ def test_order_capture(admin_api_client, payment_preauth):
                 order {
                     paymentStatus
                     isPaid
-                    capturedAmount {
+                    totalCaptured {
                         amount
                     }
                 }
@@ -389,8 +389,8 @@ def test_order_capture(admin_api_client, payment_preauth):
     data = content['data']['orderCapture']['order']
     order.refresh_from_db()
     assert data['paymentStatus'] == order.get_last_payment_status()
-    assert data['isPaid'] == True
-    assert data['capturedAmount']['amount'] == float(amount)
+    assert data['isPaid']
+    assert data['totalCaptured']['amount'] == float(amount)
 
 
 def test_paid_order_mark_as_paid(
