@@ -404,7 +404,7 @@ export interface MenuDetailsQuery {
   } | null,
 };
 
-export interface menuItemQueryVariables {
+export interface MenuItemDetailsQueryVariables {
   id: string,
   first?: number | null,
   after?: string | null,
@@ -412,11 +412,12 @@ export interface menuItemQueryVariables {
   before?: string | null,
 };
 
-export interface menuItemQuery {
+export interface MenuItemDetailsQuery {
   // Lookup a menu item by ID.
   menuItem:  {
     // The ID of the object.
     id: string,
+    name: string,
     parent:  {
       // The ID of the object.
       id: string,
@@ -425,6 +426,7 @@ export interface menuItemQuery {
     menu:  {
       // The ID of the object.
       id: string,
+      name: string,
     },
     // URL to the menu item.
     url: string | null,
@@ -449,6 +451,7 @@ export interface menuItemQuery {
         node:  {
           // The ID of the object.
           id: string,
+          name: string,
           // URL to the menu item.
           url: string | null,
           category:  {
@@ -466,8 +469,22 @@ export interface menuItemQuery {
             id: string,
             name: string,
           } | null,
+          children:  {
+            // A total count of items in the collection
+            totalCount: number | null,
+          } | null,
         },
       } >,
+      pageInfo:  {
+        // When paginating backwards, are there more items?
+        hasPreviousPage: boolean,
+        // When paginating forwards, are there more items?
+        hasNextPage: boolean,
+        // When paginating backwards, the cursor to continue.
+        startCursor: string | null,
+        // When paginating forwards, the cursor to continue.
+        endCursor: string | null,
+      },
     } | null,
   } | null,
 };

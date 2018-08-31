@@ -3,6 +3,8 @@ import { Query, QueryProps } from "react-apollo";
 import {
   MenuDetailsQuery,
   MenuDetailsQueryVariables,
+  MenuItemDetailsQuery,
+  MenuItemDetailsQueryVariables,
   MenuListQuery,
   MenuListQueryVariables
 } from "../gql-types";
@@ -83,11 +85,11 @@ export const menuDetailsQuery = gql`
 `;
 
 export const TypedMenuItemDetailsQuery = Query as React.ComponentType<
-  QueryProps<MenuDetailsQuery, MenuDetailsQueryVariables>
+  QueryProps<MenuItemDetailsQuery, MenuItemDetailsQueryVariables>
 >;
 
 export const menuItemDetailsQuery = gql`
-  query menuItem(
+  query MenuItemDetails(
     $id: ID!
     $first: Int
     $after: String
@@ -96,12 +98,14 @@ export const menuItemDetailsQuery = gql`
   ) {
     menuItem(id: $id) {
       id
+      name
       parent {
         id
         name
       }
       menu {
         id
+        name
       }
       url
       category {
@@ -120,6 +124,7 @@ export const menuItemDetailsQuery = gql`
         edges {
           node {
             id
+            name
             url
             category {
               id
@@ -133,7 +138,16 @@ export const menuItemDetailsQuery = gql`
               id
               name: title
             }
+            children {
+              totalCount
+            }
           }
+        }
+        pageInfo {
+          hasPreviousPage
+          hasNextPage
+          startCursor
+          endCursor
         }
       }
     }

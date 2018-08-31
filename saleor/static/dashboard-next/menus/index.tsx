@@ -4,6 +4,7 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import i18n from "../i18n";
 import MenuDetailsComponent from "./views/MenuDetails";
+import MenuItemDetailsComponent from "./views/MenuItemDetails";
 import MenuListComponent from "./views/MenuList";
 
 const MenuList: React.StatelessComponent<RouteComponentProps<{}>> = ({
@@ -28,11 +29,23 @@ const MenuDetails: React.StatelessComponent<
   return <MenuDetailsComponent id={match.params.id} params={params} />;
 };
 
+const MenuItemDetails: React.StatelessComponent<
+  RouteComponentProps<{ id: string }>
+> = ({ location, match }) => {
+  const qs = parseQs(location.search.substr(1));
+  const params = {
+    after: qs.after,
+    before: qs.before
+  };
+  return <MenuItemDetailsComponent id={match.params.id} params={params} />;
+};
+
 export const MenuRouter: React.StatelessComponent<RouteComponentProps<any>> = ({
   match
 }) => (
   <Switch>
     <Route exact path={match.url} component={MenuList} />
+    <Route exact path={`${match.url}/item/:id/`} component={MenuItemDetails} />
     <Route exact path={`${match.url}/:id/`} component={MenuDetails} />
   </Switch>
 );
