@@ -13,7 +13,7 @@
       }
       position: relative;
       & .bg-container {
-        background-image: url('../../images/roadmap-bg.png');
+        background-image: url('../../images/roadmap-bg.svg');
         background-size: 70%;
         background-position: 85% 20%;
         @media (max-width: 578px) {

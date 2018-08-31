@@ -11,14 +11,14 @@
 			margin-bottom: var(--spacer);
     }
     & .bg-container {
-      background-image: url('../../images/lock-bg.png');
+      background-image: url('../../images/lock-bg.svg');
       background-size: auto;
-      background-position: 110% 30%;
+      background-position: 80% 30%;
       @media (max-width: 768px) {
-        background-position: 400% 0%;
+        background-position: 120% 50%;
       }
       @media (max-width: 700px) {
-        background-position: -250% 0%;
+        background-position: 180% 0%;
       }
       @media (max-width: 450px) {
         background-position: 35% 0%;
