@@ -98,6 +98,7 @@ const CustomerEditPage: React.StatelessComponent<CustomerEditPageProps> = ({
           <SaveButtonBar
             disabled={disabled || !onSubmit || !hasChanged}
             state={saveButtonBarState}
+            onCancel={onBack}
             onSave={onSubmit}
           />
         </Container>
