@@ -93,6 +93,15 @@ def test_menu_items_query(user_api_client, menu_item, collection):
             children {
                 totalCount
             }
+            collection {
+                name
+            }
+            category {
+                id
+            }
+            page {
+                id
+            }
             url
         }
     }
@@ -109,6 +118,9 @@ def test_menu_items_query(user_api_client, menu_item, collection):
     assert data['name'] == menu_item.name
     assert data['url'] == menu_item.collection.get_absolute_url()
     assert data['children']['totalCount'] == menu_item.children.count()
+    assert data['collection']['name'] == collection.name
+    assert not data['category']
+    assert not data['page']
 
 
 def test_create_menu(admin_api_client, collection, category, page):
