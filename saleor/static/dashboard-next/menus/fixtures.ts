@@ -27,33 +27,78 @@ export const menu = {
 };
 export const menuItems = [
   {
+    category: null,
     children: {
       totalCount: 21
     },
+    collection: {
+      id: "co129837",
+      name: "Winter Sale"
+    },
     id: "mi1283",
     name: "Winter sale",
-    url: "/some/fake/url/winter-sale"
+    page: null,
+    url: null
   },
   {
+    category: {
+      id: "c81927",
+      name: "Shoes"
+    },
     children: {
       totalCount: 4
     },
+    collection: null,
     id: "mi94852",
-    name: "Happy New Year sale",
-    url: "/some/fake/url/new-year-sale"
+    name: "Shoes",
+    page: null,
+    url: null
   },
   {
+    category: null,
     children: {
       totalCount: 0
     },
+    collection: null,
     id: "mi87243",
     name: "Terms of use",
-    url: "/some/fake/url/terms-of-use"
+    page: {
+      id: "p12398",
+      name: "Terms of use"
+    },
+    url: null
+  },
+  {
+    category: null,
+    children: {
+      totalCount: 2
+    },
+    collection: null,
+    id: "mi87243",
+    name: "Check out Github",
+    page: null,
+    url: "github.com/something"
   }
 ];
 export const menuItem = {
+  category: null,
+  children: {
+    totalCount: 21
+  },
+  collection: {
+    id: "co129837",
+    name: "Winter Sale"
+  },
   id: "mi1283",
-  menu,
+  menu: {
+    id: "m98123",
+    name: "Navbar"
+  },
   name: "Winter sale",
-  url: "/some/fake/url/winter-sale"
+  page: null,
+  parent: {
+    id: "mi12394",
+    name: "Sales"
+  },
+  url: null
 };

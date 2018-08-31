@@ -9,7 +9,7 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import { MenuItem } from "../..";
+import { MenuItem, menuItemLabelTarget } from "../..";
 import { ListProps } from "../../..";
 import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
@@ -56,7 +56,7 @@ const MenuItems = decorate<MenuItemsProps>(
         <TableHead>
           <TableRow>
             <TableCell>{i18n.t("Name")}</TableCell>
-            <TableCell>{i18n.t("Url")}</TableCell>
+            <TableCell>{i18n.t("Points to")}</TableCell>
             <TableCell>{i18n.t("Items")}</TableCell>
           </TableRow>
         </TableHead>
@@ -89,11 +89,7 @@ const MenuItems = decorate<MenuItemsProps>(
                   )}
                 </TableCell>
                 <TableCell>
-                  {menuItem && menuItem.url !== undefined ? (
-                    menuItem.url
-                  ) : (
-                    <Skeleton />
-                  )}
+                  {menuItemLabelTarget(menuItem) || <Skeleton />}
                 </TableCell>
                 <TableCell>
                   {menuItem &&

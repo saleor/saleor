@@ -2,6 +2,7 @@ import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
+import i18n from "../i18n";
 import MenuDetailsComponent from "./views/MenuDetails";
 import MenuListComponent from "./views/MenuList";
 
@@ -45,6 +46,43 @@ export interface MenuItem {
   id: string;
   name: string;
   url: string;
+  category: {
+    id: string;
+    name: string;
+  } | null;
+  collection: {
+    id: string;
+    name: string;
+  } | null;
+  page: {
+    id: string;
+    name: string;
+  } | null;
+}
+
+export function menuItemLabelTarget(menuItem: MenuItem) {
+  if (menuItem === undefined) {
+    return undefined;
+  }
+  if (menuItem.category) {
+    return i18n.t("Category:{{ categoryName }}", {
+      categoryName: menuItem.category.name,
+      context: "submenu target label"
+    });
+  }
+  if (menuItem.collection) {
+    return i18n.t("Collection:{{ collectionName }}", {
+      collectionName: menuItem.collection.name,
+      context: "submenu target label"
+    });
+  }
+  if (menuItem.page) {
+    return i18n.t("Page:{{ pageName }}", {
+      context: "submenu target label",
+      pageName: menuItem.page.name
+    });
+  }
+  return menuItem.url;
 }
 
 export const menuListUrl = "/menus/";
