@@ -4,7 +4,6 @@ from graphql_jwt.decorators import permission_required
 
 from ..core.mutations import BaseMutation
 from ..core.types.common import WeightUnitsEnum
-from ..menu.types import Menu
 from ..product.types import Collection
 from .types import Shop
 
@@ -19,11 +18,6 @@ class ShopSettingsInput(graphene.InputObjectType):
     track_inventory_by_default = graphene.Boolean(
         description='Enable inventory tracking')
     default_weight_unit = WeightUnitsEnum(description='Default weight unit')
-
-
-class ShopNavigationInput(graphene.InputObjectType):
-    main = graphene.ID(description='Main navigation bar.')
-    secondary = graphene.ID(description='Secondary navigation bar.')
 
 
 class ShopSettingsUpdate(BaseMutation):
