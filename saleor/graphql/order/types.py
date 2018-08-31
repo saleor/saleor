@@ -40,6 +40,9 @@ class Order(CountableDjangoObjectType):
     payment_status = graphene.String(description='Internal payment status.')
     payment_status_display = graphene.String(
         description='User-friendly payment status.')
+    subtotal = graphene.Field(
+        TaxedMoney,
+        description='The sum of line prices not including shipping.')
     status_display = graphene.String(description='User-friendly order status.')
     total_authorized = graphene.Field(
         Money, description='Amount authorized for the order.')
@@ -53,6 +56,10 @@ class Order(CountableDjangoObjectType):
         exclude_fields = [
             'shipping_price_gross', 'shipping_price_net', 'total_gross',
             'total_net']
+
+    @staticmethod
+    def resolve_subtotal(obj, info):
+        return obj.get_subtotal()
 
     @staticmethod
     def resolve_total_authorized(obj, info):

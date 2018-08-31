@@ -46,6 +46,11 @@ def test_order_query(admin_api_client, fulfilled_order):
                     history {
                         totalCount
                     }
+                    subtotal {
+                        net {
+                            amount
+                        }
+                    }
                     total {
                         net {
                             amount
