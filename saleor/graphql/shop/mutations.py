@@ -20,6 +20,11 @@ class ShopSettingsInput(graphene.InputObjectType):
     default_weight_unit = WeightUnitsEnum(description='Default weight unit')
 
 
+class SiteDomainInput(graphene.InputObjectType):
+    domain = graphene.String(description='Domain name for shop')
+    name = graphene.String(description='Shop site name')
+
+
 class ShopSettingsUpdate(BaseMutation):
     class Arguments:
         input = ShopSettingsInput(
@@ -49,21 +54,25 @@ class ShopSettingsUpdate(BaseMutation):
 
 class ShopDomainUpdate(BaseMutation):
     class Arguments:
-        domain = graphene.String(description='Domain name for shop')
+        input = SiteDomainInput(description='Fields required to update site')
 
-    shop = graphene.Field(
-        Shop, description='Updated Shop')
+    shop = graphene.Field(Shop, description='Updated Shop')
 
     @classmethod
     @permission_required('site.manage_settings')
-    def mutate(cls, root, info, domain):
+    def mutate(cls, root, info, input):
         errors = []
         site = info.context.site
-        site.domain = domain
+        domain = input.get('domain')
+        name = input.get('name')
+        if domain:
+            site.domain = domain
+        if name:
+            site.name = name
         cls.clean_instance(site, errors)
         if errors:
             return ShopDomainUpdate(errors=errors)
-        site.save(update_fields=['domain'])
+        site.save()
         return ShopDomainUpdate(shop=Shop(), errors=errors)
 
 
