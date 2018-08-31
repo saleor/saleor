@@ -152,7 +152,7 @@
       }
       & img { 
         padding: calc(var(--spacer) * 2); 
-        margin-left: calc(var(--spacer) * 2) 
+        margin-left: calc(var(--spacer) * 2);
         @media (max-width: 450px) {
           margin-left: 0;
         }
