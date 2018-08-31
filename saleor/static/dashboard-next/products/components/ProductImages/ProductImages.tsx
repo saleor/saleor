@@ -206,7 +206,7 @@ const ProductImages = decorate<ProductImagesProps>(
         toolbar={
           <>
             <Button
-              onClick={e => this.upload.click()}
+              onClick={() => this.upload.click()}
               disabled={loading}
               variant="flat"
               color="secondary"

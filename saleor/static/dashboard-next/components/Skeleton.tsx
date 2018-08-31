@@ -2,7 +2,7 @@ import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 const decorate = withStyles(
-  theme => ({
+  {
     "@keyframes skeleton-animation": {
       "0%": {
         opacity: 0.6
@@ -19,7 +19,7 @@ const decorate = withStyles(
       height: "0.8em",
       margin: "0.2em 0"
     }
-  }),
+  },
   { name: "Skeleton" }
 );
 

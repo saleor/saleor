@@ -12,7 +12,7 @@ const callbacks = {
   onCustomerDelete: undefined,
   onCustomerEdit: undefined,
   onEmailClick: undefined,
-  onOrderClick: (id: string) => undefined,
+  onOrderClick: () => undefined,
   onShippingAddressEdit: undefined
 };
 

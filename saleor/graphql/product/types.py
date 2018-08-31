@@ -208,7 +208,7 @@ class ProductType(CountableDjangoObjectType):
         interfaces = [relay.Node]
         model = models.ProductType
 
-    def resolve_products(self, info):
+    def resolve_products(self, info, **kwargs):
         user = info.context.user
         return products_with_details(
             user=user).filter(product_type=self).distinct()

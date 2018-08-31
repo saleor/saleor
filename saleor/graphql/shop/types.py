@@ -1,16 +1,16 @@
 import graphene
 from django.conf import settings
 from django_countries import countries
-from django_prices_vatlayer import models as vatlayer_models
 from graphql_jwt.decorators import permission_required
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
-from ....core.permissions import get_permissions
-from ....site import models as site_models
-from ...menu.types import Menu
-from ...utils import format_permissions_for_display
-from .common import CountryDisplay, LanguageDisplay, PermissionDisplay
-from .money import VAT
+from ...core.permissions import get_permissions
+from ...site import models as site_models
+from ..core.types.common import (
+    CountryDisplay, LanguageDisplay, PermissionDisplay, WeightUnitsEnum)
+from ..menu.types import Menu
+from ..product.types import Collection
+from ..utils import format_permissions_for_display
 
 
 class AuthorizationKey(graphene.ObjectType):
@@ -53,6 +53,8 @@ class Shop(graphene.ObjectType):
     description = graphene.String(description='Shop\'s description.')
     domain = graphene.Field(
         Domain, required=True, description='Shop\'s domain data.')
+    homepage_collection = graphene.Field(
+        Collection, description='Collection displayed on homepage')
     languages = graphene.List(
         LanguageDisplay,
         description='List of the shops\'s supported languages.', required=True)
@@ -65,12 +67,14 @@ class Shop(graphene.ObjectType):
     phone_prefixes = graphene.List(
         graphene.String, description='List of possible phone prefixes.',
         required=True)
-    tax_rates = graphene.List(
-        VAT, description='List of VAT tax rates configured in the shop.',
-        required=True)
-    tax_rate = graphene.Field(
-        VAT, description='VAT tax rates for a specific country.',
-        required=True, country_code=graphene.Argument(graphene.String))
+    header_text = graphene.String(description='Header text')
+    include_taxes_in_prices = graphene.Boolean(
+        description='Include taxes in prices')
+    display_gross_prices = graphene.Boolean(
+        description='Display prices with tax in store')
+    track_inventory_by_default = graphene.Boolean(
+        description='Enable inventory tracking')
+    default_weight_unit = WeightUnitsEnum(description='Default weight unit')
 
     class Meta:
         description = '''
@@ -102,6 +106,9 @@ class Shop(graphene.ObjectType):
     def resolve_description(self, info):
         return info.context.site.settings.description
 
+    def resolve_homepage_collection(self, info):
+        return info.context.site.settings.homepage_collection
+
     def resolve_languages(self, info):
         return [
             LanguageDisplay(code=language[0], language=language[1])
@@ -123,13 +130,17 @@ class Shop(graphene.ObjectType):
     def resolve_phone_prefixes(self, info):
         return list(COUNTRY_CODE_TO_REGION_CODE.keys())
 
-    @permission_required('site.manage_settings')
-    def resolve_tax_rates(self, info):
-        return vatlayer_models.VAT.objects.order_by('country_code')
+    def resolve_header_text(self, info):
+        return info.context.site.settings.header_text
 
-    @permission_required('site.manage_settings')
-    def resolve_tax_rate(self, info, country_code):
-        # country codes for VAT rates are stored uppercase
-        country_code = country_code.upper()
-        return vatlayer_models.VAT.objects.filter(
-            country_code=country_code).first()
+    def resolve_include_taxes_in_prices(self, info):
+        return info.context.site.settings.include_taxes_in_prices
+
+    def resolve_display_gross_prices(self, info):
+        return info.context.site.settings.display_gross_prices
+
+    def resolve_track_inventory_by_default(self, info):
+        return info.context.site.settings.track_inventory_by_default
+
+    def resolve_default_weight_unit(self, info):
+        return info.context.site.settings.default_weight_unit

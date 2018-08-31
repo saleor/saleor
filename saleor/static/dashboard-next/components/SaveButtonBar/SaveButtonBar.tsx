@@ -20,7 +20,7 @@ interface SaveButtonBarProps {
     delete?: string;
     save?: string;
   };
-  onCancel?: () => void;
+  onCancel: () => void;
   onDelete?: () => void;
   onSave(event: any);
 }
@@ -116,7 +116,7 @@ export const SaveButtonBar = decorate<SaveButtonBarProps>(
         break;
     }
     return (
-      <div className={classes.root}>
+      <div className={classes.root} {...props}>
         {!!onDelete && (
           <Button
             variant="contained"

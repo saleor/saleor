@@ -42,11 +42,7 @@ def test_order_query(admin_api_client, fulfilled_order):
                         totalCount
                     }
                     fulfillments {
-                        edges {
-                            node {
-                                fulfillmentOrder
-                            }
-                        }
+                        fulfillmentOrder
                     }
                     history {
                         totalCount
@@ -80,7 +76,7 @@ def test_order_query(admin_api_client, fulfilled_order):
     assert order_data['notes']['totalCount'] == order.notes.count()
     fulfillment = order.fulfillments.first().fulfillment_order
     fulfillment_order = order_data[
-        'fulfillments']['edges'][0]['node']['fulfillmentOrder']
+        'fulfillments'][0]['fulfillmentOrder']
     assert fulfillment_order == fulfillment
 
 

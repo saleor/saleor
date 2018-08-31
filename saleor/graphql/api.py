@@ -22,7 +22,6 @@ from .discount.mutations import (
     VoucherUpdate)
 from .core.filters import DistinctFilterSet
 from .core.mutations import CreateToken, VerifyToken
-from .core.types.shop import Shop
 from .order.filters import OrderFilter
 from .order.resolvers import resolve_order, resolve_orders
 from .order.types import Order
@@ -61,6 +60,10 @@ from .shipping.types import ShippingZone
 from .shipping.mutations import (
     ShippingZoneCreate, ShippingZoneDelete, ShippingZoneUpdate,
     ShippingPriceCreate, ShippingPriceDelete, ShippingPriceUpdate)
+
+from .shop.types import Shop
+from .shop.mutations import (
+    ShopDomainUpdate, ShopSettingsUpdate, HomepageCollectionUpdate)
 
 
 class Query(graphene.ObjectType):
@@ -329,6 +332,10 @@ class Mutations(graphene.ObjectType):
     sale_create = SaleCreate.Field()
     sale_delete = SaleDelete.Field()
     sale_update = SaleUpdate.Field()
+
+    shop_domain_update = ShopDomainUpdate.Field()
+    shop_settings_update = ShopSettingsUpdate.Field()
+    homepage_collection_update = HomepageCollectionUpdate.Field()
 
     voucher_create = VoucherCreate.Field()
     voucher_delete = VoucherDelete.Field()

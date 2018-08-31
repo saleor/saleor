@@ -16,8 +16,10 @@ const Navigator: React.StatelessComponent<NavigatorProps> = (
 ) => {
   invariant(router, "You should not use <Navigator> outside a <Router>");
   const { history } = router;
-  const navigate = (url, replace = false) =>
+  const navigate = (url, replace = false) => {
     replace ? history.replace(url) : history.push(url);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   if (typeof children === "function") {
     return children(navigate);

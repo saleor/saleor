@@ -38,7 +38,7 @@ const invalidTokenLink = onError((error: ResponseError) => {
   }
 });
 
-const authLink = setContext((operation, context) => {
+const authLink = setContext((_, context) => {
   const authToken = getAuthToken();
   return {
     ...context,

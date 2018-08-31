@@ -5,6 +5,7 @@ from graphene.types import Scalar
 from graphene_django import DjangoObjectType
 from graphql.language import ast
 
+from ....core import weight
 from ..connection import CountableConnection
 
 
@@ -93,3 +94,6 @@ class Weight(graphene.ObjectType):
 
     class Meta:
         description = 'Represents weight value in a specific weight unit.'
+
+
+WeightUnitsEnum = graphene.Enum.from_enum(weight.WeightUnitsEnum)
