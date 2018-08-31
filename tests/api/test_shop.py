@@ -205,19 +205,22 @@ def test_shop_settings_mutation(admin_api_client, site_settings):
 
 def test_shop_domain_update(admin_api_client):
     query = """
-        mutation updateSettings($domain: String!) {
-            shopDomainUpdate(domain: $domain) {
+        mutation updateSettings($input: SiteDomainInput!) {
+            shopDomainUpdate(input: $input) {
                 shop {
+                    name
                     domain {
-                        host
+                        host,
                     }
                 }
             }
         }
     """
+    new_name = 'saleor test store'
     variables = json.dumps({
-        'domain': 'lorem-ipsum.com'
-    })
+        'input': {
+            'domain': 'lorem-ipsum.com',
+            'name': new_name}})
     site = Site.objects.get_current()
     assert site.domain != 'lorem-ipsum.com'
     response = admin_api_client.post(
@@ -226,8 +229,10 @@ def test_shop_domain_update(admin_api_client):
     assert 'errors' not in content
     data = content['data']['shopDomainUpdate']['shop']
     assert data['domain']['host'] == 'lorem-ipsum.com'
+    assert data['name'] == new_name
     site.refresh_from_db()
     assert site.domain == 'lorem-ipsum.com'
+    assert site.name == new_name
 
 
 def test_homepage_collection_update(admin_api_client, collection):
