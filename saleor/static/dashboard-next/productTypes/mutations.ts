@@ -39,6 +39,7 @@ export const productTypeUpdateMutation = gql`
         id
         name
         hasVariants
+        taxRate
         productAttributes {
           edges {
             node {

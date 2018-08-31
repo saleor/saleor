@@ -10,6 +10,7 @@ import SaveButtonBar, {
   SaveButtonBarState
 } from "../../../components/SaveButtonBar";
 import Toggle from "../../../components/Toggle";
+import { TaxRateType } from "../../../gql-types";
 import i18n from "../../../i18n";
 import ProductTypeDetails from "../ProductTypeDetails/ProductTypeDetails";
 import ProductTypeProperties from "../ProductTypeProperties/ProductTypeProperties";
@@ -22,7 +23,7 @@ export interface ProductTypeForm {
   name: string;
   hasVariants: boolean;
   isShippingRequired: boolean;
-  taxRate: string;
+  taxRate: TaxRateType;
   productAttributes: ChoiceType[];
   variantAttributes: ChoiceType[];
 }
@@ -36,7 +37,7 @@ interface ProductTypeDetailsPageProps {
     name?: string;
     hasVariants?: boolean;
     isShippingRequired?: boolean;
-    taxRate?: string;
+    taxRate?: TaxRateType;
   };
   productAttributes?: Array<{
     id: string;
@@ -54,7 +55,7 @@ interface ProductTypeDetailsPageProps {
     id: string;
     name: string;
   }>;
-  taxRates: string[];
+  taxRates: TaxRateType[];
   onAttributeSearch: (name: string) => void;
   onBack: () => void;
   onDelete?: () => void;

@@ -17,7 +17,41 @@ export interface ProductTypeInput {
   // Determines if shipping is required for products
   // of this variant.
   isShippingRequired?: boolean | null,
+  // Weight of the ProductType items.
+  weight?: string | null,
+  // A type of goods.
+  taxRate?: TaxRateType | null,
 };
+
+// An enumeration.
+export enum TaxRateType {
+  ACCOMODATION = "ACCOMODATION",
+  ADMISSION_TO_CULTURAL_EVENTS = "ADMISSION_TO_CULTURAL_EVENTS",
+  ADMISSION_TO_ENTERAINMENT_EVENTS = "ADMISSION_TO_ENTERAINMENT_EVENTS",
+  ADMISSION_TO_SPORTING_EVENTS = "ADMISSION_TO_SPORTING_EVENTS",
+  ADVERTISING = "ADVERTISING",
+  AGRICULTURAL_SUPPLIES = "AGRICULTURAL_SUPPLIES",
+  BABY_FOODSTUFFS = "BABY_FOODSTUFFS",
+  BIKES = "BIKES",
+  BOOKS = "BOOKS",
+  CHILDRENDS_CLOTHING = "CHILDRENDS_CLOTHING",
+  DOMESTIC_FUEL = "DOMESTIC_FUEL",
+  DOMESTIC_SERVICES = "DOMESTIC_SERVICES",
+  E_BOOKS = "E_BOOKS",
+  FOODSTUFFS = "FOODSTUFFS",
+  HOTELS = "HOTELS",
+  MEDICAL = "MEDICAL",
+  NEWSPAPERS = "NEWSPAPERS",
+  PASSENGER_TRANSPORT = "PASSENGER_TRANSPORT",
+  PHARMACEUTICALS = "PHARMACEUTICALS",
+  PROPERTY_RENOVATIONS = "PROPERTY_RENOVATIONS",
+  RESTAURANTS = "RESTAURANTS",
+  SOCIAL_HOUSING = "SOCIAL_HOUSING",
+  STANDARD = "STANDARD",
+  WATER = "WATER",
+  WINE = "WINE",
+}
+
 
 export interface AttributeValueInput {
   // Slug of an attribute.
@@ -456,6 +490,8 @@ export interface ProductTypeUpdateMutation {
       id: string,
       name: string,
       hasVariants: boolean,
+      // A type of tax rate.
+      taxRate: TaxRateType | null,
       productAttributes:  {
         edges:  Array< {
           // The item at the end of the edge
@@ -630,38 +666,21 @@ export interface ProductTypeDetailsQuery {
       } >,
     } | null,
     isShippingRequired: boolean,
-    taxRate: string,
+    // A type of tax rate.
+    taxRate: TaxRateType | null,
   } | null,
-  // Represents a shop resources.
-  shop:  {
-    // VAT tax rates for a specific country.
-    taxRate:  {
-      // Standard VAT rate in percent.
-      standardRate: number | null,
-      // 
-      // Country's VAT rate exceptions for specific types of goods.
-      reducedRates:  Array< {
-        // A type of goods.
-        rateType: string,
-      } | null > | null,
-    },
+  __type:  {
+    enumValues:  Array< {
+      name: string,
+    } > | null,
   } | null,
 };
 
 export interface ProductTypeCreateDataQuery {
-  // Represents a shop resources.
-  shop:  {
-    // VAT tax rates for a specific country.
-    taxRate:  {
-      // Standard VAT rate in percent.
-      standardRate: number | null,
-      // 
-      // Country's VAT rate exceptions for specific types of goods.
-      reducedRates:  Array< {
-        // A type of goods.
-        rateType: string,
-      } | null > | null,
-    },
+  __type:  {
+    enumValues:  Array< {
+      name: string,
+    } > | null,
   } | null,
 };
 

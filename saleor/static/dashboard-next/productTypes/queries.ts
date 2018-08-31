@@ -85,12 +85,9 @@ export const productTypeDetailsQuery = gql`
       isShippingRequired
       taxRate
     }
-    shop {
-      taxRate(countryCode: "PL") {
-        standardRate
-        reducedRates {
-          rateType
-        }
+    __type(name: "TaxRateType") {
+      enumValues {
+        name
       }
     }
   }
@@ -99,15 +96,11 @@ export const productTypeDetailsQuery = gql`
 export const TypedProductTypeCreateDataQuery = Query as React.ComponentType<
   QueryProps<ProductTypeCreateDataQuery>
 >;
-// FIXME: Country code should be supplied from API, not hardcoded
 export const productTypeCreateQuery = gql`
   query ProductTypeCreateData {
-    shop {
-      taxRate(countryCode: "PL") {
-        standardRate
-        reducedRates {
-          rateType
-        }
+    __type(name: "TaxRateType") {
+      enumValues {
+        name
       }
     }
   }
