@@ -14,7 +14,7 @@ class Menu(CountableDjangoObjectType):
         filter_fields = {}
         model = models.Menu
 
-    def resolve_items(self, info):
+    def resolve_items(self, info, **kwargs):
         return self.items.filter(level=0)
 
 

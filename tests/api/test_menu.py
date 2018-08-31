@@ -48,11 +48,11 @@ def test_menu_query(user_api_client, menu):
 def test_menus_query(user_api_client, menu, menu_item):
     query = """
     query menus($menu_name: String){
-        menus(query: $menu_name) {
+        menus(query: $menu_name, first: 1) {
             edges {
                 node {
                     name
-                    items {
+                    items(first: 1) {
                         edges {
                             node {
                                 name
