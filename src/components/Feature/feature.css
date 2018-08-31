@@ -6,22 +6,23 @@
     }
     & section {
         & .bg-container {
-            background-image: url('../../images/feature-bg.png');
-            background-size: 80%;
-            background-repeat: no-repeat;
-            background-position: 100% 0%;
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            z-index: -1;
-            @media (max-width: 768px) {
-              opacity: 0.5;
-              background-position: 150% 0%;
-            }
-            @media (max-width: 450px) {
-              background-position: 60% 0%;
-              background-size: cover;
-            }
+          background-image: url('../../images/feature-bg.svg');
+          background-size: 80%;
+          background-repeat: no-repeat;
+          background-position: 100% 0%;
+          width: 100%;
+          height: 100%;
+          position: absolute;
+          z-index: -1;
+          @media (max-width: 768px) {
+            opacity: 0.5;
+            background-position: 250% -20%;
+            background-size: 95%;
+          }
+          @media (max-width: 450px) {
+            background-position: 60% 0%;
+            background-size: cover;
+          }
         }
         &.hero {
           position: relative;
@@ -106,20 +107,24 @@
               & p {
                 font-weight: var(--font-weight-light)
               }
-              & .decorator {
-                width: 5px;
-                height: 0;
-                border: var(--border-width) solid;
-                display: inline-block;
-                position: absolute;
-                left: calc(var(--spacer) * (-2));
-                top: 175px;
+              & svg {
+                width: 300px;
+                position: relative;
+                top: 5%;
+                left: -15%;
               }
-              & img {
-                width: 165px;
-              }
-              & h5 {
-                color: var(--primaryColor);
+              & h3 {
+                color: var(--body-color);
+                position: relative;
+                & .decorator {
+                  width: 5px;
+                  height: 0;
+                  border: var(--border-width) solid;
+                  display: inline-block;
+                  position: absolute;
+                  left: calc(var(--spacer) * (-2));
+                  top: 0;
+                }
               }
             }
           }
@@ -168,6 +173,9 @@
               }
               & p {
                 font-weight: var(--font-weight-light);
+              }
+              & svg {
+                width: 90px;
               }
             }
           }
