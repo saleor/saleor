@@ -27,6 +27,10 @@ export interface ProductTypeForm {
   variantAttributes: ChoiceType[];
 }
 interface ProductTypeDetailsPageProps {
+  errors: Array<{
+    field: string;
+    message: string;
+  }>;
   productType?: {
     id?: string;
     name?: string;
@@ -68,6 +72,7 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
   ({
     classes,
     disabled,
+    errors,
     pageTitle,
     productAttributes,
     productType,
@@ -107,6 +112,7 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
         {(openedDeleteDialog, { toggle: toggleDeleteDialog }) => (
           <>
             <Form
+              errors={errors}
               initial={formInitialData}
               onSubmit={onSubmit}
               key={JSON.stringify(productType)}
