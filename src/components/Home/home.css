@@ -140,9 +140,10 @@
       top: calc(var(--spacer) * -6);
       & .grid {
         padding: 0 calc(var(--spacer) * 3);
-        width: 100%;
+        width: calc(100% - calc(var(--spacer) * 3));
         @media (max-width: 450px) {
           padding: var(--spacer);
+          width: calc(100% - var(--spacer));
         }
       }
       & .section-container {
@@ -151,10 +152,9 @@
         }
       }
       & img { 
-        padding: calc(var(--spacer) * 2); 
-        margin-left: calc(var(--spacer) * 2);
+        padding: var(--spacer) calc(var(--spacer) * 3);
         @media (max-width: 450px) {
-          margin-left: 0;
+          padding: calc(var(--spacer) * 2) var(--spacer);
         }
       }
       & h3 {
