@@ -6,7 +6,8 @@ import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import {
   ProductTypeDeleteMutation,
-  ProductTypeUpdateMutation
+  ProductTypeUpdateMutation,
+  TaxRateType
 } from "../../gql-types";
 import i18n from "../../i18n";
 import ProductTypeDetailsPage, {
@@ -72,6 +73,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                       >
                         {({
                           deleteProductType,
+                          errors,
                           loading: mutationLoading,
                           updateProductType
                         }) => {
@@ -81,9 +83,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                             updateProductType.mutate({
                               id,
                               input: {
-                                hasVariants: formData.hasVariants,
-                                isShippingRequired: formData.isShippingRequired,
-                                name: formData.name,
+                                ...formData,
                                 productAttributes: formData.productAttributes.map(
                                   choice => choice.value
                                 ),
@@ -97,6 +97,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                           return (
                             <ProductTypeDetailsPage
                               disabled={loading}
+                              errors={errors}
                               pageTitle={
                                 data && data.productType
                                   ? data.productType.name
@@ -139,14 +140,11 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                   : []
                               }
                               taxRates={
-                                data &&
-                                data.shop &&
-                                data.shop.taxRate &&
-                                data.shop.taxRate.reducedRates
-                                  ? data.shop.taxRate.reducedRates
-                                      .map(rate => rate.rateType)
-                                      .concat(["standard"])
-                                  : ["standard"]
+                                data && data.__type && data.__type.enumValues
+                                  ? data.__type.enumValues.map(
+                                      value => value.name as TaxRateType
+                                    )
+                                  : []
                               }
                               onAttributeSearch={searchAttribute}
                               onBack={() => navigate(productTypeListUrl)}

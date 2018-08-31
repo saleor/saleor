@@ -41,10 +41,7 @@ const ProductTypeProperties: React.StatelessComponent<
       />
       <FormSpacer />
       <SingleSelectField
-        choices={[
-          { label: "no tax rate", value: null },
-          ...taxRates.map(t => ({ label: t, value: t }))
-        ]}
+        choices={taxRates.map(t => ({ label: i18n.t(t), value: t }))}
         hint={i18n.t("Optional")}
         label={i18n.t("Tax rate")}
         name="taxRate"

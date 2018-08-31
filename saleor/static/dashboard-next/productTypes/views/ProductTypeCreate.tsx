@@ -3,7 +3,7 @@ import Navigator from "../../components/Navigator";
 
 import { productTypeDetailsUrl, productTypeListUrl } from "..";
 import Messages from "../../components/messages";
-import { ProductTypeCreateMutation } from "../../gql-types";
+import { ProductTypeCreateMutation, TaxRateType } from "../../gql-types";
 import i18n from "../../i18n";
 import ProductTypeDetailsPage, {
   ProductTypeForm
@@ -59,9 +59,7 @@ export const ProductTypeCreate: React.StatelessComponent = () => (
                           createProductType({
                             variables: {
                               input: {
-                                hasVariants: formData.hasVariants,
-                                isShippingRequired: formData.isShippingRequired,
-                                name: formData.name,
+                                ...formData,
                                 productAttributes: formData.productAttributes.map(
                                   choice => choice.value
                                 ),
@@ -101,14 +99,11 @@ export const ProductTypeCreate: React.StatelessComponent = () => (
                                 : []
                             }
                             taxRates={
-                              createData.data &&
-                              createData.data.shop &&
-                              createData.data.shop.taxRate &&
-                              createData.data.shop.taxRate.reducedRates
-                                ? createData.data.shop.taxRate.reducedRates
-                                    .map(rate => rate.rateType)
-                                    .concat(["standard"])
-                                : ["standard"]
+                              createData.data && createData.data.__type
+                                ? createData.data.__type.enumValues.map(
+                                    value => value.name as TaxRateType
+                                  )
+                                : []
                             }
                             onAttributeSearch={searchAttribute}
                             onBack={() => navigate(productTypeListUrl)}
