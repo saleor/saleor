@@ -10,7 +10,7 @@ from tests.utils import get_graphql_content
 from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.site.models import Site
 
-from .utils import assert_no_permission
+from .utils import assert_no_permission, assert_read_only_mode
 
 
 def test_query_authorization_keys(authorization_key, admin_api_client, user_api_client):
@@ -194,13 +194,7 @@ def test_shop_settings_mutation(admin_api_client, site_settings):
     })
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['shopSettingsUpdate']['shop']
-    assert data['includeTaxesInPrices'] == False
-    assert data['headerText'] == 'Lorem ipsum'
-    site_settings.refresh_from_db()
-    assert not site_settings.include_taxes_in_prices
+    assert_read_only_mode(response)
 
 
 def test_shop_domain_update(admin_api_client):
@@ -225,14 +219,7 @@ def test_shop_domain_update(admin_api_client):
     assert site.domain != 'lorem-ipsum.com'
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['shopDomainUpdate']['shop']
-    assert data['domain']['host'] == 'lorem-ipsum.com'
-    assert data['name'] == new_name
-    site.refresh_from_db()
-    assert site.domain == 'lorem-ipsum.com'
-    assert site.name == new_name
+    assert_read_only_mode(response)
 
 
 def test_homepage_collection_update(admin_api_client, collection):
@@ -254,13 +241,7 @@ def test_homepage_collection_update(admin_api_client, collection):
     })
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['homepageCollectionUpdate']['shop']
-    assert data['homepageCollection']['id'] == collection_id
-    assert data['homepageCollection']['name'] == collection.name
-    site = Site.objects.get_current()
-    assert site.settings.homepage_collection == collection
+    assert_read_only_mode(response)
 
 
 def test_query_default_country(user_api_client, settings):
@@ -281,3 +262,4 @@ def test_query_default_country(user_api_client, settings):
     data = content['data']['shop']['defaultCountry']
     assert data['code'] == settings.DEFAULT_COUNTRY
     assert data['country'] == 'United States of America'
+    assert_read_only_mode(response)

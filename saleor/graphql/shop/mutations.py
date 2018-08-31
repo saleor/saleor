@@ -1,6 +1,7 @@
 
 import graphene
 from graphql_jwt.decorators import permission_required
+from graphql_jwt.exceptions import PermissionDenied
 
 from ..core.mutations import BaseMutation
 from ..core.types.common import WeightUnitsEnum
@@ -37,6 +38,9 @@ class ShopSettingsUpdate(BaseMutation):
     @classmethod
     @permission_required('site.manage_settings')
     def mutate(cls, root, info, input):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         instance = info.context.site.settings
 
@@ -61,6 +65,9 @@ class ShopDomainUpdate(BaseMutation):
     @classmethod
     @permission_required('site.manage_settings')
     def mutate(cls, root, info, input):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         site = info.context.site
         domain = input.get('domain')
@@ -87,6 +94,9 @@ class HomepageCollectionUpdate(BaseMutation):
     @classmethod
     @permission_required('site.manage_settings')
     def mutate(cls, root, info, collection):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         new_collection = cls.get_node_or_error(
             info, collection, errors, 'collection', Collection)
