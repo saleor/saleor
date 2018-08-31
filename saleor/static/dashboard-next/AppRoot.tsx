@@ -13,21 +13,28 @@ import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import MenuIcon from "@material-ui/icons/Menu";
 import PersonIcon from "@material-ui/icons/Person";
+import SettingsIcon from "@material-ui/icons/Settings";
 import * as classNames from "classnames";
 import * as React from "react";
 import SVG from "react-inlinesvg";
 
+import { appMountPoint } from ".";
 import * as saleorLogo from "../images/logo.svg";
 import { UserContext } from "./auth";
+import { categoryListUrl } from "./categories";
 import MenuToggle from "./components/MenuToggle";
 import Navigator from "./components/Navigator";
 import Toggle from "./components/Toggle";
+import { configurationMenuUrl } from "./configuration";
 import i18n from "./i18n";
 import ArrowDropdown from "./icons/ArrowDropdown";
 import Home from "./icons/Home";
 import Shop from "./icons/Shop";
+import { removeDoubleSlashes } from "./misc";
+import { productListUrl } from "./products";
 
 const drawerWidth = 256;
+const navigationBarHeight = 64;
 
 const menuStructure = [
   {
@@ -43,13 +50,13 @@ const menuStructure = [
         ariaLabel: "products",
         icon: <Shop />,
         label: i18n.t("Products", { context: "Menu label" }),
-        url: "/products/"
+        url: productListUrl
       },
       {
         ariaLabel: "categories",
         icon: <Shop />,
         label: i18n.t("Categories", { context: "Menu label" }),
-        url: "/categories/"
+        url: categoryListUrl
       }
     ],
     icon: <Shop />,
@@ -87,14 +94,16 @@ const decorate = withStyles(
       marginTop: 56,
       padding: theme.spacing.unit,
       [theme.breakpoints.up("sm")]: {
+        marginLeft: drawerWidth,
         padding: theme.spacing.unit * 2
       }
     },
     drawerDesktop: {
       backgroundColor: "transparent",
       borderRight: "0 none",
-      marginTop: 64 + theme.spacing.unit * 2,
-      position: "relative" as "relative",
+      height: `calc(100vh - ${navigationBarHeight + theme.spacing.unit * 2}px)`,
+      marginTop: navigationBarHeight + theme.spacing.unit * 2,
+      position: "fixed" as "fixed",
       width: drawerWidth
     },
     drawerMobile: {
@@ -122,8 +131,12 @@ const decorate = withStyles(
       marginRight: theme.spacing.unit
     },
     menuList: {
+      display: "flex" as "flex",
+      flexDirection: "column" as "column",
+      height: "100%",
       marginLeft: theme.spacing.unit * 4,
-      marginTop: theme.spacing.unit * 2
+      marginTop: theme.spacing.unit * 2,
+      paddingBottom: theme.spacing.unit * 3
     },
     menuListItem: {
       "&:hover": {
@@ -253,7 +266,7 @@ const MenuList = decorate<MenuListProps>(
         return (
           <a
             className={classes.menuListItem}
-            href={"/dashboard/next" + menuItem.url}
+            href={removeDoubleSlashes(appMountPoint + menuItem.url)}
             onClick={event => onMenuItemClick(menuItem.url, event)}
             key={menuItem.label}
           >
@@ -438,6 +451,24 @@ export const AppRoot = decorate(
                           menuItems={menuStructure}
                           onMenuItemClick={handleMenuItemClick}
                         />
+                        <div className={classes.spacer} />
+                        <a
+                          className={classes.menuListItem}
+                          href={removeDoubleSlashes(
+                            appMountPoint + configurationMenuUrl
+                          )}
+                          onClick={event =>
+                            handleMenuItemClick(configurationMenuUrl, event)
+                          }
+                        >
+                          <SettingsIcon />
+                          <Typography
+                            aria-label="configure"
+                            className={classes.menuListItemText}
+                          >
+                            {i18n.t("Configure")}
+                          </Typography>
+                        </a>
                       </div>
                     </ResponsiveDrawer>
                     <main className={classes.content}>{children}</main>

@@ -42,6 +42,9 @@ function loadStories() {
   require("./stories/collections/CollectionDetailsPage");
   require("./stories/collections/CollectionListPage");
 
+  // Configuration
+  require("./stories/configuration/ConfigurationPage");
+
   // Customers
   require("./stories/customers/CustomerDetailsPage");
   require("./stories/customers/CustomerEditPage");
