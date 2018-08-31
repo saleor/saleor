@@ -68,7 +68,6 @@ export const TypedProductDeleteMutation = TypedMutation<
 >(productDeleteMutation);
 
 export const productImagesReorder = gql`
-  ${fragmentProduct}
   mutation ProductImageReorder($productId: ID!, $imagesIds: [ID]!) {
     productImageReorder(productId: $productId, imagesIds: $imagesIds) {
       errors {
@@ -76,7 +75,17 @@ export const productImagesReorder = gql`
         message
       }
       product {
-        ...Product
+        id
+        images {
+          edges {
+            node {
+              id
+              alt
+              sortOrder
+              url
+            }
+          }
+        }
       }
     }
   }

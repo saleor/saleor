@@ -609,111 +609,6 @@ export interface ProductImageReorderMutation {
     product:  {
       // The ID of the object.
       id: string,
-      name: string,
-      description: string,
-      seoTitle: string | null,
-      seoDescription: string | null,
-      category:  {
-        // The ID of the object.
-        id: string,
-        name: string,
-      },
-      collections:  {
-        edges:  Array< {
-          // The item at the end of the edge
-          node:  {
-            // The ID of the object.
-            id: string,
-            name: string,
-          },
-        } >,
-      } | null,
-      // The product's base price (without any discounts
-      // applied).
-      price:  {
-        // Amount of money.
-        amount: number,
-        // Currency code.
-        currency: string,
-      } | null,
-      margin:  {
-        start: number | null,
-        stop: number | null,
-      } | null,
-      purchaseCost:  {
-        // Lower bound of a price range.
-        start:  {
-          // Amount of money.
-          amount: number,
-          // Currency code.
-          currency: string,
-        } | null,
-        // Upper bound of a price range.
-        stop:  {
-          // Amount of money.
-          amount: number,
-          // Currency code.
-          currency: string,
-        } | null,
-      } | null,
-      isPublished: boolean,
-      chargeTaxes: boolean,
-      availableOn: string | null,
-      // List of product attributes assigned to this product.
-      attributes:  Array< {
-        // Name of an attribute
-        attribute:  {
-          // The ID of the object.
-          id: string,
-          // Internal representation of an attribute name.
-          slug: string | null,
-          // Visible name for display purposes.
-          name: string | null,
-          // List of attribute's values.
-          values:  Array< {
-            // Visible name for display purposes.
-            name: string | null,
-            // Internal representation of an attribute name.
-            slug: string | null,
-          } | null > | null,
-        } | null,
-        // Value of an attribute.
-        value:  {
-          // The ID of the object.
-          id: string,
-          // Visible name for display purposes.
-          name: string | null,
-          // Internal representation of an attribute name.
-          slug: string | null,
-        } | null,
-      } | null > | null,
-      // Informs about product's availability in the storefront,
-      // current price and discounts.
-      availability:  {
-        available: boolean | null,
-        priceRange:  {
-          // Lower bound of a price range.
-          start:  {
-            // Amount of money without taxes.
-            net:  {
-              // Amount of money.
-              amount: number,
-              // Currency code.
-              currency: string,
-            },
-          } | null,
-          // Upper bound of a price range.
-          stop:  {
-            // Amount of money without taxes.
-            net:  {
-              // Amount of money.
-              amount: number,
-              // Currency code.
-              currency: string,
-            },
-          } | null,
-        } | null,
-      } | null,
       images:  {
         edges:  Array< {
           // The item at the end of the edge
@@ -727,37 +622,6 @@ export interface ProductImageReorderMutation {
           },
         } >,
       } | null,
-      variants:  {
-        edges:  Array< {
-          // The item at the end of the edge
-          node:  {
-            // The ID of the object.
-            id: string,
-            sku: string,
-            name: string,
-            // Override the base price of a product if necessary.
-            // A value of `null` indicates that the default product price is used.
-            priceOverride:  {
-              // Amount of money.
-              amount: number,
-              // Currency code.
-              currency: string,
-            } | null,
-            // Quantity of a product available for sale.
-            stockQuantity: number,
-            // Gross margin percentage value.
-            margin: number | null,
-          },
-        } >,
-      } | null,
-      productType:  {
-        // The ID of the object.
-        id: string,
-        name: string,
-        hasVariants: boolean,
-      },
-      // The storefront URL for the product.
-      url: string,
     } | null,
   } | null,
 };
@@ -1412,6 +1276,8 @@ export interface ProductImageDeleteMutationVariables {
 export interface ProductImageDeleteMutation {
   productImageDelete:  {
     product:  {
+      // The ID of the object.
+      id: string,
       images:  {
         edges:  Array< {
           // The item at the end of the edge
