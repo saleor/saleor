@@ -7,6 +7,7 @@ from ....product import models
 from ....product.utils.attributes import get_name_from_attributes
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import Decimal, SeoInput
+from ...core.types.money import TaxRateType
 from ...core.utils import clean_seo_fields
 from ...file_upload.types import Upload
 from ...shipping.types import WeightScalar
@@ -406,6 +407,7 @@ class ProductTypeInput(graphene.InputObjectType):
         description="""Determines if shipping is required for products
         of this variant.""")
     weight = WeightScalar(description='Weight of the ProductType items.')
+    tax_rate = TaxRateType(description='A type of goods.')
 
 
 class ProductTypeCreate(ModelMutation):

@@ -582,6 +582,7 @@ def test_product_type_query(
                             }
                         }
                     }
+                    taxRate
                 }
             }
         """
@@ -604,12 +605,13 @@ def test_product_type_query(
     assert 'errors' not in content
     data = content['data']
     assert data['productType']['products']['totalCount'] == no_products
-
+    assert data['productType']['taxRate'] == product_type.tax_rate.upper()
 
 def test_product_type_create_mutation(admin_api_client, product_type):
     query = """
     mutation createProductType(
         $name: String!,
+        $taxRate: TaxRateType!,
         $hasVariants: Boolean!,
         $isShippingRequired: Boolean!,
         $productAttributes: [ID],
@@ -617,12 +619,14 @@ def test_product_type_create_mutation(admin_api_client, product_type):
         productTypeCreate(
             input: {
                 name: $name,
+                taxRate: $taxRate,
                 hasVariants: $hasVariants,
                 isShippingRequired: $isShippingRequired,
                 productAttributes: $productAttributes,
                 variantAttributes: $variantAttributes}) {
             productType {
             name
+            taxRate
             isShippingRequired
             hasVariants
             variantAttributes {
@@ -657,13 +661,16 @@ def test_product_type_create_mutation(admin_api_client, product_type):
 
     variables = json.dumps({
         'name': product_type_name, 'hasVariants': has_variants,
+        'taxRate': 'STANDARD',
         'isShippingRequired': require_shipping,
         'productAttributes': product_attributes_ids,
         'variantAttributes': variant_attributes_ids})
+    initial_count = ProductType.objects.count()
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
+    assert ProductType.objects.count() == initial_count + 1
     data = content['data']['productTypeCreate']
     assert data['productType']['name'] == product_type_name
     assert data['productType']['hasVariants'] == has_variants
@@ -672,7 +679,8 @@ def test_product_type_create_mutation(admin_api_client, product_type):
     assert len(data['productType']['productAttributes']['edges']) == no_pa
     no_va = variant_attributes.count()
     assert len(data['productType']['variantAttributes']['edges']) == no_va
-
+    new_instance = ProductType.objects.latest('pk')
+    assert new_instance.tax_rate == 'standard'
 
 def test_product_type_update_mutation(admin_api_client, product_type):
     query = """

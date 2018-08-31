@@ -5,7 +5,9 @@ from django_prices_vatlayer.utils import (
     get_tax_for_rate, get_tax_rates_for_country)
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-DEFAULT_TAX_RATE_NAME = 'standard'
+from ...core import TaxRateType
+
+DEFAULT_TAX_RATE_NAME = TaxRateType.STANDARD.value
 
 ZERO_MONEY = Money(0, settings.DEFAULT_CURRENCY)
 ZERO_TAXED_MONEY = TaxedMoney(net=ZERO_MONEY, gross=ZERO_MONEY)
