@@ -20,7 +20,7 @@ interface SaveButtonBarProps {
     delete?: string;
     save?: string;
   };
-  onCancel?: () => void;
+  onCancel: () => void;
   onDelete?: () => void;
   onSave(event: any);
 }
