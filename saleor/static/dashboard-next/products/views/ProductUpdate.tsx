@@ -3,7 +3,6 @@ import { arrayMove } from "react-sortable-hoc";
 
 import * as placeholderImg from "../../../images/placeholder255x255.png";
 import { attributesListUrl } from "../../attributes";
-import { categoryShowUrl } from "../../categories";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
@@ -44,7 +43,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
 
                   const handleDelete = () => {
                     pushMessage({ text: i18n.t("Product removed") });
-                    navigate(categoryShowUrl(data.product.category.id));
+                    navigate(productListUrl);
                   };
                   const handleUpdate = () =>
                     pushMessage({ text: i18n.t("Saved changes") });

@@ -28,10 +28,7 @@ import {
 } from "../gql-types";
 import { TypedMutation } from "../mutations";
 
-import {
-  fragmentProduct,
-  fragmentVariant
-} from "./queries";
+import { fragmentProduct, fragmentVariant } from "./queries";
 
 export const productImageCreateMutation = gql`
   ${fragmentProduct}
@@ -71,7 +68,6 @@ export const TypedProductDeleteMutation = TypedMutation<
 >(productDeleteMutation);
 
 export const productImagesReorder = gql`
-  ${fragmentProduct}
   mutation ProductImageReorder($productId: ID!, $imagesIds: [ID]!) {
     productImageReorder(productId: $productId, imagesIds: $imagesIds) {
       errors {
@@ -79,7 +75,17 @@ export const productImagesReorder = gql`
         message
       }
       product {
-        ...Product
+        id
+        images {
+          edges {
+            node {
+              id
+              alt
+              sortOrder
+              url
+            }
+          }
+        }
       }
     }
   }
@@ -273,6 +279,7 @@ export const productImageDeleteMutation = gql`
   mutation ProductImageDelete($id: ID!) {
     productImageDelete(id: $id) {
       product {
+        id
         images {
           edges {
             node {
