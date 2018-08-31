@@ -555,6 +555,13 @@ def test_product_type(user_api_client, product_type):
                 node {
                     id
                     name
+                    products(first: 1) {
+                        edges {
+                            node {
+                                id
+                            }
+                        }
+                    }
                 }
             }
         }

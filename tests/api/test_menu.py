@@ -48,11 +48,11 @@ def test_menu_query(user_api_client, menu):
 def test_menus_query(user_api_client, menu, menu_item):
     query = """
     query menus($menu_name: String){
-        menus(query: $menu_name) {
+        menus(query: $menu_name, first: 1) {
             edges {
                 node {
                     name
-                    items {
+                    items(first: 1) {
                         edges {
                             node {
                                 name
@@ -93,6 +93,15 @@ def test_menu_items_query(user_api_client, menu_item, collection):
             children {
                 totalCount
             }
+            collection {
+                name
+            }
+            category {
+                id
+            }
+            page {
+                id
+            }
             url
         }
     }
@@ -109,6 +118,9 @@ def test_menu_items_query(user_api_client, menu_item, collection):
     assert data['name'] == menu_item.name
     assert data['url'] == menu_item.collection.get_absolute_url()
     assert data['children']['totalCount'] == menu_item.children.count()
+    assert data['collection']['name'] == collection.name
+    assert not data['category']
+    assert not data['page']
 
 
 def test_create_menu(admin_api_client, collection, category, page):
