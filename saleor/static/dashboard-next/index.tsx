@@ -18,6 +18,7 @@ import CategorySection from "./categories";
 import { DateProvider } from "./components/DateFormatter";
 import { LocaleProvider } from "./components/Locale";
 import { MessageManager } from "./components/messages";
+import { ConfigurationSection } from "./configuration";
 import "./i18n";
 import PageSection from "./pages";
 import ProductSection from "./products";
@@ -62,9 +63,11 @@ const apolloClient = new ApolloClient({
   link: invalidTokenLink.concat(authLink.concat(uploadLink))
 });
 
+export const appMountPoint = "/dashboard/next/";
+
 render(
   <ApolloProvider client={apolloClient}>
-    <BrowserRouter basename="/dashboard/next/">
+    <BrowserRouter basename={appMountPoint}>
       <MuiThemeProvider theme={theme}>
         <DateProvider>
           <LocaleProvider>
@@ -78,6 +81,11 @@ render(
                         <Route path="/categories" component={CategorySection} />
                         <Route path="/pages" component={PageSection} />
                         <Route path="/products" component={ProductSection} />
+                        <Route
+                          exact
+                          path="/configuration"
+                          component={ConfigurationSection}
+                        />
                       </Switch>
                     </AppRoot>
                   ) : (
