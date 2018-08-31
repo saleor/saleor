@@ -22,6 +22,7 @@ import "./i18n";
 import PageSection from "./pages";
 import ProductSection from "./products";
 import theme from "./theme";
+import ScrollToTop from "./components/ScrollToTop";
 
 const cookies = new Cookies();
 
@@ -74,11 +75,16 @@ render(
                 {({ isAuthenticated }) =>
                   isAuthenticated ? (
                     <AppRoot>
-                      <Switch>
-                        <Route path="/categories" component={CategorySection} />
-                        <Route path="/pages" component={PageSection} />
-                        <Route path="/products" component={ProductSection} />
-                      </Switch>
+                      <ScrollToTop>
+                        <Switch>
+                          <Route
+                            path="/categories"
+                            component={CategorySection}
+                          />
+                          <Route path="/pages" component={PageSection} />
+                          <Route path="/products" component={ProductSection} />
+                        </Switch>
+                      </ScrollToTop>
                     </AppRoot>
                   ) : (
                     <Route component={Auth} />
