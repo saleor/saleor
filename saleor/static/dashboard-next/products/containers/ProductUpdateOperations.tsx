@@ -96,21 +96,7 @@ const ProductImageDeleteProvider: React.StatelessComponent<
         data,
         error,
         loading,
-        mutate: opts => {
-          const optimisticResponse = {
-            productImageDelete: {
-              __typename: "ProductImageDelete",
-              productImage: {
-                __typename: "ProductImage",
-                id: opts.variables.id
-              }
-            }
-          };
-          return mutate({
-            optimisticResponse,
-            variables: opts.variables
-          });
-        }
+        mutate
       })
     }
   </TypedProductImageDeleteMutation>
