@@ -1,6 +1,8 @@
 import graphene
 from django_prices.templatetags import prices_i18n
 
+from ....core import TaxRateType as TaxRateTypeEnum
+
 
 class Money(graphene.ObjectType):
     currency = graphene.String(description='Currency code.', required=True)
@@ -24,6 +26,8 @@ class MoneyRange(graphene.ObjectType):
 
     class Meta:
         description = 'Represents a range of amounts of money.'
+
+TaxRateType = graphene.Enum.from_enum(TaxRateTypeEnum)
 
 
 class TaxedMoney(graphene.ObjectType):
@@ -75,7 +79,7 @@ class VAT(graphene.ObjectType):
 class ReducedRate(graphene.ObjectType):
     rate = graphene.Float(
         description='Reduced VAT rate in percent.', required=True)
-    rate_type = graphene.String(description='A type of goods.', required=True)
+    rate_type = TaxRateType(description='A type of goods.', required=True)
 
     class Meta:
         description = '''

@@ -1,40 +1,52 @@
 from django.utils.translation import pgettext_lazy
 from django_countries import countries
 
+from . import TaxRateType
+
 ANY_COUNTRY = ''
 ANY_COUNTRY_DISPLAY = pgettext_lazy('Country choice', 'Any Country')
 COUNTRY_CODE_CHOICES = [(ANY_COUNTRY, ANY_COUNTRY_DISPLAY)] + list(countries)
 
 VAT_RATE_TYPE_TRANSLATIONS = {
-    'accommodation': pgettext_lazy('VAT rate type', 'accommodation'),
-    'admission to cultural events': pgettext_lazy(
+    TaxRateType.ACCOMODATION: pgettext_lazy(
+        'VAT rate type', 'accommodation'),
+    TaxRateType.ADMISSION_TO_CULTURAL_EVENTS: pgettext_lazy(
         'VAT rate type', 'admission to cultural events'),
-    'admission to entertainment events': pgettext_lazy(
+    TaxRateType.ADMISSION_TO_ENTERAINMENT_EVENTS: pgettext_lazy(
         'VAT rate type', 'admission to entertainment events'),
-    'admission to sporting events': pgettext_lazy(
+    TaxRateType.ADMISSION_TO_SPORTING_EVENTS: pgettext_lazy(
         'VAT rate type', 'admission to sporting events'),
-    'advertising': pgettext_lazy(
+    TaxRateType.ADVERTISING: pgettext_lazy(
         'VAT rate type', 'advertising'),
-    'agricultural supplies': pgettext_lazy(
+    TaxRateType.AGRICULTURAL_SUPPLIES: pgettext_lazy(
         'VAT rate type', 'agricultural supplies'),
-    'baby foodstuffs': pgettext_lazy('VAT rate type', 'baby foodstuffs'),
-    'bikes': pgettext_lazy('VAT rate type', 'bikes'),
-    'books': pgettext_lazy('VAT rate type', 'books'),
-    'childrens clothing': pgettext_lazy('VAT rate type', 'childrens clothing'),
-    'domestic fuel': pgettext_lazy('VAT rate type', 'domestic fuel'),
-    'domestic services': pgettext_lazy('VAT rate type', 'domestic services'),
-    'e-books': pgettext_lazy('VAT rate type', 'e-books'),
-    'foodstuffs': pgettext_lazy('VAT rate type', 'foodstuffs'),
-    'hotels': pgettext_lazy('VAT rate type', 'hotels'),
-    'medical': pgettext_lazy('VAT rate type', 'medical'),
-    'newspapers': pgettext_lazy('VAT rate type', 'newspapers'),
-    'passenger transport': pgettext_lazy(
+    TaxRateType.BABY_FOODSTUFFS: pgettext_lazy(
+        'VAT rate type', 'baby foodstuffs'),
+    TaxRateType.BIKES: pgettext_lazy('VAT rate type', 'bikes'),
+    TaxRateType.BOOKS: pgettext_lazy('VAT rate type', 'books'),
+    TaxRateType.CHILDRENDS_CLOTHING: pgettext_lazy(
+        'VAT rate type', 'childrens clothing'),
+    TaxRateType.DOMESTIC_FUEL: pgettext_lazy(
+        'VAT rate type', 'domestic fuel'),
+    TaxRateType.DOMESTIC_SERVICES: pgettext_lazy(
+        'VAT rate type', 'domestic services'),
+    TaxRateType.E_BOOKS: pgettext_lazy('VAT rate type', 'e-books'),
+    TaxRateType.FOODSTUFFS: pgettext_lazy(
+        'VAT rate type', 'foodstuffs'),
+    TaxRateType.HOTELS: pgettext_lazy('VAT rate type', 'hotels'),
+    TaxRateType.MEDICAL: pgettext_lazy('VAT rate type', 'medical'),
+    TaxRateType.NEWSPAPERS: pgettext_lazy(
+        'VAT rate type', 'newspapers'),
+    TaxRateType.PASSENGER_TRANSPORT: pgettext_lazy(
         'VAT rate type', 'passenger transport'),
-    'pharmaceuticals': pgettext_lazy('VAT rate type', 'pharmaceuticals'),
-    'property renovations': pgettext_lazy(
+    TaxRateType.PHARMACEUTICALS: pgettext_lazy(
+        'VAT rate type', 'pharmaceuticals'),
+    TaxRateType.PROPERTY_RENOVATIONS: pgettext_lazy(
         'VAT rate type', 'property renovations'),
-    'restaurants': pgettext_lazy('VAT rate type', 'restaurants'),
-    'social housing': pgettext_lazy('VAT rate type', 'social housing'),
-    'standard': pgettext_lazy('VAT rate type', 'standard'),
-    'water': pgettext_lazy('VAT rate type', 'water'),
-    'wine': pgettext_lazy('VAT rate type', 'wine')}
+    TaxRateType.RESTAURANTS: pgettext_lazy(
+        'VAT rate type', 'restaurants'),
+    TaxRateType.SOCIAL_HOUSING: pgettext_lazy(
+        'VAT rate type', 'social housing'),
+    TaxRateType.STANDARD: pgettext_lazy('VAT rate type', 'standard'),
+    TaxRateType.WATER: pgettext_lazy('VAT rate type', 'water'),
+    TaxRateType.WINE: pgettext_lazy('VAT rate type', 'wine')}
