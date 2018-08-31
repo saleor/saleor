@@ -355,7 +355,7 @@ export interface MenuDetailsQueryVariables {
 };
 
 export interface MenuDetailsQuery {
-  // Lookup a menu by ID.
+  // Lookup a menu by ID or name.
   menu:  {
     // The ID of the object.
     id: string,
@@ -369,6 +369,21 @@ export interface MenuDetailsQuery {
           name: string,
           // URL to the menu item.
           url: string | null,
+          category:  {
+            // The ID of the object.
+            id: string,
+            name: string,
+          } | null,
+          collection:  {
+            // The ID of the object.
+            id: string,
+            name: string,
+          } | null,
+          page:  {
+            // The ID of the object.
+            id: string,
+            name: string,
+          } | null,
           children:  {
             // A total count of items in the collection
             totalCount: number | null,
@@ -385,6 +400,74 @@ export interface MenuDetailsQuery {
         // When paginating forwards, the cursor to continue.
         endCursor: string | null,
       },
+    } | null,
+  } | null,
+};
+
+export interface menuItemQueryVariables {
+  id: string,
+  first?: number | null,
+  after?: string | null,
+  last?: number | null,
+  before?: string | null,
+};
+
+export interface menuItemQuery {
+  // Lookup a menu item by ID.
+  menuItem:  {
+    // The ID of the object.
+    id: string,
+    parent:  {
+      // The ID of the object.
+      id: string,
+      name: string,
+    } | null,
+    menu:  {
+      // The ID of the object.
+      id: string,
+    },
+    // URL to the menu item.
+    url: string | null,
+    category:  {
+      // The ID of the object.
+      id: string,
+      name: string,
+    } | null,
+    collection:  {
+      // The ID of the object.
+      id: string,
+      name: string,
+    } | null,
+    page:  {
+      // The ID of the object.
+      id: string,
+      name: string,
+    } | null,
+    children:  {
+      edges:  Array< {
+        // The item at the end of the edge
+        node:  {
+          // The ID of the object.
+          id: string,
+          // URL to the menu item.
+          url: string | null,
+          category:  {
+            // The ID of the object.
+            id: string,
+            name: string,
+          } | null,
+          collection:  {
+            // The ID of the object.
+            id: string,
+            name: string,
+          } | null,
+          page:  {
+            // The ID of the object.
+            id: string,
+            name: string,
+          } | null,
+        },
+      } >,
     } | null,
   } | null,
 };

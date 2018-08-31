@@ -54,6 +54,18 @@ export const menuDetailsQuery = gql`
             id
             name
             url
+            category {
+              id
+              name
+            }
+            collection {
+              id
+              name
+            }
+            page {
+              id
+              name: title
+            }
             children {
               totalCount
             }
@@ -64,6 +76,64 @@ export const menuDetailsQuery = gql`
           hasNextPage
           startCursor
           endCursor
+        }
+      }
+    }
+  }
+`;
+
+export const TypedMenuItemDetailsQuery = Query as React.ComponentType<
+  QueryProps<MenuDetailsQuery, MenuDetailsQueryVariables>
+>;
+
+export const menuItemDetailsQuery = gql`
+  query menuItem(
+    $id: ID!
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
+  ) {
+    menuItem(id: $id) {
+      id
+      parent {
+        id
+        name
+      }
+      menu {
+        id
+      }
+      url
+      category {
+        id
+        name
+      }
+      collection {
+        id
+        name
+      }
+      page {
+        id
+        name: title
+      }
+      children(before: $before, after: $after, first: $first, last: $last) {
+        edges {
+          node {
+            id
+            url
+            category {
+              id
+              name
+            }
+            collection {
+              id
+              name
+            }
+            page {
+              id
+              name: title
+            }
+          }
         }
       }
     }
