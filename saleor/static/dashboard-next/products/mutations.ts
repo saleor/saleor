@@ -28,10 +28,7 @@ import {
 } from "../gql-types";
 import { TypedMutation } from "../mutations";
 
-import {
-  fragmentProduct,
-  fragmentVariant
-} from "./queries";
+import { fragmentProduct, fragmentVariant } from "./queries";
 
 export const productImageCreateMutation = gql`
   ${fragmentProduct}
@@ -273,6 +270,7 @@ export const productImageDeleteMutation = gql`
   mutation ProductImageDelete($id: ID!) {
     productImageDelete(id: $id) {
       product {
+        id
         images {
           edges {
             node {
