@@ -169,6 +169,7 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
                       </div>
                     </div>
                     <SaveButtonBar
+                      onCancel={onBack}
                       onDelete={toggleRemoveDialog}
                       onSave={submit}
                       disabled={disabled || !onSubmit || !hasChanged}

@@ -16308,7 +16308,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
       class="Component-root-id"
     >
       <div
-        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-cardDisabled-id"
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-card-id"
       >
         <div
           class="MuiCardContent-root-id Component-cardContent-id"
@@ -25491,12 +25491,12 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
                       role="button"
                       tabindex="0"
                     >
-                      standard
+                      ACCOMODATION
                     </div>
                     <input
                       name="taxRate"
                       type="hidden"
-                      value="standard"
+                      value="ACCOMODATION"
                     />
                     <svg
                       aria-hidden="true"

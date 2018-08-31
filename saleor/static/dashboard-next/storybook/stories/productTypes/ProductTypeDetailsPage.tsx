@@ -1,17 +1,19 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
+import { TaxRateType } from "../../../gql-types";
 import ProductTypeDetailsPage from "../../../productTypes/components/ProductTypeDetailsPage";
 import { attributes, productType } from "../../../productTypes/fixtures";
 import Decorator from "../../Decorator";
 
-const taxRates = ["standard", "electronics", "food", "apparel"];
+const taxRates = Object.keys(TaxRateType).map(key => TaxRateType[key]);
 
 storiesOf("Views / Product types / Product type details", module)
   .addDecorator(Decorator)
   .add("default", () => (
     <ProductTypeDetailsPage
       disabled={false}
+      errors={[]}
       pageTitle={productType.name}
       productType={productType}
       productAttributes={productType.productAttributes.edges.map(
@@ -33,6 +35,7 @@ storiesOf("Views / Product types / Product type details", module)
   .add("loading", () => (
     <ProductTypeDetailsPage
       disabled={true}
+      errors={[]}
       pageTitle={undefined}
       saveButtonBarState="default"
       searchLoading={false}
