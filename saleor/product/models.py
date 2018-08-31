@@ -20,6 +20,7 @@ from prices import TaxedMoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
+from ..core import TaxRateType
 from ..core.exceptions import InsufficientStock
 from ..core.models import SortableModel
 from ..core.utils.taxes import DEFAULT_TAX_RATE_NAME, apply_tax_to_price
@@ -80,7 +81,8 @@ class ProductType(models.Model):
         'ProductAttribute', related_name='product_variant_types', blank=True)
     is_shipping_required = models.BooleanField(default=False)
     tax_rate = models.CharField(
-        max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True)
+        max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True,
+        choices=TaxRateType.CHOICES)
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES,
         default=zero_weight)

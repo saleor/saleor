@@ -7,7 +7,7 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ...core import TaxRateType
 
-DEFAULT_TAX_RATE_NAME = TaxRateType.STANDARD.value
+DEFAULT_TAX_RATE_NAME = TaxRateType.STANDARD
 
 ZERO_MONEY = Money(0, settings.DEFAULT_CURRENCY)
 ZERO_TAXED_MONEY = TaxedMoney(net=ZERO_MONEY, gross=ZERO_MONEY)
