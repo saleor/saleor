@@ -16,10 +16,8 @@ def send_password_reset_email(context, recipient):
             kwargs={
                 'uidb64': context['uid'],
                 'token': context['token']}))
-    logo_url = build_absolute_uri(
-        location=None) + static('images/logo-document.svg')
-    context['reset_url'] = reset_url
-    context['logo_url'] = logo_url
+    context = get_email_base_context()
+    context.update({'reset_url': reset_url})
     send_templated_mail(
         template_name='account/password_reset',
         from_email=settings.DEFAULT_FROM_EMAIL,
@@ -29,18 +27,22 @@ def send_password_reset_email(context, recipient):
 
 @shared_task
 def send_account_delete_confirmation_email(token, recipient_email):
-    site = Site.objects.get_current()
-    logo_url = build_absolute_uri(
-        location=None) + static('images/logo-document.svg')
     delete_url = build_absolute_uri(
         reverse('account:delete-confirm', kwargs={'token': token}))
-    ctx = {
-        'site_name': site.name,
-        'domain': site.domain,
-        'logo_url': logo_url,
-        'url': delete_url}
+    ctx = get_email_base_context()
+    ctx.update({'url': delete_url})
     send_templated_mail(
         template_name='account/account_delete',
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[recipient_email],
         context=ctx)
+
+
+def get_email_base_context():
+    site = Site.objects.get_current()
+    logo_url = build_absolute_uri(
+        location=None) + static('images/logo-document.svg')
+    return {
+        'domain': site.domain,
+        'logo_url': logo_url,
+        'site_name': site.name}
