@@ -10,6 +10,7 @@ import Monetization from "../icons/Monetization";
 import Navigation from "../icons/Navigation";
 import Pages from "../icons/Pages";
 import StoreMall from "../icons/StoreMall";
+import { menuListUrl } from "../menus";
 import { productTypeListUrl } from "../productTypes";
 import ConfigurationPage from "./ConfigurationPage";
 
@@ -48,7 +49,8 @@ export const configurationMenu = [
     description: i18n.t("Define how users can navigate through your store"),
     disabled: true,
     icon: <Navigation fontSize="inherit" />,
-    title: i18n.t("Navigation")
+    title: i18n.t("Navigation"),
+    url: menuListUrl
   },
   {
     description: i18n.t("View and update your site settings"),

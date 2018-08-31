@@ -45,7 +45,8 @@ const decorate = withStyles(theme => ({
   },
   icon: {
     color: theme.palette.primary.main,
-    fontSize: 48
+    fontSize: 48,
+    height: 48
   },
   root: {
     [theme.breakpoints.down("md")]: {
