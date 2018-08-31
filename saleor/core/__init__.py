@@ -1,3 +1,4 @@
+from enum import Enum
 from django.conf import settings
 from django.core.checks import register, Warning
 
@@ -20,3 +21,31 @@ def check_session_caching(app_configs, **kwargs):  # pragma: no cover
                 ' like Redis.',
                 'saleor.W001'))
     return errors
+
+
+class TaxRateType(Enum):
+    ACCOMODATION = 'accomodation'
+    ADMISSION_TO_CULTURAL_EVENTS = 'admission to cultural events'
+    ADMISSION_TO_ENTERAINMENT_EVENTS = 'admission to entertainment events'
+    ADMISSION_TO_SPORTING_EVENTS = 'admission to sporting events'
+    ADVERTISING = 'advertising'
+    AGRICULTURAL_SUPPLIES = 'agricultural supplies'
+    BABY_FOODSTUFFS = 'baby foodstuffs'
+    BIKES = 'bikes'
+    BOOKS = 'books'
+    CHILDRENDS_CLOTHING = 'childrens clothing'
+    DOMESTIC_FUEL = 'domestic fuel'
+    DOMESTIC_SERVICES = 'domestic services'
+    E_BOOKS = 'e-books'
+    FOODSTUFFS = 'foodstuffs'
+    HOTELS = 'hotels'
+    MEDICAL = 'medical'
+    NEWSPAPERS = 'newspapers'
+    PASSENGER_TRANSPORT = 'passenger transport'
+    PHARMACEUTICALS = 'pharmaceuticals'
+    PROPERTY_RENOVATIONS = 'property renovations'
+    RESTAURANTS = 'restaurants'
+    SOCIAL_HOUSING = 'social housing'
+    STANDARD = 'standard'
+    WATER = 'water'
+    WINE = 'wine'

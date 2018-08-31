@@ -13,6 +13,14 @@ from ..product.types import Collection
 from ..utils import format_permissions_for_display
 
 
+class Navigation(graphene.ObjectType):
+    main = graphene.Field(Menu, description='Main navigation bar.')
+    secondary = graphene.Field(Menu, description='Secondary navigation bar.')
+
+    class Meta:
+        description = 'Represents shop\'s navigation menus.'
+
+
 class AuthorizationKey(graphene.ObjectType):
     name = graphene.String(description='Name of the key.', required=True)
     key = graphene.String(description='Value of the key.', required=True)
@@ -28,14 +36,6 @@ class Domain(graphene.ObjectType):
 
     class Meta:
         description = 'Represents shop\'s domain.'
-
-
-class Navigation(graphene.ObjectType):
-    main = graphene.Field(Menu, description='Main navigation bar.')
-    secondary = graphene.Field(Menu, description='Secondary navigation bar.')
-
-    class Meta:
-        description = 'Represents shop\'s navigation menus.'
 
 
 class Shop(graphene.ObjectType):
