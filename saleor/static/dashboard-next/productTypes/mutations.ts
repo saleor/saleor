@@ -1,5 +1,4 @@
 import gql from "graphql-tag";
-import { Mutation, MutationProps } from "react-apollo";
 
 import {
   ProductTypeCreateMutation,

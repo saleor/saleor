@@ -74,6 +74,11 @@ export const ProductTypeCreate: React.StatelessComponent = () => (
                         return (
                           <ProductTypeDetailsPage
                             disabled={loadingCreate}
+                            errors={
+                              createProductTypeData
+                                ? createProductTypeData.productTypeCreate.errors
+                                : undefined
+                            }
                             pageTitle={i18n.t("Create Product Type", {
                               context: "page title"
                             })}
