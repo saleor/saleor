@@ -215,24 +215,34 @@ class Home extends Component {
             </div>
             <div className="grid icons">
               <div className="icon col-xs-5 col-sm-2 col-md-2">
+                <a href="https://github.com/mirumee/saleor">
                 <ReactSVG className="github-icon" path="images/github-icon.svg" />
                 <h5>Suggest features <br/>and propose changes</h5>
+                </a>
               </div>
               <div className="icon col-xs-5 col-sm-2 col-md-2">
-                <ReactSVG className="transifex-icon" path="images/transifex-icon.svg" />
-                <h5>Translate Saleor <br/>to your language</h5>
+                <a href="https://www.transifex.com/mirumee/saleor-1/">
+                  <ReactSVG className="transifex-icon" path="images/transifex-icon.svg" />
+                  <h5>Translate Saleor <br/>to your language</h5>
+                </a>
               </div>
               <div className="icon col-xs-5 col-sm-2 col-md-2">
-                <ReactSVG className="gitter-icon" path="images/gitter-icon.svg" />
-                <h5>Discuss the <br/>featre of Saleor</h5>
+                <a href="https://gitter.im/mirumee/saleor">
+                  <ReactSVG className="gitter-icon" path="images/gitter-icon.svg" />
+                  <h5>Discuss the <br/>featre of Saleor</h5>
+                </a>
               </div>
               <div className="icon col-xs-5 col-sm-2 col-md-2">
-                <ReactSVG className="stackoverflow-icon" path="images/stackoverflow-icon.svg" />
-                <h5>Ask for <br />help</h5>
+                <a href="https://stackoverflow.com/questions/tagged/saleor">
+                  <ReactSVG className="stackoverflow-icon" path="images/stackoverflow-icon.svg" />
+                  <h5>Ask for <br />help</h5>
+                </a>
               </div>
               <div className="icon col-xs-5 col-sm-2 col-md-2">
-                <ReactSVG className="medium-icon" path="images/medium-icon.svg" />
-                <h5>Follow Saleor's<br/> development</h5>
+                <a href="https://medium.com/saleor">
+                  <ReactSVG className="medium-icon" path="images/medium-icon.svg" />
+                  <h5>Follow Saleor's<br/> development</h5>
+                </a>
               </div>
             </div>
           </div>
