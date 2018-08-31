@@ -51,3 +51,9 @@ export const menuItems = [
     url: "/some/fake/url/terms-of-use"
   }
 ];
+export const menuItem = {
+  id: "mi1283",
+  menu,
+  name: "Winter sale",
+  url: "/some/fake/url/winter-sale"
+};

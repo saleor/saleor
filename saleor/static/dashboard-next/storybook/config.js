@@ -51,8 +51,9 @@ function loadStories() {
   require("./stories/customers/CustomerListPage");
 
   // Menus
-  require("./stories/menus/MenuListPage");
   require("./stories/menus/MenuDetailsPage");
+  require("./stories/menus/MenuItemDetailsPage");
+  require("./stories/menus/MenuListPage");
 
   // Pages
   require("./stories/pages/PageContent");
