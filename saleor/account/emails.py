@@ -6,6 +6,7 @@ from django.urls import reverse
 from templated_email import send_templated_mail
 
 from ..core.utils import build_absolute_uri
+from ..core.utils.email import get_email_base_context
 
 
 @shared_task
@@ -36,13 +37,3 @@ def send_account_delete_confirmation_email(token, recipient_email):
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[recipient_email],
         context=ctx)
-
-
-def get_email_base_context():
-    site = Site.objects.get_current()
-    logo_url = build_absolute_uri(
-        location=None) + static('images/logo-document.svg')
-    return {
-        'domain': site.domain,
-        'logo_url': logo_url,
-        'site_name': site.name}

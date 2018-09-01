@@ -8,20 +8,19 @@ from templated_email import get_connection
 
 import saleor.order.emails as emails
 from saleor.core.utils import build_absolute_uri
+from saleor.core.utils.email import get_email_base_context
 
 
-def test_get_email_context(order, site_settings):
+def test_get_email_base_context(order, site_settings):
     site = site_settings.site
     logo_url = build_absolute_uri(
         location=None) + static('images/logo-document.svg')
-    order_url = build_absolute_uri(
-        reverse('order:details', kwargs={'token': order.token}))
     proper_context = {
-        'site_name': site.name,
+        'domain': site.domain,
         'logo_url': logo_url,
-        'url': order_url}
+        'site_name': site.name}
 
-    received_context = emails.get_email_context(order.token)
+    received_context = get_email_base_context()
     assert proper_context == received_context
 
 
