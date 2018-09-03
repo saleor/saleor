@@ -90,7 +90,7 @@
                     <div class="switch" id="collection-is-published">
                       <label>
                         <input id="toggle-publish-switch" type="checkbox" {% if collection.is_published %} checked {% endif %}
-                        {% if site.settings.homepage_collection == collection and collection.is_published %} disabled {% endif %} >
+                        {% if is_unpublish_restricted %} disabled {% endif %} >
                         <span class="lever"></span>
                         <span class="label">
                           {% if collection.is_published %}
@@ -103,7 +103,7 @@
                     </div>
                   {% csrf_token %}
                   </form>
-                  {% if site.settings.homepage_collection == collection and collection.is_published %}
+                  {% if is_unpublish_restricted %}
                     <div class="label label-default">{% trans "Can't unpublish homepage collection" context "Collection field" %}</div>
                   {% endif %}
                   <h5>{% render_collection_availability collection %}</h5>
