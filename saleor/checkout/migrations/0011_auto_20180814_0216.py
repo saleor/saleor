@@ -7,7 +7,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('checkout', '0009_cart_translated_discount_name'),
+        ('checkout', '0010_auto_20180822_0720'),
     ]
 
     operations = [
