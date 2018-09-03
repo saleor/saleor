@@ -502,6 +502,8 @@
       border-bottom: solid var(--border-width) var(--primaryColor);
       padding-top: calc(var(--spacer) * 3);
       & .text {
+        position: relative;
+        z-index: 2;
         & h2, & p {
           margin-bottom: var(--spacer);
         }
@@ -528,43 +530,57 @@
       }
       & .stars-bg {
         width: 100%;
+        height: 100%;
+        background-image: url('../../images/open-source-bg.svg');
+        background-size: 120%;
+        background-position: 50%;
         position: absolute;
-        top: -16%;
+        top: -5%;
         right: -19%;
-        z-index: -1;
         opacity: 0.5;
+        z-index: 1;
+        @media (max-width: 1024px) {
+          background-size: 150%;
+        }
+        @media (max-width: 768px) {
+          background-size: 200%;
+          right: -20%;
+        }
         @media (max-width: 700px) {
-          top: -53%;
-          right: -8.5%;
+          top: -10%;
+          right: -19.5%;
         }
         @media (max-width: 570px) {
-          top: -35%;
+          top: -14%;
+          right: -20.5%;
+          background-size: 250%;
         }
         @media (max-width: 450px) {
           width: 100%;
-          top: -26%;
-          left: 50%;
+          height: 50%;
+          background-size: 400%;
+          top: -9%;
+          left: 55%;
           right: initial;
           transform: translateX(-50%);
         }
         @media (max-width: 375px) {
-          top: -23%;
+          top: -10%;
+          left: 55%;
         }
         @media (max-width: 320px) {
-          top: -19%;
+          top: -11%;
         }
       }
       & .github-circle {
         width: 25%;
         padding-top: 25%;
-        border: solid calc(var(--border-width) * 2) var(--body-color);
-        border-radius: 50%;
         position: absolute;
-        background: rgba(19,13,69,0.4);
         right: 20.5%;
         top: 14%;
+        z-index: 2;
         @media (max-width: 1024px) {
-          top: 9%;
+          top: 19%;
         }
         @media (max-width: 768px) {
           top: 12%;
@@ -575,6 +591,9 @@
           padding-top: 50%;
           right: 25.5%;
         }
+        @media (max-width: 320px) {
+          top: 1%;
+        }
         & .githubLink {
           width: 100%;
           position: absolute;
@@ -584,6 +603,7 @@
           transform: translate(-50%, -50%);
           color: var(--body-color);
           text-align: center;
+          text-decoration: none;
           & .github-icon {
             position: relative;
             top: calc(var(--spacer) * 1.5);
@@ -595,7 +615,7 @@
           }
           & .star-icon {
             position: relative;
-            top: calc(var(--spacer) * 5.5);
+            top: calc(var(--spacer) * 6.5);
           }
           & .star-value {
             position: relative;
@@ -612,6 +632,8 @@
       }
       & .icons {
         width: 100%;
+        position: relative;
+        z-index: 2;
         grid-template-columns: repeat(10, 1fr);
         text-align: center;
         padding-top: calc(var(--spacer) * 12);

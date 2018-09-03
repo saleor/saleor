@@ -13,7 +13,6 @@ import buildToScaleIcon from '../../images/build-to-scale.svg';
 import easyToCustomizeIcon from '../../images/easy-to-customize.svg';
 import greatExperienceIcon from '../../images/great-experience.svg';
 import starsBg from '../../images/open-source-bg.svg';
-import mobileStarsBg from '../../images/open-source-bg2.png';
 import background from '../../images/background.svg';
 
 import decoration01 from '../../images/decoration01.png';
@@ -204,13 +203,7 @@ class Home extends Component {
                 <p>While built and maintained by Mirumee Software, Saleor’s community is among the fastest growing open source ecommerce platforms.</p>
                 <p className="text-light">What started in 2010 as a humble solution to a local problem has over the years become a platform that many of you rely on in your day to day job. We wouldn’t be here if it wasn’t for all of our great contributors and supporters.</p>
               </div>
-              <div className="stars-bg">
-                {isMobileOnly ? (
-                  <img src={mobileStarsBg} />
-                ):(
-                  <img src={starsBg} />
-                )}
-              </div>
+              <div className="stars-bg"></div>
               <div className="github-circle">
                 <GitHubLink owner="mirumee" name="saleor" text="Github Stars" />
               </div>
