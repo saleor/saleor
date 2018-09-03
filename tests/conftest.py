@@ -240,8 +240,9 @@ def shipping_zone(db):  # pylint: disable=W0613
     shipping_zone = ShippingZone.objects.create(
         name='Europe', countries=[code for code, name in countries])
     shipping_zone.shipping_methods.create(
-        name='DHL', minimum_order_price=0, type=ShippingMethodType.PRICE_BASED,
-        price=10, shipping_zone=shipping_zone)
+        name='DHL', minimum_order_price=Money(amount=0, currency='USD'),
+        type=ShippingMethodType.PRICE_BASED,
+        price=Money(amount=10, currency='USD'), shipping_zone=shipping_zone)
     return shipping_zone
 
 
@@ -249,7 +250,7 @@ def shipping_zone(db):  # pylint: disable=W0613
 def shipping_method(shipping_zone):
     return ShippingMethod.objects.create(
         name='DHL', minimum_order_price=0, type=ShippingMethodType.PRICE_BASED,
-        price=10, shipping_zone=shipping_zone)
+        price=Money(amount=10, currency='USD'), shipping_zone=shipping_zone)
 
 
 @pytest.fixture
