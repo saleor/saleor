@@ -218,7 +218,7 @@ class ProductInput(graphene.InputObjectType):
         description='ID of the type that product belongs to.',
         name='productType')
     price = Decimal(description='Product price.')
-    tax_rate = graphene.String(description='Tax rate.')
+    tax_rate = TaxRateType(description='Tax rate.')
     seo = SeoInput(description='Search engine optimization fields.')
     weight = WeightScalar(
         description='Weight of the Product.', required=False)
