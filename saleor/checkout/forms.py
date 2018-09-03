@@ -15,7 +15,8 @@ from ..core.utils.taxes import display_gross_prices, get_taxed_shipping_price
 from ..discount.models import NotApplicable, Voucher
 from ..shipping.models import ShippingMethod, ShippingZone
 from ..shipping.utils import get_shipping_price_estimate
-from .models import Cart, PaymentMethod
+from .models import Cart
+from ..payment.models import PaymentMethod
 
 
 class QuantityField(forms.IntegerField):
