@@ -3,15 +3,14 @@ from unittest import mock
 import pytest
 from django.conf import settings
 from django.templatetags.static import static
-from django.urls import reverse
 from templated_email import get_connection
 
 import saleor.order.emails as emails
-from saleor.core.utils import build_absolute_uri
 from saleor.core.emails import get_email_base_context
+from saleor.core.utils import build_absolute_uri
 
 
-def test_get_email_base_context(order, site_settings):
+def test_get_email_base_context(site_settings):
     site = site_settings.site
     logo_url = build_absolute_uri(
         location=None) + static('images/logo-document.svg')
