@@ -5,8 +5,8 @@ from django.templatetags.static import static
 from django.urls import reverse
 from templated_email import send_templated_mail
 
+from ..core.emails import get_email_base_context
 from ..core.utils import build_absolute_uri
-from ..core.utils.email import get_email_base_context
 
 
 @shared_task
