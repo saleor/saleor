@@ -19,6 +19,7 @@ import { DateProvider } from "./components/DateFormatter";
 import { LocaleProvider } from "./components/Locale";
 import { MessageManager } from "./components/messages";
 import { ConfigurationSection } from "./configuration";
+import HomePage from "./home";
 import "./i18n";
 import PageSection from "./pages";
 import ProductSection from "./products";
@@ -78,6 +79,7 @@ render(
                   isAuthenticated ? (
                     <AppRoot>
                       <Switch>
+                        <Route exact path="/" component={HomePage} />
                         <Route path="/categories" component={CategorySection} />
                         <Route path="/pages" component={PageSection} />
                         <Route path="/products" component={ProductSection} />
