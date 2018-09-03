@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('checkout', '0010_auto_20180814_0216'),
+        ('checkout', '0001_initial'),
         ('order', '0051_merge_20180807_0704'),
     ]
 
