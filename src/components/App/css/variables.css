@@ -13,6 +13,7 @@
   --layout-width: 1300px;
   --footer-border: #13657F;
   --mobile-background: #130D44;
+  --sectionBorder: rgba(19, 190, 187, 0.5);
 
   --xs-max-width: 450px; /* xs */
   --sm-min-width: 768px; /* sm */
