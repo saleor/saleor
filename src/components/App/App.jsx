@@ -6,7 +6,7 @@ import {
   Switch
 } from 'react-router-dom';
 import { CookiesProvider } from 'react-cookie';
-import { Home, Header, Footer, PrivacyPolicy, Roadmap, Feature } from '..';
+import { Home, Header, Footer, PrivacyPolicy, Roadmap, Feature, Parallax } from '..';
 import css from './css/index.css';
 
 class App extends Component {
@@ -15,18 +15,20 @@ class App extends Component {
     return (
       <Router>
         <Fragment>
-          <CookiesProvider>
-            <Header cookies={this.props.cookies} />
-          </CookiesProvider>
-          <section className="container">
-            <Switch>
-              <Route exact path="/" component={Home} />
-              <Route path="/features" component={Feature} />
-              <Route path="/privacy-policy" component={PrivacyPolicy} />
-              <Route path="/roadmap" component={Roadmap} />
-            </Switch>
-          </section>
-          <Footer />
+          <Parallax speed={0.5}>
+            <CookiesProvider>
+              <Header cookies={this.props.cookies} />
+            </CookiesProvider>
+            <section className="container">
+              <Switch>
+                <Route exact path="/" component={Home} />
+                <Route path="/features" component={Feature} />
+                <Route path="/privacy-policy" component={PrivacyPolicy} />
+                <Route path="/roadmap" component={Roadmap} />
+              </Switch>
+            </section>
+            <Footer />
+          </Parallax>
         </Fragment>
       </Router>
     );

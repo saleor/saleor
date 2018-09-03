@@ -8,3 +8,4 @@ export { default as PrivacyPolicy } from './PrivacyPolicy/PrivacyPolicy';
 export { default as ScrollLink } from './ScrollLink/ScrollLink';
 export { default as Roadmap } from './Roadmap/Roadmap';
 export { default as Feature } from './Feature/Feature';
+export { default as Parallax } from './Parallax/Parallax';
