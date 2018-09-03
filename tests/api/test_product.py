@@ -10,9 +10,10 @@ from prices import Money
 from tests.utils import (
     create_image, create_pdf_file_with_image_ext, get_graphql_content)
 
+from saleor.core import TaxRateType
 from saleor.graphql.product.utils import update_variants_names
 from saleor.product.models import (
-    Category, Collection, Product, ProductType, ProductImage)
+    Category, Collection, Product, ProductImage, ProductType)
 
 from .utils import assert_no_permission, get_multipart_request_body
 
@@ -326,7 +327,7 @@ def test_create_product(
             $description: String!,
             $isPublished: Boolean!,
             $chargeTaxes: Boolean!,
-            $taxRate: String!,
+            $taxRate: TaxRateType!,
             $price: Decimal!,
             $attributes: [AttributeValueInput!]) {
                 productCreate(
@@ -381,7 +382,7 @@ def test_create_product(
     product_name = 'test name'
     product_isPublished = True
     product_chargeTaxes = True
-    product_taxRate = 'standard'
+    product_taxRate = 'STANDARD'
     product_price = "22.33"
 
     # Default attribute defined in product_type fixture
@@ -418,7 +419,7 @@ def test_create_product(
     assert data['product']['description'] == product_description
     assert data['product']['isPublished'] == product_isPublished
     assert data['product']['chargeTaxes'] == product_chargeTaxes
-    assert data['product']['taxRate'] == product_taxRate
+    assert data['product']['taxRate'] == product_taxRate.lower()
     assert data['product']['productType']['name'] == product_type.name
     assert data['product']['category']['name'] == category.name
     values = (
@@ -438,7 +439,7 @@ def test_update_product(
             $description: String!,
             $isPublished: Boolean!,
             $chargeTaxes: Boolean!,
-            $taxRate: String!,
+            $taxRate: TaxRateType!,
             $price: Decimal!,
             $attributes: [AttributeValueInput!]) {
                 productUpdate(
@@ -491,7 +492,7 @@ def test_update_product(
     product_name = 'updated name'
     product_isPublished = True
     product_chargeTaxes = True
-    product_taxRate = 'standard'
+    product_taxRate = 'STANDARD'
     product_price = "33.12"
 
     variables = json.dumps({
@@ -514,7 +515,7 @@ def test_update_product(
     assert data['product']['description'] == product_description
     assert data['product']['isPublished'] == product_isPublished
     assert data['product']['chargeTaxes'] == product_chargeTaxes
-    assert data['product']['taxRate'] == product_taxRate
+    assert data['product']['taxRate'] == product_taxRate.lower()
     assert not data['product']['category']['name'] == category.name
 
 
