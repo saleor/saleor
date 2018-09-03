@@ -15,7 +15,7 @@ class App extends Component {
     return (
       <Router>
         <Fragment>
-          <Parallax speed={0.5}>
+          <Parallax speed={0.3}>
             <CookiesProvider>
               <Header cookies={this.props.cookies} />
             </CookiesProvider>
