@@ -1,7 +1,5 @@
 from celery import shared_task
 from django.conf import settings
-from django.contrib.sites.models import Site
-from django.templatetags.static import static
 from django.urls import reverse
 from templated_email import send_templated_mail
 
