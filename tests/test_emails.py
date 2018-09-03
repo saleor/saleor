@@ -8,7 +8,7 @@ from templated_email import get_connection
 
 import saleor.order.emails as emails
 from saleor.core.utils import build_absolute_uri
-from saleor.core.utils.email import get_email_base_context
+from saleor.core.emails import get_email_base_context
 
 
 def test_get_email_base_context(order, site_settings):

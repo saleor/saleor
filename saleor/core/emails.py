@@ -1,7 +1,7 @@
 from django.contrib.sites.models import Site
 from django.templatetags.static import static
 
-from ...core.utils import build_absolute_uri
+from ..core.utils import build_absolute_uri
 
 
 def get_email_base_context():

@@ -9,7 +9,7 @@ from django.utils.http import urlsafe_base64_encode
 from templated_email import send_templated_mail
 
 from ..core.utils import build_absolute_uri
-from ..core.utils.email import get_email_base_context
+from ..core.emails import get_email_base_context
 
 
 @shared_task
