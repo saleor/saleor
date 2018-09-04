@@ -23,23 +23,21 @@
 
 {% block header_extra %}
   {% if collection.pk %}
-    {% if perms.product.edit_product %}
-      <a class="dropdown-button right" href="#" data-activates="collection-delete" data-constrainwidth="false">
-        <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="24" width="24" />
-      </a>
-      <ul id="collection-delete" class="dropdown-content">
-        <li>
-          <a class="modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:collection-delete' pk=collection.pk %}">
-            {% trans "Remove collection" context "Collection action" %}
-          </a>
-        </li>
-        <li>
-          <a href="{{ collection.get_absolute_url }}">
-            {% trans "View on site" context "Collection action" %}
-          </a>
-        </li>
-      </ul>
-    {% endif %}
+    <a class="dropdown-button right" href="#" data-activates="collection-delete" data-constrainwidth="false">
+      <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="24" width="24" />
+    </a>
+    <ul id="collection-delete" class="dropdown-content">
+      <li>
+        <a class="modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:collection-delete' pk=collection.pk %}">
+          {% trans "Remove collection" context "Collection action" %}
+        </a>
+      </li>
+      <li>
+        <a href="{{ collection.get_absolute_url }}">
+          {% trans "View on site" context "Collection action" %}
+        </a>
+      </li>
+    </ul>
   {% endif %}
 {% endblock %}
 
@@ -59,7 +57,7 @@
             <div class="row">
               {{ form.background_image|materializecss }}
             </div>
-            <span class="card-title">Availability</span>
+            <span class="card-title">{% trans 'Availability' context 'Collection form card title: availability sub form' %}</span>
             <div class="row">
               {{ form.is_published|materializecss }}
             </div>

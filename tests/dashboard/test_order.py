@@ -1,23 +1,62 @@
-from unittest.mock import Mock
+import json
 
 import pytest
+
 from django.conf import settings
 from django.urls import reverse
 from payments import PaymentStatus
 from prices import Money
-from tests.utils import get_form_errors, get_redirect_location
-
 from saleor.checkout import AddressType
 from saleor.core.utils.taxes import ZERO_MONEY, ZERO_TAXED_MONEY
-from saleor.dashboard.order.forms import ChangeQuantityForm, OrderNoteForm
+from saleor.dashboard.order.forms import ChangeQuantityForm
 from saleor.dashboard.order.utils import (
     fulfill_order_line, remove_customer_from_order, save_address_in_order,
     update_order_with_user_addresses)
 from saleor.discount.utils import increase_voucher_usage
 from saleor.order import FulfillmentStatus, OrderStatus
-from saleor.order.models import Order, OrderLine, OrderNote
+from saleor.order.models import Order, OrderLine
 from saleor.order.utils import add_variant_to_order, change_order_line_quantity
 from saleor.product.models import ProductVariant
+from saleor.shipping.models import ShippingZone
+from tests.utils import get_form_errors, get_redirect_location
+
+
+def test_ajax_order_shipping_methods_list(
+        admin_client, order, shipping_zone):
+    method = shipping_zone.shipping_methods.get()
+    shipping_methods_list = [
+        {'id': method.pk, 'text': method.get_ajax_label()}]
+    url = reverse(
+        'dashboard:ajax-order-shipping-methods', kwargs={'order_pk': order.pk})
+
+    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    resp_decoded = json.loads(response.content.decode('utf-8'))
+
+    assert response.status_code == 200
+    assert resp_decoded == {'results': shipping_methods_list}
+
+
+def test_ajax_order_shipping_methods_list_different_country(
+        admin_client, order, shipping_zone):
+    order.shipping_address = order.billing_address.get_copy()
+    order.save()
+    method = shipping_zone.shipping_methods.get()
+    shipping_methods_list = [
+        {'id': method.pk, 'text': method.get_ajax_label()}]
+    # If shipping zone does not cover order's country, then its shipping methods
+    # should not be included
+    assert order.shipping_address.country.code != 'DE'
+    zone = ShippingZone.objects.create(name='Shipping zone', countries=['DE'])
+    zone.shipping_methods.create(price=15, name='DHL')
+
+    url = reverse(
+        'dashboard:ajax-order-shipping-methods', kwargs={'order_pk': order.pk})
+
+    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    resp_decoded = json.loads(response.content.decode('utf-8'))
+
+    assert response.status_code == 200
+    assert resp_decoded == {'results': shipping_methods_list}
 
 
 @pytest.mark.integration
@@ -605,16 +644,6 @@ def test_view_add_variant_to_order(admin_client, order_with_lines):
     assert line.quantity == line_quantity_before + added_quantity
 
 
-def test_note_form_sent_email(monkeypatch, order_with_lines):
-    mock_send_mail = Mock(return_value=None)
-    monkeypatch.setattr(
-        'saleor.dashboard.order.forms.send_note_confirmation', mock_send_mail)
-    note = OrderNote(order=order_with_lines, user=order_with_lines.user)
-    form = OrderNoteForm({'content': 'test_note'}, instance=note)
-    form.send_confirmation_email()
-    assert mock_send_mail.called_once()
-
-
 def test_fulfill_order_line(order_with_lines):
     order = order_with_lines
     line = order.lines.first()
@@ -747,16 +776,20 @@ def test_view_create_from_draft_order_not_draft_order(
     assert response.status_code == 404
 
 
-def test_view_create_from_draft_order_shipping_method_not_valid(
-        admin_client, draft_order, shipping_method):
-    method = shipping_method.price_per_country.create(
-        country_code='DE', price=10)
+def test_view_create_from_draft_order_shipping_zone_not_valid(
+        admin_client, draft_order, shipping_zone):
+    method = shipping_zone.shipping_methods.create(name='DHL', price=10)
+    shipping_zone.countries = ['DE']
+    shipping_zone.save()
+    # Shipping zone is not valid, as shipping address is listed outside the
+    # shipping zone's countries
+    assert draft_order.shipping_address.country.code != 'DE'
     draft_order.shipping_method = method
     draft_order.save()
     url = reverse(
         'dashboard:create-order-from-draft',
         kwargs={'order_pk': draft_order.pk})
-    data = {'csrfmiddlewaretoken': 'hello'}
+    data = {'shipping_method': method.pk}
 
     response = admin_client.post(url, data)
 
@@ -885,9 +918,9 @@ def test_view_order_customer_remove(admin_client, draft_order):
 
 
 def test_view_order_shipping_edit(
-        admin_client, draft_order, shipping_method, settings, vatlayer):
-    method = shipping_method.price_per_country.create(
-        price=Money(5, settings.DEFAULT_CURRENCY), country_code='PL')
+        admin_client, draft_order, shipping_zone, settings, vatlayer):
+    method = shipping_zone.shipping_methods.create(
+        price=Money(5, settings.DEFAULT_CURRENCY), name='DHL')
     url = reverse(
         'dashboard:order-shipping-edit', kwargs={'order_pk': draft_order.pk})
     data = {'shipping_method': method.pk}
@@ -899,15 +932,14 @@ def test_view_order_shipping_edit(
         'dashboard:order-details', kwargs={'order_pk': draft_order.pk})
     assert get_redirect_location(response) == redirect_url
     draft_order.refresh_from_db()
-    assert draft_order.shipping_method_name == shipping_method.name
+    assert draft_order.shipping_method_name == method.name
     assert draft_order.shipping_price == method.get_total_price(taxes=vatlayer)
     assert draft_order.shipping_method == method
 
 
 def test_view_order_shipping_edit_not_draft_order(
-        admin_client, order_with_lines, shipping_method):
-    method = shipping_method.price_per_country.create(
-        price=5, country_code='PL')
+        admin_client, order_with_lines, shipping_zone):
+    method = shipping_zone.shipping_methods.create(price=5, name='DHL')
     url = reverse(
         'dashboard:order-shipping-edit',
         kwargs={'order_pk': order_with_lines.pk})
@@ -1172,3 +1204,17 @@ def test_render_cancel_fulfillment_page(admin_client, fulfilled_order):
         kwargs={'order_pk': fulfilled_order.pk})
     response = admin_client.get(url)
     assert response.status_code == 200
+
+
+def test_view_add_order_note(admin_client, order_with_lines):
+    url = reverse(
+        'dashboard:order-add-note',
+        kwargs={'order_pk': order_with_lines.pk})
+    note_content = 'this is a note'
+    data = {
+        'csrfmiddlewaretoken': 'hello',
+        'content': note_content}
+    response = admin_client.post(url, data)
+    assert response.status_code == 200
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.notes.first().content == note_content

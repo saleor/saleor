@@ -13,15 +13,13 @@
 {% block menu_staff_class %}active{% endblock %}
 
 {% block header_extra %}
-  {% if perms.account.edit_staff %}
-    <div class="btn-fab-fixed">
-      <a class="btn-fab-default waves-effect waves-light"
-        title="{% trans "Add staff member" context "Staff members list add button text" %}"
-        href="{% url 'dashboard:staff-create' %}">
-        <svg data-src="{% static "dashboard/images/add.svg" %}" />
-      </a>
-    </div>
-  {% endif %}
+  <div class="btn-fab-fixed">
+    <a class="btn-fab-default waves-effect waves-light"
+      title="{% trans "Add staff member" context "Staff members list add button text" %}"
+      href="{% url 'dashboard:staff-create' %}">
+      <svg data-src="{% static "dashboard/images/add.svg" %}" />
+    </a>
+  </div>
 {% endblock %}
 
 {% block breadcrumbs %}

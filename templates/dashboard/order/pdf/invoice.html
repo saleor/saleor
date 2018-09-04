@@ -11,7 +11,7 @@
 <body>
 <header>
   <div style="float:left">
-    <img src="{% static '/images/logo-document.svg' %}">
+    <img src="{% static 'images/logo-document.svg' %}">
   </div>
   <div
       style="float:right">{{ order.created }}<br>{% trans 'Order' context 'Invoice header' %} #{{ order.id }}
@@ -135,7 +135,7 @@
     {% if order.discount_amount %}
       <tr>
         <td>
-          {% trans "Discount" context "Order voucher header" %} {% if order.discount_name %}({{ order.discount_name }}){% endif %}
+          {% trans "Discount" context "Order voucher header" %} {% if order.discount_name %}({{ order.translated_discount_name|default:order.discount_name }}){% endif %}
         </td>
         <td class="right-align">
           {% discount_as_negative order.discount_amount html=True %}

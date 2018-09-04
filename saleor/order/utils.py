@@ -7,6 +7,7 @@ from ..checkout import AddressType
 from ..core.utils.taxes import (
     ZERO_MONEY, get_tax_rate_by_name, get_taxes_for_address)
 from ..dashboard.order.utils import get_voucher_discount_for_order
+from ..discount.models import NotApplicable
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import OrderLine
 from ..product.utils import allocate_stock, deallocate_stock, increase_stock
@@ -41,8 +42,11 @@ def update_voucher_discount(func):
     def decorator(*args, **kwargs):
         if kwargs.pop('update_voucher_discount', True):
             order = args[0]
-            order.discount_amount = (
-                get_voucher_discount_for_order(order) or ZERO_MONEY)
+            try:
+                discount_amount = get_voucher_discount_for_order(order)
+            except NotApplicable:
+                discount_amount = ZERO_MONEY
+            order.discount_amount = discount_amount
         return func(*args, **kwargs)
 
     return decorator
@@ -156,8 +160,13 @@ def add_variant_to_order(order, variant, quantity, discounts=None, taxes=None):
         line.quantity += quantity
         line.save(update_fields=['quantity'])
     except OrderLine.DoesNotExist:
+        product_name = variant.display_product()
+        translated_product_name = variant.display_product(translated=True)
+        if translated_product_name == product_name:
+            translated_product_name = ''
         order.lines.create(
-            product_name=variant.display_product(),
+            product_name=product_name,
+            translated_product_name=translated_product_name,
             product_sku=variant.sku,
             is_shipping_required=variant.is_shipping_required(),
             quantity=quantity,
@@ -173,7 +182,7 @@ def change_order_line_quantity(line, new_quantity):
     """Change the quantity of ordered items in a order line."""
     if new_quantity:
         line.quantity = new_quantity
-        line.save()
+        line.save(update_fields=['quantity'])
     else:
         line.delete()
 

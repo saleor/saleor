@@ -19,6 +19,7 @@ cart_urlpatterns = [
     url(r'^$', views.cart_index, name='index'),
     url(r'^update/(?P<variant_id>\d+)/$',
         views.update_cart_line, name='update-line'),
+    url(r'^clear-cart/$', views.clear_cart, name='clear-cart'),
     url(r'^summary/$', views.cart_summary, name='summary'),
     url(r'^shipping-options/$', views.cart_shipping_options,
         name='shipping-options')]

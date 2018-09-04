@@ -8,10 +8,10 @@ from saleor.product.utils.attributes import (
 
 
 @pytest.fixture()
-def product_with_no_attributes(product_type, default_category):
+def product_with_no_attributes(product_type, category):
     product = Product.objects.create(
         name='Test product', price='10.00', product_type=product_type,
-        category=default_category)
+        category=category)
     return product
 
 
@@ -24,7 +24,8 @@ def test_get_attributes_display_map(product):
     attr_value = product_attr.values.first()
 
     assert len(attributes_display_map) == 1
-    assert attributes_display_map == {product_attr.pk: attr_value}
+    assert {k: v.pk for k, v in attributes_display_map.items()} == {
+        product_attr.pk: attr_value.translated.pk}
 
 
 def test_get_attributes_display_map_empty(product_with_no_attributes):
@@ -35,14 +36,17 @@ def test_get_attributes_display_map_empty(product_with_no_attributes):
 
 def test_get_name_from_attributes(product):
     variant = product.variants.first()
-    name = get_name_from_attributes(variant)
+    attributes = variant.product.product_type.variant_attributes.all()
+    name = get_name_from_attributes(variant, attributes)
     assert name == 'Small'
 
 
 def test_get_name_from_attributes_no_attributes(product_with_no_attributes):
     variant_without_attributes = product_with_no_attributes.variants.create(
         sku='example-sku')
-    name = get_name_from_attributes(variant_without_attributes)
+    variant = variant_without_attributes
+    attributes = variant.product.product_type.variant_attributes.all()
+    name = get_name_from_attributes(variant, attributes)
     assert name == ''
 
 

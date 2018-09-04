@@ -1,5 +1,8 @@
 import json
+
 from tests.utils import get_graphql_content
+
+from saleor.graphql.core.utils import snake_to_camel_case
 
 
 def assert_no_permission(response):
@@ -23,3 +26,16 @@ def assert_read_only_mode(response):
     content = get_graphql_content(response)
     assert 'errors' in content
     assert content['errors'][0]['message'] == 'Be aware admin pirate! API runs in read only mode!'
+
+
+def convert_dict_keys_to_camel_case(d):
+    """Changes dict fields from d[field_name] to d[fieldName].
+
+    Useful when dealing with dict data such as address that need to be parsed
+    into graphql input.
+    """
+    data = {}
+    for k, v in d.items():
+        new_key = snake_to_camel_case(k)
+        data[new_key] = d[k]
+    return data

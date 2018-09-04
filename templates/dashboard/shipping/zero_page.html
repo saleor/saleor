@@ -2,11 +2,11 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{% trans "No shipping methods found." %}{% endblock %}
+{% block title %}{% trans "No shipping zones found." %}{% endblock %}
 {% block content %}
   {% static "dashboard/images/add.svg" as img_path %}
   {% blocktrans %}
-    Shipping methods allows defining shipping methods that are available in the shop.<br>
-    You can add shipping methods by using the <span class="btn-fab-presentation"><svg data-src="{{ img_path }}" /></span> button.
+    Shipping zones allows defining shipping zones that are available in the shop.<br>
+    You can add shipping zones by using the <span class="btn-fab-presentation"><svg data-src="{{ img_path }}" /></span> button.
   {% endblocktrans %}
 {% endblock %}

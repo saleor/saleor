@@ -4,7 +4,6 @@ from django.db.models import Q
 from django.forms import CheckboxSelectMultiple, ValidationError
 from django.utils.translation import pgettext_lazy
 from django_filters import MultipleChoiceFilter, OrderingFilter, RangeFilter
-from django_prices.models import MoneyField
 
 from ..core.filters import SortedFilterSet
 from .models import Product, ProductAttribute
@@ -39,12 +38,12 @@ class ProductFilter(SortedFilterSet):
         q_variant_attributes = self._get_variant_attributes_lookup()
         product_attributes = (
             ProductAttribute.objects.all()
-            .prefetch_related('values')
+            .prefetch_related('translations', 'values__translations')
             .filter(q_product_attributes)
             .distinct())
         variant_attributes = (
             ProductAttribute.objects.all()
-            .prefetch_related('values')
+            .prefetch_related('translations', 'values__translations')
             .filter(q_variant_attributes)
             .distinct())
         return product_attributes, variant_attributes
@@ -60,7 +59,7 @@ class ProductFilter(SortedFilterSet):
         for attribute in self.product_attributes:
             filters[attribute.slug] = MultipleChoiceFilter(
                 name='attributes__%s' % attribute.pk,
-                label=attribute.name,
+                label=attribute.translated.name,
                 widget=CheckboxSelectMultiple,
                 choices=self._get_attribute_choices(attribute))
         return filters
@@ -70,13 +69,15 @@ class ProductFilter(SortedFilterSet):
         for attribute in self.variant_attributes:
             filters[attribute.slug] = MultipleChoiceFilter(
                 name='variants__attributes__%s' % attribute.pk,
-                label=attribute.name,
+                label=attribute.translated.name,
                 widget=CheckboxSelectMultiple,
                 choices=self._get_attribute_choices(attribute))
         return filters
 
     def _get_attribute_choices(self, attribute):
-        return [(choice.pk, choice.name) for choice in attribute.values.all()]
+        return [
+            (choice.pk, choice.translated.name)
+            for choice in attribute.values.all()]
 
     def validate_sort_by(self, value):
         if value.strip('-') not in SORT_BY_FIELDS:

@@ -1,8 +1,37 @@
+import json
+
 from django.urls import reverse
 
 from saleor.account.models import CustomerNote, User
-from saleor.dashboard.customer.forms import (
-    CustomerDeleteForm, CustomerNoteForm)
+from saleor.dashboard.customer.forms import CustomerDeleteForm, CustomerNoteForm
+
+
+def test_ajax_users_list(admin_client, admin_user, customer_user):
+    users = sorted([admin_user, customer_user], key=lambda user: user.email)
+    users_list = [
+        {'id': user.pk, 'text': user.get_ajax_label()} for user in users]
+
+    url = reverse('dashboard:ajax-users-list')
+    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    resp_decoded = json.loads(response.content.decode('utf-8'))
+    assert response.status_code == 200
+    assert resp_decoded == {'results': users_list}
+
+
+def test_customers_list(admin_client):
+    response = admin_client.get(reverse('dashboard:customers'))
+    assert response.status_code == 200
+
+
+def test_customer_detail_view(admin_client, customer_user):
+    response = admin_client.get(
+        reverse('dashboard:customer-details', args=[customer_user.pk]))
+    assert response.status_code == 200
+
+
+def test_customer_create(admin_client):
+    response = admin_client.get(reverse('dashboard:customer-create'))
+    assert response.status_code == 200
 
 
 def test_add_note_to_customer(admin_user, customer_user):
@@ -40,8 +69,7 @@ def test_view_delete_customer(admin_client, admin_user, customer_user):
 
 
 def test_form_delete_customer(
-        staff_user, customer_user, admin_user, permission_edit_staff,
-        staff_group):
+        staff_user, customer_user, admin_user, permission_manage_staff):
     data = {'csrf': 'example-data'}
     form = CustomerDeleteForm(data, instance=customer_user, user=staff_user)
     assert form.is_valid()
@@ -60,8 +88,7 @@ def test_form_delete_customer(
         data, instance=another_staff_user, user=staff_user)
     assert not form.is_valid()
 
-    staff_group.permissions.add(permission_edit_staff)
-    staff_user.groups.add(staff_group)
+    staff_user.user_permissions.add(permission_manage_staff)
     staff_user = User.objects.get(pk=staff_user.pk)
     form = CustomerDeleteForm({}, instance=another_staff_user, user=staff_user)
     assert form.is_valid()

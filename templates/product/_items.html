@@ -1,7 +1,6 @@
 {% load i18n %}
 {% load staticfiles %}
 {% load taxed_prices %}
-{% load product_first_image from product_images %}
 {% load get_thumbnail from product_images %}
 {% load placeholder %}
 
@@ -11,11 +10,11 @@
       <div class="text-center">
         <div>
           <img class="img-responsive lazyload lazypreload"
-               data-src="{% product_first_image product method="crop" size="255x255" %}"
-               data-srcset="{% product_first_image product method="crop" size="255x255" %} 1x, {% product_first_image product method="crop" size="510x510" %} 2x"
+               data-src="{% get_thumbnail product.get_first_image method="crop" size=255 %}"
+               data-srcset="{% get_thumbnail product.get_first_image method="crop" size=255 %} 1x, {% get_thumbnail product.get_first_image method="crop" size=510 %} 2x"
                alt=""
                src="{% placeholder size=255 %}">
-          <span class="product-list-item-name" title="{{ product }}">{{ product }}</span>
+          <span class="product-list-item-name" title="{{ product.translated }}">{{ product.translated }}</span>
         </div>
         <div class="panel-footer">
           {% if availability.available %}

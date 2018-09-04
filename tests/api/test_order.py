@@ -23,7 +23,7 @@ def test_order_query(admin_api_client, fulfilled_order):
         orders(first: 1) {
             edges {
                 node {
-                    orderId
+                    number
                     status
                     statusDisplay
                     paymentStatus
@@ -42,17 +42,17 @@ def test_order_query(admin_api_client, fulfilled_order):
                         totalCount
                     }
                     fulfillments {
-                        edges {
-                            node {
-                                fulfillmentOrder
-                            }
-                        }
-
+                        fulfillmentOrder
                     }
                     history {
                         totalCount
                     }
-                    totalPrice {
+                    subtotal {
+                        net {
+                            amount
+                        }
+                    }
+                    total {
                         net {
                             amount
                         }
@@ -67,7 +67,7 @@ def test_order_query(admin_api_client, fulfilled_order):
     content = get_graphql_content(response)
     assert 'errors' not in content
     order_data = content['data']['orders']['edges'][0]['node']
-    assert order_data['orderId'] == order.pk
+    assert order_data['number'] == str(order.pk)
     assert order_data['status'] == order.status.upper()
     assert order_data['statusDisplay'] == order.get_status_display()
     assert order_data['paymentStatus'] == order.get_last_payment_status()
@@ -81,7 +81,7 @@ def test_order_query(admin_api_client, fulfilled_order):
     assert order_data['notes']['totalCount'] == order.notes.count()
     fulfillment = order.fulfillments.first().fulfillment_order
     fulfillment_order = order_data[
-        'fulfillments']['edges'][0]['node']['fulfillmentOrder']
+        'fulfillments'][0]['fulfillmentOrder']
     assert fulfillment_order == fulfillment
 
 
@@ -92,7 +92,7 @@ def test_non_staff_user_can_only_see_his_order(user_api_client, order):
     query = """
     query OrderQuery($id: ID!) {
         order(id: $id) {
-            orderId
+            number
         }
     }
     """
@@ -102,7 +102,7 @@ def test_non_staff_user_can_only_see_his_order(user_api_client, order):
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     order_data = content['data']['order']
-    assert order_data['orderId'] == order.pk
+    assert order_data['number'] == str(order.pk)
 
     order.user = None
     order.save()
@@ -115,7 +115,7 @@ def test_non_staff_user_can_only_see_his_order(user_api_client, order):
 
 def test_draft_order_create(
         admin_api_client, customer_user, product_without_shipping,
-        shipping_price, variant, voucher):
+        shipping_method, variant, voucher):
     variant_0 = variant
     query = """
     mutation draftCreate(
@@ -165,7 +165,7 @@ def test_draft_order_create(
     shipping_address = {
         'firstName': 'John', 'country': 'PL'}
     shipping_id = graphene.Node.to_global_id(
-        'ShippingMethodCountry', shipping_price.id)
+        'ShippingMethod', shipping_method.id)
     voucher_id = graphene.Node.to_global_id('Voucher', voucher.id)
     variables = json.dumps(
         {
@@ -219,19 +219,24 @@ def test_draft_order_delete(admin_api_client, order_with_lines):
 
 
 def test_check_for_draft_order_errors(order_with_lines):
-    errors = check_for_draft_order_errors(order_with_lines)
+    errors = check_for_draft_order_errors(order_with_lines, [])
     assert not errors
 
-    order_with_no_lines = Mock(spec=Order)
-    order_with_no_lines.get_total_quantity = MagicMock(return_value=0)
-    errors = check_for_draft_order_errors(order_with_no_lines)
-    assert errors[0].message == 'Could not create order without any products.'
 
-    order_with_wrong_shipping = Mock(spec=Order)
-    order_with_wrong_shipping.shipping_method = False
-    errors = check_for_draft_order_errors(order_with_wrong_shipping)
+def test_check_for_draft_order_errors_wrong_shipping(order_with_lines):
+    order = order_with_lines
+    shipping_zone = order.shipping_method.shipping_zone
+    shipping_zone.countries = ['DE']
+    shipping_zone.save()
+    assert order.shipping_address.country.code not in shipping_zone.countries
+    errors = check_for_draft_order_errors(order, [])
     msg = 'Shipping method is not valid for chosen shipping address'
     assert errors[0].message == msg
+
+
+def test_check_for_draft_order_errors_no_order_lines(order):
+    errors = check_for_draft_order_errors(order, [])
+    assert errors[0].message == 'Could not create order without any products.'
 
 
 def test_draft_order_complete(admin_api_client, draft_order):
@@ -293,13 +298,11 @@ def test_order_add_note(admin_api_client, order_with_lines, admin_user):
     order = order_with_lines
     query = """
         mutation addNote(
-        $id: ID!, $note: String, $user: ID, $is_public: Boolean) {
+        $id: ID!, $note: String, $user: ID) {
             orderAddNote(
-            input: {order: $id, content: $note, user: $user,
-            isPublic: $is_public}) {
+            input: {order: $id, content: $note, user: $user}) {
                 orderNote {
                     content
-                    isPublic
                     user {
                         email
                     }
@@ -311,10 +314,7 @@ def test_order_add_note(admin_api_client, order_with_lines, admin_user):
     order_id = graphene.Node.to_global_id('Order', order.id)
     note = 'nuclear note'
     user = graphene.Node.to_global_id('User', admin_user.id)
-    is_public = True
-    variables = json.dumps(
-        {'id': order_id, 'user': user, 'is_public': is_public,
-         'note': note})
+    variables = json.dumps({'id': order_id, 'user': user, 'note': note})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     assert_read_only_mode(response)
@@ -348,7 +348,7 @@ def test_order_capture(admin_api_client, payment_preauth):
                 order {
                     paymentStatus
                     isPaid
-                    capturedAmount {
+                    totalCaptured {
                         amount
                     }
                 }
@@ -451,14 +451,14 @@ def test_order_refund(admin_api_client, payment_confirmed):
 def test_clean_order_release_payment():
     payment = MagicMock(spec=Payment)
     payment.status = 'not preauth'
-    errors = clean_release_payment(payment)
+    errors = clean_release_payment(payment, [])
     assert errors[0].field == 'payment'
     assert errors[0].message == 'Only pre-authorized payments can be released'
 
     payment.status = PaymentStatus.PREAUTH
     error_msg = 'error has happened.'
     payment.release = Mock(side_effect=ValueError(error_msg))
-    errors = clean_release_payment(payment)
+    errors = clean_release_payment(payment, [])
     assert errors[0].field == 'payment'
     assert errors[0].message == error_msg
 
@@ -467,13 +467,13 @@ def test_clean_order_refund_payment():
     payment = MagicMock(spec=Payment)
     payment.variant = CustomPaymentChoices.MANUAL
     amount = Mock(spec='string')
-    errors = clean_refund_payment(payment, amount)
+    errors = clean_refund_payment(payment, amount, [])
     assert errors[0].field == 'payment'
     assert errors[0].message == 'Manual payments can not be refunded.'
 
     payment.variant = None
     error_msg = 'error has happened.'
     payment.refund = Mock(side_effect=ValueError(error_msg))
-    errors = clean_refund_payment(payment, amount)
+    errors = clean_refund_payment(payment, amount, [])
     assert errors[0].field == 'payment'
     assert errors[0].message == error_msg

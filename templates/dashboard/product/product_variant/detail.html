@@ -57,16 +57,14 @@
             </div>
           </div>
         </div>
-        {% if perms.product.edit_product %}
-          <div class="card-action">
-            <a class="btn-flat waves-effect" href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}">
-              {% trans "Edit variant" context "Dashboard action" %}
-            </a>
-            <a href="#base-modal" class="btn-flat waves-effect modal-trigger-custom" data-href="{% url 'dashboard:variant-delete' product_pk=product.pk variant_pk=variant.pk %}">
-              {% trans "Remove variant" context "Dashboard action" %}
-            </a>
-          </div>
-        {% endif %}
+        <div class="card-action">
+          <a class="btn-flat waves-effect" href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}">
+            {% trans "Edit variant" context "Dashboard action" %}
+          </a>
+          <a href="#base-modal" class="btn-flat waves-effect modal-trigger-custom" data-href="{% url 'dashboard:variant-delete' product_pk=product.pk variant_pk=variant.pk %}">
+            {% trans "Remove variant" context "Dashboard action" %}
+          </a>
+        </div>
       </div>
     </div>
     <div class="col m12 l4">
@@ -187,13 +185,11 @@
                 {% endfor %}
               </div>
             </div>
-            {% if perms.product.edit_product %}
-              <div class="card-action">
-                <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:variant-images' product_pk=product.pk variant_pk=variant.pk %}">
-                  {% trans "Select images" context "Dashboard action" %}
-                </a>
-              </div>
-            {% endif %}
+            <div class="card-action">
+              <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:variant-images' product_pk=product.pk variant_pk=variant.pk %}">
+                {% trans "Select images" context "Dashboard action" %}
+              </a>
+            </div>
           </div>
         </div>
       </div>

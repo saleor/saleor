@@ -15,10 +15,11 @@ from ...product.models import Category, Collection
 from ..views import staff_member_required
 from .filters import MenuFilter, MenuItemFilter
 from .forms import AssignMenuForm, MenuForm, MenuItemForm, ReorderMenuItemsForm
+from .utils import update_menu
 
 
 @staff_member_required
-@permission_required('menu.view_menu')
+@permission_required('menu.manage_menus')
 def menu_list(request):
     menus = Menu.objects.all()
     menu_filter = MenuFilter(request.GET, queryset=menus)
@@ -27,12 +28,8 @@ def menu_list(request):
         request.GET.get('page'))
     site_settings = request.site.settings
 
-    data = (
-        request.POST
-        if request.user.has_perm('menu.edit_menu') and request.POST
-        else None)
     assign_menu_form = AssignMenuForm(
-        data, instance=site_settings, user=request.user)
+        request.POST or None, instance=site_settings)
     if request.method == 'POST' and assign_menu_form.is_valid():
         assign_menu_form.save()
         msg = pgettext_lazy(
@@ -47,7 +44,7 @@ def menu_list(request):
 
 
 @staff_member_required
-@permission_required('menu.edit_menu')
+@permission_required('menu.manage_menus')
 def menu_create(request):
     menu = Menu()
     form = MenuForm(request.POST or None, instance=menu)
@@ -61,12 +58,12 @@ def menu_create(request):
 
 
 @staff_member_required
-@permission_required('menu.edit_menu')
+@permission_required('menu.manage_menus')
 def menu_edit(request, pk):
     menu = get_object_or_404(Menu, pk=pk)
     form = MenuForm(request.POST or None, instance=menu)
     if form.is_valid():
-        menu = form.save()
+        form.save()
         msg = pgettext_lazy('Dashboard message', 'Updated menu %s') % (menu,)
         messages.success(request, msg)
         return redirect('dashboard:menu-details', pk=menu.pk)
@@ -76,7 +73,7 @@ def menu_edit(request, pk):
 
 
 @staff_member_required
-@permission_required('menu.view_menu')
+@permission_required('menu.manage_menus')
 def menu_details(request, pk):
     menu = get_object_or_404(Menu, pk=pk)
     menu_items = menu.items.filter(parent=None).prefetch_related(
@@ -92,7 +89,7 @@ def menu_details(request, pk):
 
 
 @staff_member_required
-@permission_required('menu.edit_menu')
+@permission_required('menu.manage_menus')
 def menu_delete(request, pk):
     menu = get_object_or_404(Menu, pk=pk)
     if request.method == 'POST':
@@ -107,7 +104,7 @@ def menu_delete(request, pk):
 
 
 @staff_member_required
-@permission_required('menu.edit_menu')
+@permission_required('menu.manage_menus')
 def menu_item_create(request, menu_pk, root_pk=None):
     menu = get_object_or_404(Menu, pk=menu_pk)
     path = None
@@ -123,6 +120,7 @@ def menu_item_create(request, menu_pk, root_pk=None):
         msg = pgettext_lazy(
             'Dashboard message', 'Added menu item %s') % (menu_item,)
         messages.success(request, msg)
+        update_menu(menu)
         if root_pk:
             return redirect(
                 'dashboard:menu-item-details',
@@ -134,7 +132,7 @@ def menu_item_create(request, menu_pk, root_pk=None):
 
 
 @staff_member_required
-@permission_required('menu.edit_menu')
+@permission_required('menu.manage_menus')
 def menu_item_edit(request, menu_pk, item_pk):
     menu = get_object_or_404(Menu, pk=menu_pk)
     menu_item = get_object_or_404(menu.items.all(), pk=item_pk)
@@ -142,6 +140,7 @@ def menu_item_edit(request, menu_pk, item_pk):
     form = MenuItemForm(request.POST or None, instance=menu_item)
     if form.is_valid():
         menu_item = form.save()
+        update_menu(menu)
         msg = pgettext_lazy(
             'Dashboard message', 'Saved menu item %s') % (menu_item,)
         messages.success(request, msg)
@@ -153,12 +152,13 @@ def menu_item_edit(request, menu_pk, item_pk):
 
 
 @staff_member_required
-@permission_required('menu.edit_menu')
+@permission_required('menu.manage_menus')
 def menu_item_delete(request, menu_pk, item_pk):
     menu = get_object_or_404(Menu, pk=menu_pk)
     menu_item = get_object_or_404(menu.items.all(), pk=item_pk)
     if request.method == 'POST':
         menu_item.delete()
+        update_menu(menu)
         msg = pgettext_lazy(
             'Dashboard message', 'Removed menu item %s') % (menu_item,)
         messages.success(request, msg)
@@ -181,7 +181,7 @@ def menu_item_delete(request, menu_pk, item_pk):
 
 
 @staff_member_required
-@permission_required('menu.view_menu')
+@permission_required('menu.manage_menus')
 def menu_item_details(request, menu_pk, item_pk):
     menu = get_object_or_404(Menu, pk=menu_pk)
     menu_item = get_object_or_404(menu.items.all(), pk=item_pk)
@@ -199,7 +199,7 @@ def menu_item_details(request, menu_pk, item_pk):
 
 
 @staff_member_required
-@permission_required('menu.edit_menu')
+@permission_required('menu.manage_menus')
 def ajax_reorder_menu_items(request, menu_pk, root_pk=None):
     menu = get_object_or_404(Menu, pk=menu_pk)
     if root_pk:
@@ -211,6 +211,7 @@ def ajax_reorder_menu_items(request, menu_pk, root_pk=None):
     ctx = {}
     if form.is_valid():
         form.save()
+        update_menu(menu)
     elif form.errors:
         status = 400
         ctx = {'error': form.errors}
@@ -218,7 +219,7 @@ def ajax_reorder_menu_items(request, menu_pk, root_pk=None):
 
 
 @staff_member_required
-@permission_required('menu.view_menu')
+@permission_required('menu.manage_menus')
 def ajax_menu_links(request):
     """Return available menu links filtered by request GET parameters.
 

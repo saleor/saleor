@@ -13,17 +13,15 @@
 {% block menu_orders_class %}active{% endblock %}
 
 {% block header_extra %}
-  {% if perms.order.edit_order %}
-    <div class="btn-fab-fixed">
-      <form method="POST" action="{% url "dashboard:order-create" %}">
-      {% csrf_token %}
-        <label class="btn-fab-default waves-effect waves-light svg-submit-btn" title="{% trans "Add order" context "Order list add button text" %}">
-          <input type="submit" />
-          <svg data-src="{% static "dashboard/images/add.svg" %}" />
-        </label>
-      </form>
-    </div>
-  {% endif %}
+  <div class="btn-fab-fixed">
+    <form method="POST" action="{% url "dashboard:order-create" %}">
+    {% csrf_token %}
+      <label class="btn-fab-default waves-effect waves-light svg-submit-btn" title="{% trans "Add order" context "Order list add button text" %}">
+        <input type="submit" />
+        <svg data-src="{% static "dashboard/images/add.svg" %}" />
+      </label>
+    </form>
+  </div>
 {% endblock %}
 
 {% block breadcrumbs %}

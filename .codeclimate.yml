@@ -16,6 +16,9 @@ engines:
     checks:
       import-error:
         enabled: false
+  tslint:
+    enabled: true
+    config: tslint.json
   duplication:
     enabled: true
     config:

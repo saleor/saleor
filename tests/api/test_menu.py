@@ -6,15 +6,54 @@ from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 from .utils import assert_read_only_mode
 
+from saleor.graphql.menu.mutations import NavigationType
 
-def test_menu_query(user_api_client, menu, menu_item):
+from .utils import assert_no_permission
+
+
+def test_menu_query(user_api_client, menu):
+    query = """
+    query menu($id: ID, $menu_name: String){
+        menu(id: $id, name: $menu_name) {
+            name
+        }
+    }
+    """
+
+    # test query by name
+    variables = json.dumps({'menu_name': menu.name})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    assert content['data']['menu']['name'] == menu.name
+
+    # test query by id
+    menu_id = graphene.Node.to_global_id('Menu', menu.id)
+    variables = json.dumps({'id': menu_id})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    assert content['data']['menu']['name'] == menu.name
+
+    # test query by invalid name returns null
+    variables = json.dumps({'menu_name': 'not-a-menu'})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    assert not content['data']['menu']
+
+
+def test_menus_query(user_api_client, menu, menu_item):
     query = """
     query menus($menu_name: String){
-        menus(query: $menu_name) {
+        menus(query: $menu_name, first: 1) {
             edges {
                 node {
                     name
-                    items {
+                    items(first: 1) {
                         edges {
                             node {
                                 name
@@ -30,6 +69,7 @@ def test_menu_query(user_api_client, menu, menu_item):
         }
     }
     """
+
     menu.items.add(menu_item)
     menu.save()
     menu_name = menu.name
@@ -54,6 +94,15 @@ def test_menu_items_query(user_api_client, menu_item, collection):
             children {
                 totalCount
             }
+            collection {
+                name
+            }
+            category {
+                id
+            }
+            page {
+                id
+            }
             url
         }
     }
@@ -70,19 +119,44 @@ def test_menu_items_query(user_api_client, menu_item, collection):
     assert data['name'] == menu_item.name
     assert data['url'] == menu_item.collection.get_absolute_url()
     assert data['children']['totalCount'] == menu_item.children.count()
+    assert data['collection']['name'] == collection.name
+    assert not data['category']
+    assert not data['page']
 
 
-def test_create_menu(admin_api_client):
+def test_create_menu(admin_api_client, collection, category, page):
     query = """
-    mutation mc($name: String!){
-        menuCreate(input: {name: $name}) {
+    mutation mc($name: String!, $collection: ID, $category: ID, $page: ID, $url: String) {
+        menuCreate(input: {
+            name: $name,
+            items: [
+                {name: "Collection item", collection: $collection},
+                {name: "Page item", page: $page},
+                {name: "Category item", category: $category},
+                {name: "Url item", url: $url}]
+        }) {
             menu {
                 name
+                items {
+                    edges {
+                        node {
+                            id
+                        }
+                    }
+                }
             }
         }
     }
     """
-    variables = json.dumps({'name': 'test-menu'})
+
+    category_id = graphene.Node.to_global_id('Category', category.pk)
+    collection_id = graphene.Node.to_global_id('Collection', collection.pk)
+    page_id = graphene.Node.to_global_id('Page', page.pk)
+    url = 'http://www.example.com'
+
+    variables = json.dumps({
+        'name': 'test-menu', 'collection': collection_id,
+        'category': category_id, 'page': page_id, 'url': url })
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     assert_read_only_mode(response)
@@ -147,8 +221,8 @@ def test_create_menu_item(admin_api_client, menu):
 
 def test_update_menu_item(admin_api_client, menu, menu_item, page):
     query = """
-    mutation updateMenuItem($id: ID!, $menu_id: ID!, $page: ID) {
-        menuItemUpdate(id: $id, input: {menu: $menu_id, page: $page}) {
+    mutation updateMenuItem($id: ID!, $page: ID) {
+        menuItemUpdate(id: $id, input: {page: $page}) {
             menuItem {
                 url
             }
@@ -160,9 +234,7 @@ def test_update_menu_item(admin_api_client, menu, menu_item, page):
     assert not menu_item.page
     menu_item_id = graphene.Node.to_global_id('MenuItem', menu_item.pk)
     page_id = graphene.Node.to_global_id('Page', page.pk)
-    menu_id = graphene.Node.to_global_id('Menu', menu.pk)
-    variables = json.dumps(
-        {'id': menu_item_id, 'page': page_id, 'menu_id': menu_id})
+    variables = json.dumps({'id': menu_item_id, 'page': page_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     assert_read_only_mode(response)
@@ -187,9 +259,9 @@ def test_delete_menu_item(admin_api_client, menu_item):
 
 def test_add_more_than_one_item(admin_api_client, menu, menu_item, page):
     query = """
-    mutation updateMenuItem($id: ID!, $menu_id: ID!, $page: ID, $url: String) {
+    mutation updateMenuItem($id: ID!, $page: ID, $url: String) {
         menuItemUpdate(id: $id,
-        input: {menu: $menu_id, page: $page, url: $url}) {
+        input: {page: $page, url: $url}) {
         errors {
             field
             message
@@ -203,9 +275,41 @@ def test_add_more_than_one_item(admin_api_client, menu, menu_item, page):
     url = 'http://www.example.com'
     menu_item_id = graphene.Node.to_global_id('MenuItem', menu_item.pk)
     page_id = graphene.Node.to_global_id('Page', page.pk)
-    menu_id = graphene.Node.to_global_id('Menu', menu.pk)
-    variables = json.dumps(
-        {'id': menu_item_id, 'page': page_id, 'menu_id': menu_id, 'url': url})
+    variables = json.dumps({'id': menu_item_id, 'page': page_id, 'url': url})
     response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    assert_read_only_mode(response)
+
+
+def test_assign_menu(
+        staff_api_client, menu, permission_manage_menus,
+        permission_manage_settings, site_settings):
+    query = """
+    mutation AssignMenu($menu: ID, $navigationType: NavigationType!) {
+        assignNavigation(menu: $menu, navigationType: $navigationType) {
+            errors {
+                field
+                message
+            }
+            menu {
+                name
+            }
+        }
+    }
+    """
+
+    # test mutations fails without proper permissions
+    menu_id = graphene.Node.to_global_id('Menu', menu.pk)
+    variables = json.dumps({
+        'menu': menu_id, 'navigationType': NavigationType.MAIN.name})
+    response = staff_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    assert_no_permission(response)
+
+    staff_api_client.user.user_permissions.add(permission_manage_menus)
+    staff_api_client.user.user_permissions.add(permission_manage_settings)
+
+    # test assigning main menu
+    response = staff_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     assert_read_only_mode(response)

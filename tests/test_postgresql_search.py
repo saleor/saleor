@@ -20,14 +20,14 @@ PRODUCTS = [('Arabica Coffee', 'The best grains in galactic'),
 
 
 @pytest.fixture
-def named_products(default_category, product_type):
+def named_products(category, product_type):
     def gen_product(name, description):
         product = Product.objects.create(
             name=name,
             description=description,
             price=Decimal(6.6),
             product_type=product_type,
-            category=default_category)
+            category=category)
         return product
     return [gen_product(name, desc) for name, desc in PRODUCTS]
 
@@ -170,7 +170,7 @@ def test_find_order_with_user_name(admin_client, orders_with_addresses, phrase,
 
 
 ORDER_PHRASE_WITH_RESULT = 'Andreas'
-ORDER_RESULTS_PERMISSION = 'order.view_order'
+ORDER_RESULTS_PERMISSION = 'order.manage_orders'
 
 
 @pytest.mark.integration
@@ -185,11 +185,10 @@ def test_orders_search_results_restricted_to_users_with_permission(
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 def test_show_orders_search_result_to_user_with_permission_granted(
-        orders_with_addresses, staff_client, staff_user, staff_group,
-        permission_view_order):
+        orders_with_addresses, staff_client, staff_user,
+        permission_manage_orders):
     assert not staff_user.has_perm(ORDER_RESULTS_PERMISSION)
-    staff_group.permissions.add(permission_view_order)
-    staff_user.groups.add(staff_group)
+    staff_user.user_permissions.add(permission_manage_orders)
     _, orders, _ = search_dashboard(staff_client, ORDER_PHRASE_WITH_RESULT)
     assert 1 == len(orders)
 
@@ -227,7 +226,7 @@ def test_find_user_by_name(admin_client, users_with_addresses, phrase,
 
 
 USER_PHRASE_WITH_RESULT = 'adreas.knop@example.com'
-USER_RESULTS_PERMISSION = 'account.view_user'
+USER_RESULTS_PERMISSION = 'account.manage_users'
 
 
 @pytest.mark.integration
@@ -242,10 +241,9 @@ def test_users_search_results_restricted_to_staff_with_permission(
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 def test_show_users_search_result_when_access_granted(
-        users_with_addresses, staff_client, staff_user, staff_group,
-        permission_view_user):
+        users_with_addresses, staff_client, staff_user,
+        permission_manage_users):
     assert not staff_user.has_perm(USER_RESULTS_PERMISSION)
-    staff_group.permissions.add(permission_view_user)
-    staff_user.groups.add(staff_group)
+    staff_user.user_permissions.add(permission_manage_users)
     _, _, users = search_dashboard(staff_client, USER_PHRASE_WITH_RESULT)
     assert 1 == len(users)

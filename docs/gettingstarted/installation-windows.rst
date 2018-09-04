@@ -21,7 +21,7 @@ Make sure that "**Add Python 3.7 to PATH**" is checked.
 Node.js
 ~~~~~~~
 
-Version 8 or later is required. Download the Windows installer from the `Node.js downloads page <https://nodejs.org/en/download/>`_.
+Version 10 or later is required. Download the Windows installer from the `Node.js downloads page <https://nodejs.org/en/download/>`_.
 
 Make sure that "**Add to PATH**" is selected.
 
@@ -45,7 +45,7 @@ Make sure that "**Set up PATH environment variable to include GTK+**" is selecte
 Compilers
 ~~~~~~~~~
 
-Please download and install the latest version of `Visual C++ build tools <https://landinghub.visualstudio.com/visual-cpp-build-tools>`_.
+Please download and install the latest version of the `Build Tools for Visual Studio <https://go.microsoft.com/fwlink/?linkid=840931>`_.
 
 
 Installation

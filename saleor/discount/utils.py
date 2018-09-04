@@ -1,7 +1,6 @@
 from django.db.models import F
 from django.utils.translation import pgettext
 
-from . import VoucherApplyToProduct
 from ..core.utils.taxes import ZERO_MONEY, ZERO_TAXED_MONEY
 from .models import NotApplicable
 
@@ -18,6 +17,13 @@ def decrease_voucher_usage(voucher):
     voucher.save(update_fields=['used'])
 
 
+def are_product_collections_on_sale(product, sale):
+    """Checks if any collection is on sale."""
+    discounted_collections = set(sale.collections.all())
+    product_collections = set(product.collections.all())
+    return set(product_collections).intersection(discounted_collections)
+
+
 def is_category_on_sale(category, sale):
     """Check if category is descendant of one of categories on sale."""
     discounted_categories = set(sale.categories.all())
@@ -31,7 +37,8 @@ def get_product_discount_on_sale(sale, product):
     discounted_products = {p.pk for p in sale.products.all()}
     is_product_on_sale = (
         product.pk in discounted_products or
-        is_category_on_sale(product.category, sale))
+        is_category_on_sale(product.category, sale) or
+        are_product_collections_on_sale(product, sale))
     if is_product_on_sale:
         return sale.get_discount()
     raise NotApplicable(
@@ -60,22 +67,22 @@ def calculate_discounted_price(product, price, discounts):
 
 def get_value_voucher_discount(voucher, total_price):
     """Calculate discount value for a voucher of value type."""
-    voucher.validate_limit(total_price)
+    voucher.validate_min_amount_spent(total_price)
     return voucher.get_discount_amount_for(total_price)
 
 
 def get_shipping_voucher_discount(voucher, total_price, shipping_price):
     """Calculate discount value for a voucher of shipping type."""
-    voucher.validate_limit(total_price)
+    voucher.validate_min_amount_spent(total_price)
     return voucher.get_discount_amount_for(shipping_price)
 
 
-def get_product_or_category_voucher_discount(voucher, prices):
+def get_products_voucher_discount(voucher, prices):
     """Calculate discount value for a voucher of product or category type."""
-    if voucher.apply_to == VoucherApplyToProduct.ALL_PRODUCTS:
-        discounts = (
-            voucher.get_discount_amount_for(price) for price in prices)
-        total_amount = sum(discounts, ZERO_MONEY)
-        return total_amount
-    product_total = sum(prices, ZERO_TAXED_MONEY)
-    return voucher.get_discount_amount_for(product_total)
+    if voucher.apply_once_per_order:
+        product_total = sum(prices, ZERO_TAXED_MONEY)
+        return voucher.get_discount_amount_for(product_total)
+    discounts = (
+        voucher.get_discount_amount_for(price) for price in prices)
+    total_amount = sum(discounts, ZERO_MONEY)
+    return total_amount

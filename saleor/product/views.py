@@ -13,7 +13,8 @@ from .filters import ProductCategoryFilter, ProductCollectionFilter
 from .models import Category
 from .utils import (
     collections_visible_to_user, get_product_images, get_product_list_context,
-    handle_cart_form, products_for_cart, products_with_details)
+    handle_cart_form, products_for_cart, products_with_details,
+    products_for_products_list)
 from .utils.attributes import get_product_attributes_data
 from .utils.availability import get_availability
 from .utils.variants_picker import get_variant_picker_data
@@ -129,11 +130,12 @@ def category_index(request, path, category_id):
 
 
 def collection_index(request, slug, pk):
-    collections = collections_visible_to_user(request.user)
+    collections = collections_visible_to_user(request.user).prefetch_related(
+        'translations')
     collection = get_object_or_404(collections, id=pk)
     if collection.slug != slug:
         return HttpResponsePermanentRedirect(collection.get_absolute_url())
-    products = products_with_details(user=request.user).filter(
+    products = products_for_products_list(user=request.user).filter(
         collections__id=collection.id).order_by('name')
     product_filter = ProductCollectionFilter(
         request.GET, queryset=products, collection=collection)

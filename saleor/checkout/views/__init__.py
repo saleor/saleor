@@ -7,12 +7,13 @@ from ...account.forms import LoginForm
 from ...core.utils import (
     format_money, get_user_shipping_country, to_local_currency)
 from ...product.models import ProductVariant
-from ...shipping.utils import get_shipment_options
+from ...shipping.utils import get_shipping_price_estimate
 from ..forms import CartShippingMethodForm, CountryForm, ReplaceCartLineForm
 from ..models import Cart
 from ..utils import (
-    check_product_availability_and_warn, check_shipping_method, get_cart_data,
-    get_cart_data_for_checkout, get_or_empty_db_cart, get_taxes_for_cart)
+    check_product_availability_and_warn, get_cart_data,
+    get_cart_data_for_checkout, get_or_empty_db_cart, get_taxes_for_cart,
+    is_valid_shipping_method, update_cart_quantity)
 from .discount import add_voucher_form, validate_voucher
 from .shipping import (
     anonymous_user_shipping_address_view, user_shipping_address_view)
@@ -63,11 +64,11 @@ def checkout_shipping_address(request, cart):
 def checkout_shipping_method(request, cart):
     """Display the shipping method selection step."""
     taxes = get_taxes_for_cart(cart, request.taxes)
-    check_shipping_method(cart)
+    is_valid_shipping_method(cart, request.taxes, request.discounts)
+
     form = CartShippingMethodForm(
         request.POST or None, taxes=taxes, instance=cart,
         initial={'shipping_method': cart.shipping_method})
-
     if form.is_valid():
         form.save()
         return redirect('checkout:summary')
@@ -107,11 +108,12 @@ def cart_index(request, cart):
     except Cart.DoesNotExist:
         pass
 
-    lines = cart.lines.select_related(
-        'variant__product__product_type',
-        'variant__product__category')
+    lines = cart.lines.select_related('variant__product__product_type')
     lines = lines.prefetch_related(
+        'variant__translations', 'variant__product__translations',
         'variant__product__images',
+        'variant__product__product_type__variant_attributes__translations',
+        'variant__images',
         'variant__product__product_type__variant_attributes')
     for line in lines:
         initial = {'quantity': line.quantity}
@@ -126,14 +128,17 @@ def cart_index(request, cart):
 
     default_country = get_user_shipping_country(request)
     country_form = CountryForm(initial={'country': default_country})
-    default_country_options = get_shipment_options(default_country, taxes)
+    shipping_price_range = get_shipping_price_estimate(
+        price=cart.get_subtotal(discounts, taxes).gross,
+        weight=cart.get_total_weight(), country_code=default_country,
+        taxes=taxes)
 
     cart_data = get_cart_data(
-        cart, default_country_options, request.currency, discounts, taxes)
+        cart, shipping_price_range, request.currency, discounts, taxes)
     ctx = {
         'cart_lines': cart_lines,
         'country_form': country_form,
-        'default_country_options': default_country_options}
+        'shipping_price_range': shipping_price_range}
     ctx.update(cart_data)
 
     return TemplateResponse(request, 'checkout/index.html', ctx)
@@ -144,14 +149,17 @@ def cart_shipping_options(request, cart):
     """Display shipping options to get a price estimate."""
     country_form = CountryForm(request.POST or None, taxes=request.taxes)
     if country_form.is_valid():
-        shipments = country_form.get_shipment_options()
+        shipping_price_range = country_form.get_shipping_price_estimate(
+            price=cart.get_subtotal(request.discounts, request.taxes).gross,
+            weight=cart.get_total_weight())
     else:
-        shipments = None
+        shipping_price_range = None
     ctx = {
-        'default_country_options': shipments,
+        'shipping_price_range': shipping_price_range,
         'country_form': country_form}
     cart_data = get_cart_data(
-        cart, shipments, request.currency, request.discounts, request.taxes)
+        cart, shipping_price_range, request.currency, request.discounts,
+        request.taxes)
     ctx.update(cart_data)
     return TemplateResponse(request, 'checkout/_subtotal_table.html', ctx)
 
@@ -194,6 +202,17 @@ def update_cart_line(request, cart, variant_id):
     return JsonResponse(response, status=status)
 
 
+@get_or_empty_db_cart()
+def clear_cart(request, cart):
+    """Clear cart"""
+    if not request.is_ajax():
+        return redirect('cart:index')
+    cart.lines.all().delete()
+    update_cart_quantity(cart)
+    response = {'numItems': 0}
+    return JsonResponse(response)
+
+
 @get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
 def cart_summary(request, cart):
     """Display a cart summary suitable for displaying on all pages."""
@@ -204,7 +223,7 @@ def cart_summary(request, cart):
         first_image = line.variant.get_first_image()
         return {
             'product': line.variant.product,
-            'variant': line.variant.name,
+            'variant': line.variant,
             'quantity': line.quantity,
             'image': first_image,
             'line_total': line.get_total(discounts, taxes),
