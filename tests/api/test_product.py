@@ -1309,7 +1309,7 @@ def test_product_variants_by_ids(user_api_client, variant):
                 }
             }
         }
-        """
+    """
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
 
     variables = {'ids': [variant_id]}
