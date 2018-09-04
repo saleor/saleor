@@ -261,3 +261,23 @@ def test_homepage_collection_update(admin_api_client, collection):
     assert data['homepageCollection']['name'] == collection.name
     site = Site.objects.get_current()
     assert site.settings.homepage_collection == collection
+
+
+def test_query_default_country(user_api_client, settings):
+    settings.DEFAULT_COUNTRY = 'US'
+    query = """
+    query {
+        shop {
+            defaultCountry {
+                code
+                country
+            }
+        }
+    }
+    """
+    response = user_api_client.post(reverse('api'), {'query': query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['shop']['defaultCountry']
+    assert data['code'] == settings.DEFAULT_COUNTRY
+    assert data['country'] == 'United States of America'
