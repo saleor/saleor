@@ -107,6 +107,7 @@ def test_menu_items_query(user_api_client, menu_item, collection):
     }
     """
     menu_item.collection = collection
+    menu_item.url = None
     menu_item.save()
     variables = json.dumps(
         {'id': graphene.Node.to_global_id('MenuItem', menu_item.pk)})
@@ -116,9 +117,39 @@ def test_menu_items_query(user_api_client, menu_item, collection):
     assert 'errors' not in content
     data = content['data']['menuItem']
     assert data['name'] == menu_item.name
-    assert data['url'] == menu_item.collection.get_absolute_url()
     assert data['children']['totalCount'] == menu_item.children.count()
     assert data['collection']['name'] == collection.name
+    assert not data['category']
+    assert not data['page']
+    assert data['url'] is None
+
+
+def test_menu_item_query_static_url(user_api_client, menu_item):
+    query = """
+    query menuitem($id: ID!) {
+        menuItem(id: $id) {
+            name
+            url
+            category {
+                id
+            }
+            page {
+                id
+            }
+        }
+    }
+    """
+    menu_item.url = "http://example.com"
+    menu_item.save()
+    variables = json.dumps(
+        {'id': graphene.Node.to_global_id('MenuItem', menu_item.pk)})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['menuItem']
+    assert data['name'] == menu_item.name
+    assert data['url'] == menu_item.url
     assert not data['category']
     assert not data['page']
 
@@ -236,7 +267,9 @@ def test_update_menu_item(admin_api_client, menu, menu_item, page):
     mutation updateMenuItem($id: ID!, $page: ID) {
         menuItemUpdate(id: $id, input: {page: $page}) {
             menuItem {
-                url
+                page {
+                    id
+                }
             }
         }
     }
@@ -252,7 +285,7 @@ def test_update_menu_item(admin_api_client, menu, menu_item, page):
     content = get_graphql_content(response)
     assert 'errors' not in content
     data = content['data']['menuItemUpdate']['menuItem']
-    assert data['url'] == page.get_absolute_url()
+    assert data['page']['id'] == page_id
 
 
 def test_delete_menu_item(admin_api_client, menu_item):

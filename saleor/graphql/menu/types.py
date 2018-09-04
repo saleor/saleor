@@ -31,4 +31,4 @@ class MenuItem(CountableDjangoObjectType):
         model = models.MenuItem
 
     def resolve_url(self, info):
-        return self.get_url()
+        return self.url
