@@ -3,8 +3,8 @@ from django.db.models import Q
 
 from ...product import models
 from ...product.utils import products_with_details
-from ..utils import filter_by_query_param
-from .types import Category
+from ..utils import filter_by_query_param, get_nodes
+from .types import Category, ProductVariant
 
 PRODUCT_SEARCH_FIELDS = ('name', 'description', 'category__name')
 CATEGORY_SEARCH_FIELDS = ('name', 'slug', 'description', 'parent__name')
@@ -65,3 +65,7 @@ def resolve_products(info, category_id, query):
 
 def resolve_product_types():
     return models.ProductType.objects.all().distinct()
+
+
+def resolve_product_variants(info, ids):
+    return get_nodes(ids, graphene_type=ProductVariant)

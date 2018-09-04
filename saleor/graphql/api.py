@@ -51,7 +51,7 @@ from .product.mutations.products import (
     ProductVariantUpdate, VariantImageAssign, VariantImageUnassign)
 from .product.resolvers import (
     resolve_attributes, resolve_categories, resolve_collections,
-    resolve_products, resolve_product_types)
+    resolve_products, resolve_product_types, resolve_product_variants)
 from .product.types import (
     Category, Collection, Product, ProductAttribute, ProductType,
     ProductVariant)
@@ -130,6 +130,10 @@ class Query(graphene.ObjectType):
     product_variant = graphene.Field(
         ProductVariant, id=graphene.Argument(graphene.ID),
         description='Lookup a variant by ID.')
+    product_variants = DjangoFilterConnectionField(
+        ProductVariant, filterset_class=DistinctFilterSet,
+        ids=graphene.List(graphene.ID),
+        description='Lookup multiple variants by ID')
     sale = graphene.Field(
         Sale, id=graphene.Argument(graphene.ID),
         description='Lookup a sale by ID.')
@@ -231,6 +235,9 @@ class Query(graphene.ObjectType):
 
     def resolve_product_variant(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ProductVariant)
+
+    def resolve_product_variants(self, info, ids):
+        return resolve_product_variants(info, ids)
 
     @permission_required('discount.manage_discounts')
     def resolve_voucher(self, info, id):
