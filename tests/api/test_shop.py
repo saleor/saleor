@@ -262,4 +262,3 @@ def test_query_default_country(user_api_client, settings):
     data = content['data']['shop']['defaultCountry']
     assert data['code'] == settings.DEFAULT_COUNTRY
     assert data['country'] == 'United States of America'
-    assert_read_only_mode(response)

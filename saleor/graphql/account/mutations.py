@@ -5,6 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from graphql_jwt.decorators import permission_required
+from graphql_jwt.exceptions import PermissionDenied
 
 from ...account import emails, models
 from ...core.permissions import MODELS_PERMISSIONS, get_permissions
@@ -250,6 +251,9 @@ class PasswordReset(BaseMutation):
     @classmethod
     @permission_required('account.manage_users')
     def mutate(cls, root, info, email):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         try:
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:

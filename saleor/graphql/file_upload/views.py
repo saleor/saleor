@@ -39,8 +39,9 @@ class FileUploadGraphQLView(GraphQLView):
     def render_graphiql(self, request, **data):
         if not data['query']:
             product = Product.objects.order_by('?').first()
-            product_id = graphene.relay.node.to_global_id('Product', product.pk)
-            data['query'] = DEFAULT_QUERY % {'product_id': product_id}
+            if product:
+                product_id = graphene.relay.node.to_global_id('Product', product.pk)
+                data['query'] = DEFAULT_QUERY % {'product_id': product_id}
         return render(request, self.graphiql_template, data)
 
     @staticmethod

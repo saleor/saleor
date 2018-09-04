@@ -112,7 +112,7 @@ def product_add_to_cart(request, slug, product_id):
     return response
 
 
-def category_index(request, path, category_id):
+def category_index(request, slug, category_id):
     """Category index page.
 
     NOTE: The implementation of this view on the `demo` branch is different
@@ -120,10 +120,9 @@ def category_index(request, path, category_id):
     and the product list is rendered by React using GraphQL API.
     """
     category = get_object_or_404(Category, id=category_id)
-    actual_path = category.get_full_path()
-    if actual_path != path:
+    if slug != category.slug:
         return redirect(
-            'product:category', permanent=True, path=actual_path,
+            'product:category', permanent=True, slug=category.slug,
             category_id=category_id)
     return TemplateResponse(
         request, 'category/index.html', {'category': category})

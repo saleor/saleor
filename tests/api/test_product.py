@@ -754,11 +754,11 @@ def test_product_image_update_mutation(admin_api_client, product_with_image):
     """
     image_obj = product_with_image.images.first()
     alt = 'damage alt'
-    variables = {
-        'product': graphene.Node.to_global_id('Product', product.id),
-        'image': image.name, 'alt': alt}
-    body = get_multipart_request_body(query, variables, image.file, image.name)
-    response = admin_api_client.post_multipart(reverse('api'), body)
+    variables = json.dumps({
+        'alt': alt,
+        'imageId': graphene.Node.to_global_id('ProductImage', image_obj.id)})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
     assert_read_only_mode(response)
 
 

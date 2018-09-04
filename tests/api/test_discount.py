@@ -305,13 +305,9 @@ def test_validate_voucher(voucher, admin_api_client):
             }
         }
     """
-
-    assert not voucher.product
     variables = json.dumps({
         'type': VoucherTypeEnum.PRODUCT.name,
-        'id': graphene.Node.to_global_id('Voucher', voucher.id),
-        'product': graphene.Node.to_global_id('Product', product.id)})
-
+        'id': graphene.Node.to_global_id('Voucher', voucher.id)})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     assert_read_only_mode(response)

@@ -223,9 +223,9 @@ def test_who_can_see_user(
     assert content['data']['users']['totalCount'] == model.objects.count()
 
 
-@patch('saleor.account.emails.send_password_reset_email.delay')
+# @patch('saleor.account.emails.send_password_reset_email.delay')
 def test_customer_create(
-        send_password_reset_mock, admin_api_client, user_api_client, address):
+        admin_api_client, user_api_client, address):
     query = """
     mutation CreateCustomer(
         $email: String, $note: String, $billing: AddressInput,
@@ -272,13 +272,6 @@ def test_customer_create(
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     assert_read_only_mode(response)
-
-    assert send_password_reset_mock.call_count == 1
-    args, kwargs = send_password_reset_mock.call_args
-    call_context = args[0]
-    call_email = args[1]
-    assert call_email == email
-    assert 'token' in call_context
 
 
 def test_customer_update(
@@ -336,9 +329,8 @@ def test_customer_update(
     assert_read_only_mode(response)
 
 
-@patch('saleor.account.emails.send_password_reset_email.delay')
 def test_staff_create(
-        send_password_reset_mock, admin_api_client, user_api_client,
+        admin_api_client, user_api_client,
         permission_manage_users, permission_manage_products, staff_user):
     query = """
     mutation CreateStaff($email: String, $permissions: [String], $send_mail: Boolean) {

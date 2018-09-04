@@ -21,28 +21,6 @@ def test_clean_seo_fields():
     assert data['seo_description'] == description
 
 
-def test_user_error_field_name_for_related_object(admin_api_client):
-    query = """
-    mutation {
-        categoryCreate(input: {name: "Test", parent: "123456"}) {
-            errors {
-                field
-                message
-            }
-            category {
-                id
-            }
-        }
-    }
-    """
-    response = admin_api_client.post(reverse('api'), {'query': query})
-    content = get_graphql_content(response)
-    data = content['data']['categoryCreate']['category']
-    assert data is None
-    error = content['data']['categoryCreate']['errors'][0]
-    assert error['field'] == 'parent'
-
-
 def test_get_database_id(product):
     info = Mock(
         schema=Mock(
@@ -57,29 +35,3 @@ def test_snake_to_camel_case():
     assert snake_to_camel_case('test_camel_case') == 'testCamelCase'
     assert snake_to_camel_case('testCamel_case') == 'testCamelCase'
     assert snake_to_camel_case(123) == 123
-
-
-def test_mutation_returns_error_field_in_camel_case(admin_api_client, variant):
-    # costPrice is snake case variable (cost_price) in the backend
-    query = """
-    mutation testCamel($id: ID!, $cost: Decimal) {
-        productVariantUpdate(id: $id,
-        input: {costPrice: $cost, trackInventory: false}) {
-            errors {
-                field
-                message
-            }
-            productVariant {
-                id
-            }
-        }
-    }
-    """
-    variables = json.dumps({
-        'id': graphene.Node.to_global_id('ProductVariant', variant.id),
-        'cost': '12.1234'})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    error = content['data']['productVariantUpdate']['errors'][0]
-    assert error['field'] == 'costPrice'
