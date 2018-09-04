@@ -196,7 +196,7 @@ class AttributeValueInput(InputObjectType):
         required=True, description='Value of an attribute.')
 
 
-class ProductInput(graphene.InputObjectType):
+class ProductPropertiesInput(graphene.InputObjectType):
     attributes = graphene.List(
         AttributeValueInput,
         description='List of product attributes.')
@@ -214,9 +214,6 @@ class ProductInput(graphene.InputObjectType):
     is_published = graphene.Boolean(
         description='Determines if product is visible to customers.')
     name = graphene.String(description='Product name.')
-    product_type = graphene.ID(
-        description='ID of the type that product belongs to.',
-        name='productType')
     price = Decimal(description='Product price.')
     tax_rate = TaxRateType(description='Tax rate.')
     seo = SeoInput(description='Search engine optimization fields.')
@@ -224,9 +221,15 @@ class ProductInput(graphene.InputObjectType):
         description='Weight of the Product.', required=False)
 
 
+class ProductCreateInput(ProductPropertiesInput):
+    product_type = graphene.ID(
+        description='ID of the type that product belongs to.',
+        name='productType', required=True)
+
+
 class ProductCreate(ModelMutation):
     class Arguments:
-        input = ProductInput(
+        input = ProductCreateInput(
             required=True, description='Fields required to create a product.')
 
     class Meta:
@@ -272,7 +275,7 @@ class ProductUpdate(ProductCreate):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a product to update.')
-        input = ProductInput(
+        input = ProductPropertiesInput(
             required=True, description='Fields required to update a product.')
 
     class Meta:
