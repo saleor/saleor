@@ -12,7 +12,8 @@ from ...product.utils.costs import (
 from ..core.decorators import permission_required
 from ..core.filters import DistinctFilterSet
 from ..core.types.common import CountableDjangoObjectType
-from ..core.types.money import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from ..core.types.money import (
+    Money, MoneyRange, TaxedMoney, TaxedMoneyRange, TaxRateType)
 from ..utils import get_database_id
 from .filters import ProductFilterSet
 
@@ -201,6 +202,7 @@ class ProductType(CountableDjangoObjectType):
         Product,
         filterset_class=ProductFilterSet,
         description='List of products of this type.')
+    tax_rate = TaxRateType(description='A type of tax rate.')
 
     class Meta:
         description = """Represents a type of product. It defines what

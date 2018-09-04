@@ -11,7 +11,7 @@ from django_prices_vatlayer.utils import get_tax_rate_types
 from mptt.forms import TreeNodeChoiceField
 
 from . import ProductBulkAction
-from ...core.i18n import VAT_RATE_TYPE_TRANSLATIONS
+from ...core import TaxRateType
 from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME, include_taxes_in_prices
 from ...core.weight import WeightField, get_default_weight_unit
 from ...product.models import (
@@ -58,8 +58,9 @@ class ProductTypeSelectorForm(forms.Form):
 
 def get_tax_rate_type_choices():
     rate_types = get_tax_rate_types() + [DEFAULT_TAX_RATE_NAME, '']
+    translations = dict(TaxRateType.CHOICES)
     choices = [
-        (rate_name, VAT_RATE_TYPE_TRANSLATIONS.get(rate_name, '---------'))
+        (rate_name, translations.get(rate_name, '---------'))
         for rate_name in rate_types]
     # sort choices alphabetically by translations
     return sorted(choices, key=lambda x: x[1])

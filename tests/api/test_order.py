@@ -47,6 +47,11 @@ def test_order_query(admin_api_client, fulfilled_order):
                     history {
                         totalCount
                     }
+                    subtotal {
+                        net {
+                            amount
+                        }
+                    }
                     total {
                         net {
                             amount
@@ -343,7 +348,7 @@ def test_order_capture(admin_api_client, payment_preauth):
                 order {
                     paymentStatus
                     isPaid
-                    capturedAmount {
+                    totalCaptured {
                         amount
                     }
                 }

@@ -40,8 +40,13 @@ class Order(CountableDjangoObjectType):
     payment_status = graphene.String(description='Internal payment status.')
     payment_status_display = graphene.String(
         description='User-friendly payment status.')
+    subtotal = graphene.Field(
+        TaxedMoney,
+        description='The sum of line prices not including shipping.')
     status_display = graphene.String(description='User-friendly order status.')
-    captured_amount = graphene.Field(
+    total_authorized = graphene.Field(
+        Money, description='Amount authorized for the order.')
+    total_captured = graphene.Field(
         Money, description='Amount captured by payment.')
 
     class Meta:
@@ -53,7 +58,17 @@ class Order(CountableDjangoObjectType):
             'total_net']
 
     @staticmethod
-    def resolve_captured_amount(obj, info):
+    def resolve_subtotal(obj, info):
+        return obj.get_subtotal()
+
+    @staticmethod
+    def resolve_total_authorized(obj, info):
+        payment = obj.get_last_payment()
+        if payment:
+            return payment.get_total_price().gross
+
+    @staticmethod
+    def resolve_total_captured(obj, info):
         payment = obj.get_last_payment()
         if payment:
             return payment.get_captured_price()

@@ -10,9 +10,10 @@ from prices import Money
 from tests.utils import (
     create_image, create_pdf_file_with_image_ext, get_graphql_content)
 
+from saleor.core import TaxRateType
 from saleor.graphql.product.utils import update_variants_names
 from saleor.product.models import (
-    Category, Collection, Product, ProductType, ProductImage)
+    Category, Collection, Product, ProductImage, ProductType)
 
 from .utils import get_multipart_request_body, assert_read_only_mode
 
@@ -326,7 +327,7 @@ def test_create_product(
             $description: String!,
             $isPublished: Boolean!,
             $chargeTaxes: Boolean!,
-            $taxRate: String!,
+            $taxRate: TaxRateType!,
             $price: Decimal!,
             $attributes: [AttributeValueInput!]) {
                 productCreate(
@@ -381,7 +382,7 @@ def test_create_product(
     product_name = 'test name'
     product_isPublished = True
     product_chargeTaxes = True
-    product_taxRate = 'standard'
+    product_taxRate = 'STANDARD'
     product_price = "22.33"
 
     # Default attribute defined in product_type fixture
@@ -423,7 +424,7 @@ def test_update_product(
             $description: String!,
             $isPublished: Boolean!,
             $chargeTaxes: Boolean!,
-            $taxRate: String!,
+            $taxRate: TaxRateType!,
             $price: Decimal!,
             $attributes: [AttributeValueInput!]) {
                 productUpdate(
@@ -476,7 +477,7 @@ def test_update_product(
     product_name = 'updated name'
     product_isPublished = True
     product_chargeTaxes = True
-    product_taxRate = 'standard'
+    product_taxRate = 'STANDARD'
     product_price = "33.12"
 
     variables = json.dumps({
@@ -559,6 +560,7 @@ def test_product_type_query(
                             }
                         }
                     }
+                    taxRate
                 }
             }
         """
@@ -581,12 +583,13 @@ def test_product_type_query(
     assert 'errors' not in content
     data = content['data']
     assert data['productType']['products']['totalCount'] == no_products
-
+    assert data['productType']['taxRate'] == product_type.tax_rate.upper()
 
 def test_product_type_create_mutation(admin_api_client, product_type):
     query = """
     mutation createProductType(
         $name: String!,
+        $taxRate: TaxRateType!,
         $hasVariants: Boolean!,
         $isShippingRequired: Boolean!,
         $productAttributes: [ID],
@@ -594,12 +597,14 @@ def test_product_type_create_mutation(admin_api_client, product_type):
         productTypeCreate(
             input: {
                 name: $name,
+                taxRate: $taxRate,
                 hasVariants: $hasVariants,
                 isShippingRequired: $isShippingRequired,
                 productAttributes: $productAttributes,
                 variantAttributes: $variantAttributes}) {
             productType {
             name
+            taxRate
             isShippingRequired
             hasVariants
             variantAttributes {
@@ -634,9 +639,11 @@ def test_product_type_create_mutation(admin_api_client, product_type):
 
     variables = json.dumps({
         'name': product_type_name, 'hasVariants': has_variants,
+        'taxRate': 'STANDARD',
         'isShippingRequired': require_shipping,
         'productAttributes': product_attributes_ids,
         'variantAttributes': variant_attributes_ids})
+    initial_count = ProductType.objects.count()
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     assert_read_only_mode(response)

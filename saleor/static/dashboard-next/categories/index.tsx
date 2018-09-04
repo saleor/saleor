@@ -46,6 +46,7 @@ const Component = ({ match }) => (
   </Switch>
 );
 
+export const categoryListUrl = "/categories/";
 export const categoryAddUrl = (parentId?: string) => {
   if (parentId) {
     return `/categories/${parentId}/add/`;
