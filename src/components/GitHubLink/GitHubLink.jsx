@@ -29,7 +29,7 @@ class GitHubLink extends Component {
   }
 
   componentDidMount() {
-    this.updateStars()
+    //this.updateStars()
   }
 
   render() {

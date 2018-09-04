@@ -5,9 +5,6 @@ class Parallax extends Component {
   constructor(props) {
     super(props);
     this.state = { 
-      parallaxStyle: {
-        backgroundPosition: '50% 0'
-      },
       scheduledAnimationFrame: false
     }
   }
@@ -21,11 +18,15 @@ class Parallax extends Component {
   }
 
   updateBackgroundPosition() {
+    const bodyRect = document.body.getBoundingClientRect();
+    const parallaxRect = this.refs.parallax.getBoundingClientRect();
+    const offset = bodyRect.top - parallaxRect.top;
+    const positionValue = Math.round(offset * this.props.speed);
 
-    const windowYOffset = document.body.scrollTop;
-    const backgroundPosition = '50% ' + (windowYOffset * this.props.speed) + 'px';
+    const backgroundPosition = '0 0, 50% ' + positionValue + 'px';
+    this.refs.parallax.style.backgroundPosition = backgroundPosition;
+    
     this.setState({
-      parallaxStyle: {backgroundPosition: backgroundPosition},
       scheduledAnimationFrame: false
     });
 
@@ -41,7 +42,7 @@ class Parallax extends Component {
 
   render() {
     return (
-      <div id="parallax" style={this.state.parallaxStyle}>
+      <div id="parallax" ref="parallax">
         {this.props.children}
       </div>
     );
