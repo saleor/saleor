@@ -1,4 +1,5 @@
 import json
+import uuid
 import pytest
 
 import graphene
@@ -430,3 +431,63 @@ def test_checkout_complete(
     assert order.payment_methods.exists()
     order_payment_method = order.payment_methods.first()
     assert order_payment_method == payment_method
+
+
+def test_fetch_checkout_by_token(user_api_client, cart_with_item):
+    query = """
+    query getCheckout($token: UUID!) {
+        checkout(token: $token) {
+           token,
+           lines {
+               edges {
+                   node {
+                       variant {
+                           product {
+                               name
+                           }
+                       }
+                   }
+               }
+           }
+        }
+    }
+    """
+    variables = json.dumps({
+        'token': str(cart_with_item.token)
+    })
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['checkout']
+    assert data['token'] == str(cart_with_item.token)
+    assert len(data['lines']) == cart_with_item.lines.count()
+
+def test_fetch_checkout_invalid_token(user_api_client):
+    query = """
+        query getCheckout($token: UUID!) {
+            checkout(token: $token) {
+            token,
+            lines {
+                edges {
+                    node {
+                        variant {
+                            product {
+                                name
+                            }
+                        }
+                    }
+                }
+            }
+            }
+        }
+    """
+    variables = json.dumps({
+        'token': str(uuid.uuid4())
+    })
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['checkout']
+    assert data is None

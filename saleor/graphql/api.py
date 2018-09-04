@@ -58,7 +58,9 @@ from .checkout.mutations import (
     CheckoutCreate, CheckoutLinesAdd, CheckoutLinesUpdate, CheckoutLineDelete,
     CheckoutCustomerAttach, CheckoutCustomerDetach,
     CheckoutShippingAddressUpdate, CheckoutEmailUpdate, CheckoutComplete)
-from .checkout.resolvers import resolve_checkouts, resolve_checkout_lines
+from .checkout.resolvers import (
+    resolve_checkouts, resolve_checkout_lines, resolve_checkout)
+
 from .shop.mutations import (
     AuthorizationKeyAdd, AuthorizationKeyDelete, HomepageCollectionUpdate,
     ShopDomainUpdate, ShopSettingsUpdate)
@@ -69,6 +71,9 @@ class Query(ProductQueries):
     address_validator = graphene.Field(
         AddressValidationData,
         input=graphene.Argument(AddressValidationInput, required=True))
+    checkout = graphene.Field(
+        Checkout, description='Single checkout',
+        token=graphene.Argument(graphene.UUID))
     checkouts = DjangoFilterConnectionField(
         Checkout, description='List of checkouts',
         filterset_class=DistinctFilterSet)
@@ -151,6 +156,9 @@ class Query(ProductQueries):
         User, description='List of the shop\'s staff users.',
         query=graphene.String(description=DESCRIPTIONS['user']))
     node = graphene.Node.Field()
+
+    def resolve_checkout(self, info, token):
+        return resolve_checkout(info, token)
 
     def resolve_checkout_line(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, CheckoutLine)
