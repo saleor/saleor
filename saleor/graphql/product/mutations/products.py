@@ -294,16 +294,13 @@ class ProductDelete(ModelDeleteMutation):
         return user.has_perm('product.manage_products')
 
 
-class ProductVariantInput(graphene.InputObjectType):
+class ProductVariantPropertiesInput(graphene.InputObjectType):
     attributes = graphene.List(
         AttributeValueInput,
         description='List of attributes specific to this variant.')
     cost_price = Decimal(description='Cost price of the variant.')
     price_override = Decimal(
         description='Special price of the particular variant.')
-    product = graphene.ID(
-        description='Product ID of which type is the variant.',
-        name='product')
     sku = graphene.String(description='Stock keeping unit.')
     quantity = graphene.Int(
         description='The total quantity of this variant available for sale.')
@@ -315,9 +312,15 @@ class ProductVariantInput(graphene.InputObjectType):
         description='Weight of the Product Variant.', required=False)
 
 
+class ProductVariantCreateInput(ProductVariantPropertiesInput):
+    product = graphene.ID(
+        description='Product ID of which type is the variant.',
+        name='product', required=True)
+
+
 class ProductVariantCreate(ModelMutation):
     class Arguments:
-        input = ProductVariantInput(
+        input = ProductVariantCreateInput(
             required=True,
             description='Fields required to create a product variant.')
 
@@ -364,7 +367,7 @@ class ProductVariantUpdate(ProductVariantCreate):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a product variant to update.')
-        input = ProductVariantInput(
+        input = ProductVariantPropertiesInput(
             required=True,
             description='Fields required to update a product variant.')
 
