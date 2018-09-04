@@ -31,6 +31,8 @@
       }
       & .plane {
         width: 50%;
+        position: relative;
+        z-index: 2;
         padding: calc(var(--spacer) * 12) 0 calc(var(--spacer) * 12) calc(var(--spacer) * 5);
         @media (max-width: 768px) {
           width: 100%;
@@ -82,7 +84,7 @@
           }
         }
         & h1 {
-          padding-bottom: calc(var(--spacer) * 6);
+          padding-bottom: calc(var(--spacer) * 5);
           @media (max-width: 768px) {
             padding-right: calc(var(--spacer) * 13);
           }
@@ -96,16 +98,17 @@
         }
         & .btn {
           margin-right: var(--spacer);
+          font-size: calc(var(--font-size-base) * 1.2);
           @media (max-width: 570px) {
             font-size: var(--font-size-base);
           }
           &.btn-primary {
-            padding: calc(var(--spacer) / 2) calc(var(--spacer) * 5);
+            padding: calc(var(--spacer) / 1.5) calc(var(--spacer) * 5);
             @media (max-width: 450px) {
               padding: var(--spacer) calc(var(--spacer) * 3);
             }
             @media (max-width: 320px) {
-              padding: calc(var(--spacer) / 2) calc(var(--spacer) * 2);
+              padding: calc(var(--spacer) / 1.5) calc(var(--spacer) * 2);
             }
           }
           &.btn-secondary {
