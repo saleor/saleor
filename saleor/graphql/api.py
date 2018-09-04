@@ -70,7 +70,8 @@ from .checkout.mutations import (
     CheckoutCreate, CheckoutLinesAdd, CheckoutLinesUpdate, CheckoutLineDelete,
     CheckoutCustomerAttach, CheckoutCustomerDetach,
     CheckoutShippingAddressUpdate, CheckoutEmailUpdate, CheckoutComplete)
-from .checkout.resolvers import resolve_checkouts, resolve_checkout_lines
+from .checkout.resolvers import (
+    resolve_checkouts, resolve_checkout_lines, resolve_checkout)
 
 from .shop.types import Shop
 from .shop.mutations import (
@@ -98,6 +99,9 @@ class Query(graphene.ObjectType):
         Collection, query=graphene.String(
             description=DESCRIPTIONS['collection']),
         description='List of the shop\'s collections.')
+    checkout = graphene.Field(
+        Checkout, description='Single checkout',
+        token=graphene.Argument(graphene.UUID))
     checkouts = DjangoFilterConnectionField(
         Checkout, description='List of checkouts',
         filterset_class=DistinctFilterSet)
@@ -190,6 +194,9 @@ class Query(graphene.ObjectType):
 
     def resolve_categories(self, info, level=None, query=None, **kwargs):
         return resolve_categories(info, level=level, query=query)
+
+    def resolve_checkout(self, info, token):
+        return resolve_checkout(info, token)
 
     def resolve_checkout_line(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, CheckoutLine)
