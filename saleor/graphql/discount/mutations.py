@@ -2,19 +2,22 @@ import graphene
 
 from ...discount import VoucherType, models
 from ..core.mutations import ModelDeleteMutation, ModelMutation
-from ..core.types import Decimal
-from .types import ApplyToEnum, DiscountValueTypeEnum, VoucherTypeEnum
+from ..core.types.common import Decimal
+from .types import DiscountValueTypeEnum, VoucherTypeEnum
 
 
 def validate_voucher(voucher_data):
     voucher_type = voucher_data.get('type')
     errors = []
     if voucher_type == VoucherType.PRODUCT:
-        if not voucher_data.get('product'):
-            errors.append(('product', 'This field is required.'))
+        if not voucher_data.get('products'):
+            errors.append(('products', 'This field is required.'))
+    elif voucher_type == VoucherType.COLLECTION:
+        if not voucher_data.get('collections'):
+            errors.append(('collections', 'This field is required.'))
     elif voucher_type == VoucherType.CATEGORY:
-        if not voucher_data.get('category'):
-            errors.append(('category', 'This field is required.'))
+        if not voucher_data.get('categories'):
+            errors.append(('categories', 'This field is required.'))
     return errors
 
 
@@ -30,10 +33,20 @@ class VoucherInput(graphene.InputObjectType):
     discount_value_type = DiscountValueTypeEnum(
         description='Choices: fixed or percentage.')
     discount_value = Decimal(description='Value of the voucher.')
-    product = graphene.ID(description='Product related to the discount.')
-    category = graphene.ID(description='Category related to the discount.')
-    apply_to = ApplyToEnum(description='Single item or all matching products.')
-    limit = Decimal(description='Limit value of the discount.')
+    products = graphene.List(
+        graphene.ID, description='Products discounted by the voucher.',
+        name='products')
+    collections = graphene.List(
+        graphene.ID, description='Collections discounted by the voucher.',
+        name='collections')
+    categories = graphene.List(
+        graphene.ID, description='Categories discounted by the voucher.',
+        name='categories')
+    min_amount_spent = Decimal(
+        description='Min purchase amount required to apply the voucher.')
+    countries = graphene.List(
+        graphene.String,
+        description='Country codes that can be used with the shipping voucher')
 
 
 class VoucherCreate(ModelMutation):
@@ -48,7 +61,7 @@ class VoucherCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('discount.edit_voucher')
+        return user.has_perm('discount.manage_discounts')
 
     @classmethod
     def clean_input(cls, info, instance, input, errors):
@@ -83,7 +96,7 @@ class VoucherDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('discount.edit_voucher')
+        return user.has_perm('discount.manage_discounts')
 
 
 class SaleInput(graphene.InputObjectType):
@@ -91,9 +104,18 @@ class SaleInput(graphene.InputObjectType):
     type = DiscountValueTypeEnum(description='Fixed or percentage.')
     value = Decimal(description='Value of the voucher.')
     products = graphene.List(
-        graphene.ID, description='Products related to the discount.')
+        graphene.ID, description='Products related to the discount.',
+        name='products')
     categories = graphene.List(
-        graphene.ID, description='Categories related to the discount.')
+        graphene.ID, description='Categories related to the discount.',
+        name='categories')
+    collections = graphene.List(
+        graphene.ID, description='Collections related to the discount.',
+        name='collections')
+    start_date = graphene.types.datetime.DateTime(
+        description='Start date of the sale in ISO 8601 format.')
+    end_date = graphene.types.datetime.DateTime(
+        description='End date of the sale in ISO 8601 format.')
 
 
 class SaleCreate(ModelMutation):
@@ -108,7 +130,7 @@ class SaleCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('discount.edit_sale')
+        return user.has_perm('discount.manage_discounts')
 
 
 class SaleUpdate(ModelMutation):
@@ -125,7 +147,7 @@ class SaleUpdate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('discount.edit_sale')
+        return user.has_perm('discount.manage_discounts')
 
 
 class SaleDelete(ModelDeleteMutation):
@@ -139,4 +161,4 @@ class SaleDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('discount.edit_sale')
+        return user.has_perm('discount.manage_discounts')

@@ -1,5 +1,6 @@
-import React, { Component, PropTypes } from 'react';
-import { gql } from 'react-apollo';
+import * as PropTypes from 'prop-types';
+import React, { Component } from 'react';
+import gql from 'graphql-tag';
 
 import AttributeInput from './AttributeInput';
 import FilterHeader from './FilterHeader';

@@ -14,7 +14,8 @@ class ProductAttributesInput(graphene.InputObjectType):
 class AttributeChoiceValueInput(graphene.InputObjectType):
     attribute = graphene.ID(
         required=False,
-        description='Attribute to which value will be assigned.')
+        description='Attribute to which value will be assigned.',
+        name='attribute')
     slug = graphene.String(
         required=True, description='Internal name.')
     name = graphene.String(
@@ -40,7 +41,7 @@ class ProductAttributeCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_product')
+        return user.has_perm('product.manage_products')
 
 
 class ProductAttributeUpdate(ProductAttributeCreate):
@@ -67,7 +68,7 @@ class ProductAttributeDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_product')
+        return user.has_perm('product.manage_products')
 
 
 class AttributeChoiceValueCreate(ModelMutation):
@@ -82,7 +83,7 @@ class AttributeChoiceValueCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_product')
+        return user.has_perm('product.manage_products')
 
 
 class AttributeChoiceValueUpdate(AttributeChoiceValueCreate):
@@ -111,4 +112,4 @@ class AttributeChoiceValueDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_product')
+        return user.has_perm('product.manage_products')

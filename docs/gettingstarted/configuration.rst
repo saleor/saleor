@@ -60,7 +60,7 @@ Environment variables
   Controls maximum number of items in one cart line. Defaults to ``50``.
 
 ``STATIC_URL``
-  Controls production assets' mount path. Defaults to ``/static/assets/``.
+  Controls production assets' mount path. Defaults to ``/static/``.
 
 ``VATLAYER_ACCESS_KEY``
   Access key to `vatlayer API <https://vatlayer.com/>`_. Enables VAT support within European Union.

@@ -3,7 +3,7 @@
 {% load i18n_address_tags %}
 {% load placeholder %}
 {% load price from taxed_prices %}
-{% load product_first_image from product_images %}
+{% load get_thumbnail from product_images %}
 
 {% if order.user == user %}
   <div class="order-details__addresses">
@@ -48,14 +48,19 @@
 {% for line in order %}
   <div class="table__row order-details__product{% if forloop.last %} order-details__last-row{% endif %}">
     <div class="row">
-      <div class="col-md-8">
-        <a class="link--clean" href="{% if line.variant %}{{ line.variant.get_absolute_url }}{% endif %}">
-          <img data-src="{% product_first_image line.variant.product size="60x60" method="crop" %}"
-                data-srcset="{% product_first_image line.variant.product size="60x60" method="crop" %} 1x, {% product_first_image line.variant.product size="120x120" method="crop" %} 2x"
-                class="float-left lazyload lazypreload"
-                src="{% placeholder size=60 %}">
-          <span class="order-details__product__description">{{ line.product_name }}</span>
-        </a>
+      <div class="col-md-8 order-details__product__description">
+        {% if line.variant %}
+          <a class="link--clean" href="{{ line.variant.get_absolute_url }}">
+            <img data-src="{% get_thumbnail line.variant.get_first_image size=60 method="crop" %}"
+                  data-srcset="{% get_thumbnail line.variant.get_first_image size=60 method="crop" %} 1x, {% get_thumbnail line.variant.get_first_image size=120 method="crop" %} 2x"
+                  class="float-left lazyload lazypreload"
+                  src="{% placeholder size=60 %}">
+            <span>{{ line.translated_product_name|default:line.product_name }}</span>
+          </a>
+        {% else %}
+          <img src="{% placeholder size=60 %}" class="float-left">
+          <span>{{ line.translated_product_name|default:line.product_name }}</span>
+        {% endif %}
       </div>
       <div class="col-md-4">
         <div class="row">
@@ -110,7 +115,7 @@
 <div class="table__row">
   <div class="row">
     <div class="col-8 order-details__table-footer">
-      <p>{{ order.discount_name }}</p>
+      <p>{{ order.translated_discount_name|default:order.discount_name }}</p>
     </div>
     <div class="col-4">
       <p class="float-right">
@@ -175,16 +180,22 @@
       </div>
     </div>
   </div>
-  {% for line in fulfillment %}
+  {% for fulfillment_line in fulfillment %}
     <div class="table__row fulfillment__row order-details__product{% if forloop.last %} order-details__last-row{% endif %}">
       <div class="row">
-        <div class="col-md-6 col-9">
-          <a class="link--clean" href="{% if line.variant.product %}{{ line.variant.product.get_absolute_url }}{% endif %}">
-            <span class="order-details__product__description">{{ line.order_line.product_name }}</span>
-          </a>
+        <div class="col-md-6 col-9 order-details__product__description">
+          {% with variant=fulfillment_line.order_line.variant %}
+            {% if variant %}
+              <a class="link--clean" href="{{ variant.get_absolute_url }}">
+                <span>{{ fulfillment_line.order_line.translated_product_name|default:fulfillment_line.order_line.product_name }}</span>
+              </a>
+            {% else %}
+              <span>{{ fulfillment_line.order_line.translated_product_name|default:fulfillment_line.order_line.product_name }}</span>
+            {% endif %}
+          {% endwith %}
         </div>
         <div class="col-md-6 col-3">
-          <p class="float-right">x {{ line.quantity }}</p>
+          <p class="float-right">x {{ fulfillment_line.quantity }}</p>
         </div>
       </div>
     </div>

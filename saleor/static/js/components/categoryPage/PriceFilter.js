@@ -1,9 +1,9 @@
-import React, { Component, PropTypes } from 'react';
+import * as PropTypes from 'prop-types';
+import React, { Component } from 'react';
 import FilterHeader from './FilterHeader';
 import { isMobile } from '../utils';
 
 export default class PriceFilter extends Component {
-
   constructor(props) {
     super(props);
     this.state = {

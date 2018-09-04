@@ -16,13 +16,6 @@ class AssignMenuForm(forms.ModelForm):
         model = SiteSettings
         fields = ('top_menu', 'bottom_menu')
 
-    def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user')
-        super().__init__(*args, **kwargs)
-        user_can_edit_menus = self.user.has_perm('menu.edit_menu')
-        self.fields['top_menu'].disabled = not user_can_edit_menus
-        self.fields['bottom_menu'].disabled = not user_can_edit_menus
-
 
 class MenuForm(forms.ModelForm):
     """Add or update menu."""
@@ -50,15 +43,15 @@ class MenuItemForm(forms.ModelForm):
             Collection.objects.all(), Category.objects.all(),
             Page.objects.all()],
         fetch_data_url=reverse_lazy('dashboard:ajax-menu-links'), min_input=0,
-        required=False)
+        required=False,
+        label=pgettext_lazy('Menu item object to link', 'Link'))
 
     class Meta:
         model = MenuItem
         fields = ('name', 'url')
         labels = {
             'name': pgettext_lazy('Menu item name', 'Name'),
-            'url': pgettext_lazy('Menu item url', 'URL'),
-            'linked_object': pgettext_lazy('Menu item object to link', 'Link')}
+            'url': pgettext_lazy('Menu item url', 'URL')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

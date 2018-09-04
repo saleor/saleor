@@ -1,11 +1,13 @@
 import datetime
 import json
+from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
+
+from django.core import serializers
 from django.urls import reverse
 from prices import Money, TaxedMoney, TaxedMoneyRange
-
 from saleor.checkout import utils
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import add_variant_to_cart
@@ -14,8 +16,11 @@ from saleor.product import ProductAvailabilityStatus, models
 from saleor.product.thumbnails import create_product_thumbnails
 from saleor.product.utils import (
     allocate_stock, deallocate_stock, decrease_stock, increase_stock)
+from saleor.product.utils.attributes import get_product_attributes_data
 from saleor.product.utils.availability import get_product_availability_status
 from saleor.product.utils.variants_picker import get_variant_picker_data
+from saleor.menu.models import MenuItemTranslation
+from saleor.dashboard.menu.utils import update_menu
 
 from .utils import filter_products_by_attribute
 
@@ -60,7 +65,7 @@ def test_product_preview(admin_client, client, product):
     assert response.status_code == 200
 
 
-def test_filtering_by_attribute(db, color_attribute, default_category):
+def test_filtering_by_attribute(db, color_attribute, category):
     product_type_a = models.ProductType.objects.create(
         name='New class', has_variants=True)
     product_type_a.product_attributes.add(color_attribute)
@@ -69,11 +74,11 @@ def test_filtering_by_attribute(db, color_attribute, default_category):
     product_type_b.variant_attributes.add(color_attribute)
     product_a = models.Product.objects.create(
         name='Test product a', price=10, product_type=product_type_a,
-        category=default_category)
+        category=category)
     models.ProductVariant.objects.create(product=product_a, sku='1234')
     product_b = models.Product.objects.create(
         name='Test product b', price=10, product_type=product_type_b,
-        category=default_category)
+        category=category)
     variant_b = models.ProductVariant.objects.create(product=product_b,
                                                      sku='12345')
     color = color_attribute.values.first()
@@ -100,9 +105,31 @@ def test_filtering_by_attribute(db, color_attribute, default_category):
     assert product_b not in list(filtered)
 
 
-def test_render_home_page(client, product):
+def test_render_home_page(client, product, site_settings, settings):
+    # Tests if menu renders properly if none is assigned
+    settings.LANGUAGE_CODE = 'fr'
+    site_settings.top_menu = None
+    site_settings.save()
+
     response = client.get(reverse('home'))
     assert response.status_code == 200
+
+
+def test_render_home_page_with_translated_menu_items(
+        client, product, menu_with_items, site_settings, settings):
+    settings.LANGUAGE_CODE = 'fr'
+    site_settings.top_menu = menu_with_items
+    site_settings.save()
+
+    for item in menu_with_items.items.all():
+        MenuItemTranslation.objects.create(
+            menu_item=item, language_code='fr',
+            name='Translated name in French')
+    update_menu(menu_with_items)
+
+    response = client.get(reverse('home'))
+    assert response.status_code == 200
+    assert 'Translated name in French' in str(response.content)
 
 
 def test_render_home_page_with_sale(client, product, sale):
@@ -115,19 +142,18 @@ def test_render_home_page_with_taxes(client, product, vatlayer):
     assert response.status_code == 200
 
 
-def test_render_category(client, default_category, product):
-    response = client.get(default_category.get_absolute_url())
+def test_render_category(client, category, product):
+    response = client.get(category.get_absolute_url())
     assert response.status_code == 200
 
 
-def test_render_category_with_sale(client, default_category, product, sale):
-    response = client.get(default_category.get_absolute_url())
+def test_render_category_with_sale(client, category, product, sale):
+    response = client.get(category.get_absolute_url())
     assert response.status_code == 200
 
 
-def test_render_category_with_taxes(
-        client, default_category, product, vatlayer):
-    response = client.get(default_category.get_absolute_url())
+def test_render_category_with_taxes(client, category, product, vatlayer):
+    response = client.get(category.get_absolute_url())
     assert response.status_code == 200
 
 
@@ -195,7 +221,8 @@ def test_adding_to_cart_with_current_user_token(
 
 
 def test_adding_to_cart_with_another_user_token(
-        admin_user, admin_client, product, customer_user, request_cart_with_item):
+        admin_user, admin_client, product, customer_user,
+        request_cart_with_item):
     client = admin_client
     key = utils.COOKIE_NAME
     request_cart_with_item.user = customer_user
@@ -290,30 +317,6 @@ def test_get_variant_picker_data_proper_variant_count(product):
     assert len(data['variantAttributes'][0]['values']) == 1
 
 
-def test_view_ajax_available_variants_list(admin_client, product):
-    variant = product.variants.first()
-    variant_list = [
-        {'id': variant.pk, 'text': '123, Test product (123), $10.00'}]
-    url = reverse('dashboard:ajax-available-variants')
-
-    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-
-    resp_decoded = json.loads(response.content.decode('utf-8'))
-    assert response.status_code == 200
-    assert resp_decoded == {'results': variant_list}
-
-
-def test_view_ajax_available_products_list(admin_client, product):
-    product_list = [{'id': product.pk, 'text': 'Test product'}]
-    url = reverse('dashboard:ajax-products')
-
-    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-
-    resp_decoded = json.loads(response.content.decode('utf-8'))
-    assert response.status_code == 200
-    assert resp_decoded == {'results': product_list}
-
-
 def test_render_product_page_with_no_variant(
         unavailable_product, admin_client):
     product = unavailable_product
@@ -350,14 +353,14 @@ def test_create_product_thumbnails(
         ('15.00', True, False, True, '10.00', '10.00'),
         ('15.00', True, True, True, '8.13', '10.00')])
 def test_get_price(
-        product_type, default_category, taxes, sale, product_price,
+        product_type, category, taxes, sale, product_price,
         include_taxes_in_prices, include_taxes, include_discounts,
         product_net, product_gross, site_settings):
     site_settings.include_taxes_in_prices = include_taxes_in_prices
     site_settings.save()
     product = models.Product.objects.create(
         product_type=product_type,
-        category=default_category,
+        category=category,
         price=Money(product_price, 'USD'))
     variant = product.variants.create()
 
@@ -370,12 +373,12 @@ def test_get_price(
 
 
 def test_product_get_price_variant_has_no_price(
-        product_type, default_category, taxes, site_settings):
+        product_type, category, taxes, site_settings):
     site_settings.include_taxes_in_prices = False
     site_settings.save()
     product = models.Product.objects.create(
         product_type=product_type,
-        category=default_category,
+        category=category,
         price=Money('10.00', 'USD'))
     variant = product.variants.create()
 
@@ -386,12 +389,12 @@ def test_product_get_price_variant_has_no_price(
 
 
 def test_product_get_price_variant_with_price(
-        product_type, default_category, taxes, site_settings):
+        product_type, category, taxes, site_settings):
     site_settings.include_taxes_in_prices = False
     site_settings.save()
     product = models.Product.objects.create(
         product_type=product_type,
-        category=default_category,
+        category=category,
         price=Money('10.00', 'USD'))
     variant = product.variants.create(price_override=Money('20.00', 'USD'))
 
@@ -402,12 +405,12 @@ def test_product_get_price_variant_with_price(
 
 
 def test_product_get_price_range_with_variants(
-        product_type, default_category, taxes, site_settings):
+        product_type, category, taxes, site_settings):
     site_settings.include_taxes_in_prices = False
     site_settings.save()
     product = models.Product.objects.create(
         product_type=product_type,
-        category=default_category,
+        category=category,
         price=Money('15.00', 'USD'))
     product.variants.create(sku='1')
     product.variants.create(sku='2', price_override=Money('20.00', 'USD'))
@@ -423,12 +426,12 @@ def test_product_get_price_range_with_variants(
 
 
 def test_product_get_price_range_no_variants(
-        product_type, default_category, taxes, site_settings):
+        product_type, category, taxes, site_settings):
     site_settings.include_taxes_in_prices = False
     site_settings.save()
     product = models.Product.objects.create(
         product_type=product_type,
-        category=default_category,
+        category=category,
         price=Money('10.00', 'USD'))
 
     price = product.get_price_range(taxes=taxes)
@@ -439,10 +442,10 @@ def test_product_get_price_range_no_variants(
 
 
 def test_product_get_price_do_not_charge_taxes(
-        product_type, default_category, taxes, sale):
+        product_type, category, taxes, sale):
     product = models.Product.objects.create(
         product_type=product_type,
-        category=default_category,
+        category=category,
         price=Money('10.00', 'USD'),
         charge_taxes=False)
     variant = product.variants.create()
@@ -454,10 +457,10 @@ def test_product_get_price_do_not_charge_taxes(
 
 
 def test_product_get_price_range_do_not_charge_taxes(
-        product_type, default_category, taxes, sale):
+        product_type, category, taxes, sale):
     product = models.Product.objects.create(
         product_type=product_type,
-        category=default_category,
+        category=category,
         price=Money('10.00', 'USD'),
         charge_taxes=False)
 
@@ -476,3 +479,73 @@ def test_variant_base_price(product):
     variant.save()
 
     assert variant.base_price == variant.price_override
+
+
+def test_product_json_serialization(product):
+    product.price = Money('10.00', 'USD')
+    product.save()
+    data = json.loads(serializers.serialize(
+        "json", models.Product.objects.all()))
+    assert data[0]['fields']['price'] == '10.00'
+
+
+def test_product_json_deserialization(category, product_type):
+    product_json = """
+    [{{
+        "model": "product.product",
+        "pk": 60,
+        "fields": {{
+            "seo_title": null,
+            "seo_description": "Future almost cup national.",
+            "product_type": {product_type_pk},
+            "name": "Kelly-Clark",
+            "description": "Future almost cup national",
+            "category": {category_pk},
+            "price": "35.98",
+            "available_on": null,
+            "is_published": true,
+            "attributes": "{{\\"9\\": \\"24\\", \\"10\\": \\"26\\"}}",
+            "updated_at": "2018-07-19T13:30:24.195Z",
+            "is_featured": false,
+            "charge_taxes": true,
+            "tax_rate": "standard"
+        }}
+    }}]
+    """.format(
+        category_pk=category.pk, product_type_pk=product_type.pk)
+    product_deserialized = list(serializers.deserialize(
+        'json', product_json, ignorenonexistent=True))[0]
+    product_deserialized.save()
+    product = models.Product.objects.first()
+    assert product.price == Money(Decimal('35.98'), 'USD')
+
+
+def test_variant_picker_data_with_translations(
+        product, translated_variant_fr, settings):
+    settings.LANGUAGE_CODE = 'fr'
+    variant_picker_data = get_variant_picker_data(product)
+    attribute = variant_picker_data['variantAttributes'][0]
+    assert attribute['name'] == translated_variant_fr.name
+
+
+def test_get_product_attributes_data_translation(
+        product, settings, translated_product_attribute):
+    settings.LANGUAGE_CODE = 'fr'
+    attributes_data = get_product_attributes_data(product)
+    attributes_keys = [attr.name for attr in attributes_data.keys()]
+    assert translated_product_attribute.name in attributes_keys
+
+
+def test_homepage_collection_render(
+        client, site_settings, collection, product_list):
+    collection.products.add(*product_list)
+    site_settings.homepage_collection = collection
+    site_settings.save()
+
+    response = client.get(reverse('home'))
+    assert response.status_code == 200
+    products_in_context = {
+        product[0] for product in response.context['products']}
+    products_available = {
+        product for product in product_list if product.is_published}
+    assert products_in_context == products_available

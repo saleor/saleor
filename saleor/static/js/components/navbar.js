@@ -9,6 +9,7 @@ const renderNavbar = () => {
   const $mobileLinkBar = $('.navbar__menu__login');
   const windowWidth = window.innerWidth;
   const $languagePicker = $('.language-picker');
+  const $languagePickerButton = $('#language-picker-button');
 
   if (windowWidth < 768) {
     const $desktopLinks = $desktopLinkBar.find('a').not('.dropdown-link');
@@ -26,6 +27,8 @@ const renderNavbar = () => {
         .find('li')
         .remove();
     }
+    $languagePickerButton.attr('data-target', '#languagePickerModal');
+    $languagePickerButton.attr('data-toggle', 'modal');
   } else {
     const $mobileLinks = $mobileLinkBar.find('a').not('.dropdown-link');
     if ($mobileLinks.length) {
@@ -39,6 +42,8 @@ const renderNavbar = () => {
         .removeClass('nav-link');
       $mobileLinkBar.remove();
     }
+    $languagePickerButton.attr('data-target', '');
+    $languagePickerButton.attr('data-toggle', 'dropdown');
   }
 };
 

@@ -49,7 +49,7 @@ class ProductForm(AddToCartForm):
         super().__init__(*args, **kwargs)
         variant_field = self.fields['variant']
         variant_field.update_field_data(
-            self.product.variants, self.discounts, self.taxes)
+            self.product.variants.all(), self.discounts, self.taxes)
 
     def get_variant(self, cleaned_data):
         return cleaned_data.get('variant')

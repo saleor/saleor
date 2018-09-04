@@ -123,7 +123,7 @@ def test_get_country_name_by_code():
     assert country_name == 'Poland'
 
 
-def test_apply_tax_to_price_include_tax(site_settings, taxes):
+def test_apply_tax_to_price_do_not_include_tax(site_settings, taxes):
     site_settings.include_taxes_in_prices = False
     site_settings.save()
 
@@ -140,7 +140,7 @@ def test_apply_tax_to_price_include_tax(site_settings, taxes):
         net=Money(100, 'USD'), gross=Money(108, 'USD'))
 
 
-def test_apply_tax_to_price_include_tax_fallback_to_standard_rate(
+def test_apply_tax_to_price_do_not_include_tax_fallback_to_standard_rate(
         site_settings, taxes):
     site_settings.include_taxes_in_prices = False
     site_settings.save()

@@ -4,13 +4,12 @@ from graphql_jwt.decorators import permission_required
 from graphql_jwt.exceptions import PermissionDenied
 
 from ....dashboard.order.utils import fulfill_order_line
-from ....graphql.core.mutations import BaseMutation, ModelMutation
-from ....graphql.core.types import Error
-from ....graphql.order.types import Fulfillment
-from ....graphql.utils import get_node, get_nodes
 from ....order import models
 from ....order.emails import send_fulfillment_confirmation
 from ....order.utils import cancel_fulfillment, update_order_status
+from ...core.mutations import BaseMutation, ModelMutation
+from ...order.types import Fulfillment
+from ...utils import get_nodes
 from ..types import OrderLine
 
 
@@ -30,13 +29,15 @@ def clean_lines_quantities(order_lines, quantities):
 
 
 class FulfillmentLineInput(graphene.InputObjectType):
-    order_line_id = graphene.ID(description='The ID of the order line.')
+    order_line_id = graphene.ID(
+        description='The ID of the order line.', name='orderLineId')
     quantity = graphene.Int(
         description='The number of line item(s) to be fulfiled.')
 
 
 class FulfillmentCreateInput(graphene.InputObjectType):
-    order = graphene.ID(description='ID of the order to be fulfilled.')
+    order = graphene.ID(
+        description='ID of the order to be fulfilled.', name='order')
     tracking_number = graphene.String(
         description='Fulfillment tracking number')
     notify_customer = graphene.Boolean(
@@ -86,7 +87,7 @@ class FulfillmentCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('order.edit_order')
+        return user.has_perm('order.manage_orders')
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):
@@ -163,24 +164,26 @@ class FulfillmentCancel(BaseMutation):
         Fulfillment, description='A canceled fulfillment.')
 
     @classmethod
-    @permission_required('order.edit_order')
+    @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, input):
         # DEMO: disable mutations
         raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
 
-        restock = input.get('restock')
-        fulfillment = get_node(info, id, only_type=Fulfillment)
-        order = fulfillment.order
         errors = []
-        if not fulfillment.can_edit():
-            errors.append(
-                Error(
-                    field='fulfillment',
-                    message=pgettext_lazy(
-                        'Cancel fulfillment mutation error',
-                        'This fulfillment can\'t be canceled')))
+        restock = input.get('restock')
+        fulfillment = cls.get_node_or_error(
+            info, id, errors, 'id', Fulfillment)
+        if fulfillment:
+            order = fulfillment.order
+            if not fulfillment.can_edit():
+                err_msg = pgettext_lazy(
+                    'Cancel fulfillment mutation error',
+                    'This fulfillment can\'t be canceled')
+                cls.add_error(errors, 'fulfillment', err_msg)
+
         if errors:
             return cls(errors=errors)
+
         cancel_fulfillment(fulfillment, restock)
         if restock:
             msg = npgettext_lazy(

@@ -89,7 +89,6 @@
               {% endif %}
             </div>
           </div>
-          {% if perms.product.edit_category %}
           <div class="card-action">
             <a class="btn-flat waves-effect" href="{% url 'dashboard:category-edit' root_pk=root.pk %}">
               {% trans "Edit category" context "Category detail view action" %}
@@ -98,7 +97,6 @@
               {% trans "Remove category" context "Category detail view action" %}
             </a>
           </div>
-          {% endif %}
         </div>
         <div class="card">
           <div class="card-content">
@@ -121,9 +119,7 @@
                   {% trans "Description" context "Category list table header description" as label %}
                   {% sorting_header 'description' label is_wide=True %}
 
-                  {% if perms.product.edit_category %}
-                    <th></th>
-                  {% endif %}
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -139,16 +135,14 @@
                         &nbsp;
                       {% endif %}
                     </td>
-                    {% if perms.product.edit_category %}
-                      <td class="right-align ignore-link">
-                        <a href="{% url 'dashboard:category-edit' root_pk=node.pk %}" class="btn-flat waves-effect">
-                          {% trans 'Edit' context 'Category edit action' %}
-                        </a>
-                        <a href="#base-modal" class="btn-flat waves-effect modal-trigger-custom" data-href="{% url 'dashboard:category-delete' pk=node.pk %}">
-                          {% trans "Remove" context "Category list action link" %}
-                        </a>
-                      </td>
-                    {% endif %}
+                    <td class="right-align ignore-link">
+                      <a href="{% url 'dashboard:category-edit' root_pk=node.pk %}" class="btn-flat waves-effect">
+                        {% trans 'Edit' context 'Category edit action' %}
+                      </a>
+                      <a href="#base-modal" class="btn-flat waves-effect modal-trigger-custom" data-href="{% url 'dashboard:category-delete' pk=node.pk %}">
+                        {% trans "Remove" context "Category list action link" %}
+                      </a>
+                    </td>
                   </tr>
                 {% empty %}
                   <tr>

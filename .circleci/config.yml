@@ -11,18 +11,19 @@ jobs:
       - run:
           name: Set version
           command: |
-            sed -i.bak "s#'dev'#'$(git describe --tags)'#" saleor/__init__.py
+            export SALEOR_VERSION=$(git rev-parse --short HEAD)
+            if [ -n "$CIRCLE_TAG" ]; then
+              export SALEOR_VERSION=$(git describe --tags)
+            fi
+            sed -i.bak "s#'dev'#'$SALEOR_VERSION'#" saleor/__init__.py
+
+
       - run:
           name: Build application Docker image
           command: |
             docker build \
-              --build-arg AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-              --build-arg AWS_LOCATION=$AWS_LOCATION \
-              --build-arg AWS_MEDIA_BUCKET_NAME=$AWS_MEDIA_BUCKET_NAME \
-              --build-arg AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-              --build-arg AWS_STORAGE_BUCKET_NAME=$AWS_STORAGE_BUCKET_NAME \
               --build-arg STATIC_URL=$STATIC_URL \
-              --cache-from=mirumee/saleor:latest -t mirumee/saleor:latest .
+              -t mirumee/saleor:latest .
       - run:
           name: Run tests
           command: |
@@ -39,19 +40,33 @@ jobs:
             docker tag mirumee/saleor:latest mirumee/saleor:$CIRCLE_SHA1
             docker push mirumee/saleor:$CIRCLE_SHA1
             docker push mirumee/saleor:latest
-            apk add --upgrade --no-cache curl libcurl
-            curl -u $DEMO_DEPLOY_KEY: \
-              -d build_parameters[CIRCLE_JOB]=deploy \
-              https://circleci.com/api/v1.1/project/github/mirumee/saleor-demo/tree/master
+
+      - run:
+          name: Deploy saleor-demo
+          command: |
+            if [ -n "$CIRCLE_TAG" ]; then
+              apk add --upgrade --no-cache curl libcurl
+              sh ./scripts/push_static.sh
+              curl -u $DEMO_DEPLOY_KEY: \
+                -d build_parameters[CIRCLE_JOB]=deploy \
+                https://circleci.com/api/v1.1/project/github/mirumee/saleor-demo/tree/master
+            fi
+
+      - run:
+          name: Deploy saleor master
+          command: |
+            apk add --upgrade --no-cache zip py-pip
+            pip install awscli
+            sh ./scripts/deploy_master.sh > /dev/null 2>&1
 
 
 workflows:
   version: 2
-  build-demo:
+  build-deploy:
     jobs:
         - build:
             filters:
               branches:
-                ignore: /.*/
+                only: master
               tags:
                 only: /demo.*/

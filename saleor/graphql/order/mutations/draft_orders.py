@@ -4,35 +4,21 @@ from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
 from graphql_jwt.exceptions import PermissionDenied
 
-from saleor.account.models import Address
-from saleor.core.exceptions import InsufficientStock
-from saleor.core.utils.taxes import ZERO_TAXED_MONEY
-from saleor.graphql.core.mutations import (
-    BaseMutation, ModelDeleteMutation, ModelMutation)
-from saleor.graphql.core.types import Decimal, Error
-from saleor.graphql.order.types import Order
-from saleor.graphql.product.types import ProductVariant
-from saleor.graphql.utils import get_node, get_nodes
-from saleor.order import OrderStatus, models
-from saleor.order.utils import add_variant_to_order, recalculate_order
-
-
-class AddressInput(graphene.InputObjectType):
-    first_name = graphene.String(description='Given name.')
-    last_name = graphene.String(description='Family name.')
-    company_name = graphene.String(description='Company or organization.')
-    street_address_1 = graphene.String(description='Address.')
-    street_address_2 = graphene.String(description='Address.')
-    city = graphene.String(description='City.')
-    city_area = graphene.String(description='District.')
-    postal_code = graphene.String(description='Postal code.')
-    country = graphene.String(description='Country.')
-    country_area = graphene.String(description='State or province.')
-    phone = graphene.String(description='Phone number.')
+from ....account.models import Address
+from ....core.exceptions import InsufficientStock
+from ....core.utils.taxes import ZERO_TAXED_MONEY
+from ....order import OrderStatus, models
+from ....order.utils import add_variant_to_order, recalculate_order
+from ...account.types import AddressInput
+from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
+from ...core.types.common import Decimal, Error
+from ...product.types import ProductVariant
+from ..types import Order
 
 
 class OrderLineInput(graphene.InputObjectType):
-    variant_id = graphene.ID(description='Product variant ID.')
+    variant_id = graphene.ID(
+        description='Product variant ID.', name='variantId')
     quantity = graphene.Int(
         description='Number of variant items ordered.')
 
@@ -41,7 +27,7 @@ class DraftOrderInput(InputObjectType):
     billing_address = AddressInput(
         description='Billing address of the customer.')
     user = graphene.ID(
-        descripton='Customer associated with the draft order.')
+        descripton='Customer associated with the draft order.', name='user')
     user_email = graphene.String(description='Email address of the customer.')
     discount = Decimal(description='Discount amount for the order.')
     lines = graphene.List(
@@ -51,9 +37,10 @@ class DraftOrderInput(InputObjectType):
     shipping_address = AddressInput(
         description='Shipping address of the customer.')
     shipping_method = graphene.ID(
-        description='ID of a selected shipping method.')
+        description='ID of a selected shipping method.', name='shippingMethod')
     voucher = graphene.ID(
-        description='ID of the voucher associated with the order')
+        description='ID of the voucher associated with the order',
+        name='voucher')
 
 
 def check_lines_quantity(variants, quantities):
@@ -93,7 +80,9 @@ class DraftOrderCreate(ModelMutation):
         lines = input.pop('lines', None)
         if lines:
             variant_ids = [line.get('variant_id') for line in lines]
-            variants = get_nodes(ids=variant_ids, graphene_type=ProductVariant)
+            variants = cls.get_nodes_or_error(
+                ids=variant_ids, only_type=ProductVariant, errors=errors,
+                field='variants')
             quantities = [line.get('quantity') for line in lines]
             line_errors = check_lines_quantity(variants, quantities)
             if line_errors:
@@ -128,7 +117,7 @@ class DraftOrderCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('order.edit_order')
+        return user.has_perm('order.manage_orders')
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -174,16 +163,15 @@ class DraftOrderDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('order.edit_order')
+        return user.has_perm('order.manage_orders')
 
 
-def check_for_draft_order_errors(order):
+def check_for_draft_order_errors(order, errors):
     """Return a list of errors associated with the order.
 
     Checks, if given order has a proper shipping address and method
     set up and return list of errors if not.
     """
-    errors = []
     if order.get_total_quantity() == 0:
         errors.append(
             Error(
@@ -192,10 +180,10 @@ def check_for_draft_order_errors(order):
     if order.is_shipping_required():
         method = order.shipping_method
         shipping_address = order.shipping_address
-        shipping_valid = (
+        shipping_not_valid = (
             method and shipping_address and
-            shipping_address.country.code != method.country_code)
-        if not shipping_valid:
+            shipping_address.country.code not in method.shipping_zone.countries)  # noqa
+        if shipping_not_valid:
             errors.append(
                 Error(
                     field='shipping',
@@ -217,13 +205,14 @@ class DraftOrderComplete(BaseMutation):
         Order, description='Completed order.')
 
     @classmethod
-    @permission_required('order.edit_order')
+    @permission_required('order.manage_orders')
     def mutate(cls, root, info, id):
         # DEMO: disable mutations
         raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
 
-        order = get_node(info, id, only_type=Order)
-        errors = check_for_draft_order_errors(order)
+        errors = []
+        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        errors = check_for_draft_order_errors(order, errors)
         if errors:
             return cls(errors=errors)
 

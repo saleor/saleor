@@ -1,28 +1,20 @@
 import json
-
+from unittest import mock
 import pytest
 from django.urls import reverse
 
 from saleor.dashboard.menu.forms import AssignMenuForm
-from saleor.dashboard.menu.utils import update_menu_item_linked_object
-from saleor.menu.models import Menu, MenuItem
+from saleor.dashboard.menu.utils import (
+    get_menu_as_json, get_menu_item_as_dict, get_menus_that_needs_update,
+    update_menu, update_menu_item_linked_object, update_menus)
+from saleor.menu.models import Menu, MenuItem, MenuItemTranslation
 
 from ..utils import get_redirect_location
 
 
 def test_assign_menu_form(admin_user, menu, site_settings):
     data = {'top_menu': menu.pk, 'bottom_menu': ''}
-    form = AssignMenuForm(data=data, user=admin_user, instance=site_settings)
-    assert not form.fields['top_menu'].disabled
-    assert not form.fields['bottom_menu'].disabled
-    assert form.is_valid()
-
-
-def test_assign_menu_form_no_permission(staff_user, menu, site_settings):
-    data = {'top_menu': menu.pk, 'bottom_menu': ''}
-    form = AssignMenuForm(data=data, user=staff_user, instance=site_settings)
-    assert form.fields['top_menu'].disabled
-    assert form.fields['bottom_menu'].disabled
+    form = AssignMenuForm(data=data, instance=site_settings)
     assert form.is_valid()
 
 
@@ -45,22 +37,6 @@ def test_view_menu_list_assign_new_menu_to_settings(
 
     site_settings.refresh_from_db()
     assert site_settings.top_menu == top_menu
-    assert not site_settings.bottom_menu
-
-
-def test_view_menu_list_assign_new_menu_to_settings_no_edit_permission(
-        staff_client, menu, site_settings, permission_view_menu, staff_group,
-        staff_user):
-    staff_group.permissions.add(permission_view_menu)
-    staff_user.groups.add(staff_group)
-
-    url = reverse('dashboard:menu-list')
-    data = {'top_menu': menu.pk, 'bottom_menu': ''}
-    response = staff_client.post(url, data=data)
-    assert response.status_code == 200
-
-    site_settings.refresh_from_db()
-    assert not site_settings.top_menu
     assert not site_settings.bottom_menu
 
 
@@ -132,9 +108,9 @@ def test_view_menu_delete(admin_client, menu):
     assert Menu.objects.count() == menus_before - 1
 
 
-def test_view_menu_item_create(admin_client, menu, default_category):
+def test_view_menu_item_create(admin_client, menu, category):
     url = reverse('dashboard:menu-item-add', kwargs={'menu_pk': menu.pk})
-    linked_object = str(default_category.id) + '_Category'
+    linked_object = str(category.id) + '_Category'
     data = {'name': 'Link', 'linked_object': linked_object}
 
     response = admin_client.post(url, data)
@@ -148,11 +124,11 @@ def test_view_menu_item_create(admin_client, menu, default_category):
 
 
 def test_view_menu_item_create_with_parent(
-        admin_client, menu, menu_item, default_category):
+        admin_client, menu, menu_item, category):
     url = reverse(
         'dashboard:menu-item-add',
         kwargs={'menu_pk': menu.pk, 'root_pk': menu_item.pk})
-    linked_object = str(default_category.id) + '_Category'
+    linked_object = str(category.id) + '_Category'
     data = {'name': 'Link 2', 'linked_object': linked_object}
 
     response = admin_client.post(url, data)
@@ -178,11 +154,11 @@ def test_view_menu_item_create_not_valid(admin_client, menu):
     assert MenuItem.objects.count() == 0
 
 
-def test_view_menu_item_edit(admin_client, menu, menu_item, default_category):
+def test_view_menu_item_edit(admin_client, menu, menu_item, category):
     url = reverse(
         'dashboard:menu-item-edit',
         kwargs={'menu_pk': menu.pk, 'item_pk': menu_item.pk})
-    linked_object = str(default_category.id) + '_Category'
+    linked_object = str(category.id) + '_Category'
     data = {'name': 'New link', 'linked_object': linked_object}
 
     response = admin_client.post(url, data)
@@ -281,14 +257,13 @@ def test_view_ajax_reorder_menu_items_with_parent(
 
 
 @pytest.mark.integration
-def test_view_ajax_menu_links(
-        admin_client, collection, default_category, page):
+def test_view_ajax_menu_links(admin_client, collection, category, page):
     collection_repr = {
         'id': str(collection.pk) + '_' + 'Collection',
         'text': str(collection)}
     category_repr = {
-        'id': str(default_category.pk) + '_' + 'Category',
-        'text': str(default_category)}
+        'id': str(category.pk) + '_' + 'Category',
+        'text': str(category)}
     page_repr = {
         'id': str(page.pk) + '_' + 'Page',
         'text': str(page)}
@@ -306,8 +281,8 @@ def test_view_ajax_menu_links(
     assert resp_decoded == {'results': groups}
 
 
-def test_update_menu_item_linked_object(menu, default_category, page):
-    menu_item = menu.items.create(category=default_category)
+def test_update_menu_item_linked_object(menu, category, page):
+    menu_item = menu.items.create(category=category)
 
     update_menu_item_linked_object(menu_item, page)
 
@@ -315,3 +290,75 @@ def test_update_menu_item_linked_object(menu, default_category, page):
     assert menu_item.get_url() == page.get_absolute_url()
     assert not menu_item.category
     assert not menu_item.collection
+
+
+def test_get_menu_item_as_dict(menu):
+    item = MenuItem.objects.create(
+        name='Name', menu=menu, url='http://url.com')
+    result = get_menu_item_as_dict(item)
+    assert result == {
+        'name': 'Name', 'url': 'http://url.com', 'translations': {}}
+
+
+def test_get_menu_item_as_dict_with_translations(menu, collection):
+    item = MenuItem.objects.create(
+        name='Name', menu=menu, collection=collection)
+    MenuItemTranslation.objects.create(
+        menu_item=item, name='Polish Name', language_code='pl')
+    result = get_menu_item_as_dict(item)
+    assert result == {
+        'name': 'Name', 'url': collection.get_absolute_url(),
+        'translations': {'pl': {'name': 'Polish Name'}}}
+
+
+def test_get_menu_as_json(menu):
+    top_item = MenuItem.objects.create(
+        menu=menu, name='top item', url='http://topitem.pl')
+    child_item = MenuItem.objects.create(
+        menu=menu, parent=top_item, name='child item',
+        url='http://childitem.pl')
+    grand_child_item = MenuItem.objects.create(
+        menu=menu, parent=child_item, name='grand child item',
+        url='http://grandchilditem.pl')
+    top_item_data = get_menu_item_as_dict(top_item)
+    child_item_data = get_menu_item_as_dict(child_item)
+    grand_child_data = get_menu_item_as_dict(grand_child_item)
+
+    child_item_data['child_items'] = [grand_child_data]
+    top_item_data['child_items'] = [child_item_data]
+    proper_data = [top_item_data]
+    proper_data = json.dumps(proper_data)
+    assert proper_data == get_menu_as_json(menu)
+
+
+@mock.patch('saleor.dashboard.menu.utils.update_menu')
+def test_update_menus(mock_update_menu, menu):
+    update_menus([menu.pk])
+    mock_update_menu.assert_called_once_with(menu)
+
+
+@mock.patch('saleor.dashboard.menu.utils.get_menu_as_json')
+def test_update_menu(mock_json_menu, menu):
+    mock_json_menu.return_value = 'Return value'
+    update_menu(menu)
+
+    mock_json_menu.assert_called_once_with(menu)
+    menu.refresh_from_db()
+    assert menu.json_content == 'Return value'
+
+
+def test_get_menus_that_needs_update(category, collection, page):
+    assert not get_menus_that_needs_update()
+
+    menus = Menu.objects.bulk_create([
+        Menu(name='category'),
+        Menu(name='collection'),
+        Menu(name='page')])
+
+    MenuItem.objects.create(name='item', menu=menus[0], category=category),
+    MenuItem.objects.create(name='item', menu=menus[1], collection=collection),
+    MenuItem.objects.create(name='item', menu=menus[2], page=page)
+
+    result = get_menus_that_needs_update(
+        categories=[category], collection=collection, page=page)
+    assert sorted(list(result)) == sorted([m.pk for m in menus])

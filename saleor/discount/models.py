@@ -6,24 +6,26 @@ from django.conf import settings
 from django.db import models
 from django.db.models import F, Q
 from django.utils.translation import pgettext, pgettext_lazy
-from django_countries import countries
+from django_countries.fields import CountryField
 from django_prices.models import MoneyField
 from django_prices.templatetags.prices_i18n import amount
 from prices import Money, fixed_discount, percentage_discount
 
-from . import DiscountValueType, VoucherApplyToProduct, VoucherType
+from . import DiscountValueType, VoucherType
+from ..core.utils.translations import TranslationProxy
 
 
 class NotApplicable(ValueError):
     """Exception raised when a discount is not applicable to a checkout.
 
-    If the error is raised because the order value is too low the minimum
-    price limit will be available as the `limit` attribute.
+    The error is raised if the order value is below the minimum required
+    price.
+    Minimum price will be available as the `min_amount_spent` attribute.
     """
 
-    def __init__(self, msg, limit=None):
+    def __init__(self, msg, min_amount_spent=None):
         super().__init__(msg)
-        self.limit = limit
+        self.min_amount_spent = min_amount_spent
 
 
 class VoucherQueryset(models.QuerySet):
@@ -43,31 +45,25 @@ class Voucher(models.Model):
     used = models.PositiveIntegerField(default=0, editable=False)
     start_date = models.DateField(default=date.today)
     end_date = models.DateField(null=True, blank=True)
-
+    # this field indicates if discount should be applied per order or
+    # individually to every item
+    apply_once_per_order = models.BooleanField(default=False)
     discount_value_type = models.CharField(
         max_length=10, choices=DiscountValueType.CHOICES,
         default=DiscountValueType.FIXED)
     discount_value = models.DecimalField(
         max_digits=12, decimal_places=settings.DEFAULT_DECIMAL_PLACES)
-
     # not mandatory fields, usage depends on type
-    product = models.ForeignKey(
-        'product.Product', blank=True, null=True, on_delete=models.CASCADE)
-    category = models.ForeignKey(
-        'product.Category', blank=True, null=True, on_delete=models.CASCADE)
-    apply_to = models.CharField(max_length=20, blank=True, null=True)
-    limit = MoneyField(
+    countries = CountryField(multiple=True, blank=True)
+    min_amount_spent = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, null=True, blank=True)
+    products = models.ManyToManyField('product.Product', blank=True)
+    collections = models.ManyToManyField('product.Collection', blank=True)
+    categories = models.ManyToManyField('product.Category', blank=True)
 
     objects = VoucherQueryset.as_manager()
-
-    class Meta:
-        permissions = (
-            ('view_voucher',
-             pgettext_lazy('Permission description', 'Can view vouchers')),
-            ('edit_voucher',
-             pgettext_lazy('Permission description', 'Can edit vouchers')))
+    translated = TranslationProxy()
 
     def __str__(self):
         if self.name:
@@ -81,15 +77,29 @@ class Voucher(models.Model):
                 'Voucher type',
                 '%(discount)s off shipping') % {'discount': discount}
         if self.type == VoucherType.PRODUCT:
-            return pgettext(
-                'Voucher type',
-                '%(discount)s off %(product)s') % {
-                    'discount': discount, 'product': self.product}
+            products = len(self.products.all())
+            if products:
+                return pgettext(
+                    'Voucher type',
+                    '%(discount)s off %(product_num)d products') % {
+                        'discount': discount,
+                        'product_num': products}
+        if self.type == VoucherType.COLLECTION:
+            collections = len(self.collections.all())
+            if collections:
+                return pgettext(
+                    'Voucher type',
+                    '%(discount)s off %(collections_num)d collections') % {
+                        'discount': discount,
+                        'collections_num': collections}
         if self.type == VoucherType.CATEGORY:
-            return pgettext(
-                'Voucher type',
-                '%(discount)s off %(category)s') % {
-                    'discount': discount, 'category': self.category}
+            categories = len(self.categories.all())
+            if categories:
+                return pgettext(
+                    'Voucher type',
+                    '%(discount)s off %(categories_num)d categories') % {
+                        'discount': discount,
+                        'categories_num': categories}
         return pgettext(
             'Voucher type', '%(discount)s off') % {'discount': discount}
 
@@ -98,17 +108,6 @@ class Voucher(models.Model):
         return (
             self.discount_value == Decimal(100) and
             self.discount_value_type == DiscountValueType.PERCENTAGE)
-
-    def get_apply_to_display(self):
-        if self.type == VoucherType.SHIPPING and self.apply_to:
-            return countries.name(self.apply_to)
-        if self.type == VoucherType.SHIPPING:
-            return pgettext('Voucher', 'Any country')
-        if self.apply_to and self.type in {
-                VoucherType.PRODUCT, VoucherType.CATEGORY}:
-            choices = dict(VoucherApplyToProduct.CHOICES)
-            return choices[self.apply_to]
-        return None
 
     def get_discount(self):
         if self.discount_value_type == DiscountValueType.FIXED:
@@ -127,13 +126,31 @@ class Voucher(models.Model):
             return gross_price
         return gross_price - gross_after_discount
 
-    def validate_limit(self, value):
-        limit = self.limit or value.gross
-        if value.gross < limit:
+    def validate_min_amount_spent(self, value):
+        min_amount_spent = self.min_amount_spent
+        if min_amount_spent and value.gross < min_amount_spent:
             msg = pgettext(
                 'Voucher not applicable',
                 'This offer is only valid for orders over %(amount)s.')
-            raise NotApplicable(msg % {'amount': amount(limit)}, limit=limit)
+            raise NotApplicable(
+                msg % {'amount': amount(min_amount_spent)},
+                min_amount_spent=min_amount_spent)
+
+
+class SaleQueryset(models.QuerySet):
+    def active(self, date):
+        return self.filter(
+            end_date__gte=date, start_date__lte=date)
+
+
+class VoucherTranslation(models.Model):
+    language_code = models.CharField(max_length=10)
+    name = models.CharField(max_length=255, null=True, blank=True)
+    voucher = models.ForeignKey(
+        Voucher, related_name='translations', on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('language_code', 'voucher'),)
 
 
 class Sale(models.Model):
@@ -146,14 +163,17 @@ class Sale(models.Model):
         default=0)
     products = models.ManyToManyField('product.Product', blank=True)
     categories = models.ManyToManyField('product.Category', blank=True)
+    collections = models.ManyToManyField('product.Collection', blank=True)
+    start_date = models.DateField(default=date.today)
+    end_date = models.DateField(null=True, blank=True)
+
+    objects = SaleQueryset.as_manager()
 
     class Meta:
         app_label = 'discount'
-        permissions = (
-            ('view_sale',
-             pgettext_lazy('Permission description', 'Can view sales')),
-            ('edit_sale',
-             pgettext_lazy('Permission description', 'Can edit sales')))
+        permissions = ((
+            'manage_discounts', pgettext_lazy(
+                'Permission description', 'Manage sales and vouchers.')),)
 
     def __repr__(self):
         return 'Sale(name=%r, value=%r, type=%s)' % (

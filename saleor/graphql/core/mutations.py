@@ -4,14 +4,16 @@ import graphene
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from graphene.types.mutation import MutationOptions
 from graphene_django.registry import get_global_registry
+from graphql.error import GraphQLError
 from graphql_jwt import ObtainJSONWebToken, Verify
 from graphql_jwt.exceptions import GraphQLJWTError, PermissionDenied
 
 from ...account import models
 from ..account.types import User
 from ..file_upload.types import Upload
-from ..utils import get_node, get_nodes
-from .types import Error
+from ..utils import get_nodes
+from .types.common import Error, WeightUnitsEnum
+from .utils import snake_to_camel_case
 
 registry = get_global_registry()
 
@@ -48,6 +50,65 @@ class BaseMutation(graphene.Mutation):
         cls._meta.arguments.update(arguments)
         cls._meta.fields.update(fields)
 
+    @classmethod
+    def add_error(cls, errors, field, message):
+        """Add a mutation user error.
+
+        `errors` is the list of errors that happened during the execution of
+        the mutation. `field` is the name of an input field the error is
+        related to. `None` value is allowed and it indicates that the error
+        is general and is not related to any of the input fields. `message`
+        is the actual error message to be returned in the response.
+
+        As a result of this method, the `errors` list is updated with an Error
+        object to be returned as mutation result.
+        """
+        field = snake_to_camel_case(field)
+        errors.append(Error(field=field, message=message))
+
+    @classmethod
+    def get_node_or_error(cls, info, global_id, errors, field, only_type=None):
+        node = None
+        try:
+            node = graphene.Node.get_node_from_global_id(
+                info, global_id, only_type)
+        except (AssertionError, GraphQLError) as e:
+            cls.add_error(errors, field, str(e))
+        else:
+            if node is None:
+                message = "Couldn't resolve to a node: %s" % global_id
+                cls.add_error(errors, field, message)
+        return node
+
+    @classmethod
+    def get_nodes_or_error(cls, ids, errors, field, only_type=None):
+        instances = None
+        try:
+            instances = get_nodes(ids, only_type)
+        except GraphQLError as e:
+            cls.add_error(field=field, message=str(e), errors=errors)
+        return instances
+
+    @classmethod
+    def clean_instance(cls, instance, errors):
+        """Clean the instance that was created using the input data.
+
+        Once a instance is created, this method runs `full_clean()` to perform
+        model fields' validation. Returns errors ready to be returned by
+        the GraphQL response (if any occured).
+        """
+        try:
+            instance.full_clean()
+        except ValidationError as validation_errors:
+            message_dict = validation_errors.message_dict
+            for field in message_dict:
+                if field in cls._meta.exclude:
+                    continue
+                for message in message_dict[field]:
+                    field = snake_to_camel_case(field)
+                    cls.add_error(errors, field, message)
+        return errors
+
 
 class ModelMutation(BaseMutation):
     class Meta:
@@ -78,27 +139,6 @@ class ModelMutation(BaseMutation):
             arguments=arguments, fields=fields)
 
     @classmethod
-    def add_error(cls, errors, field, message):
-        """Add an error to the errors list.
-
-        `errors` is the list of errors that happened during execution of the
-        mutation. `field` is the name of model field the error is related
-        to. `None` is allowed and it indicates that the error is a general one
-        and not related to any of the model fields. `message` is the actual
-        error message.
-
-        As a result of this method, the `errors` argument is updated with an
-        Error object to be returned in mutation result.
-        """
-        errors.append(Error(field=field, message=message))
-
-    @classmethod
-    def _check_type(cls, field, target_type):
-        if hasattr(field.type, 'of_type'):
-            return field.type.of_type == target_type
-        return field.type == target_type
-
-    @classmethod
     def clean_input(cls, info, instance, input, errors):
         """Clean input data received from mutation arguments.
 
@@ -111,29 +151,45 @@ class ModelMutation(BaseMutation):
         Override this method to provide custom transformations of incoming
         data.
         """
+
+        def is_list_of_ids(field):
+            return (
+                isinstance(field.type, graphene.List)
+                and field.type.of_type == graphene.ID)
+
+        def is_id_field(field):
+            return (
+                field.type == graphene.ID
+                or isinstance(field.type, graphene.NonNull)
+                and field.type.of_type == graphene.ID)
+
+        def is_upload_field(field):
+            if hasattr(field.type, 'of_type'):
+                return field.type.of_type == Upload
+            return field.type == Upload
+
         InputCls = getattr(cls.Arguments, 'input')
         cleaned_input = {}
+
         for field_name, field in InputCls._meta.fields.items():
             if field_name in input:
                 value = input[field_name]
-                # FIXME: maybe we could have custom input field type that takes
-                # the type of IDs
-                # e.g. graphene.IdList(graphene.ID, type=Product).
 
                 # handle list of IDs field
-                if value is not None and isinstance(
-                    field.type, graphene.List) and (
-                        field.type.of_type == graphene.ID):
-                    instances = get_nodes(value) if value else []
+                if value is not None and is_list_of_ids(field):
+                    instances = cls.get_nodes_or_error(
+                        value, errors=errors,
+                        field=field_name) if value else []
                     cleaned_input[field_name] = instances
 
                 # handle ID field
-                elif value is not None and field.type == graphene.ID:
-                    instance = get_node(info, value)
+                elif value is not None and is_id_field(field):
+                    instance = cls.get_node_or_error(
+                        info, value, errors=errors, field=field_name)
                     cleaned_input[field_name] = instance
 
                 # handle uploaded files
-                elif value is not None and cls._check_type(field, Upload):
+                elif value is not None and is_upload_field(field):
                     value = info.context.FILES.get(value)
                     cleaned_input[field_name] = value
 
@@ -161,25 +217,6 @@ class ModelMutation(BaseMutation):
             else:
                 f.save_form_data(instance, cleaned_data[f.name])
         return instance
-
-    @classmethod
-    def clean_instance(cls, instance, errors):
-        """Clean the instance that was created using the input data.
-
-        Once a instance is created, this method runs `full_clean()` to perform
-        model fields' validation. Returns errors ready to be returned by
-        the GraphQL response (if any occured).
-        """
-        try:
-            instance.full_clean()
-        except ValidationError as validation_errors:
-            message_dict = validation_errors.message_dict
-            for field in message_dict:
-                if field in cls._meta.exclude:
-                    continue
-                for message in message_dict[field]:
-                    cls.add_error(errors, field, message)
-        return errors
 
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):
@@ -235,7 +272,8 @@ class ModelMutation(BaseMutation):
         # Initialize model instance based on presence of `id` attribute.
         if id:
             model_type = registry.get_type_for_model(cls._meta.model)
-            instance = get_node(info, id, only_type=model_type)
+            instance = cls.get_node_or_error(
+                info, id, errors, 'id', model_type)
         else:
             instance = cls._meta.model()
 
@@ -263,10 +301,21 @@ class ModelDeleteMutation(ModelMutation):
         if not cls.user_is_allowed(info.context.user, data):
             raise PermissionDenied()
 
-        id = data.get('id')
+        errors = []
+        node_id = data.get('id')
         model_type = registry.get_type_for_model(cls._meta.model)
-        instance = get_node(info, id, only_type=model_type)
+        instance = cls.get_node_or_error(
+            info, node_id, errors, 'id', model_type)
+
+        if errors:
+            return cls(errors=errors)
+
+        db_id = instance.id
         instance.delete()
+
+        # After the instance is deleted, set its ID to the original database's
+        # ID so that the success response contains ID of the deleted object.
+        instance.id = db_id
         return cls.success_response(instance)
 
 
@@ -296,9 +345,8 @@ class CreateToken(ObtainJSONWebToken):
 
 
 class VerifyToken(Verify):
-    """Mutation that confirm if token is valid and also return user data.
+    """Mutation that confirm if token is valid and also return user data."""
 
-    """
     user = graphene.Field(User)
 
     def resolve_user(self, info, **kwargs):

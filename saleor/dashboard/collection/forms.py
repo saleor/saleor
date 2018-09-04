@@ -5,6 +5,7 @@ from django.utils.translation import pgettext_lazy
 from text_unidecode import unidecode
 
 from ...product.models import Collection, Product
+from ...site.models import SiteSettings
 from ..forms import AjaxSelect2MultipleChoiceField
 from ..seo.fields import SeoDescriptionField, SeoTitleField
 
@@ -12,14 +13,14 @@ from ..seo.fields import SeoDescriptionField, SeoTitleField
 class CollectionForm(forms.ModelForm):
     products = AjaxSelect2MultipleChoiceField(
         queryset=Product.objects.all(),
-        fetch_data_url=reverse_lazy('dashboard:ajax-products'), required=False)
+        fetch_data_url=reverse_lazy('dashboard:ajax-products'), required=False,
+        label=pgettext_lazy('Products selection', 'Products'))
 
     class Meta:
         model = Collection
         exclude = ['slug']
         labels = {
             'name': pgettext_lazy('Item name', 'Name'),
-            'products': pgettext_lazy('Products selection', 'Products'),
             'background_image': pgettext_lazy(
                 'Products selection',
                 'Background Image'),
@@ -38,3 +39,9 @@ class CollectionForm(forms.ModelForm):
     def save(self, commit=True):
         self.instance.slug = slugify(unidecode(self.instance.name))
         return super().save(commit=commit)
+
+
+class AssignHomepageCollectionForm(forms.ModelForm):
+    class Meta:
+        model = SiteSettings
+        fields = ('homepage_collection',)

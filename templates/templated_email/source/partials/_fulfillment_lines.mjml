@@ -10,7 +10,7 @@
       <tbody>
         {% for line in fulfillment %}
           <tr class="table-item-row">
-            <td>{{ line.order_line.product_name }}</td>
+            <td>{{ line.order_line.translated_product_name|default:line.order_line.product_name }}</td>
             <td style="text-align: right;">{{ line.quantity }}</td>
           </tr>
         {% endfor %}

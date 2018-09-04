@@ -17,7 +17,7 @@ def get_product_data(line, organization):
         '@type': 'Offer',
         'itemOffered': {
             '@type': 'Product',
-            'name': line.product_name,
+            'name': line.translated_product_name or line.product_name,
             'sku': line.product_sku,
         },
         'price': gross_product_price.amount,

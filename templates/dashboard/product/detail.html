@@ -36,33 +36,31 @@
     <div class="col s12 l8">
       <div class="card">
         <div class="card-content">
-          {% if perms.product.edit_product %}
-            <div class="product-header">
-              <div class="product-header__title">
-                <span class="card-title">
-                  {{ product }}
-                </span>
-              </div>
-              <div class="product-header__switch">
-                <form id="toggle-publish-form" action="{% url 'dashboard:product-publish' product.pk %}">
-                {% csrf_token %}
-                  <div class="switch" id="product-is-published">
-                    <label>
-                      <input id="toggle-publish-switch" type="checkbox" {% if product.is_published %} checked {% endif %}>
-                      <span class="lever"></span>
-                      <span class="label">
-                        {% if product.is_published %}
-                          {% trans "Published" context "Product field" %}
-                        {% else %}
-                          {% trans "Draft" context "Product field" %}
-                        {% endif %}
-                      </span>
-                    </label>
-                  </div>
-                </form>
-              </div>
+          <div class="product-header">
+            <div class="product-header__title">
+              <span class="card-title">
+                {{ product }}
+              </span>
             </div>
-          {% endif %}
+            <div class="product-header__switch">
+              <form id="toggle-publish-form" action="{% url 'dashboard:product-publish' product.pk %}">
+              {% csrf_token %}
+                <div class="switch" id="product-is-published">
+                  <label>
+                    <input id="toggle-publish-switch" type="checkbox" {% if product.is_published %} checked {% endif %}>
+                    <span class="lever"></span>
+                    <span class="label">
+                      {% if product.is_published %}
+                        {% trans "Published" context "Product field" %}
+                      {% else %}
+                        {% trans "Draft" context "Product field" %}
+                      {% endif %}
+                    </span>
+                  </label>
+                </div>
+              </form>
+            </div>
+          </div>
           <div class="row">
             <div class="col s12">
               <h5>{% render_availability_status product %}</h5>
@@ -73,14 +71,12 @@
           </p>
         </div>
         <div class="card-action">
-          {% if perms.product.edit_product %}
-            <a href="{% url "dashboard:product-update" product.pk %}" class="btn-flat waves-effect">
-              {% trans "Edit product" context "Product action" %}
-            </a>
-            <a href="#base-modal" data-href="{% url 'dashboard:product-delete' pk=product.pk %}" class="modal-trigger-custom btn-flat waves-effect">
-              {% trans "Remove product" context "Product action" %}
-            </a>
-          {% endif %}
+          <a href="{% url "dashboard:product-update" product.pk %}" class="btn-flat waves-effect">
+            {% trans "Edit product" context "Product action" %}
+          </a>
+          <a href="#base-modal" data-href="{% url 'dashboard:product-delete' pk=product.pk %}" class="modal-trigger-custom btn-flat waves-effect">
+            {% trans "Remove product" context "Product action" %}
+          </a>
           <a href="{{ product.get_absolute_url }}" target="_blank" class="btn-flat waves-effect">
             {% trans "View on site" context "Product action" %}
           </a>
@@ -91,11 +87,9 @@
           <div class="card-content">
             <span class="card-title">{% trans "Variant" %}</span>
           </div>
-          {% if perms.product.edit_product %}
-            <div class="data-table-header-action">
-              <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-flat waves-effect">{% trans "Add" %}</a>
-            </div>
-          {% endif %}
+          <div class="data-table-header-action">
+            <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-flat waves-effect">{% trans "Add" %}</a>
+          </div>
           <div class="data-table-container">
             <table class="bordered highlight responsive data-table">
               <thead>
@@ -111,9 +105,7 @@
                     {% endif %}
                   </th>
                   <th class="right-align">{% trans "Margin" %}</th>
-                  {% if perms.product.edit_product %}
-                    <th></th>
-                  {% endif %}
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -135,9 +127,7 @@
                         -
                       {% endif %}
                     </td>
-                    {% if perms.product.edit_product %}
-                      <td><a href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}" class="btn-flat waves-effect">{% trans "Edit" %}</a></td>
-                    {% endif %}
+                    <td><a href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}" class="btn-flat waves-effect">{% trans "Edit" %}</a></td>
                   </tr>
                 {% empty %}
                   <tr>
@@ -275,11 +265,9 @@
                 {% endfor %}
               </div>
             </div>
-            {% if perms.product.edit_product %}
-              <div class="card-action">
-                <a href="{% url 'dashboard:product-image-list' product.pk %}" class="btn-flat waves-effect">{% trans "Edit images" %}</a>
-              </div>
-            {% endif %}
+            <div class="card-action">
+              <a href="{% url 'dashboard:product-image-list' product.pk %}" class="btn-flat waves-effect">{% trans "Edit images" %}</a>
+            </div>
           </div>
         </div>
       </div>

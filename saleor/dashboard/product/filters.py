@@ -22,10 +22,6 @@ PUBLISHED_CHOICES = (
     ('1', pgettext_lazy('Is publish filter choice', 'Published')),
     ('0', pgettext_lazy('Is publish filter choice', 'Not published')))
 
-FEATURED_CHOICES = (
-    ('1', pgettext_lazy('Is featured filter choice', 'Featured')),
-    ('0', pgettext_lazy('Is featured filter choice', 'Not featured')))
-
 
 class ProductFilter(SortedFilterSet):
     name = CharFilter(
@@ -46,12 +42,6 @@ class ProductFilter(SortedFilterSet):
     is_published = ChoiceFilter(
         label=pgettext_lazy('Product list filter label', 'Is published'),
         choices=PUBLISHED_CHOICES,
-        empty_label=pgettext_lazy('Filter empty choice label', 'All'),
-        widget=forms.Select)
-    is_featured = ChoiceFilter(
-        label=pgettext_lazy(
-            'Product list is featured filter label', 'Is featured'),
-        choices=FEATURED_CHOICES,
         empty_label=pgettext_lazy('Filter empty choice label', 'All'),
         widget=forms.Select)
     sort_by = OrderingFilter(
@@ -103,6 +93,16 @@ class ProductTypeFilter(SortedFilterSet):
         label=pgettext_lazy('Product type list filter label', 'Sort by'),
         fields=PRODUCT_TYPE_SORT_BY_FIELDS.keys(),
         field_labels=PRODUCT_TYPE_SORT_BY_FIELDS)
+    product_attributes = ModelMultipleChoiceFilter(
+        label=pgettext_lazy(
+            'Product type list filter label', 'Product attributes'),
+        name='product_attributes',
+        queryset=ProductAttribute.objects.all())
+    variant_attributes = ModelMultipleChoiceFilter(
+        label=pgettext_lazy(
+            'Product type list filter label', 'Variant attributes'),
+        name='variant_attributes',
+        queryset=ProductAttribute.objects.all())
 
     class Meta:
         model = ProductType

@@ -5,12 +5,15 @@ from graphql_jwt.decorators import permission_required
 from graphql_jwt.exceptions import PermissionDenied
 
 from ....product import models
+from ....product.utils.attributes import get_name_from_attributes
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types import Decimal, Error, SeoInput
+from ...core.types.common import Decimal, SeoInput
+from ...core.types.money import TaxRateType
 from ...core.utils import clean_seo_fields
 from ...file_upload.types import Upload
-from ...utils import get_attributes_dict_from_list, get_node, get_nodes
-from ..types import Collection, Product, ProductImage
+from ...shipping.types import WeightScalar
+from ..types import Collection, Product, ProductImage, ProductVariant
+from ..utils import attributes_to_hstore, update_variants_names
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -19,7 +22,7 @@ class CategoryInput(graphene.InputObjectType):
     parent = graphene.ID(
         description='''
         ID of the parent category. If empty, category will be top level
-        category.''')
+        category.''', name='parent')
     slug = graphene.String(description='Category slug')
     seo = SeoInput(description='Search engine optimization fields.')
 
@@ -43,7 +46,7 @@ class CategoryCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('category.edit_category')
+        return user.has_perm('product.manage_products')
 
 
 class CategoryUpdate(CategoryCreate):
@@ -69,18 +72,18 @@ class CategoryDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('category.edit_category')
+        return user.has_perm('product.manage_products')
 
 
 class CollectionInput(graphene.InputObjectType):
     is_published = graphene.Boolean(
-        description='Informs whether a collection is published.',
-        required=True)
+        description='Informs whether a collection is published.')
     name = graphene.String(description='Name of the collection.')
     slug = graphene.String(description='Slug of the collection.')
     products = graphene.List(
         graphene.ID,
-        description='List of products to be added to the collection.')
+        description='List of products to be added to the collection.',
+        name='products')
     background_image = Upload(description='Background image file.')
     seo = SeoInput(description='Search engine optimization fields.')
 
@@ -97,7 +100,7 @@ class CollectionCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('collection.edit_collection')
+        return user.has_perm('product.manage_products')
 
     @classmethod
     def clean_input(cls, info, instance, input, errors):
@@ -130,10 +133,14 @@ class CollectionDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('collection.edit_collection')
+        return user.has_perm('product.manage_products')
 
 
 class CollectionAddProducts(BaseMutation):
+    collection = graphene.Field(
+        Collection,
+        description='Collection to which products will be added.')
+
     class Arguments:
         collection_id = graphene.Argument(
             graphene.ID, required=True,
@@ -142,47 +149,51 @@ class CollectionAddProducts(BaseMutation):
             graphene.ID, required=True,
             description='List of product IDs.')
 
-    collection = graphene.Field(
-        Collection,
-        description='Collection to which products will be added.')
-
     class Meta:
         description = 'Adds products to a collection.'
 
-    @permission_required('collection.edit_collection')
-    def mutate(self, info, collection_id, products):
+    @classmethod
+    @permission_required('product.manage_products')
+    def mutate(cls, root, info, collection_id, products):
         # DEMO: disable mutations
         raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
 
-        collection = get_node(info, collection_id, only_type=Collection)
-        products = get_nodes(products, Product)
+        errors = []
+        collection = cls.get_node_or_error(
+            info, collection_id, errors, 'collectionId', only_type=Collection)
+        products = cls.get_nodes_or_error(
+            products, errors, 'products', only_type=Product)
         collection.products.add(*products)
-        return CollectionAddProducts(collection=collection)
+        return CollectionAddProducts(collection=collection, errors=errors)
 
 
 class CollectionRemoveProducts(BaseMutation):
+    collection = graphene.Field(
+        Collection,
+        description='Collection from which products will be removed.')
+
     class Arguments:
         collection_id = graphene.Argument(
             graphene.ID, required=True, description='ID of a collection.')
         products = graphene.List(
             graphene.ID, required=True, description='List of product IDs.')
 
-    collection = graphene.Field(
-        Collection,
-        description='Collection from which products will be removed.')
-
     class Meta:
         description = 'Remove products from a collection.'
 
-    @permission_required('collection.edit_collection')
-    def mutate(self, info, collection_id, products):
+    @classmethod
+    @permission_required('product.manage_products')
+    def mutate(cls, root, info, collection_id, products):
         # DEMO: disable mutations
         raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
 
-        collection = get_node(info, collection_id, only_type=Collection)
-        products = get_nodes(products, Product)
+        errors = []
+        collection = cls.get_node_or_error(
+            info, collection_id, errors, 'collectionId', only_type=Collection)
+        products = cls.get_nodes_or_error(
+            products, errors, 'products', only_type=Product)
         collection.products.remove(*products)
-        return CollectionRemoveProducts(collection=collection)
+        return CollectionRemoveProducts(collection=collection, errors=errors)
 
 
 class AttributeValueInput(InputObjectType):
@@ -198,26 +209,26 @@ class ProductInput(graphene.InputObjectType):
         description='List of product attributes.')
     available_on = graphene.types.datetime.Date(
         description='Publication date. ISO 8601 standard.')
-    category = graphene.ID(description='ID of the product\'s category.')
+    category = graphene.ID(
+        description='ID of the product\'s category.', name='category')
     charge_taxes = graphene.Boolean(
-        required=True,
         description='Determine if taxes are being charged for the product.')
     collections = graphene.List(
         graphene.ID,
-        description='List of IDs of collections that the product belongs to.')
+        description='List of IDs of collections that the product belongs to.',
+        name='collections')
     description = graphene.String(description='Product description.')
     is_published = graphene.Boolean(
-        required=True,
         description='Determines if product is visible to customers.')
-    is_featured = graphene.Boolean(
-        required=True,
-        description='Determines if product is featured in the storefront.')
     name = graphene.String(description='Product name.')
     product_type = graphene.ID(
-        description='ID of the type that product belongs to.')
+        description='ID of the type that product belongs to.',
+        name='productType')
     price = Decimal(description='Product price.')
-    tax_rate = graphene.String(description='Tax rate.')
+    tax_rate = TaxRateType(description='Tax rate.')
     seo = SeoInput(description='Search engine optimization fields.')
+    weight = WeightScalar(
+        description='Weight of the Product.', required=False)
 
 
 class ProductCreate(ModelMutation):
@@ -243,11 +254,13 @@ class ProductCreate(ModelMutation):
             if instance.pk else cleaned_input.get('product_type'))
 
         if attributes and product_type:
-            slug_to_id_map = dict(
-                product_type.product_attributes.values_list('slug', 'id'))
-            attributes = get_attributes_dict_from_list(
-                attributes, slug_to_id_map)
-            cleaned_input['attributes'] = attributes
+            qs = product_type.product_attributes.prefetch_related('values')
+            try:
+                attributes = attributes_to_hstore(attributes, qs)
+            except ValueError as e:
+                cls.add_error(errors, 'attributes', str(e))
+            else:
+                cleaned_input['attributes'] = attributes
         clean_seo_fields(cleaned_input)
         return cleaned_input
 
@@ -259,7 +272,7 @@ class ProductCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_product')
+        return user.has_perm('product.manage_products')
 
 
 class ProductUpdate(ProductCreate):
@@ -285,7 +298,7 @@ class ProductDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_product')
+        return user.has_perm('product.manage_products')
 
 
 class ProductVariantInput(graphene.InputObjectType):
@@ -296,15 +309,17 @@ class ProductVariantInput(graphene.InputObjectType):
     price_override = Decimal(
         description='Special price of the particular variant.')
     product = graphene.ID(
-        description='Product ID of which type is the variant.')
+        description='Product ID of which type is the variant.',
+        name='product')
     sku = graphene.String(description='Stock keeping unit.')
     quantity = graphene.Int(
         description='The total quantity of this variant available for sale.')
     track_inventory = graphene.Boolean(
-        required=True,
         description="""Determines if the inventory of this variant should
         be tracked. If false, the quantity won't change when customers
         buy this item.""")
+    weight = WeightScalar(
+        description='Weight of the Product Variant.', required=False)
 
 
 class ProductVariantCreate(ModelMutation):
@@ -332,16 +347,24 @@ class ProductVariantCreate(ModelMutation):
         product_type = product.product_type
 
         if attributes and product_type:
-            slug_to_id_map = dict(
-                product_type.variant_attributes.values_list('slug', 'id'))
-            attributes = get_attributes_dict_from_list(
-                attributes, slug_to_id_map)
-            cleaned_input['attributes'] = attributes
+            try:
+                qs = product_type.variant_attributes.prefetch_related('values')
+                attributes = attributes_to_hstore(attributes, qs)
+            except ValueError as e:
+                cls.add_error(errors, 'attributes', str(e))
+            else:
+                cleaned_input['attributes'] = attributes
         return cleaned_input
 
     @classmethod
+    def save(cls, info, instance, cleaned_input):
+        attributes = instance.product.product_type.variant_attributes.all()
+        instance.name = get_name_from_attributes(instance, attributes)
+        instance.save()
+
+    @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_product')
+        return user.has_perm('product.manage_products')
 
 
 class ProductVariantUpdate(ProductVariantCreate):
@@ -368,29 +391,30 @@ class ProductVariantDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_product')
+        return user.has_perm('product.manage_products')
 
 
 class ProductTypeInput(graphene.InputObjectType):
-
     name = graphene.String(description='Name of the product type.')
     has_variants = graphene.Boolean(
-        required=True,
         description="""Determines if product of this type has multiple
         variants. This option mainly simplifies product management
         in the dashboard. There is always at least one variant created under
         the hood.""")
     product_attributes = graphene.List(
         graphene.ID,
-        description='List of attributes shared among all product variants.')
+        description='List of attributes shared among all product variants.',
+        name='productAttributes')
     variant_attributes = graphene.List(
         graphene.ID,
         description="""List of attributes used to distinguish between
-        different variants of a product.""")
+        different variants of a product.""",
+        name='variantAttributes')
     is_shipping_required = graphene.Boolean(
-        required=True,
         description="""Determines if shipping is required for products
         of this variant.""")
+    weight = WeightScalar(description='Weight of the ProductType items.')
+    tax_rate = TaxRateType(description='A type of goods.')
 
 
 class ProductTypeCreate(ModelMutation):
@@ -405,7 +429,7 @@ class ProductTypeCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_properties')
+        return user.has_perm('product.manage_products')
 
 
 class ProductTypeUpdate(ProductTypeCreate):
@@ -420,6 +444,14 @@ class ProductTypeUpdate(ProductTypeCreate):
         description = 'Updates an existing product type.'
         model = models.ProductType
 
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        variant_attr = cleaned_input.get('variant_attributes')
+        if variant_attr:
+            variant_attr = set(variant_attr)
+            update_variants_names(instance, variant_attr)
+        super().save(info, instance, cleaned_input)
+
 
 class ProductTypeDelete(ModelDeleteMutation):
     class Arguments:
@@ -432,48 +464,90 @@ class ProductTypeDelete(ModelDeleteMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_properties')
+        return user.has_perm('product.manage_products')
 
 
-class ProductImageInput(graphene.InputObjectType):
+class ProductImageCreateInput(graphene.InputObjectType):
     alt = graphene.String(description='Alt text for an image.')
-    image = Upload(required=True, description='Image file.')
-    product = graphene.ID(description='ID of an product.')
+    image = Upload(
+        required=True,
+        description='Represents an image file in a multipart request.')
+    product = graphene.ID(
+        required=True, description='ID of an product.', name='product')
 
 
-class ProductImageCreate(ModelMutation):
+class ProductImageCreate(BaseMutation):
+    product = graphene.Field(Product)
+    image = graphene.Field(ProductImage)
+
     class Arguments:
-        input = ProductImageInput(
+        input = ProductImageCreateInput(
             required=True,
             description='Fields required to create a product image.')
 
     class Meta:
-        description = 'Creates a product image.'
-        model = models.ProductImage
+        description = '''Create a product image. This mutation must be sent
+        as a `multipart` request. More detailed specs of the upload format can
+        be found here:
+        https://github.com/jaydenseric/graphql-multipart-request-spec'''
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_product')
+    @permission_required('product.manage_products')
+    def mutate(cls, root, info, input):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
+        errors = []
+        product = cls.get_node_or_error(
+            info, input['product'], errors, 'product', only_type=Product)
+        image_data = info.context.FILES.get(input['image'])
+        if not image_data.content_type.startswith('image/'):
+            cls.add_error(errors, 'image', 'Invalid file type')
+        image = None
+        if not errors:
+            image = product.images.create(
+                image=image_data, alt=input.get('alt', ''))
+        return ProductImageCreate(product=product, image=image, errors=errors)
 
 
-class ProductImageUpdate(ModelMutation):
+class ProductImageUpdateInput(graphene.InputObjectType):
+    alt = graphene.String(description='Alt text for an image.')
+
+
+class ProductImageUpdate(BaseMutation):
+    product = graphene.Field(Product)
+    image = graphene.Field(ProductImage)
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a product image to update.')
-        input = ProductImageInput(
+        input = ProductImageUpdateInput(
             required=True,
             description='Fields required to update a product image.')
 
     class Meta:
         description = 'Updates a product image.'
-        model = models.ProductImage
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_product')
+    @permission_required('product.manage_products')
+    def mutate(cls, root, info, id, input):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
+        errors = []
+        image = cls.get_node_or_error(
+            info, id, errors, 'id', only_type=ProductImage)
+        product = image.product
+        if not errors:
+            image.alt = input.get('alt', '')
+            image.save()
+        return ProductImageUpdate(product=product, image=image, errors=errors)
 
 
 class ProductImageReorder(BaseMutation):
+    product = graphene.Field(Product)
+    images = graphene.List(ProductImage)
+
     class Arguments:
         product_id = graphene.ID(
             required=True,
@@ -485,39 +559,138 @@ class ProductImageReorder(BaseMutation):
     class Meta:
         description = 'Changes ordering of the product image.'
 
-    product_images = graphene.List(
-        ProductImage,
-        description='Product image which sort order will be altered.')
-
     @classmethod
-    @permission_required('product.edit_product')
+    @permission_required('product.manage_products')
     def mutate(cls, root, info, product_id, images_ids):
         # DEMO: disable mutations
         raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
 
-        product = get_node(info, product_id, Product)
+        errors = []
+        product = cls.get_node_or_error(
+            info, product_id, errors, 'productId', Product)
         if len(images_ids) != product.images.count():
-            return cls(
-                errors=[
-                    Error(field='order',
-                          message='Incorrect number of image IDs provided.')])
-        for order, image_id in enumerate(images_ids):
-            image = get_node(info, image_id, only_type=ProductImage)
-            image.sort_order = order
-            image.save()
-        product_images = get_nodes(images_ids, ProductImage)
-        return ProductImageReorder(product_images=product_images)
+            cls.add_error(
+                errors, 'order', 'Incorrect number of image IDs provided.')
+        images = []
+        for image_id in images_ids:
+            image = cls.get_node_or_error(
+                info, image_id, errors, 'order', only_type=ProductImage)
+            if image and image.product != product:
+                cls.add_error(
+                    errors, 'order',
+                    "Image with id %r does not belong to product %r" % (
+                        image_id, product_id))
+            images.append(image)
+        if not errors:
+            for order, image in enumerate(images):
+                image.sort_order = order
+                image.save(update_fields=['sort_order'])
+        return ProductImageReorder(
+            product=product, images=images, errors=errors)
 
 
-class ProductImageDelete(ModelDeleteMutation):
+class ProductImageDelete(BaseMutation):
+    product = graphene.Field(Product)
+    image = graphene.Field(ProductImage)
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a product image to delete.')
 
     class Meta:
         description = 'Deletes a product image.'
-        model = models.ProductImage
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('product.edit_product')
+    @permission_required('product.manage_products')
+    def mutate(cls, root, info, id):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
+        errors = []
+        image = cls.get_node_or_error(
+            info, id, errors, 'id', only_type=ProductImage)
+        image_id = image.id
+        if not errors:
+            image.delete()
+        image.id = image_id
+        return ProductImageDelete(
+            product=image.product, image=image, errors=errors)
+
+
+class VariantImageAssign(BaseMutation):
+    product_variant = graphene.Field(ProductVariant)
+    image = graphene.Field(ProductImage)
+
+    class Arguments:
+        image_id = graphene.ID(
+            required=True,
+            description='ID of a product image to assign to a variant.')
+        variant_id = graphene.ID(
+            required=True,
+            description='ID of a product variant.')
+
+    class Meta:
+        description = 'Assign an image to a product variant'
+
+    @classmethod
+    @permission_required('product.manage_products')
+    def mutate(cls, root, info, image_id, variant_id):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
+        errors = []
+        image = cls.get_node_or_error(
+            info, image_id, errors, 'imageId', ProductImage)
+        variant = cls.get_node_or_error(
+            info, variant_id, errors, 'variantId', ProductVariant)
+        if image and variant:
+            # check if the given image and variant can be matched together
+            image_belongs_to_product = variant.product.images.filter(
+                pk=image.pk).first()
+            if image_belongs_to_product:
+                image.variant_images.create(variant=variant)
+            else:
+                cls.add_error(
+                    errors, 'imageId', 'Image must be for this product')
+        return VariantImageAssign(
+            product_variant=variant, image=image, errors=errors)
+
+
+class VariantImageUnassign(BaseMutation):
+    product_variant = graphene.Field(ProductVariant)
+    image = graphene.Field(ProductImage)
+
+    class Arguments:
+        image_id = graphene.ID(
+            required=True,
+            description='ID of a product image to unassign from a variant.')
+        variant_id = graphene.ID(
+            required=True, description='ID of a product variant.')
+
+    class Meta:
+        description = 'Unassign an image from a product variant'
+
+    @classmethod
+    @permission_required('product.manage_products')
+    def mutate(cls, root, info, image_id, variant_id):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
+        errors = []
+        image = cls.get_node_or_error(
+            info, image_id, errors, 'imageId', ProductImage)
+        variant = cls.get_node_or_error(
+            info, variant_id, errors, 'variantId', ProductVariant)
+        if not errors:
+            if image and variant:
+                try:
+                    variant_image = models.VariantImage.objects.get(
+                        image=image, variant=variant)
+                except models.VariantImage.DoesNotExist:
+                    cls.add_error(
+                        errors, 'imageId',
+                        'Image is not assigned to this variant.')
+                else:
+                    variant_image.delete()
+        return VariantImageUnassign(
+            product_variant=variant, image=image, errors=errors)

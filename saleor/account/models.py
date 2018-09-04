@@ -9,7 +9,7 @@ from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
-from phonenumber_field.modelfields import PhoneNumberField
+from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
 
 from ..core.models import BaseNote
 from .validators import validate_possible_number
@@ -64,6 +64,8 @@ class Address(models.Model):
         data = model_to_dict(self, exclude=['id', 'user'])
         if isinstance(data['country'], Country):
             data['country'] = data['country'].code
+        if isinstance(data['phone'], PhoneNumber):
+            data['phone'] = data['phone'].as_e164
         return data
 
     def get_copy(self):
@@ -128,20 +130,15 @@ class User(PermissionsMixin, AbstractBaseUser):
 
     class Meta:
         permissions = (
-            ('view_user',
-             pgettext_lazy('Permission description', 'Can view users')),
-            ('edit_user',
-             pgettext_lazy('Permission description', 'Can edit users')),
-            ('view_group',
-             pgettext_lazy('Permission description', 'Can view groups')),
-            ('edit_group',
-             pgettext_lazy('Permission description', 'Can edit groups')),
-            ('view_staff',
-             pgettext_lazy('Permission description', 'Can view staff')),
-            ('edit_staff',
-             pgettext_lazy('Permission description', 'Can edit staff')),
-            ('impersonate_user',
-             pgettext_lazy('Permission description', 'Can impersonate users')))
+            (
+                'manage_users', pgettext_lazy(
+                    'Permission description', 'Manage customers.')),
+            (
+                'manage_staff', pgettext_lazy(
+                    'Permission description', 'Manage staff.')),
+            (
+                'impersonate_users', pgettext_lazy(
+                    'Permission description', 'Impersonate customers.')))
 
     def __str__(self):
         return self.email

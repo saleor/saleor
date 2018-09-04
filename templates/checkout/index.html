@@ -42,10 +42,10 @@
           <div class="row">
             <div class="col-7 cart__line__product">
               <a class="link--clean" href="{{ line.variant.get_absolute_url }}">
-                <img class="lazyload lazypreload" data-src="{% get_thumbnail line.variant.product.images.first.image method="crop" size="60x60" %}"
-                     data-srcset="{% get_thumbnail line.variant.product.images.first.image method="crop" size="60x60" %} 1x, {% get_thumbnail line.variant.product.images.first.image method="crop" size="120x120" %} 2x"
+                <img class="lazyload lazypreload" data-src="{% get_thumbnail line.variant.get_first_image method="crop" size=60 %}"
+                     data-srcset="{% get_thumbnail line.variant.get_first_image method="crop" size=60 %} 1x, {% get_thumbnail line.variant.get_first_image method="crop" size=120 %} 2x"
                      alt="">
-                <p>{{ line.variant.product }}<br><small>{{ line.variant }}</small></p>
+                <p>{{ line.variant.product.translated }}<br><small>{{ line.variant.translated }}</small></p>
               </a>
             </div>
             <div class="col-5">
@@ -77,9 +77,12 @@
       </div>
       <div class="row">
         <div class="col-md-12">
-          <a href="{% url "checkout:login" %}" class="btn primary float-right cart__submit">
+            <a href="{% url "checkout:login" %}" class="btn primary float-right cart__submit">
             {% trans "Checkout" context "Cart primary action" %}
           </a>
+            <button class="btn secondary float-right cart__clear" data-action="{% url 'cart:clear-cart' %}">
+            {% trans "Clear cart" context "cart page: secondary action, empty the cart" %}
+          </button>
         </div>
       </div>
     {% else %}

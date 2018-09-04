@@ -6,15 +6,15 @@ from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 
 from saleor.discount import (
-    DiscountValueType, VoucherApplyToProduct, VoucherType)
+    DiscountValueType, VoucherType)
 from saleor.graphql.discount.types import (
-    ApplyToEnum, DiscountValueTypeEnum, VoucherTypeEnum)
+    DiscountValueTypeEnum, VoucherTypeEnum)
 
 from .utils import assert_no_permission, assert_read_only_mode
 
 
 def test_voucher_permissions(
-        staff_api_client, staff_group, staff_user, permission_view_voucher):
+        staff_api_client, staff_user, permission_manage_discounts):
     query = """
     query vouchers{
         vouchers(first: 1) {
@@ -33,8 +33,7 @@ def test_voucher_permissions(
     assert content['errors'][0]['message'] == message
 
     # Give staff user proper permissions
-    staff_group.permissions.add(permission_view_voucher)
-    staff_user.groups.add(staff_group)
+    staff_user.user_permissions.add(permission_manage_discounts)
 
     # Query again
     response = staff_api_client.post(reverse('api'), {'query': query})
@@ -57,7 +56,6 @@ def test_voucher_query(
                     startDate
                     discountValueType
                     discountValue
-                    applyTo
                 }
             }
         }
@@ -75,7 +73,6 @@ def test_voucher_query(
     assert data['startDate'] == voucher.start_date.isoformat()
     assert data['discountValueType'] == voucher.discount_value_type.upper()
     assert data['discountValue'] == voucher.discount_value
-    assert data['applyTo'] == voucher.apply_to
 
 
 def test_sale_query(
@@ -88,6 +85,7 @@ def test_sale_query(
                         type
                         name
                         value
+                        startDate
                     }
                 }
             }
@@ -100,28 +98,28 @@ def test_sale_query(
     assert data['type'] == sale.type.upper()
     assert data['name'] == sale.name
     assert data['value'] == sale.value
+    assert data['startDate'] == sale.start_date.isoformat()
 
 
 def test_create_voucher(user_api_client, admin_api_client):
     query = """
     mutation  voucherCreate(
         $type: VoucherTypeEnum, $name: String, $code: String,
-        $applyTo: ApplyToEnum, $discountValueType: DiscountValueTypeEnum,
-        $discountValue: Decimal, $limit: Decimal) {
+        $discountValueType: DiscountValueTypeEnum,
+        $discountValue: Decimal, $minAmountSpent: Decimal) {
             voucherCreate(input: {
-            name: $name, type: $type, code: $code, applyTo: $applyTo,
+            name: $name, type: $type, code: $code,
             discountValueType: $discountValueType, discountValue: $discountValue,
-            limit: $limit}) {
+            minAmountSpent: $minAmountSpent}) {
                 errors {
                     field
                     message
                 }
                 voucher {
                     type
-                    limit {
+                    minAmountSpent {
                         amount
                     }
-                    applyTo
                     name
                     code
                     discountValueType
@@ -133,10 +131,9 @@ def test_create_voucher(user_api_client, admin_api_client):
         'name': 'test voucher',
         'type': VoucherTypeEnum.VALUE.name,
         'code': 'testcode123',
-        'applyTo': ApplyToEnum.ALL_PRODUCTS.name,
         'discountValueType': DiscountValueTypeEnum.FIXED.name,
         'discountValue': '10.12',
-        'limit': '1.12'})
+        'minAmountSpent': '1.12'})
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     assert_read_only_mode(response)
@@ -295,31 +292,22 @@ def test_sale_delete_mutation(user_api_client, admin_api_client, sale):
     assert_read_only_mode(response)
 
 
-def test_validate_voucher(voucher, admin_api_client, product):
+def test_validate_voucher(voucher, admin_api_client):
     query = """
     mutation  voucherUpdate(
-        $product_id: ID, $id: ID!, $type: VoucherTypeEnum) {
+        $id: ID!, $type: VoucherTypeEnum) {
             voucherUpdate(
-            id: $id, input: {product: $product_id, type: $type}) {
+            id: $id, input: {type: $type}) {
                 errors {
                     field
                     message
                 }
-                voucher {
-                    product {
-                        name
-                    }
-                }
             }
         }
     """
-
-    assert not voucher.product
     variables = json.dumps({
         'type': VoucherTypeEnum.PRODUCT.name,
-        'id': graphene.Node.to_global_id('Voucher', voucher.id),
-        'product': graphene.Node.to_global_id('Product', product.id)})
-
+        'id': graphene.Node.to_global_id('Voucher', voucher.id)})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     assert_read_only_mode(response)

@@ -3,23 +3,24 @@ from unittest.mock import MagicMock, Mock
 from uuid import uuid4
 
 import pytest
+
 from django.contrib.auth.models import AnonymousUser
 from django.core import signing
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.urls import reverse
+from measurement.measures import Weight
 from prices import Money, TaxedMoney
-
 from saleor.checkout import forms, utils
 from saleor.checkout.context_processors import cart_counter
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import (
     add_variant_to_cart, change_cart_user, find_open_cart_for_user)
-from saleor.checkout.views import update_cart_line
+from saleor.checkout.views import clear_cart, update_cart_line
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.discount.models import Sale
-from saleor.shipping.utils import get_shipment_options
+from saleor.shipping.utils import get_shipping_price_estimate
 
 
 @pytest.fixture()
@@ -287,13 +288,15 @@ def test_cart_counter(monkeypatch):
     assert ret == {'cart_counter': 4}
 
 
-def test_get_product_variants_and_prices():
-    variant = Mock(product_id=1, id=1, get_price=Mock(return_value=10))
-    cart = MagicMock(spec=Cart)
-    cart.__iter__ = Mock(
-        return_value=iter([Mock(quantity=1, variant=variant)]))
-    variants = list(utils.get_product_variants_and_prices(cart, variant))
-    assert variants == [(variant, 10)]
+def test_get_prices_of_discounted_products(cart_with_item):
+    discounted_line = cart_with_item.lines.first()
+    discounted_product = discounted_line.variant.product
+    prices = utils.get_prices_of_discounted_products(
+        cart_with_item, [discounted_product])
+    excepted_value = [
+        discounted_line.variant.get_price()
+        for item in range(discounted_line.quantity)]
+    assert list(prices) == excepted_value
 
 
 def test_contains_unavailable_variants():
@@ -433,23 +436,23 @@ def test_view_empty_cart(client, request_cart):
     assert response.status_code == 200
 
 
-def test_view_cart_without_taxes(client, sale, request_cart_with_item):
+def test_view_cart_without_taxes(client, request_cart_with_item):
     response = client.get(reverse('cart:index'))
     response_cart_line = response.context[0]['cart_lines'][0]
     cart_line = request_cart_with_item.lines.first()
     assert not response_cart_line['get_total'].tax.amount
-    assert not response_cart_line['get_total'] == cart_line.get_total()
+    assert response_cart_line['get_total'] == cart_line.get_total()
     assert response.status_code == 200
 
 
 def test_view_cart_with_taxes(
-        settings, client, sale, request_cart_with_item, vatlayer):
+        settings, client, request_cart_with_item, vatlayer):
     settings.DEFAULT_COUNTRY = 'PL'
     response = client.get(reverse('cart:index'))
     response_cart_line = response.context[0]['cart_lines'][0]
     cart_line = request_cart_with_item.lines.first()
     assert response_cart_line['get_total'].tax.amount
-    assert not response_cart_line['get_total'] == cart_line.get_total(
+    assert response_cart_line['get_total'] == cart_line.get_total(
         taxes=vatlayer)
     assert response.status_code == 200
 
@@ -519,7 +522,7 @@ def test_cart_summary_page(settings, client, request_cart_with_item, vatlayer):
     assert len(content['lines']) == 1
     cart_line = content['lines'][0]
     variant = request_cart_with_item.lines.get().variant
-    assert cart_line['variant'] == variant.name
+    assert cart_line['variant'] == variant
     assert cart_line['quantity'] == 1
 
 
@@ -588,12 +591,16 @@ def test_cart_line_state(product, request_cart_with_item):
     assert line.quantity == 2
 
 
-def test_get_category_variants_and_prices(
-        default_category, product, request_cart_with_item):
-    result = list(utils.get_category_variants_and_prices(
-        request_cart_with_item, default_category))
-    variant = product.variants.get()
-    assert result[0][0] == variant
+def test_get_prices_of_products_in_discounted_collections(
+        collection, product, cart_with_item):
+    discounted_line = cart_with_item.lines.first()
+    assert discounted_line.variant.product == product
+    product.collections.add(collection)
+    result = utils.get_prices_of_products_in_discounted_collections(
+        cart_with_item, [collection])
+    assert list(result) == [
+        discounted_line.variant.get_price()
+        for item in range(discounted_line.quantity)]
 
 
 def test_update_view_must_be_ajax(customer_user, rf):
@@ -620,10 +627,12 @@ def test_get_or_create_db_cart(customer_user, db, rf):
     assert Cart.objects.filter(user__isnull=True).count() == 1
 
 
-def test_get_cart_data(request_cart_with_item, shipping_method, vatlayer):
-    shipment_option = get_shipment_options('PL', vatlayer)
+def test_get_cart_data(request_cart_with_item, shipping_zone, vatlayer):
+    cart = request_cart_with_item
+    shipment_option = get_shipping_price_estimate(
+        cart.get_subtotal().gross, cart.get_total_weight(), 'PL', vatlayer)
     cart_data = utils.get_cart_data(
-        request_cart_with_item, shipment_option, 'USD', None, vatlayer)
+        cart, shipment_option, 'USD', None, vatlayer)
     assert cart_data['cart_total'] == TaxedMoney(
         net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
     assert cart_data['total_with_shipping'].start == TaxedMoney(
@@ -631,9 +640,11 @@ def test_get_cart_data(request_cart_with_item, shipping_method, vatlayer):
 
 
 def test_get_cart_data_no_shipping(request_cart_with_item, vatlayer):
-    shipment_option = get_shipment_options('PL', vatlayer)
+    cart = request_cart_with_item
+    shipment_option = get_shipping_price_estimate(
+        cart.get_subtotal().gross, cart.get_total_weight(), 'PL', vatlayer)
     cart_data = utils.get_cart_data(
-        request_cart_with_item, shipment_option, 'USD', None, vatlayer)
+        cart, shipment_option, 'USD', None, vatlayer)
     cart_total = cart_data['cart_total']
     assert cart_total == TaxedMoney(
         net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
@@ -647,10 +658,37 @@ def test_cart_total_with_discount(request_cart_with_item, sale, vatlayer):
         net=Money('4.07', 'USD'), gross=Money('5.00', 'USD'))
 
 
-def test_cart_taxes(request_cart_with_item, shipping_method, vatlayer):
+def test_cart_taxes(request_cart_with_item, shipping_zone, vatlayer):
     cart = request_cart_with_item
-    cart.shipping_method = shipping_method.price_per_country.get()
+    cart.shipping_method = shipping_zone.shipping_methods.get()
     cart.save()
     taxed_price = TaxedMoney(net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
     assert cart.get_shipping_price(taxes=vatlayer) == taxed_price
     assert cart.get_subtotal(taxes=vatlayer) == taxed_price
+
+
+def test_clear_cart_must_be_ajax(rf, customer_user):
+    request = rf.post(reverse('home'))
+    request.user = customer_user
+    request.discounts = None
+    response = clear_cart(request)
+    assert response.status_code == 302
+
+
+def test_clear_cart(request_cart_with_item, client):
+    cart = request_cart_with_item
+    response = client.post(
+        reverse('cart:clear-cart'), data={},
+        HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    assert response.status_code == 200
+    assert len(cart.lines.all()) == 0
+
+
+def test_get_total_weight(cart_with_item):
+    line = cart_with_item.lines.first()
+    variant = line.variant
+    variant.weight = Weight(kg=10)
+    variant.save()
+    line.quantity = 6
+    line.save()
+    assert cart_with_item.get_total_weight() == Weight(kg=60)

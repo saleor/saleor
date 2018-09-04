@@ -1,10 +1,11 @@
-import React, { PropTypes } from 'react';
-import {gql, graphql} from 'react-apollo';
+import React from 'react';
+import * as PropTypes from 'prop-types';
+import { graphql } from 'react-apollo';
+import gql from 'graphql-tag';
 
 import Loading from '../Loading';
 import CategoryPage from './CategoryPage';
 import ProductFilters from './ProductFilters';
-
 
 class App extends React.Component {
   static propTypes = {

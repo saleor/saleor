@@ -1,6 +1,7 @@
+import * as PropTypes from 'prop-types';
 import queryString from 'query-string';
-import React, { Component, PropTypes } from 'react';
-import { gql } from 'react-apollo';
+import React, { Component } from 'react';
+import gql from 'graphql-tag';
 
 import CategoryFilter from './CategoryFilter';
 import PriceFilter from './PriceFilter';

@@ -1,13 +1,19 @@
 import json
-from django.contrib.auth.tokens import default_token_generator
+from unittest.mock import patch
 
 import graphene
+import pytest
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
-from .utils import assert_no_permission, assert_read_only_mode
 
+from saleor.account.models import Address
 from saleor.graphql.account.mutations import SetPassword
+
+from .utils import (
+    assert_no_permission, assert_read_only_mode,
+    convert_dict_keys_to_camel_case)
 
 
 def test_create_token_mutation(admin_client, staff_user):
@@ -46,7 +52,7 @@ def test_create_token_mutation(admin_client, staff_user):
 
 
 def test_token_create_user_data(
-        permission_view_order, staff_client, staff_group, staff_user):
+        permission_manage_orders, staff_client, staff_user):
     query = """
     mutation {
         tokenCreate(email: "%(email)s", password: "%(password)s") {
@@ -62,9 +68,8 @@ def test_token_create_user_data(
     }
     """
 
-    permission = permission_view_order
-    staff_group.permissions.add(permission)
-    staff_user.groups.add(staff_group)
+    permission = permission_manage_orders
+    staff_user.user_permissions.add(permission)
     code = '.'.join([permission.content_type.name, permission.codename])
     name = permission.name
     user_id = graphene.Node.to_global_id('User', staff_user.id)
@@ -136,7 +141,7 @@ def test_query_user(admin_api_client, customer_user):
     assert address['postalCode'] == user_address.postal_code
     assert address['country'] == user_address.country.code
     assert address['countryArea'] == user_address.country_area
-    assert address['phone'] == user_address.phone.raw_input
+    assert address['phone'] == user_address.phone.as_e164
 
 
 def test_query_users(admin_api_client, user_api_client):
@@ -176,8 +181,7 @@ def test_query_users(admin_api_client, user_api_client):
 
 def test_who_can_see_user(
         staff_user, customer_user, staff_api_client, user_api_client,
-        staff_group, permission_view_user):
-    user = customer_user
+        permission_manage_users):
     query = """
     query User($id: ID!) {
         user(id: $id) {
@@ -207,8 +211,7 @@ def test_who_can_see_user(
     assert_no_permission(response)
 
     # Add permission and ensure staff can see user(s)
-    staff_group.permissions.add(permission_view_user)
-    staff_user.groups.add(staff_group)
+    staff_user.user_permissions.add(permission_manage_users)
     response = staff_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
@@ -220,19 +223,35 @@ def test_who_can_see_user(
     assert content['data']['users']['totalCount'] == model.objects.count()
 
 
-def test_customer_create(admin_api_client, user_api_client):
+# @patch('saleor.account.emails.send_password_reset_email.delay')
+def test_customer_create(
+        admin_api_client, user_api_client, address):
     query = """
-    mutation CreateCustomer($email: String, $note: String) {
-        customerCreate(input: {email: $email, note: $note}) {
+    mutation CreateCustomer(
+        $email: String, $note: String, $billing: AddressInput,
+        $shipping: AddressInput, $send_mail: Boolean) {
+        customerCreate(input: {
+            email: $email,
+            note: $note,
+            defaultShippingAddress: $shipping,
+            defaultBillingAddress: $billing
+            sendPasswordEmail: $send_mail
+        }) {
             errors {
                 field
                 message
             }
             user {
                 id
+                defaultBillingAddress {
+                    id
+                }
+                defaultShippingAddress {
+                    id
+                }
                 email
-                isStaff
                 isActive
+                isStaff
                 note
             }
         }
@@ -240,8 +259,11 @@ def test_customer_create(admin_api_client, user_api_client):
     """
     email = 'api_user@example.com'
     note = 'Test user'
+    address_data = convert_dict_keys_to_camel_case(address.as_data())
 
-    variables = json.dumps({'email': email, 'note': note})
+    variables = json.dumps(
+        {'email': email, 'note': note, 'shipping': address_data,
+        'billing': address_data, 'send_mail': True})
 
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
@@ -252,28 +274,50 @@ def test_customer_create(admin_api_client, user_api_client):
     assert_read_only_mode(response)
 
 
-def test_customer_update(admin_api_client, customer_user, user_api_client):
+def test_customer_update(
+        admin_api_client, customer_user, user_api_client, address):
     query = """
-    mutation UpdateCustomer($id: ID!, $note: String) {
-        customerUpdate(id: $id, input: {note: $note}) {
+    mutation UpdateCustomer($id: ID!, $note: String, $billing: AddressInput, $shipping: AddressInput) {
+        customerUpdate(id: $id, input: {
+            note: $note,
+            defaultBillingAddress: $billing
+            defaultShippingAddress: $shipping
+        }) {
             errors {
                 field
                 message
             }
             user {
                 id
-                email
-                isStaff
-                isActive
                 note
+                defaultBillingAddress {
+                    id
+                }
+                defaultShippingAddress {
+                    id
+                }
             }
         }
     }
     """
 
+    # this test requires addresses to be set and checks whether new address
+    # instances weren't created, but the existing ones got updated
+    assert customer_user.default_billing_address
+    assert customer_user.default_shipping_address
+    billing_address_pk = customer_user.default_billing_address.pk
+    shipping_address_pk = customer_user.default_shipping_address.pk
+
     id = graphene.Node.to_global_id('User', customer_user.id)
     note = 'Test update note'
-    variables = json.dumps({'id': id, 'note': note})
+    address_data = convert_dict_keys_to_camel_case(address.as_data())
+
+    new_street_address = 'Updated street address'
+    address_data['streetAddress1'] = new_street_address
+
+    variables = json.dumps({
+        'id': id, 'note': note, 'billing': address_data,
+        'shipping': address_data})
 
     # check unauthorized access
     response = user_api_client.post(
@@ -286,11 +330,11 @@ def test_customer_update(admin_api_client, customer_user, user_api_client):
 
 
 def test_staff_create(
-        admin_api_client, user_api_client, staff_group, permission_view_user,
-        permission_view_product):
+        admin_api_client, user_api_client,
+        permission_manage_users, permission_manage_products, staff_user):
     query = """
-    mutation CreateStaff($email: String, $permissions: [String], $groups: [ID]) {
-        staffCreate(input: {email: $email, permissions: $permissions, groups: $groups}) {
+    mutation CreateStaff($email: String, $permissions: [String], $send_mail: Boolean) {
+        staffCreate(input: {email: $email, permissions: $permissions, sendPasswordEmail: $send_mail}) {
             errors {
                 field
                 message
@@ -303,33 +347,20 @@ def test_staff_create(
                 permissions {
                     code
                 }
-                groups {
-                    edges {
-                        node {
-                            id
-                            name
-                        }
-                    }
-                }
             }
         }
     }
     """
 
-    permission_view_user_codename = '%s.%s' % (
-        permission_view_user.content_type.app_label,
-        permission_view_user.codename)
-    permission_view_product_codename = '%s.%s' % (
-        permission_view_product.content_type.app_label,
-        permission_view_product.codename)
+    permission_manage_products_codename = '%s.%s' % (
+        permission_manage_products.content_type.app_label,
+        permission_manage_products.codename)
 
     email = 'api_user@example.com'
-    staff_group.permissions.add(permission_view_user)
-    group_id = graphene.Node.to_global_id('Group', staff_group.id)
-
+    staff_user.user_permissions.add(permission_manage_users)
     variables = json.dumps({
-        'email': email, 'groups': [group_id],
-        'permissions': [permission_view_product_codename]})
+        'email': email, 'permissions': [permission_manage_products_codename],
+        'send_mail': True})
 
     # check unauthorized access
     response = user_api_client.post(
@@ -343,8 +374,8 @@ def test_staff_create(
 
 def test_staff_update(admin_api_client, staff_user, user_api_client):
     query = """
-    mutation UpdateStaff($id: ID!, $permissions: [String], $groups: [ID]) {
-        staffUpdate(id: $id, input: {permissions: $permissions, groups: $groups}) {
+    mutation UpdateStaff($id: ID!, $permissions: [String]) {
+        staffUpdate(id: $id, input: {permissions: $permissions}) {
             errors {
                 field
                 message
@@ -353,19 +384,12 @@ def test_staff_update(admin_api_client, staff_user, user_api_client):
                 permissions {
                     code
                 }
-                groups {
-                    edges {
-                        node {
-                            id
-                        }
-                    }
-                }
             }
         }
     }
     """
     id = graphene.Node.to_global_id('User', staff_user.id)
-    variables = json.dumps({'id': id, 'permissions': [], 'groups': []})
+    variables = json.dumps({'id': id, 'permissions': []})
 
     # check unauthorized access
     response = user_api_client.post(

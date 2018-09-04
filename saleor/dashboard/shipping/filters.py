@@ -4,24 +4,24 @@ from django_filters import (
 
 from ...core.filters import SortedFilterSet
 from ...core.i18n import COUNTRY_CODE_CHOICES
-from ...shipping.models import ShippingMethod
+from ...shipping.models import ShippingZone
 
 SORT_BY_FIELDS = {
     'name': pgettext_lazy('Group list sorting option', 'name')}
 
 
-class ShippingMethodFilter(SortedFilterSet):
+class ShippingZoneFilter(SortedFilterSet):
     name = CharFilter(
         label=pgettext_lazy(
-            'Shipping method list filter label', 'Name'),
+            'Shipping zones list filter label', 'Shipping zone name'),
         lookup_expr="icontains")
     price = RangeFilter(
         label=pgettext_lazy(
-            'Shipping method list filter label', 'Price range'),
-        name='price_per_country__price')
+            'Shipping zones list filter label', 'Price range'),
+        name='shipping_methods__price')
     country = ChoiceFilter(
-        label=pgettext_lazy('Shipping method filter label', 'Country'),
-        name='price_per_country__country_code',
+        label=pgettext_lazy('Shipping zones filter label', 'Country'),
+        name='countries', lookup_expr='contains',
         choices=COUNTRY_CODE_CHOICES)
     sort_by = OrderingFilter(
         label=pgettext_lazy('Product list sorting filter label', 'Sort by'),
@@ -29,14 +29,14 @@ class ShippingMethodFilter(SortedFilterSet):
         field_labels=SORT_BY_FIELDS)
 
     class Meta:
-        model = ShippingMethod
+        model = ShippingZone
         fields = []
 
     def get_summary_message(self):
         counter = self.qs.count()
         return npgettext(
             'Number of matching records in the dashboard '
-            'shipping methods list',
-            'Found %(counter)d matching shipping method',
-            'Found %(counter)d matching shipping methods',
+            'shipping zones list',
+            'Found %(counter)d matching shipping zone',
+            'Found %(counter)d matching shipping zones',
             number=counter) % {'counter': counter}

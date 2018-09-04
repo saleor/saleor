@@ -52,3 +52,10 @@ def create_image():
     image = SimpleUploadedFile(
         image_name + '.jpg', img_data.getvalue(), 'image/png')
     return image, image_name
+
+
+def create_pdf_file_with_image_ext():
+    file_name = 'product.jpg'
+    file_data = SimpleUploadedFile(
+        file_name, b'product_data', 'application/pdf')
+    return file_data, file_name

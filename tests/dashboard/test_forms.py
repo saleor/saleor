@@ -4,13 +4,13 @@ from saleor.product.models import Category
 from saleor.dashboard.product.forms import ModelChoiceOrCreationField
 
 
-def test_model_choice_or_creation_field(default_category):
+def test_model_choice_or_creation_field(category):
     class Form(forms.Form):
         field = ModelChoiceOrCreationField(queryset=Category.objects.all())
 
-    form = Form({'field': default_category})
+    form = Form({'field': category})
     assert form.is_valid()
-    assert form.cleaned_data['field'] == default_category
+    assert form.cleaned_data['field'] == category
 
     choice = 'new-value'
     form = Form({'field': choice})
