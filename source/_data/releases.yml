@@ -28,8 +28,24 @@
     features:
       left:
         - feature:
-            title: Dashboard 2.0 - product management
-            description: A refreshed version of product management views implemented as a single-page application.
+            title: Dashboard 2.0 - order management views
+            description: Order management in the new single-page Dashboard 2.0.
+      right:
+        - feature:
+            title: Order timeline
+            description: A detailed list of events showing the history of an order, including actors, dates, rich-text content and actions.
+- release:
+    title: <span>Summer</span> Release
+    image: /images/done.svg
+    link: https://github.com/mirumee/saleor/releases/tag/v2018.08
+    features:
+      left:
+        - feature:
+            title: ""
+            type: list
+            description:
+              - Dashboard 2.0 - product management
+              - Shipping zones
 - release:
     title: <span>June</span> Release
     image: /images/done.svg
