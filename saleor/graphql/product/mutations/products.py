@@ -196,7 +196,7 @@ class AttributeValueInput(InputObjectType):
         required=True, description='Value of an attribute.')
 
 
-class ProductPropertiesInput(graphene.InputObjectType):
+class ProductInput(graphene.InputObjectType):
     attributes = graphene.List(
         AttributeValueInput,
         description='List of product attributes.')
@@ -221,7 +221,7 @@ class ProductPropertiesInput(graphene.InputObjectType):
         description='Weight of the Product.', required=False)
 
 
-class ProductCreateInput(ProductPropertiesInput):
+class ProductCreateInput(ProductInput):
     product_type = graphene.ID(
         description='ID of the type that product belongs to.',
         name='productType', required=True)
@@ -275,7 +275,7 @@ class ProductUpdate(ProductCreate):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a product to update.')
-        input = ProductPropertiesInput(
+        input = ProductInput(
             required=True, description='Fields required to update a product.')
 
     class Meta:
