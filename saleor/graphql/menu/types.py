@@ -29,6 +29,3 @@ class MenuItem(CountableDjangoObjectType):
         exclude_fields = ['sort_order', 'lft', 'rght', 'tree_id']
         filter_fields = {}
         model = models.MenuItem
-
-    def resolve_url(self, info):
-        return self.get_url()
