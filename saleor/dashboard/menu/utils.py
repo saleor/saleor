@@ -1,4 +1,5 @@
 from django.db.models import Q
+from django.utils.formats import localize
 from django.utils.translation import pgettext
 
 from ...menu.models import Menu, MenuItem
@@ -94,5 +95,13 @@ def get_menus_that_needs_update(collection=None, categories=None, page=None):
 
 
 def get_menu_obj_text(obj):
-    return str(obj) + ('' if obj.is_published else pgettext(
-        'Menu item pubslished status', ' (Not published)'))
+    if obj.is_published:
+        return str(obj)
+    elif isinstance(obj, Page) and obj.is_visible and obj.available_on:
+        return pgettext(
+            'Menu item page hidden status',
+            'Hidden (will become visible on %s)' % (localize(
+                obj.available_on)))
+    else:
+        return pgettext(
+            'Menu item published status', '%s (Not published)' % str(obj))
