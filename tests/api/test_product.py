@@ -13,7 +13,7 @@ from tests.utils import (
 from saleor.core import TaxRateType
 from saleor.graphql.product.utils import update_variants_names
 from saleor.product.models import (
-    Category, Collection, Product, ProductImage, ProductType)
+    Category, Collection, Product, ProductImage, ProductType, ProductVariant)
 
 from .utils import assert_no_permission, get_multipart_request_body
 
@@ -1243,3 +1243,47 @@ def test_update_variants_changed_does_nothing_with_no_attributes():
     product_type.variant_attributes.all = Mock(return_value=[])
     saved_attributes = []
     assert update_variants_names(product_type, saved_attributes) is None
+
+
+def test_product_variants_by_ids(user_api_client, variant):
+    query = '''
+        query getProduct($ids: [ID!]) {
+            productVariants(ids: $ids) {
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
+        }
+        '''
+    variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
+
+    variables = json.dumps({'ids': [variant_id]})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productVariants']
+    assert data['edges'][0]['node']['id'] == variant_id
+    assert len(data['edges']) == 1
+
+
+def test_product_variants_no_ids_list(user_api_client, variant):
+    query = '''
+        query getProductVariants {
+            productVariants(first: 10) {
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
+        }
+        '''
+    response = user_api_client.post(
+        reverse('api'), {'query': query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productVariants']
+    assert len(data['edges']) == ProductVariant.objects.count()
