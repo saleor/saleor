@@ -1287,3 +1287,29 @@ def test_product_variants_no_ids_list(user_api_client, variant):
     assert 'errors' not in content
     data = content['data']['productVariants']
     assert len(data['edges']) == ProductVariant.objects.count()
+
+
+def test_category_image_query(user_api_client, non_default_category):
+    category = non_default_category
+    image_file, image_name = create_image()
+    category.background_image = image_file
+    category.save()
+    category_id = graphene.Node.to_global_id('Category', category.pk)
+    query = """
+        query fetchCategory($id: ID!){
+            category(id: $id) {
+                id
+                backgroundImage {
+                   url(size: 100)
+                }
+            }
+        }
+    """
+    variables = json.dumps({'id': category_id})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['category']
+    thumbnail_url = category.background_image.crop['100x100'].url
+    assert data['backgroundImage']['url'] == thumbnail_url
