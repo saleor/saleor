@@ -13,7 +13,7 @@ from tests.utils import (
 from saleor.core import TaxRateType
 from saleor.graphql.product.utils import update_variants_names
 from saleor.product.models import (
-    Category, Collection, Product, ProductImage, ProductType)
+    Category, Collection, Product, ProductImage, ProductType, ProductVariant)
 
 from .utils import assert_no_permission, get_multipart_request_body
 
@@ -1267,3 +1267,23 @@ def test_product_variants_by_ids(user_api_client, variant):
     data = content['data']['productVariants']
     assert data['edges'][0]['node']['id'] == variant_id
     assert len(data['edges']) == 1
+
+
+def test_product_variants_no_ids_list(user_api_client, variant):
+    query = '''
+        query getProductVariants {
+            productVariants(first: 10) {
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
+        }
+        '''
+    response = user_api_client.post(
+        reverse('api'), {'query': query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productVariants']
+    assert len(data['edges']) == ProductVariant.objects.count()

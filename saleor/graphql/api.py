@@ -236,7 +236,7 @@ class Query(graphene.ObjectType):
     def resolve_product_variant(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ProductVariant)
 
-    def resolve_product_variants(self, info, ids):
+    def resolve_product_variants(self, info, ids=None, **kwargs):
         return resolve_product_variants(info, ids)
 
     @permission_required('discount.manage_discounts')
