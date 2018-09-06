@@ -351,6 +351,21 @@ class ProductType(CountableDjangoObjectType):
         return gql_optimizer.query(qs, info)
 
 
+class ImageWithThumbnail(graphene.ObjectType):
+    url = graphene.String(
+        required=True,
+        description='The URL of the image.',
+        size=graphene.Int(description='Size of the image'))
+
+    class Meta:
+        description = 'Represents an image.'
+
+    def resolve_url(self, info, size=None):
+        if size:
+            return get_thumbnail(self, size)
+        return self.url
+
+
 class Collection(CountableDjangoObjectType):
     products = gql_optimizer.field(
         PrefetchingConnectionField(
@@ -372,21 +387,6 @@ class Collection(CountableDjangoObjectType):
             return self.prefetched_products
         qs = self.products.visible_to_user(info.context.user)
         return gql_optimizer.query(qs, info)
-
-
-class ImageWithThumbnail(graphene.ObjectType):
-    url = graphene.String(
-        required=True,
-        description='The URL of the image.',
-        size=graphene.Int(description='Size of the image'))
-
-    class Meta:
-        description = 'Represents an image.'
-
-    def resolve_url(self, info, size=None):
-        if size:
-            return get_thumbnail(self, size)
-        return self.url
 
 
 class Category(CountableDjangoObjectType):
