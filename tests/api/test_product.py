@@ -1331,7 +1331,7 @@ def test_product_variants_no_ids_list(user_api_client, variant):
                 }
             }
         }
-        """
+    """
     response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content['data']['productVariants']
