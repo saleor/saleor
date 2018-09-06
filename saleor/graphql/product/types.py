@@ -216,25 +216,6 @@ class ProductType(CountableDjangoObjectType):
             user=user).filter(product_type=self).distinct()
 
 
-class Collection(CountableDjangoObjectType):
-    products = DjangoFilterConnectionField(
-        Product, filterset_class=ProductFilterSet,
-        description='List of collection products.')
-
-    class Meta:
-        description = "Represents a collection of products."
-        exclude_fields = ['voucher_set', 'sale_set', 'menuitem_set']
-        filter_fields = {
-            'name': ['exact', 'icontains', 'istartswith']}
-        interfaces = [relay.Node]
-        model = models.Collection
-
-    def resolve_products(self, info, **kwargs):
-        user = info.context.user
-        return products_with_details(
-            user=user).filter(collections=self).distinct()
-
-
 class ImageWithThumbnail(graphene.ObjectType):
     url = graphene.String(
         required=True,
@@ -248,6 +229,26 @@ class ImageWithThumbnail(graphene.ObjectType):
         if size:
             return get_thumbnail(self, size)
         return self.url
+
+
+class Collection(CountableDjangoObjectType):
+    products = DjangoFilterConnectionField(
+        Product, filterset_class=ProductFilterSet,
+        description='List of collection products.')
+    background_image = graphene.Field(ImageWithThumbnail)
+
+    class Meta:
+        description = "Represents a collection of products."
+        exclude_fields = ['voucher_set', 'sale_set', 'menuitem_set']
+        filter_fields = {
+            'name': ['exact', 'icontains', 'istartswith']}
+        interfaces = [relay.Node]
+        model = models.Collection
+
+    def resolve_products(self, info, **kwargs):
+        user = info.context.user
+        return products_with_details(
+            user=user).filter(collections=self).distinct()
 
 
 class Category(CountableDjangoObjectType):
