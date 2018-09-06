@@ -1298,7 +1298,6 @@ def test_category_image_query(user_api_client, non_default_category):
     query = """
         query fetchCategory($id: ID!){
             category(id: $id) {
-                id
                 backgroundImage {
                    url(size: 100)
                 }
@@ -1312,4 +1311,28 @@ def test_category_image_query(user_api_client, non_default_category):
     assert 'errors' not in content
     data = content['data']['category']
     thumbnail_url = category.background_image.crop['100x100'].url
+    assert data['backgroundImage']['url'] == thumbnail_url
+
+
+def test_collection_image_query(user_api_client, collection):
+    image_file, image_name = create_image()
+    collection.background_image = image_file
+    collection.save()
+    collection_id = graphene.Node.to_global_id('Collection', collection.pk)
+    query = """
+        query fetchCollection($id: ID!){
+            collection(id: $id) {
+                backgroundImage {
+                   url(size: 100)
+                }
+            }
+        }
+    """
+    variables = json.dumps({'id': collection_id})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['collection']
+    thumbnail_url = collection.background_image.crop['100x100'].url
     assert data['backgroundImage']['url'] == thumbnail_url
