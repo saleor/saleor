@@ -21,7 +21,7 @@ from ..utils import create_image
 def test_view_product_list_with_filters(admin_client, product_list):
     url = reverse('dashboard:product-list')
     data = {
-        'price_1': [''], 'price_0': [''], 'is_featured': [''],
+        'price_max': [''], 'price_min': [''], 'is_featured': [''],
         'name': ['Test'], 'sort_by': [''], 'is_published': ['']}
 
     response = admin_client.get(url, data)
@@ -33,7 +33,7 @@ def test_view_product_list_with_filters(admin_client, product_list):
 def test_view_product_list_with_filters_sort_by(admin_client, product_list):
     url = reverse('dashboard:product-list')
     data = {
-        'price_1': [''], 'price_0': [''], 'is_featured': [''],
+        'price_max': [''], 'price_min': [''], 'is_featured': [''],
         'name': ['Test'], 'sort_by': ['name'], 'is_published': ['']}
 
     response = admin_client.get(url, data)
@@ -54,7 +54,7 @@ def test_view_product_list_with_filters_is_published(
         admin_client, product_list, category):
     url = reverse('dashboard:product-list')
     data = {
-        'price_1': [''], 'price_0': [''], 'is_featured': [''],
+        'price_max': [''], 'price_min': [''], 'is_featured': [''],
         'name': ['Test'], 'sort_by': ['name'], 'category': category.pk,
         'is_published': ['1']}
 
@@ -68,7 +68,7 @@ def test_view_product_list_with_filters_is_published(
 def test_view_product_list_with_filters_no_results(admin_client, product_list):
     url = reverse('dashboard:product-list')
     data = {
-        'price_1': [''], 'price_0': [''], 'is_featured': [''],
+        'price_max': [''], 'price_min': [''], 'is_featured': [''],
         'name': ['BADTest'], 'sort_by': [''], 'is_published': ['']}
 
     response = admin_client.get(url, data)
@@ -99,7 +99,7 @@ def test_view_product_list_pagination_with_filters(admin_client, product_list):
     settings.DASHBOARD_PAGINATE_BY = 1
     url = reverse('dashboard:product-list')
     data = {
-        'page': '1', 'price_1': [''], 'price_0': [''], 'is_featured': [''],
+        'page': '1', 'price_max': [''], 'price_min': [''], 'is_featured': [''],
         'name': ['Test'], 'sort_by': ['name'], 'is_published': ['']}
 
     response = admin_client.get(url, data)

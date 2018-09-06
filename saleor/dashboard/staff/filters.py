@@ -28,7 +28,7 @@ class PermissionMultipleChoiceFilter(ModelMultipleChoiceFilter):
 class StaffFilter(UserFilter):
     user_permissions = PermissionMultipleChoiceFilter(
         label=pgettext_lazy('Group list filter label', 'Permissions'),
-        name='user_permissions',
+        field_name='user_permissions',
         queryset=get_permissions())
     sort_by = OrderingFilter(
         label=pgettext_lazy('Staff list filter label', 'Sort by'),

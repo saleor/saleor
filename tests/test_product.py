@@ -334,7 +334,7 @@ def test_product_filter_product_exists(authorized_client, product, category):
         kwargs={
             'slug': category.slug,
             'category_id': category.pk})
-    data = {'price_0': [''], 'price_1': ['20']}
+    data = {'price_min': [''], 'price_max': ['20']}
 
     response = authorized_client.get(url, data)
 
@@ -348,7 +348,7 @@ def test_product_filter_product_does_not_exist(
         kwargs={
             'slug': category.slug,
             'category_id': category.pk})
-    data = {'price_0': ['20'], 'price_1': ['']}
+    data = {'price_min': ['20'], 'price_max': ['']}
 
     response = authorized_client.get(url, data)
 
@@ -402,7 +402,8 @@ def test_product_filter_sorted_by_wrong_parameter(
 
     response = authorized_client.get(url, data)
 
-    assert not list(response.context['filter_set'].qs)
+    assert not response.context['filter_set'].form.is_valid()
+    assert not response.context['products']
 
 
 def test_get_variant_picker_data_proper_variant_count(product):

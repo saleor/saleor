@@ -20,7 +20,6 @@ from .discount.types import Sale, Voucher
 from .discount.mutations import (
     SaleCreate, SaleDelete, SaleUpdate, VoucherCreate, VoucherDelete,
     VoucherUpdate)
-from .core.filters import DistinctFilterSet
 from .core.mutations import CreateToken, VerifyToken
 from .order.filters import OrderFilter
 from .order.resolvers import resolve_order, resolve_orders
@@ -68,12 +67,12 @@ from .shop.mutations import (
 
 class Query(graphene.ObjectType):
     attributes = DjangoFilterConnectionField(
-        ProductAttribute, filterset_class=DistinctFilterSet,
+        ProductAttribute,
         query=graphene.String(description=DESCRIPTIONS['attributes']),
         in_category=graphene.Argument(graphene.ID),
         description='List of the shop\'s product attributes.')
     categories = DjangoFilterConnectionField(
-        Category, filterset_class=DistinctFilterSet, query=graphene.String(
+        Category, query=graphene.String(
             description=DESCRIPTIONS['category']),
         level=graphene.Argument(graphene.Int),
         description='List of the shop\'s categories.')
@@ -111,7 +110,7 @@ class Query(graphene.ObjectType):
         Page, id=graphene.Argument(graphene.ID), slug=graphene.String(),
         description='Lookup a page by ID or by slug.')
     pages = DjangoFilterConnectionField(
-        Page, filterset_class=DistinctFilterSet, query=graphene.String(
+        Page, query=graphene.String(
             description=DESCRIPTIONS['page']),
         description='List of the shop\'s pages.')
     product = graphene.Field(
@@ -125,14 +124,12 @@ class Query(graphene.ObjectType):
         ProductType, id=graphene.Argument(graphene.ID),
         description='Lookup a product type by ID.')
     product_types = DjangoFilterConnectionField(
-        ProductType, filterset_class=DistinctFilterSet,
-        description='List of the shop\'s product types.')
+        ProductType, description='List of the shop\'s product types.')
     product_variant = graphene.Field(
         ProductVariant, id=graphene.Argument(graphene.ID),
         description='Lookup a variant by ID.')
     product_variants = DjangoFilterConnectionField(
-        ProductVariant, filterset_class=DistinctFilterSet,
-        ids=graphene.List(graphene.ID),
+        ProductVariant, ids=graphene.List(graphene.ID),
         description='Lookup multiple variants by ID')
     sale = graphene.Field(
         Sale, id=graphene.Argument(graphene.ID),
