@@ -363,7 +363,7 @@ def test_get_menus_that_needs_update(category, collection, page):
     assert sorted(list(result)) == sorted([m.pk for m in menus])
 
 
-def test_menu_item_status(menu, default_category, collection, page):
+def test_menu_item_status(menu, category, collection, page):
     item = MenuItem.objects.create(name='Name', menu=menu)
     assert item.is_public()
 
@@ -376,7 +376,7 @@ def test_menu_item_status(menu, default_category, collection, page):
     assert not item.is_public()
 
     item = MenuItem.objects.create(
-        name='Name', menu=menu, category=default_category)
+        name='Name', menu=menu, category=category)
     assert item.is_public()
 
     item = MenuItem.objects.create(

@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load utils %}
 {% load staticfiles %}
+{% load status %}
 
 <div class="card">
   <div class="card-content">
@@ -44,6 +45,8 @@
             <td>
               {% if item.is_public %}
                 <div class="label label-success">{% trans "Published" context "Menu items status"%}</div>
+              {% elif item.page %}
+                {% render_page_availability item.page %}
               {% else %}
                 <div class="label label-danger">{% trans "Not published" context "Menu items status"%}</div>
               {% endif %}
