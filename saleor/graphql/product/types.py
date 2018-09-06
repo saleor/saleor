@@ -128,6 +128,21 @@ class ProductAvailability(graphene.ObjectType):
         description = 'Represents availability of a product in the storefront.'
 
 
+class Image(graphene.ObjectType):
+    url = graphene.String(
+        required=True,
+        description='The URL of the image.',
+        size=graphene.Int(description='Size of the image'))
+
+    class Meta:
+        description = 'Represents an image.'
+
+    def resolve_url(self, info, size=None):
+        if size:
+            return get_thumbnail(self, size)
+        return self.url
+
+
 class Product(CountableDjangoObjectType):
     url = graphene.String(
         description='The storefront URL for the product.', required=True)
@@ -216,26 +231,11 @@ class ProductType(CountableDjangoObjectType):
             user=user).filter(product_type=self).distinct()
 
 
-class ImageWithThumbnail(graphene.ObjectType):
-    url = graphene.String(
-        required=True,
-        description='The URL of the image.',
-        size=graphene.Int(description='Size of the image'))
-
-    class Meta:
-        description = 'Represents an image.'
-
-    def resolve_url(self, info, size=None):
-        if size:
-            return get_thumbnail(self, size)
-        return self.url
-
-
 class Collection(CountableDjangoObjectType):
     products = DjangoFilterConnectionField(
         Product, filterset_class=ProductFilterSet,
         description='List of collection products.')
-    background_image = graphene.Field(ImageWithThumbnail)
+    background_image = graphene.Field(Image)
 
     class Meta:
         description = "Represents a collection of products."
@@ -266,7 +266,7 @@ class Category(CountableDjangoObjectType):
         lambda: Category,
         filterset_class=DistinctFilterSet,
         description='List of children of the category.')
-    background_image = graphene.Field(ImageWithThumbnail)
+    background_image = graphene.Field(Image)
 
     class Meta:
         description = """Represents a single category of products. Categories
