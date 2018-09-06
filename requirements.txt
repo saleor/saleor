@@ -47,7 +47,7 @@ django-payments==0.12.3
 django-phonenumber-field==2.0.0
 django-prices-openexchangerates==1.0.1
 django-prices-vatlayer==1.0.1
-django-prices==1.0.3
+django-prices==1.0.4
 django-recaptcha==1.4.0
 django-redis==4.9.0
 django-render-block==0.5  # via django-templated-email
