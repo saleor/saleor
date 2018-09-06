@@ -1299,7 +1299,7 @@ def test_category_image_query(user_api_client, non_default_category):
         query fetchCategory($id: ID!){
             category(id: $id) {
                 backgroundImage {
-                   url(size: 100)
+                   url(size: 120)
                 }
             }
         }
@@ -1310,7 +1310,7 @@ def test_category_image_query(user_api_client, non_default_category):
     content = get_graphql_content(response)
     assert 'errors' not in content
     data = content['data']['category']
-    thumbnail_url = category.background_image.crop['100x100'].url
+    thumbnail_url = category.background_image.thumbnail['120x120'].url
     assert data['backgroundImage']['url'] == thumbnail_url
 
 
@@ -1323,7 +1323,7 @@ def test_collection_image_query(user_api_client, collection):
         query fetchCollection($id: ID!){
             collection(id: $id) {
                 backgroundImage {
-                   url(size: 100)
+                   url(size: 120)
                 }
             }
         }
@@ -1334,5 +1334,5 @@ def test_collection_image_query(user_api_client, collection):
     content = get_graphql_content(response)
     assert 'errors' not in content
     data = content['data']['collection']
-    thumbnail_url = collection.background_image.crop['100x100'].url
+    thumbnail_url = collection.background_image.thumbnail['120x120'].url
     assert data['backgroundImage']['url'] == thumbnail_url
