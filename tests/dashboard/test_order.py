@@ -13,7 +13,7 @@ from saleor.dashboard.order.utils import (
     fulfill_order_line, remove_customer_from_order, save_address_in_order,
     update_order_with_user_addresses)
 from saleor.discount.utils import increase_voucher_usage
-from saleor.order import FulfillmentStatus, OrderStatus
+from saleor.order import FulfillmentStatus, OrderEvents, OrderStatus
 from saleor.order.models import Order, OrderLine
 from saleor.order.utils import add_variant_to_order, change_order_line_quantity
 from saleor.product.models import ProductVariant
@@ -1146,7 +1146,7 @@ def test_view_mark_order_as_paid(admin_client, order_with_lines):
     order_with_lines.refresh_from_db()
     assert order_with_lines.is_fully_paid()
     assert order_with_lines.history.filter(
-        content='Order manually marked as paid').exists()
+        event=OrderEvents.ORDER_MARKED_AS_PAID.value).exists()
 
 
 def test_view_fulfill_order_lines(admin_client, order_with_lines):

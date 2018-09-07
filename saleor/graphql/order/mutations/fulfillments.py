@@ -118,7 +118,7 @@ class FulfillmentCreate(ModelMutation):
             update_order_status(order)
             order.history.create(
                 parameters={'quantity': quantity_fulfilled},
-                event=OrderEvents.FULFILLMENT_FULFILLED_ITEMS,
+                event=OrderEvents.FULFILLMENT_FULFILLED_ITEMS.value,
                 change_author=info.context.user)
         super().save(info, instance, cleaned_input)
 
@@ -126,7 +126,7 @@ class FulfillmentCreate(ModelMutation):
             send_fulfillment_confirmation.delay(order.pk, instance.pk)
             order.history.create(
                 parameters={'email': order.get_user_current_email()},
-                event=OrderEvents.EMAIL_SHIPPING_CONFIRMATION_SEND,
+                event=OrderEvents.EMAIL_SHIPPING_CONFIRMATION_SEND.value,
                 change_author=info.context.user)
 
 
@@ -180,11 +180,11 @@ class FulfillmentCancel(BaseMutation):
         if restock:
             order.history.create(
                 parameters={'quantity': fulfillment.get_total_quantity()},
-                event=OrderEvents.FULFILLMENT_RESTOCKED_ITEMS,
+                event=OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value,
                 change_author=info.context.user)
         else:
             order.history.create(
                 parameters={'id': fulfillment.composed_id},
-                event=OrderEvents.FULFILLMENT_CANCELED,
+                event=OrderEvents.FULFILLMENT_CANCELED.value,
                 change_author=info.context.user)
         return FulfillmentCancel(fulfillment=fulfillment)

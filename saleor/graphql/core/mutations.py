@@ -12,7 +12,7 @@ from ...account import models
 from ..account.types import User
 from ..file_upload.types import Upload
 from ..utils import get_nodes
-from .types.common import Error, WeightUnitsEnum
+from .types.common import Error
 from .utils import snake_to_camel_case
 
 registry = get_global_registry()

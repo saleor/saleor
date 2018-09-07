@@ -2,7 +2,7 @@ import logging
 
 from ..core import analytics
 from .emails import send_payment_confirmation
-from . import OrderEvents
+from . import OrderEvents, EventsEmailType
 
 logger = logging.getLogger(__name__)
 
@@ -11,12 +11,14 @@ def order_status_change(sender, instance, **kwargs):
     """Handle payment status change and set suitable order status."""
     order = instance.order
     if order.is_fully_paid():
-        order.history.create(event=OrderEvents.ORDER_FULLY_PAID)
+        order.history.create(event=OrderEvents.ORDER_FULLY_PAID.value)
         if order.get_user_current_email():
             send_payment_confirmation.delay(order.pk)
-            # TODO send payment confirmation
             order.history.create(
-                event=OrderEvents.EMAIL_ORDER_CONFIRMATION_SEND)
+                event=OrderEvents.EMAIL_SENT.value,
+                parameters={
+                    'email': order.get_user_current_email(),
+                    'email_type': EventsEmailType.PAYMENT})
         try:
             analytics.report_order(order.tracking_client_id, order)
         except Exception:
