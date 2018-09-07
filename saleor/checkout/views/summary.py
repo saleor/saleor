@@ -7,7 +7,7 @@ from ...account.models import Address
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...order.emails import send_order_confirmation
-from ...order.models import OrderHistoryEntry
+from ...order import OrderEvents, EventsEmailType
 from ..forms import CartNoteForm
 from ..utils import (
     create_order, get_cart_data_for_checkout, get_taxes_for_cart,
@@ -36,11 +36,13 @@ def handle_order_placement(request, cart):
         return redirect('checkout:summary')
 
     cart.delete()
-    order.history.create(event=OrderHistoryEntry.ORDER_PLACED)
+    order.history.create(event=OrderEvents.PLACED.value)
     send_order_confirmation.delay(order.pk)
     order.history.create(
-        event=OrderHistoryEntry.EMAIL_ORDER_CONFIRMATION_SEND,
-        parameters={'email': order.get_user_current_email()})
+        event=OrderEvents.EMAIL_SENT.value,
+        parameters={
+            'email': order.get_user_current_email(),
+            'email_type': EventsEmailType.ORDER})
     return redirect('order:payment', token=order.token)
 
 

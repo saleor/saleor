@@ -1,7 +1,6 @@
 from functools import wraps
 
 from django.shortcuts import get_object_or_404, redirect
-from django.utils.translation import pgettext_lazy, npgettext_lazy
 
 from ..account.utils import store_user_address
 from ..checkout import AddressType
@@ -9,10 +8,9 @@ from ..core.utils.taxes import (
     ZERO_MONEY, get_tax_rate_by_name, get_taxes_for_address)
 from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..discount.models import NotApplicable
-from ..order import FulfillmentStatus, OrderEvents, OrderStatus
+from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import OrderLine
 from ..product.utils import allocate_stock, deallocate_stock, increase_stock
-from django_prices.templatetags import prices_i18n
 
 
 def check_order_status(func):
@@ -209,65 +207,3 @@ def restock_fulfillment_lines(fulfillment):
         if line.order_line.variant and line.order_line.variant.track_inventory:
             increase_stock(
                 line.order_line.variant, line.quantity, allocate=True)
-
-
-def display_order_event(event_type, params):
-    """This function is to keep backwards compatibility with the old dashboard
-    and new type of order events (storing enums instead of messages)
-    """
-    if event_type == OrderEvents.ORDER_DRAFT_PLACED:
-        return pgettext_lazy(
-            'Dashboard message related to an order',
-            'Order created from draft order')
-    if event_type == OrderEvents.EMAIL_ORDER_CONFIRMATION_SEND:
-        return pgettext_lazy(
-            'Dashboard message related to an order',
-            'Order confirmation email was sent to user'
-            '(%(email)s)') % {'email': params['email']}
-    if event_type == OrderEvents.PAYMENT_RELEASED:
-        return pgettext_lazy(
-            'Dashboard message related to an order', 'Released payment')
-    if event_type == OrderEvents.PAYMENT_REFUNDED:
-        return pgettext_lazy(
-            'Dashboard message related to an order',
-            'Refunded %(amount)s' % {
-                'amount': prices_i18n.amount(params['amount'])})
-    if event_type == OrderEvents.PAYMENT_CAPTURED:
-        return pgettext_lazy(
-            'Dashboard message related to an order',
-            'Captured %(amount)s' % {
-                'amount': prices_i18n.amount(params['amount'])})
-    if event_type == OrderEvents.ORDER_MARKED_AS_PAID:
-        return pgettext_lazy(
-            'Dashboard message related to an order',
-            'Order manually marked as paid.')
-    if event_type == OrderEvents.ORDER_CANCELED:
-        return pgettext_lazy(
-            'Dashboard message related to an order', 'Order canceled')
-    if event_type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS:
-        return npgettext_lazy(
-            'Dashboard message related to an order',
-            'Restocked %(quantity)d item',
-            'Restocked %(quantity)d items',
-            'quantity') % {'quantity': params['quantity']}
-    if event_type == OrderEvents.NOTE_ADDED:
-        return pgettext_lazy(
-            'Dashboard message related to an order',
-            'Added note: %(note)s' % {'note': params['message']})
-    if event_type == OrderEvents.FULFILLMENT_CANCELED:
-        return pgettext_lazy(
-            'Dashboard message',
-            'Fulfillment #%(fulfillment)s canceled') % {
-                'fulfillment': params['id']}
-    if event_type == OrderEvents.FULFILLMENT_FULFILLED_ITEMS:
-        return npgettext_lazy(
-            'Dashboard message related to an order',
-            'Fulfilled %(quantity_fulfilled)d item',
-            'Fulfilled %(quantity_fulfilled)d items',
-            'quantity_fulfilled') % {
-                'quantity_fulfilled': params['quantity']}
-    if event_type == OrderEvents.EMAIL_SHIPPING_CONFIRMATION_SEND:
-        return pgettext_lazy(
-            'Dashboard message related to an order',
-            'Shipping confirmation email was sent to user'
-            '(%(email)s)') % {'email': params['email']}

@@ -179,7 +179,7 @@ MIDDLEWARE = [
     'saleor.core.middleware.taxes',
     'social_django.middleware.SocialAuthExceptionMiddleware',
     'impersonate.middleware.ImpersonateMiddleware',
-    'saleor.graphql.middleware.jwt_middleware'
+    # 'saleor.graphql.middleware.jwt_middleware'
 ]
 
 INSTALLED_APPS = [

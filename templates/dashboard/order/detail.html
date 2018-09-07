@@ -624,9 +624,9 @@
     <div class="timeline-outer">
       <ul class="timeline">
         {% for event in events %}
-          <li class="event" data-date="{{ event.date }}">
+          <li class="event" data-date="{{ event.happened_at }}">
             <div class="content">
-              {{ event.content|default:"" }}{% if event.user %} by {{ event.user }}{% endif %}
+              {{ event.get_event_display|default:"" }}{% if event.user %} by {{ event.user }}{% endif %}
             </div>
           </li>
         {% endfor %}

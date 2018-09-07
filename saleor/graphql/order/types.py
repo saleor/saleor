@@ -1,10 +1,40 @@
 import graphene
 from graphene import relay
-from graphene_django import DjangoObjectType
-
-from ...order import models
+from graphene.types import Scalar
+from ...order import OrderEvents, models
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
+
+OrderEventsEnum = graphene.Enum.from_enum(OrderEvents)
+
+
+class ParametersScalar(Scalar):
+
+    @staticmethod
+    def parse_value(value):
+        return value
+
+    @staticmethod
+    def serialize(dict_parameters):
+        if isinstance(dict_parameters, dict):
+            return dict_parameters
+        return None
+
+    @staticmethod
+    def parse_literal(node):
+        return node
+
+
+class OrderHistoryEntry(CountableDjangoObjectType):
+    event = OrderEventsEnum(description='Order event type')
+    parameters = ParametersScalar(
+        description="Dict of parameters required to display an event")
+
+    class Meta:
+        description = 'History log of the order.'
+        model = models.OrderHistoryEntry
+        interfaces = [relay.Node]
+        exclude_fields = ['order']
 
 
 class Fulfillment(CountableDjangoObjectType):
@@ -48,6 +78,9 @@ class Order(CountableDjangoObjectType):
         Money, description='Amount authorized for the order.')
     total_captured = graphene.Field(
         Money, description='Amount captured by payment.')
+    events = graphene.List(
+        OrderHistoryEntry,
+        description='List of events associated with the order.')
 
     class Meta:
         description = 'Represents an order in the shop.'
@@ -78,6 +111,10 @@ class Order(CountableDjangoObjectType):
         return obj.fulfillments.all()
 
     @staticmethod
+    def resolve_events(obj, info):
+        return obj.history.all()
+
+    @staticmethod
     def resolve_is_paid(obj, info):
         return obj.is_fully_paid()
 
@@ -103,14 +140,6 @@ class Order(CountableDjangoObjectType):
             return obj.user_email
         if obj.user_id:
             return obj.user.email
-
-
-class OrderHistoryEntry(CountableDjangoObjectType):
-    class Meta:
-        description = 'History log of the order.'
-        model = models.OrderHistoryEntry
-        interfaces = [relay.Node]
-        exclude_fields = ['order']
 
 
 class OrderLine(CountableDjangoObjectType):

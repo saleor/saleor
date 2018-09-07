@@ -3,7 +3,7 @@ from django.db.models import Q
 
 from ...product import models
 from ...product.utils import products_with_details
-from ..utils import filter_by_query_param, get_database_id, get_nodes
+from ..utils import filter_by_query_param, get_database_id
 from .types import Category, ProductVariant
 
 PRODUCT_SEARCH_FIELDS = ('name', 'description', 'category__name')

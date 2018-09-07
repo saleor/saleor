@@ -11,7 +11,7 @@ from saleor.graphql.order.mutations.draft_orders import (
     check_for_draft_order_errors)
 from saleor.graphql.order.mutations.orders import (
     clean_refund_payment, clean_release_payment)
-from saleor.order import CustomPaymentChoices
+from saleor.order import CustomPaymentChoices, OrderEvents
 from saleor.order.models import Order, OrderStatus, Payment, PaymentStatus
 
 
@@ -268,6 +268,7 @@ def test_draft_order_complete(admin_api_client, draft_order):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
+    assert 'errors' not in content
     data = content['data']['draftOrderComplete']['order']
     order.refresh_from_db()
     assert data['status'] == order.status.upper()
@@ -365,8 +366,9 @@ def test_order_cancel(admin_api_client, order_with_lines):
     content = get_graphql_content(response)
     data = content['data']['orderCancel']['order']
     order.refresh_from_db()
-    history_entry = 'Restocked %d items' % quantity
-    assert order.history.last().content == history_entry
+    history_entry = order.history.last()
+    assert history_entry.parameters['quantity'] == quantity
+    assert history_entry.event == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value
     assert data['status'] == order.status.upper()
 
 
@@ -470,8 +472,7 @@ def test_order_release(admin_api_client, payment_preauth):
     content = get_graphql_content(response)
     data = content['data']['orderRelease']['order']
     assert data['paymentStatus'] == PaymentStatus.REFUNDED
-    history_entry = order.history.last().content
-    assert history_entry == 'Released payment'
+    assert order.history.last().event == OrderEvents.PAYMENT_RELEASED.value
 
 
 def test_order_refund(admin_api_client, payment_confirmed):
@@ -482,6 +483,7 @@ def test_order_refund(admin_api_client, payment_confirmed):
                 order {
                     paymentStatus
                     isPaid
+                    status
                 }
             }
         }
@@ -494,11 +496,13 @@ def test_order_refund(admin_api_client, payment_confirmed):
     content = get_graphql_content(response)
     data = content['data']['orderRefund']['order']
     order.refresh_from_db()
-    msg = 'Refunded %(amount)s' % {'amount': amount}
-    history_entry = order.history.last().content
-    assert history_entry == msg
+    assert data['status'] == order.status.upper()
     assert data['paymentStatus'] == PaymentStatus.REFUNDED
     assert data['isPaid'] == False
+
+    history_entry = order.history.last()
+    assert history_entry.parameters['amount'] == amount
+    assert history_entry.event == OrderEvents.PAYMENT_REFUNDED.value
 
 
 def test_clean_order_release_payment():
