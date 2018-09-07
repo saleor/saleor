@@ -491,3 +491,49 @@ def test_fetch_checkout_invalid_token(user_api_client):
     assert 'errors' not in content
     data = content['data']['checkout']
     assert data is None
+
+
+def test_checkout_prices(user_api_client, cart_with_item):
+    query = """
+    query getCheckout($token: UUID!) {
+        checkout(token: $token) {
+           token,
+           totalPrice {
+                currency
+                gross {
+                    amount
+                }
+            }
+            subtotalPrice {
+                currency
+                gross {
+                    amount
+                }
+            }
+           lines {
+               edges {
+                   node {
+                       totalPrice {
+                           currency
+                           gross {
+                               amount
+                           }
+                       }
+                   }
+               }
+           }
+        }
+    }
+    """
+    variables = json.dumps({
+        'token': str(cart_with_item.token)
+    })
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['checkout']
+    assert data['token'] == str(cart_with_item.token)
+    assert len(data['lines']) == cart_with_item.lines.count()
+    assert data['totalPrice']['gross']['amount'] == cart_with_item.get_total().gross.amount  # noqa
+    assert data['subtotalPrice']['gross']['amount'] == cart_with_item.get_subtotal().gross.amount  # noqa
