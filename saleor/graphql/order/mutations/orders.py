@@ -1,9 +1,9 @@
 import graphene
-from django.utils.translation import npgettext_lazy, pgettext_lazy
+from django.utils.translation import pgettext_lazy
 from graphql_jwt.decorators import permission_required
 from payments import PaymentError, PaymentStatus
 
-from ....order import CustomPaymentChoices, models
+from ....order import CustomPaymentChoices, OrderEvents, models
 from ....order.utils import cancel_order
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelMutation
@@ -86,9 +86,9 @@ class OrderAddNote(ModelMutation):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
-        msg = pgettext_lazy(
-            'Dashboard message related to an order', 'Added note')
-        instance.order.history.create(content=msg, user=info.context.user)
+        instance.order.history.create(
+            event=OrderEvents.NOTE_ADDED,
+            change_author=info.context.user)
 
 
 class OrderCancel(BaseMutation):
@@ -115,17 +115,14 @@ class OrderCancel(BaseMutation):
 
         cancel_order(order=order, restock=restock)
         if restock:
-            restock_msg = npgettext_lazy(
-                'Dashboard message related to an order',
-                'Restocked %(quantity)d item',
-                'Restocked %(quantity)d items',
-                'quantity') % {'quantity': order.get_total_quantity()}
             order.history.create(
-                content=restock_msg, user=info.context.user)
+                event=OrderEvents.FULFILLMENT_RESTOCKED_ITEMS,
+                change_author=info.context.user,
+                parameters={'quantity': order.get_total_quantity()})
         else:
-            msg = pgettext_lazy(
-                'Dashboard message related to an order', 'Order canceled')
-            order.history.create(content=msg, user=info.context.user)
+            order.history.create(
+                event=OrderEvents.ORDER_CANCELED,
+                change_author=info.context.user)
         return OrderCancel(order=order)
 
 
@@ -166,10 +163,10 @@ class OrderMarkAsPaid(BaseMutation):
             variant=CustomPaymentChoices.MANUAL,
             status=PaymentStatus.CONFIRMED, order=order,
             defaults=defaults)
-        msg = pgettext_lazy(
-            'Dashboard message related to an order',
-            'Order manually marked as paid.')
-        order.history.create(content=msg, user=info.context.user)
+
+        order.history.create(
+            event=OrderEvents.ORDER_MARKED_AS_PAID,
+            change_author=info.context.user)
         return OrderMarkAsPaid(order=order)
 
 
@@ -198,10 +195,9 @@ class OrderCapture(BaseMutation):
         if errors:
             return OrderCapture(errors=errors)
 
-        msg = pgettext_lazy(
-            'Dashboard message related to an order',
-            'Captured %(amount)s' % {'amount': amount})
-        order.history.create(content=msg, user=info.context.user)
+        order.history.create(
+            parameters={'amount': amount}, event=OrderEvents.PAYMENT_CAPTURED,
+            change_author=info.context.user)
         return OrderCapture(order=order)
 
 
@@ -228,10 +224,9 @@ class OrderRelease(BaseMutation):
         if errors:
             return OrderRelease(errors=errors)
 
-        msg = pgettext_lazy(
-            'Dashboard message related to an order',
-            'Released payment')
-        order.history.create(content=msg, user=info.context.user)
+        order.history.create(
+            event=OrderEvents.PAYMENT_RELEASED,
+            change_author=info.context.user)
         return OrderRelease(order=order)
 
 
@@ -260,8 +255,8 @@ class OrderRefund(BaseMutation):
         if errors:
             return OrderRefund(errors=errors)
 
-        msg = pgettext_lazy(
-            'Dashboard message related to an order',
-            'Refunded %(amount)s' % {'amount': amount})
-        order.history.create(content=msg, user=info.context.user)
+        order.history.create(
+            event=OrderEvents.PAYMENT_REFUNDED,
+            change_author=info.context.user,
+            parameters={'amount': amount})
         return OrderRefund(order=order)

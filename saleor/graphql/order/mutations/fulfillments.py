@@ -3,7 +3,7 @@ from django.utils.translation import npgettext_lazy, pgettext_lazy
 from graphql_jwt.decorators import permission_required
 
 from ....dashboard.order.utils import fulfill_order_line
-from ....order import models
+from ....order import OrderEvents, models
 from ....order.emails import send_fulfillment_confirmation
 from ....order.utils import cancel_fulfillment, update_order_status
 from ...core.mutations import BaseMutation, ModelMutation
@@ -116,22 +116,18 @@ class FulfillmentCreate(ModelMutation):
                     quantity=line[1]) for line in lines_to_fulfill]
             models.FulfillmentLine.objects.bulk_create(fulfillment_lines)
             update_order_status(order)
-            msg = npgettext_lazy(
-                'Dashboard message related to an order',
-                'Fulfilled %(quantity_fulfilled)d item',
-                'Fulfilled %(quantity_fulfilled)d items',
-                'quantity_fulfilled') % {
-                    'quantity_fulfilled': quantity_fulfilled}
-            order.history.create(content=msg, user=info.context.user)
+            order.history.create(
+                parameters={'quantity': quantity_fulfilled},
+                event=OrderEvents.FULFILLMENT_FULFILLED_ITEMS,
+                change_author=info.context.user)
         super().save(info, instance, cleaned_input)
 
         if cleaned_input.get('notify_customer'):
             send_fulfillment_confirmation.delay(order.pk, instance.pk)
-            send_mail_msg = pgettext_lazy(
-                'Dashboard message related to an order',
-                'Shipping confirmation email was sent to user'
-                '(%(email)s)') % {'email': order.get_user_current_email()}
-            order.history.create(content=send_mail_msg, user=info.context.user)
+            order.history.create(
+                parameters={'email': order.get_user_current_email()},
+                event=OrderEvents.EMAIL_SHIPPING_CONFIRMATION_SEND,
+                change_author=info.context.user)
 
 
 class FulfillmentUpdate(FulfillmentCreate):
@@ -182,15 +178,13 @@ class FulfillmentCancel(BaseMutation):
 
         cancel_fulfillment(fulfillment, restock)
         if restock:
-            msg = npgettext_lazy(
-                'Dashboard message',
-                'Restocked %(quantity)d item',
-                'Restocked %(quantity)d items',
-                'quantity') % {'quantity': fulfillment.get_total_quantity()}
+            order.history.create(
+                parameters={'quantity': fulfillment.get_total_quantity()},
+                event=OrderEvents.FULFILLMENT_RESTOCKED_ITEMS,
+                change_author=info.context.user)
         else:
-            msg = pgettext_lazy(
-                'Dashboard message',
-                'Fulfillment #%(fulfillment)s canceled') % {
-                    'fulfillment': fulfillment.composed_id}
-        order.history.create(content=msg, user=info.context.user)
+            order.history.create(
+                parameters={'id': fulfillment.composed_id},
+                event=OrderEvents.FULFILLMENT_CANCELED,
+                change_author=info.context.user)
         return FulfillmentCancel(fulfillment=fulfillment)

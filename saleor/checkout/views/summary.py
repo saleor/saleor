@@ -1,12 +1,13 @@
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
-from django.utils.translation import pgettext, pgettext_lazy
+from django.utils.translation import pgettext
 
 from ...account.models import Address
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...order.emails import send_order_confirmation
+from ...order.models import OrderHistoryEntry
 from ..forms import CartNoteForm
 from ..utils import (
     create_order, get_cart_data_for_checkout, get_taxes_for_cart,
@@ -34,11 +35,12 @@ def handle_order_placement(request, cart):
         messages.warning(request, msg)
         return redirect('checkout:summary')
 
-    user = cart.user
     cart.delete()
-    msg = pgettext_lazy('Order status history entry', 'Order was placed')
-    order.history.create(user=user, content=msg)
+    order.history.create(event=OrderHistoryEntry.ORDER_PLACED)
     send_order_confirmation.delay(order.pk)
+    order.history.create(
+        event=OrderHistoryEntry.EMAIL_ORDER_CONFIRMATION_SEND,
+        parameters={'email': order.get_user_current_email()})
     return redirect('order:payment', token=order.token)
 
 

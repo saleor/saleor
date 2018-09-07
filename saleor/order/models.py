@@ -11,12 +11,13 @@ from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
+from jsonfield import JSONField
 from measurement.measures import Weight
 from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
 from prices import Money, TaxedMoney
 
-from . import FulfillmentStatus, OrderStatus
+from . import FulfillmentStatus, OrderEvents, OrderStatus
 from ..account.models import Address
 from ..core.models import BaseNote
 from ..core.utils import build_absolute_uri
@@ -315,16 +316,19 @@ class Payment(BasePayment):
 
 
 class OrderHistoryEntry(models.Model):
-    date = models.DateTimeField(default=now, editable=False)
+    happened_at = models.DateTimeField(default=now, editable=False)
+    event = models.CharField(
+        max_length=255,
+        choices=((event, event.value) for event in OrderEvents))
     order = models.ForeignKey(
         Order, related_name='history', on_delete=models.CASCADE)
-    content = models.TextField()
-    user = models.ForeignKey(
+    parameters = JSONField(blank=True, default={})
+    change_author = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True,
-        on_delete=models.SET_NULL)
+        on_delete=models.SET_NULL, related_name='+')
 
     class Meta:
-        ordering = ('date', )
+        ordering = ('happened_at', )
 
 
 class OrderNote(BaseNote):
