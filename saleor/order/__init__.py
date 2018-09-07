@@ -1,5 +1,6 @@
 from django.apps import AppConfig
 from django.utils.translation import pgettext_lazy
+from enum import Enum
 
 
 class OrderAppConfig(AppConfig):
@@ -56,3 +57,25 @@ class CustomPaymentChoices:
 
     CHOICES = [
         (MANUAL, pgettext_lazy('Custom payment choice type', 'Manual'))]
+
+
+class OrderEvents(Enum):
+    ORDER_PLACED = 'placed'
+    ORDER_DRAFT_PLACED = 'draft_placed'
+    ORDER_MARKED_AS_PAID = 'marked_as_paid'
+    ORDER_CANCELED = 'canceled'
+    ORDER_FULLY_PAID = 'order_paid'
+    ORDER_UPDATED = 'order_updated'
+
+    EMAIL_ORDER_CONFIRMATION_SEND = 'order_confirmation_mail_send'
+    EMAIL_SHIPPING_CONFIRMATION_SEND = 'shipping_confirmation_mail_send'
+
+    PAYMENT_CAPTURED = 'captured'
+    PAYMENT_REFUNDED = 'refunded'
+    PAYMENT_RELEASED = 'released'
+
+    FULFILLMENT_CANCELED = 'fulfillment_canceled'
+    FULFILLMENT_RESTOCKED_ITEMS = 'restocked_items'
+    FULFILLMENT_FULFILLED_ITEMS = 'fulfilled_items'
+
+    NOTE_ADDED = 'note_added'

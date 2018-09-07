@@ -6,7 +6,7 @@ from graphql_jwt.decorators import permission_required
 from ....account.models import Address
 from ....core.exceptions import InsufficientStock
 from ....core.utils.taxes import ZERO_TAXED_MONEY
-from ....order import OrderStatus, models
+from ....order import OrderEvents, OrderStatus, models
 from ....order.utils import add_variant_to_order, recalculate_order
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -221,9 +221,7 @@ class DraftOrderComplete(BaseMutation):
             if order.shipping_address:
                 order.shipping_address.delete()
         order.save()
-
-        msg = pgettext_lazy(
-            'Dashboard message related to an order',
-            'Order created from draft order')
-        order.history.create(content=msg, user=info.context.user)
+        order.history.create(
+            event=OrderEvents.ORDER_DRAFT_PLACED,
+            change_author=info.context.user)
         return DraftOrderComplete(order=order)
