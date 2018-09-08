@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-04 04:15-0500\n"
+"POT-Creation-Date: 2018-08-06 07:52-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Николай Инкогнито <mmmsvit@gmail.com>, 2018\n"
 "Language-Team: Ukrainian (https://www.transifex.com/mirumee/teams/34782/uk/)\n"
@@ -319,41 +319,42 @@ msgstr "Посилання"
 #: saleor/static/dashboard/js/components/editor.js:58
 msgctxt "Rich text editor option"
 msgid "Image (converts selected text to an image tag)"
-msgstr ""
+msgstr "Зображення (перетворює виділений текст у тег зображення)"
 
 #: saleor/static/dashboard/js/components/editor.js:63
 msgctxt "Rich text editor option"
 msgid "Left align"
-msgstr ""
+msgstr "Зліва направо"
 
 #: saleor/static/dashboard/js/components/editor.js:68
 msgctxt "Rich text editor option"
 msgid "Center align"
-msgstr ""
+msgstr "Вирівнювання по центру"
 
 #: saleor/static/dashboard/js/components/editor.js:73
 msgctxt "Rich text editor option"
 msgid "Right align"
-msgstr ""
+msgstr "Вирівнювання по правому краю"
 
 #: saleor/static/dashboard/js/components/editor.js:78
 msgctxt "Rich text editor option"
 msgid "Justify"
-msgstr ""
+msgstr "Вирівняти"
 
 #: saleor/static/dashboard/js/components/editor.js:83
 msgctxt "Rich text editor option"
 msgid "Remove formatting"
-msgstr ""
+msgstr "Видалити форматування"
 
 #: saleor/static/dashboard/js/components/google-preview.js:46
 msgid ""
 "Your input might be a little too short, think of something more descriptive"
 msgstr ""
+"Ваш текст може бути трохи коротким, подумайте про щось більш масштабне"
 
 #: saleor/static/dashboard/js/components/google-preview.js:50
 msgid "Your input fits between the recommended lengths"
-msgstr ""
+msgstr "Ваш текст відповідає рекомендованим довжинам"
 
 #: saleor/static/js/components/variantPicker/QuantityInput.js:21
 msgctxt "Add to cart form field label"

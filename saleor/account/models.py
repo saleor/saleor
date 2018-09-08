@@ -4,11 +4,12 @@ from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager, PermissionsMixin)
 from django.db import models
+from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
-from phonenumber_field.modelfields import PhoneNumberField
+from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
 
 from ..core.models import BaseNote
 from .validators import validate_possible_number
@@ -63,6 +64,8 @@ class Address(models.Model):
         data = model_to_dict(self, exclude=['id', 'user'])
         if isinstance(data['country'], Country):
             data['country'] = data['country'].code
+        if isinstance(data['phone'], PhoneNumber):
+            data['phone'] = data['phone'].as_e164
         return data
 
     def get_copy(self):
@@ -92,6 +95,13 @@ class UserManager(BaseUserManager):
         return self.create_user(
             email, password, is_staff=True, is_superuser=True, **extra_fields)
 
+    def customers(self):
+        return self.get_queryset().filter(
+            Q(is_staff=False) | (Q(is_staff=True) & Q(orders__isnull=False)))
+
+    def staff(self):
+        return self.get_queryset().filter(is_staff=True)
+
 
 def get_token():
     return str(uuid.uuid4())
@@ -119,20 +129,15 @@ class User(PermissionsMixin, AbstractBaseUser):
 
     class Meta:
         permissions = (
-            ('view_user',
-             pgettext_lazy('Permission description', 'Can view users')),
-            ('edit_user',
-             pgettext_lazy('Permission description', 'Can edit users')),
-            ('view_group',
-             pgettext_lazy('Permission description', 'Can view groups')),
-            ('edit_group',
-             pgettext_lazy('Permission description', 'Can edit groups')),
-            ('view_staff',
-             pgettext_lazy('Permission description', 'Can view staff')),
-            ('edit_staff',
-             pgettext_lazy('Permission description', 'Can edit staff')),
-            ('impersonate_user',
-             pgettext_lazy('Permission description', 'Can impersonate users')))
+            (
+                'manage_users', pgettext_lazy(
+                    'Permission description', 'Manage customers.')),
+            (
+                'manage_staff', pgettext_lazy(
+                    'Permission description', 'Manage staff.')),
+            (
+                'impersonate_users', pgettext_lazy(
+                    'Permission description', 'Impersonate customers.')))
 
     def get_full_name(self):
         return self.email

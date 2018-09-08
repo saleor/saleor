@@ -7,10 +7,10 @@
     <a href="{% url 'home' %}">{% trans "Home" context 'Category breadcrumbs home' %}</a>
   </li>
   {% for ancestor in object.get_ancestors %}
-    <li><a href='{{ ancestor.get_absolute_url }}'>{{ ancestor.name }}</a>
+    <li><a href='{{ ancestor.get_absolute_url }}'>{{ ancestor.translated.name }}</a>
     </li>
   {% endfor %}
-  <li><a href='{{ object.get_absolute_url }}'>{{ object.name }}</a></li>
+  <li><a href='{{ object.get_absolute_url }}'>{{ object.translated.name }}</a></li>
 {% endblock %}
 
 {% block filters %}

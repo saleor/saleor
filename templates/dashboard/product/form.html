@@ -107,9 +107,11 @@
                 <div class="row">
                   {{ product_form.collections|materializecss }}
                 </div>
-                <div class="row is_featured_checkbox">
-                    {{ product_form.is_featured|materializecss }}
-                </div>
+                {% if product.product_type.is_shipping_required %}
+                  <span class="card-title">{% trans "Shipping" %}</span>
+                  <br>
+                  {{ product_form.weight|materializecss }}
+                {% endif %}
                 <span class="card-title">{% trans "Attributes" %}</span>
                 <br>
                 <h6>

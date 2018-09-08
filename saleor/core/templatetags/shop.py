@@ -1,7 +1,7 @@
+import json
+
 from django.template import Library
 from django.utils.http import urlencode
-
-from ..context_processors import NAVIGATION_CONTEXT_NAME
 
 register = Library()
 
@@ -17,13 +17,17 @@ def get_sort_by_url(context, field, descending=False):
     return '%s?%s' % (request.path, urlencode(request_get))
 
 
-@register.inclusion_tag('menu.html', takes_context=True)
-def menu(context, site_menu=None, horizontal=False):
-    if not site_menu:
-        return
-    menus = context[NAVIGATION_CONTEXT_NAME]
-    menu = next((menu for menu in menus if menu.pk == site_menu.pk), None)
-    if not menu:
-        return
-    menu_items = [item for item in menu.items.all() if item.parent_id is None]
-    return {'menu_items': menu_items, 'horizontal': horizontal}
+@register.inclusion_tag('menu.html')
+def menu(site_menu=None, horizontal=False):
+    menu_items = json.loads(site_menu.json_content) if site_menu else []
+    return {
+        'menu_items': menu_items,
+        'horizontal': horizontal}
+
+
+@register.simple_tag
+def get_menu_item_name(menu_item, lang_code):
+    translated = menu_item['translations'].get(lang_code)
+    if translated:
+        return translated['name']
+    return menu_item['name']

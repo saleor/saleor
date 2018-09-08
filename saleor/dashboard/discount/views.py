@@ -26,12 +26,14 @@ def get_voucher_type_forms(voucher, data):
             data or None, instance=voucher, prefix=VoucherType.VALUE),
         VoucherType.PRODUCT: forms.ProductVoucherForm(
             data or None, instance=voucher, prefix=VoucherType.PRODUCT),
+        VoucherType.COLLECTION: forms.CollectionVoucherForm(
+            data or None, instance=voucher, prefix=VoucherType.COLLECTION),
         VoucherType.CATEGORY: forms.CategoryVoucherForm(
             data or None, instance=voucher, prefix=VoucherType.CATEGORY)}
 
 
 @staff_member_required
-@permission_required('discount.view_sale')
+@permission_required('discount.manage_discounts')
 def sale_list(request):
     sales = Sale.objects.prefetch_related('products').order_by('name')
     sale_filter = SaleFilter(request.GET, queryset=sales)
@@ -45,7 +47,7 @@ def sale_list(request):
 
 
 @staff_member_required
-@permission_required('discount.edit_sale')
+@permission_required('discount.manage_discounts')
 def sale_add(request):
     sale = Sale()
     form = forms.SaleForm(request.POST or None, instance=sale)
@@ -59,7 +61,7 @@ def sale_add(request):
 
 
 @staff_member_required
-@permission_required('discount.edit_sale')
+@permission_required('discount.manage_discounts')
 def sale_edit(request, pk):
     sale = get_object_or_404(Sale, pk=pk)
     form = forms.SaleForm(request.POST or None, instance=sale)
@@ -73,7 +75,7 @@ def sale_edit(request, pk):
 
 
 @staff_member_required
-@permission_required('discount.edit_sale')
+@permission_required('discount.manage_discounts')
 def sale_delete(request, pk):
     instance = get_object_or_404(Sale, pk=pk)
     if request.method == 'POST':
@@ -88,9 +90,9 @@ def sale_delete(request, pk):
 
 
 @staff_member_required
-@permission_required('discount.view_voucher')
+@permission_required('discount.manage_discounts')
 def voucher_list(request):
-    vouchers = (Voucher.objects.select_related('product', 'category')
+    vouchers = (Voucher.objects.prefetch_related('products', 'collections')
                 .order_by('name'))
     voucher_filter = VoucherFilter(request.GET, queryset=vouchers)
     vouchers = get_paginator_items(
@@ -104,7 +106,7 @@ def voucher_list(request):
 
 
 @staff_member_required
-@permission_required('discount.edit_voucher')
+@permission_required('discount.manage_discounts')
 def voucher_add(request):
     voucher = Voucher()
     type_base_forms = get_voucher_type_forms(voucher, request.POST)
@@ -130,7 +132,7 @@ def voucher_add(request):
 
 
 @staff_member_required
-@permission_required('discount.edit_voucher')
+@permission_required('discount.manage_discounts')
 def voucher_edit(request, pk):
     voucher = get_object_or_404(Voucher, pk=pk)
     type_base_forms = get_voucher_type_forms(voucher, request.POST)
@@ -156,7 +158,7 @@ def voucher_edit(request, pk):
 
 
 @staff_member_required
-@permission_required('discount.edit_voucher')
+@permission_required('discount.manage_discounts')
 def voucher_delete(request, pk):
     instance = get_object_or_404(Voucher, pk=pk)
     if request.method == 'POST':
@@ -171,7 +173,7 @@ def voucher_delete(request, pk):
 
 
 @staff_member_required
-@permission_required('discount.view_voucher')
+@permission_required('discount.manage_discounts')
 def ajax_voucher_list(request):
     queryset = Voucher.objects.active(date=date.today())
 

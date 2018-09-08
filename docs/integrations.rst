@@ -11,3 +11,4 @@ Integrations
    integrations/googleanalytics
    integrations/googleforretail
    integrations/openexchangerates
+   integrations/sentry

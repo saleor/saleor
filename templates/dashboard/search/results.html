@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load materializecss %}
 {% load price from taxed_prices %}
-{% load product_first_image from product_images %}
+{% load get_thumbnail from product_images %}
 {% load staticfiles %}
 
 {% block title %}
@@ -27,8 +27,8 @@
           {% for product in products %}
             <li class="collection-item avatar list-item">
               <a href="{% url 'dashboard:product-details' pk=product.pk %}">
-                <img src="{% product_first_image product size="60x60" method="crop" %}"
-                     srcset="{% product_first_image product size="60x60" method="crop" %} 1x, {% product_first_image product size="120x120" method="crop" %} 2x"
+                <img src="{% get_thumbnail product.get_first_image size=60 method="crop" %}"
+                     srcset="{% get_thumbnail product.get_first_image size=60 method="crop" %} 1x, {% get_thumbnail product.get_first_image size=120 method="crop" %} 2x"
                      class="circle" alt="{{ product.name }}">
                 <span class="list-item-name">
                   {{ product.name }}

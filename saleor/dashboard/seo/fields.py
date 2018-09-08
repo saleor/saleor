@@ -27,10 +27,7 @@ class SeoTitleField(forms.CharField):
         self.required = required
         self.help_text = SEO_FIELD_HELP_TEXT
         self.label = pgettext_lazy(
-            (
-                'Field name, ',
-                'Title that will be used to describe page in Search Engines'),
-            'Search engine title')
+            'A SEO friendly title', 'SEO Friendly Title')
 
 
 class SeoDescriptionField(forms.CharField):
@@ -50,7 +47,4 @@ class SeoDescriptionField(forms.CharField):
         self.required = required
         self.help_text = SEO_FIELD_HELP_TEXT
         self.label = pgettext_lazy(
-            (
-                'Field name, description that will be used as a summary '
-                'in Search Engines'),
-            'Search engine description')
+            'A SEO friendly description', 'SEO Friendly Description')

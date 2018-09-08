@@ -1,13 +1,10 @@
 import json
-from io import BytesIO
 from unittest.mock import MagicMock, Mock
 
 from django.conf import settings
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import HiddenInput
 from django.forms.models import model_to_dict
 from django.urls import reverse
-from PIL import Image
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from tests.utils import get_redirect_location
 
@@ -18,15 +15,7 @@ from saleor.product.models import (
     AttributeChoiceValue, Collection, Product, ProductAttribute, ProductImage,
     ProductType, ProductVariant)
 
-
-def create_image():
-    img_data = BytesIO()
-    image = Image.new('RGB', size=(1, 1), color=(255, 0, 0, 0))
-    image.save(img_data, format='JPEG')
-    image_name = 'product2'
-    image = SimpleUploadedFile(
-        image_name + '.jpg', img_data.getvalue(), 'image/png')
-    return image, image_name
+from ..utils import create_image
 
 
 def test_view_product_list_with_filters(admin_client, product_list):
@@ -62,11 +51,11 @@ def test_view_product_list_with_filters_sort_by(admin_client, product_list):
 
 
 def test_view_product_list_with_filters_is_published(
-        admin_client, product_list, default_category):
+        admin_client, product_list, category):
     url = reverse('dashboard:product-list')
     data = {
         'price_1': [''], 'price_0': [''], 'is_featured': [''],
-        'name': ['Test'], 'sort_by': ['name'], 'category': default_category.pk,
+        'name': ['Test'], 'sort_by': ['name'], 'category': category.pk,
         'is_published': ['1']}
 
     response = admin_client.get(url, data)
@@ -189,11 +178,11 @@ def test_view_product_select_type_by_ajax(admin_client, product_type):
         'dashboard:product-add', kwargs={'type_pk': product_type.pk})
 
 
-def test_view_product_create(admin_client, product_type, default_category):
+def test_view_product_create(admin_client, product_type, category):
     url = reverse('dashboard:product-add', kwargs={'type_pk': product_type.pk})
     data = {
         'name': 'Product', 'description': 'This is product description.',
-        'price': 10, 'category': default_category.pk, 'variant-sku': '123',
+        'price': 10, 'category': category.pk, 'variant-sku': '123',
         'variant-quantity': 2}
 
     response = admin_client.post(url, data)
@@ -262,13 +251,6 @@ def test_view_product_bulk_update_unpublish(admin_client, product_list):
 
     response = admin_client.post(url, data)
 
-    assert response.status_code == 302
-    assert get_redirect_location(response) == reverse('dashboard:product-list')
-
-    for p in product_list:
-        p.refresh_from_db()
-        assert not p.is_published
-
 
 def test_view_ajax_products_list(admin_client, product):
     url = reverse('dashboard:ajax-products')
@@ -308,7 +290,8 @@ def test_view_product_type_create(
         'name': 'Testing Type',
         'product_attributes': [color_attribute.pk],
         'variant_attributes': [size_attribute.pk],
-        'has_variants': True}
+        'has_variants': True,
+        'weight': ['3.47']}
 
     response = admin_client.post(url, data)
 
@@ -326,7 +309,8 @@ def test_view_product_type_create_invalid(
         'name': 'Testing Type',
         'product_attributes': [size_attribute.pk],
         'variant_attributes': [color_attribute.pk, size_attribute.pk],
-        'has_variants': True}
+        'has_variants': True,
+        'weight': ['3.47']}
 
     response = admin_client.post(url, data)
 
@@ -341,7 +325,8 @@ def test_view_product_type_create_missing_variant_attributes(
         'name': 'Testing Type',
         'product_attributes': [color_attribute.pk],
         'variant_attributes': [size_attribute.pk],
-        'has_variants': False}
+        'has_variants': False,
+        'weight': ['3.47']}
     response = admin_client.post(url, data)
 
     assert response.status_code == 200
@@ -355,7 +340,8 @@ def test_view_product_type_create_variantless(
         'name': 'Testing Type',
         'product_attributes': [color_attribute.pk],
         'variant_attributes': [],
-        'has_variants': False}
+        'has_variants': False,
+        'weight': ['3.47']}
     response = admin_client.post(url, data)
 
     assert response.status_code == 302
@@ -372,7 +358,8 @@ def test_view_product_type_create_variantless_invalid(
         'name': 'Testing Type',
         'product_attributes': [color_attribute.pk],
         'variant_attributes': [size_attribute.pk],
-        'has_variants': False}
+        'has_variants': False,
+        'weight': ['3.47']}
     response = admin_client.post(url, data)
 
     assert response.status_code == 200
@@ -395,7 +382,8 @@ def test_view_product_type_edit_to_no_variants_valid(admin_client, product):
             'pk', flat=True),
         'variant_attributes': product_type.variant_attributes.values_list(
             'pk', flat=True),
-        'has_variants': False}
+        'has_variants': False,
+        'weight': ['3.47']}
 
     response = admin_client.post(url, data)
 
@@ -424,7 +412,8 @@ def test_view_product_type_edit_to_no_variants_invalid(admin_client, product):
             'pk', flat=True),
         'variant_attributes': product_type.variant_attributes.values_list(
             'pk', flat=True),
-        'has_variants': False}
+        'has_variants': False,
+        'weight': ['3.47']}
 
     response = admin_client.post(url, data)
 
@@ -570,11 +559,10 @@ def test_view_variant_images(admin_client, product_with_image):
     assert variant.variant_images.filter(image=product_image).exists()
 
 
-def test_view_ajax_available_variants_list(
-        admin_client, product, default_category):
+def test_view_ajax_available_variants_list(admin_client, product, category):
     unavailable_product = Product.objects.create(
         name='Test product', price=10, product_type=product.product_type,
-        category=default_category, is_published=False)
+        category=category, is_published=False)
     unavailable_product.variants.create()
     url = reverse('dashboard:ajax-available-variants')
 
@@ -1041,11 +1029,10 @@ def test_product_form_assign_collection_to_product(product):
     assert collection.products.first().name == product.name
 
 
-def test_product_form_sanitize_product_description(
-        product_type, default_category):
+def test_product_form_sanitize_product_description(product_type, category):
     product = Product.objects.create(
         name='Test Product', price=10, description='', pk=10,
-        product_type=product_type, category=default_category)
+        product_type=product_type, category=category)
     data = model_to_dict(product)
     data['description'] = (
         '<b>bold</b><p><i>italic</i></p><h2>Header</h2><h3>subheader</h3>'

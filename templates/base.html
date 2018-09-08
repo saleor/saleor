@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 {% load i18n %}
-{% load staticfiles %}
-{% load render_bundle from webpack_loader %}
-{% load shop %}
+{% load menu from shop %}
 {% load placeholder %}
+{% load render_bundle from webpack_loader %}
+{% load staticfiles %}
 {% load translate_url from urls %}
 
 <html lang="{{ LANGUAGE_CODE }}" class="no-js" data-shipping-options-url="{% url 'cart:shipping-options' %}" data-cart-summary-url="{% url 'cart:summary' %}">
@@ -31,7 +31,9 @@
   {% block stylesheet %}{% endblock stylesheet %}
 
   {% block meta_tags %}
-    <meta property="og:title" content="{{ site.name }}">
+    <meta property="og:title" content="{{ site.settings.translated.header_text }}">
+    <meta property="og:description" content="{{ site.settings.translated.description }}">
+    <meta name="description" content="{{ site.settings.translated.description }}">
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
     <meta property="og:image" content="{% static "images/block1.png" %}">
   {% endblock meta_tags %}
@@ -51,11 +53,24 @@
       <div class=" d-none d-md-block container">
       <div class="row">
         <div class="col-6">
-          <p class="text-left">{{ site.settings.header_text }}</p>
+          <p class="text-left">{{ site.settings.translated.header_text }}</p>
         </div>
         <div class="col-6">
           <ul class="float-right">
-            {% include "_language_picker.html" %}
+            {% get_available_languages as LANGUAGES %}
+
+            {# We display language picker only if there're languages to pick from #}
+            {% if LANGUAGES|length > 1 %}
+              {% get_current_language as LANGUAGE_CODE %}
+              <li>
+                <div class="language-picker dropdown show">
+                  <a class="dropdown-toggle dropdown-link " id="language-picker-button">
+                    {{ LANGUAGE_CODE|language_name_local }}
+                  </a>
+                  {% include "_language_picker.html" %}
+                </div>
+              </li>
+            {% endif %}
             {% if user.is_authenticated %}
               {% if user.is_staff or request.impersonator.is_staff %}
                 <li>
@@ -271,5 +286,8 @@
   <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
   {% render_bundle 'storefront' 'js' %}
 {% endblock footer_scripts %}
+{% if LANGUAGES|length > 1 %}
+  {% include "_language_picker_modal.html" %}
+{% endif %}
 </body>
 </html>

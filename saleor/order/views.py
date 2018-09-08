@@ -17,40 +17,38 @@ from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
 from .forms import (
-    OrderNoteForm, PasswordForm, PaymentDeleteForm, PaymentMethodsForm)
-from .models import Order, OrderNote, Payment
+    CustomerNoteForm, PasswordForm, PaymentDeleteForm, PaymentMethodsForm)
+from .models import Order, Payment
 from .utils import attach_order_to_user, check_order_status
 
 logger = logging.getLogger(__name__)
 
 
 def details(request, token):
+    note_form = None
     orders = Order.objects.confirmed().prefetch_related(
-        'lines__variant', 'fulfillments', 'fulfillments__lines',
-        'fulfillments__lines__order_line')
+        'lines__variant__images', 'lines__variant__product__images',
+        'fulfillments__lines', 'fulfillments__lines__order_line')
     orders = orders.select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)
-    notes = order.notes.filter(is_public=True)
-    ctx = {'order': order, 'notes': notes}
-    if order.is_open():
-        user = request.user if request.user.is_authenticated else None
-        note = OrderNote(order=order, user=user)
-        note_form = OrderNoteForm(request.POST or None, instance=note)
-        ctx.update({'note_form': note_form})
+    if order.is_open() and not order.customer_note:
+        note_form = CustomerNoteForm(request.POST or None, instance=order)
         if request.method == 'POST':
             if note_form.is_valid():
                 note_form.save()
                 return redirect('order:details', token=order.token)
     fulfillments = order.fulfillments.filter(
         status=FulfillmentStatus.FULFILLED)
-    ctx.update({'fulfillments': fulfillments})
+    ctx = {
+        'order': order, 'fulfillments': fulfillments, 'note_form': note_form}
     return TemplateResponse(request, 'order/details.html', ctx)
 
 
 def payment(request, token):
     orders = Order.objects.confirmed().filter(billing_address__isnull=False)
-    orders = orders.prefetch_related('lines__variant')
+    orders = orders.prefetch_related(
+        'lines__variant__images', 'lines__variant__product__images')
     orders = orders.select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)

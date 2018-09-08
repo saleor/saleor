@@ -3,7 +3,7 @@ from functools import wraps
 from django.core.exceptions import ValidationError
 from django.shortcuts import redirect
 
-from ..utils import check_shipping_method
+from ..utils import is_valid_shipping_method
 
 
 def validate_cart(view):
@@ -15,7 +15,7 @@ def validate_cart(view):
     def func(request, cart):
         if cart:
             return view(request, cart)
-        return redirect('checkout:index')
+        return redirect('cart:index')
     return func
 
 
@@ -49,7 +49,8 @@ def validate_shipping_method(view):
     """
     @wraps(view)
     def func(request, cart):
-        if not cart.shipping_method or not check_shipping_method(cart):
+        if not is_valid_shipping_method(
+                cart, request.taxes, request.discounts):
             return redirect('checkout:shipping-method')
         return view(request, cart)
     return func

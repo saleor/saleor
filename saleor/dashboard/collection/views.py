@@ -10,14 +10,24 @@ from django.views.decorators.http import require_POST
 
 from ...core.utils import get_paginator_items
 from ...product.models import Collection
+from ..menu.utils import get_menus_that_needs_update, update_menus
 from ..views import staff_member_required
 from .filters import CollectionFilter
-from .forms import CollectionForm
+from .forms import AssignHomepageCollectionForm, CollectionForm
 
 
 @staff_member_required
-@permission_required('product.view_product')
+@permission_required('product.manage_products')
 def collection_list(request):
+    site_settings = request.site.settings
+    assign_homepage_col_form = AssignHomepageCollectionForm(
+        request.POST or None, instance=site_settings)
+    if request.method == 'POST' and assign_homepage_col_form.is_valid():
+        assign_homepage_col_form.save()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Updated homepage collection')
+        messages.success(request, msg)
+        return redirect('dashboard:collection-list')
     collections = Collection.objects.prefetch_related('products').all()
     collection_filter = CollectionFilter(request.GET, queryset=collections)
     collections = get_paginator_items(
@@ -25,13 +35,14 @@ def collection_list(request):
         request.GET.get('page'))
     ctx = {
         'collections': collections, 'filter_set': collection_filter,
-        'is_empty': not collection_filter.queryset.exists()}
+        'is_empty': not collection_filter.queryset.exists(),
+        'assign_homepage_col_form': assign_homepage_col_form}
     return TemplateResponse(
         request, 'dashboard/collection/list.html', ctx)
 
 
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.manage_products')
 def collection_create(request):
     collection = Collection()
     form = CollectionForm(
@@ -46,7 +57,7 @@ def collection_create(request):
 
 
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.manage_products')
 def collection_update(request, pk=None):
     collection = get_object_or_404(Collection, pk=pk)
     form = CollectionForm(
@@ -61,11 +72,14 @@ def collection_update(request, pk=None):
 
 
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.manage_products')
 def collection_delete(request, pk=None):
     collection = get_object_or_404(Collection, pk=pk)
     if request.method == 'POST':
+        menus = get_menus_that_needs_update(collection=collection)
         collection.delete()
+        if menus:
+            update_menus(menus)
         msg = pgettext_lazy('Collection message', 'Deleted collection')
         messages.success(request, msg)
         if request.is_ajax():
@@ -79,7 +93,7 @@ def collection_delete(request, pk=None):
 
 @require_POST
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.manage_products')
 def collection_toggle_is_published(request, pk):
     collection = get_object_or_404(Collection, pk=pk)
     collection.is_published = not collection.is_published

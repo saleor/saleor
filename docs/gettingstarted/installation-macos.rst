@@ -10,16 +10,13 @@ Before you are ready to run Saleor you will need additional software installed o
 Node.js
 ~~~~~~~
 
-Version 8 or later is required. Download the macOS installer from the `Node.js downloads page <https://nodejs.org/en/download/>`_.
+Version 10 or later is required. Download the macOS installer from the `Node.js downloads page <https://nodejs.org/en/download/>`_.
 
 
 PostgreSQL
 ~~~~~~~~~~
 
 Saleor needs PostgreSQL version 9.4 or above to work. Get the macOS installer from the `PostgreSQL download page <https://www.postgresql.org/download/macosx/>`_.
-
-Make sure you keep track of the password you set for the administration account during installation.
-
 
 Command Line Tools for Xcode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -125,6 +122,13 @@ Installation
 
    Enter ``saleor`` when prompted for password.
 
+#. Create a PostgreSQL database:
+
+   Unless configured otherwise the store will use ``saleor`` as the database name.
+
+   .. code-block:: console
+
+    $ createdb saleor
 
 #. Prepare the database:
 
@@ -154,7 +158,7 @@ Installation
 
 #. Compile e-mails:
 
-   .. code-block:: bash
+   .. code-block:: console
 
     $ npm run build-emails
 

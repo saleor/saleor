@@ -1,7 +1,8 @@
-from django.urls import reverse
+from unittest import mock
 
-from saleor.dashboard.page.forms import PageForm
 from django.forms.models import model_to_dict
+from django.urls import reverse
+from saleor.dashboard.page.forms import PageForm
 
 
 def test_page_list(admin_client):
@@ -42,17 +43,34 @@ def test_page_add(admin_client):
     assert response.status_code == 302
 
 
-def test_page_delete(admin_client, page):
+@mock.patch('saleor.dashboard.page.views.get_menus_that_needs_update')
+@mock.patch('saleor.dashboard.page.views.update_menus')
+def test_page_delete(mock_update_menus, mock_get_menus, admin_client, page):
     url = reverse('dashboard:page-delete', args=[page.pk])
 
     response = admin_client.get(url)
     assert response.status_code == 200
 
+    mock_get_menus.return_value = [page.pk]
     response = admin_client.post(url, data={'a': 'b'})
     assert response.status_code == 302
+    assert mock_get_menus.called
+    mock_update_menus.assert_called_once_with([page.pk])
 
 
-def test_sanitize_page_content(page, default_category):
+@mock.patch('saleor.dashboard.page.views.get_menus_that_needs_update')
+@mock.patch('saleor.dashboard.page.views.update_menus')
+def test_page_delete_menu_not_updated(
+        mock_update_menus, mock_get_menus, admin_client, page):
+    url = reverse('dashboard:page-delete', args=[page.pk])
+    mock_get_menus.return_value = []
+    response = admin_client.post(url, data={'a': 'b'})
+    assert response.status_code == 302
+    assert mock_get_menus.called
+    assert not mock_update_menus.called
+
+
+def test_sanitize_page_content(page, category):
     data = model_to_dict(page)
     data['content'] = (
         '<b>bold</b><p><i>italic</i></p><h2>Header</h2><h3>subheader</h3>'

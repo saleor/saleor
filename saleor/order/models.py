@@ -9,7 +9,9 @@ from django.db.models import F, Max, Sum
 from django.urls import reverse
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
+from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
+from measurement.measures import Weight
 from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
 from prices import Money, TaxedMoney
@@ -19,9 +21,9 @@ from ..account.models import Address
 from ..core.models import BaseNote
 from ..core.utils import build_absolute_uri
 from ..core.utils.taxes import ZERO_TAXED_MONEY
+from ..core.weight import WeightUnits, zero_weight
 from ..discount.models import Voucher
-from ..product.models import ProductVariant
-from ..shipping.models import ShippingMethodCountry
+from ..shipping.models import ShippingMethod
 
 
 class OrderQueryset(models.QuerySet):
@@ -60,7 +62,7 @@ class Order(models.Model):
         on_delete=models.SET_NULL)
     user_email = models.EmailField(blank=True, default='')
     shipping_method = models.ForeignKey(
-        ShippingMethodCountry, blank=True, null=True, related_name='orders',
+        ShippingMethod, blank=True, null=True, related_name='orders',
         on_delete=models.SET_NULL)
     shipping_price_net = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
@@ -74,7 +76,7 @@ class Order(models.Model):
         net_field='shipping_price_net', gross_field='shipping_price_gross')
     shipping_method_name = models.CharField(
         max_length=255, null=True, default=None, blank=True, editable=False)
-    token = models.CharField(max_length=36, unique=True)
+    token = models.CharField(max_length=36, unique=True, blank=True)
     total_net = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
@@ -83,22 +85,26 @@ class Order(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
     total = TaxedMoneyField(net_field='total_net', gross_field='total_gross')
     voucher = models.ForeignKey(
-        Voucher, null=True, related_name='+', on_delete=models.SET_NULL)
+        Voucher, blank=True, null=True, related_name='+',
+        on_delete=models.SET_NULL)
     discount_amount = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
     discount_name = models.CharField(max_length=255, default='', blank=True)
+    translated_discount_name = models.CharField(
+        max_length=255, default='', blank=True)
     display_gross_prices = models.BooleanField(default=True)
-
+    customer_note = models.TextField(blank=True, default='')
+    weight = MeasurementField(
+        measurement=Weight, unit_choices=WeightUnits.CHOICES,
+        default=zero_weight)
     objects = OrderQueryset.as_manager()
 
     class Meta:
         ordering = ('-pk',)
-        permissions = (
-            ('view_order',
-             pgettext_lazy('Permission description', 'Can view orders')),
-            ('edit_order',
-             pgettext_lazy('Permission description', 'Can edit orders')))
+        permissions = ((
+            'manage_orders',
+            pgettext_lazy('Permission description', 'Manage orders.')),)
 
     def save(self, *args, **kwargs):
         if not self.token:
@@ -134,9 +140,11 @@ class Order(models.Model):
     def get_absolute_url(self):
         return reverse('order:details', kwargs={'token': self.token})
 
+    def get_last_payment(self):
+        return max(self.payments.all(), default=None, key=attrgetter('pk'))
+
     def get_last_payment_status(self):
-        last_payment = max(
-            self.payments.all(), default=None, key=attrgetter('pk'))
+        last_payment = self.get_last_payment()
         if last_payment:
             return last_payment.status
         return None
@@ -180,10 +188,11 @@ class OrderLine(models.Model):
     order = models.ForeignKey(
         Order, related_name='lines', editable=False, on_delete=models.CASCADE)
     variant = models.ForeignKey(
-        ProductVariant, related_name='+', on_delete=models.SET_NULL,
+        'product.ProductVariant', related_name='+', on_delete=models.SET_NULL,
         blank=True, null=True)
     # max_length is as produced by ProductVariant's display_product method
     product_name = models.CharField(max_length=386)
+    translated_product_name = models.CharField(max_length=386, default='')
     product_sku = models.CharField(max_length=32)
     is_shipping_required = models.BooleanField()
     quantity = models.IntegerField(
@@ -321,6 +330,7 @@ class OrderHistoryEntry(models.Model):
 class OrderNote(BaseNote):
     order = models.ForeignKey(
         Order, related_name='notes', on_delete=models.CASCADE)
+    is_public = None
 
     class Meta:
         ordering = ('date', )

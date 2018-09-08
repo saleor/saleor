@@ -70,15 +70,13 @@
           {% endif %}
         </div>
         <div class="card-action">
-          {% if perms.account.edit_user %}
-            <a href="{% url 'dashboard:customer-update' customer.pk %}" class="btn-flat waves-effect">
-              {% trans "Edit customer" context "Customer action" %}
-            </a>
-            <a href="#base-modal" data-href="{% url 'dashboard:customer-delete' pk=customer.pk %}" class="modal-trigger-custom btn-flat waves-effect">
-              {% trans "Remove customer" context "Customer action" %}
-            </a>
-          {% endif %}
-          {% if perms.account.impersonate_user %}
+          <a href="{% url 'dashboard:customer-update' customer.pk %}" class="btn-flat waves-effect">
+            {% trans "Edit customer" context "Customer action" %}
+          </a>
+          <a href="#base-modal" data-href="{% url 'dashboard:customer-delete' pk=customer.pk %}" class="modal-trigger-custom btn-flat waves-effect">
+            {% trans "Remove customer" context "Customer action" %}
+          </a>
+          {% if perms.account.impersonate_users %}
             <a href="{% url 'impersonate-start' uid=customer.pk %}" class="btn-flat waves-effect">
               {% trans 'Impersonate customer' context 'Customer impersonate action' %}
             </a>
@@ -113,7 +111,7 @@
               </thead>
               <tbody>
                 {% for order in customer_orders %}
-                  <tr data-action-go="{% if perms.order.view_order %}{% url 'dashboard:order-details' order_pk=order.pk %}{% endif %}">
+                  <tr data-action-go="{% if perms.order.manage_orders %}{% url 'dashboard:order-details' order_pk=order.pk %}{% endif %}">
                     <td>
                       {{ order }}
                     </td>
@@ -160,13 +158,11 @@
             </div>
           {% endif %}
         </div>
-        {% if perms.account.edit_user %}
-          <div class="card-action">
-            <a data-href="{% url "dashboard:customer-add-note" customer_pk=customer.pk %}" class="modal-trigger-custom btn-flat waves-effect" href="#base-modal">
-              {% trans "Add note" context "Customer notes card action" %}
-            </a>
-          </div>
-        {% endif %}
+        <div class="card-action">
+          <a data-href="{% url "dashboard:customer-add-note" customer_pk=customer.pk %}" class="modal-trigger-custom btn-flat waves-effect" href="#base-modal">
+            {% trans "Add note" context "Customer notes card action" %}
+          </a>
+        </div>
       </div>
     </div>
 

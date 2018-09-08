@@ -11,7 +11,7 @@ from .forms import AuthorizationKeyForm, SiteForm, SiteSettingsForm
 
 
 @staff_member_required
-@permission_required('site.edit_settings')
+@permission_required('site.manage_settings')
 def index(request):
     site = get_current_site(request)
     settings = site.settings
@@ -19,7 +19,7 @@ def index(request):
 
 
 @staff_member_required
-@permission_required('site.edit_settings')
+@permission_required('site.manage_settings')
 def site_settings_edit(request, pk):
     site_settings = get_object_or_404(SiteSettings, pk=pk)
     site = site_settings.site
@@ -34,25 +34,27 @@ def site_settings_edit(request, pk):
         messages.success(request, pgettext_lazy(
             'Dashboard message', 'Updated site settings'))
         return redirect('dashboard:site-details', pk=site_settings.id)
-    ctx = {'site': site_settings, 'site_settings_form': site_settings_form,
+    ctx = {'site_settings': site_settings,
+           'site_settings_form': site_settings_form,
            'site_form': site_form}
     return TemplateResponse(request, 'dashboard/sites/form.html', ctx)
 
 
 @staff_member_required
-@permission_required('site.edit_settings')
+@permission_required('site.manage_settings')
 def site_settings_details(request, pk):
     site_settings = get_object_or_404(SiteSettings, pk=pk)
     authorization_keys = AuthorizationKey.objects.filter(
         site_settings=site_settings)
     ctx = {
-        'site': site_settings, 'authorization_keys': authorization_keys,
+        'site_settings': site_settings,
+        'authorization_keys': authorization_keys,
         'is_empty': not authorization_keys.exists()}
     return TemplateResponse(request, 'dashboard/sites/detail.html', ctx)
 
 
 @staff_member_required
-@permission_required('site.edit_settings')
+@permission_required('site.manage_settings')
 def authorization_key_add(request, site_settings_pk):
     key = AuthorizationKey(site_settings_id=site_settings_pk)
     form = AuthorizationKeyForm(request.POST or None, instance=key)
@@ -68,7 +70,7 @@ def authorization_key_add(request, site_settings_pk):
 
 
 @staff_member_required
-@permission_required('site.edit_settings')
+@permission_required('site.manage_settings')
 def authorization_key_edit(request, site_settings_pk, key_pk):
     key = get_object_or_404(AuthorizationKey, pk=key_pk)
     form = AuthorizationKeyForm(request.POST or None, instance=key)
@@ -84,7 +86,7 @@ def authorization_key_edit(request, site_settings_pk, key_pk):
 
 
 @staff_member_required
-@permission_required('site.edit_settings')
+@permission_required('site.manage_settings')
 def authorization_key_delete(request, site_settings_pk, key_pk):
     key = get_object_or_404(AuthorizationKey, pk=key_pk)
     if request.method == 'POST':

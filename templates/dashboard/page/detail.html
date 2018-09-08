@@ -45,14 +45,12 @@
             {{ page.get_full_url }}
         </div>
         <div class="card-action">
-          {% if perms.page.edit_page %}
-            <a href="{% url 'dashboard:page-update' page.pk %}" class="btn-flat waves-effect">
-              {% trans "Edit page" context "Page action" %}
-            </a>
-            <a href="#base-modal" data-href="{% url 'dashboard:page-delete' pk=page.pk %}" class="modal-trigger-custom btn-flat waves-effect">
-              {% trans "Remove page" context "Page action" %}
-            </a>
-          {% endif %}
+          <a href="{% url 'dashboard:page-update' page.pk %}" class="btn-flat waves-effect">
+            {% trans "Edit page" context "Page action" %}
+          </a>
+          <a href="#base-modal" data-href="{% url 'dashboard:page-delete' pk=page.pk %}" class="modal-trigger-custom btn-flat waves-effect">
+            {% trans "Remove page" context "Page action" %}
+          </a>
           <a href="{% url "page:details" slug=page.slug %}" target="_blank" class="btn-flat waves-effect">
             {% trans "View on site" context "Page action" %}
           </a>

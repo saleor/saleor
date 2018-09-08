@@ -13,15 +13,15 @@ Before you are ready to run Saleor you will need additional software installed o
 Python
 ~~~~~~
 
-Download the latest 3.6 Windows installer from the `Python download page <https://www.python.org/downloads/>`_ and follow the instructions.
+Download the latest **3.7** Windows installer from the `Python download page <https://www.python.org/downloads/>`_ and follow the instructions.
 
-Make sure that "**Add Python 3.6 to PATH**" is checked.
+Make sure that "**Add Python 3.7 to PATH**" is checked.
 
 
 Node.js
 ~~~~~~~
 
-Version 8 or later is required. Download the Windows installer from the `Node.js downloads page <https://nodejs.org/en/download/>`_.
+Version 10 or later is required. Download the Windows installer from the `Node.js downloads page <https://nodejs.org/en/download/>`_.
 
 Make sure that "**Add to PATH**" is selected.
 
@@ -45,7 +45,7 @@ Make sure that "**Set up PATH environment variable to include GTK+**" is selecte
 Compilers
 ~~~~~~~~~
 
-Please download and install the latest version of `Visual C++ build tools <https://landinghub.visualstudio.com/visual-cpp-build-tools>`_.
+Please download and install the latest version of the `Build Tools for Visual Studio <https://go.microsoft.com/fwlink/?linkid=840931>`_.
 
 
 Installation
@@ -128,7 +128,7 @@ All commands need to be performed in either PowerShell or a Command Shell.
 
    .. code-block:: powershell
 
-    $ npm run build-emails
+    npm run build-emails
 
 #. Start the development server:
 

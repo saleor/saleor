@@ -12,14 +12,14 @@
         <div class="col-md-10">
           <a class="link--clean" href="{{ line.variant_url }}">
             <img class="cart-dropdown__image lazyload lazypreload"
-                 data-src="{% get_thumbnail line.image size="60x60" %}"
-                 data-srcset="{% get_thumbnail line.image size="60x60" %} 1x, {% get_thumbnail line.image size="120x120" %} 2x"
+                 data-src="{% get_thumbnail line.image size=60 %}"
+                 data-srcset="{% get_thumbnail line.image size=60 %} 1x, {% get_thumbnail line.image size=120 %} 2x"
                  alt=""
                  src="{% placeholder size=120 %}">
             <h3>
-              {{ line.product }}
+              {{ line.product.translated }}
               <span>x{{ line.quantity }}</span>
-              <p>{{ line.variant }}</p>
+              <p>{{ line.variant.translated }}</p>
             </h3>
           </a>
         </div>

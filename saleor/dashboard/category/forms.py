@@ -22,7 +22,10 @@ class CategoryForm(forms.ModelForm):
         exclude = ['slug']
         labels = {
             'name': pgettext_lazy('Item name', 'Name'),
-            'description': pgettext_lazy('Description', 'Description')}
+            'description': pgettext_lazy('Description', 'Description'),
+            'background_image': pgettext_lazy(
+                'Category form',
+                'Background Image')}
 
     def save(self, commit=True):
         self.instance.slug = slugify(unidecode(self.instance.name))

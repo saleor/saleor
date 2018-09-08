@@ -16,6 +16,7 @@
 @import "components/tabs";
 @import "components/typography";
 @import "components/variant-picker";
+@import "components/language-picker";
 
 @import "layouts/account";
 @import "layouts/cart";
@@ -27,9 +28,3 @@
 @import "layouts/product-list";
 @import "layouts/product-page";
 @import "layouts/styleguide";
-
-.scrollable-menu {
-    height: auto;
-    max-height: 200px;
-    overflow-x: hidden;
-}

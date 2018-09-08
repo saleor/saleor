@@ -1,25 +1,30 @@
+import json
 from io import BytesIO
 from unittest.mock import MagicMock, Mock
 
 import pytest
-from django.contrib.auth.models import Group, Permission
+
+from django.contrib.auth.models import Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ModelForm
+from django.test.client import MULTIPART_CONTENT, Client
 from django.utils.encoding import smart_text
+from django_countries import countries
 from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
+from graphql_jwt.shortcuts import get_token
 from payments import FraudStatus, PaymentStatus
 from PIL import Image
 from prices import Money
-
 from saleor.account.models import Address, User
 from saleor.checkout import utils
 from saleor.checkout.models import Cart
 from saleor.checkout.utils import add_variant_to_cart
+from saleor.dashboard.menu.utils import update_menu
 from saleor.dashboard.order.utils import fulfill_order_line
-from saleor.discount.models import Sale, Voucher
+from saleor.discount.models import Sale, Voucher, VoucherTranslation
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderStatus
 from saleor.order.models import Order
@@ -27,9 +32,62 @@ from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
-    ProductImage, ProductType, ProductVariant)
-from saleor.shipping.models import ShippingMethod
+    ProductAttributeTranslation, ProductImage, ProductTranslation, ProductType,
+    ProductVariant)
+from saleor.shipping.models import (
+    ShippingMethod, ShippingMethodType, ShippingZone)
 from saleor.site.models import AuthorizationKey, SiteSettings
+
+
+class ApiClient(Client):
+    """GraphQL API client."""
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
+        self.user = user
+        self.token = get_token(user)
+        super().__init__(*args, **kwargs)
+
+    def _base_environ(self, **request):
+        environ = super()._base_environ(**request)
+        environ.update({'HTTP_AUTHORIZATION': 'JWT %s' % self.token})
+        return environ
+
+    def post(self, path, data=None, **kwargs):
+        """Send a POST request.
+
+        This wrapper sets the `application/json` content type which is
+        more suitable for standard GraphQL requests and doesn't mismatch with
+        handling multipart requests in Graphene.
+        """
+        if data:
+            data = json.dumps(data)
+        kwargs['content_type'] = 'application/json'
+        return super().post(path, data, **kwargs)
+
+    def post_multipart(self, *args, **kwargs):
+        """Send a multipart POST request.
+
+        This is used to send multipart requests to GraphQL API when e.g.
+        uploading files.
+        """
+        kwargs['content_type'] = MULTIPART_CONTENT
+        return super().post(*args, **kwargs)
+
+
+@pytest.fixture
+def admin_api_client(admin_user):
+    return ApiClient(user=admin_user)
+
+
+@pytest.fixture
+def user_api_client(customer_user):
+    return ApiClient(user=customer_user)
+
+
+@pytest.fixture
+def staff_api_client(staff_user):
+    return ApiClient(user=staff_user)
 
 
 @pytest.fixture(autouse=True)
@@ -44,12 +102,30 @@ def site_settings(db, settings):
         name="mirumee.com", domain="mirumee.com")[0]
     obj = SiteSettings.objects.get_or_create(site=site)[0]
     settings.SITE_ID = site.pk
+
+    main_menu = Menu.objects.get_or_create(
+        name=settings.DEFAULT_MENUS['top_menu_name'])[0]
+    update_menu(main_menu)
+    secondary_menu = Menu.objects.get_or_create(
+        name=settings.DEFAULT_MENUS['bottom_menu_name'])[0]
+    update_menu(secondary_menu)
+    obj.top_menu = main_menu
+    obj.bottom_menu = secondary_menu
+    obj.save()
     return obj
 
 
 @pytest.fixture
-def cart(db):  # pylint: disable=W0613
+def cart(db):
     return Cart.objects.create()
+
+
+@pytest.fixture
+def cart_with_item(cart, product):
+    variant = product.variants.get()
+    add_variant_to_cart(cart, variant, 3)
+    cart.save()
+    return cart
 
 
 @pytest.fixture
@@ -75,7 +151,7 @@ def address(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def customer_user(db, address):  # pylint: disable=W0613
+def customer_user(address):  # pylint: disable=W0613
     default_address = address.get_copy()
     user = User.objects.create_user(
         'test@example.com',
@@ -120,7 +196,6 @@ def admin_user(db):
 @pytest.fixture()
 def admin_client(admin_user):
     """Return a Django test client logged in as an admin user."""
-    from django.test.client import Client
     client = Client()
     client.login(username=admin_user.email, password='password')
     return client
@@ -148,10 +223,20 @@ def authorized_client(client, customer_user):
 
 
 @pytest.fixture
-def shipping_method(db):  # pylint: disable=W0613
-    shipping_method = ShippingMethod.objects.create(name='DHL')
-    shipping_method.price_per_country.create(price=10)
-    return shipping_method
+def shipping_zone(db):  # pylint: disable=W0613
+    shipping_zone = ShippingZone.objects.create(
+        name='Europe', countries=[code for code, name in countries])
+    shipping_zone.shipping_methods.create(
+        name='DHL', minimum_order_price=0, type=ShippingMethodType.PRICE_BASED,
+        price=10, shipping_zone=shipping_zone)
+    return shipping_zone
+
+
+@pytest.fixture
+def shipping_method(shipping_zone):
+    return ShippingMethod.objects.create(
+        name='DHL', minimum_order_price=0, type=ShippingMethodType.PRICE_BASED,
+        price=10, shipping_zone=shipping_zone)
 
 
 @pytest.fixture
@@ -166,6 +251,13 @@ def color_attribute(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def pink_choice_value(color_attribute):  # pylint: disable=W0613
+    value = AttributeChoiceValue.objects.create(
+        slug='pink', name='Color', attribute=color_attribute)
+    return value
+
+
+@pytest.fixture
 def size_attribute(db):  # pylint: disable=W0613
     attribute = ProductAttribute.objects.create(slug='size', name='Size')
     AttributeChoiceValue.objects.create(
@@ -176,7 +268,7 @@ def size_attribute(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def default_category(db):  # pylint: disable=W0613
+def category(db):  # pylint: disable=W0613
     return Category.objects.create(name='Default', slug='default')
 
 
@@ -186,58 +278,13 @@ def non_default_category(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def staff_group():
-    return Group.objects.create(name='test')
+def permission_manage_discounts():
+    return Permission.objects.get(codename='manage_discounts')
 
 
 @pytest.fixture
-def permission_view_product():
-    return Permission.objects.get(codename='view_product')
-
-
-@pytest.fixture
-def permission_edit_product():
-    return Permission.objects.get(codename='edit_product')
-
-
-@pytest.fixture
-def permission_view_category():
-    return Permission.objects.get(codename='view_category')
-
-
-@pytest.fixture
-def permission_edit_category():
-    return Permission.objects.get(codename='edit_category')
-
-
-@pytest.fixture
-def permission_view_sale():
-    return Permission.objects.get(codename='view_sale')
-
-
-@pytest.fixture
-def permission_edit_sale():
-    return Permission.objects.get(codename='edit_sale')
-
-
-@pytest.fixture
-def permission_view_voucher():
-    return Permission.objects.get(codename='view_voucher')
-
-
-@pytest.fixture
-def permission_edit_voucher():
-    return Permission.objects.get(codename='edit_voucher')
-
-
-@pytest.fixture
-def permission_view_order():
-    return Permission.objects.get(codename='view_order')
-
-
-@pytest.fixture
-def permission_edit_order():
-    return Permission.objects.get(codename='edit_order')
+def permission_manage_orders():
+    return Permission.objects.get(codename='manage_orders')
 
 
 @pytest.fixture
@@ -250,15 +297,14 @@ def product_type(color_attribute, size_attribute):
 
 
 @pytest.fixture
-def product(product_type, default_category):
+def product(product_type, category):
     product_attr = product_type.product_attributes.first()
     attr_value = product_attr.values.first()
     attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
 
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
-        product_type=product_type, attributes=attributes,
-        category=default_category)
+        product_type=product_type, attributes=attributes, category=category)
 
     variant_attr = product_type.variant_attributes.first()
     variant_attr_value = variant_attr.values.first()
@@ -272,37 +318,42 @@ def product(product_type, default_category):
 
 
 @pytest.fixture
-def product_without_shipping(default_category):
+def variant(product):
+    product_variant = ProductVariant.objects.create(
+        product=product, sku='SKU_A', cost_price=Money(1, 'USD'), quantity=5,
+        quantity_allocated=3)
+    return product_variant
+
+
+@pytest.fixture
+def product_without_shipping(category):
     product_type = ProductType.objects.create(
         name='Type with no shipping', has_variants=False,
         is_shipping_required=False)
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
-        product_type=product_type, category=default_category)
+        product_type=product_type, category=category)
     ProductVariant.objects.create(product=product, sku='SKU_B')
     return product
 
 
 @pytest.fixture
-def product_list(product_type, default_category):
+def product_list(product_type, category):
     product_attr = product_type.product_attributes.first()
     attr_value = product_attr.values.first()
     attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
 
     product_1 = Product.objects.create(
-        name='Test product 1', price=Money('10.00', 'USD'),
-        product_type=product_type, attributes=attributes, is_published=True,
-        category=default_category)
+        name='Test product 1', price=Money('10.00', 'USD'), category=category,
+        product_type=product_type, attributes=attributes, is_published=True)
 
     product_2 = Product.objects.create(
-        name='Test product 2', price=Money('20.00', 'USD'),
-        product_type=product_type, attributes=attributes, is_published=False,
-        category=default_category)
+        name='Test product 2', price=Money('20.00', 'USD'), category=category,
+        product_type=product_type, attributes=attributes, is_published=False)
 
     product_3 = Product.objects.create(
-        name='Test product 3', price=Money('20.00', 'USD'),
-        product_type=product_type, attributes=attributes, is_published=True,
-        category=default_category)
+        name='Test product 3', price=Money('20.00', 'USD'), category=category,
+        product_type=product_type, attributes=attributes, is_published=True)
 
     return [product_1, product_2, product_3]
 
@@ -335,19 +386,18 @@ def product_with_image(product, product_image):
 
 
 @pytest.fixture
-def unavailable_product(product_type, default_category):
+def unavailable_product(product_type, category):
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
-        product_type=product_type, is_published=False,
-        category=default_category)
+        product_type=product_type, is_published=False, category=category)
     return product
 
 
 @pytest.fixture
-def product_with_images(product_type, default_category):
+def product_with_images(product_type, category):
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
-        product_type=product_type, category=default_category)
+        product_type=product_type, category=category)
     file_mock_0 = MagicMock(spec=File, name='FileMock0')
     file_mock_0.name = 'image0.jpg'
     file_mock_1 = MagicMock(spec=File, name='FileMock1')
@@ -364,11 +414,11 @@ def voucher(db):  # pylint: disable=W0613
 
 @pytest.fixture()
 def order_with_lines(
-        order, product_type, default_category, shipping_method, vatlayer):
+        order, product_type, category, shipping_zone, vatlayer):
     taxes = vatlayer
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
-        product_type=product_type, category=default_category)
+        product_type=product_type, category=category)
     variant = ProductVariant.objects.create(
         product=product, sku='SKU_A', cost_price=Money(1, 'USD'), quantity=5,
         quantity_allocated=3)
@@ -383,7 +433,7 @@ def order_with_lines(
 
     product = Product.objects.create(
         name='Test product 2', price=Money('20.00', 'USD'),
-        product_type=product_type, category=default_category)
+        product_type=product_type, category=category)
     variant = ProductVariant.objects.create(
         product=product, sku='SKU_B', cost_price=Money(2, 'USD'), quantity=2,
         quantity_allocated=2)
@@ -397,8 +447,8 @@ def order_with_lines(
         tax_rate=taxes['standard']['value'])
 
     order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = shipping_method.name
-    method = shipping_method.price_per_country.get()
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_method_name = method.name
     order.shipping_method = method
     order.shipping_price = method.get_total_price(taxes)
     order.save()
@@ -422,6 +472,11 @@ def fulfilled_order(order_with_lines):
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=['status'])
     return order
+
+
+@pytest.fixture
+def fulfillment(fulfilled_order):
+    return fulfilled_order.fulfillments.first()
 
 
 @pytest.fixture
@@ -454,7 +509,8 @@ def payment_confirmed(order_with_lines):
     return order_with_lines.payments.create(
         variant='default', status=PaymentStatus.CONFIRMED,
         fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_amount, captured_amount=order_amount)
+        total=order_amount, captured_amount=order_amount,
+        tax=order_with_lines.total.tax.amount)
 
 
 @pytest.fixture()
@@ -490,87 +546,53 @@ def payment_input(order_with_lines):
 
 
 @pytest.fixture()
-def sale(db, default_category):
+def sale(category, collection):
     sale = Sale.objects.create(name="Sale", value=5)
-    sale.categories.add(default_category)
+    sale.categories.add(category)
+    sale.collections.add(collection)
     return sale
 
 
 @pytest.fixture
-def authorization_key(db, site_settings):
+def authorization_key(site_settings):
     return AuthorizationKey.objects.create(
         site_settings=site_settings, name='Backend', key='Key',
         password='Password')
 
 
 @pytest.fixture
-def permission_view_staff():
-    return Permission.objects.get(codename='view_staff')
+def permission_manage_staff():
+    return Permission.objects.get(codename='manage_staff')
 
 
 @pytest.fixture
-def permission_edit_staff():
-    return Permission.objects.get(codename='edit_staff')
+def permission_manage_products():
+    return Permission.objects.get(codename='manage_products')
 
 
 @pytest.fixture
-def permission_view_group():
-    return Permission.objects.get(codename='view_group')
+def permission_manage_shipping():
+    return Permission.objects.get(codename='manage_shipping')
 
 
 @pytest.fixture
-def permission_edit_group():
-    return Permission.objects.get(codename='edit_group')
+def permission_manage_users():
+    return Permission.objects.get(codename='manage_users')
 
 
 @pytest.fixture
-def permission_view_properties():
-    return Permission.objects.get(codename='view_properties')
+def permission_manage_settings():
+    return Permission.objects.get(codename='manage_settings')
 
 
 @pytest.fixture
-def permission_edit_properties():
-    return Permission.objects.get(codename='edit_properties')
+def permission_impersonate_users():
+    return Permission.objects.get(codename='impersonate_users')
 
 
 @pytest.fixture
-def permission_view_shipping():
-    return Permission.objects.get(codename='view_shipping')
-
-
-@pytest.fixture
-def permission_edit_shipping():
-    return Permission.objects.get(codename='edit_shipping')
-
-
-@pytest.fixture
-def permission_view_user():
-    return Permission.objects.get(codename='view_user')
-
-
-@pytest.fixture
-def permission_edit_user():
-    return Permission.objects.get(codename='edit_user')
-
-
-@pytest.fixture
-def permission_edit_settings():
-    return Permission.objects.get(codename='edit_settings')
-
-
-@pytest.fixture
-def permission_impersonate_user():
-    return Permission.objects.get(codename='impersonate_user')
-
-
-@pytest.fixture
-def permission_edit_menu():
-    return Permission.objects.get(codename='edit_menu')
-
-
-@pytest.fixture
-def permission_view_menu():
-    return Permission.objects.get(codename='view_menu')
+def permission_manage_menus():
+    return Permission.objects.get(codename='manage_menus')
 
 
 @pytest.fixture
@@ -583,7 +605,7 @@ def collection(db):
 @pytest.fixture
 def draft_collection(db):
     collection = Collection.objects.create(
-        name='Collection', slug='collection')
+        name='Draft collection', slug='draft-collection')
     return collection
 
 
@@ -608,8 +630,7 @@ def model_form_class():
 
 @pytest.fixture
 def menu(db):
-    # navbar menu object can be already created by default in migration
-    return Menu.objects.get_or_create(name='navbar')[0]
+    return Menu.objects.get_or_create(name='test-navbar', json_content={})[0]
 
 
 @pytest.fixture
@@ -621,14 +642,13 @@ def menu_item(menu):
 
 
 @pytest.fixture
-def menu_with_items(menu, default_category, collection):
+def menu_with_items(menu, category, collection):
     menu.items.create(name='Link 1', url='http://example.com/')
     menu_item = menu.items.create(name='Link 2', url='http://example.com/')
-    menu.items.create(
-        name=default_category.name, category=default_category,
-        parent=menu_item)
+    menu.items.create(name=category.name, category=category, parent=menu_item)
     menu.items.create(
         name=collection.name, collection=collection, parent=menu_item)
+    update_menu(menu)
     return menu
 
 
@@ -681,3 +701,32 @@ def vatlayer(db, settings, tax_rates, taxes):
             'passenger transport': 7}}
     VAT.objects.create(country_code='DE', data=tax_rates_2)
     return taxes
+
+
+@pytest.fixture
+def translated_variant_fr(product):
+    attribute = product.product_type.variant_attributes.first()
+    return ProductAttributeTranslation.objects.create(
+        language_code='fr', product_attribute=attribute,
+        name='Name tranlsated to french')
+
+
+@pytest.fixture
+def translated_product_attribute(product):
+    attribute = product.product_type.product_attributes.first()
+    return ProductAttributeTranslation.objects.create(
+        language_code='fr', product_attribute=attribute,
+        name='Name tranlsated to french')
+
+
+@pytest.fixture
+def voucher_translation_fr(voucher):
+    return VoucherTranslation.objects.create(
+        language_code='fr', voucher=voucher, name='French name')
+
+
+@pytest.fixture
+def product_translation_fr(product):
+    return ProductTranslation.objects.create(
+        language_code='fr', product=product, name='French name',
+        description='French description')
