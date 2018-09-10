@@ -81,16 +81,23 @@ class OrderEvents(Enum):
 
     NOTE_ADDED = 'note_added'
 
+    # Used mostly for importing legacy data from before Enum-based events
+    OTHER = 'other'
 
-class OrderEventsEmail:
+
+class OrderEventsEmails(Enum):
     PAYMENT = 'payment_confirmation'
     SHIPPING = 'shipping_confirmation'
     ORDER = 'order_confirmation'
 
-    CHOICES = {
-        PAYMENT: pgettext_lazy('Email type', 'Payment confirmation'),
-        SHIPPING: pgettext_lazy('Email type', 'Shipping confirmation'),
-        ORDER: pgettext_lazy('Email type', 'Order confirmation')}
+
+EMAIL_CHOICES = {
+    OrderEventsEmails.PAYMENT.value: pgettext_lazy(
+        'Email type', 'Payment confirmation'),
+    OrderEventsEmails.SHIPPING.value: pgettext_lazy(
+        'Email type', 'Shipping confirmation'),
+    OrderEventsEmails.ORDER.value: pgettext_lazy(
+        'Email type', 'Order confirmation')}
 
 
 def display_order_event(order_event):
@@ -168,7 +175,7 @@ def display_order_event(order_event):
             'Dashboard message related to an order',
             '%(email_type)s email was sent to the customer '
             '(%(email)s)') % {
-                'email_type': OrderEventsEmail.CHOICES[params['email_type']],
+                'email_type': EMAIL_CHOICES[params['email_type']],
                 'email': params['email']}
     if event_type == OrderEvents.UPDATED.value:
         return pgettext_lazy(

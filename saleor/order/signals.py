@@ -1,6 +1,6 @@
 import logging
 
-from . import OrderEvents, OrderEventsEmail
+from . import OrderEvents, OrderEventsEmails
 from ..core import analytics
 from .emails import send_payment_confirmation
 
@@ -18,7 +18,7 @@ def order_status_change(sender, instance, **kwargs):
                 type=OrderEvents.EMAIL_SENT.value,
                 parameters={
                     'email': order.get_user_current_email(),
-                    'email_type': OrderEventsEmail.PAYMENT})
+                    'email_type': OrderEventsEmails.PAYMENT.value})
         try:
             analytics.report_order(order.tracking_client_id, order)
         except Exception:
