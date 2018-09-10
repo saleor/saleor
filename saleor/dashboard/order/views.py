@@ -18,7 +18,7 @@ from ...core.utils import get_paginator_items
 from ...core.utils.taxes import (
     ZERO_MONEY, ZERO_TAXED_MONEY, get_taxes_for_address)
 from ...order import (
-    CustomPaymentChoices, OrderEvents, OrderEventsEmail, OrderStatus)
+    CustomPaymentChoices, OrderEvents, OrderEventsEmails, OrderStatus)
 from ...order.emails import (
     send_fulfillment_confirmation, send_fulfillment_update,
     send_order_confirmation)
@@ -89,7 +89,7 @@ def create_order_from_draft(request, order_pk):
             order.events.create(
                 parameters={
                     'email': order.get_user_current_email(),
-                    'email_type': OrderEventsEmail.ORDER},
+                    'email_type': OrderEventsEmails.ORDER.value},
                 type=OrderEvents.EMAIL_SENT.value)
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
@@ -638,7 +638,7 @@ def fulfill_order_lines(request, order_pk):
                 order.events.create(
                     parameters={
                         'email': order.get_user_current_email(),
-                        'email_type': OrderEventsEmail.SHIPPING},
+                        'email_type': OrderEventsEmails.SHIPPING.value},
                     user=request.user,
                     type=OrderEvents.EMAIL_SENT.value)
         else:
@@ -705,7 +705,7 @@ def change_fulfillment_tracking(request, order_pk, fulfillment_pk):
             order.events.create(
                 parameters={
                     'email': order.get_user_current_email(),
-                    'email_type': OrderEventsEmail.SHIPPING},
+                    'email_type': OrderEventsEmails.SHIPPING.value},
                 user=request.user,
                 type=OrderEvents.EMAIL_SENT.value)
         msg = pgettext_lazy(

@@ -6,7 +6,7 @@ from django.utils.translation import pgettext
 from ...account.models import Address
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
-from ...order import OrderEvents, OrderEventsEmail
+from ...order import OrderEvents, OrderEventsEmails
 from ...order.emails import send_order_confirmation
 from ..forms import CartNoteForm
 from ..utils import (
@@ -42,7 +42,7 @@ def handle_order_placement(request, cart):
         type=OrderEvents.EMAIL_SENT.value,
         parameters={
             'email': order.get_user_current_email(),
-            'email_type': OrderEventsEmail.ORDER})
+            'email_type': OrderEventsEmails.ORDER.value})
     return redirect('order:payment', token=order.token)
 
 
