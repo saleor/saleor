@@ -112,7 +112,7 @@ six==1.11.0               # via bleach, cryptography, django-templated-email, el
 social-auth-app-django==2.1.0
 social-auth-core==1.7.0   # via social-auth-app-django
 sqlparse==0.2.4           # via django-debug-toolbar
-stripe==2.5.0             # via django-payments
+stripe==1.77.1            # via django-payments
 suds-jurko==0.6           # via django-payments
 sympy==1.2                # via measurement
 text-unidecode==1.2
