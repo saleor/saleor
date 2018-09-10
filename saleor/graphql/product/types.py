@@ -128,6 +128,21 @@ class ProductAvailability(graphene.ObjectType):
         description = 'Represents availability of a product in the storefront.'
 
 
+class Image(graphene.ObjectType):
+    url = graphene.String(
+        required=True,
+        description='The URL of the image.',
+        size=graphene.Int(description='Size of the image'))
+
+    class Meta:
+        description = 'Represents an image.'
+
+    def resolve_url(self, info, size=None):
+        if size:
+            return get_thumbnail(self, size, method='thumbnail')
+        return self.url
+
+
 class Product(CountableDjangoObjectType):
     url = graphene.String(
         description='The storefront URL for the product.', required=True)
@@ -162,7 +177,7 @@ class Product(CountableDjangoObjectType):
     def resolve_thumbnail_url(self, info, *, size=None):
         if not size:
             size = 255
-        return get_thumbnail(self.get_first_image(), size)
+        return get_thumbnail(self.get_first_image(), size, method='thumbnail')
 
     def resolve_url(self, info):
         return self.get_absolute_url()
@@ -221,6 +236,7 @@ class Collection(CountableDjangoObjectType):
     products = DjangoFilterConnectionField(
         Product, filterset_class=ProductFilterSet,
         description='List of collection products.')
+    background_image = graphene.Field(Image)
 
     class Meta:
         description = "Represents a collection of products."
@@ -249,6 +265,7 @@ class Category(CountableDjangoObjectType):
     children = DjangoFilterConnectionField(
         lambda: Category,
         description='List of children of the category.')
+    background_image = graphene.Field(Image)
 
     class Meta:
         description = """Represents a single category of products. Categories
@@ -292,5 +309,5 @@ class ProductImage(CountableDjangoObjectType):
 
     def resolve_url(self, info, *, size=None):
         if size:
-            return get_thumbnail(self.image, size, 'crop')
+            return get_thumbnail(self.image, size, method='thumbnail')
         return self.image.url
