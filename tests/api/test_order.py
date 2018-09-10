@@ -37,14 +37,8 @@ def test_order_query(admin_api_client, fulfilled_order):
                     lines {
                         totalCount
                     }
-                    notes {
-                        totalCount
-                    }
                     fulfillments {
                         fulfillmentOrder
-                    }
-                    history {
-                        totalCount
                     }
                     subtotal {
                         net {
@@ -77,10 +71,8 @@ def test_order_query(admin_api_client, fulfilled_order):
     expected_price = order_data['shippingPrice']['gross']['amount']
     assert expected_price == order.shipping_price.gross.amount
     assert order_data['lines']['totalCount'] == order.lines.count()
-    assert order_data['notes']['totalCount'] == order.notes.count()
     fulfillment = order.fulfillments.first().fulfillment_order
-    fulfillment_order = order_data[
-        'fulfillments'][0]['fulfillmentOrder']
+    fulfillment_order = order_data['fulfillments'][0]['fulfillmentOrder']
     assert fulfillment_order == fulfillment
 
 
@@ -333,7 +325,7 @@ def test_order_add_note(admin_api_client, order_with_lines, admin_user):
             }
         }
         """
-    assert not order.notes.all()
+    assert not order.events.all()
     order_id = graphene.Node.to_global_id('Order', order.id)
     note = 'nuclear note'
     user = graphene.Node.to_global_id('User', admin_user.id)
@@ -366,9 +358,9 @@ def test_order_cancel(admin_api_client, order_with_lines):
     content = get_graphql_content(response)
     data = content['data']['orderCancel']['order']
     order.refresh_from_db()
-    history_entry = order.history.last()
-    assert history_entry.parameters['quantity'] == quantity
-    assert history_entry.event == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value
+    order_event = order.events.last()
+    assert order_event.parameters['quantity'] == quantity
+    assert order_event.type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value
     assert data['status'] == order.status.upper()
 
 
@@ -472,7 +464,7 @@ def test_order_release(admin_api_client, payment_preauth):
     content = get_graphql_content(response)
     data = content['data']['orderRelease']['order']
     assert data['paymentStatus'] == PaymentStatus.REFUNDED
-    assert order.history.last().event == OrderEvents.PAYMENT_RELEASED.value
+    assert order.events.last().type == OrderEvents.PAYMENT_RELEASED.value
 
 
 def test_order_refund(admin_api_client, payment_confirmed):
@@ -500,9 +492,9 @@ def test_order_refund(admin_api_client, payment_confirmed):
     assert data['paymentStatus'] == PaymentStatus.REFUNDED
     assert data['isPaid'] == False
 
-    history_entry = order.history.last()
-    assert history_entry.parameters['amount'] == amount
-    assert history_entry.event == OrderEvents.PAYMENT_REFUNDED.value
+    order_event = order.events.last()
+    assert order_event.parameters['amount'] == amount
+    assert order_event.type == OrderEvents.PAYMENT_REFUNDED.value
 
 
 def test_clean_order_release_payment():

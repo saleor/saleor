@@ -565,7 +565,7 @@ def test_dashboard_change_quantity_form(request_cart_with_item, order):
 
 
 def test_ordered_item_change_quantity(transactional_db, order_with_lines):
-    assert not order_with_lines.history.count()
+    assert not order_with_lines.events.count()
     lines = order_with_lines.lines.all()
     change_order_line_quantity(lines[1], 0)
     change_order_line_quantity(lines[0], 0)
@@ -1145,8 +1145,8 @@ def test_view_mark_order_as_paid(admin_client, order_with_lines):
 
     order_with_lines.refresh_from_db()
     assert order_with_lines.is_fully_paid()
-    assert order_with_lines.history.filter(
-        event=OrderEvents.ORDER_MARKED_AS_PAID.value).exists()
+    assert order_with_lines.events.filter(
+        type=OrderEvents.ORDER_MARKED_AS_PAID.value).exists()
 
 
 def test_view_fulfill_order_lines(admin_client, order_with_lines):
@@ -1213,8 +1213,8 @@ def test_view_add_order_note(admin_client, order_with_lines):
     note_content = 'this is a note'
     data = {
         'csrfmiddlewaretoken': 'hello',
-        'content': note_content}
+        'message': note_content}
     response = admin_client.post(url, data)
     assert response.status_code == 200
     order_with_lines.refresh_from_db()
-    assert order_with_lines.notes.first().content == note_content
+    assert order_with_lines.events.first().parameters['message'] == note_content  # noqa

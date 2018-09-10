@@ -1,6 +1,7 @@
 import graphene
 from graphene import relay
 from graphene.types import Scalar
+
 from ...order import OrderEvents, models
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
@@ -25,14 +26,14 @@ class ParametersScalar(Scalar):
         return node
 
 
-class OrderHistoryEntry(CountableDjangoObjectType):
+class OrderEvent(CountableDjangoObjectType):
     event = OrderEventsEnum(description='Order event type')
     parameters = ParametersScalar(
         description="Dict of parameters required to display an event")
 
     class Meta:
         description = 'History log of the order.'
-        model = models.OrderHistoryEntry
+        model = models.OrderEvent
         interfaces = [relay.Node]
         exclude_fields = ['order']
 
@@ -79,7 +80,7 @@ class Order(CountableDjangoObjectType):
     total_captured = graphene.Field(
         Money, description='Amount captured by payment.')
     events = graphene.List(
-        OrderHistoryEntry,
+        OrderEvent,
         description='List of events associated with the order.')
 
     class Meta:
@@ -112,7 +113,7 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_events(obj, info):
-        return obj.history.all()
+        return obj.events.all()
 
     @staticmethod
     def resolve_is_paid(obj, info):
@@ -149,11 +150,3 @@ class OrderLine(CountableDjangoObjectType):
         interfaces = [relay.Node]
         exclude_fields = [
             'order', 'unit_price_gross', 'unit_price_net', 'variant']
-
-
-class OrderNote(CountableDjangoObjectType):
-    class Meta:
-        description = 'Note from customer or staff user.'
-        model = models.OrderNote
-        interfaces = [relay.Node]
-        exclude_fields = ['order']

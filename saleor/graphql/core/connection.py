@@ -1,6 +1,6 @@
 import graphene
 from graphene import Field, List, NonNull, ObjectType, String
-from graphene.relay.connection import Connection, ConnectionOptions
+from graphene.relay.connection import Connection
 
 
 class NonNullConnection(Connection):
