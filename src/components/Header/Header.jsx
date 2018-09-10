@@ -43,8 +43,9 @@ class Header extends Component {
   }
 
   handleScroll = (event) => {
-    const scrollPosition = document.body.scrollTop;
-    if (scrollPosition > 20) { this.setState({sticky: true}); } else { this.setState({sticky: false}); }
+    const scrollPosition = window.scrollY;
+    if (scrollPosition > 145) { this.setState({sticky: true}); } else { this.setState({sticky: false}); }
+    
   }
 
   render() {

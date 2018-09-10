@@ -18,9 +18,9 @@ class Parallax extends Component {
   }
 
   updateBackgroundPosition() {
-    const bodyRect = document.body.getBoundingClientRect();
+    const bodyRect = Math.round(window.scrollY / 2)
     const parallaxRect = this.refs.parallax.getBoundingClientRect();
-    const offset = bodyRect.top - parallaxRect.top;
+    const offset = bodyRect - parallaxRect.top;
     const positionValue = Math.round(offset * this.props.speed);
 
     const backgroundPosition = '0 0, 50% ' + positionValue + 'px';
