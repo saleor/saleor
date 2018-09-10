@@ -98,7 +98,7 @@ def display_order_event(order_event):
     with the old dashboard and new type of order events
     (storing enums instead of messages)
     """
-    event_type = order_event.event
+    event_type = order_event.type
     params = order_event.parameters
     if event_type == OrderEvents.PLACED_FROM_DRAFT.value:
         return pgettext_lazy(
