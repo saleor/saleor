@@ -22,7 +22,7 @@ from ...order import (
 from ...order.emails import (
     send_fulfillment_confirmation, send_fulfillment_update,
     send_order_confirmation)
-from ...order.models import Fulfillment, FulfillmentLine, Order, OrderNote
+from ...order.models import Fulfillment, FulfillmentLine, Order
 from ...order.utils import update_order_prices, update_order_status
 from ...shipping.models import ShippingMethod
 from ..views import staff_member_required
@@ -144,7 +144,8 @@ def order_details(request, order_pk):
     can_mark_as_paid = not order.payments.exists()
     ctx = {
         'order': order, 'all_payments': all_payments, 'payment': payment,
-        'notes': order.notes.all(), 'events': order.history.all(),
+        'notes': order.history.filter(event=OrderEvents.NOTE_ADDED.value),
+        'events': order.history.all(),
         'captured': captured, 'balance': balance,
         'preauthorized': preauthorized,
         'can_capture': can_capture, 'can_release': can_release,
@@ -157,18 +158,17 @@ def order_details(request, order_pk):
 @permission_required('order.manage_orders')
 def order_add_note(request, order_pk):
     order = get_object_or_404(Order, pk=order_pk)
-    note = OrderNote(order=order, user=request.user)
-    form = OrderNoteForm(request.POST or None, instance=note)
+    form = OrderNoteForm(request.POST or None)
     status = 200
     if form.is_valid():
-        form.save()
+        message = form.cleaned_data['message']
+        order.history.create(
+            change_author=request.user, event=OrderEvents.NOTE_ADDED.value,
+            parameters={'message': message})
         msg = pgettext_lazy(
             'Dashboard message related to an order',
             'Added note')
         messages.success(request, msg)
-        if not order.is_draft():
-            order.history.create(
-                change_author=request.user, event=OrderEvents.NOTE_ADDED.value)
     elif form.errors:
         status = 400
     ctx = {'order': order, 'form': form}

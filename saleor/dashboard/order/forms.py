@@ -245,13 +245,9 @@ class OrderEditVoucherForm(forms.ModelForm):
         return super().save(commit)
 
 
-class OrderNoteForm(forms.ModelForm):
-    class Meta:
-        model = OrderNote
-        fields = ['content']
-        widgets = {
-            'content': forms.Textarea()}
-        labels = {'content': pgettext_lazy('Order note', 'Note')}
+class OrderNoteForm(forms.Form):
+    message = forms.CharField(
+        label=pgettext_lazy('Order note', 'Note'), widget=forms.Textarea())
 
 
 class ManagePaymentForm(forms.Form):
