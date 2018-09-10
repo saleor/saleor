@@ -1336,3 +1336,50 @@ def test_collection_image_query(user_api_client, collection):
     data = content['data']['collection']
     thumbnail_url = collection.background_image.thumbnail['120x120'].url
     assert data['backgroundImage']['url'] == thumbnail_url
+
+
+@pytest.mark.parametrize('product_price, variant_override, api_variant_price', [
+    (100, None, 100),
+    (100, 200, 200),
+    (100, 0, 0)
+])
+def test_product_variant_price(
+        product_price, variant_override, api_variant_price,
+        user_api_client, variant):
+    # Set price override on variant that is different than product price
+    product = variant.product
+    product.price = Money(amount=product_price, currency='USD')
+    product.save()
+    if variant_override is not None:
+        product.variants.update(
+            price_override=Money(amount=variant_override, currency='USD'))
+    else:
+        product.variants.update(price_override=None)
+    # Drop other variants
+    # product.variants.exclude(id=variant.pk).delete()
+
+    query = '''
+        query getProductVariants($id: ID!) {
+            product(id: $id) {
+                variants {
+                    edges {
+                        node {
+                            price {
+                                amount
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        '''
+    product_id = graphene.Node.to_global_id('Product', variant.product.id)
+    variables = json.dumps({'id': product_id})
+
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['product']
+    variant_price = data['variants']['edges'][0]['node']['price']
+    assert variant_price['amount'] == api_variant_price
