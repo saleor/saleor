@@ -90,6 +90,7 @@ class ProductVariant(CountableDjangoObjectType):
         Money,
         description="""Override the base price of a product if necessary.
         A value of `null` indicates that the default product price is used.""")
+    price = graphene.Field(Money, description="Price of the product variant.")
     attributes = graphene.List(
         SelectedAttribute,
         description='List of attributes assigned to this variant.')
@@ -113,6 +114,15 @@ class ProductVariant(CountableDjangoObjectType):
 
     def resolve_margin(self, info):
         return get_margin_for_variant(self)
+
+    def resolve_price(self, info):
+        return (
+            self.price_override
+            if self.price_override is not None else self.product.price)
+
+    @permission_required('product.manage_products')
+    def resolve_price_override(self, info):
+        return self.price_override
 
 
 class ProductAvailability(graphene.ObjectType):
