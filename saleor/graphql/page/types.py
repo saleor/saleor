@@ -10,5 +10,5 @@ class Page(CountableDjangoObjectType):
         operator through the dashboard."""
         exclude_fields = ['voucher_set', 'sale_set', 'menuitem_set']
         interfaces = [relay.Node]
-        filter_fields = ['id', 'name']
+        filter_fields = ['id', 'title']
         model = models.Page
