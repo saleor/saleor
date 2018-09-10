@@ -10,7 +10,9 @@ from .models import Product, ProductAttribute
 
 SORT_BY_FIELDS = OrderedDict([
     ('name', pgettext_lazy('Product list sorting option', 'name')),
-    ('price', pgettext_lazy('Product list sorting option', 'price'))])
+    ('price', pgettext_lazy('Product list sorting option', 'price')),
+    ('updated_at', pgettext_lazy(
+        'Product list sorting option', 'last updated'))])
 
 
 class ProductFilter(SortedFilterSet):
