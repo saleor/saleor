@@ -543,8 +543,8 @@
             <ul class="list">
               {% for note in notes %}
               <li class="list-item list-item--spaced">
-                <small class="list-item-author">{{ note.user }} - {{ note.date }}</small>
-                <p>{{ note.content }}</p>
+                <small class="list-item-author">{{ note.change_author }} - {{ note.happened_at }}</small>
+                <p>{{ note.parameters.message }}</p>
               </li>
               {% endfor %}
             </ul>
