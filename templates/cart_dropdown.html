@@ -12,8 +12,8 @@
         <div class="col-md-10">
           <a class="link--clean" href="{{ line.variant_url }}">
             <img class="cart-dropdown__image lazyload lazypreload"
-                 data-src="{% get_thumbnail line.image size=60 %}"
-                 data-srcset="{% get_thumbnail line.image size=60 %} 1x, {% get_thumbnail line.image size=120 %} 2x"
+                 data-src="{% get_thumbnail line.image size=60 method=thumbnail %}"
+                 data-srcset="{% get_thumbnail line.image size=60 method=thumbnail %} 1x, {% get_thumbnail line.image size=120 method=thumbnail %} 2x"
                  alt=""
                  src="{% placeholder size=120 %}">
             <h3>

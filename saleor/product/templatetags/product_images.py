@@ -80,7 +80,7 @@ def get_thumbnail_size(size, method):
 
 
 @register.simple_tag()
-def get_thumbnail(instance, size, method='crop'):
+def get_thumbnail(instance, size, method):
     if instance:
         used_size = get_thumbnail_size(size, method)
         try:
