@@ -139,7 +139,7 @@ class Image(graphene.ObjectType):
 
     def resolve_url(self, info, size=None):
         if size:
-            return get_thumbnail(self, size)
+            return get_thumbnail(self, size, method='thumbnail')
         return self.url
 
 
@@ -177,7 +177,7 @@ class Product(CountableDjangoObjectType):
     def resolve_thumbnail_url(self, info, *, size=None):
         if not size:
             size = 255
-        return get_thumbnail(self.get_first_image(), size)
+        return get_thumbnail(self.get_first_image(), size, method='thumbnail')
 
     def resolve_url(self, info):
         return self.get_absolute_url()
@@ -310,5 +310,5 @@ class ProductImage(CountableDjangoObjectType):
 
     def resolve_url(self, info, *, size=None):
         if size:
-            return get_thumbnail(self.image, size)
+            return get_thumbnail(self.image, size, method='thumbnail')
         return self.image.url
