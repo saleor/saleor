@@ -50,7 +50,7 @@ class SaleFilter(SortedFilterSet):
         lookup_expr='icontains')
     categories = ModelMultipleChoiceFilter(
         label=pgettext_lazy('Sale list filter label', 'Categories'),
-        name='categories',
+        field_name='categories',
         queryset=Category.objects.all())
     type = ChoiceFilter(
         label=pgettext_lazy('Sale list filter label', 'Discount type'),
@@ -62,7 +62,8 @@ class SaleFilter(SortedFilterSet):
     date = DateFromToRangeFilter(
         label=pgettext_lazy(
             'Sale list sorting filter label', 'Period of validity'),
-        name='created', widget=DateRangeWidget, method=filter_by_date_range)
+        field_name='created', widget=DateRangeWidget,
+        method=filter_by_date_range)
     sort_by = OrderingFilter(
         label=pgettext_lazy('Sale list filter label', 'Sort by'),
         fields=SORT_BY_FIELDS_SALE.keys(),
@@ -86,7 +87,7 @@ class VoucherFilter(SortedFilterSet):
         label=pgettext_lazy('Voucher list name filter label', 'Name'),
         lookup_expr='icontains')
     type = ChoiceFilter(
-        name='discount_value_type',
+        field_name='discount_value_type',
         label=pgettext_lazy(
             'Sale list is sale type filter label', 'Discount type'),
         choices=DISCOUNT_TYPE_CHOICES,
@@ -97,11 +98,12 @@ class VoucherFilter(SortedFilterSet):
     date = DateFromToRangeFilter(
         label=pgettext_lazy(
             'Voucher list sorting filter label', 'Period of validity'),
-        name='created', widget=DateRangeWidget, method=filter_by_date_range)
+        field_name='created', widget=DateRangeWidget,
+        method=filter_by_date_range)
     min_amount_spent = RangeFilter(
         label=pgettext_lazy(
             'Voucher list sorting filter', 'Minimum amount spent'),
-        name='min_amount_spent')
+        field_name='min_amount_spent')
     sort_by = OrderingFilter(
         label=pgettext_lazy('Voucher list sorting filter label', 'Sort by'),
         fields=SORT_BY_FIELDS_LABELS_VOUCHER.keys(),

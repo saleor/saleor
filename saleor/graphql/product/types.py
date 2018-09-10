@@ -10,7 +10,6 @@ from ...product.utils.availability import get_availability
 from ...product.utils.costs import (
     get_margin_for_variant, get_product_costs_data)
 from ..core.decorators import permission_required
-from ..core.filters import DistinctFilterSet
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import (
     Money, MoneyRange, TaxedMoney, TaxedMoneyRange, TaxRateType)
@@ -104,6 +103,7 @@ class ProductVariant(CountableDjangoObjectType):
         exclude_fields = ['variant_images']
         interfaces = [relay.Node]
         model = models.ProductVariant
+        filter_fields = ['id']
 
     def resolve_stock_quantity(self, info):
         return self.quantity_available
@@ -209,6 +209,7 @@ class ProductType(CountableDjangoObjectType):
         attributes are available to products of this type."""
         interfaces = [relay.Node]
         model = models.ProductType
+        filter_fields = ['id']
 
     def resolve_products(self, info, **kwargs):
         user = info.context.user
@@ -244,11 +245,9 @@ class Category(CountableDjangoObjectType):
         description='The storefront\'s URL for the category.')
     ancestors = DjangoFilterConnectionField(
         lambda: Category,
-        filterset_class=DistinctFilterSet,
         description='List of ancestors of the category.')
     children = DjangoFilterConnectionField(
         lambda: Category,
-        filterset_class=DistinctFilterSet,
         description='List of children of the category.')
 
     class Meta:
