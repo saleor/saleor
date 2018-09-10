@@ -16,7 +16,7 @@ from ...discount.models import Voucher
 from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
 from ...order import CustomPaymentChoices, OrderStatus
 from ...order.models import (
-    Fulfillment, FulfillmentLine, Order, OrderLine, OrderNote, Payment)
+    Fulfillment, FulfillmentLine, Order, OrderLine, Payment)
 from ...order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
     change_order_line_quantity, recalculate_order)

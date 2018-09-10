@@ -77,7 +77,7 @@ class OrderAddNote(ModelMutation):
 
     class Meta:
         description = 'Adds note to order.'
-        model = models.OrderNote
+        model = models.OrderEvent
 
     @classmethod
     def user_is_allowed(cls, user, input):
@@ -86,16 +86,16 @@ class OrderAddNote(ModelMutation):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
-        instance.order.history.create(
-            event=OrderEvents.NOTE_ADDED.value,
-            change_author=info.context.user)
+        instance.order.events.create(
+            type=OrderEvents.NOTE_ADDED.value,
+            user=info.context.user)
 
 
 class OrderAddEventInput(graphene.InputObjectType):
     order = graphene.ID(description='ID of the order.', name='order')
-    change_author = graphene.ID(
+    user = graphene.ID(
         description='ID of the user who performed the changes.',
-        name='change_author')
+        name='user')
     content = graphene.String(description='Note content.')
     event = OrderEventsEnum(description='Type of an event.')
 
@@ -108,7 +108,7 @@ class OrderAddEvent(ModelMutation):
 
     class Meta:
         description = 'Adds note to order.'
-        model = models.OrderNote
+        model = models.OrderEvent
 
     @classmethod
     def user_is_allowed(cls, user, input):
@@ -117,9 +117,9 @@ class OrderAddEvent(ModelMutation):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
-        instance.order.history.create(
-            event=OrderEvents.NOTE_ADDED.value,
-            change_author=info.context.user)
+        instance.order.events.create(
+            type=OrderEvents.NOTE_ADDED.value,
+            user=info.context.user)
 
 
 class OrderCancel(BaseMutation):
@@ -146,14 +146,14 @@ class OrderCancel(BaseMutation):
 
         cancel_order(order=order, restock=restock)
         if restock:
-            order.history.create(
-                event=OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value,
-                change_author=info.context.user,
+            order.events.create(
+                type=OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value,
+                user=info.context.user,
                 parameters={'quantity': order.get_total_quantity()})
         else:
-            order.history.create(
-                event=OrderEvents.ORDER_CANCELED.value,
-                change_author=info.context.user)
+            order.events.create(
+                type=OrderEvents.ORDER_CANCELED.value,
+                user=info.context.user)
         return OrderCancel(order=order)
 
 
@@ -195,9 +195,9 @@ class OrderMarkAsPaid(BaseMutation):
             status=PaymentStatus.CONFIRMED, order=order,
             defaults=defaults)
 
-        order.history.create(
-            event=OrderEvents.ORDER_MARKED_AS_PAID.value,
-            change_author=info.context.user)
+        order.events.create(
+            type=OrderEvents.ORDER_MARKED_AS_PAID.value,
+            user=info.context.user)
         return OrderMarkAsPaid(order=order)
 
 
@@ -226,10 +226,10 @@ class OrderCapture(BaseMutation):
         if errors:
             return OrderCapture(errors=errors)
 
-        order.history.create(
+        order.events.create(
             parameters={'amount': amount},
-            event=OrderEvents.PAYMENT_CAPTURED.value,
-            change_author=info.context.user)
+            type=OrderEvents.PAYMENT_CAPTURED.value,
+            user=info.context.user)
         return OrderCapture(order=order)
 
 
@@ -256,9 +256,9 @@ class OrderRelease(BaseMutation):
         if errors:
             return OrderRelease(errors=errors)
 
-        order.history.create(
-            event=OrderEvents.PAYMENT_RELEASED.value,
-            change_author=info.context.user)
+        order.events.create(
+            type=OrderEvents.PAYMENT_RELEASED.value,
+            user=info.context.user)
         return OrderRelease(order=order)
 
 
@@ -287,8 +287,8 @@ class OrderRefund(BaseMutation):
         if errors:
             return OrderRefund(errors=errors)
 
-        order.history.create(
-            event=OrderEvents.PAYMENT_REFUNDED.value,
-            change_author=info.context.user,
+        order.events.create(
+            type=OrderEvents.PAYMENT_REFUNDED.value,
+            user=info.context.user,
             parameters={'amount': amount})
         return OrderRefund(order=order)

@@ -6,8 +6,8 @@ from django.utils.translation import pgettext
 from ...account.models import Address
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
+from ...order import OrderEvents, OrderEventsEmail
 from ...order.emails import send_order_confirmation
-from ...order import OrderEvents, EventsEmailType
 from ..forms import CartNoteForm
 from ..utils import (
     create_order, get_cart_data_for_checkout, get_taxes_for_cart,
@@ -36,13 +36,13 @@ def handle_order_placement(request, cart):
         return redirect('checkout:summary')
 
     cart.delete()
-    order.history.create(event=OrderEvents.PLACED.value)
+    order.events.create(type=OrderEvents.PLACED.value)
     send_order_confirmation.delay(order.pk)
-    order.history.create(
-        event=OrderEvents.EMAIL_SENT.value,
+    order.events.create(
+        type=OrderEvents.EMAIL_SENT.value,
         parameters={
             'email': order.get_user_current_email(),
-            'email_type': EventsEmailType.ORDER})
+            'email_type': OrderEventsEmail.ORDER})
     return redirect('order:payment', token=order.token)
 
 

@@ -543,7 +543,7 @@
             <ul class="list">
               {% for note in notes %}
               <li class="list-item list-item--spaced">
-                <small class="list-item-author">{{ note.change_author }} - {{ note.happened_at }}</small>
+                <small class="list-item-author">{{ note.user }} - {{ note.date }}</small>
                 <p>{{ note.parameters.message }}</p>
               </li>
               {% endfor %}
@@ -624,7 +624,7 @@
     <div class="timeline-outer">
       <ul class="timeline">
         {% for event in events %}
-          <li class="event" data-date="{{ event.happened_at }}">
+          <li class="event" data-date="{{ event.date }}">
             <div class="content">
               {{ event.get_event_display|default:"" }}{% if event.user %} by {{ event.user }}{% endif %}
             </div>

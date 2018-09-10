@@ -19,7 +19,6 @@ from prices import Money, TaxedMoney
 
 from . import FulfillmentStatus, OrderEvents, OrderStatus, display_order_event
 from ..account.models import Address
-from ..core.models import BaseNote
 from ..core.utils import build_absolute_uri
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.taxes import ZERO_TAXED_MONEY
@@ -316,31 +315,22 @@ class Payment(BasePayment):
         return Money(self.captured_amount, self.currency)
 
 
-class OrderHistoryEntry(models.Model):
-    happened_at = models.DateTimeField(default=now, editable=False)
-    event = models.CharField(
+class OrderEvent(models.Model):
+    date = models.DateTimeField(default=now, editable=False)
+    type = models.CharField(
         max_length=255,
         choices=((event.name, event.value) for event in OrderEvents))
     order = models.ForeignKey(
-        Order, related_name='history', on_delete=models.CASCADE)
+        Order, related_name='events', on_delete=models.CASCADE)
     parameters = JSONField(
         blank=True, default={},
         dump_kwargs={'cls': CustomJsonEncoder, 'separators': (',', ':')})
-    change_author = models.ForeignKey(
+    user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True,
         on_delete=models.SET_NULL, related_name='+')
 
     def get_event_display(self):
         return display_order_event(self)
-
-    class Meta:
-        ordering = ('happened_at', )
-
-
-class OrderNote(BaseNote):
-    order = models.ForeignKey(
-        Order, related_name='notes', on_delete=models.CASCADE)
-    is_public = None
 
     class Meta:
         ordering = ('date', )

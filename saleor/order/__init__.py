@@ -82,7 +82,7 @@ class OrderEvents(Enum):
     NOTE_ADDED = 'note_added'
 
 
-class EventsEmailType:
+class OrderEventsEmail:
     PAYMENT = 'payment_confirmation'
     SHIPPING = 'shipping_confirmation'
     ORDER = 'order_confirmation'
@@ -104,12 +104,12 @@ def display_order_event(order_event):
         return pgettext_lazy(
             'Dashboard message related to an order',
             'Order created from draft order by %(user_name)s' % {
-                'user_name': order_event.change_author})
+                'user_name': order_event.user})
     if event_type == OrderEvents.PAYMENT_RELEASED.value:
         return pgettext_lazy(
             'Dashboard message related to an order',
             'Payment was released by %(user_name)s' % {
-                'user_name': order_event.change_author})
+                'user_name': order_event.user})
     if event_type == OrderEvents.PAYMENT_REFUNDED.value:
         return pgettext_lazy(
             'Dashboard message related to an order',
@@ -124,12 +124,12 @@ def display_order_event(order_event):
         return pgettext_lazy(
             'Dashboard message related to an order',
             'Order manually marked as paid by %(user_name)s' % {
-                'user_name': order_event.change_author})
+                'user_name': order_event.user})
     if event_type == OrderEvents.CANCELED.value:
         return pgettext_lazy(
             'Dashboard message related to an order',
             'Order was canceled by %(user_name)s' % {
-                'user_name': order_event.change_author})
+                'user_name': order_event.user})
     if event_type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value:
         return npgettext_lazy(
             'Dashboard message related to an order',
@@ -141,13 +141,13 @@ def display_order_event(order_event):
             'Dashboard message related to an order',
             '%(user_name)s added note: %(note)s' % {
                 'note': params['message'],
-                'user_name': order_event.change_author})
+                'user_name': order_event.user})
     if event_type == OrderEvents.FULFILLMENT_CANCELED.value:
         return pgettext_lazy(
             'Dashboard message',
             'Fulfillment #%(fulfillment)s canceled by %(user_name)s') % {
                 'fulfillment': params['id'],
-                'user_name': order_event.change_author}
+                'user_name': order_event.user}
     if event_type == OrderEvents.FULFILLMENT_FULFILLED_ITEMS.value:
         return npgettext_lazy(
             'Dashboard message related to an order',
@@ -168,11 +168,11 @@ def display_order_event(order_event):
             'Dashboard message related to an order',
             '%(email_type)s email was sent to the customer '
             '(%(email)s)') % {
-                'email_type': EventsEmailType.CHOICES[params['email_type']],
+                'email_type': OrderEventsEmail.CHOICES[params['email_type']],
                 'email': params['email']}
     if event_type == OrderEvents.UPDATED.value:
         return pgettext_lazy(
             'Dashboard message related to an order',
             'Order details were updated by %(user_name)s' % {
-                'user_name': order_event.change_author})
+                'user_name': order_event.user})
     raise ValueError('Not supported event type: %s' % (event_type))

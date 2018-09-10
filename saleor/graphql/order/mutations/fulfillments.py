@@ -116,18 +116,18 @@ class FulfillmentCreate(ModelMutation):
                     quantity=line[1]) for line in lines_to_fulfill]
             models.FulfillmentLine.objects.bulk_create(fulfillment_lines)
             update_order_status(order)
-            order.history.create(
+            order.events.create(
                 parameters={'quantity': quantity_fulfilled},
-                event=OrderEvents.FULFILLMENT_FULFILLED_ITEMS.value,
-                change_author=info.context.user)
+                type=OrderEvents.FULFILLMENT_FULFILLED_ITEMS.value,
+                user=info.context.user)
         super().save(info, instance, cleaned_input)
 
         if cleaned_input.get('notify_customer'):
             send_fulfillment_confirmation.delay(order.pk, instance.pk)
-            order.history.create(
+            order.events.create(
                 parameters={'email': order.get_user_current_email()},
-                event=OrderEvents.EMAIL_SHIPPING_CONFIRMATION_SEND.value,
-                change_author=info.context.user)
+                type=OrderEvents.EMAIL_SHIPPING_CONFIRMATION_SEND.value,
+                user=info.context.user)
 
 
 class FulfillmentUpdate(FulfillmentCreate):
@@ -178,13 +178,13 @@ class FulfillmentCancel(BaseMutation):
 
         cancel_fulfillment(fulfillment, restock)
         if restock:
-            order.history.create(
+            order.events.create(
                 parameters={'quantity': fulfillment.get_total_quantity()},
-                event=OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value,
-                change_author=info.context.user)
+                type=OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value,
+                user=info.context.user)
         else:
-            order.history.create(
+            order.events.create(
                 parameters={'id': fulfillment.composed_id},
-                event=OrderEvents.FULFILLMENT_CANCELED.value,
-                change_author=info.context.user)
+                type=OrderEvents.FULFILLMENT_CANCELED.value,
+                user=info.context.user)
         return FulfillmentCancel(fulfillment=fulfillment)

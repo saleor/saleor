@@ -221,7 +221,7 @@ class DraftOrderComplete(BaseMutation):
             if order.shipping_address:
                 order.shipping_address.delete()
         order.save()
-        order.history.create(
-            event=OrderEvents.PLACED_FROM_DRAFT.value,
-            change_author=info.context.user)
+        order.events.create(
+            type=OrderEvents.PLACED_FROM_DRAFT.value,
+            user=info.context.user)
         return DraftOrderComplete(order=order)
