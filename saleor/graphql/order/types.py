@@ -1,41 +1,50 @@
 import graphene
 from graphene import relay
-from graphene.types import Scalar
 
 from ...order import OrderEvents, models
+from ..account.types import User
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
+from decimal import Decimal
 
 OrderEventsEnum = graphene.Enum.from_enum(OrderEvents)
 
 
-class ParametersScalar(Scalar):
-
-    @staticmethod
-    def parse_value(value):
-        return value
-
-    @staticmethod
-    def serialize(dict_parameters):
-        if isinstance(dict_parameters, dict):
-            return dict_parameters
-        return None
-
-    @staticmethod
-    def parse_literal(node):
-        return node
-
-
 class OrderEvent(CountableDjangoObjectType):
-    event = OrderEventsEnum(description='Order event type')
-    parameters = ParametersScalar(
-        description="Dict of parameters required to display an event")
+    type = OrderEventsEnum(description='Order event type')
+    user = graphene.Field(
+        User, id=graphene.Argument(graphene.ID),
+        description='User who performed the action.')
+    message = graphene.String(
+        description='Content of a note added to the order.')
+    email = graphene.String(description='Email of an user')
+    email_type = graphene.String(
+        description='Type of an email sent to the user')
+    amount = graphene.Float(description='Amount of money.')
+    quantity = graphene.Int(description='Number of items.')
 
     class Meta:
         description = 'History log of the order.'
         model = models.OrderEvent
         interfaces = [relay.Node]
-        exclude_fields = ['order']
+        exclude_fields = ['order', 'parameters']
+
+    def resolve_email(self, info):
+        return self.parameters.get('email', None)
+
+    def resolve_email_type(self, info):
+        return self.parameters.get('email_type', None)
+
+    def resolve_amount(self, info):
+        amount = self.parameters.get('amount', None)
+        return Decimal(amount) if amount else None
+
+    def resolve_quantity(self, info):
+        quantity = self.parameters.get('quantity', None)
+        return int(quantity) if quantity else None
+
+    def resolve_message(self, info):
+        return self.parameters.get('message', None)
 
 
 class Fulfillment(CountableDjangoObjectType):
