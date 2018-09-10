@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-08-06 07:52-0500\n"
+"POT-Creation-Date: 2018-08-16 04:42-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Sadeq Sardari <sadeq.sardari@gmail.com>, 2018\n"
+"Last-Translator: ali fazeli <lmntrix.afx@gmail.com>, 2018\n"
 "Language-Team: Persian (Iran) (https://www.transifex.com/mirumee/teams/34782/fa_IR/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -193,20 +193,20 @@ msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr "این مقدار برای کشور انتخاب شده نامعتبر است"
 
-#: saleor/account/models.py:132
+#: saleor/account/models.py:134
 msgctxt "Permission description"
 msgid "Manage customers."
 msgstr "مدیریت مشتریان"
 
-#: saleor/account/models.py:135
+#: saleor/account/models.py:137
 msgctxt "Permission description"
 msgid "Manage staff."
 msgstr "مدیریت کارکنان"
 
-#: saleor/account/models.py:138
+#: saleor/account/models.py:140
 msgctxt "Permission description"
 msgid "Impersonate customers."
-msgstr ""
+msgstr "جعل هویت مشتریان"
 
 #: saleor/account/templatetags/i18n_address_tags.py:12
 #, python-format
@@ -382,7 +382,7 @@ msgctxt "Voucher not applicable"
 msgid "This offer is only valid for selected items."
 msgstr "این پیشنهاد تنها برای آیتم های انتخاب شده معتبر است."
 
-#: saleor/checkout/utils.py:775
+#: saleor/checkout/utils.py:784
 msgctxt "Voucher not applicable"
 msgid "Voucher expired in meantime. Order placement aborted."
 msgstr "در حال حاضر کد تخفیف منقضی شده است. سفارش شما لغو شد. "
@@ -540,7 +540,7 @@ msgctxt "VAT rate type"
 msgid "wine"
 msgstr "شراب"
 
-#: saleor/core/views.py:38
+#: saleor/core/views.py:39
 msgctxt "Impersonation message"
 msgid "You are now logged as {}"
 msgstr "حالا شما به جای {} در سیستم هستید."
@@ -575,48 +575,48 @@ msgctxt "Voucher: discount for"
 msgid "Shipping"
 msgstr "ارسال"
 
-#: saleor/discount/models.py:73
+#: saleor/discount/models.py:75
 msgctxt "Voucher type"
 msgid "Free shipping"
 msgstr "ارسال رایگان"
 
-#: saleor/discount/models.py:76
+#: saleor/discount/models.py:78
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off shipping"
 msgstr "%(discount)s درصد تخفیف ارسال"
 
-#: saleor/discount/models.py:82
+#: saleor/discount/models.py:84
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(product_num)d products"
 msgstr "%(discount)s تخفیف %(product_num)d محصولات"
 
-#: saleor/discount/models.py:90
+#: saleor/discount/models.py:92
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(collections_num)d collections"
 msgstr "%(discount)s تخفیف %(collections_num)d دسته‌ها"
 
-#: saleor/discount/models.py:98
+#: saleor/discount/models.py:100
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(categories_num)d categories"
 msgstr "%(discount)s تخفیف %(categories_num)d دسته‌بندی‌ها"
 
-#: saleor/discount/models.py:102
+#: saleor/discount/models.py:104
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off"
 msgstr "%(discount)s تخفیف"
 
-#: saleor/discount/models.py:132
+#: saleor/discount/models.py:134
 #, python-format
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for orders over %(amount)s."
 msgstr "این تخفیف تنها برای سفارش های بالای %(amount)s معتبر است."
 
-#: saleor/discount/models.py:164
+#: saleor/discount/models.py:176
 msgctxt "Permission description"
 msgid "Manage sales and vouchers."
 msgstr "مدیریت فروش و تخفیف‌ها"
@@ -626,7 +626,7 @@ msgctxt "Voucher not applicable"
 msgid "Discount not applicable for this product"
 msgstr "تخفیف برای این کالا ممکن نیست"
 
-#: saleor/graphql/order/mutations/draft_orders.py:70
+#: saleor/graphql/order/mutations/draft_orders.py:59
 #, python-format
 msgctxt "Add line mutation error"
 msgid "Could not add item. Only %(remaining)d remaining in stock."
@@ -634,12 +634,12 @@ msgstr ""
 "امکان اضافه کردن وجود ندارد. تنها %(remaining)d تا از این جنس در انبار موجود"
 " است."
 
-#: saleor/graphql/order/mutations/draft_orders.py:237
+#: saleor/graphql/order/mutations/draft_orders.py:228
 msgctxt "Dashboard message related to an order"
 msgid "Order created from draft order"
 msgstr ""
 
-#: saleor/graphql/order/mutations/fulfillments.py:22
+#: saleor/graphql/order/mutations/fulfillments.py:21
 #, python-format
 msgctxt "Fulfill order line mutation error"
 msgid "%(quantity)d item remaining to fulfill."
@@ -647,7 +647,7 @@ msgid_plural "%(quantity)d items remaining to fulfill."
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/graphql/order/mutations/fulfillments.py:120
+#: saleor/graphql/order/mutations/fulfillments.py:121
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Fulfilled %(quantity_fulfilled)d item"
@@ -655,18 +655,18 @@ msgid_plural "Fulfilled %(quantity_fulfilled)d items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/graphql/order/mutations/fulfillments.py:131
+#: saleor/graphql/order/mutations/fulfillments.py:132
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Shipping confirmation email was sent to user(%(email)s)"
 msgstr ""
 
-#: saleor/graphql/order/mutations/fulfillments.py:177
+#: saleor/graphql/order/mutations/fulfillments.py:175
 msgctxt "Cancel fulfillment mutation error"
 msgid "This fulfillment can't be canceled"
 msgstr ""
 
-#: saleor/graphql/order/mutations/fulfillments.py:184
+#: saleor/graphql/order/mutations/fulfillments.py:183
 #, python-format
 msgctxt "Dashboard message"
 msgid "Restocked %(quantity)d item"
@@ -674,18 +674,18 @@ msgid_plural "Restocked %(quantity)d items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/graphql/order/mutations/fulfillments.py:190
+#: saleor/graphql/order/mutations/fulfillments.py:189
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s canceled"
 msgstr ""
 
-#: saleor/graphql/order/mutations/orders.py:94
+#: saleor/graphql/order/mutations/orders.py:93
 msgctxt "Dashboard message related to an order"
 msgid "Added note"
 msgstr "افزودن یادداشت"
 
-#: saleor/graphql/order/mutations/orders.py:120
+#: saleor/graphql/order/mutations/orders.py:119
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Restocked %(quantity)d item"
@@ -693,60 +693,60 @@ msgid_plural "Restocked %(quantity)d items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/graphql/order/mutations/orders.py:126
+#: saleor/graphql/order/mutations/orders.py:125
 msgctxt "Dashboard message related to an order"
 msgid "Order canceled"
 msgstr "سفارش لغو شد."
 
-#: saleor/graphql/order/mutations/orders.py:156
+#: saleor/graphql/order/mutations/orders.py:155
 #, python-format
 msgctxt "Payment description"
 msgid "Order %(order)s"
 msgstr "سفارش %(order)s"
 
-#: saleor/graphql/order/mutations/orders.py:164
+#: saleor/graphql/order/mutations/orders.py:163
 msgctxt "Dashboard message related to an order"
 msgid "Order manually marked as paid."
 msgstr ""
 
-#: saleor/graphql/order/mutations/orders.py:194
+#: saleor/graphql/order/mutations/orders.py:193
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Captured %(amount)s"
 msgstr ""
 
-#: saleor/graphql/order/mutations/orders.py:221
+#: saleor/graphql/order/mutations/orders.py:220
 msgctxt "Dashboard message related to an order"
 msgid "Released payment"
 msgstr ""
 
-#: saleor/graphql/order/mutations/orders.py:250
+#: saleor/graphql/order/mutations/orders.py:249
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Refunded %(amount)s"
 msgstr ""
 
-#: saleor/menu/models.py:17
+#: saleor/menu/models.py:20
 msgctxt "Permission description"
 msgid "Manage navigation."
 msgstr ""
 
-#: saleor/menu/models.py:64
+#: saleor/menu/models.py:68
 msgctxt "Link object type description"
 msgid "URL: "
 msgstr "لینک: "
 
-#: saleor/menu/models.py:69
+#: saleor/menu/models.py:73
 msgctxt "Link object type description"
 msgid "Category: "
 msgstr "دسته بندی: "
 
-#: saleor/menu/models.py:72
+#: saleor/menu/models.py:76
 msgctxt "Link object type description"
 msgid "Collection: "
 msgstr "مجموعه: "
 
-#: saleor/menu/models.py:75
+#: saleor/menu/models.py:79
 msgctxt "Link object type description"
 msgid "Page: "
 msgstr "صفحه: "
@@ -803,17 +803,12 @@ msgctxt "Payment delete form error"
 msgid "Payment does not exist"
 msgstr "پرداخت وجود ندارد"
 
-#: saleor/order/forms.py:59
-msgctxt "Order note"
-msgid "Add note to order"
-msgstr "اضافه کردن یادداشت به سفارش"
-
-#: saleor/order/models.py:100
+#: saleor/order/models.py:102
 msgctxt "Permission description"
 msgid "Manage orders."
 msgstr "مدیریت سفارشات."
 
-#: saleor/order/models.py:229
+#: saleor/order/models.py:232
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
@@ -824,13 +819,13 @@ msgctxt "Order status history entry"
 msgid "Order fully paid"
 msgstr "پرداخت با موفقیت کامل انجام شد."
 
-#: saleor/order/views.py:107
+#: saleor/order/views.py:105
 #, python-format
 msgctxt "Payment description"
 msgid "Order %(order_number)s"
 msgstr "سفارش %(order_number)s"
 
-#: saleor/order/views.py:126
+#: saleor/order/views.py:124
 msgctxt "Payment gateway error"
 msgid ""
 "Oops, it looks like we were unable to contact the selected payment service"
@@ -838,19 +833,19 @@ msgstr ""
 "به نظر میرسد اتصال به سرویس پرداخت مورد نظر با مشکل روبه رو شده است. شکیبا "
 "باشید."
 
-#: saleor/order/views.py:200
+#: saleor/order/views.py:198
 msgctxt "Connect order with user warning message"
 msgid ""
 "We couldn't assign the order to your account as the email addresses don't "
 "match"
 msgstr ""
 
-#: saleor/order/views.py:207
+#: saleor/order/views.py:205
 msgctxt "storefront message"
 msgid "The order is now assigned to your account"
 msgstr "حالا سفارش به حساب شما لینک شد."
 
-#: saleor/page/models.py:34
+#: saleor/page/models.py:36
 msgctxt "Permission description"
 msgid "Manage pages."
 msgstr "مدیریت صفحات"
@@ -895,27 +890,27 @@ msgctxt "Variant status"
 msgid "out of stock"
 msgstr "ناموجود"
 
-#: saleor/product/filters.py:13
+#: saleor/product/filters.py:12
 msgctxt "Product list sorting option"
 msgid "name"
 msgstr "نام"
 
-#: saleor/product/filters.py:14
+#: saleor/product/filters.py:13
 msgctxt "Product list sorting option"
 msgid "price"
 msgstr "قیمت"
 
-#: saleor/product/filters.py:19
+#: saleor/product/filters.py:18
 msgctxt "Product list sorting form"
 msgid "Sort by"
 msgstr "مرتب سازی بر اساس"
 
-#: saleor/product/filters.py:23
+#: saleor/product/filters.py:22
 msgctxt "Currency amount"
 msgid "Price"
 msgstr "قیمت"
 
-#: saleor/product/filters.py:86
+#: saleor/product/filters.py:87
 #, python-format
 msgctxt "Validation error for sort_by filter"
 msgid "%(value)s is not a valid sorting option"
@@ -927,7 +922,7 @@ msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr "%(variant_label)s - %(price)s"
 
-#: saleor/product/models.py:115
+#: saleor/product/models.py:128
 msgctxt "Permission description"
 msgid "Manage products."
 msgstr "مدیریت محصولات"
@@ -1029,7 +1024,7 @@ msgstr ""
 msgid "Chinese (Taiwan)"
 msgstr ""
 
-#: saleor/settings.py:317
+#: saleor/settings.py:316
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr "اتحادیه اروپا"
@@ -1039,7 +1034,7 @@ msgctxt "Permission description"
 msgid "Manage shipping."
 msgstr ""
 
-#: saleor/site/models.py:30
+#: saleor/site/models.py:36
 msgctxt "Permission description"
 msgid "Manage settings."
 msgstr "مدیریت تنظیمات"
@@ -1149,7 +1144,7 @@ msgid "Your profile"
 msgstr "پروفایل شما"
 
 #: templates/account/details.html:19 templates/account/password_change.html:8
-#: templates/base.html:82 templates/base.html:224
+#: templates/base.html:84 templates/base.html:226
 #: templates/order/details.html:23 templates/order/payment.html:23
 #: templates/order/payment/details.html:17
 msgctxt "Main navigation item"
@@ -1232,6 +1227,8 @@ msgid ""
 "                  If you'd like to remove your account, please click on the button below and a confirmation email will be sent to you.\n"
 "                "
 msgstr ""
+"\n"
+"اگر مایلید حساب کاربری خود را حذف کنید، لطفا روی دکمه ی زیر کلیک کنید و یک ایمیل تایید برای شما فرستاده خواهد شد "
 
 #: templates/account/details.html:165
 msgctxt "Remove account form action"
@@ -1435,46 +1432,46 @@ msgctxt "Signup form primary action"
 msgid "Create an account"
 msgstr "ایجاد حساب"
 
-#: templates/base.html:76 templates/base.html:213
+#: templates/base.html:78 templates/base.html:215
 msgctxt "Main navigation item"
 msgid "Dashboard"
 msgstr "داشبورد"
 
-#: templates/base.html:87 templates/base.html:230
+#: templates/base.html:89 templates/base.html:232
 msgctxt "Main navigation item"
 msgid "Stop impersonating"
 msgstr "توقف جعل هویت"
 
-#: templates/base.html:93 templates/base.html:236
+#: templates/base.html:95 templates/base.html:238
 msgctxt "Main navigation item"
 msgid "Log out"
 msgstr "خروج"
 
-#: templates/base.html:99 templates/base.html:242
+#: templates/base.html:101 templates/base.html:244
 msgctxt "Main navigation item"
 msgid "Register"
 msgstr "ثبت‌نام"
 
-#: templates/base.html:103 templates/base.html:247
+#: templates/base.html:105 templates/base.html:249
 msgctxt "Main navigation item"
 msgid "Log in"
 msgstr "ورود"
 
-#: templates/base.html:118
+#: templates/base.html:120
 msgctxt "Hamburger button text"
 msgid "menu"
 msgstr "منو"
 
-#: templates/base.html:135
+#: templates/base.html:137
 msgid "Search for product"
-msgstr ""
+msgstr "جستجو برای کالا"
 
-#: templates/base.html:147 templates/base.html:206
+#: templates/base.html:149 templates/base.html:208
 msgctxt "Main navigation item"
 msgid "Your Cart"
 msgstr "سبد خرید شما"
 
-#: templates/base.html:218
+#: templates/base.html:220
 msgctxt "Main navigation item"
 msgid "Style guide"
 msgstr "راهنمای چینش"
@@ -1949,8 +1946,8 @@ msgstr "نسخه ی:"
 #: templates/dashboard/menu/item/form.html:80
 #: templates/dashboard/order/address_form.html:61
 #: templates/dashboard/order/fulfillment.html:133
-#: templates/dashboard/product/form.html:132
-#: templates/dashboard/product/form.html:139
+#: templates/dashboard/product/form.html:129
+#: templates/dashboard/product/form.html:136
 #: templates/dashboard/product/product_attribute/form.html:77
 #: templates/dashboard/product/product_attribute/form.html:84
 #: templates/dashboard/product/product_attribute/values/form.html:78
@@ -2078,7 +2075,7 @@ msgstr "به روزرسانی"
 #: templates/dashboard/discount/voucher/form.html:133
 #: templates/dashboard/menu/form.html:66
 #: templates/dashboard/menu/item/form.html:88
-#: templates/dashboard/product/form.html:142
+#: templates/dashboard/product/form.html:139
 #: templates/dashboard/product/product_attribute/form.html:87
 #: templates/dashboard/product/product_attribute/values/form.html:86
 #: templates/dashboard/product/product_image/form.html:87
@@ -2188,7 +2185,7 @@ msgstr "افزودن مجموعه ی جدید"
 
 #: templates/dashboard/collection/detail.html:8
 #: templates/dashboard/collection/detail.html:18
-#: templates/dashboard/collection/list.html:18
+#: templates/dashboard/collection/list.html:19
 msgid "Collections"
 msgstr "مجموعه ها"
 
@@ -2232,39 +2229,48 @@ msgctxt "Collection field"
 msgid "Draft"
 msgstr "چرک نویس"
 
-#: templates/dashboard/collection/list.html:9
+#: templates/dashboard/collection/list.html:10
 msgctxt "Collections list page title "
 msgid "Collections"
 msgstr "مجموعه ها"
 
-#: templates/dashboard/collection/list.html:24
+#: templates/dashboard/collection/list.html:25
 msgctxt "Collections list add button text"
 msgid "Add collection"
 msgstr "افزودن مجموعه"
 
-#: templates/dashboard/collection/list.html:39
+#: templates/dashboard/collection/list.html:40
 msgctxt "Collections list table header name"
 msgid "Name"
 msgstr "نام"
 
-#: templates/dashboard/collection/list.html:42
+#: templates/dashboard/collection/list.html:43
 msgctxt "Voucher table header"
 msgid "Number of products"
 msgstr "تعداد محصول"
 
-#: templates/dashboard/collection/list.html:45
+#: templates/dashboard/collection/list.html:46
 msgctxt "Collections list table header"
 msgid "Visibility"
 msgstr "قابل مشاهده"
 
-#: templates/dashboard/collection/list.html:57
+#: templates/dashboard/collection/list.html:58
 msgid "Products in collection:"
 msgstr "محصولات در مجموعه:"
 
-#: templates/dashboard/collection/list.html:78
+#: templates/dashboard/collection/list.html:79
 msgctxt "Empty collection list message"
 msgid "No collections found."
 msgstr "مجموعه ای پیدا نشد."
+
+#: templates/dashboard/collection/list.html:92
+msgid "Homepage collection"
+msgstr ""
+
+#: templates/dashboard/collection/list.html:102
+msgctxt "Homepage collection save"
+msgid "Save"
+msgstr "ذخیره"
 
 #: templates/dashboard/collection/zero_page.html:5
 msgid "No collections found."
@@ -2944,7 +2950,7 @@ msgid "Storefront Menus"
 msgstr "منوهای فروشگاه"
 
 #: templates/dashboard/menu/list.html:95
-#: templates/dashboard/product/form.html:135
+#: templates/dashboard/product/form.html:132
 #: templates/dashboard/product/product_attribute/form.html:80
 #: templates/dashboard/product/product_attribute/values/form.html:82
 #: templates/dashboard/product/product_image/form.html:83
@@ -3019,13 +3025,13 @@ msgid "Details"
 msgstr "جزییات"
 
 #: templates/dashboard/order/detail.html:87
-#: templates/dashboard/order/detail.html:551
+#: templates/dashboard/order/detail.html:567
 msgctxt "Order detail tab"
 msgid "Payments"
 msgstr "پرداخت ها"
 
 #: templates/dashboard/order/detail.html:95
-#: templates/dashboard/order/detail.html:607
+#: templates/dashboard/order/detail.html:623
 msgctxt "Order detail tab"
 msgid "History"
 msgstr "تاریخ خرید"
@@ -3322,53 +3328,63 @@ msgctxt "Order detail action"
 msgid "Packing Slips"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:524
+#: templates/dashboard/order/detail.html:525
+msgctxt "Customer order note card title"
+msgid "Customer note"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:531
+msgctxt "No customer order note card message"
+msgid "There is no note from the customer associated with this order."
+msgstr ""
+
+#: templates/dashboard/order/detail.html:540
 msgctxt "Order notes card title"
 msgid "Order notes"
 msgstr "یادداشت های سفارش"
 
-#: templates/dashboard/order/detail.html:537
+#: templates/dashboard/order/detail.html:553
 msgctxt "Empty order notes card message"
 msgid "There are no notes associated with this order."
 msgstr "یادداشتی مربوط به این سفارش وجود ندارد."
 
-#: templates/dashboard/order/detail.html:543
+#: templates/dashboard/order/detail.html:559
 msgctxt "Order notes card action"
 msgid "Add note"
 msgstr "افزودن یادداشت"
 
-#: templates/dashboard/order/detail.html:558
+#: templates/dashboard/order/detail.html:574
 msgctxt "Payment history table header"
 msgid "Transaction ID"
 msgstr "شناسه پرداخت"
 
-#: templates/dashboard/order/detail.html:561
+#: templates/dashboard/order/detail.html:577
 msgctxt "Payment history table header"
 msgid "Date"
 msgstr "تاریخ"
 
-#: templates/dashboard/order/detail.html:564
+#: templates/dashboard/order/detail.html:580
 msgctxt "Payment history table header"
 msgid "Payment status"
 msgstr "وضعیت پرداخت"
 
-#: templates/dashboard/order/detail.html:567
+#: templates/dashboard/order/detail.html:583
 msgctxt "Payment history table header"
 msgid "Fraud status"
 msgstr "وضعیت کلاهبرداری"
 
-#: templates/dashboard/order/detail.html:570
+#: templates/dashboard/order/detail.html:586
 msgctxt "Payment history table header"
 msgid "Amount"
 msgstr "مبلغ"
 
-#: templates/dashboard/order/detail.html:578
+#: templates/dashboard/order/detail.html:594
 #, python-format
 msgctxt "Payment item column data"
 msgid "#%(payment_id)s"
 msgstr "#%(payment_id)s"
 
-#: templates/dashboard/order/detail.html:602
+#: templates/dashboard/order/detail.html:618
 msgctxt "Empty payment history table message"
 msgid "No payments made for this order."
 msgstr "پرداختی برای سفارش انجام نشده."
@@ -4172,12 +4188,12 @@ msgctxt "Product form breadcrumbs"
 msgid "Edit"
 msgstr "تغییر"
 
-#: templates/dashboard/product/form.html:113
+#: templates/dashboard/product/form.html:110
 #: templates/dashboard/product/product_variant/form.html:76
 msgid "Attributes"
 msgstr "مشخصات"
 
-#: templates/dashboard/product/form.html:116
+#: templates/dashboard/product/form.html:113
 #, python-format
 msgid ""
 "\n"
@@ -5339,13 +5355,13 @@ msgid "Billing address"
 msgstr "آدرس فاکتور"
 
 #: templates/order/_ordered_items_table.html:32
-#: templates/order/_ordered_items_table.html:168
+#: templates/order/_ordered_items_table.html:173
 msgctxt "Order details column title"
 msgid "Product"
 msgstr "کالا"
 
 #: templates/order/_ordered_items_table.html:37
-#: templates/order/_ordered_items_table.html:173
+#: templates/order/_ordered_items_table.html:178
 msgctxt "Order details column title"
 msgid "Quantity"
 msgstr "تعداد"
@@ -5355,38 +5371,38 @@ msgctxt "Order details column title"
 msgid "Price"
 msgstr "قیمت"
 
-#: templates/order/_ordered_items_table.html:80
+#: templates/order/_ordered_items_table.html:85
 msgctxt "Order details subtotal row text"
 msgid "Subtotal"
 msgstr "جمع کل"
 
-#: templates/order/_ordered_items_table.html:97
+#: templates/order/_ordered_items_table.html:102
 msgctxt "Order details shipment row text"
 msgid "Shipping"
 msgstr "ارسال"
 
-#: templates/order/_ordered_items_table.html:129
+#: templates/order/_ordered_items_table.html:134
 msgctxt "Order details taxes text"
 msgid "Taxes (included)"
 msgstr "مالیت(افزوده)"
 
-#: templates/order/_ordered_items_table.html:131
+#: templates/order/_ordered_items_table.html:136
 msgctxt "Order details taxes text"
 msgid "Taxes"
 msgstr "مالیت"
 
-#: templates/order/_ordered_items_table.html:145
+#: templates/order/_ordered_items_table.html:150
 msgctxt "Order details total text"
 msgid "Total"
 msgstr "مجموع"
 
-#: templates/order/_ordered_items_table.html:159
+#: templates/order/_ordered_items_table.html:164
 #, python-format
 msgctxt "Order details fulfillment title"
 msgid "Fulfillment #%(fulfillment)s"
 msgstr "اجرای #%(fulfillment)s"
 
-#: templates/order/_ordered_items_table.html:196
+#: templates/order/_ordered_items_table.html:207
 msgctxt "Fulfillment tracking number details"
 msgid "Tracking number"
 msgstr "کد پیگیری"
@@ -5475,56 +5491,16 @@ msgid "Pay for order"
 msgstr "پرداخت برای سفارش"
 
 #: templates/order/details.html:67
-msgctxt "Order notes list"
-msgid "Notes"
-msgstr "یادداشت ها"
-
-#: templates/order/details.html:72
-#, python-format
-msgid ""
-"\n"
-"                  %(date)s by you\n"
-"                "
+msgctxt "Customer order note"
+msgid "Your note"
 msgstr ""
-"\n"
-"توسط شما در تاریخ %(date)s"
 
-#: templates/order/details.html:76
-msgctxt "Order note author is staff"
-msgid "staff"
-msgstr "کارکنان"
+#: templates/order/details.html:73
+msgctxt "Order note title"
+msgid "Add a note to your order"
+msgstr "به سفارشم یادداشت اضافه کن"
 
-#: templates/order/details.html:77
-#, python-format
-msgid ""
-"\n"
-"                  %(date)s by <span class=\"text-muted\">%(author)s</span>\n"
-"                "
-msgstr ""
-"\n"
-"در تاریخ %(date)s توسط <span class=\"text-muted\">%(author)s</span>"
-
-#: templates/order/details.html:81
-#, python-format
-msgid ""
-"\n"
-"                  %(date)s by %(author)s\n"
-"                "
-msgstr ""
-"\n"
-"در تاریخ %(date)s توسط %(author)s"
-
-#: templates/order/details.html:86
-#, python-format
-msgid ""
-"\n"
-"                %(date)s by anonymous customer\n"
-"              "
-msgstr ""
-"\n"
-"در تاریخ %(date)s توسط مشتری ناشناس"
-
-#: templates/order/details.html:98
+#: templates/order/details.html:75
 msgctxt "Customer panel - order details: add note submit button"
 msgid "Submit note"
 msgstr ""
@@ -5663,7 +5639,7 @@ msgid "Update"
 msgstr "به روزرسانی"
 
 #. Translators: Layout may break if character length is different than four.
-#: templates/product/_items.html:29
+#: templates/product/_items.html:28
 msgctxt "Sale (discount) label for item in product list"
 msgid "Sale"
 msgstr "ویژه"
