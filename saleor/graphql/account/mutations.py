@@ -45,13 +45,6 @@ class CustomerInput(UserInput):
         description='Shipping address of the customer.')
 
 
-class CustomerInput(UserInput):
-    default_billing_address = AddressInput(
-        description='Billing address of the customer.')
-    default_shipping_address = AddressInput(
-        description='Shipping address of the customer.')
-
-
 class UserCreateInput(CustomerInput):
     send_password_email = graphene.Boolean(
         description='Send an email with a link to set a password')
