@@ -3,6 +3,7 @@ from operator import attrgetter
 from uuid import uuid4
 
 from django.conf import settings
+from django.contrib.postgres.fields import JSONField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import F, Max, Sum
@@ -11,7 +12,6 @@ from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
-from jsonfield import JSONField
 from measurement.measures import Weight
 from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
@@ -329,8 +329,7 @@ class OrderEvent(models.Model):
     order = models.ForeignKey(
         Order, related_name='events', on_delete=models.CASCADE)
     parameters = JSONField(
-        blank=True, default={},
-        dump_kwargs={'cls': CustomJsonEncoder, 'separators': (',', ':')})
+        blank=True, default=dict, encoder=CustomJsonEncoder)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True,
         on_delete=models.SET_NULL, related_name='+')
