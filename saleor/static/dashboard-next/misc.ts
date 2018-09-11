@@ -118,7 +118,7 @@ export const translatedTaxRates = () => ({
     "Admission to cultural events"
   ),
   [TaxRateType.ADMISSION_TO_ENTERTAINMENT_EVENTS]: i18n.t(
-    "Admission to enterainment events"
+    "Admission to entertainment events"
   ),
   [TaxRateType.ADMISSION_TO_SPORTING_EVENTS]: i18n.t(
     "Admission to sporting events"
