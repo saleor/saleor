@@ -70,7 +70,7 @@ graphql-relay==0.4.5      # via graphene
 html5lib==1.0.1           # via bleach, weasyprint
 idna==2.7                 # via cryptography, requests, yarl
 jmespath==0.9.3           # via boto3, botocore
-jsonfield==2.0.2
+jsonfield==2.0.2          # via django-prices-vatlayer
 kombu==4.2.1              # via celery
 markdown==2.6.11
 maxminddb-geolite2==2018.703

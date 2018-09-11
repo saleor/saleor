@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-import jsonfield.fields
+from django.contrib.postgres import fields
 
 
 class Migration(migrations.Migration):
@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='menu',
             name='json_content',
-            field=jsonfield.fields.JSONField(blank=True, default=''),
+            field=fields.JSONField(blank=True, default=dict),
         ),
         migrations.AlterUniqueTogether(
             name='menuitemtranslation',
