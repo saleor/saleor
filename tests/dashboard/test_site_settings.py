@@ -29,15 +29,17 @@ def test_site_form():
 
 
 def test_site_settings_form(site_settings):
-    data = {'header_text': 'mirumee', 'description': 'mirumee.com'}
+    data = {'header_text': 'mirumee', 'description': 'mirumee.com',
+            'default_weight_unit': 'lb'}
     form = SiteSettingsForm(data, instance=site_settings)
     assert form.is_valid()
 
     site = form.save()
     assert site.header_text == 'mirumee'
     assert smart_text(site) == 'mirumee.com'
+    assert site.default_weight_unit == 'lb'
 
-    form = SiteSettingsForm({})
+    form = SiteSettingsForm({'default_weight_unit': 'lb'})
     assert form.is_valid()
 
 
@@ -48,13 +50,14 @@ def test_site_update_view(admin_client, site_settings):
     assert response.status_code == 200
 
     data = {'name': 'Mirumee Labs', 'header_text': 'We have all the things!',
-            'domain': 'newmirumee.com', 'form-TOTAL_FORMS': 0,
-            'form-INITIAL_FORMS': 0}
+            'domain': 'newmirumee.com', 'default_weight_unit': 'lb',
+            'form-TOTAL_FORMS': 0, 'form-INITIAL_FORMS': 0}
     response = admin_client.post(url, data)
     assert response.status_code == 302
 
     site_settings = SiteSettings.objects.get(pk=site_settings.id)
     assert site_settings.header_text == 'We have all the things!'
+    assert site_settings.default_weight_unit == 'lb'
     assert site_settings.site.domain == 'newmirumee.com'
     assert site_settings.site.name == 'Mirumee Labs'
 

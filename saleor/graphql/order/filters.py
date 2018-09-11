@@ -1,24 +1,24 @@
 from django.db.models import Q
 from django_filters import CharFilter, NumberFilter
-from graphene_django.filter.filterset import GlobalIDMultipleChoiceFilter
+from graphene_django.filter.filterset import (
+    FilterSet, GlobalIDMultipleChoiceFilter)
 
 from ...order import models
-from ..core.filters import DistinctFilterSet
 
 
-class OrderFilter(DistinctFilterSet):
+class OrderFilter(FilterSet):
     """Filter class for order query.
 
     Field id is a GraphQL type ID, while order_id represents database
     primary key.
     """
 
-    id = GlobalIDMultipleChoiceFilter(name='id', label='GraphQL ID')
+    id = GlobalIDMultipleChoiceFilter(field_name='id', label='GraphQL ID')
     order_id = NumberFilter(method='order_id_lookup', label='Database ID')
     created__gte = CharFilter(
-        name='created', lookup_expr='gte', label='ISO 8601 standard')
+        field_name='created', lookup_expr='gte', label='ISO 8601 standard')
     created__lte = CharFilter(
-        name='created', lookup_expr='lte', label='ISO 8601 standard')
+        field_name='created', lookup_expr='lte', label='ISO 8601 standard')
     user = CharFilter(method='filter_by_order_customer')
 
     class Meta:

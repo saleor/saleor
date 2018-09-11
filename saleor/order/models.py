@@ -9,7 +9,9 @@ from django.db.models import F, Max, Sum
 from django.urls import reverse
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
+from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
+from measurement.measures import Weight
 from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
 from prices import Money, TaxedMoney
@@ -19,8 +21,9 @@ from ..account.models import Address
 from ..core.models import BaseNote
 from ..core.utils import build_absolute_uri
 from ..core.utils.taxes import ZERO_TAXED_MONEY
+from ..core.weight import WeightUnits, zero_weight
 from ..discount.models import Voucher
-from ..shipping.models import ShippingMethodCountry
+from ..shipping.models import ShippingMethod
 
 
 class OrderQueryset(models.QuerySet):
@@ -59,7 +62,7 @@ class Order(models.Model):
         on_delete=models.SET_NULL)
     user_email = models.EmailField(blank=True, default='')
     shipping_method = models.ForeignKey(
-        ShippingMethodCountry, blank=True, null=True, related_name='orders',
+        ShippingMethod, blank=True, null=True, related_name='orders',
         on_delete=models.SET_NULL)
     shipping_price_net = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
@@ -92,7 +95,9 @@ class Order(models.Model):
         max_length=255, default='', blank=True)
     display_gross_prices = models.BooleanField(default=True)
     customer_note = models.TextField(blank=True, default='')
-
+    weight = MeasurementField(
+        measurement=Weight, unit_choices=WeightUnits.CHOICES,
+        default=zero_weight)
     objects = OrderQueryset.as_manager()
 
     class Meta:

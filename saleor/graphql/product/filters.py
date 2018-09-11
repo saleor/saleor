@@ -5,11 +5,10 @@ from collections import defaultdict
 from django.db.models import Q
 from django_filters import OrderingFilter
 from django_filters.fields import Lookup
-from graphene_django.filter.filterset import Filter
+from graphene_django.filter.filterset import Filter, FilterSet
 
 from ...product.filters import SORT_BY_FIELDS
 from ...product.models import Product, ProductAttribute
-from ..core.filters import DistinctFilterSet
 from .fields import AttributeField
 
 
@@ -51,7 +50,7 @@ class ProductAttributeFilter(Filter):
         return qs.distinct() if self.distinct else qs
 
 
-class ProductFilterSet(DistinctFilterSet):
+class ProductFilterSet(FilterSet):
     sort_by = OrderingFilter(
         fields=SORT_BY_FIELDS.keys(), field_labels=SORT_BY_FIELDS)
 
@@ -72,6 +71,5 @@ class ProductFilterSet(DistinctFilterSet):
                 field_name=field_name, lookup_expr=lookup_expr, distinct=True)
         # this class method is called during class construction so we can't
         # reference ProductFilterSet here yet
-        # pylint: disable=E1003
-        return super(DistinctFilterSet, cls).filter_for_field(
+        return FilterSet.filter_for_field(
             f, field_name, lookup_expr)

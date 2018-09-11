@@ -6,10 +6,7 @@ import ErrorMessageCard from "../../components/ErrorMessageCard";
 import { NavigatorLink } from "../../components/Navigator";
 import i18n from "../../i18n";
 import PageDetailsPage from "../components/PageDetailsPage";
-import {
-  TypedPageDeleteMutation,
-  TypedPageUpdateMutation
-} from "../mutations";
+import { TypedPageDeleteMutation, TypedPageUpdateMutation } from "../mutations";
 import { pageDetailsQuery, TypedPageDetailsQuery } from "../queries";
 
 interface PageUpdateFormProps {
@@ -45,7 +42,7 @@ export class PageUpdateForm extends React.Component<
           return (
             <TypedPageDeleteMutation>
               {(
-                deletePage,
+                _,
                 { called, data: deleteResult, error, loading: deleteInProgress }
               ) => {
                 if (called && !deleteInProgress) {

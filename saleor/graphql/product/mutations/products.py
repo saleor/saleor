@@ -6,27 +6,13 @@ from graphql_jwt.decorators import permission_required
 from ....product import models
 from ....product.utils.attributes import get_name_from_attributes
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types.common import Decimal, Error, SeoInput
+from ...core.types.common import Decimal, SeoInput
+from ...core.types.money import TaxRateType
 from ...core.utils import clean_seo_fields
 from ...file_upload.types import Upload
-from ...utils import get_attributes_dict_from_list
+from ...shipping.types import WeightScalar
 from ..types import Collection, Product, ProductImage, ProductVariant
-
-
-def update_variants_names(instance, saved_attributes):
-    initial_attributes = set(instance.variant_attributes.all())
-    attributes_changed = initial_attributes.intersection(saved_attributes)
-    if not attributes_changed:
-        return
-    variants_to_be_updated = models.ProductVariant.objects.filter(
-        product__in=instance.products.all(),
-        product__product_type__variant_attributes__in=attributes_changed)
-    variants_to_be_updated = variants_to_be_updated.prefetch_related(
-        'product__product_type__variant_attributes__values').all()
-    attributes = instance.variant_attributes.all()
-    for variant in variants_to_be_updated:
-        variant.name = get_name_from_attributes(variant, attributes)
-        variant.save()
+from ..utils import attributes_to_hstore, update_variants_names
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -228,17 +214,22 @@ class ProductInput(graphene.InputObjectType):
     is_published = graphene.Boolean(
         description='Determines if product is visible to customers.')
     name = graphene.String(description='Product name.')
+    price = Decimal(description='Product price.')
+    tax_rate = TaxRateType(description='Tax rate.')
+    seo = SeoInput(description='Search engine optimization fields.')
+    weight = WeightScalar(
+        description='Weight of the Product.', required=False)
+
+
+class ProductCreateInput(ProductInput):
     product_type = graphene.ID(
         description='ID of the type that product belongs to.',
-        name='productType')
-    price = Decimal(description='Product price.')
-    tax_rate = graphene.String(description='Tax rate.')
-    seo = SeoInput(description='Search engine optimization fields.')
+        name='productType', required=True)
 
 
 class ProductCreate(ModelMutation):
     class Arguments:
-        input = ProductInput(
+        input = ProductCreateInput(
             required=True, description='Fields required to create a product.')
 
     class Meta:
@@ -259,11 +250,13 @@ class ProductCreate(ModelMutation):
             if instance.pk else cleaned_input.get('product_type'))
 
         if attributes and product_type:
-            slug_to_id_map = dict(
-                product_type.product_attributes.values_list('slug', 'id'))
-            attributes = get_attributes_dict_from_list(
-                attributes, slug_to_id_map)
-            cleaned_input['attributes'] = attributes
+            qs = product_type.product_attributes.prefetch_related('values')
+            try:
+                attributes = attributes_to_hstore(attributes, qs)
+            except ValueError as e:
+                cls.add_error(errors, 'attributes', str(e))
+            else:
+                cleaned_input['attributes'] = attributes
         clean_seo_fields(cleaned_input)
         return cleaned_input
 
@@ -311,9 +304,6 @@ class ProductVariantInput(graphene.InputObjectType):
     cost_price = Decimal(description='Cost price of the variant.')
     price_override = Decimal(
         description='Special price of the particular variant.')
-    product = graphene.ID(
-        description='Product ID of which type is the variant.',
-        name='product')
     sku = graphene.String(description='Stock keeping unit.')
     quantity = graphene.Int(
         description='The total quantity of this variant available for sale.')
@@ -321,11 +311,19 @@ class ProductVariantInput(graphene.InputObjectType):
         description="""Determines if the inventory of this variant should
         be tracked. If false, the quantity won't change when customers
         buy this item.""")
+    weight = WeightScalar(
+        description='Weight of the Product Variant.', required=False)
+
+
+class ProductVariantCreateInput(ProductVariantInput):
+    product = graphene.ID(
+        description='Product ID of which type is the variant.',
+        name='product', required=True)
 
 
 class ProductVariantCreate(ModelMutation):
     class Arguments:
-        input = ProductVariantInput(
+        input = ProductVariantCreateInput(
             required=True,
             description='Fields required to create a product variant.')
 
@@ -348,11 +346,13 @@ class ProductVariantCreate(ModelMutation):
         product_type = product.product_type
 
         if attributes and product_type:
-            slug_to_id_map = dict(
-                product_type.variant_attributes.values_list('slug', 'id'))
-            attributes = get_attributes_dict_from_list(
-                attributes, slug_to_id_map)
-            cleaned_input['attributes'] = attributes
+            try:
+                qs = product_type.variant_attributes.prefetch_related('values')
+                attributes = attributes_to_hstore(attributes, qs)
+            except ValueError as e:
+                cls.add_error(errors, 'attributes', str(e))
+            else:
+                cleaned_input['attributes'] = attributes
         return cleaned_input
 
     @classmethod
@@ -412,6 +412,8 @@ class ProductTypeInput(graphene.InputObjectType):
     is_shipping_required = graphene.Boolean(
         description="""Determines if shipping is required for products
         of this variant.""")
+    weight = WeightScalar(description='Weight of the ProductType items.')
+    tax_rate = TaxRateType(description='A type of goods.')
 
 
 class ProductTypeCreate(ModelMutation):
@@ -559,21 +561,20 @@ class ProductImageReorder(BaseMutation):
         if len(images_ids) != product.images.count():
             cls.add_error(
                 errors, 'order', 'Incorrect number of image IDs provided.')
-        images = [
-            cls.get_node_or_error(
+        images = []
+        for image_id in images_ids:
+            image = cls.get_node_or_error(
                 info, image_id, errors, 'order', only_type=ProductImage)
-            for image_id in images_ids]
-        if not errors:
-            for image in images:
-                if image.product != product:
-                    cls.add_error(
-                        errors, 'order',
-                        "Image with id %r does not belong to product %r" % (
-                            image_id, product_id))
+            if image and image.product != product:
+                cls.add_error(
+                    errors, 'order',
+                    "Image with id %r does not belong to product %r" % (
+                        image_id, product_id))
+            images.append(image)
         if not errors:
             for order, image in enumerate(images):
                 image.sort_order = order
-                image.save()
+                image.save(update_fields=['sort_order'])
         return ProductImageReorder(
             product=product, images=images, errors=errors)
 

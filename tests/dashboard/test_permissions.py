@@ -136,44 +136,44 @@ def test_staff_can_view_category_add_root(
 
 
 def test_staff_can_view_category_add_subcategory(
-        staff_client, staff_user, permission_manage_products, default_category):
+        staff_client, staff_user, permission_manage_products, category):
     assert not staff_user.has_perm('product.manage_products')
     response = staff_client.get(
-        reverse('dashboard:category-add', args=[default_category.pk]))
+        reverse('dashboard:category-add', args=[category.pk]))
     assert response.status_code == 302
     staff_user.user_permissions.add(permission_manage_products)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm('product.manage_products')
     response = staff_client.get(
-        reverse('dashboard:category-add', args=[default_category.pk]))
+        reverse('dashboard:category-add', args=[category.pk]))
     assert response.status_code == 200
 
 
 def test_staff_can_view_category_edit(
-        staff_client, staff_user, permission_manage_products, default_category):
+        staff_client, staff_user, permission_manage_products, category):
     assert not staff_user.has_perm('product.manage_products')
     response = staff_client.get(
-        reverse('dashboard:category-edit', args=[default_category.pk]))
+        reverse('dashboard:category-edit', args=[category.pk]))
     assert response.status_code == 302
     staff_user.user_permissions.add(permission_manage_products)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm('product.manage_products')
     response = staff_client.get(
-        reverse('dashboard:category-edit', args=[default_category.pk]))
+        reverse('dashboard:category-edit', args=[category.pk]))
     assert response.status_code == 200
 
 
 def test_staff_can_view_category_delete(
-        staff_client, staff_user, permission_manage_products, default_category):
+        staff_client, staff_user, permission_manage_products, category):
     assert not staff_user.has_perm('product.manage_products')
     response = staff_client.get(
-        reverse('dashboard:category-delete', args=[default_category.pk]))
+        reverse('dashboard:category-delete', args=[category.pk]))
     assert response.status_code == 302
     staff_user.user_permissions.add(permission_manage_products)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm('product.manage_products')
     response = staff_client.get(
-        reverse('dashboard:category-delete', args=[default_category.pk]))
+        reverse('dashboard:category-delete', args=[category.pk]))
     assert response.status_code == 200
 
 
@@ -740,46 +740,46 @@ def test_staff_can_access_attribute_delete(
 
 
 def test_staff_with_permissions_can_view_shipping_methods_and_details(
-        staff_client, staff_user, permission_manage_shipping, shipping_method):
+        staff_client, staff_user, permission_manage_shipping, shipping_zone):
     assert not staff_user.has_perm('shipping.manage_shipping')
-    response = staff_client.get(reverse('dashboard:shipping-methods'))
+    response = staff_client.get(reverse('dashboard:shipping-zone-list'))
     assert response.status_code == 302
     response = staff_client.get(
         reverse(
-            'dashboard:shipping-method-details', args=[shipping_method.pk]))
+            'dashboard:shipping-zone-details', args=[shipping_zone.pk]))
     assert response.status_code == 302
     staff_user.user_permissions.add(permission_manage_shipping)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm('shipping.manage_shipping')
-    response = staff_client.get(reverse('dashboard:shipping-methods'))
+    response = staff_client.get(reverse('dashboard:shipping-zone-list'))
     assert response.status_code == 200
     response = staff_client.get(
         reverse(
-            'dashboard:shipping-method-details', args=[shipping_method.pk]))
+            'dashboard:shipping-zone-details', args=[shipping_zone.pk]))
     assert response.status_code == 200
 
 
-def test_staff_with_permissions_can_update_add_and_delete_shipping_method(
-        staff_client, staff_user, permission_manage_shipping, shipping_method):
+def test_staff_with_permissions_can_update_add_and_delete_shipping_zone(
+        staff_client, staff_user, permission_manage_shipping, shipping_zone):
     assert not staff_user.has_perm('shipping.manage_shipping')
     response = staff_client.get(
-        reverse('dashboard:shipping-method-update', args=[shipping_method.pk]))
+        reverse('dashboard:shipping-zone-update', args=[shipping_zone.pk]))
     assert response.status_code == 302
     response = staff_client.get(
-        reverse('dashboard:shipping-method-delete', args=[shipping_method.pk]))
+        reverse('dashboard:shipping-zone-delete', args=[shipping_zone.pk]))
     assert response.status_code == 302
-    response = staff_client.get(reverse('dashboard:shipping-method-add'))
+    response = staff_client.get(reverse('dashboard:shipping-zone-add'))
     assert response.status_code == 302
     staff_user.user_permissions.add(permission_manage_shipping)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm('shipping.manage_shipping')
     response = staff_client.get(
-        reverse('dashboard:shipping-method-update', args=[shipping_method.pk]))
+        reverse('dashboard:shipping-zone-update', args=[shipping_zone.pk]))
     assert response.status_code == 200
     response = staff_client.get(
-        reverse('dashboard:shipping-method-delete', args=[shipping_method.pk]))
+        reverse('dashboard:shipping-zone-delete', args=[shipping_zone.pk]))
     assert response.status_code == 200
-    response = staff_client.get(reverse('dashboard:shipping-method-add'))
+    response = staff_client.get(reverse('dashboard:shipping-zone-add'))
     assert response.status_code == 200
 
 

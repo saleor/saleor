@@ -44,7 +44,7 @@ const decorate = withStyles(theme => ({
   }
 }));
 const AttributeValueList = decorate<AttributeValueListProps>(
-  ({ classes, disabled, loading, values, onChange }) => {
+  ({ classes, disabled, values, onChange }) => {
     const defaultValue = i18n.t("New value");
     const handleAdd = () =>
       onChange({

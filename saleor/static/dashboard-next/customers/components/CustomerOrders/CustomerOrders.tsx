@@ -7,7 +7,6 @@ import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import * as classNames from "classnames";
 import * as React from "react";
 
 import DateFormatter from "../../../components/DateFormatter";
@@ -40,7 +39,7 @@ interface CustomerOrdersProps {
   onRowClick?(id: string);
 }
 
-const decorate = withStyles(theme => ({
+const decorate = withStyles({
   link: {
     color: blue[500],
     cursor: "pointer",
@@ -49,11 +48,10 @@ const decorate = withStyles(theme => ({
   textRight: {
     textAlign: "right" as "right"
   }
-}));
+});
 const CustomerOrders = decorate<CustomerOrdersProps>(
   ({
     classes,
-    dateNow,
     hasNextPage,
     hasPreviousPage,
     orders,

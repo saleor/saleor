@@ -22,7 +22,7 @@ def test_order_query(admin_api_client, fulfilled_order):
         orders(first: 1) {
             edges {
                 node {
-                    orderId
+                    number
                     status
                     statusDisplay
                     paymentStatus
@@ -41,14 +41,15 @@ def test_order_query(admin_api_client, fulfilled_order):
                         totalCount
                     }
                     fulfillments {
-                        edges {
-                            node {
-                                fulfillmentOrder
-                            }
-                        }
+                        fulfillmentOrder
                     }
                     history {
                         totalCount
+                    }
+                    subtotal {
+                        net {
+                            amount
+                        }
                     }
                     total {
                         net {
@@ -65,7 +66,7 @@ def test_order_query(admin_api_client, fulfilled_order):
     content = get_graphql_content(response)
     assert 'errors' not in content
     order_data = content['data']['orders']['edges'][0]['node']
-    assert order_data['orderId'] == order.pk
+    assert order_data['number'] == str(order.pk)
     assert order_data['status'] == order.status.upper()
     assert order_data['statusDisplay'] == order.get_status_display()
     assert order_data['paymentStatus'] == order.get_last_payment_status()
@@ -79,7 +80,7 @@ def test_order_query(admin_api_client, fulfilled_order):
     assert order_data['notes']['totalCount'] == order.notes.count()
     fulfillment = order.fulfillments.first().fulfillment_order
     fulfillment_order = order_data[
-        'fulfillments']['edges'][0]['node']['fulfillmentOrder']
+        'fulfillments'][0]['fulfillmentOrder']
     assert fulfillment_order == fulfillment
 
 
@@ -90,7 +91,7 @@ def test_non_staff_user_can_only_see_his_order(user_api_client, order):
     query = """
     query OrderQuery($id: ID!) {
         order(id: $id) {
-            orderId
+            number
         }
     }
     """
@@ -100,7 +101,7 @@ def test_non_staff_user_can_only_see_his_order(user_api_client, order):
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     order_data = content['data']['order']
-    assert order_data['orderId'] == order.pk
+    assert order_data['number'] == str(order.pk)
 
     order.user = None
     order.save()
@@ -113,7 +114,7 @@ def test_non_staff_user_can_only_see_his_order(user_api_client, order):
 
 def test_draft_order_create(
         admin_api_client, customer_user, product_without_shipping,
-        shipping_price, variant, voucher):
+        shipping_method, variant, voucher):
     variant_0 = variant
     query = """
     mutation draftCreate(
@@ -163,7 +164,7 @@ def test_draft_order_create(
     shipping_address = {
         'firstName': 'John', 'country': 'PL'}
     shipping_id = graphene.Node.to_global_id(
-        'ShippingMethodCountry', shipping_price.id)
+        'ShippingMethod', shipping_method.id)
     voucher_id = graphene.Node.to_global_id('Voucher', voucher.id)
     variables = json.dumps(
         {
@@ -181,7 +182,7 @@ def test_draft_order_create(
     order = Order.objects.first()
     assert order.user == customer_user
     assert order.billing_address == customer_user.default_billing_address
-    assert order.shipping_method == shipping_price
+    assert order.shipping_method == shipping_method
     assert order.shipping_address == Address(
         **{'first_name': 'John', 'country': 'PL'})
 
@@ -234,16 +235,21 @@ def test_check_for_draft_order_errors(order_with_lines):
     errors = check_for_draft_order_errors(order_with_lines, [])
     assert not errors
 
-    order_with_no_lines = Mock(spec=Order)
-    order_with_no_lines.get_total_quantity = MagicMock(return_value=0)
-    errors = check_for_draft_order_errors(order_with_no_lines, [])
-    assert errors[0].message == 'Could not create order without any products.'
 
-    order_with_wrong_shipping = Mock(spec=Order)
-    order_with_wrong_shipping.shipping_method = False
-    errors = check_for_draft_order_errors(order_with_wrong_shipping, [])
+def test_check_for_draft_order_errors_wrong_shipping(order_with_lines):
+    order = order_with_lines
+    shipping_zone = order.shipping_method.shipping_zone
+    shipping_zone.countries = ['DE']
+    shipping_zone.save()
+    assert order.shipping_address.country.code not in shipping_zone.countries
+    errors = check_for_draft_order_errors(order, [])
     msg = 'Shipping method is not valid for chosen shipping address'
     assert errors[0].message == msg
+
+
+def test_check_for_draft_order_errors_no_order_lines(order):
+    errors = check_for_draft_order_errors(order, [])
+    assert errors[0].message == 'Could not create order without any products.'
 
 
 def test_draft_order_complete(admin_api_client, draft_order):
@@ -372,7 +378,7 @@ def test_order_capture(admin_api_client, payment_preauth):
                 order {
                     paymentStatus
                     isPaid
-                    capturedAmount {
+                    totalCaptured {
                         amount
                     }
                 }
@@ -388,8 +394,8 @@ def test_order_capture(admin_api_client, payment_preauth):
     data = content['data']['orderCapture']['order']
     order.refresh_from_db()
     assert data['paymentStatus'] == order.get_last_payment_status()
-    assert data['isPaid'] == True
-    assert data['capturedAmount']['amount'] == float(amount)
+    assert data['isPaid']
+    assert data['totalCaptured']['amount'] == float(amount)
 
 
 def test_paid_order_mark_as_paid(

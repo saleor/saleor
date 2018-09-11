@@ -11,7 +11,7 @@ interface FileUploadProps {
   onChange?(event: React.ChangeEvent<any>);
 }
 
-const decorate = withStyles(theme => ({
+const decorate = withStyles({
   fileUploadField: {
     display: "none"
   },
@@ -21,7 +21,7 @@ const decorate = withStyles(theme => ({
   textField: {
     flex: 1
   }
-}));
+});
 const FileUpload = decorate<FileUploadProps>(
   ({ classes, disabled, name, value, onChange }) => (
     <div className={classes.root}>

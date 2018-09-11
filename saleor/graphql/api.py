@@ -8,21 +8,19 @@ from .account.mutations import (
     StaffUpdate, AddressCreate, AddressUpdate, AddressDelete)
 from .account.resolvers import resolve_users
 from .account.types import User
-from .menu.resolvers import resolve_menus, resolve_menu_items
+from .menu.resolvers import resolve_menu, resolve_menus, resolve_menu_items
 from .menu.types import Menu, MenuItem
 # FIXME: sorting import by putting below line at the beginning breaks app
 from .menu.mutations import (
-    MenuCreate, MenuDelete, MenuUpdate, MenuItemCreate, MenuItemDelete,
-    MenuItemUpdate)
+    AssignNavigation, MenuCreate, MenuDelete, MenuUpdate, MenuItemCreate,
+    MenuItemDelete, MenuItemUpdate)
 from .descriptions import DESCRIPTIONS
 from .discount.resolvers import resolve_sales, resolve_vouchers
 from .discount.types import Sale, Voucher
 from .discount.mutations import (
     SaleCreate, SaleDelete, SaleUpdate, VoucherCreate, VoucherDelete,
     VoucherUpdate)
-from .core.filters import DistinctFilterSet
 from .core.mutations import CreateToken, VerifyToken
-from .core.types.shop import Shop
 from .order.filters import OrderFilter
 from .order.resolvers import resolve_order, resolve_orders
 from .order.types import Order
@@ -52,25 +50,29 @@ from .product.mutations.products import (
     ProductVariantUpdate, VariantImageAssign, VariantImageUnassign)
 from .product.resolvers import (
     resolve_attributes, resolve_categories, resolve_collections,
-    resolve_products, resolve_product_types)
+    resolve_products, resolve_product_types, resolve_product_variants)
 from .product.types import (
     Category, Collection, Product, ProductAttribute, ProductType,
     ProductVariant)
-from .shipping.resolvers import resolve_shipping_methods
-from .shipping.types import ShippingMethod
+from .shipping.resolvers import resolve_shipping_zones
+from .shipping.types import ShippingZone
 from .shipping.mutations import (
-    ShippingMethodCreate, ShippingMethodDelete, ShippingMethodUpdate,
+    ShippingZoneCreate, ShippingZoneDelete, ShippingZoneUpdate,
     ShippingPriceCreate, ShippingPriceDelete, ShippingPriceUpdate)
+
+from .shop.types import Shop
+from .shop.mutations import (
+    ShopDomainUpdate, ShopSettingsUpdate, HomepageCollectionUpdate)
 
 
 class Query(graphene.ObjectType):
     attributes = DjangoFilterConnectionField(
-        ProductAttribute, filterset_class=DistinctFilterSet,
+        ProductAttribute,
         query=graphene.String(description=DESCRIPTIONS['attributes']),
         in_category=graphene.Argument(graphene.ID),
         description='List of the shop\'s product attributes.')
     categories = DjangoFilterConnectionField(
-        Category, filterset_class=DistinctFilterSet, query=graphene.String(
+        Category, query=graphene.String(
             description=DESCRIPTIONS['category']),
         level=graphene.Argument(graphene.Int),
         description='List of the shop\'s categories.')
@@ -86,7 +88,8 @@ class Query(graphene.ObjectType):
         description='List of the shop\'s collections.')
     menu = graphene.Field(
         Menu, id=graphene.Argument(graphene.ID),
-        description='Lookup a menu by ID.')
+        name=graphene.Argument(graphene.String, description="Menu name."),
+        description='Lookup a menu by ID or name.')
     menus = DjangoFilterConnectionField(
         Menu, query=graphene.String(description=DESCRIPTIONS['menu']),
         description="List of the shop\'s menus.")
@@ -107,7 +110,7 @@ class Query(graphene.ObjectType):
         Page, id=graphene.Argument(graphene.ID), slug=graphene.String(),
         description='Lookup a page by ID or by slug.')
     pages = DjangoFilterConnectionField(
-        Page, filterset_class=DistinctFilterSet, query=graphene.String(
+        Page, query=graphene.String(
             description=DESCRIPTIONS['page']),
         description='List of the shop\'s pages.')
     product = graphene.Field(
@@ -121,11 +124,13 @@ class Query(graphene.ObjectType):
         ProductType, id=graphene.Argument(graphene.ID),
         description='Lookup a product type by ID.')
     product_types = DjangoFilterConnectionField(
-        ProductType, filterset_class=DistinctFilterSet,
-        description='List of the shop\'s product types.')
+        ProductType, description='List of the shop\'s product types.')
     product_variant = graphene.Field(
         ProductVariant, id=graphene.Argument(graphene.ID),
         description='Lookup a variant by ID.')
+    product_variants = DjangoFilterConnectionField(
+        ProductVariant, ids=graphene.List(graphene.ID),
+        description='Lookup multiple variants by ID')
     sale = graphene.Field(
         Sale, id=graphene.Argument(graphene.ID),
         description='Lookup a sale by ID.')
@@ -139,11 +144,11 @@ class Query(graphene.ObjectType):
     vouchers = DjangoFilterConnectionField(
         Voucher, query=graphene.String(description=DESCRIPTIONS['product']),
         description="List of the shop\'s vouchers.")
-    shipping_method = graphene.Field(
-        ShippingMethod, id=graphene.Argument(graphene.ID),
-        description='Lookup a shipping method by ID.')
-    shipping_methods = DjangoFilterConnectionField(
-        ShippingMethod, description='List of the shop\'s shipping methods.')
+    shipping_zone = graphene.Field(
+        ShippingZone, id=graphene.Argument(graphene.ID),
+        description='Lookup a shipping zone by ID.')
+    shipping_zones = DjangoFilterConnectionField(
+        ShippingZone, description='List of the shop\'s shipping zones.')
     user = graphene.Field(
         User, id=graphene.Argument(graphene.ID),
         description='Lookup an user by ID.')
@@ -176,8 +181,8 @@ class Query(graphene.ObjectType):
     def resolve_users(self, info, query=None, **kwargs):
         return resolve_users(info, query=query)
 
-    def resolve_menu(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, Menu)
+    def resolve_menu(self, info, id=None, name=None):
+        return resolve_menu(info, id, name)
 
     def resolve_menus(self, info, query=None, **kwargs):
         return resolve_menus(info, query)
@@ -228,6 +233,9 @@ class Query(graphene.ObjectType):
     def resolve_product_variant(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ProductVariant)
 
+    def resolve_product_variants(self, info, ids=None, **kwargs):
+        return resolve_product_variants(info, ids)
+
     @permission_required('discount.manage_discounts')
     def resolve_voucher(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, Voucher)
@@ -236,14 +244,16 @@ class Query(graphene.ObjectType):
     def resolve_vouchers(self, info, query=None, **kwargs):
         return resolve_vouchers(info, query)
 
-    def resolve_shipping_method(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, ShippingMethod)
+    def resolve_shipping_zone(self, info, id):
+        return graphene.Node.get_node_from_global_id(info, id, ShippingZone)
 
-    def resolve_shipping_methods(self, info, **kwargs):
-        return resolve_shipping_methods(info)
+    def resolve_shipping_zones(self, info, **kwargs):
+        return resolve_shipping_zones(info)
 
 
 class Mutations(graphene.ObjectType):
+    assign_navigation = AssignNavigation.Field()
+
     token_create = CreateToken.Field()
     token_refresh = graphql_jwt.Refresh.Field()
     token_verify = VerifyToken.Field()
@@ -327,13 +337,17 @@ class Mutations(graphene.ObjectType):
     sale_delete = SaleDelete.Field()
     sale_update = SaleUpdate.Field()
 
+    shop_domain_update = ShopDomainUpdate.Field()
+    shop_settings_update = ShopSettingsUpdate.Field()
+    homepage_collection_update = HomepageCollectionUpdate.Field()
+
     voucher_create = VoucherCreate.Field()
     voucher_delete = VoucherDelete.Field()
     voucher_update = VoucherUpdate.Field()
 
-    shipping_method_create = ShippingMethodCreate.Field()
-    shipping_method_delete = ShippingMethodDelete.Field()
-    shipping_method_update = ShippingMethodUpdate.Field()
+    shipping_zone_create = ShippingZoneCreate.Field()
+    shipping_zone_delete = ShippingZoneDelete.Field()
+    shipping_zone_update = ShippingZoneUpdate.Field()
 
     shipping_price_create = ShippingPriceCreate.Field()
     shipping_price_delete = ShippingPriceDelete.Field()

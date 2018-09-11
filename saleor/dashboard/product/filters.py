@@ -29,15 +29,15 @@ class ProductFilter(SortedFilterSet):
         lookup_expr='icontains')
     category = ModelMultipleChoiceFilter(
         label=pgettext_lazy('Product list filter label', 'Category'),
-        name='category',
+        field_name='category',
         queryset=Category.objects.all())
     product_type = ModelMultipleChoiceFilter(
         label=pgettext_lazy('Product list filter label', 'Product type'),
-        name='product_type',
+        field_name='product_type',
         queryset=ProductType.objects.all())
     price = RangeFilter(
         label=pgettext_lazy('Product list filter label', 'Price'),
-        name='price',
+        field_name='price',
         widget=MoneyRangeWidget)
     is_published = ChoiceFilter(
         label=pgettext_lazy('Product list filter label', 'Is published'),
@@ -96,12 +96,12 @@ class ProductTypeFilter(SortedFilterSet):
     product_attributes = ModelMultipleChoiceFilter(
         label=pgettext_lazy(
             'Product type list filter label', 'Product attributes'),
-        name='product_attributes',
+        field_name='product_attributes',
         queryset=ProductAttribute.objects.all())
     variant_attributes = ModelMultipleChoiceFilter(
         label=pgettext_lazy(
             'Product type list filter label', 'Variant attributes'),
-        name='variant_attributes',
+        field_name='variant_attributes',
         queryset=ProductAttribute.objects.all())
 
     class Meta:

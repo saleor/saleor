@@ -218,6 +218,7 @@ INSTALLED_APPS = [
     'versatileimagefield',
     'django_babel',
     'bootstrap4',
+    'django_measurement',
     'django_prices',
     'django_prices_openexchangerates',
     'django_prices_vatlayer',
@@ -397,12 +398,12 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
     'products': [
-        ('product_gallery', 'crop__540x540'),
-        ('product_gallery_2x', 'crop__1080x1080'),
-        ('product_small', 'crop__60x60'),
-        ('product_small_2x', 'crop__120x120'),
-        ('product_list', 'crop__255x255'),
-        ('product_list_2x', 'crop__510x510')]}
+        ('product_gallery', 'thumbnail__540x540'),
+        ('product_gallery_2x', 'thumbnail__1080x1080'),
+        ('product_small', 'thumbnail__60x60'),
+        ('product_small_2x', 'thumbnail__120x120'),
+        ('product_list', 'thumbnail__255x255'),
+        ('product_list_2x', 'thumbnail__510x510')]}
 
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment

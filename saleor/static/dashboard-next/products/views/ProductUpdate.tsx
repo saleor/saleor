@@ -1,14 +1,13 @@
 import * as React from "react";
 import { arrayMove } from "react-sortable-hoc";
 
-import { ApolloError } from "apollo-client";
 import * as placeholderImg from "../../../images/placeholder255x255.png";
 import { attributesListUrl } from "../../attributes";
-import { categoryShowUrl } from "../../categories";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import i18n from "../../i18n";
+import { decimal } from "../../misc";
 import ProductUpdatePage from "../components/ProductUpdatePage";
 import ProductUpdateOperations from "../containers/ProductUpdateOperations";
 import {
@@ -37,18 +36,14 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                 variables={{ id }}
                 fetchPolicy="network-only"
               >
-                {({ data, loading, error, fetchMore }) => {
+                {({ data, loading, error }) => {
                   if (error) {
                     return <ErrorMessageCard message="Something went wrong" />;
                   }
 
                   const handleDelete = () => {
                     pushMessage({ text: i18n.t("Product removed") });
-                    navigate(categoryShowUrl(data.product.category.id));
-                  };
-                  const handleError = (error: ApolloError) => {
-                    console.error(error.message);
-                    pushMessage({ text: i18n.t("Something went wrong") });
+                    navigate(productListUrl);
                   };
                   const handleUpdate = () =>
                     pushMessage({ text: i18n.t("Saved changes") });
@@ -80,7 +75,6 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                     <ProductUpdateOperations
                       product={product}
                       onDelete={handleDelete}
-                      onError={handleError}
                       onImageCreate={handleImageCreate}
                       onImageDelete={handleImageDeleteSuccess}
                       onUpdate={handleUpdate}
@@ -112,7 +106,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                               id: product.id,
                               isPublished: data.available,
                               name: data.name,
-                              price: data.price
+                              price: decimal(data.price)
                             });
                           }
                         };
@@ -121,7 +115,8 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                           createProductImage.loading ||
                           deleteProduct.loading ||
                           reorderProductImages.loading ||
-                          updateProduct.loading;
+                          updateProduct.loading ||
+                          loading;
                         const formSubmitState = disableFormSave
                           ? "loading"
                           : "idle";

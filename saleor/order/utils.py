@@ -182,7 +182,7 @@ def change_order_line_quantity(line, new_quantity):
     """Change the quantity of ordered items in a order line."""
     if new_quantity:
         line.quantity = new_quantity
-        line.save()
+        line.save(update_fields=['quantity'])
     else:
         line.delete()
 

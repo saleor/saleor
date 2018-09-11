@@ -108,9 +108,9 @@ def test_view_menu_delete(admin_client, menu):
     assert Menu.objects.count() == menus_before - 1
 
 
-def test_view_menu_item_create(admin_client, menu, default_category):
+def test_view_menu_item_create(admin_client, menu, category):
     url = reverse('dashboard:menu-item-add', kwargs={'menu_pk': menu.pk})
-    linked_object = str(default_category.id) + '_Category'
+    linked_object = str(category.id) + '_Category'
     data = {'name': 'Link', 'linked_object': linked_object}
 
     response = admin_client.post(url, data)
@@ -124,11 +124,11 @@ def test_view_menu_item_create(admin_client, menu, default_category):
 
 
 def test_view_menu_item_create_with_parent(
-        admin_client, menu, menu_item, default_category):
+        admin_client, menu, menu_item, category):
     url = reverse(
         'dashboard:menu-item-add',
         kwargs={'menu_pk': menu.pk, 'root_pk': menu_item.pk})
-    linked_object = str(default_category.id) + '_Category'
+    linked_object = str(category.id) + '_Category'
     data = {'name': 'Link 2', 'linked_object': linked_object}
 
     response = admin_client.post(url, data)
@@ -154,11 +154,11 @@ def test_view_menu_item_create_not_valid(admin_client, menu):
     assert MenuItem.objects.count() == 0
 
 
-def test_view_menu_item_edit(admin_client, menu, menu_item, default_category):
+def test_view_menu_item_edit(admin_client, menu, menu_item, category):
     url = reverse(
         'dashboard:menu-item-edit',
         kwargs={'menu_pk': menu.pk, 'item_pk': menu_item.pk})
-    linked_object = str(default_category.id) + '_Category'
+    linked_object = str(category.id) + '_Category'
     data = {'name': 'New link', 'linked_object': linked_object}
 
     response = admin_client.post(url, data)
@@ -257,14 +257,13 @@ def test_view_ajax_reorder_menu_items_with_parent(
 
 
 @pytest.mark.integration
-def test_view_ajax_menu_links(
-        admin_client, collection, default_category, page):
+def test_view_ajax_menu_links(admin_client, collection, category, page):
     collection_repr = {
         'id': str(collection.pk) + '_' + 'Collection',
         'text': str(collection)}
     category_repr = {
-        'id': str(default_category.pk) + '_' + 'Category',
-        'text': str(default_category)}
+        'id': str(category.pk) + '_' + 'Category',
+        'text': str(category)}
     page_repr = {
         'id': str(page.pk) + '_' + 'Page',
         'text': str(page)}
@@ -282,8 +281,8 @@ def test_view_ajax_menu_links(
     assert resp_decoded == {'results': groups}
 
 
-def test_update_menu_item_linked_object(menu, default_category, page):
-    menu_item = menu.items.create(category=default_category)
+def test_update_menu_item_linked_object(menu, category, page):
+    menu_item = menu.items.create(category=category)
 
     update_menu_item_linked_object(menu_item, page)
 
@@ -348,7 +347,7 @@ def test_update_menu(mock_json_menu, menu):
     assert menu.json_content == 'Return value'
 
 
-def test_get_menus_that_needs_update(default_category, collection, page):
+def test_get_menus_that_needs_update(category, collection, page):
     assert not get_menus_that_needs_update()
 
     menus = Menu.objects.bulk_create([
@@ -356,11 +355,10 @@ def test_get_menus_that_needs_update(default_category, collection, page):
         Menu(name='collection'),
         Menu(name='page')])
 
-    MenuItem.objects.create(
-        name='item', menu=menus[0], category=default_category),
+    MenuItem.objects.create(name='item', menu=menus[0], category=category),
     MenuItem.objects.create(name='item', menu=menus[1], collection=collection),
     MenuItem.objects.create(name='item', menu=menus[2], page=page)
 
     result = get_menus_that_needs_update(
-        categories=[default_category], collection=collection, page=page)
+        categories=[category], collection=collection, page=page)
     assert sorted(list(result)) == sorted([m.pk for m in menus])

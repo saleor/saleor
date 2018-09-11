@@ -8,10 +8,10 @@ from saleor.product.utils.attributes import (
 
 
 @pytest.fixture()
-def product_with_no_attributes(product_type, default_category):
+def product_with_no_attributes(product_type, category):
     product = Product.objects.create(
         name='Test product', price='10.00', product_type=product_type,
-        category=default_category)
+        category=category)
     return product
 
 

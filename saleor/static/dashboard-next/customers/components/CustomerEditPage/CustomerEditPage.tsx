@@ -56,7 +56,7 @@ const CustomerEditPage: React.StatelessComponent<CustomerEditPageProps> = ({
       }}
       key={customer ? CRC.str(JSON.stringify(customer)) : "loading"}
     >
-      {({ change, data, hasChanged, submit }) => (
+      {({ change, data, hasChanged }) => (
         <Container width="md">
           <PageHeader
             title={
@@ -98,6 +98,7 @@ const CustomerEditPage: React.StatelessComponent<CustomerEditPageProps> = ({
           <SaveButtonBar
             disabled={disabled || !onSubmit || !hasChanged}
             state={saveButtonBarState}
+            onCancel={onBack}
             onSave={onSubmit}
           />
         </Container>

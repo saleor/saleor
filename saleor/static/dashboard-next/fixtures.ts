@@ -10,7 +10,7 @@ export const pageListProps: { [key: string]: PageListProps } = {
     onAdd: undefined,
     onNextPage: undefined,
     onPreviousPage: undefined,
-    onRowClick: (id: string) => undefined,
+    onRowClick: () => undefined,
     pageInfo
   },
   loading: {
@@ -18,7 +18,7 @@ export const pageListProps: { [key: string]: PageListProps } = {
     onAdd: undefined,
     onNextPage: undefined,
     onPreviousPage: undefined,
-    onRowClick: (id: string) => undefined,
+    onRowClick: () => undefined,
     pageInfo
   }
 };

@@ -5,7 +5,9 @@ from django_prices_vatlayer.utils import (
     get_tax_for_rate, get_tax_rates_for_country)
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-DEFAULT_TAX_RATE_NAME = 'standard'
+from ...core import TaxRateType
+
+DEFAULT_TAX_RATE_NAME = TaxRateType.STANDARD
 
 ZERO_MONEY = Money(0, settings.DEFAULT_CURRENCY)
 ZERO_TAXED_MONEY = TaxedMoney(net=ZERO_MONEY, gross=ZERO_MONEY)
@@ -83,3 +85,10 @@ def display_gross_prices():
 
 def charge_taxes_on_shipping():
     return Site.objects.get_current().settings.charge_taxes_on_shipping
+
+
+def get_taxed_shipping_price(shipping_price, taxes):
+    """Calculate shipping price based on settings and taxes."""
+    if not charge_taxes_on_shipping():
+        taxes = None
+    return apply_tax_to_price(taxes, DEFAULT_TAX_RATE_NAME, shipping_price)

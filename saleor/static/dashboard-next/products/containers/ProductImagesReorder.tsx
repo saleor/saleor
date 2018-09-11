@@ -50,7 +50,17 @@ const ProductImagesReorderProvider: React.StatelessComponent<
             productImageReorder: {
               __typename: "ProductImageReorder",
               errors: null,
-              productImages
+              product: {
+                __typename: "Product",
+                id: props.productId,
+                images: {
+                  __typename: "ProductImageCountableConnection",
+                  edges: productImages.map(image => ({
+                    __typename: "ProductImageCountableEdge",
+                    node: image
+                  }))
+                }
+              }
             }
           };
           return mutate({
