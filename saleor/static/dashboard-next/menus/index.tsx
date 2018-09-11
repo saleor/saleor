@@ -104,4 +104,11 @@ export const menuUrl = (id: string) => `/menus/${id}/`;
 export const menuItemAddUrl = "/menus/item/add/";
 export const menuItemUrl = (id: string) => `/menus/item/${id}/`;
 
+export enum MenuItemLinkedObjectType {
+  category = "category",
+  collection = "collection",
+  product = "product",
+  staticUrl = "url"
+}
+
 export default MenuRouter;

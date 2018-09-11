@@ -4,28 +4,31 @@ import { withStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
+import { MenuItemLinkedObjectType } from "../..";
 import CardTitle from "../../../components/CardTitle";
 import FormSpacer from "../../../components/FormSpacer";
 import i18n from "../../../i18n";
 
 interface MenuItemPropertiesProps {
+  cardTitle?: string;
   disabled: boolean;
   menuItem: {
     name: string;
-    url: string;
+    type: MenuItemLinkedObjectType;
+    value: string;
   };
   errors: {
     name?: string;
-    url?: string;
+    value?: string;
   };
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
 const decorate = withStyles({ input: { width: "50%" } });
 const MenuItemProperties = decorate<MenuItemPropertiesProps>(
-  ({ classes, disabled, errors, menuItem, onChange }) => (
+  ({ cardTitle, classes, disabled, errors, menuItem, onChange }) => (
     <Card>
-      <CardTitle title={i18n.t("General Information")} />
+      <CardTitle title={cardTitle || i18n.t("General Information")} />
       <CardContent>
         <TextField
           className={classes.input}
@@ -39,12 +42,12 @@ const MenuItemProperties = decorate<MenuItemPropertiesProps>(
         />
         <FormSpacer />
         <TextField
-          error={!!errors.url}
+          error={!!errors.value}
           fullWidth
-          helperText={errors.url}
+          helperText={errors.value}
           label={i18n.t("URL (Optional)")}
-          name="url"
-          value={menuItem.url}
+          name="value"
+          value={menuItem.value}
           disabled={disabled}
           onChange={onChange}
         />
