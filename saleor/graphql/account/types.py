@@ -50,8 +50,8 @@ class User(CountableDjangoObjectType):
 
     class Meta:
         exclude_fields = [
-            'date_joined', 'password', 'is_superuser', 'ordernote_set',
-            'orderhistoryentry_set', 'last_login']
+            'date_joined', 'password', 'is_superuser',
+            'OrderEvent_set', 'last_login']
         description = 'Represents user data.'
         interfaces = [relay.Node]
         model = get_user_model()

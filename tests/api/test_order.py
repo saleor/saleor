@@ -1,18 +1,18 @@
 import json
 from unittest.mock import MagicMock, Mock
 
-import graphene
 import pytest
-from django.shortcuts import reverse
-from tests.utils import get_graphql_content
 
+import graphene
+from django.shortcuts import reverse
 from saleor.account.models import Address
 from saleor.graphql.order.mutations.draft_orders import (
     check_for_draft_order_errors)
 from saleor.graphql.order.mutations.orders import (
     clean_refund_payment, clean_release_payment)
-from saleor.order import CustomPaymentChoices
+from saleor.order import CustomPaymentChoices, OrderEvents, OrderEventsEmails
 from saleor.order.models import Order, OrderStatus, Payment, PaymentStatus
+from tests.utils import get_graphql_content
 
 
 def test_order_query(admin_api_client, fulfilled_order):
@@ -37,14 +37,8 @@ def test_order_query(admin_api_client, fulfilled_order):
                     lines {
                         totalCount
                     }
-                    notes {
-                        totalCount
-                    }
                     fulfillments {
                         fulfillmentOrder
-                    }
-                    history {
-                        totalCount
                     }
                     subtotal {
                         net {
@@ -77,11 +71,57 @@ def test_order_query(admin_api_client, fulfilled_order):
     expected_price = order_data['shippingPrice']['gross']['amount']
     assert expected_price == order.shipping_price.gross.amount
     assert order_data['lines']['totalCount'] == order.lines.count()
-    assert order_data['notes']['totalCount'] == order.notes.count()
     fulfillment = order.fulfillments.first().fulfillment_order
-    fulfillment_order = order_data[
-        'fulfillments'][0]['fulfillmentOrder']
+    fulfillment_order = order_data['fulfillments'][0]['fulfillmentOrder']
     assert fulfillment_order == fulfillment
+
+
+def test_order_events_query(admin_api_client, fulfilled_order, admin_user):
+    query = """
+        query OrdersQuery {
+            orders(first: 1) {
+                edges {
+                node {
+                    events {
+                        date
+                        type
+                        user {
+                            email
+                        }
+                        message
+                        email
+                        emailType
+                        amount
+                        quantity
+                        composedId
+                        }
+                    }
+                }
+            }
+        }
+    """
+    event = fulfilled_order.events.create(
+        type=OrderEvents.OTHER.value,
+        user=admin_user,
+        parameters={
+            'message': 'Example note',
+            'email_type': OrderEventsEmails.PAYMENT.value,
+            'amount': '80.00',
+            'quantity': '10',
+            'composed_id': '10-10'})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['orders']['edges'][0]['node']['events'][0]
+    assert data['message'] == event.parameters['message']
+    assert data['amount'] == float(event.parameters['amount'])
+    assert data['emailType'] == event.parameters['email_type']
+    assert data['quantity'] == int(event.parameters['quantity'])
+    assert data['composedId'] == event.parameters['composed_id']
+    assert data['user']['email'] == admin_user.email
+    assert data['type'] == OrderEvents.OTHER.value.upper()
+    assert data['date'] == event.date.isoformat()
 
 
 def test_non_staff_user_can_only_see_his_order(user_api_client, order):
@@ -268,6 +308,7 @@ def test_draft_order_complete(admin_api_client, draft_order):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
+    assert 'errors' not in content
     data = content['data']['draftOrderComplete']['order']
     order.refresh_from_db()
     assert data['status'] == order.status.upper()
@@ -319,30 +360,41 @@ def test_order_update(admin_api_client, order_with_lines):
 def test_order_add_note(admin_api_client, order_with_lines, admin_user):
     order = order_with_lines
     query = """
-        mutation addNote(
-        $id: ID!, $note: String, $user: ID) {
-            orderAddNote(
-            input: {order: $id, content: $note, user: $user}) {
-                orderNote {
-                    content
+        mutation addNote($id: ID!, $message: String) {
+            orderAddNote(order: $id, input: {message: $message}) {
+                errors {
+                field
+                message
+                }
+                order {
+                    id
+                }
+                event {
                     user {
                         email
                     }
+                    message
                 }
             }
         }
-        """
-    assert not order.notes.all()
+    """
+    assert not order.events.all()
     order_id = graphene.Node.to_global_id('Order', order.id)
-    note = 'nuclear note'
-    user = graphene.Node.to_global_id('User', admin_user.id)
-    variables = json.dumps({'id': order_id, 'user': user, 'note': note})
+    message = 'nuclear note'
+    variables = json.dumps({'id': order_id, 'message': message})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    data = content['data']['orderAddNote']['orderNote']
-    assert data['content'] == note
-    assert data['user']['email'] == admin_user.email
+    data = content['data']['orderAddNote']
+
+    assert data['order']['id'] == order_id
+    assert data['event']['user']['email'] == admin_user.email
+    assert data['event']['message'] == message
+
+    event = order.events.get()
+    assert event.type == OrderEvents.NOTE_ADDED.value
+    assert event.user == admin_user
+    assert event.parameters == {'message': message}
 
 
 def test_order_cancel(admin_api_client, order_with_lines):
@@ -365,12 +417,13 @@ def test_order_cancel(admin_api_client, order_with_lines):
     content = get_graphql_content(response)
     data = content['data']['orderCancel']['order']
     order.refresh_from_db()
-    history_entry = 'Restocked %d items' % quantity
-    assert order.history.last().content == history_entry
+    order_event = order.events.last()
+    assert order_event.parameters['quantity'] == quantity
+    assert order_event.type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value
     assert data['status'] == order.status.upper()
 
 
-def test_order_capture(admin_api_client, payment_preauth):
+def test_order_capture(admin_api_client, payment_preauth, admin_user):
     order = payment_preauth.order
     query = """
         mutation captureOrder($id: ID!, $amount: Decimal!) {
@@ -396,6 +449,19 @@ def test_order_capture(admin_api_client, payment_preauth):
     assert data['paymentStatus'] == order.get_last_payment_status()
     assert data['isPaid']
     assert data['totalCaptured']['amount'] == float(amount)
+
+    event_order_paid = order.events.first()
+    assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID.value
+    assert event_order_paid.user is None
+
+    event_email_sent, event_captured = list(order.events.all())[-2:]
+    assert event_email_sent.user is None
+    assert event_email_sent.parameters == {
+        'email': order.user_email,
+        'email_type': OrderEventsEmails.PAYMENT.value}
+    assert event_captured.type == OrderEvents.PAYMENT_CAPTURED.value
+    assert event_captured.user == admin_user
+    assert event_captured.parameters == {'amount': '80.00'}
 
 
 def test_paid_order_mark_as_paid(
@@ -426,7 +492,7 @@ def test_paid_order_mark_as_paid(
 
 
 def test_order_mark_as_paid(
-        admin_api_client, order_with_lines):
+        admin_api_client, order_with_lines, admin_user):
     order = order_with_lines
     query = """
             mutation markPaid($id: ID!) {
@@ -451,8 +517,12 @@ def test_order_mark_as_paid(
     order.refresh_from_db()
     assert data['isPaid'] == True == order.is_fully_paid()
 
+    event_order_paid = order.events.first()
+    assert event_order_paid.type == OrderEvents.ORDER_MARKED_AS_PAID.value
+    assert event_order_paid.user == admin_user
 
-def test_order_release(admin_api_client, payment_preauth):
+
+def test_order_release(admin_api_client, payment_preauth, admin_user):
     order = payment_preauth.order
     query = """
             mutation releaseOrder($id: ID!) {
@@ -470,8 +540,9 @@ def test_order_release(admin_api_client, payment_preauth):
     content = get_graphql_content(response)
     data = content['data']['orderRelease']['order']
     assert data['paymentStatus'] == PaymentStatus.REFUNDED
-    history_entry = order.history.last().content
-    assert history_entry == 'Released payment'
+    event_payment_released = order.events.last()
+    assert event_payment_released.type == OrderEvents.PAYMENT_RELEASED.value
+    assert event_payment_released.user == admin_user
 
 
 def test_order_refund(admin_api_client, payment_confirmed):
@@ -482,6 +553,7 @@ def test_order_refund(admin_api_client, payment_confirmed):
                 order {
                     paymentStatus
                     isPaid
+                    status
                 }
             }
         }
@@ -494,11 +566,13 @@ def test_order_refund(admin_api_client, payment_confirmed):
     content = get_graphql_content(response)
     data = content['data']['orderRefund']['order']
     order.refresh_from_db()
-    msg = 'Refunded %(amount)s' % {'amount': amount}
-    history_entry = order.history.last().content
-    assert history_entry == msg
+    assert data['status'] == order.status.upper()
     assert data['paymentStatus'] == PaymentStatus.REFUNDED
     assert data['isPaid'] == False
+
+    order_event = order.events.last()
+    assert order_event.parameters['amount'] == amount
+    assert order_event.type == OrderEvents.PAYMENT_REFUNDED.value
 
 
 def test_clean_order_release_payment():
