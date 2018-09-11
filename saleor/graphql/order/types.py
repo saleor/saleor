@@ -11,6 +11,8 @@ OrderEventsEnum = graphene.Enum.from_enum(OrderEvents)
 
 
 class OrderEvent(CountableDjangoObjectType):
+    date = graphene.types.datetime.DateTime(
+        description='Date when event happened at in ISO 8601 format.')
     type = OrderEventsEnum(description='Order event type')
     user = graphene.Field(
         User, id=graphene.Argument(graphene.ID),
