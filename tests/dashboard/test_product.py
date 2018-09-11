@@ -975,9 +975,9 @@ def test_product_variant_form(product):
 
 
 def test_hide_field_in_variant_choice_field_form():
-    form = VariantChoiceField(Mock)
+    form = VariantChoiceField(Mock())
     variants, cart = MagicMock(), MagicMock()
-    variants.count.return_value = 1
+    variants.count.return_value = variants.all().count.return_value = 1
     variants.all()[0].pk = 'test'
 
     form.update_field_data(variants, discounts=None, taxes=None)
