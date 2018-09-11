@@ -83,6 +83,7 @@ def test_order_events_query(admin_api_client, fulfilled_order, admin_user):
                 edges {
                 node {
                     events {
+                        date
                         type
                         user {
                             email
@@ -120,6 +121,7 @@ def test_order_events_query(admin_api_client, fulfilled_order, admin_user):
     assert data['composedId'] == event.parameters['composed_id']
     assert data['user']['email'] == admin_user.email
     assert data['type'] == OrderEvents.OTHER.value.upper()
+    assert data['date'] == event.date.isoformat()
 
 
 def test_non_staff_user_can_only_see_his_order(user_api_client, order):
