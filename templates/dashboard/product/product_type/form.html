@@ -98,6 +98,14 @@
                 {{ form.tax_rate|materializecss }}
               </div>
             </div>
+            <div class="row">
+              <div class="col s12">
+                <span class="card-title">{% trans "Shipping" %}</span>
+              </div>
+              <div class="col s12 m8">
+                {{ form.weight|materializecss }}
+              </div>
+            </div>
           </div>
           {% if perms.product.manage_products %}
           <div class="card-action right-align">

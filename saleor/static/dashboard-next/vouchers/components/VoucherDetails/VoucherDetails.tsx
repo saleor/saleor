@@ -51,7 +51,7 @@ const decorate = withStyles(theme => ({
   }
 }));
 const VoucherDetails = decorate<VoucherDetailsProps>(
-  ({ classes, currency, data, disabled, voucher, onChange }) => (
+  ({ classes, currency, data, disabled, onChange }) => (
     <Card>
       <CardContent>
         <TextField

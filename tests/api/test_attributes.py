@@ -4,6 +4,89 @@ import graphene
 import pytest
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
+from saleor.product.models import (
+    Category, ProductAttribute, AttributeChoiceValue)
+from saleor.graphql.product.utils import attributes_to_hstore
+
+
+def test_attributes_to_hstore(product, color_attribute):
+    color_value = color_attribute.values.first()
+
+    # test transforming slugs of existing attributes to IDs
+    input_data = [{
+        'slug': color_attribute.slug, 'value': color_value.slug}]
+    attrs_qs = product.product_type.product_attributes.all()
+    ids = attributes_to_hstore(input_data, attrs_qs)
+    assert str(color_attribute.pk) in ids
+    assert ids[str(color_attribute.pk)] == str(color_value.pk)
+
+    # test creating a new attribute value
+    input_data = [{
+        'slug': color_attribute.slug, 'value': 'Space Grey'}]
+    ids = attributes_to_hstore(input_data, attrs_qs)
+    new_value = AttributeChoiceValue.objects.get(slug='space-grey')
+    assert str(color_attribute.pk) in ids
+    assert ids[str(color_attribute.pk)] == str(new_value.pk)
+
+    # test passing an attribute that doesn't belong to this product raises
+    # an error
+    input_data = [{'slug': 'not-an-attribute', 'value': 'not-a-value'}]
+    with pytest.raises(ValueError):
+        attributes_to_hstore(input_data, attrs_qs)
+
+
+def test_attributes_query(user_api_client, product):
+    attributes = ProductAttribute.objects.prefetch_related('values')
+    query = '''
+    query {
+        attributes {
+            edges {
+                node {
+                    id
+                    name
+                    slug
+                    values {
+                        id
+                        name
+                        slug
+                    }
+                }
+            }
+        }
+    }
+    '''
+    response = user_api_client.post(reverse('api'), {'query': query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    attributes_data = content['data']['attributes']['edges']
+    assert len(attributes_data) == attributes.count()
+
+
+def test_attributes_in_category_query(user_api_client, product):
+    category = Category.objects.first()
+    query = '''
+    query {
+        attributes(inCategory: "%(category_id)s") {
+            edges {
+                node {
+                    id
+                    name
+                    slug
+                    values {
+                        id
+                        name
+                        slug
+                    }
+                }
+            }
+        }
+    }
+    ''' % {'category_id': graphene.Node.to_global_id('Category', category.id)}
+    response = user_api_client.post(reverse('api'), {'query': query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    attributes_data = content['data']['attributes']['edges']
+    assert len(attributes_data) == ProductAttribute.objects.count()
 
 
 def test_create_product_attribute(admin_api_client):

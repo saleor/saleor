@@ -116,6 +116,7 @@ const ProductImagePage = decorate<ProductImagePageProps>(
             <SaveButtonBar
               disabled={disabled || !onSubmit || !hasChanged}
               state={saveButtonBarState}
+              onCancel={onBack}
               onDelete={onDelete}
               onSave={submit}
             />

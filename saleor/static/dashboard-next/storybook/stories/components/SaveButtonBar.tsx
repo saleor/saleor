@@ -50,6 +50,7 @@ class InteractiveDemo extends React.Component<
   render() {
     return (
       <SaveButtonBar
+        onCancel={() => undefined}
         onSave={this.handleButtonClick}
         state={this.state.state as any}
       />

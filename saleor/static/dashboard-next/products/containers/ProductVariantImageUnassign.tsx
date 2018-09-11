@@ -12,7 +12,6 @@ import { TypedVariantImageUnassignMutation } from "../mutations";
 
 interface VariantImageUnassignProviderProps
   extends PartialMutationProviderProps {
-  id: string;
   children: PartialMutationProviderRenderProps<
     VariantImageUnassignMutation,
     VariantImageUnassignMutationVariables
@@ -21,7 +20,7 @@ interface VariantImageUnassignProviderProps
 
 const VariantImageUnassignProvider: React.StatelessComponent<
   VariantImageUnassignProviderProps
-> = ({ id, children, onError, onSuccess }) => (
+> = ({ children, onError, onSuccess }) => (
   <TypedVariantImageUnassignMutation onCompleted={onSuccess} onError={onError}>
     {(mutate, { data, loading, error }) => {
       return children({

@@ -3,22 +3,24 @@ from contextlib import redirect_stdout
 from unittest.mock import Mock, patch
 
 import pytest
+
 from django.conf import settings
 from django.db.models import Case, F, When
 from django.shortcuts import reverse
 from django.urls import translate_url
+from measurement.measures import Weight
 from prices import Money
-
 from saleor.account.models import Address, User
 from saleor.core.storages import S3MediaStorage
 from saleor.core.utils import (
     Country, create_superuser, create_thumbnails, format_money,
     get_country_by_ip, get_currency_for_country, random_data)
 from saleor.core.utils.text import get_cleaner, strip_html
+from saleor.core.weight import WeightUnits, convert_weight
 from saleor.discount.models import Sale, Voucher
 from saleor.order.models import Order
 from saleor.product.models import Product, ProductImage, ProductVariant
-from saleor.shipping.models import ShippingMethod
+from saleor.shipping.models import ShippingZone
 
 type_schema = {
     'Vegetable': {
@@ -81,11 +83,11 @@ def test_create_superuser(db, client):
     assert response.context['request'].user == admin
 
 
-def test_create_shipping_methods(db):
-    assert ShippingMethod.objects.all().count() == 0
-    for _ in random_data.create_shipping_methods():
+def test_create_shipping_zones(db):
+    assert ShippingZone.objects.all().count() == 0
+    for _ in random_data.create_shipping_zones():
         pass
-    assert ShippingMethod.objects.all().count() == 2
+    assert ShippingZone.objects.all().count() == 5
 
 
 def test_create_fake_user(db):
@@ -158,7 +160,7 @@ def test_create_fake_order(db, monkeypatch, product_image):
     monkeypatch.setattr(
         'saleor.core.utils.random_data.get_image',
         Mock(return_value=product_image))
-    for _ in random_data.create_shipping_methods():
+    for _ in random_data.create_shipping_zones():
         pass
     for _ in random_data.create_users(3):
         pass
@@ -291,3 +293,9 @@ def test_set_language_redirects_to_current_endpoint(client):
     # now check if we got redirect the endpoint we wanted to go back
     # in the new language (cart:index)
     assert expected_url == new_url
+
+
+def test_convert_weight():
+    weight = Weight(kg=1)
+    expected_result = Weight(g=1000)
+    assert convert_weight(weight, WeightUnits.GRAM) == expected_result

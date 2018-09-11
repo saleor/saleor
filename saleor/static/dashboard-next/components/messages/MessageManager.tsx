@@ -21,7 +21,7 @@ export class MessageManager extends React.Component<{}, MessageManagerState> {
   };
   queue = [];
 
-  handleClose = (event, reason) => {
+  handleClose = (_, reason) => {
     if (reason === "clickaway") {
       return;
     }

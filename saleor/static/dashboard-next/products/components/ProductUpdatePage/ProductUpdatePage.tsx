@@ -331,6 +331,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
                     </div>
                   </div>
                   <SaveButtonBar
+                    onCancel={onBack}
                     onDelete={toggleDeleteDialog}
                     onSave={submit}
                     state={saveButtonBarState}

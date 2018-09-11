@@ -2,28 +2,154 @@ import datetime
 from unittest.mock import Mock, patch
 
 import pytest
+
 from django.urls import reverse
 from django_countries.fields import Country
 from freezegun import freeze_time
+from measurement.measures import Weight
 from prices import Money, TaxedMoney
-
 from saleor.account.models import Address
 from saleor.checkout import views
-from saleor.checkout.forms import CartVoucherForm
+from saleor.checkout.forms import CartVoucherForm, CountryForm
 from saleor.checkout.utils import (
     add_variant_to_cart, change_billing_address_in_cart,
-    change_shipping_address_in_cart, create_order, get_cart_data_for_checkout,
+    change_shipping_address_in_cart, clear_shipping_method, create_order,
+    get_cart_data_for_checkout,
     get_prices_of_products_in_discounted_categories, get_taxes_for_cart,
     get_voucher_discount_for_cart, get_voucher_for_cart,
-    recalculate_cart_discount, remove_voucher_from_cart)
+    is_valid_shipping_method, recalculate_cart_discount,
+    remove_voucher_from_cart, shipping_method_applicable, value_in_range)
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import (
     ZERO_MONEY, ZERO_TAXED_MONEY, get_taxes_for_country)
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
 from saleor.product.models import Category
+from saleor.shipping import ShippingMethodType
+from saleor.shipping.models import ShippingZone
 
 from .utils import compare_taxes, get_redirect_location
+
+
+def test_country_form_country_choices():
+    form = CountryForm(data={'csrf': '', 'country': 'PL'})
+    assert form.fields['country'].choices == []
+
+    zone = ShippingZone.objects.create(countries=['PL', 'DE'], name='Europe')
+    form = CountryForm(data={'csrf': '', 'country': 'PL'})
+
+    expected_choices = [
+        (country.code, country.name) for country in zone.countries]
+    expected_choices = sorted(
+        expected_choices, key=lambda choice: choice[1])
+    assert form.fields['country'].choices == expected_choices
+
+
+@pytest.mark.parametrize(
+    'minimum, maximum, value, result',
+    (
+        (10, None, 1500, True),
+        (10, 20, 15, True),
+        (10, 20, 20, True),
+        (10, 20, 10, True),
+        (10, 20, 9, False),
+        (10, 21, 9, False)))
+def test_value_in_range(minimum, maximum, value, result):
+    assert result == value_in_range(minimum, maximum, value)
+
+
+@pytest.mark.parametrize(
+    'weight, minimum_order_weight, maximum_order_weight, result',
+    (
+        (Weight(kg=15), Weight(kg=10), Weight(kg=20), True),
+        (Weight(kg=15), Weight(kg=15), Weight(kg=20), True),
+        (Weight(kg=15), Weight(kg=10), Weight(kg=15), True),
+        (Weight(kg=15), Weight(kg=10), None, True),
+        (Weight(kg=26), Weight(kg=10), Weight(kg=25), False),
+        (Weight(kg=9), Weight(kg=10), Weight(kg=15), False)))
+def test_weight_shipping_method_applicable(
+        weight, minimum_order_weight, maximum_order_weight, result):
+    shipping_method = Mock(
+        type=ShippingMethodType.WEIGHT_BASED,
+        minimum_order_weight=minimum_order_weight,
+        maximum_order_weight=maximum_order_weight)
+    assert result == shipping_method_applicable(
+        Money(0, 'USD'), weight, shipping_method)
+
+
+@pytest.mark.parametrize(
+    'price, minimum_order_price, maximum_order_price, result',
+    (
+        (Money(15, 'USD'), Money(10, 'USD'), Money(20, 'USD'), True),
+        (Money(15, 'USD'), Money(15, 'USD'), Money(20, 'USD'), True),
+        (Money(15, 'USD'), Money(10, 'USD'), Money(15, 'USD'), True),
+        (Money(15, 'USD'), Money(10, 'USD'), None, True),
+        (Money(26, 'USD'), Money(10, 'USD'), Money(25, 'USD'), False),
+        (Money(9, 'USD'), Money(10, 'USD'), Money(15, 'USD'), False)))
+def test_price_shipping_method_applicable(
+        price, minimum_order_price, maximum_order_price, result):
+    shipping_method = Mock(
+        type=ShippingMethodType.PRICE_BASED,
+        minimum_order_price=minimum_order_price,
+        maximum_order_price=maximum_order_price)
+    assert result == shipping_method_applicable(
+        price, Weight(kg=0), shipping_method)
+
+
+def test_is_valid_shipping_method_no_shipping_method(vatlayer):
+    cart = Mock(shipping_method=False)
+    assert not is_valid_shipping_method(cart, vatlayer, None)
+
+
+@patch('saleor.checkout.utils.clear_shipping_method')
+def test_is_valid_shipping_method_shipping_outside_the_shipping_zone(
+        mock_clear_shipping_method, vatlayer):
+    cart = Mock(
+        shipping_address=Mock(country=Country('PL')),
+        shipping_method=Mock(shipping_zone=Mock(countries=['DE'])))
+    assert not is_valid_shipping_method(cart, vatlayer, None)
+    mock_clear_shipping_method.assert_called_once_with(cart)
+
+
+@patch('saleor.checkout.utils.clear_shipping_method')
+def test_is_valid_shipping_method_not_valid(
+        mock_clear_shipping_method, vatlayer):
+    cart = Mock(
+        shipping_address=Mock(country=Country('PL')),
+        shipping_method=Mock(
+            shipping_zone=Mock(countries=['PL']),
+            minimum_order_price=Money(10, 'USD'),
+            maximum_order_price=None,
+            type=ShippingMethodType.PRICE_BASED),
+        get_total_weight=Mock(return_value=Weight(kg=0)),
+        get_subtotal=Mock(
+            return_value=TaxedMoney(
+                gross=Money(5, 'USD'), net=Money(5, 'USD'))))
+    assert not is_valid_shipping_method(cart, vatlayer, None)
+    mock_clear_shipping_method.assert_called_once_with(cart)
+
+
+def test_is_valid_shipping_method(vatlayer):
+    cart = Mock(
+        shipping_address=Mock(country=Country('PL')),
+        shipping_method=Mock(
+            shipping_zone=Mock(countries=['PL']),
+            minimum_order_price=Money(10, 'USD'),
+            maximum_order_price=None,
+            type=ShippingMethodType.PRICE_BASED),
+        get_total_weight=Mock(return_value=Weight(kg=0)),
+        get_subtotal=Mock(
+            return_value=TaxedMoney(
+                gross=Money(15, 'USD'), net=Money(15, 'USD'))))
+    assert is_valid_shipping_method(cart, vatlayer, None)
+
+
+def test_clear_shipping_method(cart, shipping_method):
+    cart.shipping_method = shipping_method
+    cart.save()
+    clear_shipping_method(cart)
+    cart.refresh_from_db()
+    assert not cart.shipping_method
 
 
 @pytest.mark.parametrize('cart_length, is_shipping_required, redirect_url', [
@@ -132,12 +258,12 @@ def test_view_checkout_shipping_address_without_shipping(
 
 
 def test_view_checkout_shipping_method(
-        client, shipping_method, address, request_cart_with_item):
+        client, shipping_zone, address, request_cart_with_item):
     request_cart_with_item.shipping_address = address
     request_cart_with_item.email = 'test@example.com'
     request_cart_with_item.save()
     url = reverse('checkout:shipping-method')
-    data = {'shipping_method': shipping_method.price_per_country.first().pk}
+    data = {'shipping_method': shipping_zone.shipping_methods.first().pk}
 
     response = client.get(url)
 
@@ -150,14 +276,14 @@ def test_view_checkout_shipping_method(
 
 
 def test_view_checkout_shipping_method_authorized_user(
-        authorized_client, customer_user, shipping_method, address,
+        authorized_client, customer_user, shipping_zone, address,
         request_cart_with_item):
     request_cart_with_item.user = customer_user
     request_cart_with_item.email = customer_user.email
     request_cart_with_item.shipping_address = address
     request_cart_with_item.save()
     url = reverse('checkout:shipping-method')
-    data = {'shipping_method': shipping_method.price_per_country.first().pk}
+    data = {'shipping_method': shipping_zone.shipping_methods.first().pk}
 
     response = authorized_client.get(url)
 
@@ -194,12 +320,12 @@ def test_view_checkout_shipping_method_without_address(
 
 @patch('saleor.checkout.views.summary.send_order_confirmation')
 def test_view_checkout_summary(
-        mock_send_confirmation, client, shipping_method, address,
+        mock_send_confirmation, client, shipping_zone, address,
         request_cart_with_item):
     request_cart_with_item.shipping_address = address
     request_cart_with_item.email = 'test@example.com'
     request_cart_with_item.shipping_method = (
-        shipping_method.price_per_country.first())
+        shipping_zone.shipping_methods.first())
     request_cart_with_item.save()
     url = reverse('checkout:summary')
     data = {'address': 'shipping_address'}
@@ -220,12 +346,12 @@ def test_view_checkout_summary(
 @patch('saleor.checkout.views.summary.send_order_confirmation')
 def test_view_checkout_summary_authorized_user(
         mock_send_confirmation, authorized_client, customer_user,
-        shipping_method, address, request_cart_with_item):
+        shipping_zone, address, request_cart_with_item):
     request_cart_with_item.shipping_address = address
     request_cart_with_item.user = customer_user
     request_cart_with_item.email = customer_user.email
     request_cart_with_item.shipping_method = (
-        shipping_method.price_per_country.first())
+        shipping_zone.shipping_methods.first())
     request_cart_with_item.save()
     url = reverse('checkout:summary')
     data = {'address': 'shipping_address'}
@@ -246,7 +372,7 @@ def test_view_checkout_summary_authorized_user(
 @patch('saleor.checkout.views.summary.send_order_confirmation')
 def test_view_checkout_summary_save_language(
         mock_send_confirmation, authorized_client, customer_user,
-        shipping_method, address, request_cart_with_item, settings):
+        shipping_zone, address, request_cart_with_item, settings):
     settings.LANGUAGE_CODE = 'en'
     user_language = 'fr'
     authorized_client.cookies[settings.LANGUAGE_COOKIE_NAME] = user_language
@@ -259,7 +385,7 @@ def test_view_checkout_summary_save_language(
     request_cart_with_item.user = customer_user
     request_cart_with_item.email = customer_user.email
     request_cart_with_item.shipping_method = (
-        shipping_method.price_per_country.first())
+        shipping_zone.shipping_methods.first())
     request_cart_with_item.save()
     url = reverse('checkout:summary')
     data = {'address': 'shipping_address'}
@@ -289,7 +415,7 @@ def test_view_checkout_summary_without_address(request_cart_with_item, client):
     assert get_redirect_location(response) == redirect_url
 
 
-def test_view_checkout_summary_without_shipping_method(
+def test_view_checkout_summary_without_shipping_zone(
         request_cart_with_item, client, address):
     request_cart_with_item.shipping_address = address
     request_cart_with_item.email = 'test@example.com'
@@ -304,14 +430,14 @@ def test_view_checkout_summary_without_shipping_method(
 
 
 def test_view_checkout_summary_with_invalid_voucher(
-        client, request_cart_with_item, shipping_method, address, voucher):
+        client, request_cart_with_item, shipping_zone, address, voucher):
     voucher.usage_limit = 3
     voucher.save()
 
     request_cart_with_item.shipping_address = address
     request_cart_with_item.email = 'test@example.com'
     request_cart_with_item.shipping_method = (
-        shipping_method.price_per_country.first())
+        shipping_zone.shipping_methods.first())
     request_cart_with_item.save()
 
     url = reverse('checkout:summary')
@@ -340,11 +466,11 @@ def test_view_checkout_summary_with_invalid_voucher(
 
 
 def test_view_checkout_summary_with_invalid_voucher_code(
-        client, request_cart_with_item, shipping_method, address):
+        client, request_cart_with_item, shipping_zone, address):
     request_cart_with_item.shipping_address = address
     request_cart_with_item.email = 'test@example.com'
     request_cart_with_item.shipping_method = (
-        shipping_method.price_per_country.first())
+        shipping_zone.shipping_methods.first())
     request_cart_with_item.save()
 
     url = reverse('checkout:summary')
@@ -358,7 +484,7 @@ def test_view_checkout_summary_with_invalid_voucher_code(
 
 
 def test_view_checkout_place_order_with_expired_voucher_code(
-        client, request_cart_with_item, shipping_method, address, voucher):
+        client, request_cart_with_item, shipping_zone, address, voucher):
 
     cart = request_cart_with_item
 
@@ -366,7 +492,7 @@ def test_view_checkout_place_order_with_expired_voucher_code(
     cart.shipping_address = address
     cart.email = 'test@example.com'
     cart.shipping_method = (
-        shipping_method.price_per_country.first())
+        shipping_zone.shipping_methods.first())
 
     # set voucher to be expired
     yesterday = datetime.date.today() - datetime.timedelta(days=1)
@@ -395,7 +521,7 @@ def test_view_checkout_place_order_with_expired_voucher_code(
 
 def test_view_checkout_place_order_with_item_out_of_stock(
         client, request_cart_with_item,
-        shipping_method, address, voucher, product):
+        shipping_zone, address, voucher, product):
 
     cart = request_cart_with_item
     variant = product.variants.get()
@@ -403,10 +529,7 @@ def test_view_checkout_place_order_with_item_out_of_stock(
     # add shipping information to the cart
     cart.shipping_address = address
     cart.email = 'test@example.com'
-    cart.shipping_method = (
-        shipping_method.price_per_country.first())
-
-    # save the cart
+    cart.shipping_method = shipping_zone.shipping_methods.first()
     cart.save()
 
     # make the variant be out of stock
@@ -426,14 +549,14 @@ def test_view_checkout_place_order_with_item_out_of_stock(
 
 
 def test_view_checkout_place_order_without_shipping_address(
-        client, request_cart_with_item, shipping_method):
+        client, request_cart_with_item, shipping_zone):
 
     cart = request_cart_with_item
 
     # add shipping information to the cart
     cart.email = 'test@example.com'
     cart.shipping_method = (
-        shipping_method.price_per_country.first())
+        shipping_zone.shipping_methods.first())
 
     # save the cart
     cart.save()
@@ -451,11 +574,11 @@ def test_view_checkout_place_order_without_shipping_address(
 
 
 def test_view_checkout_summary_remove_voucher(
-        client, request_cart_with_item, shipping_method, voucher, address):
+        client, request_cart_with_item, shipping_zone, voucher, address):
     request_cart_with_item.shipping_address = address
     request_cart_with_item.email = 'test@example.com'
     request_cart_with_item.shipping_method = (
-        shipping_method.price_per_country.first())
+        shipping_zone.shipping_methods.first())
     request_cart_with_item.save()
 
     remove_voucher_url = reverse('checkout:summary')
@@ -508,7 +631,9 @@ def test_get_discount_for_cart_value_voucher(
         type=VoucherType.VALUE,
         discount_value_type=discount_type,
         discount_value=discount_value,
-        min_amount_spent=Money(min_amount_spent, 'USD') if min_amount_spent is not None else None)
+        min_amount_spent=(
+            Money(min_amount_spent, 'USD')
+            if min_amount_spent is not None else None))
     subtotal = TaxedMoney(net=Money(total, 'USD'), gross=Money(total, 'USD'))
     cart = Mock(get_subtotal=Mock(return_value=subtotal))
     discount = get_voucher_discount_for_cart(voucher, cart)
@@ -546,15 +671,13 @@ def test_get_discount_for_cart_shipping_voucher(
         get_subtotal=Mock(return_value=subtotal),
         is_shipping_required=Mock(return_value=True),
         shipping_method=Mock(
-            price=Money(shipping_cost, 'USD'),
-            country_code=shipping_country_code,
-            get_total_price=Mock(return_value=shipping_total)))
+            get_total_price=Mock(return_value=shipping_total)),
+        shipping_address=Mock(country=Country(shipping_country_code)))
     voucher = Voucher(
         code='unique', type=VoucherType.SHIPPING,
         discount_value_type=discount_type,
         discount_value=discount_value,
-        countries=countries,
-        min_amount_spent=None)
+        countries=countries)
     discount = get_voucher_discount_for_cart(voucher, cart)
     assert discount == Money(expected_value, 'USD')
 
@@ -562,8 +685,8 @@ def test_get_discount_for_cart_shipping_voucher(
 @pytest.mark.parametrize(
     'is_shipping_required, shipping_method, discount_value, discount_type,'
     'countries, min_amount_spent, subtotal, error_msg', [
-        (True, Mock(country_code='PL'), 10, DiscountValueType.FIXED,
-         ['US'], None, Money(10, 'USD'),
+        (True, Mock(shipping_zone=Mock(countries=['PL'])),
+         10, DiscountValueType.FIXED, ['US'], None, Money(10, 'USD'),
          'This offer is not valid in your country.'),
         (True, None, 10, DiscountValueType.FIXED,
          [], None, Money(10, 'USD'),
@@ -586,7 +709,9 @@ def test_get_discount_for_cart_shipping_voucher_not_applicable(
         code='unique', type=VoucherType.SHIPPING,
         discount_value_type=discount_type,
         discount_value=discount_value,
-        min_amount_spent=Money(min_amount_spent, 'USD') if min_amount_spent is not None else None,
+        min_amount_spent=(
+            Money(min_amount_spent, 'USD')
+            if min_amount_spent is not None else None),
         countries=countries)
     with pytest.raises(NotApplicable) as e:
         get_voucher_discount_for_cart(voucher, cart)

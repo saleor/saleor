@@ -10,9 +10,9 @@ from ...product.utils.availability import get_availability
 from ...product.utils.costs import (
     get_margin_for_variant, get_product_costs_data)
 from ..core.decorators import permission_required
-from ..core.filters import DistinctFilterSet
 from ..core.types.common import CountableDjangoObjectType
-from ..core.types.money import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from ..core.types.money import (
+    Money, MoneyRange, TaxedMoney, TaxedMoneyRange, TaxRateType)
 from ..utils import get_database_id
 from .filters import ProductFilterSet
 
@@ -90,6 +90,7 @@ class ProductVariant(CountableDjangoObjectType):
         Money,
         description="""Override the base price of a product if necessary.
         A value of `null` indicates that the default product price is used.""")
+    price = graphene.Field(Money, description="Price of the product variant.")
     attributes = graphene.List(
         SelectedAttribute,
         description='List of attributes assigned to this variant.')
@@ -103,6 +104,7 @@ class ProductVariant(CountableDjangoObjectType):
         exclude_fields = ['variant_images']
         interfaces = [relay.Node]
         model = models.ProductVariant
+        filter_fields = ['id']
 
     def resolve_stock_quantity(self, info):
         return self.quantity_available
@@ -112,6 +114,15 @@ class ProductVariant(CountableDjangoObjectType):
 
     def resolve_margin(self, info):
         return get_margin_for_variant(self)
+
+    def resolve_price(self, info):
+        return (
+            self.price_override
+            if self.price_override is not None else self.product.price)
+
+    @permission_required('product.manage_products')
+    def resolve_price_override(self, info):
+        return self.price_override
 
 
 class ProductAvailability(graphene.ObjectType):
@@ -125,6 +136,21 @@ class ProductAvailability(graphene.ObjectType):
 
     class Meta:
         description = 'Represents availability of a product in the storefront.'
+
+
+class Image(graphene.ObjectType):
+    url = graphene.String(
+        required=True,
+        description='The URL of the image.',
+        size=graphene.Int(description='Size of the image'))
+
+    class Meta:
+        description = 'Represents an image.'
+
+    def resolve_url(self, info, size=None):
+        if size:
+            return get_thumbnail(self, size, method='thumbnail')
+        return self.url
 
 
 class Product(CountableDjangoObjectType):
@@ -161,7 +187,7 @@ class Product(CountableDjangoObjectType):
     def resolve_thumbnail_url(self, info, *, size=None):
         if not size:
             size = 255
-        return get_thumbnail(self.get_first_image(), size)
+        return get_thumbnail(self.get_first_image(), size, method='thumbnail')
 
     def resolve_url(self, info):
         return self.get_absolute_url()
@@ -201,14 +227,16 @@ class ProductType(CountableDjangoObjectType):
         Product,
         filterset_class=ProductFilterSet,
         description='List of products of this type.')
+    tax_rate = TaxRateType(description='A type of tax rate.')
 
     class Meta:
         description = """Represents a type of product. It defines what
         attributes are available to products of this type."""
         interfaces = [relay.Node]
         model = models.ProductType
+        filter_fields = ['id']
 
-    def resolve_products(self, info):
+    def resolve_products(self, info, **kwargs):
         user = info.context.user
         return products_with_details(
             user=user).filter(product_type=self).distinct()
@@ -218,6 +246,7 @@ class Collection(CountableDjangoObjectType):
     products = DjangoFilterConnectionField(
         Product, filterset_class=ProductFilterSet,
         description='List of collection products.')
+    background_image = graphene.Field(Image)
 
     class Meta:
         description = "Represents a collection of products."
@@ -242,12 +271,11 @@ class Category(CountableDjangoObjectType):
         description='The storefront\'s URL for the category.')
     ancestors = DjangoFilterConnectionField(
         lambda: Category,
-        filterset_class=DistinctFilterSet,
         description='List of ancestors of the category.')
     children = DjangoFilterConnectionField(
         lambda: Category,
-        filterset_class=DistinctFilterSet,
         description='List of children of the category.')
+    background_image = graphene.Field(Image)
 
     class Meta:
         description = """Represents a single category of products. Categories
@@ -291,5 +319,5 @@ class ProductImage(CountableDjangoObjectType):
 
     def resolve_url(self, info, *, size=None):
         if size:
-            return get_thumbnail(self.image, size, 'crop')
+            return get_thumbnail(self.image, size, method='thumbnail')
         return self.image.url

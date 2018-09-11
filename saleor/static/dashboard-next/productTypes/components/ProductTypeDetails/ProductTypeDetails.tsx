@@ -29,11 +29,11 @@ interface ProductTypeDetailsProps {
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
-const decorate = withStyles(theme => ({
+const decorate = withStyles({
   root: {
     overflow: "visible" as "visible"
   }
-}));
+});
 const ProductTypeDetails = decorate<ProductTypeDetailsProps>(
   ({
     classes,

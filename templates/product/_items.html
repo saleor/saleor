@@ -10,8 +10,8 @@
       <div class="text-center">
         <div>
           <img class="img-responsive lazyload lazypreload"
-               data-src="{% get_thumbnail product.get_first_image method="crop" size=255 %}"
-               data-srcset="{% get_thumbnail product.get_first_image method="crop" size=255 %} 1x, {% get_thumbnail product.get_first_image method="crop" size=510 %} 2x"
+               data-src="{% get_thumbnail product.get_first_image method="thumbnail" size=255 %}"
+               data-srcset="{% get_thumbnail product.get_first_image method="thumbnail" size=255 %} 1x, {% get_thumbnail product.get_first_image method="thumbnail" size=510 %} 2x"
                alt=""
                src="{% placeholder size=255 %}">
           <span class="product-list-item-name" title="{{ product.translated }}">{{ product.translated }}</span>

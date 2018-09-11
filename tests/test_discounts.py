@@ -1,11 +1,10 @@
 from datetime import date, timedelta
 
 import pytest
-from prices import Money, TaxedMoney
 
+from prices import Money, TaxedMoney
 from saleor.checkout.utils import get_voucher_discount_for_cart
-from saleor.discount import (
-    DiscountValueType, VoucherType)
+from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Sale, Voucher
 from saleor.discount.utils import (
     decrease_voucher_usage, get_product_discount_on_sale,
@@ -108,14 +107,14 @@ def test_products_voucher_checkout_discount_not(
     assert discount == Money(expected_value, 'USD')
 
 
-def test_sale_applies_to_correct_products(product_type, default_category):
+def test_sale_applies_to_correct_products(product_type, category):
     product = Product.objects.create(
         name='Test Product', price=Money(10, 'USD'), description='',
-        pk=111, product_type=product_type, category=default_category)
+        pk=111, product_type=product_type, category=category)
     variant = ProductVariant.objects.create(product=product, sku='firstvar')
     product2 = Product.objects.create(
         name='Second product', price=Money(15, 'USD'), description='',
-        product_type=product_type, category=default_category)
+        product_type=product_type, category=category)
     sec_variant = ProductVariant.objects.create(
         product=product2, sku='secvar', pk=111)
     sale = Sale.objects.create(
