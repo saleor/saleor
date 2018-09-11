@@ -1,6 +1,57 @@
 /* tslint:disable */
 //  This file was automatically generated and should not be edited.
 
+export interface ProductTypeInput {
+  // Name of the product type.
+  name?: string | null,
+  // Determines if product of this type has multiple
+  // variants. This option mainly simplifies product management
+  // in the dashboard. There is always at least one variant created under
+  // the hood.
+  hasVariants?: boolean | null,
+  // List of attributes shared among all product variants.
+  productAttributes?: Array< string | null > | null,
+  // List of attributes used to distinguish between
+  // different variants of a product.
+  variantAttributes?: Array< string | null > | null,
+  // Determines if shipping is required for products
+  // of this variant.
+  isShippingRequired?: boolean | null,
+  // Weight of the ProductType items.
+  weight?: string | null,
+  // A type of goods.
+  taxRate?: TaxRateType | null,
+};
+
+// An enumeration.
+export enum TaxRateType {
+  ACCOMODATION = "ACCOMODATION",
+  ADMISSION_TO_CULTURAL_EVENTS = "ADMISSION_TO_CULTURAL_EVENTS",
+  ADMISSION_TO_ENTERTAINMENT_EVENTS = "ADMISSION_TO_ENTERTAINMENT_EVENTS",
+  ADMISSION_TO_SPORTING_EVENTS = "ADMISSION_TO_SPORTING_EVENTS",
+  ADVERTISING = "ADVERTISING",
+  AGRICULTURAL_SUPPLIES = "AGRICULTURAL_SUPPLIES",
+  BABY_FOODSTUFFS = "BABY_FOODSTUFFS",
+  BIKES = "BIKES",
+  BOOKS = "BOOKS",
+  CHILDRENS_CLOTHING = "CHILDRENS_CLOTHING",
+  DOMESTIC_FUEL = "DOMESTIC_FUEL",
+  DOMESTIC_SERVICES = "DOMESTIC_SERVICES",
+  E_BOOKS = "E_BOOKS",
+  FOODSTUFFS = "FOODSTUFFS",
+  HOTELS = "HOTELS",
+  MEDICAL = "MEDICAL",
+  NEWSPAPERS = "NEWSPAPERS",
+  PASSENGER_TRANSPORT = "PASSENGER_TRANSPORT",
+  PHARMACEUTICALS = "PHARMACEUTICALS",
+  PROPERTY_RENOVATIONS = "PROPERTY_RENOVATIONS",
+  RESTAURANTS = "RESTAURANTS",
+  SOCIAL_HOUSING = "SOCIAL_HOUSING",
+  STANDARD = "STANDARD",
+  WATER = "WATER",
+}
+
+
 export interface AttributeValueInput {
   // Slug of an attribute.
   slug: string,
@@ -392,6 +443,256 @@ export interface PageDetailsQuery {
     created: string,
     isVisible: boolean,
     availableOn: string | null,
+  } | null,
+};
+
+export interface ProductTypeDeleteMutationVariables {
+  id: string,
+};
+
+export interface ProductTypeDeleteMutation {
+  productTypeDelete:  {
+    // List of errors that occurred executing the mutation.
+    errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
+      field: string | null,
+      // The error message.
+      message: string | null,
+    } | null > | null,
+    productType:  {
+      // The ID of the object.
+      id: string,
+    } | null,
+  } | null,
+};
+
+export interface ProductTypeUpdateMutationVariables {
+  id: string,
+  input: ProductTypeInput,
+};
+
+export interface ProductTypeUpdateMutation {
+  productTypeUpdate:  {
+    // List of errors that occurred executing the mutation.
+    errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
+      field: string | null,
+      // The error message.
+      message: string | null,
+    } | null > | null,
+    productType:  {
+      // The ID of the object.
+      id: string,
+      name: string,
+      hasVariants: boolean,
+      // A type of tax rate.
+      taxRate: TaxRateType | null,
+      productAttributes:  {
+        edges:  Array< {
+          // The item at the end of the edge
+          node:  {
+            // The ID of the object.
+            id: string,
+            // Internal representation of an attribute name.
+            slug: string | null,
+            // Visible name for display purposes.
+            name: string | null,
+          },
+        } >,
+      } | null,
+      variantAttributes:  {
+        edges:  Array< {
+          // The item at the end of the edge
+          node:  {
+            // The ID of the object.
+            id: string,
+            // Internal representation of an attribute name.
+            slug: string | null,
+            // Visible name for display purposes.
+            name: string | null,
+          },
+        } >,
+      } | null,
+      isShippingRequired: boolean,
+    } | null,
+  } | null,
+};
+
+export interface ProductTypeCreateMutationVariables {
+  input: ProductTypeInput,
+};
+
+export interface ProductTypeCreateMutation {
+  productTypeCreate:  {
+    // List of errors that occurred executing the mutation.
+    errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
+      field: string | null,
+      // The error message.
+      message: string | null,
+    } | null > | null,
+    productType:  {
+      // The ID of the object.
+      id: string,
+      name: string,
+      hasVariants: boolean,
+      productAttributes:  {
+        edges:  Array< {
+          // The item at the end of the edge
+          node:  {
+            // The ID of the object.
+            id: string,
+            // Internal representation of an attribute name.
+            slug: string | null,
+            // Visible name for display purposes.
+            name: string | null,
+          },
+        } >,
+      } | null,
+      variantAttributes:  {
+        edges:  Array< {
+          // The item at the end of the edge
+          node:  {
+            // The ID of the object.
+            id: string,
+            // Internal representation of an attribute name.
+            slug: string | null,
+            // Visible name for display purposes.
+            name: string | null,
+          },
+        } >,
+      } | null,
+      isShippingRequired: boolean,
+    } | null,
+  } | null,
+};
+
+export interface ProductTypeListQueryVariables {
+  after?: string | null,
+  before?: string | null,
+  first?: number | null,
+  last?: number | null,
+};
+
+export interface ProductTypeListQuery {
+  // List of the shop's product types.
+  productTypes:  {
+    edges:  Array< {
+      // The item at the end of the edge
+      node:  {
+        // The ID of the object.
+        id: string,
+        name: string,
+        hasVariants: boolean,
+        productAttributes:  {
+          edges:  Array< {
+            // The item at the end of the edge
+            node:  {
+              // The ID of the object.
+              id: string,
+              // Visible name for display purposes.
+              name: string | null,
+            },
+          } >,
+        } | null,
+        variantAttributes:  {
+          edges:  Array< {
+            // The item at the end of the edge
+            node:  {
+              // The ID of the object.
+              id: string,
+              // Visible name for display purposes.
+              name: string | null,
+            },
+          } >,
+        } | null,
+      },
+    } >,
+    pageInfo:  {
+      // When paginating forwards, are there more items?
+      hasNextPage: boolean,
+      // When paginating backwards, are there more items?
+      hasPreviousPage: boolean,
+      // When paginating backwards, the cursor to continue.
+      startCursor: string | null,
+      // When paginating forwards, the cursor to continue.
+      endCursor: string | null,
+    },
+  } | null,
+};
+
+export interface ProductTypeDetailsQueryVariables {
+  id: string,
+};
+
+export interface ProductTypeDetailsQuery {
+  // Lookup a product type by ID.
+  productType:  {
+    // The ID of the object.
+    id: string,
+    name: string,
+    hasVariants: boolean,
+    productAttributes:  {
+      edges:  Array< {
+        // The item at the end of the edge
+        node:  {
+          // The ID of the object.
+          id: string,
+          // Internal representation of an attribute name.
+          slug: string | null,
+          // Visible name for display purposes.
+          name: string | null,
+        },
+      } >,
+    } | null,
+    variantAttributes:  {
+      edges:  Array< {
+        // The item at the end of the edge
+        node:  {
+          // The ID of the object.
+          id: string,
+          // Internal representation of an attribute name.
+          slug: string | null,
+          // Visible name for display purposes.
+          name: string | null,
+        },
+      } >,
+    } | null,
+    isShippingRequired: boolean,
+    // A type of tax rate.
+    taxRate: TaxRateType | null,
+  } | null,
+  __type:  {
+    enumValues:  Array< {
+      name: string,
+    } > | null,
+  } | null,
+};
+
+export interface SearchAttributeQueryVariables {
+  search: string,
+};
+
+export interface SearchAttributeQuery {
+  // List of the shop's product attributes.
+  attributes:  {
+    edges:  Array< {
+      // The item at the end of the edge
+      node:  {
+        // The ID of the object.
+        id: string,
+        // Internal representation of an attribute name.
+        slug: string | null,
+        // Visible name for display purposes.
+        name: string | null,
+      },
+    } >,
   } | null,
 };
 
@@ -1013,7 +1314,6 @@ export interface VariantUpdateMutationVariables {
   attributes?: Array< AttributeValueInput | null > | null,
   costPrice?: string | null,
   priceOverride?: string | null,
-  product?: string | null,
   sku?: string | null,
   quantity?: number | null,
   trackInventory: boolean,
@@ -1143,7 +1443,7 @@ export interface VariantCreateMutationVariables {
   attributes?: Array< AttributeValueInput | null > | null,
   costPrice?: string | null,
   priceOverride?: string | null,
-  product?: string | null,
+  product: string,
   sku?: string | null,
   quantity?: number | null,
   trackInventory: boolean,

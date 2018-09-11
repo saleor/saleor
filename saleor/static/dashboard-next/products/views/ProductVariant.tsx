@@ -126,7 +126,6 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                               costPrice: decimal(data.costPrice),
                               id: variantId,
                               priceOverride: decimal(data.priceOverride),
-                              product: productId,
                               quantity: data.stock,
                               sku: data.sku,
                               trackInventory: true // FIXME: missing in UI

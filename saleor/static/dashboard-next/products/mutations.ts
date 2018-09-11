@@ -206,7 +206,6 @@ export const variantUpdateMutation = gql`
     $attributes: [AttributeValueInput]
     $costPrice: Decimal
     $priceOverride: Decimal
-    $product: ID
     $sku: String
     $quantity: Int
     $trackInventory: Boolean!
@@ -217,7 +216,6 @@ export const variantUpdateMutation = gql`
         attributes: $attributes
         costPrice: $costPrice
         priceOverride: $priceOverride
-        product: $product
         sku: $sku
         quantity: $quantity
         trackInventory: $trackInventory
@@ -244,7 +242,7 @@ export const variantCreateMutation = gql`
     $attributes: [AttributeValueInput]
     $costPrice: Decimal
     $priceOverride: Decimal
-    $product: ID
+    $product: ID!
     $sku: String
     $quantity: Int
     $trackInventory: Boolean!
