@@ -25491,7 +25491,7 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
                       role="button"
                       tabindex="0"
                     >
-                      ACCOMODATION
+                      Accomodation
                     </div>
                     <input
                       name="taxRate"
