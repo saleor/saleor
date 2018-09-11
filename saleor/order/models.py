@@ -316,6 +316,12 @@ class Payment(BasePayment):
 
 
 class OrderEvent(models.Model):
+    """Model used to store events that happened during the order lifecycle.
+
+        Args:
+            parameters: Values needed to display the event on the storefront
+            type: Type of an order
+    """
     date = models.DateTimeField(default=now, editable=False)
     type = models.CharField(
         max_length=255,
