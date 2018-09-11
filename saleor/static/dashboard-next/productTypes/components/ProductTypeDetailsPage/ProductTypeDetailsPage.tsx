@@ -10,6 +10,7 @@ import SaveButtonBar, {
   SaveButtonBarState
 } from "../../../components/SaveButtonBar";
 import Toggle from "../../../components/Toggle";
+import { TaxRateType } from "../../../gql-types";
 import i18n from "../../../i18n";
 import ProductTypeDetails from "../ProductTypeDetails/ProductTypeDetails";
 import ProductTypeProperties from "../ProductTypeProperties/ProductTypeProperties";
@@ -18,21 +19,25 @@ interface ChoiceType {
   label: string;
   value: string;
 }
-interface ProductTypeForm {
+export interface ProductTypeForm {
   name: string;
   hasVariants: boolean;
   isShippingRequired: boolean;
-  taxRate: string;
+  taxRate: TaxRateType;
   productAttributes: ChoiceType[];
   variantAttributes: ChoiceType[];
 }
 interface ProductTypeDetailsPageProps {
+  errors: Array<{
+    field: string;
+    message: string;
+  }>;
   productType?: {
-    id: string;
+    id?: string;
     name?: string;
     hasVariants?: boolean;
     isShippingRequired?: boolean;
-    taxRate?: string;
+    taxRate?: TaxRateType;
   };
   productAttributes?: Array<{
     id: string;
@@ -43,16 +48,16 @@ interface ProductTypeDetailsPageProps {
     name: string;
   }>;
   disabled: boolean;
+  pageTitle: string;
   saveButtonBarState: SaveButtonBarState;
   searchLoading: boolean;
   searchResults: Array<{
     id: string;
     name: string;
   }>;
-  taxRates: string[];
   onAttributeSearch: (name: string) => void;
   onBack: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
   onSubmit: (data: ProductTypeForm) => void;
 }
 
@@ -67,13 +72,14 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
   ({
     classes,
     disabled,
-    productType,
+    errors,
+    pageTitle,
     productAttributes,
-    variantAttributes,
+    productType,
     saveButtonBarState,
     searchLoading,
     searchResults,
-    taxRates,
+    variantAttributes,
     onAttributeSearch,
     onBack,
     onDelete,
@@ -105,16 +111,14 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
         {(openedDeleteDialog, { toggle: toggleDeleteDialog }) => (
           <>
             <Form
+              errors={errors}
               initial={formInitialData}
               onSubmit={onSubmit}
               key={JSON.stringify(productType)}
             >
               {({ change, data, hasChanged, submit }) => (
                 <Container width="md">
-                  <PageHeader
-                    title={productType ? productType.name : undefined}
-                    onBack={onBack}
-                  />
+                  <PageHeader title={pageTitle} onBack={onBack} />
                   <div className={classes.root}>
                     <div>
                       <ProductTypeDetails
@@ -142,7 +146,6 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
                       <ProductTypeProperties
                         data={data}
                         disabled={disabled}
-                        taxRates={taxRates}
                         onChange={change}
                       />
                     </div>

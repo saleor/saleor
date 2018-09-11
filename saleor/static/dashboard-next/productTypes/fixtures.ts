@@ -1,3 +1,5 @@
+import { TaxRateType } from "../gql-types";
+
 export const productTypes = [
   {
     hasVariants: true,
@@ -995,7 +997,7 @@ export const productType = {
     ],
     totalCount: 4
   },
-  taxRate: "standard",
+  taxRate: TaxRateType.ACCOMODATION,
   variantAttributes: {
     edges: [
       {

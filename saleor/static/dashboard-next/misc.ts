@@ -1,4 +1,6 @@
 import { stringify } from "qs";
+import { TaxRateType } from "./gql-types";
+import i18n from "./i18n";
 
 export interface PageInfo {
   endCursor: string;
@@ -52,7 +54,7 @@ export function createPaginationData(
       url +
         "?" +
         stringify({
-          after: pageInfo.endCursor
+          after: encodeURIComponent(pageInfo.endCursor)
         }),
       true
     );
@@ -65,7 +67,7 @@ export function createPaginationData(
       url +
         "?" +
         stringify({
-          before: pageInfo.startCursor
+          before: encodeURIComponent(pageInfo.startCursor)
         }),
       true
     );
@@ -109,3 +111,36 @@ export function decimal(value: string) {
 
 export const removeDoubleSlashes = (url: string) =>
   url.replace(/([^:]\/)\/+/g, "$1");
+
+export const translatedTaxRates = () => ({
+  [TaxRateType.ACCOMODATION]: i18n.t("Accomodation"),
+  [TaxRateType.ADMISSION_TO_CULTURAL_EVENTS]: i18n.t(
+    "Admission to cultural events"
+  ),
+  [TaxRateType.ADMISSION_TO_ENTERTAINMENT_EVENTS]: i18n.t(
+    "Admission to entertainment events"
+  ),
+  [TaxRateType.ADMISSION_TO_SPORTING_EVENTS]: i18n.t(
+    "Admission to sporting events"
+  ),
+  [TaxRateType.ADVERTISING]: i18n.t("Advertising"),
+  [TaxRateType.AGRICULTURAL_SUPPLIES]: i18n.t("Agricultural supplies"),
+  [TaxRateType.BABY_FOODSTUFFS]: i18n.t("Baby foodstuffs"),
+  [TaxRateType.BIKES]: i18n.t("Bikes"),
+  [TaxRateType.BOOKS]: i18n.t("Books"),
+  [TaxRateType.CHILDRENS_CLOTHING]: i18n.t("Children's clothing"),
+  [TaxRateType.DOMESTIC_FUEL]: i18n.t("Domestic fuel"),
+  [TaxRateType.DOMESTIC_SERVICES]: i18n.t("Domestic services"),
+  [TaxRateType.E_BOOKS]: i18n.t("E-books"),
+  [TaxRateType.FOODSTUFFS]: i18n.t("Foodstuffs"),
+  [TaxRateType.HOTELS]: i18n.t("Hotels"),
+  [TaxRateType.MEDICAL]: i18n.t("Medical"),
+  [TaxRateType.NEWSPAPERS]: i18n.t("Newspapers"),
+  [TaxRateType.PASSENGER_TRANSPORT]: i18n.t("Passenger transport"),
+  [TaxRateType.PHARMACEUTICALS]: i18n.t("Pharmaceuticals"),
+  [TaxRateType.PROPERTY_RENOVATIONS]: i18n.t("Property renovations"),
+  [TaxRateType.RESTAURANTS]: i18n.t("Restaurants"),
+  [TaxRateType.SOCIAL_HOUSING]: i18n.t("Social housing"),
+  [TaxRateType.STANDARD]: i18n.t("Standard"),
+  [TaxRateType.WATER]: i18n.t("Water")
+});

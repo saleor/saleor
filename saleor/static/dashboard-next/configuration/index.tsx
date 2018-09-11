@@ -10,13 +10,15 @@ import Monetization from "../icons/Monetization";
 import Navigation from "../icons/Navigation";
 import Pages from "../icons/Pages";
 import StoreMall from "../icons/StoreMall";
+import { productTypeListUrl } from "../productTypes";
 import ConfigurationPage from "./ConfigurationPage";
 
 export const configurationMenu = [
   {
     description: i18n.t("Define types of products you sell"),
     icon: <Folder fontSize="inherit" />,
-    title: i18n.t("Product Types")
+    title: i18n.t("Product Types"),
+    url: productTypeListUrl
   },
   {
     description: i18n.t("Define attributes of products yousell"),
