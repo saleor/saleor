@@ -675,14 +675,6 @@ export interface ProductTypeDetailsQuery {
   } | null,
 };
 
-export interface ProductTypeCreateDataQuery {
-  __type:  {
-    enumValues:  Array< {
-      name: string,
-    } > | null,
-  } | null,
-};
-
 export interface SearchAttributeQueryVariables {
   search: string,
 };
