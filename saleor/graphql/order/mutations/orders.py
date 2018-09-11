@@ -1,15 +1,15 @@
 import graphene
-from django.utils.translation import npgettext_lazy, pgettext_lazy
+from django.utils.translation import pgettext_lazy
 from graphql_jwt.decorators import permission_required
 from payments import PaymentError, PaymentStatus
 
-from ....order import CustomPaymentChoices, models
+from ....order import CustomPaymentChoices, OrderEvents, models
 from ....order.utils import cancel_order
 from ...account.types import AddressInput
-from ...core.mutations import BaseMutation, ModelMutation
+from ...core.mutations import BaseMutation
 from ...core.types.common import Decimal, Error
 from ...order.mutations.draft_orders import DraftOrderUpdate
-from ...order.types import Order
+from ...order.types import Order, OrderEvent
 
 
 def try_payment_action(action, money, errors):
@@ -63,32 +63,40 @@ class OrderUpdate(DraftOrderUpdate):
 
 
 class OrderAddNoteInput(graphene.InputObjectType):
-    order = graphene.ID(description='ID of the order.', name='order')
-    user = graphene.ID(
-        description='ID of the user who added note.', name='user')
-    content = graphene.String(description='Note content.')
+    message = graphene.String(description='Note message.', name='message')
 
 
-class OrderAddNote(ModelMutation):
+class OrderAddNote(BaseMutation):
     class Arguments:
+        id = graphene.ID(
+            required=True,
+            description='ID of the order to add a note for.', name='order')
         input = OrderAddNoteInput(
             required=True,
-            description='Fields required to add note to order.')
+            description='Fields required to create a note for the order.')
 
     class Meta:
-        description = 'Adds note to order.'
-        model = models.OrderNote
+        description = 'Adds note to the order.'
+
+    order = graphene.Field(
+        Order, description='Order with the note added.')
+    event = graphene.Field(
+        OrderEvent, description='Order note created.')
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('order.manage_orders')
+    @permission_required('order.manage_orders')
+    def mutate(cls, root, info, id, input):
+        errors = []
+        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        if errors:
+            return OrderAddNote(errors=errors)
 
-    @classmethod
-    def save(cls, info, instance, cleaned_input):
-        super().save(info, instance, cleaned_input)
-        msg = pgettext_lazy(
-            'Dashboard message related to an order', 'Added note')
-        instance.order.history.create(content=msg, user=info.context.user)
+        event = order.events.create(
+            type=OrderEvents.NOTE_ADDED.value,
+            user=info.context.user,
+            parameters={
+                'message': input['message']})
+        return OrderAddNote(order=order, event=event)
 
 
 class OrderCancel(BaseMutation):
@@ -115,17 +123,14 @@ class OrderCancel(BaseMutation):
 
         cancel_order(order=order, restock=restock)
         if restock:
-            restock_msg = npgettext_lazy(
-                'Dashboard message related to an order',
-                'Restocked %(quantity)d item',
-                'Restocked %(quantity)d items',
-                'quantity') % {'quantity': order.get_total_quantity()}
-            order.history.create(
-                content=restock_msg, user=info.context.user)
+            order.events.create(
+                type=OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value,
+                user=info.context.user,
+                parameters={'quantity': order.get_total_quantity()})
         else:
-            msg = pgettext_lazy(
-                'Dashboard message related to an order', 'Order canceled')
-            order.history.create(content=msg, user=info.context.user)
+            order.events.create(
+                type=OrderEvents.ORDER_CANCELED.value,
+                user=info.context.user)
         return OrderCancel(order=order)
 
 
@@ -166,10 +171,10 @@ class OrderMarkAsPaid(BaseMutation):
             variant=CustomPaymentChoices.MANUAL,
             status=PaymentStatus.CONFIRMED, order=order,
             defaults=defaults)
-        msg = pgettext_lazy(
-            'Dashboard message related to an order',
-            'Order manually marked as paid.')
-        order.history.create(content=msg, user=info.context.user)
+
+        order.events.create(
+            type=OrderEvents.ORDER_MARKED_AS_PAID.value,
+            user=info.context.user)
         return OrderMarkAsPaid(order=order)
 
 
@@ -198,10 +203,10 @@ class OrderCapture(BaseMutation):
         if errors:
             return OrderCapture(errors=errors)
 
-        msg = pgettext_lazy(
-            'Dashboard message related to an order',
-            'Captured %(amount)s' % {'amount': amount})
-        order.history.create(content=msg, user=info.context.user)
+        order.events.create(
+            parameters={'amount': amount},
+            type=OrderEvents.PAYMENT_CAPTURED.value,
+            user=info.context.user)
         return OrderCapture(order=order)
 
 
@@ -228,10 +233,9 @@ class OrderRelease(BaseMutation):
         if errors:
             return OrderRelease(errors=errors)
 
-        msg = pgettext_lazy(
-            'Dashboard message related to an order',
-            'Released payment')
-        order.history.create(content=msg, user=info.context.user)
+        order.events.create(
+            type=OrderEvents.PAYMENT_RELEASED.value,
+            user=info.context.user)
         return OrderRelease(order=order)
 
 
@@ -260,8 +264,8 @@ class OrderRefund(BaseMutation):
         if errors:
             return OrderRefund(errors=errors)
 
-        msg = pgettext_lazy(
-            'Dashboard message related to an order',
-            'Refunded %(amount)s' % {'amount': amount})
-        order.history.create(content=msg, user=info.context.user)
+        order.events.create(
+            type=OrderEvents.PAYMENT_REFUNDED.value,
+            user=info.context.user,
+            parameters={'amount': amount})
         return OrderRefund(order=order)

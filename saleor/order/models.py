@@ -11,15 +11,16 @@ from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
+from jsonfield import JSONField
 from measurement.measures import Weight
 from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
 from prices import Money, TaxedMoney
 
-from . import FulfillmentStatus, OrderStatus
+from . import FulfillmentStatus, OrderEvents, OrderStatus, display_order_event
 from ..account.models import Address
-from ..core.models import BaseNote
 from ..core.utils import build_absolute_uri
+from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.taxes import ZERO_TAXED_MONEY
 from ..core.weight import WeightUnits, zero_weight
 from ..discount.models import Voucher
@@ -314,23 +315,31 @@ class Payment(BasePayment):
         return Money(self.captured_amount, self.currency)
 
 
-class OrderHistoryEntry(models.Model):
+class OrderEvent(models.Model):
+    """Model used to store events that happened during the order lifecycle.
+
+        Args:
+            parameters: Values needed to display the event on the storefront
+            type: Type of an order
+    """
     date = models.DateTimeField(default=now, editable=False)
+    type = models.CharField(
+        max_length=255,
+        choices=((event.name, event.value) for event in OrderEvents))
     order = models.ForeignKey(
-        Order, related_name='history', on_delete=models.CASCADE)
-    content = models.TextField()
+        Order, related_name='events', on_delete=models.CASCADE)
+    parameters = JSONField(
+        blank=True, default={},
+        dump_kwargs={'cls': CustomJsonEncoder, 'separators': (',', ':')})
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True,
-        on_delete=models.SET_NULL)
+        on_delete=models.SET_NULL, related_name='+')
 
     class Meta:
         ordering = ('date', )
 
+    def __repr__(self):
+        return 'OrderEvent(type=%r, user=%r)' % (self.type, self.user)
 
-class OrderNote(BaseNote):
-    order = models.ForeignKey(
-        Order, related_name='notes', on_delete=models.CASCADE)
-    is_public = None
-
-    class Meta:
-        ordering = ('date', )
+    def get_event_display(self):
+        return display_order_event(self)
