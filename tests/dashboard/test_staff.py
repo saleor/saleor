@@ -125,7 +125,7 @@ def test_create_staff_and_set_password(admin_client):
     response = admin_client.post(url, data)
     assert response.status_code == 302
     new_user = User.objects.get(email='staff3@example.com')
-    assert not new_user.has_usable_password()
+    assert not new_user.password
     uid = urlsafe_base64_encode(force_bytes(new_user.pk)).decode()
     token = default_token_generator.make_token(new_user)
     response = admin_client.get(
