@@ -55,7 +55,6 @@ interface ProductTypeDetailsPageProps {
     id: string;
     name: string;
   }>;
-  taxRates: TaxRateType[];
   onAttributeSearch: (name: string) => void;
   onBack: () => void;
   onDelete?: () => void;
@@ -80,7 +79,6 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
     saveButtonBarState,
     searchLoading,
     searchResults,
-    taxRates,
     variantAttributes,
     onAttributeSearch,
     onBack,
@@ -148,7 +146,6 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
                       <ProductTypeProperties
                         data={data}
                         disabled={disabled}
-                        taxRates={taxRates}
                         onChange={change}
                       />
                     </div>

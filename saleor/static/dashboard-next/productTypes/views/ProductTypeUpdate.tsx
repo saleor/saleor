@@ -6,8 +6,7 @@ import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import {
   ProductTypeDeleteMutation,
-  ProductTypeUpdateMutation,
-  TaxRateType
+  ProductTypeUpdateMutation
 } from "../../gql-types";
 import i18n from "../../i18n";
 import ProductTypeDetailsPage, {
@@ -136,13 +135,6 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                 searchState.data.attributes
                                   ? searchState.data.attributes.edges.map(
                                       edge => edge.node
-                                    )
-                                  : []
-                              }
-                              taxRates={
-                                data && data.__type && data.__type.enumValues
-                                  ? data.__type.enumValues.map(
-                                      value => value.name as TaxRateType
                                     )
                                   : []
                               }
