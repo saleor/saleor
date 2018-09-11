@@ -6,10 +6,10 @@ from payments import PaymentError, PaymentStatus
 from ....order import CustomPaymentChoices, OrderEvents, models
 from ....order.utils import cancel_order
 from ...account.types import AddressInput
-from ...core.mutations import BaseMutation, ModelMutation
+from ...core.mutations import BaseMutation
 from ...core.types.common import Decimal, Error
 from ...order.mutations.draft_orders import DraftOrderUpdate
-from ...order.types import Order
+from ...order.types import Order, OrderEvent
 
 
 def try_payment_action(action, money, errors):
@@ -63,33 +63,40 @@ class OrderUpdate(DraftOrderUpdate):
 
 
 class OrderAddNoteInput(graphene.InputObjectType):
-    user = graphene.ID(
-        description='ID of the user who added the note.', name='user')
-    content = graphene.String(description='Note content.', name='content')
-    order = graphene.ID(description='ID of the order.', name='order')
+    message = graphene.String(description='Note message.', name='message')
 
 
-class OrderAddNote(ModelMutation):
-    class Meta:
-        description = 'Adds note to order.'
-        model = models.OrderEvent
-        exclude = ['date', 'type', 'order']
-
+class OrderAddNote(BaseMutation):
     class Arguments:
+        id = graphene.ID(
+            required=True,
+            description='ID of the order to add a note for.', name='order')
         input = OrderAddNoteInput(
-            description='Fields required to add note to the order.')
+            required=True,
+            description='Fields required to create a note for the order.')
+
+    class Meta:
+        description = 'Adds note to the order.'
+
+    order = graphene.Field(
+        Order, description='Order with the note added.')
+    event = graphene.Field(
+        OrderEvent, description='Order note created.')
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('order.manage_orders')
+    @permission_required('order.manage_orders')
+    def mutate(cls, root, info, id, input):
+        errors = []
+        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        if errors:
+            return OrderAddNote(errors=errors)
 
-    @classmethod
-    def save(cls, info, instance, cleaned_input):
-        cleaned_input['type'] = OrderEvents.NOTE_ADDED.value
-        cleaned_input['user'] = info.context.user
-        cleaned_input['parameters'] = {
-            'message': cleaned_input.pop('content', 'KURWA')}
-        super().save(info, instance, cleaned_input)
+        event = order.events.create(
+            type=OrderEvents.NOTE_ADDED.value,
+            user=info.context.user,
+            parameters={
+                'message': input['message']})
+        return OrderAddNote(order=order, event=event)
 
 
 class OrderCancel(BaseMutation):

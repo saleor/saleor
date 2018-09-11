@@ -3,7 +3,7 @@ from django.utils.translation import npgettext_lazy, pgettext_lazy
 from graphql_jwt.decorators import permission_required
 
 from ....dashboard.order.utils import fulfill_order_line
-from ....order import OrderEvents, models
+from ....order import OrderEvents, OrderEventsEmails, models
 from ....order.emails import send_fulfillment_confirmation
 from ....order.utils import cancel_fulfillment, update_order_status
 from ...core.mutations import BaseMutation, ModelMutation
@@ -125,8 +125,10 @@ class FulfillmentCreate(ModelMutation):
         if cleaned_input.get('notify_customer'):
             send_fulfillment_confirmation.delay(order.pk, instance.pk)
             order.events.create(
-                parameters={'email': order.get_user_current_email()},
-                type=OrderEvents.EMAIL_SHIPPING_CONFIRMATION_SEND.value,
+                parameters={
+                    'email': order.get_user_current_email(),
+                    'email_type': OrderEventsEmails.FULFILLMENT.value},
+                type=OrderEvents.EMAIL_SENT.value,
                 user=info.context.user)
 
 
@@ -184,7 +186,7 @@ class FulfillmentCancel(BaseMutation):
                 user=info.context.user)
         else:
             order.events.create(
-                parameters={'id': fulfillment.composed_id},
+                parameters={'composed_id': fulfillment.composed_id},
                 type=OrderEvents.FULFILLMENT_CANCELED.value,
                 user=info.context.user)
         return FulfillmentCancel(fulfillment=fulfillment)
