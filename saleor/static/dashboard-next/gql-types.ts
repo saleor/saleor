@@ -27,14 +27,14 @@ export interface ProductTypeInput {
 export enum TaxRateType {
   ACCOMODATION = "ACCOMODATION",
   ADMISSION_TO_CULTURAL_EVENTS = "ADMISSION_TO_CULTURAL_EVENTS",
-  ADMISSION_TO_ENTERAINMENT_EVENTS = "ADMISSION_TO_ENTERAINMENT_EVENTS",
+  ADMISSION_TO_ENTERTAINMENT_EVENTS = "ADMISSION_TO_ENTERTAINMENT_EVENTS",
   ADMISSION_TO_SPORTING_EVENTS = "ADMISSION_TO_SPORTING_EVENTS",
   ADVERTISING = "ADVERTISING",
   AGRICULTURAL_SUPPLIES = "AGRICULTURAL_SUPPLIES",
   BABY_FOODSTUFFS = "BABY_FOODSTUFFS",
   BIKES = "BIKES",
   BOOKS = "BOOKS",
-  CHILDRENDS_CLOTHING = "CHILDRENDS_CLOTHING",
+  CHILDRENS_CLOTHING = "CHILDRENS_CLOTHING",
   DOMESTIC_FUEL = "DOMESTIC_FUEL",
   DOMESTIC_SERVICES = "DOMESTIC_SERVICES",
   E_BOOKS = "E_BOOKS",
@@ -49,7 +49,6 @@ export enum TaxRateType {
   SOCIAL_HOUSING = "SOCIAL_HOUSING",
   STANDARD = "STANDARD",
   WATER = "WATER",
-  WINE = "WINE",
 }
 
 
@@ -1323,7 +1322,6 @@ export interface VariantUpdateMutationVariables {
   attributes?: Array< AttributeValueInput | null > | null,
   costPrice?: string | null,
   priceOverride?: string | null,
-  product?: string | null,
   sku?: string | null,
   quantity?: number | null,
   trackInventory: boolean,
@@ -1453,7 +1451,7 @@ export interface VariantCreateMutationVariables {
   attributes?: Array< AttributeValueInput | null > | null,
   costPrice?: string | null,
   priceOverride?: string | null,
-  product?: string | null,
+  product: string,
   sku?: string | null,
   quantity?: number | null,
   trackInventory: boolean,
