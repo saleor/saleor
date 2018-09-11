@@ -1,13 +1,18 @@
+from decimal import Decimal
+
 import graphene
 from graphene import relay
+from payments import PaymentStatus
 
 from ...order import OrderEvents, models
 from ..account.types import User
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
-from decimal import Decimal
 
 OrderEventsEnum = graphene.Enum.from_enum(OrderEvents)
+PaymentStatusEnum = graphene.Enum(
+    'PaymentStatusEnum',
+    [(code.upper(), code) for code, name in PaymentStatus.CHOICES])
 
 
 class OrderEvent(CountableDjangoObjectType):
@@ -84,7 +89,7 @@ class Order(CountableDjangoObjectType):
     is_paid = graphene.Boolean(
         description='Informs if an order is fully paid.')
     number = graphene.String(description='User-friendly number of an order.')
-    payment_status = graphene.String(description='Internal payment status.')
+    payment_status = PaymentStatusEnum(description='Internal payment status.')
     payment_status_display = graphene.String(
         description='User-friendly payment status.')
     subtotal = graphene.Field(
