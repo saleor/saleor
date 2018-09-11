@@ -11,7 +11,6 @@ from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
 
-from ..core.models import BaseNote
 from .validators import validate_possible_number
 
 
@@ -153,7 +152,13 @@ class User(PermissionsMixin, AbstractBaseUser):
         return self.email
 
 
-class CustomerNote(BaseNote):
+class CustomerNote(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, blank=True, null=True,
+        on_delete=models.SET_NULL)
+    date = models.DateTimeField(db_index=True, auto_now_add=True)
+    content = models.TextField()
+    is_public = models.BooleanField(default=True)
     customer = models.ForeignKey(
         settings.AUTH_USER_MODEL, related_name='notes',
         on_delete=models.CASCADE)

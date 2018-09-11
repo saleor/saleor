@@ -9,7 +9,7 @@ from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.types.common import Decimal, Error
 from ...order.mutations.draft_orders import DraftOrderUpdate
-from ...order.types import Order, OrderEventsEnum
+from ...order.types import Order
 
 
 def try_payment_action(action, money, errors):
@@ -63,21 +63,21 @@ class OrderUpdate(DraftOrderUpdate):
 
 
 class OrderAddNoteInput(graphene.InputObjectType):
-    order = graphene.ID(description='ID of the order.', name='order')
     user = graphene.ID(
-        description='ID of the user who added note.', name='user')
-    content = graphene.String(description='Note content.')
+        description='ID of the user who added the note.', name='user')
+    content = graphene.String(description='Note content.', name='content')
+    order = graphene.ID(description='ID of the order.', name='order')
 
 
 class OrderAddNote(ModelMutation):
-    class Arguments:
-        input = OrderAddNoteInput(
-            required=True,
-            description='Fields required to add note to order.')
-
     class Meta:
         description = 'Adds note to order.'
         model = models.OrderEvent
+        exclude = ['date', 'type', 'order']
+
+    class Arguments:
+        input = OrderAddNoteInput(
+            description='Fields required to add note to the order.')
 
     @classmethod
     def user_is_allowed(cls, user, input):
@@ -85,41 +85,11 @@ class OrderAddNote(ModelMutation):
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
+        cleaned_input['type'] = OrderEvents.NOTE_ADDED.value
+        cleaned_input['user'] = info.context.user
+        cleaned_input['parameters'] = {
+            'message': cleaned_input.pop('content', 'KURWA')}
         super().save(info, instance, cleaned_input)
-        instance.order.events.create(
-            type=OrderEvents.NOTE_ADDED.value,
-            user=info.context.user)
-
-
-class OrderAddEventInput(graphene.InputObjectType):
-    order = graphene.ID(description='ID of the order.', name='order')
-    user = graphene.ID(
-        description='ID of the user who performed the changes.',
-        name='user')
-    content = graphene.String(description='Note content.')
-    event = OrderEventsEnum(description='Type of an event.')
-
-
-class OrderAddEvent(ModelMutation):
-    class Arguments:
-        input = OrderAddNoteInput(
-            required=True,
-            description='Fields required to add note to order.')
-
-    class Meta:
-        description = 'Adds note to order.'
-        model = models.OrderEvent
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('order.manage_orders')
-
-    @classmethod
-    def save(cls, info, instance, cleaned_input):
-        super().save(info, instance, cleaned_input)
-        instance.order.events.create(
-            type=OrderEvents.NOTE_ADDED.value,
-            user=info.context.user)
 
 
 class OrderCancel(BaseMutation):
