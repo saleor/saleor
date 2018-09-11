@@ -7,6 +7,7 @@ import ControlledCheckbox from "../../../components/ControlledCheckbox";
 import FormSpacer from "../../../components/FormSpacer";
 import SingleSelectField from "../../../components/SingleSelectField";
 import i18n from "../../../i18n";
+import { translatedTaxRates as taxRates } from "../../../misc";
 
 interface ProductTypePropertiesProps {
   data?: {
@@ -15,13 +16,17 @@ interface ProductTypePropertiesProps {
     taxRate: string;
   };
   disabled: boolean;
-  taxRates: string[];
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
+const taxRateChoices = Object.keys(taxRates()).map(key => ({
+  label: taxRates()[key],
+  value: key
+}));
+
 const ProductTypeProperties: React.StatelessComponent<
   ProductTypePropertiesProps
-> = ({ data, disabled, taxRates, onChange }) => (
+> = ({ data, disabled, onChange }) => (
   <Card>
     <CardTitle title={i18n.t("Properties")} />
     <CardContent>
@@ -41,7 +46,7 @@ const ProductTypeProperties: React.StatelessComponent<
       />
       <FormSpacer />
       <SingleSelectField
-        choices={taxRates.map(t => ({ label: i18n.t(t), value: t }))}
+        choices={taxRateChoices}
         hint={i18n.t("Optional")}
         label={i18n.t("Tax rate")}
         name="taxRate"
