@@ -2,28 +2,34 @@ header {
   width: 100%;
   position: fixed;
   z-index: 999;
-  background-color: transparent;
+  /*background-color: transparent;*/
   transition: background-color 0.4s ease;
-  &.sticky {
-    background-color: var(--background-color);
-    background-image: url('../../images/background.svg');
-    background-size: cover;
-    max-width: var(--layout-width);
-    left: 50%;
-    transform: translateX(-50%);
-    box-sizing: border-box;
-    & .container {
-      margin-top: var(--spacer);
-      border: solid var(--border-width) var(--sectionBorder);
-    }
-    @media (max-width: 1024px) {
-      width: calc(100% - calc(var(--spacer) * 4))
-    }
+  background-image: linear-gradient(-150deg, rgba(254,62,62, 0.3) 0%, rgba(125,185,232,0) 26%, rgba(125,185,232,0) 100%), url('../../images/background.svg');
+  background-attachment: fixed, scroll;
+  background-position: 0 0, 50% 0;
+  background-size: cover, cover;
+  & .container {
+    padding: 0 calc(var(--spacer) * 2) 0 calc(var(--spacer) * 1.1);
     @media (max-width: 768px) {
-      width: calc(100% - calc(var(--spacer) * 2))
+      padding: 0 var(--spacer);
     }
     @media (max-width: 450px) {
-      width: calc(100% - calc(var(--spacer) * 0.5))
+      padding: 0 calc(var(--spacer) * 0.5);
+    }
+  }
+  &.sticky {
+    width: 100%;
+    @media (max-width: 1024px) {
+      width: 100%;
+    }
+    @media (max-width: 768px) {
+      width: 100%;
+    }
+    @media (max-width: 450px) {
+      width: 100%;
+    }
+    & .grid {
+      border-bottom: solid var(--border-width) var(--sectionBorder);
     }
     & .logo {
       transition: padding 0.3s ease;

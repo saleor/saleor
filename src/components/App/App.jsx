@@ -15,10 +15,10 @@ class App extends Component {
     return (
       <Router>
         <Fragment>
+          <CookiesProvider>
+            <Header cookies={this.props.cookies} />
+          </CookiesProvider>
           <Parallax speed={0.3}>
-            <CookiesProvider>
-              <Header cookies={this.props.cookies} />
-            </CookiesProvider>
             <section className="container">
               <Switch>
                 <Route exact path="/" component={Home} />

@@ -5,7 +5,8 @@ class Parallax extends Component {
   constructor(props) {
     super(props);
     this.state = { 
-      scheduledAnimationFrame: false
+      scheduledAnimationFrame: false, 
+      sticky: false,
     }
   }
 
@@ -18,7 +19,7 @@ class Parallax extends Component {
   }
 
   updateBackgroundPosition() {
-    const bodyRect = Math.round(window.scrollY / 2)
+    const bodyRect = Math.round(this.refs.parallax.scrollTop / 2)
     const parallaxRect = this.refs.parallax.getBoundingClientRect();
     const offset = bodyRect - parallaxRect.top;
     const positionValue = Math.round(offset * this.props.speed);
@@ -33,6 +34,8 @@ class Parallax extends Component {
   }
   
   handleScroll(event) {
+    const scrollPosition = this.refs.parallax.scrollTop;
+    if (scrollPosition > 32) { this.setState({sticky: true}); } else { this.setState({sticky: false}); }
     if (this.state.scheduledAnimationFrame){
       return;
     }
@@ -42,7 +45,7 @@ class Parallax extends Component {
 
   render() {
     return (
-      <div id="parallax" ref="parallax">
+      <div id="parallax" className={this.state.sticky ? 'sticky' : null} ref="parallax">
         {this.props.children}
       </div>
     );

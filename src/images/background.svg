@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Generator: Adobe Illustrator 22.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 5500 7581.8" style="enable-background:new 0 0 5500 7581.8;" xml:space="preserve">
+	 viewBox="0 0 5500 7574" style="enable-background:new 0 0 5500 7574;" xml:space="preserve">
 <style type="text/css">
 	.st0{fill:#0A0149;}
 	.st1{opacity:0.3;}
@@ -10,7 +10,7 @@
 	.st4{fill:#1C153C;}
 	.st5{fill:#241C4D;}
 </style>
-<rect x="0" class="st0" width="5500" height="7574"/>
+<rect class="st0" width="5500" height="7574"/>
 <g class="st1">
 	<polygon class="st2" points="2.8,0 2.8,399.2 402,0 	"/>
 	<polygon class="st3" points="402,0 2.8,399.2 2.8,821.5 824.3,0 	"/>
@@ -33,7 +33,7 @@
 	<polygon class="st4" points="2.8,6734.2 2.8,7156.5 5500,1659.4 5500,1237 	"/>
 	<polygon class="st3" points="2.8,7156.4 2.8,7574 7.6,7574 5500,2081.6 5500,1659.2 	"/>
 	<polygon class="st3" points="7.6,7574 2.8,7574 2.8,7578.8 	"/>
-	<polygon class="st2" points="2.8,7579 0,7581.8 2.8,7581.8 	"/>
+	<line class="st2" x1="2.8" y1="7581.8" x2="2.8" y2="7579"/>
 	<polygon class="st2" points="7.7,7574 430.1,7574 5500,2504.1 5500,2081.8 	"/>
 	<polygon class="st3" points="430.1,7574 493.5,7574 852.4,7574 5500,2926.4 5500,2504.1 	"/>
 	<polygon class="st4" points="852.4,7574 1274.7,7574 5500,3348.7 5500,2926.4 	"/>

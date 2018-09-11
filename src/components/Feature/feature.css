@@ -1,9 +1,5 @@
 #feature {
     border: solid var(--border-width) var(--sectionBorder);
-    margin-top: calc(var(--spacer) * 10);
-    @media (max-width: 768px) {
-      margin-top: calc(var(--spacer) * 6);
-    }
     & section {
         & .bg-container {
           background-image: url('../../images/feature-bg.svg');
