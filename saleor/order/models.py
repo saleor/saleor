@@ -329,8 +329,11 @@ class OrderEvent(models.Model):
         settings.AUTH_USER_MODEL, blank=True, null=True,
         on_delete=models.SET_NULL, related_name='+')
 
-    def get_event_display(self):
-        return display_order_event(self)
-
     class Meta:
         ordering = ('date', )
+
+    def __repr__(self):
+        return 'OrderEvent(type=%r, user=%r)' % (self.type, self.user)
+
+    def get_event_display(self):
+        return display_order_event(self)

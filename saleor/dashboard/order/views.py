@@ -676,6 +676,7 @@ def cancel_fulfillment(request, order_pk, fulfillment_pk):
                     type=OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value)
             order.events.create(
                 user=request.user,
+                parameters={'composed_id': fulfillment.composed_id},
                 type=OrderEvents.FULFILLMENT_CANCELED.value)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)

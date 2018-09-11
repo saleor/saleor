@@ -17,11 +17,13 @@ class OrderEvent(CountableDjangoObjectType):
         description='User who performed the action.')
     message = graphene.String(
         description='Content of a note added to the order.')
-    email = graphene.String(description='Email of an user')
+    email = graphene.String(description='Email of the customer')
     email_type = graphene.String(
-        description='Type of an email sent to the user')
+        description='Type of an email sent to the customer')
     amount = graphene.Float(description='Amount of money.')
     quantity = graphene.Int(description='Number of items.')
+    composed_id = graphene.String(
+        description='Composed id of the Fulfillment.')
 
     class Meta:
         description = 'History log of the order.'
@@ -45,6 +47,9 @@ class OrderEvent(CountableDjangoObjectType):
 
     def resolve_message(self, info):
         return self.parameters.get('message', None)
+
+    def resolve_composed_id(self, info):
+        return self.parameters.get('composed_id', None)
 
 
 class Fulfillment(CountableDjangoObjectType):

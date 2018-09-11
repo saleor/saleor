@@ -1,8 +1,10 @@
 from enum import Enum
 
 from django.apps import AppConfig
-from django.utils.translation import pgettext_lazy, npgettext_lazy
+from django.conf import settings
+from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.templatetags import prices_i18n
+from prices import Money
 
 
 class OrderAppConfig(AppConfig):
@@ -89,6 +91,7 @@ class OrderEventsEmails(Enum):
     PAYMENT = 'payment_confirmation'
     SHIPPING = 'shipping_confirmation'
     ORDER = 'order_confirmation'
+    FULFILLMENT = 'fulfillment_confirmation'
 
 
 EMAIL_CHOICES = {
@@ -96,6 +99,8 @@ EMAIL_CHOICES = {
         'Email type', 'Payment confirmation'),
     OrderEventsEmails.SHIPPING.value: pgettext_lazy(
         'Email type', 'Shipping confirmation'),
+    OrderEventsEmails.FULFILLMENT.value: pgettext_lazy(
+        'Email type', 'Fulfillment confirmation'),
     OrderEventsEmails.ORDER.value: pgettext_lazy(
         'Email type', 'Order confirmation')}
 
@@ -118,15 +123,19 @@ def display_order_event(order_event):
             'Payment was released by %(user_name)s' % {
                 'user_name': order_event.user})
     if event_type == OrderEvents.PAYMENT_REFUNDED.value:
+        amount = Money(
+            amount=params['amount'], currency=settings.DEFAULT_CURRENCY)
         return pgettext_lazy(
             'Dashboard message related to an order',
             'Successfully refunded: %(amount)s' % {
-                'amount': prices_i18n.amount(params['amount'])})
+                'amount': prices_i18n.amount(amount)})
     if event_type == OrderEvents.PAYMENT_CAPTURED.value:
+        amount = Money(
+            amount=params['amount'], currency=settings.DEFAULT_CURRENCY)
         return pgettext_lazy(
             'Dashboard message related to an order',
             'Successfully captured: %(amount)s' % {
-                'amount': prices_i18n.amount(params['amount'])})
+                'amount': prices_i18n.amount(amount)})
     if event_type == OrderEvents.ORDER_MARKED_AS_PAID.value:
         return pgettext_lazy(
             'Dashboard message related to an order',
@@ -153,7 +162,7 @@ def display_order_event(order_event):
         return pgettext_lazy(
             'Dashboard message',
             'Fulfillment #%(fulfillment)s canceled by %(user_name)s') % {
-                'fulfillment': params['id'],
+                'fulfillment': params['composed_id'],
                 'user_name': order_event.user}
     if event_type == OrderEvents.FULFILLMENT_FULFILLED_ITEMS.value:
         return npgettext_lazy(
@@ -182,4 +191,6 @@ def display_order_event(order_event):
             'Dashboard message related to an order',
             'Order details were updated by %(user_name)s' % {
                 'user_name': order_event.user})
+    if event_type == OrderEvents.OTHER.value:
+        return order_event.parameters['message']
     raise ValueError('Not supported event type: %s' % (event_type))

@@ -13,8 +13,9 @@ from saleor.dashboard.order.utils import (
     fulfill_order_line, remove_customer_from_order, save_address_in_order,
     update_order_with_user_addresses)
 from saleor.discount.utils import increase_voucher_usage
-from saleor.order import FulfillmentStatus, OrderEvents, OrderStatus
-from saleor.order.models import Order, OrderLine
+from saleor.order import (
+    FulfillmentStatus, OrderEvents, OrderEventsEmails, OrderStatus)
+from saleor.order.models import Order, OrderLine, OrderEvent
 from saleor.order.utils import add_variant_to_order, change_order_line_quantity
 from saleor.product.models import ProductVariant
 from saleor.shipping.models import ShippingZone
@@ -1218,3 +1219,16 @@ def test_view_add_order_note(admin_client, order_with_lines):
     assert response.status_code == 200
     order_with_lines.refresh_from_db()
     assert order_with_lines.events.first().parameters['message'] == note_content  # noqa
+
+
+@pytest.mark.parametrize('type', [e.value for e in OrderEvents])
+def test_order_event_display(admin_user, type, order):
+    parameters = {
+        'message': 'Example Note',
+        'quantity': 12,
+        'email_type': OrderEventsEmails.PAYMENT.value,
+        'email': 'example@example.com',
+        'amount': '80.00', 'composed_id': 12}
+    event = OrderEvent(
+        user=admin_user, order=order, parameters=parameters, type=type)
+    event.get_event_display()
