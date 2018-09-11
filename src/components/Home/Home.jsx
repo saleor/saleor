@@ -159,18 +159,7 @@ class Home extends Component {
                       <p>Saleor takes advantage of PWA standards  to optimize mobile experiences of the rapidly growing group of people shopping on the run.</p>
                       <p className="text-light">Allow your customers to buy their next pair of jeans while enjoying a virgin margarita on a plane. They will only need an internet connection when they go to pay with Apple Pay or one of the cards stored by their phone. </p>
                     </div>
-                    <div className="col-xs-12 col-sm-6 col-md-6 image">
-                      <div className="label-wrapper">
-                        <div className="label">
-                          <span className="rectangle primary"></span>
-                          <span>Desktop users</span>
-                        </div>
-                        <div className="label transformed">
-                          <span className="rectangle secondary"></span>
-                          <span>Mobile users</span>
-                        </div>
-                      </div>
-                    </div>
+                    <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
                     <div className="decoration">
                       <img src={decoration01} />
                     </div>

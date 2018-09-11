@@ -391,33 +391,12 @@
           }
           & .image {
             background-image: url('../../images/storefront-icon.svg');
-            background-size: 120%;
+            background-size: 80%;
+            background-position: 20% 0;
             position: relative;
-            & .label-wrapper {
-              position: absolute;
-              top: 65%;
-              left: 75%;
-              z-index: 1;
-              & .label {
-                margin: calc(var(--spacer) * 0.5) 0;
-                font-weight: var(--font-weight-lighter);
-                width: 110px;
-                & .rectangle {
-                  height: calc(var(--spacer) * 0.4);
-                  width: calc(var(--spacer) * 3);
-                  transform: skew(-20deg) translateX(-30%);
-                  display: block;
-                  &.primary {
-                    background-color: var(--primaryColor)
-                  }
-                  &.secondary {
-                    background-color: var(--secondaryColor)
-                  }
-                }
-                &.transformed {
-                  transform: translateX(-20%);
-                }
-              }
+            @media (max-width: 1024px) {
+              background-size: 120%;
+              background-position: 50% 30%;
             }
           }
           & .decoration {
@@ -425,6 +404,9 @@
             right: -15%;
             top: 50%;
             left: initial;
+            @media (max-width: 768px) {
+              right: -24%;
+            }
           }
         }
         &.dashboard {
@@ -467,9 +449,10 @@
         }
         & .dashboard {
           & .image {
-            background-image: url('../../images/dashboard-icon2.png');
+            width: 100%;
+            background-image: url('../../images/dashboard-icon.svg');
             background-size: 80%;
-            background-position: 0%;
+            background-position: 50%;
             height: 300px;
             @media (max-width: 450px) {
               background-size: 120%;
@@ -478,12 +461,13 @@
         }
         & .storefront {
           & .image {
+            width: 100%;
             background-size: 60%;
             background-position: 50% 0%;
             height: 300px;
             @media (max-width: 450px) {
-              background-size: 200%;
-              background-position: 40% 70%;
+              background-size: 110%;
+              background-position: 70% 70%;
             }
           }
         }
