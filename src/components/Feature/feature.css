@@ -137,7 +137,7 @@
           }
         }
         &.management-section {
-          border-top: solid var(--border-width) var(--primaryColor);
+          border-top: solid var(--border-width) var(--sectionBorder);
           padding: calc(var(--spacer) * 4);
           width: fill-available;
           & .side-header {
@@ -184,7 +184,7 @@
           }
         }
         &.documentation {
-          border-top: solid var(--border-width) var(--primaryColor);
+          border-top: solid var(--border-width) var(--sectionBorder);
           padding: calc(var(--spacer) * 4) calc(var(--spacer) * 10);
           margin-bottom: calc(var(--spacer) * 3);
           & h2 {

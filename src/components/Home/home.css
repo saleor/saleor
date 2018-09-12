@@ -491,8 +491,8 @@
     }
     &.open-source {
       position: relative;
-      border-top: solid var(--border-width) var(--primaryColor);
-      border-bottom: solid var(--border-width) var(--primaryColor);
+      border-top: solid var(--border-width) var(--sectionBorder);
+      border-bottom: solid var(--border-width) var(--sectionBorder);
       padding-top: calc(var(--spacer) * 3);
       & .text {
         position: relative;
@@ -668,7 +668,7 @@
       position: relative;
       background: rgb(16,10,53);
       background: linear-gradient(135deg, rgba(16,10,53,0) 8%, rgba(16,10,53,1) 8%, rgba(16,10,53,1) 92%, rgba(16,10,53,0) 92%, rgba(16,10,53,0) 100%);
-      border-bottom: solid var(--border-width) var(--primaryColor);
+      border-bottom: solid var(--border-width) var(--sectionBorder);
       & .head {
         padding: calc(var(--spacer) * 5) 0;
         @media (max-width: 768px) {
