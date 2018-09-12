@@ -2,11 +2,8 @@ import json
 
 from django.core.serializers.base import DeserializationError
 from django.core.serializers.json import (
-    DjangoJSONEncoder,
-    PythonDeserializer,
-    Serializer as JsonSerializer)
+    DjangoJSONEncoder, PythonDeserializer, Serializer as JsonSerializer)
 from prices import Money
-
 
 MONEY_TYPE = 'Money'
 
@@ -33,7 +30,8 @@ def object_hook(obj):
 
 
 def Deserializer(stream_or_string, **options):
-    """Deserialize a stream or string of JSON data."""
+    """Deserialize a stream or string of JSON data. This is a copy of Django
+    implementation with additional argument <object_hook> in json.loads"""
     if not isinstance(stream_or_string, (bytes, str)):
         stream_or_string = stream_or_string.read()
     if isinstance(stream_or_string, bytes):
