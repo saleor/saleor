@@ -677,9 +677,6 @@ ORDER_UPDATE_SHIPPING_QUERY = """
                 field
                 message
             }
-            shippingMethod {
-                id
-            }
             order {
                 id
             }
@@ -700,7 +697,6 @@ def test_order_update_shipping(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderUpdateShipping']
-    assert data['shippingMethod']['id'] == method_id
     assert data['order']['id'] == order_id
 
     order.refresh_from_db()
