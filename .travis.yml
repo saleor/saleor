@@ -23,15 +23,10 @@ env:
     - DATABASE_URL='postgres://postgres@localhost:5432/saleor'
   matrix:
   - DJANGO="1.11"
-  - DJANGO="2.0"
   - DJANGO="2.1"
   - DJANGO="master"
 matrix:
   include:
-    - python: "3.7"
-      sudo: required
-      dist: xenial
-      env: DJANGO="2.0"
     - python: "3.7"
       sudo: required
       dist: xenial
