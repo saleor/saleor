@@ -7,6 +7,7 @@ import graphene
 from django.shortcuts import reverse
 from payments import PaymentStatus
 from saleor.account.models import Address
+from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.graphql.order.mutations.draft_orders import (
     check_for_draft_order_errors)
 from saleor.graphql.order.mutations.orders import (
@@ -666,3 +667,118 @@ def test_clean_order_cancel(order):
     errors = clean_order_cancel(order, [])
     assert errors[0].field == 'order'
     assert errors[0].message == 'This order can\'t be canceled.'
+
+
+ORDER_UPDATE_SHIPPING_QUERY = """
+    mutation orderUpdateShipping($order: ID!, $shippingMethod: ID) {
+        orderUpdateShipping(
+                order: $order, input: {shippingMethod: $shippingMethod}) {
+            errors {
+                field
+                message
+            }
+            shippingMethod {
+                id
+            }
+            order {
+                id
+            }
+        }
+    }
+"""
+
+
+def test_order_update_shipping(
+        admin_api_client, order_with_lines, shipping_method, admin_user):
+    order = order_with_lines
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    method_id = graphene.Node.to_global_id(
+        'ShippingMethod', shipping_method.id)
+    variables = json.dumps({'order': order_id, 'shippingMethod': method_id})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['orderUpdateShipping']
+    assert data['shippingMethod']['id'] == method_id
+    assert data['order']['id'] == order_id
+
+    order.refresh_from_db()
+    shipping_price = shipping_method.get_total_price()
+    assert order.shipping_method == shipping_method
+    assert order.shipping_price_net == shipping_price.net
+    assert order.shipping_price_gross == shipping_price.gross
+    assert order.shipping_method_name == shipping_method.name
+
+
+def test_order_update_shipping_clear_shipping_method(
+        admin_api_client, order, admin_user):
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variables = json.dumps({'order': order_id, 'shippingMethod': None})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['orderUpdateShipping']
+    assert data['order']['id'] == order_id
+
+    order.refresh_from_db()
+    assert order.shipping_method is None
+    assert order.shipping_price == ZERO_TAXED_MONEY
+    assert order.shipping_method_name is None
+
+
+def test_order_update_shipping_shipping_required(
+        admin_api_client, order_with_lines, admin_user):
+    order = order_with_lines
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variables = json.dumps({'order': order_id, 'shippingMethod': None})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['orderUpdateShipping']
+    assert data['errors'][0]['field'] == 'shippingMethod'
+    assert data['errors'][0]['message'] == (
+        'Shipping method is required for this order.')
+
+
+def test_order_update_shipping_no_shipping_address(
+        admin_api_client, order_with_lines, shipping_method, admin_user):
+    order = order_with_lines
+    order.shipping_address = None
+    order.save()
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    method_id = graphene.Node.to_global_id(
+        'ShippingMethod', shipping_method.id)
+    variables = json.dumps({'order': order_id, 'shippingMethod': method_id})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['orderUpdateShipping']
+    assert data['errors'][0]['field'] == 'order'
+    assert data['errors'][0]['message'] == (
+        'Cannot choose a shipping method for an order without'
+        ' the shipping address.')
+
+
+def test_order_update_shipping_incorrect_shipping_method(
+        admin_api_client, order_with_lines, shipping_method, admin_user):
+    order = order_with_lines
+    zone = shipping_method.shipping_zone
+    zone.countries = ['DE']
+    zone.save()
+    assert order.shipping_address.country.code not in zone.countries
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    method_id = graphene.Node.to_global_id(
+        'ShippingMethod', shipping_method.id)
+    variables = json.dumps({'order': order_id, 'shippingMethod': method_id})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['orderUpdateShipping']
+    assert data['errors'][0]['field'] == 'shippingMethod'
+    assert data['errors'][0]['message'] == (
+        'Shipping method cannot be used with this order.')

@@ -10,6 +10,9 @@ from ...core.mutations import BaseMutation
 from ...core.types.common import Decimal, Error
 from ...order.mutations.draft_orders import DraftOrderUpdate
 from ...order.types import Order, OrderEvent
+from ...shipping.types import ShippingMethod
+from ....shipping.models import ShippingMethod as ShippingMethodModel
+from ....core.utils.taxes import ZERO_TAXED_MONEY
 
 
 def try_payment_action(action, money, errors):
@@ -93,6 +96,79 @@ class OrderUpdate(DraftOrderUpdate):
     class Meta:
         description = 'Updates an order.'
         model = models.Order
+
+
+class OrderUpdateShippingInput(graphene.InputObjectType):
+    shipping_method = graphene.ID(
+        description='ID of the selected shipping method.',
+        name='shippingMethod')
+
+
+class OrderUpdateShipping(BaseMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, name='order',
+            description='ID of the order to update a shipping method.')
+        input = OrderUpdateShippingInput(
+            description='Fields required to change '
+                        'shipping method of the order.')
+
+    class Meta:
+        description = 'Updates a shipping method of the order.'
+
+    @classmethod
+    @permission_required('order.manage_orders')
+    def mutate(cls, root, info, id, input):
+        errors = []
+        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+
+        if not input['shipping_method']:
+            if order.is_shipping_required():
+                cls.add_error(
+                    errors, 'shippingMethod',
+                    'Shipping method is required for this order.')
+                return OrderUpdateShipping(errors=errors)
+            order.shipping_method = None
+            order.shipping_price == ZERO_TAXED_MONEY
+            order.shipping_method_name = None
+            order.save()
+            return OrderUpdateShipping(order=order, shipping_method=None)
+
+        method = cls.get_node_or_error(
+            info, input['shipping_method'], errors,
+            'shipping_method', ShippingMethod)
+        if errors:
+            return OrderUpdateShipping(errors=errors)
+
+        if not order.shipping_address:
+            cls.add_error(
+                errors, 'order',
+                'Cannot choose a shipping method for an '
+                'order without the shipping address.')
+            return OrderUpdateShipping(errors=errors)
+
+        valid_methods = (
+            ShippingMethodModel.objects.applicable_shipping_methods(
+                price=order.get_subtotal().gross.amount,
+                weight=order.get_total_weight(),
+                country_code=order.shipping_address.country.code))
+        valid_methods = valid_methods.values_list('id', flat=True)
+        if method.pk not in valid_methods:
+            cls.add_error(
+                errors, 'shippingMethod',
+                'Shipping method cannot be used with this order.')
+            return OrderUpdateShipping(errors=errors)
+
+        order.shipping_method = method
+        order.shipping_price = method.get_total_price(info.context.taxes)
+        order.shipping_method_name = method.name
+        order.save()
+        return OrderUpdateShipping(order=order, shipping_method=method)
+
+    order = graphene.Field(
+        Order, description='Order with updated shipping method.')
+    shipping_method = graphene.Field(
+        ShippingMethod, description='Shipping method assigned to the order.')
 
 
 class OrderAddNoteInput(graphene.InputObjectType):

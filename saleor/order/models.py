@@ -184,6 +184,13 @@ class Order(models.Model):
     def can_cancel(self):
         return self.status not in {OrderStatus.CANCELED, OrderStatus.DRAFT}
 
+    def get_total_weight(self):
+        # Cannot use `sum` as it parses an empty Weight to an int
+        weights = Weight(kg=0)
+        for line in self:
+            weights += line.variant.get_weight() * line.quantity
+        return weights
+
 
 class OrderLine(models.Model):
     order = models.ForeignKey(
