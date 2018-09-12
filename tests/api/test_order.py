@@ -712,7 +712,12 @@ def test_order_update_shipping(
 
 
 def test_order_update_shipping_clear_shipping_method(
-        admin_api_client, order, admin_user):
+        admin_api_client, order, admin_user, shipping_method):
+    order.shipping_method = shipping_method
+    order.shipping_price = shipping_method.get_total_price()
+    order.shipping_method_name = 'Example shipping'
+    order.save()
+
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = json.dumps({'order': order_id, 'shippingMethod': None})

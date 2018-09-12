@@ -129,7 +129,7 @@ class OrderUpdateShipping(BaseMutation):
                     'Shipping method is required for this order.')
                 return OrderUpdateShipping(errors=errors)
             order.shipping_method = None
-            order.shipping_price == ZERO_TAXED_MONEY
+            order.shipping_price = ZERO_TAXED_MONEY
             order.shipping_method_name = None
             order.save()
             return OrderUpdateShipping(order=order, shipping_method=None)
