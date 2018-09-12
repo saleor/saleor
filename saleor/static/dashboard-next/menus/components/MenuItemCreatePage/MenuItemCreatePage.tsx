@@ -3,7 +3,7 @@ import { withStyles } from "@material-ui/core/styles";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
-import { MenuItemLinkedObjectType } from "../..";
+import { MenuItemInput, MenuItemLinkedObjectType } from "../..";
 import { Container } from "../../../components/Container";
 import Form from "../../../components/Form";
 import SaveButtonBar, {
@@ -12,11 +12,6 @@ import SaveButtonBar, {
 import i18n from "../../../i18n";
 import MenuItemProperties from "../MenuItemProperties";
 
-interface MenuItemInput {
-  name: string;
-  type: MenuItemLinkedObjectType;
-  value: string;
-}
 interface FormData extends MenuItemInput {
   children: MenuItemInput[];
 }
@@ -43,26 +38,62 @@ const initialForm: FormData = {
 const MenuItemCreatePage = decorate<MenuItemCreatePageProps>(
   ({ classes, disabled, saveButtonBarState, onBack, onSubmit }) => (
     <Form initial={initialForm} onSubmit={onSubmit}>
-      {({ change, data, hasChanged, submit }) => (
-        <Container width="md">
-          <MenuItemProperties
-            disabled={disabled}
-            errors={{}}
-            menuItem={data}
-            onChange={change}
-          />
-          <Button className={classes.addButton} color="secondary">
-            {i18n.t("Add menu item", { context: "button" })}
-            <AddIcon />
-          </Button>
-          <SaveButtonBar
-            disabled={disabled || !hasChanged}
-            state={saveButtonBarState}
-            onCancel={onBack}
-            onSave={submit}
-          />
-        </Container>
-      )}
+      {({ change, data, hasChanged, submit }) => {
+        const handleSubmenuAdd = () =>
+          change({
+            target: {
+              name: "children",
+              value: [...data.children, initialForm]
+            }
+          } as any);
+        const handleSubmenuChange = (submenu: number) => (
+          event: React.ChangeEvent<any>
+        ) => {
+          const newData = data.children;
+          newData[submenu] = {
+            ...data.children[submenu],
+            [event.target.name]: event.target.value
+          };
+          change({
+            target: {
+              name: "children",
+              value: newData
+            }
+          } as any);
+        };
+        return (
+          <Container width="md">
+            <MenuItemProperties
+              disabled={disabled}
+              errors={{}}
+              menuItem={data}
+              onChange={change}
+            />
+            {data.children.map((_, submenuIndex) => (
+              <MenuItemProperties
+                disabled={disabled}
+                errors={{}}
+                menuItem={data.children[submenuIndex]}
+                onChange={handleSubmenuChange(submenuIndex)}
+              />
+            ))}
+            <Button
+              className={classes.addButton}
+              color="secondary"
+              onClick={handleSubmenuAdd}
+            >
+              {i18n.t("Add menu item", { context: "button" })}
+              <AddIcon />
+            </Button>
+            <SaveButtonBar
+              disabled={disabled || !hasChanged}
+              state={saveButtonBarState}
+              onCancel={onBack}
+              onSave={submit}
+            />
+          </Container>
+        );
+      }}
     </Form>
   )
 );

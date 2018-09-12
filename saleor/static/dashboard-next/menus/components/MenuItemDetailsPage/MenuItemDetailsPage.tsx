@@ -1,7 +1,7 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { Menu, MenuItem } from "../..";
+import { Menu, MenuItem, MenuItemInput, MenuItemLinkedObjectType } from "../..";
 import { PageListProps } from "../../..";
 import { Container } from "../../../components/Container";
 import Form from "../../../components/Form";
@@ -9,11 +9,6 @@ import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import MenuItemProperties from "../MenuItemProperties";
 import MenuItems from "../MenuItems/MenuItems";
-
-interface FormData {
-  name: string;
-  url: string;
-}
 
 interface MenuItemDetailsPageProps extends PageListProps {
   menuItem?: MenuItem & {
@@ -51,9 +46,26 @@ const MenuItemDetailsPage = decorate<MenuItemDetailsPageProps>(
     onPreviousPage,
     onRowClick
   }) => {
-    const initialForm: FormData = {
+    const initialForm: MenuItemInput = {
       name: menuItem ? menuItem.name : "",
-      url: menuItem ? menuItem.url : ""
+      type: menuItem
+        ? menuItem.category
+          ? MenuItemLinkedObjectType.category
+          : menuItem.collection
+            ? MenuItemLinkedObjectType.collection
+            : menuItem.page
+              ? MenuItemLinkedObjectType.page
+              : MenuItemLinkedObjectType.staticUrl
+        : null,
+      value: menuItem
+        ? menuItem.category
+          ? menuItem.category.id
+          : menuItem.collection
+            ? menuItem.collection.id
+            : menuItem.page
+              ? menuItem.collection.id
+              : menuItem.url
+        : ""
     };
     return (
       <Form initial={initialForm} key={JSON.stringify(menuItem)}>

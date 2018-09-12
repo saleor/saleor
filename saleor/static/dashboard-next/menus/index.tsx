@@ -72,6 +72,11 @@ export interface MenuItem {
     name: string;
   } | null;
 }
+export interface MenuItemInput {
+  name: string;
+  type: MenuItemLinkedObjectType;
+  value: string;
+}
 
 export function menuItemLabelTarget(menuItem: MenuItem) {
   if (menuItem === undefined) {
@@ -107,7 +112,7 @@ export const menuItemUrl = (id: string) => `/menus/item/${id}/`;
 export enum MenuItemLinkedObjectType {
   category = "category",
   collection = "collection",
-  product = "product",
+  page = "page",
   staticUrl = "url"
 }
 

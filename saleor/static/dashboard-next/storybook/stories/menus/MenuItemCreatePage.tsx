@@ -7,5 +7,10 @@ import Decorator from "../../Decorator";
 storiesOf("Views / Menus / Create menu item", module)
   .addDecorator(Decorator)
   .add("default", () => (
-    <MenuItemCreatePage onBack={undefined} onSubmit={undefined} />
+    <MenuItemCreatePage
+      disabled={false}
+      saveButtonBarState="default"
+      onBack={undefined}
+      onSubmit={undefined}
+    />
   ));
