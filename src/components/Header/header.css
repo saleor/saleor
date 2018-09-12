@@ -11,6 +11,9 @@ header {
   background-size: cover, cover;
   & .container {
     padding: 0 calc(var(--spacer) * 2) 0 calc(var(--spacer) * 1.1);
+    @media (max-width: 1024px) {
+      padding: 0 calc(var(--spacer) * 2.9) 0 calc(var(--spacer) * 2);
+    }
     @media (max-width: 768px) {
       padding: 0 var(--spacer);
     }
@@ -88,7 +91,7 @@ header {
   }
   & .logo {
     width: 100%;
-    padding: calc(var(--spacer) * 3) 0;
+    padding: calc(var(--spacer) * 3) 0 calc(var(--spacer) * 1.5) 0;
     @media (max-width: 1024px) {
       padding: calc(var(--spacer) * 2.5) 0;
     }
@@ -138,7 +141,7 @@ header {
         position: relative;
         top: 0;
         transition: top 0.5s;
-        padding: calc(var(--spacer) * 3.5) 0;
+        padding: calc(var(--spacer) * 3.5) 0 calc(var(--spacer) * 2) 0;
         & a {
           font-size: var(--font-size-base);
           font-weight: var(--font-weight-light);

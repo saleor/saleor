@@ -8,6 +8,7 @@ html, body {
   padding: 0;
   height: 100vh;
   scroll-behavior: smooth;
+  overflow: hidden;
 }
 body {
   font-family: var(--font-family-base);
@@ -43,7 +44,7 @@ body {
          margin-top: calc(var(--spacer) * 6);
       }
       &.sticky {
-        margin-top: calc(var(--spacer) * 6);
+        margin-top: calc(var(--spacer) * 5.5);
       }
     }
   }
@@ -111,6 +112,7 @@ a {
 
 p {
   font-size: calc(var(--font-size-base));
+  letter-spacing: 1px;
 }
 
 strong {
