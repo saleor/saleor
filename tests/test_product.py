@@ -597,7 +597,8 @@ def test_product_json_serialization(product):
     product.save()
     data = json.loads(serializers.serialize(
         "json", models.Product.objects.all()))
-    assert data[0]['fields']['price'] == '10.00'
+    assert data[0]['fields']['price'] == {
+        '_type': 'Money', 'amount': '10.00', 'currency': 'USD'}
 
 
 def test_product_json_deserialization(category, product_type):
@@ -612,7 +613,7 @@ def test_product_json_deserialization(category, product_type):
             "name": "Kelly-Clark",
             "description": "Future almost cup national",
             "category": {category_pk},
-            "price": "35.98",
+            "price": {{"_type": "Money", "amount": "35.98", "currency": "USD"}},
             "available_on": null,
             "is_published": true,
             "attributes": "{{\\"9\\": \\"24\\", \\"10\\": \\"26\\"}}",
