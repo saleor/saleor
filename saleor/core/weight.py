@@ -70,8 +70,8 @@ class WeightInput(forms.TextInput):
             return value.value
         return value
 
-    def render(self, name, value, attrs=None):
-        widget = super().render(name, value, attrs=attrs)
+    def render(self, name, value, attrs=None, renderer=None):
+        widget = super().render(name, value, attrs=attrs, renderer=renderer)
         unit = get_default_weight_unit()
         translated_unit = dict(WeightUnits.CHOICES)[unit]
         return render_to_string(
@@ -79,7 +79,7 @@ class WeightInput(forms.TextInput):
             {'widget': widget, 'value': value, 'unit': translated_unit})
 
 
-class WeightField(forms.DecimalField):
+class WeightField(forms.FloatField):
     def __init__(self, *args, widget=WeightInput, min_value=0, **kwargs):
         if isinstance(widget, type):
             widget = widget(attrs={'type': 'number', 'step': 'any'})
