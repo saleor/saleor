@@ -1,4 +1,5 @@
 import datetime
+import io
 import json
 from decimal import Decimal
 from unittest.mock import patch
@@ -633,9 +634,17 @@ def test_product_json_deserialization(category, product_type):
     assert product.price == Money(Decimal('35.98'), 'USD')
 
     # same test for bytes
-    product_json = bytes(product_json, 'utf-8')
+    product_json_bytes = bytes(product_json, 'utf-8')
     product_deserialized = list(serializers.deserialize(
-        'json', product_json, ignorenonexistent=True))[0]
+        'json', product_json_bytes, ignorenonexistent=True))[0]
+    product_deserialized.save()
+    product = models.Product.objects.first()
+    assert product.price == Money(Decimal('35.98'), 'USD')
+
+    # same test for stream
+    product_json_stream = io.StringIO(product_json)
+    product_deserialized = list(serializers.deserialize(
+        'json', product_json_stream, ignorenonexistent=True))[0]
     product_deserialized.save()
     product = models.Product.objects.first()
     assert product.price == Money(Decimal('35.98'), 'USD')
