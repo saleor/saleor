@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
+from django.conf import settings
 from django.core import serializers
 from django.urls import reverse
 from prices import Money, TaxedMoney, TaxedMoneyRange
@@ -73,12 +74,12 @@ def test_filtering_by_attribute(db, color_attribute, category):
         name='New class', has_variants=True)
     product_type_b.variant_attributes.add(color_attribute)
     product_a = models.Product.objects.create(
-        name='Test product a', price=10, product_type=product_type_a,
-        category=category)
+        name='Test product a', price=Money(10, settings.DEFAULT_CURRENCY),
+        product_type=product_type_a, category=category)
     models.ProductVariant.objects.create(product=product_a, sku='1234')
     product_b = models.Product.objects.create(
-        name='Test product b', price=10, product_type=product_type_b,
-        category=category)
+        name='Test product b', price=Money(10, settings.DEFAULT_CURRENCY),
+        product_type=product_type_b, category=category)
     variant_b = models.ProductVariant.objects.create(product=product_b,
                                                      sku='12345')
     color = color_attribute.values.first()

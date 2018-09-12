@@ -110,7 +110,7 @@ def test_applicable_shipping_methods_inproper_shipping_method_type(
         type=ShippingMethodType.WEIGHT_BASED)
     weight_method = shipping_zone.shipping_methods.create(
         minimum_order_weight=Weight(kg=1), maximum_order_weight=Weight(kg=10),
-        minimum_order_price=1000, type=ShippingMethodType.PRICE_BASED)
+        minimum_order_price=money(1000), type=ShippingMethodType.PRICE_BASED)
     result = ShippingMethod.objects.applicable_shipping_methods(
         price=money(5), weight=Weight(kg=5), country_code='PL')
     assert price_method not in result

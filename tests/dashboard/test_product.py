@@ -561,7 +561,8 @@ def test_view_variant_images(admin_client, product_with_image):
 
 def test_view_ajax_available_variants_list(admin_client, product, category):
     unavailable_product = Product.objects.create(
-        name='Test product', price=10, product_type=product.product_type,
+        name='Test product', price=Money(10, settings.DEFAULT_CURRENCY),
+        product_type=product.product_type,
         category=category, is_published=False)
     unavailable_product.variants.create()
     url = reverse('dashboard:ajax-available-variants')
@@ -1031,8 +1032,8 @@ def test_product_form_assign_collection_to_product(product):
 
 def test_product_form_sanitize_product_description(product_type, category):
     product = Product.objects.create(
-        name='Test Product', price=10, description='', pk=10,
-        product_type=product_type, category=category)
+        name='Test Product', price=Money(10, settings.DEFAULT_CURRENCY),
+        description='', pk=10, product_type=product_type, category=category)
     data = model_to_dict(product)
     data['description'] = (
         '<b>bold</b><p><i>italic</i></p><h2>Header</h2><h3>subheader</h3>'
