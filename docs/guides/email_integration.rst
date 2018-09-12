@@ -17,7 +17,7 @@ which will contain a straightforward value as shown in below examples.
    ==========================================================  ================================================================================
    Description                                                 URL
    ==========================================================  ================================================================================
-   GMail with **SSL on**.                                      ``smtp://my.gmaail.username@gmail.com:my-password@smtp.gmail.com:465/?ssl=True``
+   GMail with **SSL on**.                                      ``smtp://my.gmail.username@gmail.com:my-password@smtp.gmail.com:465/?ssl=True``
    OVH with **STARTTLS on**.                                   ``smtp://username@example.com:my-password@pro1.mail.ovh.net:587/?tls=True``
    A SMTP server unencrypted.                                  ``smtp://username@example.com:my-password@smtp.example.com:25/``
    ==========================================================  ================================================================================
