@@ -375,6 +375,6 @@ def test_delete_shipping_method(admin_api_client, shipping_method):
     content = get_graphql_content(response)
     assert 'errors' not in content
     data = content['data']['shippingPriceDelete']['shippingMethod']
-    assert data['price']['amount'] == float(shipping_method.price)
+    assert data['price']['amount'] == float(shipping_method.price.amount)
     with pytest.raises(shipping_method._meta.model.DoesNotExist):
         shipping_method.refresh_from_db()

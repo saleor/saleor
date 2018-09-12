@@ -44,11 +44,12 @@ def test_ajax_order_shipping_methods_list_different_country(
     method = shipping_zone.shipping_methods.get()
     shipping_methods_list = [
         {'id': method.pk, 'text': method.get_ajax_label()}]
-    # If shipping zone does not cover order's country, then its shipping methods
-    # should not be included
+    # If shipping zone does not cover order's country,
+    # then its shipping methods should not be included
     assert order.shipping_address.country.code != 'DE'
     zone = ShippingZone.objects.create(name='Shipping zone', countries=['DE'])
-    zone.shipping_methods.create(price=15, name='DHL')
+    zone.shipping_methods.create(
+        price=Money(15, settings.DEFAULT_CURRENCY), name='DHL')
 
     url = reverse(
         'dashboard:ajax-order-shipping-methods', kwargs={'order_pk': order.pk})
@@ -192,7 +193,8 @@ def test_view_refund_order_payment_confirmed(
             'amount': str(payment_confirmed.captured_amount)})
     assert response.status_code == 302
     assert order.payments.last().status == PaymentStatus.REFUNDED
-    assert order.payments.last().get_captured_price() == Money(0, 'USD')
+    assert order.payments.last().get_captured_price() == Money(
+        0, settings.DEFAULT_CURRENCY)
 
 
 @pytest.mark.integration
@@ -779,7 +781,8 @@ def test_view_create_from_draft_order_not_draft_order(
 
 def test_view_create_from_draft_order_shipping_zone_not_valid(
         admin_client, draft_order, shipping_zone):
-    method = shipping_zone.shipping_methods.create(name='DHL', price=10)
+    method = shipping_zone.shipping_methods.create(
+        name='DHL', price=Money(10, settings.DEFAULT_CURRENCY))
     shipping_zone.countries = ['DE']
     shipping_zone.save()
     # Shipping zone is not valid, as shipping address is listed outside the
@@ -940,7 +943,8 @@ def test_view_order_shipping_edit(
 
 def test_view_order_shipping_edit_not_draft_order(
         admin_client, order_with_lines, shipping_zone):
-    method = shipping_zone.shipping_methods.create(price=5, name='DHL')
+    method = shipping_zone.shipping_methods.create(
+        price=Money(5, settings.DEFAULT_CURRENCY), name='DHL')
     url = reverse(
         'dashboard:order-shipping-edit',
         kwargs={'order_pk': order_with_lines.pk})
