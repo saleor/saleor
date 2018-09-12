@@ -7,7 +7,7 @@
       & .bg-container {
         background-image: url('../../images/parrot-bg.png');
         background-size: 90%;
-        background-position: 10% 0%;
+        background-position: 120% 0%;
         @media (min-width: 1450px) {
           background-size: 100%;
           background-position: 0 100%;
@@ -117,6 +117,11 @@
             }
           }
         }
+      }
+      & .scroll-link {
+        position: relative;
+        z-index: 998;
+        bottom: calc(var(--spacer) * 12);
       }
       @media (max-width: 768px) {
         height: 80vh;
@@ -311,8 +316,8 @@
             }
           }
           & .decoration {
-            width: 15%;
-            left: -15%;
+            width: 23%;
+            left: -23%;
             top: 30%;
             right: initial;
           }

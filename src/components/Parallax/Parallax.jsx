@@ -35,7 +35,7 @@ class Parallax extends Component {
   
   handleScroll(event) {
     const scrollPosition = this.refs.parallax.scrollTop;
-    if (scrollPosition > 32) { this.setState({sticky: true}); } else { this.setState({sticky: false}); }
+    if (scrollPosition > 24) { this.setState({sticky: true}); } else { this.setState({sticky: false}); }
     if (this.state.scheduledAnimationFrame){
       return;
     }

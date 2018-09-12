@@ -73,7 +73,6 @@
             &::after {
               content: "";
               position: absolute;
-              z-index: -1;
               top: 45%;
               bottom: 8%;
               left: 70%;
