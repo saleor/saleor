@@ -975,9 +975,9 @@ def test_product_variant_form(product):
 
 
 def test_hide_field_in_variant_choice_field_form():
-    form = VariantChoiceField(Mock)
+    form = VariantChoiceField(Mock())
     variants, cart = MagicMock(), MagicMock()
-    variants.count.return_value = 1
+    variants.count.return_value = variants.all().count.return_value = 1
     variants.all()[0].pk = 'test'
 
     form.update_field_data(variants, discounts=None, taxes=None)
@@ -1092,10 +1092,13 @@ def test_product_form_seo_description_too_long(unavailable_product):
     assert form.is_valid()
 
     form.save()
-    assert len(unavailable_product.seo_description) <= 300
-    assert unavailable_product.seo_description == (
+    new_seo_description = unavailable_product.seo_description
+    assert len(new_seo_description) <= 300
+    assert new_seo_description.startswith(
         'Saying it fourth made saw light bring beginning kind over herb '
         'won\'t creepeth multiply dry rule divided fish herb cattle greater '
         'fly divided midst, gathering can\'t moveth seed greater subdue. '
         'Lesser meat living fowl called. Dry don\'t wherein. Doesn\'t above '
-        'form sixth. Image moving earth without f...')
+        'form sixth. Image moving earth without')
+    assert (
+        new_seo_description.endswith('...') or new_seo_description[-1] == '…')
