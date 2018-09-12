@@ -22,7 +22,7 @@ class Parallax extends Component {
     const bodyRect = Math.round(this.refs.parallax.scrollTop / 2)
     const parallaxRect = this.refs.parallax.getBoundingClientRect();
     const offset = bodyRect - parallaxRect.top;
-    const positionValue = Math.round(offset * this.props.speed);
+    const positionValue = (Math.round(offset * this.props.speed) * -1);
 
     const backgroundPosition = '0 0, 50% ' + positionValue + 'px';
     this.refs.parallax.style.backgroundPosition = backgroundPosition;
