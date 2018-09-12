@@ -21,7 +21,8 @@ class MenuItemInput(graphene.InputObjectType):
 
 class MenuItemCreateInput(MenuItemInput):
     menu = graphene.ID(
-        description='Menu to which item belongs to.', name='menu')
+        description='Menu to which item belongs to.', name='menu',
+        required=True)
     parent = graphene.ID(
         description='''
         ID of the parent menu. If empty, menu will be top level
