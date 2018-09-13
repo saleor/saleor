@@ -117,9 +117,10 @@ def test_create_variant(admin_api_client, product, product_type):
     """
     product_id = graphene.Node.to_global_id('Product', product.pk)
     sku = "1"
-    price_override = 1
-    cost_price = 3
+    price_override = 1.32
+    cost_price = 3.22
     quantity = 10
+    weight = 10.22
     variant_slug = product_type.variant_attributes.first().slug
     variant_value = 'test-value'
 
@@ -129,7 +130,7 @@ def test_create_variant(admin_api_client, product, product_type):
         'quantity': quantity,
         'costPrice': cost_price,
         'priceOverride': price_override,
-        'weight': '10',
+        'weight': weight,
         'attributes': [
             {'slug': variant_slug, 'value': variant_value}],
         'trackInventory': True})
@@ -146,7 +147,7 @@ def test_create_variant(admin_api_client, product, product_type):
     assert data['attributes'][0]['attribute']['slug'] == variant_slug
     assert data['attributes'][0]['value']['slug'] == variant_value
     assert data['weight']['unit'] == 'kg'
-    assert data['weight']['value'] == float(10)
+    assert data['weight']['value'] == weight
 
 
 def test_update_product_variant(admin_api_client, product):
@@ -182,7 +183,7 @@ def test_update_product_variant(admin_api_client, product):
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
     sku = "test sku"
-    cost_price = 3
+    cost_price = 3.3
     quantity = 123
 
     variables = json.dumps({
