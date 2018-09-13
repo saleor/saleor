@@ -52,10 +52,6 @@ class Category(MPTTModel, SeoModel):
             'product:category',
             kwargs={'slug': self.slug, 'category_id': self.id})
 
-    @property
-    def is_published(self):
-        return True
-
 
 class CategoryTranslation(SeoModelTranslation):
     language_code = models.CharField(max_length=10)

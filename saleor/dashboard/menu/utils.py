@@ -95,7 +95,7 @@ def get_menus_that_needs_update(collection=None, categories=None, page=None):
 
 
 def get_menu_obj_text(obj):
-    if obj.is_published:
+    if getattr(obj, 'is_published', True):
         return str(obj)
     elif isinstance(obj, Page) and obj.is_visible and obj.available_on:
         return pgettext(
