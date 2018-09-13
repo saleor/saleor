@@ -15,6 +15,8 @@ class CheckoutLine(CountableDjangoObjectType):
         description = 'Represents user address data.'
         interfaces = [graphene.relay.Node]
         model = models.CartLine
+        filter_fields = ['id']
+
 
     def resolve_total_price(self, info):
         taxes = get_taxes_for_address(self.cart.shipping_address)
@@ -34,6 +36,7 @@ class Checkout(CountableDjangoObjectType):
         description = 'Checkout object'
         model = models.Cart
         interfaces = [graphene.relay.Node]
+        filter_fields = ['token']
 
     def resolve_total_price(self, info):
         taxes = get_taxes_for_address(self.shipping_address)

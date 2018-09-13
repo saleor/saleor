@@ -75,11 +75,9 @@ class Query(ProductQueries):
         Checkout, description='Single checkout',
         token=graphene.Argument(graphene.UUID))
     checkouts = DjangoFilterConnectionField(
-        Checkout, description='List of checkouts',
-        filterset_class=DistinctFilterSet)
+        Checkout, description='List of checkouts')
     checkout_lines = DjangoFilterConnectionField(
-        CheckoutLine, description='List of checkout lines',
-        filterset_class=DistinctFilterSet)
+        CheckoutLine, description='List of checkout lines')
     checkout_line = graphene.Field(CheckoutLine, id=graphene.Argument(graphene.ID))
     menu = graphene.Field(
         Menu, id=graphene.Argument(graphene.ID),
