@@ -12,9 +12,9 @@ const Footer = () => (
       </div>
       <div className="content">
         <div className="grid">
-          <div className="col-xs-12 col-sm-9 col-md-9 menu">
+          <div className="col-xs-12 col-sm-9 col-md-10 col-lg-11 menu">
             <div className="grid">
-              <div className="col-xs-4 col-sm-4 col-md-3">
+              <div className="col-xs-4 col-sm-4 col-md-3 col-lg-2">
                 <ul>
                   <li><h4>Company</h4></li>
                   <li><a href="https://medium.com/saleor">Blog</a></li>
@@ -22,7 +22,7 @@ const Footer = () => (
                   <li><a href="https://mirumee.com/hire-us/">Contact</a></li>
                 </ul>
               </div>
-              <div className="col-xs-4 col-sm-4 col-md-3">
+              <div className="col-xs-4 col-sm-4 col-md-3 col-lg-2">
                 <ul>
                   <li><h4>Solution</h4></li>
                   <li><NavLink to="/features">Features</NavLink></li>
@@ -31,7 +31,7 @@ const Footer = () => (
                   <li><a href="https://demo.getsaleor.com/en/">Demo</a></li>
                 </ul>
               </div>
-              <div className="col-xs-4 col-sm-4 col-md-3">
+              <div className="col-xs-4 col-sm-4 col-md-3 col-lg-2">
                 <ul>
                   <li><h4>Community</h4></li>
                   <li><a href="https://github.com/mirumee/saleor">Contribute</a></li>
@@ -41,15 +41,15 @@ const Footer = () => (
               </div>
             </div>
           </div>
-          <div className="col-xs-12 col-sm-3 col-md-3 icons">
+          <div className="col-xs-12 col-sm-3 col-md-2 col-lg-1 icons">
             <div className="grid">
-              <div className="col-sm-1">
+              <div className="col-sm-1 col-md-4">
                 <a href=""><ReactSVG className="twitter-icon" path="images/twiiter-icon.svg" /></a>
               </div>
-              <div className="col-sm-1">
+              <div className="col-sm-1 col-md-4">
                 <a href=""><ReactSVG className="facebook-icon" path="images/fb-icon.svg" /></a>
               </div>
-              <div className="col-sm-1">
+              <div className="col-sm-1 col-md-4">
                 <a href=""><ReactSVG className="github-icon" path="images/github-icon.svg" /></a>
               </div>
             </div>
