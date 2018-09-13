@@ -19,6 +19,41 @@ def try_payment_action(action, money, errors):
         errors.append(Error(field='payment', message=str(e)))
 
 
+def clean_order_cancel(order, errors):
+    if order and not order.can_cancel():
+        errors.append(
+            Error(
+                field='order',
+                message='This order can\'t be canceled.'))
+    return errors
+
+
+def clean_order_mark_as_paid(order, errors):
+    if order and order.payments.exists():
+        errors.append(
+            Error(
+                field='payment',
+                message='Orders with payments can not be manually '
+                        'marked as paid.'))
+    return errors
+
+
+def clean_order_capture(payment, amount, errors):
+    if not payment:
+        errors.append(
+            Error(
+                field='payment',
+                message='There\'s no payment associated with the order.'))
+        return errors
+    if payment.status != PaymentStatus.PREAUTH:
+        errors.append(
+            Error(
+                field='payment',
+                message='Only pre-authorized payments can be captured'))
+    try_payment_action(payment.capture, amount, errors)
+    return errors
+
+
 def clean_release_payment(payment, errors):
     """Check for payment errors."""
     if payment.status != PaymentStatus.PREAUTH:
@@ -118,8 +153,7 @@ class OrderCancel(BaseMutation):
     def mutate(cls, root, info, id, restock):
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
-        if order and not order.can_cancel():
-            cls.add_error(errors, 'order', 'This order can\'t be canceled.')
+        clean_order_cancel(order, errors)
         if errors:
             return OrderCancel(errors=errors)
 
@@ -152,11 +186,7 @@ class OrderMarkAsPaid(BaseMutation):
     def mutate(cls, root, info, id):
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
-        if order and order.payments.exists():
-            cls.add_error(
-                errors, 'payment',
-                'Orders with payments can not be manually marked as paid.')
-
+        clean_order_mark_as_paid(order, errors)
         if errors:
             return OrderMarkAsPaid(errors=errors)
 
@@ -197,14 +227,8 @@ class OrderCapture(BaseMutation):
     def mutate(cls, root, info, id, amount):
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
-        payment = order.get_last_payment() if order else None
-        if payment:
-            if payment.variant == CustomPaymentChoices.MANUAL:
-                cls.add_error(
-                    errors, 'payment',
-                    'Only pre-authorized payments can be captured')
-            try_payment_action(payment.capture, amount, errors)
-
+        payment = order.get_last_payment()
+        clean_order_capture(payment, amount, errors)
         if errors:
             return OrderCapture(errors=errors)
 
