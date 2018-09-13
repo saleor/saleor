@@ -2,16 +2,20 @@ import gql from "graphql-tag";
 import { Query, QueryProps } from "react-apollo";
 
 import {
-  ProductTypeDetailsQuery,
-  ProductTypeDetailsQueryVariables,
-  ProductTypeListQuery,
-  ProductTypeListQueryVariables,
-  SearchAttributeQuery,
-  SearchAttributeQueryVariables
-} from "../gql-types";
+  ProductTypeDetails,
+  ProductTypeDetailsVariables
+} from "./types/ProductTypeDetails";
+import {
+  ProductTypeList,
+  ProductTypeListVariables
+} from "./types/ProductTypeList";
+import {
+  SearchAttribute,
+  SearchAttributeVariables
+} from "./types/SearchAttribute";
 
 export const TypedProductTypeListQuery = Query as React.ComponentType<
-  QueryProps<ProductTypeListQuery, ProductTypeListQueryVariables>
+  QueryProps<ProductTypeList, ProductTypeListVariables>
 >;
 export const productTypeListQuery = gql`
   query ProductTypeList(
@@ -55,7 +59,7 @@ export const productTypeListQuery = gql`
 `;
 
 export const TypedProductTypeDetailsQuery = Query as React.ComponentType<
-  QueryProps<ProductTypeDetailsQuery, ProductTypeDetailsQueryVariables>
+  QueryProps<ProductTypeDetails, ProductTypeDetailsVariables>
 >;
 export const productTypeDetailsQuery = gql`
   query ProductTypeDetails($id: ID!) {
@@ -84,16 +88,11 @@ export const productTypeDetailsQuery = gql`
       isShippingRequired
       taxRate
     }
-    __type(name: "TaxRateType") {
-      enumValues {
-        name
-      }
-    }
   }
 `;
 
 export const TypedSearchAttributeQuery = Query as React.ComponentType<
-  QueryProps<SearchAttributeQuery, SearchAttributeQueryVariables>
+  QueryProps<SearchAttribute, SearchAttributeVariables>
 >;
 export const searchAttributeQuery = gql`
   query SearchAttribute($search: String!) {

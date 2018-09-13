@@ -10,8 +10,8 @@ import SaveButtonBar, {
   SaveButtonBarState
 } from "../../../components/SaveButtonBar";
 import Toggle from "../../../components/Toggle";
-import { TaxRateType } from "../../../gql-types";
 import i18n from "../../../i18n";
+import { TaxRateType } from "../../../types/globalTypes";
 import ProductTypeDetails from "../ProductTypeDetails/ProductTypeDetails";
 import ProductTypeProperties from "../ProductTypeProperties/ProductTypeProperties";
 

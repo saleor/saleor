@@ -1,12 +1,12 @@
 import * as React from "react";
 
-import { UserFragment } from "../gql-types";
 import {
   getAuthToken,
   removeAuthToken,
   setAuthToken,
   UserContext
 } from "./index";
+import { User } from "./types/User";
 
 import TokenAuthProvider from "./containers/TokenAuth";
 import TokenVerifyProvider from "./containers/TokenVerify";
@@ -39,7 +39,7 @@ interface AuthProviderProps {
 }
 
 interface AuthProviderState {
-  user: UserFragment;
+  user: User;
   persistToken: boolean;
 }
 

@@ -1,14 +1,18 @@
 import gql from "graphql-tag";
 
-import {
-  CategoryCreateMutation,
-  CategoryCreateMutationVariables,
-  CategoryDeleteMutation,
-  CategoryDeleteMutationVariables,
-  CategoryUpdateMutation,
-  CategoryUpdateMutationVariables
-} from "../gql-types";
 import { TypedMutation } from "../mutations";
+import {
+  CategoryCreate,
+  CategoryCreateVariables
+} from "./types/CategoryCreate";
+import {
+  CategoryDelete,
+  CategoryDeleteVariables
+} from "./types/CategoryDelete";
+import {
+  CategoryUpdate,
+  CategoryUpdateVariables
+} from "./types/CategoryUpdate";
 
 export const categoryDeleteMutation = gql`
   mutation CategoryDelete($id: ID!) {
@@ -21,8 +25,8 @@ export const categoryDeleteMutation = gql`
   }
 `;
 export const TypedCategoryDeleteMutation = TypedMutation<
-  CategoryDeleteMutation,
-  CategoryDeleteMutationVariables
+  CategoryDelete,
+  CategoryDeleteVariables
 >(categoryDeleteMutation);
 
 export const categoryCreateMutation = gql`
@@ -46,8 +50,8 @@ export const categoryCreateMutation = gql`
   }
 `;
 export const TypedCategoryCreateMutation = TypedMutation<
-  CategoryCreateMutation,
-  CategoryCreateMutationVariables
+  CategoryCreate,
+  CategoryCreateVariables
 >(categoryCreateMutation);
 
 export const categoryUpdateMutation = gql`
@@ -69,6 +73,6 @@ export const categoryUpdateMutation = gql`
   }
 `;
 export const TypedCategoryUpdateMutation = TypedMutation<
-  CategoryUpdateMutation,
-  CategoryUpdateMutationVariables
+  CategoryUpdate,
+  CategoryUpdateVariables
 >(categoryUpdateMutation);

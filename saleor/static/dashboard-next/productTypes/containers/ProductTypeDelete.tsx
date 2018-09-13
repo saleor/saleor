@@ -4,17 +4,17 @@ import {
   PartialMutationProviderProps,
   PartialMutationProviderRenderProps
 } from "../..";
-import {
-  ProductTypeDeleteMutation,
-  ProductTypeDeleteMutationVariables
-} from "../../gql-types";
 import { TypedProductTypeDeleteMutation } from "../mutations";
+import {
+  ProductTypeDelete,
+  ProductTypeDeleteVariables
+} from "../types/ProductTypeDelete";
 
 interface ProductTypeDeleteProviderProps extends PartialMutationProviderProps {
   id: string;
   children: PartialMutationProviderRenderProps<
-    ProductTypeDeleteMutation,
-    ProductTypeDeleteMutationVariables
+    ProductTypeDelete,
+    ProductTypeDeleteVariables
   >;
 }
 

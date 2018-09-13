@@ -1,12 +1,12 @@
 import * as React from "react";
 
-import { UserFragment } from "../gql-types";
+import { User } from "./types/User";
 import Login from "./views/Login";
 
 interface UserContext {
   login: (username: string, password: string, persist: boolean) => void;
   logout: () => void;
-  user?: UserFragment;
+  user?: User;
 }
 
 export const UserContext = React.createContext<UserContext>({

@@ -2,13 +2,11 @@ import * as React from "react";
 
 import Messages from "../../components/messages";
 import Navigator, { NavigatorLink } from "../../components/Navigator";
-import { CategoryCreateMutation } from "../../gql-types";
 import i18n from "../../i18n";
 import CategoryEditPage from "../components/CategoryEditPage";
 import { categoryShowUrl } from "../index";
-import {
-  TypedCategoryCreateMutation
-} from "../mutations";
+import { TypedCategoryCreateMutation } from "../mutations";
+import { CategoryCreate } from "../types/CategoryCreate";
 
 interface CategoryCreateFormProps {
   parentId: string;
@@ -21,7 +19,7 @@ export const CategoryCreateForm: React.StatelessComponent<
     {pushMessage => (
       <Navigator>
         {navigate => {
-          const handleSuccess = (data: CategoryCreateMutation) => {
+          const handleSuccess = (data: CategoryCreate) => {
             if (data.categoryCreate.errors.length === 0) {
               pushMessage({ text: i18n.t("Category created") });
               navigate(categoryShowUrl(data.categoryCreate.category.id));
