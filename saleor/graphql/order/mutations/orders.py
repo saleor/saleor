@@ -118,6 +118,8 @@ class OrderCancel(BaseMutation):
     def mutate(cls, root, info, id, restock):
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        if order and not order.can_cancel():
+            cls.add_error(errors, 'order', 'This order can\'t be canceled.')
         if errors:
             return OrderCancel(errors=errors)
 
@@ -150,11 +152,10 @@ class OrderMarkAsPaid(BaseMutation):
     def mutate(cls, root, info, id):
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
-        if order:
-            if order.payments.exists():
-                cls.add_error(
-                    errors, 'payment',
-                    'Orders with payments can not be manually marked as paid.')
+        if order and order.payments.exists():
+            cls.add_error(
+                errors, 'payment',
+                'Orders with payments can not be manually marked as paid.')
 
         if errors:
             return OrderMarkAsPaid(errors=errors)
@@ -196,8 +197,12 @@ class OrderCapture(BaseMutation):
     def mutate(cls, root, info, id, amount):
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
-        if order:
-            payment = order.get_last_payment()
+        payment = order.get_last_payment() if order else None
+        if payment:
+            if payment.variant == CustomPaymentChoices.MANUAL:
+                cls.add_error(
+                    errors, 'payment',
+                    'Only pre-authorized payments can be captured')
             try_payment_action(payment.capture, amount, errors)
 
         if errors:
