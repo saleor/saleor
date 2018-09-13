@@ -53,7 +53,7 @@ django-redis==4.9.0
 django-render-block==0.5  # via django-templated-email
 django-storages==1.6.6
 django-templated-email==2.2.0
-django-versatileimagefield==1.9
+django-versatileimagefield==1.10
 django-webpack-loader==0.6.0
 django==2.0.8
 docutils==0.14            # via botocore
@@ -82,7 +82,7 @@ multidict==4.3.1          # via yarl
 oauthlib==2.1.0           # via requests-oauthlib, social-auth-core
 pdfrw==0.4                # via weasyprint
 phonenumberslite==8.9.10
-pillow==5.0.0             # via cairosvg, django-versatileimagefield
+pillow==5.2.0             # via cairosvg, django-versatileimagefield
 pluggy==0.7.1             # via pytest
 prices==1.0.0
 promise==2.1              # via graphene, graphene-django, graphql-core, graphql-relay
