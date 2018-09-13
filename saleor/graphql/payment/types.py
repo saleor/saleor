@@ -11,9 +11,11 @@ class PaymentMethod(CountableDjangoObjectType):
         description = 'Payment method'
         interfaces = [relay.Node]
         model = models.PaymentMethod
+        filter_fields = ['id']
 
 class Transaction(CountableDjangoObjectType):
     class Meta:
         description = 'Single payment transaction'
         interfaces = [relay.Node]
         model = models.Transaction
+        filter_fields = ['id']
