@@ -85,7 +85,8 @@ class MenuItem(MPTTModel, SortableModel):
         return linked_object.get_absolute_url() if linked_object else self.url
 
     def is_public(self):
-        return not self.linked_object or self.linked_object.is_published
+        return not self.linked_object or getattr(
+            self.linked_object, 'is_published', True)
 
 
 class MenuItemTranslation(models.Model):
