@@ -7,6 +7,12 @@ import { AddressCountry, OrderEvents, FulfillmentStatus, OrderStatus } from "./.
 // GraphQL mutation operation: OrderRefund
 // ====================================================
 
+export interface OrderRefund_orderRefund_errors {
+  __typename: "Error";
+  field: string | null;
+  message: string | null;
+}
+
 export interface OrderRefund_orderRefund_order_billingAddress {
   __typename: "Address";
   id: string;
@@ -213,6 +219,7 @@ export interface OrderRefund_orderRefund_order {
 
 export interface OrderRefund_orderRefund {
   __typename: "OrderRefund";
+  errors: (OrderRefund_orderRefund_errors | null)[] | null;
   order: OrderRefund_orderRefund_order | null;
 }
 
