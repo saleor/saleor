@@ -1,5 +1,5 @@
 footer {
-  padding: calc(var(--spacer) * 3) 0;
+  padding: calc(var(--spacer) * 3) 0 calc(var(--spacer) * 8) 0;
   position: relative;
   & .logo {
     width: 120px;

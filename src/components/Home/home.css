@@ -122,15 +122,18 @@
         position: relative;
         z-index: 998;
         bottom: calc(var(--spacer) * 12);
-      }
-      @media (max-width: 768px) {
-        height: 80vh;
-        & .scroll-link {
+        @media (max-width: 1024px) {
+          bottom: calc(var(--spacer) * 4);
+        }
+        @media (max-width: 768px) {
           position: absolute;
-          bottom: 0;
+          bottom: calc(var(--spacer) * 4);
           left: 0;
           right: 0;
         }
+      }
+      @media (max-width: 768px) {
+        height: 70vh;
       }
       @media (max-width: 700px) {
         height: 180vh;
@@ -235,7 +238,7 @@
               }
             }
             @media (max-width: 570px) {
-              font-size: calc(var(--font-size-base) * 1.5);
+              font-size: calc(var(--font-size-base) * 2);
               & span {
                 font-size: calc(var(--font-size-base));
               }
@@ -353,7 +356,7 @@
               font-size: calc(var(--spacer) * 1.8);
             }
             & span {
-              left: calc(var(--spacer) * 5);
+              left: calc(var(--spacer) * 4.5);
               @media (max-width: 1024px) {
                 left: calc(var(--spacer) * -1);
               }
@@ -455,6 +458,13 @@
             @media (max-width: 320px) {
               font-size: calc(var(--font-size-base) * 1);
             }
+            &.react-tabs__tab--selected {
+              & span {
+                &::after {
+                  width: 100%;
+                }
+              }
+            }
           }
         }
         & .dashboard {
@@ -464,6 +474,10 @@
             background-size: 80%;
             background-position: 50%;
             height: 300px;
+            @media (max-width: 768px) {
+              background-size: 120%;
+              background-position: 80% 100%;
+            }
             @media (max-width: 450px) {
               background-size: 120%;
             }
@@ -475,6 +489,9 @@
             background-size: 60%;
             background-position: 50% 0%;
             height: 300px;
+            @media (max-width: 768px) {
+              background-size: 130%;
+            }
             @media (max-width: 450px) {
               background-size: 110%;
               background-position: 70% 70%;
@@ -525,15 +542,16 @@
         width: 100%;
         height: 100%;
         background-image: url('../../images/open-source-bg.svg');
-        background-size: 120%;
+        background-size: 110%;
         background-position: 50%;
         position: absolute;
         top: -5%;
-        right: -19%;
+        right: -12%;
         opacity: 0.5;
         z-index: 1;
         @media (max-width: 1024px) {
-          background-size: 150%;
+          background-size: 160%;
+          right: -13%;
         }
         @media (max-width: 768px) {
           background-size: 200%;
@@ -562,21 +580,23 @@
           left: 55%;
         }
         @media (max-width: 320px) {
-          top: -11%;
+          top: -10%;
+          background-size: 450%;
         }
       }
       & .github-circle {
         width: 25%;
         padding-top: 25%;
         position: absolute;
-        right: 20.5%;
-        top: 14%;
+        right: 27%;
+        top: 15.5%;
         z-index: 2;
         @media (max-width: 1024px) {
           top: 19%;
         }
         @media (max-width: 768px) {
-          top: 12%;
+          top: 12.5%;
+          right: 20.5%;
         }
         @media (max-width: 450px) {
           top: -2%;
@@ -669,6 +689,15 @@
       background: rgb(16,10,53);
       background: linear-gradient(135deg, rgba(16,10,53,0) 8%, rgba(16,10,53,1) 8%, rgba(16,10,53,1) 92%, rgba(16,10,53,0) 92%, rgba(16,10,53,0) 100%);
       border-bottom: solid var(--border-width) var(--sectionBorder);
+      & .section-container {
+        min-height: 700px;
+        @media (max-width: 1024px) {
+          padding: calc(var(--spacer) * 4);
+        }
+        @media (max-width: 450px) {
+          padding: calc(var(--spacer) * 2);
+        }
+      }
       & .head {
         padding: calc(var(--spacer) * 5) 0;
         @media (max-width: 768px) {
@@ -679,7 +708,7 @@
         }
         & h2 {
           &.tab-1 { color: var(--body-color) }
-          &.tab-1 { color: var(--primaryColor) }
+          &.tab-1 { color: var(--body-color) }
           @media (max-width: 768px) {
             padding-bottom: calc(var(--spacer) * 2);
           }
@@ -849,7 +878,7 @@
       }
       & .btn {
         @media (max-width: 450px) {
-          font-size: calc(var(--font-size-base) * 1.4);
+          font-size: var(--font-size-base);
           padding: calc(var(--spacer) / 2) calc(var(--spacer) * 2);
         }
         @media (max-width: 320px) {

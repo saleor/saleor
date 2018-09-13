@@ -186,6 +186,9 @@ ul {
           bottom: 0;
           left: 0;
           top: calc(var(--spacer) * 2);
+          @media (max-width: 450px) {
+            top: calc(var(--spacer) * 1.5);
+          }
           position: absolute;
           transform: skewX(-20deg);
           background: var(--primaryColor);

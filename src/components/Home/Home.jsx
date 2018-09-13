@@ -120,9 +120,9 @@ class Home extends Component {
               </div>
               {isMobileOnly ? (
                 <Tabs className="feature-tabs">
-                <TabList className="grid">
-                  <Tab className="col-xs-6 col-sm-6">Dashboard</Tab>
-                  <Tab className="col-xs-6 col-sm-6">Storefront</Tab>
+                <TabList className="grid hovered">
+                  <Tab className="col-xs-6 col-sm-6"><span>Dashboard</span></Tab>
+                  <Tab className="col-xs-6 col-sm-6"><span>Storefront</span></Tab>
                 </TabList>
                 <TabPanel>
                   <div className="grid feature-item dashboard">
