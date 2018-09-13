@@ -1,37 +1,24 @@
 import decimal
 
 import graphene
-from graphene.types import Scalar
 from graphene_django import DjangoObjectType
-from graphql.language import ast
 
 from ....core import weight
 from ..connection import CountableConnection
 
 
-# FIXME: Decimal scalar implementation has been taken from Graphene repo.
-# Remove it when a new version including this implementation is released.
-class Decimal(Scalar):
+class Decimal(graphene.Float):
+    """Custom Decimal implementation.
+    Returns Decimal as a float in the API,
+    parses float to the Decimal on the way back.
     """
-    The `Decimal` scalar type represents a python Decimal.
-    """
-
-    @staticmethod
-    def serialize(dec):
-        if isinstance(dec, str):
-            dec = decimal.Decimal(dec)
-        assert isinstance(dec, decimal.Decimal), 'Received not compatible Decimal "{}"'.format(
-            repr(dec))
-        return str(dec)
-
-    @classmethod
-    def parse_literal(cls, node):
-        if isinstance(node, ast.StringValue):
-            return cls.parse_value(node.value)
 
     @staticmethod
     def parse_value(value):
         try:
+            # Converting the float to str before parsing it to Decimal is
+            # necessary to keep the decimal places as typed
+            value = str(value)
             return decimal.Decimal(value)
         except decimal.DecimalException:
             return None
