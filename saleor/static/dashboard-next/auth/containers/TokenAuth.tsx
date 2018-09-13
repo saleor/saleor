@@ -4,15 +4,12 @@ import {
   PartialMutationProviderProps,
   PartialMutationProviderRenderProps
 } from "../..";
-import { TokenAuthMutation, TokenAuthMutationVariables } from "../../gql-types";
 import { TypedTokenAuthMutation } from "../mutations";
+import { TokenAuth, TokenAuthVariables } from "../types/TokenAuth";
 
 interface TokenAuthProviderProps
-  extends PartialMutationProviderProps<TokenAuthMutation> {
-  children: PartialMutationProviderRenderProps<
-    TokenAuthMutation,
-    TokenAuthMutationVariables
-  >;
+  extends PartialMutationProviderProps<TokenAuth> {
+  children: PartialMutationProviderRenderProps<TokenAuth, TokenAuthVariables>;
 }
 
 const TokenAuthProvider: React.StatelessComponent<TokenAuthProviderProps> = ({

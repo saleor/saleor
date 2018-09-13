@@ -3,14 +3,12 @@ import * as React from "react";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator, { NavigatorLink } from "../../components/Navigator";
-import { CategoryUpdateMutation } from "../../gql-types";
 import i18n from "../../i18n";
 import CategoryEditPage from "../components/CategoryEditPage";
 import { categoryShowUrl } from "../index";
-import {
-  TypedCategoryUpdateMutation
-} from "../mutations";
+import { TypedCategoryUpdateMutation } from "../mutations";
 import { categoryDetailsQuery, TypedCategoryDetailsQuery } from "../queries";
+import { CategoryUpdate } from "../types/CategoryUpdate";
 
 interface CategoryUpdateFormProps {
   id: string;
@@ -31,7 +29,7 @@ export const CategoryUpdateForm: React.StatelessComponent<
               if (error) {
                 return <ErrorMessageCard message={error.message} />;
               }
-              const handleUpdateSuccess = (data: CategoryUpdateMutation) => {
+              const handleUpdateSuccess = (data: CategoryUpdate) => {
                 if (data.categoryUpdate.errors.length === 0) {
                   pushMessage({ text: i18n.t("Category updated") });
                   navigate(categoryShowUrl(data.categoryUpdate.category.id));

@@ -1,10 +1,10 @@
 import * as React from "react";
 
-import {
-  ProductImageReorderMutation,
-  ProductImageReorderMutationVariables
-} from "../../gql-types";
 import { TypedProductImagesReorder } from "../mutations";
+import {
+  ProductImageReorder,
+  ProductImageReorderVariables
+} from "../types/ProductImageReorder";
 
 import {
   PartialMutationProviderProps,
@@ -12,15 +12,15 @@ import {
 } from "../..";
 
 interface ProductImagesReorderProviderProps
-  extends PartialMutationProviderProps<ProductImageReorderMutation> {
+  extends PartialMutationProviderProps<ProductImageReorder> {
   productId: string;
   productImages: Array<{
     id: string;
     url: string;
   }>;
   children: PartialMutationProviderRenderProps<
-    ProductImageReorderMutation,
-    ProductImageReorderMutationVariables
+    ProductImageReorder,
+    ProductImageReorderVariables
   >;
 }
 

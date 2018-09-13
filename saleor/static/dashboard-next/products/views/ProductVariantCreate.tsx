@@ -4,7 +4,6 @@ import { productUrl, productVariantEditUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
-import { VariantCreateMutation } from "../../gql-types";
 import i18n from "../../i18n";
 import { decimal } from "../../misc";
 import ProductVariantCreatePage from "../components/ProductVariantCreatePage";
@@ -13,6 +12,7 @@ import {
   productVariantCreateQuery,
   TypedProductVariantCreateQuery
 } from "../queries";
+import { VariantCreate } from "../types/VariantCreate";
 
 interface ProductUpdateProps {
   productId: string;
@@ -47,7 +47,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                 );
               }
 
-              const handleCreateSuccess = (data: VariantCreateMutation) => {
+              const handleCreateSuccess = (data: VariantCreate) => {
                 if (
                   data.productVariantCreate.errors &&
                   data.productVariantCreate.errors.length === 0

@@ -4,10 +4,6 @@ import Navigator from "../../components/Navigator";
 import { productTypeListUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
-import {
-  ProductTypeDeleteMutation,
-  ProductTypeUpdateMutation
-} from "../../gql-types";
 import i18n from "../../i18n";
 import ProductTypeDetailsPage, {
   ProductTypeForm
@@ -18,6 +14,8 @@ import {
   productTypeDetailsQuery,
   TypedProductTypeDetailsQuery
 } from "../queries";
+import { ProductTypeDelete } from "../types/ProductTypeDelete";
+import { ProductTypeUpdate as ProductTypeUpdateMutation } from "../types/ProductTypeUpdate";
 
 interface ProductTypeUpdateProps {
   id: string;
@@ -46,7 +44,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                 <AttributeSearchProvider>
                   {(searchAttribute, searchState) => {
                     const handleDeleteSuccess = (
-                      deleteData: ProductTypeDeleteMutation
+                      deleteData: ProductTypeDelete
                     ) => {
                       if (deleteData.productTypeDelete.errors.length === 0) {
                         pushMessage({

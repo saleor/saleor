@@ -4,17 +4,14 @@ import {
   PartialMutationProviderProps,
   PartialMutationProviderRenderProps
 } from "../..";
-import {
-  VariantDeleteMutation,
-  VariantDeleteMutationVariables
-} from "../../gql-types";
 import { TypedVariantDeleteMutation } from "../mutations";
+import { VariantDelete, VariantDeleteVariables } from "../types/VariantDelete";
 
 interface VariantDeleteProviderProps extends PartialMutationProviderProps {
   id: string;
   children: PartialMutationProviderRenderProps<
-    VariantDeleteMutation,
-    VariantDeleteMutationVariables
+    VariantDelete,
+    VariantDeleteVariables
   >;
 }
 

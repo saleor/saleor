@@ -3,13 +3,13 @@ import Navigator from "../../components/Navigator";
 
 import { productTypeDetailsUrl, productTypeListUrl } from "..";
 import Messages from "../../components/messages";
-import { ProductTypeCreateMutation } from "../../gql-types";
 import i18n from "../../i18n";
 import ProductTypeDetailsPage, {
   ProductTypeForm
 } from "../components/ProductTypeDetailsPage";
 import { AttributeSearchProvider } from "../containers/AttributeSearch";
 import { TypedProductTypeCreateMutation } from "../mutations";
+import { ProductTypeCreate as ProductTypeCreateMutation } from "../types/ProductTypeCreate";
 
 const formData = {
   hasVariants: false,

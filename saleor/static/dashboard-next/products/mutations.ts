@@ -1,32 +1,36 @@
 import gql from "graphql-tag";
 
-import {
-  ProductCreateMutation,
-  ProductCreateMutationVariables,
-  ProductDeleteMutation,
-  ProductDeleteMutationVariables,
-  ProductImageCreateMutation,
-  ProductImageCreateMutationVariables,
-  ProductImageDeleteMutation,
-  ProductImageDeleteMutationVariables,
-  ProductImageReorderMutation,
-  ProductImageReorderMutationVariables,
-  ProductImageUpdateMutation,
-  ProductImageUpdateMutationVariables,
-  ProductUpdateMutation,
-  ProductUpdateMutationVariables,
-  VariantCreateMutation,
-  VariantCreateMutationVariables,
-  VariantDeleteMutation,
-  VariantDeleteMutationVariables,
-  VariantImageAssignMutation,
-  VariantImageAssignMutationVariables,
-  VariantImageUnassignMutation,
-  VariantImageUnassignMutationVariables,
-  VariantUpdateMutation,
-  VariantUpdateMutationVariables
-} from "../gql-types";
 import { TypedMutation } from "../mutations";
+import { ProductCreate, ProductCreateVariables } from "./types/ProductCreate";
+import { ProductDelete, ProductDeleteVariables } from "./types/ProductDelete";
+import {
+  ProductImageCreate,
+  ProductImageCreateVariables
+} from "./types/ProductImageCreate";
+import {
+  ProductImageDelete,
+  ProductImageDeleteVariables
+} from "./types/ProductImageDelete";
+import {
+  ProductImageReorder,
+  ProductImageReorderVariables
+} from "./types/ProductImageReorder";
+import {
+  ProductImageUpdate,
+  ProductImageUpdateVariables
+} from "./types/ProductImageUpdate";
+import { ProductUpdate, ProductUpdateVariables } from "./types/ProductUpdate";
+import { VariantCreate, VariantCreateVariables } from "./types/VariantCreate";
+import { VariantDelete, VariantDeleteVariables } from "./types/VariantDelete";
+import {
+  VariantImageAssign,
+  VariantImageAssignVariables
+} from "./types/VariantImageAssign";
+import {
+  VariantImageUnassign,
+  VariantImageUnassignVariables
+} from "./types/VariantImageUnassign";
+import { VariantUpdate, VariantUpdateVariables } from "./types/VariantUpdate";
 
 import { fragmentProduct, fragmentVariant } from "./queries";
 
@@ -45,8 +49,8 @@ export const productImageCreateMutation = gql`
   }
 `;
 export const TypedProductImageCreateMutation = TypedMutation<
-  ProductImageCreateMutation,
-  ProductImageCreateMutationVariables
+  ProductImageCreate,
+  ProductImageCreateVariables
 >(productImageCreateMutation);
 
 export const productDeleteMutation = gql`
@@ -63,8 +67,8 @@ export const productDeleteMutation = gql`
   }
 `;
 export const TypedProductDeleteMutation = TypedMutation<
-  ProductDeleteMutation,
-  ProductDeleteMutationVariables
+  ProductDelete,
+  ProductDeleteVariables
 >(productDeleteMutation);
 
 export const productImagesReorder = gql`
@@ -91,8 +95,8 @@ export const productImagesReorder = gql`
   }
 `;
 export const TypedProductImagesReorder = TypedMutation<
-  ProductImageReorderMutation,
-  ProductImageReorderMutationVariables
+  ProductImageReorder,
+  ProductImageReorderVariables
 >(productImagesReorder);
 
 export const productUpdateMutation = gql`
@@ -134,8 +138,8 @@ export const productUpdateMutation = gql`
   }
 `;
 export const TypedProductUpdateMutation = TypedMutation<
-  ProductUpdateMutation,
-  ProductUpdateMutationVariables
+  ProductUpdate,
+  ProductUpdateVariables
 >(productUpdateMutation);
 
 export const productCreateMutation = gql`
@@ -177,8 +181,8 @@ export const productCreateMutation = gql`
   }
 `;
 export const TypedProductCreateMutation = TypedMutation<
-  ProductCreateMutation,
-  ProductCreateMutationVariables
+  ProductCreate,
+  ProductCreateVariables
 >(productCreateMutation);
 
 export const variantDeleteMutation = gql`
@@ -195,8 +199,8 @@ export const variantDeleteMutation = gql`
   }
 `;
 export const TypedVariantDeleteMutation = TypedMutation<
-  VariantDeleteMutation,
-  VariantDeleteMutationVariables
+  VariantDelete,
+  VariantDeleteVariables
 >(variantDeleteMutation);
 
 export const variantUpdateMutation = gql`
@@ -232,8 +236,8 @@ export const variantUpdateMutation = gql`
   }
 `;
 export const TypedVariantUpdateMutation = TypedMutation<
-  VariantUpdateMutation,
-  VariantUpdateMutationVariables
+  VariantUpdate,
+  VariantUpdateVariables
 >(variantUpdateMutation);
 
 export const variantCreateMutation = gql`
@@ -269,8 +273,8 @@ export const variantCreateMutation = gql`
   }
 `;
 export const TypedVariantCreateMutation = TypedMutation<
-  VariantCreateMutation,
-  VariantCreateMutationVariables
+  VariantCreate,
+  VariantCreateVariables
 >(variantCreateMutation);
 
 export const productImageDeleteMutation = gql`
@@ -290,8 +294,8 @@ export const productImageDeleteMutation = gql`
   }
 `;
 export const TypedProductImageDeleteMutation = TypedMutation<
-  ProductImageDeleteMutation,
-  ProductImageDeleteMutationVariables
+  ProductImageDelete,
+  ProductImageDeleteVariables
 >(productImageDeleteMutation);
 
 export const productImageUpdateMutation = gql`
@@ -309,8 +313,8 @@ export const productImageUpdateMutation = gql`
   }
 `;
 export const TypedProductImageUpdateMutation = TypedMutation<
-  ProductImageUpdateMutation,
-  ProductImageUpdateMutationVariables
+  ProductImageUpdate,
+  ProductImageUpdateVariables
 >(productImageUpdateMutation);
 
 export const variantImageAssignMutation = gql`
@@ -328,8 +332,8 @@ export const variantImageAssignMutation = gql`
   }
 `;
 export const TypedVariantImageAssignMutation = TypedMutation<
-  VariantImageAssignMutation,
-  VariantImageAssignMutationVariables
+  VariantImageAssign,
+  VariantImageAssignVariables
 >(variantImageAssignMutation);
 
 export const variantImageUnassignMutation = gql`
@@ -347,6 +351,6 @@ export const variantImageUnassignMutation = gql`
   }
 `;
 export const TypedVariantImageUnassignMutation = TypedMutation<
-  VariantImageUnassignMutation,
-  VariantImageUnassignMutationVariables
+  VariantImageUnassign,
+  VariantImageUnassignVariables
 >(variantImageUnassignMutation);
