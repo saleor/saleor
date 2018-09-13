@@ -15,6 +15,31 @@ from ....shipping.models import ShippingMethod as ShippingMethodModel
 from ....core.utils.taxes import ZERO_TAXED_MONEY
 
 
+def clean_order_update_shipping(order, method, errors):
+    if not method:
+        return errors
+    if not order.shipping_address:
+        errors.append(
+            Error(
+                field='order',
+                message=(
+                    'Cannot choose a shipping method for an '
+                    'order without the shipping address.')))
+        return errors
+    valid_methods = (
+        ShippingMethodModel.objects.applicable_shipping_methods(
+            price=order.get_subtotal().gross.amount,
+            weight=order.get_total_weight(),
+            country_code=order.shipping_address.country.code))
+    valid_methods = valid_methods.values_list('id', flat=True)
+    if method.pk not in valid_methods:
+        errors.append(
+            Error(
+                field='shippingMethod',
+                message='Shipping method cannot be used with this order.'))
+    return errors
+
+
 def try_payment_action(action, money, errors):
     try:
         action(money)
@@ -137,26 +162,8 @@ class OrderUpdateShipping(BaseMutation):
         method = cls.get_node_or_error(
             info, input['shipping_method'], errors,
             'shipping_method', ShippingMethod)
+        clean_order_update_shipping(order, method, errors)
         if errors:
-            return OrderUpdateShipping(errors=errors)
-
-        if not order.shipping_address:
-            cls.add_error(
-                errors, 'order',
-                'Cannot choose a shipping method for an '
-                'order without the shipping address.')
-            return OrderUpdateShipping(errors=errors)
-
-        valid_methods = (
-            ShippingMethodModel.objects.applicable_shipping_methods(
-                price=order.get_subtotal().gross.amount,
-                weight=order.get_total_weight(),
-                country_code=order.shipping_address.country.code))
-        valid_methods = valid_methods.values_list('id', flat=True)
-        if method.pk not in valid_methods:
-            cls.add_error(
-                errors, 'shippingMethod',
-                'Shipping method cannot be used with this order.')
             return OrderUpdateShipping(errors=errors)
 
         order.shipping_method = method
