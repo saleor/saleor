@@ -321,6 +321,18 @@ export interface AttributeValueInput {
   value: string;
 }
 
+export interface FulfillmentCreateInput {
+  order?: string | null;
+  trackingNumber?: string | null;
+  notifyCustomer?: boolean | null;
+  lines?: (FulfillmentLineInput | null)[] | null;
+}
+
+export interface FulfillmentLineInput {
+  orderLineId?: string | null;
+  quantity?: number | null;
+}
+
 export interface ProductTypeInput {
   name?: string | null;
   hasVariants?: boolean | null;

@@ -12,7 +12,13 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
+import Form from "../../../components/Form";
 import i18n from "../../../i18n";
+import { Ø } from "../../../misc";
+
+export interface FormData {
+  lines: number[];
+}
 
 interface OrderFulfillmentDialogProps {
   open: boolean;
@@ -24,10 +30,8 @@ interface OrderFulfillmentDialogProps {
     quantityFulfilled: number;
     thumbnailUrl?: string;
   }>;
-  data: any;
-  onChange(event: React.ChangeEvent<any>);
-  onClose?();
-  onConfirm?(event: React.FormEvent<any>);
+  onClose();
+  onSubmit(data: FormData);
 }
 
 const decorate = withStyles(
@@ -47,55 +51,92 @@ const decorate = withStyles(
   { name: "OrderFulfillmentDialog" }
 );
 const OrderFulfillmentDialog = decorate<OrderFulfillmentDialogProps>(
-  ({ classes, open, products, data, onChange, onClose, onConfirm }) => (
+  ({ classes, open, products, onClose, onSubmit }) => (
     <Dialog open={open}>
-      <DialogTitle>{i18n.t("Fulfill products")}</DialogTitle>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell />
-            <TableCell>{i18n.t("Product name")}</TableCell>
-            <TableCell>{i18n.t("SKU")}</TableCell>
-            <TableCell className={classes.textRight}>
-              {i18n.t("Quantity")}
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {products.map(product => (
-            <TableRow key={product.id}>
-              <TableCell className={classes.avatarCell}>
-                <Avatar src={product.thumbnailUrl} />
-              </TableCell>
-              <TableCell>{product.productName}</TableCell>
-              <TableCell>{product.productSku}</TableCell>
-              <TableCell className={classes.textRight}>
-                <Input
-                  type="number"
-                  inputProps={{
-                    max: product.quantity - product.quantityFulfilled,
-                    style: { textAlign: "right" }
-                  }}
-                  className={classes.quantityInput}
-                  value={data[product.id]}
-                  onChange={onChange}
-                  name={product.id}
-                  error={product.quantity < data[product.id]}
-                />{" "}
-                / {product.quantity}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      <DialogActions>
-        <Button onClick={onClose}>
-          {i18n.t("Cancel", { context: "button" })}
-        </Button>
-        <Button color="primary" variant="raised" onClick={onConfirm}>
-          {i18n.t("Confirm", { context: "button" })}
-        </Button>
-      </DialogActions>
+      <Form
+        initial={{
+          lines: Ø(
+            () =>
+              products.map(
+                product => product.quantity - product.quantityFulfilled
+              ),
+            []
+          )
+        }}
+        onSubmit={onSubmit}
+      >
+        {({ data, change }) => {
+          const handleQuantityChange = (
+            productIndex: number,
+            event: React.ChangeEvent<any>
+          ) => {
+            const newData = data.lines;
+            newData[productIndex] = event.target.value;
+            change({
+              target: {
+                name: "lines",
+                value: newData
+              }
+            } as any);
+          };
+          return (
+            <>
+              <DialogTitle>{i18n.t("Fulfill products")}</DialogTitle>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell />
+                    <TableCell>{i18n.t("Product name")}</TableCell>
+                    <TableCell>{i18n.t("SKU")}</TableCell>
+                    <TableCell className={classes.textRight}>
+                      {i18n.t("Quantity")}
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {products.map((product, productIndex) => {
+                    const remainingQuantity =
+                      product.quantity - product.quantityFulfilled;
+                    return (
+                      <TableRow key={product.id}>
+                        <TableCell className={classes.avatarCell}>
+                          <Avatar src={product.thumbnailUrl} />
+                        </TableCell>
+                        <TableCell>{product.productName}</TableCell>
+                        <TableCell>{product.productSku}</TableCell>
+                        <TableCell className={classes.textRight}>
+                          <Input
+                            type="number"
+                            inputProps={{
+                              max: remainingQuantity,
+                              style: { textAlign: "right" }
+                            }}
+                            className={classes.quantityInput}
+                            value={data.lines[productIndex]}
+                            onChange={event =>
+                              handleQuantityChange(productIndex, event)
+                            }
+                            error={remainingQuantity < data.lines[productIndex]}
+                          />{" "}
+                          / {remainingQuantity}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+              <DialogActions>
+                <Button onClick={onClose}>
+                  {i18n.t("Cancel", { context: "button" })}
+                </Button>
+                <Button color="primary" variant="raised" type="submit">
+                  {i18n.t("Confirm", { context: "button" })}
+                </Button>
+              </DialogActions>
+            </>
+          );
+        }}
+      </Form>
     </Dialog>
   )
 );

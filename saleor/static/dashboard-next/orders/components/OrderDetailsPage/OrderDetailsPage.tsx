@@ -17,10 +17,14 @@ import OrderCustomer from "../OrderCustomer";
 import OrderCustomerEditDialog from "../OrderCustomerEditDialog";
 import OrderFulfillment from "../OrderFulfillment";
 import OrderFulfillmentCancelDialog from "../OrderFulfillmentCancelDialog";
-import OrderFulfillmentDialog from "../OrderFulfillmentDialog";
+import OrderFulfillmentDialog, {
+  FormData as OrderFulfillFormData
+} from "../OrderFulfillmentDialog";
 import OrderFulfillmentTrackingDialog from "../OrderFulfillmentTrackingDialog";
 import OrderHistory from "../OrderHistory";
-import OrderPaymentDialog from "../OrderPaymentDialog";
+import OrderPaymentDialog, {
+  FormData as OrderPaymentFormData
+} from "../OrderPaymentDialog";
 import OrderPaymentReleaseDialog from "../OrderPaymentReleaseDialog";
 import OrderProductAddDialog from "../OrderProductAddDialog";
 import OrderShippingMethodEditDialog from "../OrderShippingMethodEditDialog";
@@ -137,10 +141,13 @@ interface OrderDetailsPageProps {
   onBack();
   onCreate?();
   onCustomerEmailClick?(id: string);
+  onOrderFulfill(data: OrderFulfillFormData);
   onOrderLineChange?(id: string): (value: string) => () => void;
   onOrderLineRemove?(id: string): () => void;
   onProductClick?(id: string);
   onPackingSlipClick?(id: string);
+  onPaymentCapture(data: OrderPaymentFormData);
+  onPaymentRefund(data: OrderPaymentFormData);
   onPaymentRelease?();
   onOrderCancel?();
 }
@@ -243,9 +250,12 @@ class OrderDetailsPageComponent extends React.Component<
       onCreate,
       onCustomerEmailClick,
       onOrderCancel,
+      onOrderFulfill,
       onOrderLineChange,
       onOrderLineRemove,
       onPackingSlipClick,
+      onPaymentCapture,
+      onPaymentRefund,
       onPaymentRelease,
       onProductClick
     } = this.props;
@@ -314,51 +324,26 @@ class OrderDetailsPageComponent extends React.Component<
               onRowClick={onProductClick}
               onShippingMethodClick={this.toggleShippingMethodEditDialog}
             />
+            <OrderFulfillmentDialog
+              open={openedFulfillmentDialog && !!order}
+              products={unfulfilled}
+              onClose={this.toggleFulfillmentDialog}
+              onSubmit={onOrderFulfill}
+            />
+            <OrderPaymentDialog
+              open={openedPaymentCaptureDialog && !!order}
+              variant="capture"
+              onClose={this.togglePaymentCaptureDialog}
+              onSubmit={onPaymentCapture}
+            />
+            <OrderPaymentDialog
+              open={openedPaymentRefundDialog && !!order}
+              variant="refund"
+              onClose={this.togglePaymentRefundDialog}
+              onSubmit={onPaymentRefund}
+            />
             {order && (
               <>
-                <Form
-                  initial={Ø(() =>
-                    unfulfilled.reduce((prev, curr) => {
-                      prev[curr.id] = curr.quantity;
-                      return prev;
-                    }, {})
-                  )}
-                >
-                  {({ data, change, submit }) => (
-                    <OrderFulfillmentDialog
-                      data={data}
-                      open={openedFulfillmentDialog}
-                      products={unfulfilled}
-                      onChange={change}
-                      onClose={this.toggleFulfillmentDialog}
-                      onConfirm={submit}
-                    />
-                  )}
-                </Form>
-                <Form initial={{ value: 0 }}>
-                  {({ data, change, submit }) => (
-                    <OrderPaymentDialog
-                      open={openedPaymentCaptureDialog}
-                      value={data.value}
-                      variant="capture"
-                      onChange={change}
-                      onClose={this.togglePaymentCaptureDialog}
-                      onConfirm={submit}
-                    />
-                  )}
-                </Form>
-                <Form initial={{ value: 0 }}>
-                  {({ data, change, submit }) => (
-                    <OrderPaymentDialog
-                      open={openedPaymentRefundDialog}
-                      value={data.value}
-                      variant="refund"
-                      onChange={change}
-                      onClose={this.togglePaymentRefundDialog}
-                      onConfirm={submit}
-                    />
-                  )}
-                </Form>
                 <Form
                   initial={{
                     quantity: 1,
