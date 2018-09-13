@@ -3,15 +3,17 @@ import * as React from "react";
 import { Query, QueryProps } from "react-apollo";
 
 import {
-  CategoryDetailsQuery,
-  CategoryDetailsQueryVariables,
-  CategoryPropertiesQuery,
-  CategoryPropertiesQueryVariables,
-  RootCategoryChildrenQuery
-} from "../gql-types";
+  CategoryDetails,
+  CategoryDetailsVariables
+} from "./types/CategoryDetails";
+import {
+  CategoryProperties,
+  CategoryPropertiesVariables
+} from "./types/CategoryProperties";
+import { RootCategoryChildren } from "./types/RootCategoryChildren";
 
 export const TypedCategoryDetailsQuery = Query as React.ComponentType<
-  QueryProps<CategoryDetailsQuery, CategoryDetailsQueryVariables>
+  QueryProps<CategoryDetails, CategoryDetailsVariables>
 >;
 export const categoryDetailsQuery = gql`
   query CategoryDetails($id: ID!) {
@@ -27,7 +29,7 @@ export const categoryDetailsQuery = gql`
 `;
 
 export const TypedRootCategoryChildrenQuery = Query as React.ComponentType<
-  QueryProps<RootCategoryChildrenQuery>
+  QueryProps<RootCategoryChildren>
 >;
 export const rootCategoryChildrenQuery = gql`
   query RootCategoryChildren {
@@ -50,7 +52,7 @@ export const rootCategoryChildrenQuery = gql`
 `;
 
 export const TypedCategoryPropertiesQuery = Query as React.ComponentType<
-  QueryProps<CategoryPropertiesQuery, CategoryPropertiesQueryVariables>
+  QueryProps<CategoryProperties, CategoryPropertiesVariables>
 >;
 export const categoryPropertiesQuery = gql`
   query CategoryProperties(

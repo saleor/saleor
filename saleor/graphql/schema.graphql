@@ -1,0 +1,2114 @@
+schema {
+  query: Query
+  mutation: Mutations
+}
+
+type Address implements Node {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  companyName: String!
+  streetAddress1: String!
+  streetAddress2: String!
+  city: String!
+  cityArea: String!
+  postalCode: String!
+  country: AddressCountry!
+  countryArea: String!
+  phone: String
+}
+
+type AddressCountableConnection {
+  pageInfo: PageInfo!
+  edges: [AddressCountableEdge!]!
+  totalCount: Int
+}
+
+type AddressCountableEdge {
+  node: Address!
+  cursor: String!
+}
+
+enum AddressCountry {
+  AF
+  AX
+  AL
+  DZ
+  AS
+  AD
+  AO
+  AI
+  AQ
+  AG
+  AR
+  AM
+  AW
+  AU
+  AT
+  AZ
+  BS
+  BH
+  BD
+  BB
+  BY
+  BE
+  BZ
+  BJ
+  BM
+  BT
+  BO
+  BQ
+  BA
+  BW
+  BV
+  BR
+  IO
+  BN
+  BG
+  BF
+  BI
+  CV
+  KH
+  CM
+  CA
+  KY
+  CF
+  TD
+  CL
+  CN
+  CX
+  CC
+  CO
+  KM
+  CG
+  CD
+  CK
+  CR
+  CI
+  HR
+  CU
+  CW
+  CY
+  CZ
+  DK
+  DJ
+  DM
+  DO
+  EC
+  EG
+  SV
+  GQ
+  ER
+  EE
+  ET
+  EU
+  FK
+  FO
+  FJ
+  FI
+  FR
+  GF
+  PF
+  TF
+  GA
+  GM
+  GE
+  DE
+  GH
+  GI
+  GR
+  GL
+  GD
+  GP
+  GU
+  GT
+  GG
+  GN
+  GW
+  GY
+  HT
+  HM
+  VA
+  HN
+  HK
+  HU
+  IS
+  IN
+  ID
+  IR
+  IQ
+  IE
+  IM
+  IL
+  IT
+  JM
+  JP
+  JE
+  JO
+  KZ
+  KE
+  KI
+  KW
+  KG
+  LA
+  LV
+  LB
+  LS
+  LR
+  LY
+  LI
+  LT
+  LU
+  MO
+  MK
+  MG
+  MW
+  MY
+  MV
+  ML
+  MT
+  MH
+  MQ
+  MR
+  MU
+  YT
+  MX
+  FM
+  MD
+  MC
+  MN
+  ME
+  MS
+  MA
+  MZ
+  MM
+  NA
+  NR
+  NP
+  NL
+  NC
+  NZ
+  NI
+  NE
+  NG
+  NU
+  NF
+  KP
+  MP
+  NO
+  OM
+  PK
+  PW
+  PS
+  PA
+  PG
+  PY
+  PE
+  PH
+  PN
+  PL
+  PT
+  PR
+  QA
+  RE
+  RO
+  RU
+  RW
+  BL
+  SH
+  KN
+  LC
+  MF
+  PM
+  VC
+  WS
+  SM
+  ST
+  SA
+  SN
+  RS
+  SC
+  SL
+  SG
+  SX
+  SK
+  SI
+  SB
+  SO
+  ZA
+  GS
+  KR
+  SS
+  ES
+  LK
+  SD
+  SR
+  SJ
+  SZ
+  SE
+  CH
+  SY
+  TW
+  TJ
+  TZ
+  TH
+  TL
+  TG
+  TK
+  TO
+  TT
+  TN
+  TR
+  TM
+  TC
+  TV
+  UG
+  UA
+  AE
+  GB
+  UM
+  US
+  UY
+  UZ
+  VU
+  VE
+  VN
+  VG
+  VI
+  WF
+  EH
+  YE
+  ZM
+  ZW
+}
+
+type AddressCreate {
+  errors: [Error]
+  address: Address
+}
+
+input AddressCreateInput {
+  firstName: String
+  lastName: String
+  companyName: String
+  streetAddress1: String
+  streetAddress2: String
+  city: String
+  cityArea: String
+  postalCode: String
+  country: String
+  countryArea: String
+  phone: String
+  userId: ID!
+}
+
+type AddressDelete {
+  errors: [Error]
+  address: Address
+}
+
+input AddressInput {
+  firstName: String
+  lastName: String
+  companyName: String
+  streetAddress1: String
+  streetAddress2: String
+  city: String
+  cityArea: String
+  postalCode: String
+  country: String
+  countryArea: String
+  phone: String
+}
+
+type AddressUpdate {
+  errors: [Error]
+  address: Address
+}
+
+type AssignNavigation {
+  errors: [Error]
+  menu: Menu
+}
+
+type AttributeChoiceValueCreate {
+  errors: [Error]
+  attributeChoiceValue: ProductAttributeValue
+}
+
+type AttributeChoiceValueDelete {
+  errors: [Error]
+  attributeChoiceValue: ProductAttributeValue
+}
+
+input AttributeChoiceValueInput {
+  attribute: ID
+  slug: String!
+  name: String!
+}
+
+type AttributeChoiceValueUpdate {
+  errors: [Error]
+  attributeChoiceValue: ProductAttributeValue
+}
+
+input AttributeChoiceValueUpdateInput {
+  slug: String!
+  name: String!
+}
+
+scalar AttributeScalar
+
+input AttributeValueInput {
+  slug: String!
+  value: String!
+}
+
+type AuthorizationKey {
+  name: String!
+  key: String!
+}
+
+type Category implements Node {
+  seoTitle: String
+  seoDescription: String
+  id: ID!
+  name: String!
+  slug: String!
+  description: String!
+  parent: Category
+  backgroundImage: Image
+  level: Int!
+  children(before: String, after: String, first: Int, last: Int, id: ID, name: String): CategoryCountableConnection
+  products(before: String, after: String, first: Int, last: Int, category: ID, price: Float, price_Range: Float, price_Lte: Float, price_Gte: Float, attributes: [AttributeScalar], name: String, name_Icontains: String, productType_Name: String, isPublished: Boolean, sortBy: String): ProductCountableConnection
+  url: String
+  ancestors(before: String, after: String, first: Int, last: Int, id: ID, name: String): CategoryCountableConnection
+}
+
+type CategoryCountableConnection {
+  pageInfo: PageInfo!
+  edges: [CategoryCountableEdge!]!
+  totalCount: Int
+}
+
+type CategoryCountableEdge {
+  node: Category!
+  cursor: String!
+}
+
+type CategoryCreate {
+  errors: [Error]
+  category: Category
+}
+
+type CategoryDelete {
+  errors: [Error]
+  category: Category
+}
+
+input CategoryInput {
+  description: String
+  name: String
+  parent: ID
+  slug: String
+  seo: SeoInput
+}
+
+type CategoryUpdate {
+  errors: [Error]
+  category: Category
+}
+
+type Collection implements Node {
+  seoTitle: String
+  seoDescription: String
+  id: ID!
+  name: String!
+  slug: String!
+  products(before: String, after: String, first: Int, last: Int, category: ID, price: Float, price_Range: Float, price_Lte: Float, price_Gte: Float, attributes: [AttributeScalar], name: String, name_Icontains: String, productType_Name: String, isPublished: Boolean, sortBy: String): ProductCountableConnection
+  backgroundImage: Image
+  isPublished: Boolean!
+}
+
+type CollectionAddProducts {
+  errors: [Error]
+  collection: Collection
+}
+
+type CollectionCountableConnection {
+  pageInfo: PageInfo!
+  edges: [CollectionCountableEdge!]!
+  totalCount: Int
+}
+
+type CollectionCountableEdge {
+  node: Collection!
+  cursor: String!
+}
+
+type CollectionCreate {
+  errors: [Error]
+  collection: Collection
+}
+
+type CollectionDelete {
+  errors: [Error]
+  collection: Collection
+}
+
+input CollectionInput {
+  isPublished: Boolean
+  name: String
+  slug: String
+  products: [ID]
+  backgroundImage: Upload
+  seo: SeoInput
+}
+
+type CollectionRemoveProducts {
+  errors: [Error]
+  collection: Collection
+}
+
+type CollectionUpdate {
+  errors: [Error]
+  collection: Collection
+}
+
+type CountryDisplay {
+  code: String!
+  country: String!
+}
+
+type CreateToken {
+  token: String
+  errors: [Error]
+  user: User
+}
+
+type CustomerCreate {
+  errors: [Error]
+  user: User
+}
+
+input CustomerInput {
+  email: String
+  note: String
+  defaultBillingAddress: AddressInput
+  defaultShippingAddress: AddressInput
+}
+
+type CustomerUpdate {
+  errors: [Error]
+  user: User
+}
+
+scalar Date
+
+scalar DateTime
+
+scalar Decimal
+
+enum DiscountValueTypeEnum {
+  FIXED
+  PERCENTAGE
+}
+
+type Domain {
+  host: String!
+  sslEnabled: Boolean!
+  url: String!
+}
+
+type DraftOrderComplete {
+  errors: [Error]
+  order: Order
+}
+
+type DraftOrderCreate {
+  errors: [Error]
+  order: Order
+}
+
+type DraftOrderDelete {
+  errors: [Error]
+  order: Order
+}
+
+input DraftOrderInput {
+  billingAddress: AddressInput
+  user: ID
+  userEmail: String
+  discount: Decimal
+  lines: [OrderLineInput]
+  shippingAddress: AddressInput
+  shippingMethod: ID
+  voucher: ID
+}
+
+type DraftOrderUpdate {
+  errors: [Error]
+  order: Order
+}
+
+type Error {
+  field: String
+  message: String
+}
+
+type Fulfillment implements Node {
+  id: ID!
+  fulfillmentOrder: Int!
+  status: FulfillmentStatus!
+  trackingNumber: String!
+  shippingDate: DateTime!
+  lines(before: String, after: String, first: Int, last: Int): FulfillmentLineCountableConnection
+  statusDisplay: String
+}
+
+type FulfillmentCancel {
+  errors: [Error]
+  fulfillment: Fulfillment
+}
+
+input FulfillmentCancelInput {
+  restock: Boolean
+}
+
+type FulfillmentCreate {
+  errors: [Error]
+  fulfillment: Fulfillment
+}
+
+input FulfillmentCreateInput {
+  order: ID
+  trackingNumber: String
+  notifyCustomer: Boolean
+  lines: [FulfillmentLineInput]
+}
+
+type FulfillmentLine implements Node {
+  id: ID!
+  orderLine: OrderLine!
+  quantity: Int!
+}
+
+type FulfillmentLineCountableConnection {
+  pageInfo: PageInfo!
+  edges: [FulfillmentLineCountableEdge!]!
+  totalCount: Int
+}
+
+type FulfillmentLineCountableEdge {
+  node: FulfillmentLine!
+  cursor: String!
+}
+
+input FulfillmentLineInput {
+  orderLineId: ID
+  quantity: Int
+}
+
+enum FulfillmentStatus {
+  FULFILLED
+  CANCELED
+}
+
+type FulfillmentUpdate {
+  errors: [Error]
+  fulfillment: Fulfillment
+}
+
+input FulfillmentUpdateInput {
+  trackingNumber: String
+  notifyCustomer: Boolean
+}
+
+scalar GenericScalar
+
+type Group implements Node {
+  id: ID!
+  name: String!
+  permissions: [PermissionDisplay]
+}
+
+type GroupCountableConnection {
+  pageInfo: PageInfo!
+  edges: [GroupCountableEdge!]!
+  totalCount: Int
+}
+
+type GroupCountableEdge {
+  node: Group!
+  cursor: String!
+}
+
+type HomepageCollectionUpdate {
+  errors: [Error]
+  shop: Shop
+}
+
+type Image {
+  url(size: Int): String!
+}
+
+type LanguageDisplay {
+  code: String!
+  language: String!
+}
+
+type Margin {
+  start: Int
+  stop: Int
+}
+
+type Menu implements Node {
+  id: ID!
+  name: String!
+  items(before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
+}
+
+type MenuCountableConnection {
+  pageInfo: PageInfo!
+  edges: [MenuCountableEdge!]!
+  totalCount: Int
+}
+
+type MenuCountableEdge {
+  node: Menu!
+  cursor: String!
+}
+
+type MenuCreate {
+  errors: [Error]
+  menu: Menu
+}
+
+input MenuCreateInput {
+  name: String
+  items: [MenuItemInput]
+}
+
+type MenuDelete {
+  errors: [Error]
+  menu: Menu
+}
+
+input MenuInput {
+  name: String
+}
+
+type MenuItem implements Node {
+  id: ID!
+  menu: Menu!
+  name: String!
+  parent: MenuItem
+  url: String
+  category: Category
+  collection: Collection
+  page: Page
+  level: Int!
+  children(before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
+}
+
+type MenuItemCountableConnection {
+  pageInfo: PageInfo!
+  edges: [MenuItemCountableEdge!]!
+  totalCount: Int
+}
+
+type MenuItemCountableEdge {
+  node: MenuItem!
+  cursor: String!
+}
+
+type MenuItemCreate {
+  errors: [Error]
+  menuItem: MenuItem
+}
+
+input MenuItemCreateInput {
+  name: String
+  url: String
+  category: ID
+  collection: ID
+  page: ID
+  menu: ID!
+  parent: ID
+}
+
+type MenuItemDelete {
+  errors: [Error]
+  menuItem: MenuItem
+}
+
+input MenuItemInput {
+  name: String
+  url: String
+  category: ID
+  collection: ID
+  page: ID
+}
+
+type MenuItemUpdate {
+  errors: [Error]
+  menuItem: MenuItem
+}
+
+type MenuUpdate {
+  errors: [Error]
+  menu: Menu
+}
+
+type Money {
+  currency: String!
+  amount: Float!
+  localized: String!
+}
+
+type MoneyRange {
+  start: Money
+  stop: Money
+}
+
+type Mutations {
+  assignNavigation(menu: ID, navigationType: NavigationType!): AssignNavigation
+  tokenCreate(email: String!, password: String!): CreateToken
+  tokenRefresh(token: String): Refresh
+  tokenVerify(token: String): VerifyToken
+  setPassword(id: ID!, input: SetPasswordInput!): SetPassword
+  passwordReset(email: String!): PasswordReset
+  attributeChoiceValueCreate(input: AttributeChoiceValueInput!): AttributeChoiceValueCreate
+  attributeChoiceValueDelete(id: ID!): AttributeChoiceValueDelete
+  attributeChoiceValueUpdate(id: ID!, input: AttributeChoiceValueUpdateInput!): AttributeChoiceValueUpdate
+  categoryCreate(input: CategoryInput!): CategoryCreate
+  categoryDelete(id: ID!): CategoryDelete
+  categoryUpdate(id: ID!, input: CategoryInput!): CategoryUpdate
+  customerCreate(input: UserCreateInput!): CustomerCreate
+  customerUpdate(id: ID!, input: CustomerInput!): CustomerUpdate
+  staffCreate(input: StaffCreateInput!): StaffCreate
+  staffUpdate(id: ID!, input: StaffInput!): StaffUpdate
+  addressCreate(input: AddressCreateInput!): AddressCreate
+  addressUpdate(id: ID!, input: AddressInput!): AddressUpdate
+  addressDelete(id: ID!): AddressDelete
+  collectionCreate(input: CollectionInput!): CollectionCreate
+  collectionUpdate(id: ID!, input: CollectionInput!): CollectionUpdate
+  collectionDelete(id: ID!): CollectionDelete
+  collectionAddProducts(collectionId: ID!, products: [ID]!): CollectionAddProducts
+  collectionRemoveProducts(collectionId: ID!, products: [ID]!): CollectionRemoveProducts
+  menuCreate(input: MenuCreateInput!): MenuCreate
+  menuDelete(id: ID!): MenuDelete
+  menuUpdate(id: ID!, input: MenuInput!): MenuUpdate
+  menuItemCreate(input: MenuItemCreateInput!): MenuItemCreate
+  menuItemDelete(id: ID!): MenuItemDelete
+  menuItemUpdate(id: ID!, input: MenuItemInput!): MenuItemUpdate
+  draftOrderCreate(input: DraftOrderInput!): DraftOrderCreate
+  draftOrderComplete(id: ID!): DraftOrderComplete
+  draftOrderDelete(id: ID!): DraftOrderDelete
+  draftOrderUpdate(id: ID!, input: DraftOrderInput!): DraftOrderUpdate
+  fulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
+  fulfillmentCreate(input: FulfillmentCreateInput!): FulfillmentCreate
+  fulfillmentUpdate(id: ID!, input: FulfillmentUpdateInput!): FulfillmentUpdate
+  orderAddNote(order: ID!, input: OrderAddNoteInput!): OrderAddNote
+  orderCancel(id: ID!, restock: Boolean!): OrderCancel
+  orderCapture(amount: Decimal!, id: ID!): OrderCapture
+  orderMarkAsPaid(id: ID!): OrderMarkAsPaid
+  orderRefund(amount: Decimal!, id: ID!): OrderRefund
+  orderRelease(id: ID!): OrderRelease
+  orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
+  pageCreate(input: PageInput!): PageCreate
+  pageDelete(id: ID!): PageDelete
+  pageUpdate(id: ID!, input: PageInput!): PageUpdate
+  productAttributeCreate(input: ProductAttributesInput!): ProductAttributeCreate
+  productAttributeDelete(id: ID!): ProductAttributeDelete
+  productAttributeUpdate(id: ID!, input: ProductAttributesInput!): ProductAttributeUpdate
+  productCreate(input: ProductCreateInput!): ProductCreate
+  productDelete(id: ID!): ProductDelete
+  productUpdate(id: ID!, input: ProductInput!): ProductUpdate
+  productImageCreate(input: ProductImageCreateInput!): ProductImageCreate
+  productImageReorder(imagesIds: [ID]!, productId: ID!): ProductImageReorder
+  productImageDelete(id: ID!): ProductImageDelete
+  productImageUpdate(id: ID!, input: ProductImageUpdateInput!): ProductImageUpdate
+  productTypeCreate(input: ProductTypeInput!): ProductTypeCreate
+  productTypeUpdate(id: ID!, input: ProductTypeInput!): ProductTypeUpdate
+  productTypeDelete(id: ID!): ProductTypeDelete
+  productVariantCreate(input: ProductVariantCreateInput!): ProductVariantCreate
+  productVariantDelete(id: ID!): ProductVariantDelete
+  productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
+  saleCreate(input: SaleInput!): SaleCreate
+  saleDelete(id: ID!): SaleDelete
+  saleUpdate(id: ID!, input: SaleInput!): SaleUpdate
+  shopDomainUpdate(input: SiteDomainInput): ShopDomainUpdate
+  shopSettingsUpdate(input: ShopSettingsInput!): ShopSettingsUpdate
+  homepageCollectionUpdate(collection: ID): HomepageCollectionUpdate
+  voucherCreate(input: VoucherInput!): VoucherCreate
+  voucherDelete(id: ID!): VoucherDelete
+  voucherUpdate(id: ID!, input: VoucherInput!): VoucherUpdate
+  shippingZoneCreate(input: ShippingZoneInput!): ShippingZoneCreate
+  shippingZoneDelete(id: ID!): ShippingZoneDelete
+  shippingZoneUpdate(id: ID!, input: ShippingZoneInput!): ShippingZoneUpdate
+  shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
+  shippingPriceDelete(id: ID!): ShippingPriceDelete
+  shippingPriceUpdate(id: ID!, input: ShippingPriceInput!): ShippingPriceUpdate
+  variantImageAssign(imageId: ID!, variantId: ID!): VariantImageAssign
+  variantImageUnassign(imageId: ID!, variantId: ID!): VariantImageUnassign
+}
+
+type Navigation {
+  main: Menu
+  secondary: Menu
+}
+
+enum NavigationType {
+  MAIN
+  SECONDARY
+}
+
+interface Node {
+  id: ID!
+}
+
+type Order implements Node {
+  id: ID!
+  created: DateTime!
+  status: OrderStatus!
+  user: User
+  languageCode: String!
+  trackingClientId: String!
+  billingAddress: Address
+  shippingAddress: Address
+  userEmail: String!
+  shippingMethod: ShippingMethod
+  shippingPrice: TaxedMoney
+  shippingMethodName: String
+  token: String!
+  total: TaxedMoney
+  voucher: Voucher
+  discountAmount: Money
+  discountName: String!
+  translatedDiscountName: String!
+  displayGrossPrices: Boolean!
+  customerNote: String!
+  weight: Weight
+  lines(before: String, after: String, first: Int, last: Int): OrderLineCountableConnection
+  fulfillments: [Fulfillment]!
+  events: [OrderEvent]
+  isPaid: Boolean
+  number: String
+  paymentStatus: String
+  paymentStatusDisplay: String
+  subtotal: TaxedMoney
+  statusDisplay: String
+  totalAuthorized: Money
+  totalCaptured: Money
+}
+
+type OrderAddNote {
+  errors: [Error]
+  order: Order
+  event: OrderEvent
+}
+
+input OrderAddNoteInput {
+  message: String
+}
+
+type OrderCancel {
+  errors: [Error]
+  order: Order
+}
+
+type OrderCapture {
+  errors: [Error]
+  order: Order
+}
+
+type OrderCountableConnection {
+  pageInfo: PageInfo!
+  edges: [OrderCountableEdge!]!
+  totalCount: Int
+}
+
+type OrderCountableEdge {
+  node: Order!
+  cursor: String!
+}
+
+type OrderEvent implements Node {
+  id: ID!
+  date: DateTime
+  type: OrderEvents
+  user(id: ID): User
+  message: String
+  email: String
+  emailType: String
+  amount: Float
+  quantity: Int
+  composedId: String
+}
+
+enum OrderEvents {
+  PLACED
+  PLACED_FROM_DRAFT
+  ORDER_MARKED_AS_PAID
+  CANCELED
+  ORDER_FULLY_PAID
+  UPDATED
+  EMAIL_SENT
+  PAYMENT_CAPTURED
+  PAYMENT_REFUNDED
+  PAYMENT_RELEASED
+  FULFILLMENT_CANCELED
+  FULFILLMENT_RESTOCKED_ITEMS
+  FULFILLMENT_FULFILLED_ITEMS
+  NOTE_ADDED
+  OTHER
+}
+
+type OrderLine implements Node {
+  id: ID!
+  productName: String!
+  translatedProductName: String!
+  productSku: String!
+  isShippingRequired: Boolean!
+  quantity: Int!
+  quantityFulfilled: Int!
+  unitPrice: TaxedMoney
+  taxRate: Float!
+}
+
+type OrderLineCountableConnection {
+  pageInfo: PageInfo!
+  edges: [OrderLineCountableEdge!]!
+  totalCount: Int
+}
+
+type OrderLineCountableEdge {
+  node: OrderLine!
+  cursor: String!
+}
+
+input OrderLineInput {
+  variantId: ID
+  quantity: Int
+}
+
+type OrderMarkAsPaid {
+  errors: [Error]
+  order: Order
+}
+
+type OrderRefund {
+  errors: [Error]
+  order: Order
+}
+
+type OrderRelease {
+  errors: [Error]
+  order: Order
+}
+
+enum OrderStatus {
+  DRAFT
+  UNFULFILLED
+  PARTIALLY_FULFILLED
+  FULFILLED
+  CANCELED
+}
+
+type OrderUpdate {
+  errors: [Error]
+  order: Order
+}
+
+input OrderUpdateInput {
+  billingAddress: AddressInput
+  userEmail: String
+  shippingAddress: AddressInput
+}
+
+type Page implements Node {
+  seoTitle: String
+  seoDescription: String
+  id: ID!
+  slug: String!
+  title: String!
+  content: String!
+  created: DateTime!
+  isVisible: Boolean!
+  availableOn: Date
+}
+
+type PageCountableConnection {
+  pageInfo: PageInfo!
+  edges: [PageCountableEdge!]!
+  totalCount: Int
+}
+
+type PageCountableEdge {
+  node: Page!
+  cursor: String!
+}
+
+type PageCreate {
+  errors: [Error]
+  page: Page
+}
+
+type PageDelete {
+  errors: [Error]
+  page: Page
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+input PageInput {
+  slug: String
+  title: String
+  content: String
+  isVisible: Boolean
+  availableOn: String
+  seo: SeoInput
+}
+
+type PageUpdate {
+  errors: [Error]
+  page: Page
+}
+
+type PasswordReset {
+  errors: [Error]
+}
+
+type PermissionDisplay {
+  code: String!
+  name: String!
+}
+
+type Product implements Node {
+  id: ID!
+  seoTitle: String
+  seoDescription: String
+  productType: ProductType!
+  name: String!
+  description: String!
+  category: Category!
+  price: Money
+  availableOn: Date
+  isPublished: Boolean!
+  attributes: [SelectedAttribute]
+  updatedAt: DateTime
+  chargeTaxes: Boolean!
+  taxRate: String!
+  weight: Weight
+  voucherSet(before: String, after: String, first: Int, last: Int, name_Icontains: String, type: String, discountValue_Gte: Float, discountValue_Lte: Float, startDate: Date, endDate: Date, minAmountSpent_Gte: Float, minAmountSpent_Lte: Float): VoucherCountableConnection
+  saleSet(before: String, after: String, first: Int, last: Int, name_Icontains: String, type_Icontains: String, value_Gte: Float, value_Lte: Float, startDate: Date, endDate: Date): SaleCountableConnection
+  variants(before: String, after: String, first: Int, last: Int, id: ID): ProductVariantCountableConnection
+  images(before: String, after: String, first: Int, last: Int): ProductImageCountableConnection
+  collections(before: String, after: String, first: Int, last: Int, name: String, name_Icontains: String, name_Istartswith: String): CollectionCountableConnection
+  url: String!
+  thumbnailUrl(size: Int): String
+  availability: ProductAvailability
+  purchaseCost: MoneyRange
+  margin: Margin
+  imageById(id: ID): ProductImage
+}
+
+type ProductAttribute implements Node {
+  id: ID!
+  slug: String
+  name: String
+  values: [ProductAttributeValue]
+}
+
+type ProductAttributeCountableConnection {
+  pageInfo: PageInfo!
+  edges: [ProductAttributeCountableEdge!]!
+  totalCount: Int
+}
+
+type ProductAttributeCountableEdge {
+  node: ProductAttribute!
+  cursor: String!
+}
+
+type ProductAttributeCreate {
+  errors: [Error]
+  productAttribute: ProductAttribute
+}
+
+type ProductAttributeDelete {
+  errors: [Error]
+  productAttribute: ProductAttribute
+}
+
+type ProductAttributeUpdate {
+  errors: [Error]
+  productAttribute: ProductAttribute
+}
+
+type ProductAttributeValue implements Node {
+  id: ID!
+  sortOrder: Int!
+  name: String
+  slug: String
+}
+
+input ProductAttributesInput {
+  slug: String!
+  name: String!
+}
+
+type ProductAvailability {
+  available: Boolean
+  onSale: Boolean
+  discount: TaxedMoney
+  discountLocalCurrency: TaxedMoney
+  priceRange: TaxedMoneyRange
+  priceRangeUndiscounted: TaxedMoneyRange
+  priceRangeLocalCurrency: TaxedMoneyRange
+}
+
+type ProductCountableConnection {
+  pageInfo: PageInfo!
+  edges: [ProductCountableEdge!]!
+  totalCount: Int
+}
+
+type ProductCountableEdge {
+  node: Product!
+  cursor: String!
+}
+
+type ProductCreate {
+  errors: [Error]
+  product: Product
+}
+
+input ProductCreateInput {
+  attributes: [AttributeValueInput]
+  availableOn: Date
+  category: ID
+  chargeTaxes: Boolean
+  collections: [ID]
+  description: String
+  isPublished: Boolean
+  name: String
+  price: Decimal
+  taxRate: TaxRateType
+  seo: SeoInput
+  weight: WeightScalar
+  productType: ID!
+}
+
+type ProductDelete {
+  errors: [Error]
+  product: Product
+}
+
+type ProductImage implements Node {
+  sortOrder: Int!
+  id: ID!
+  alt: String!
+  url(size: Int): String!
+}
+
+type ProductImageCountableConnection {
+  pageInfo: PageInfo!
+  edges: [ProductImageCountableEdge!]!
+  totalCount: Int
+}
+
+type ProductImageCountableEdge {
+  node: ProductImage!
+  cursor: String!
+}
+
+type ProductImageCreate {
+  errors: [Error]
+  product: Product
+  image: ProductImage
+}
+
+input ProductImageCreateInput {
+  alt: String
+  image: Upload!
+  product: ID!
+}
+
+type ProductImageDelete {
+  errors: [Error]
+  product: Product
+  image: ProductImage
+}
+
+type ProductImageReorder {
+  errors: [Error]
+  product: Product
+  images: [ProductImage]
+}
+
+type ProductImageUpdate {
+  errors: [Error]
+  product: Product
+  image: ProductImage
+}
+
+input ProductImageUpdateInput {
+  alt: String
+}
+
+input ProductInput {
+  attributes: [AttributeValueInput]
+  availableOn: Date
+  category: ID
+  chargeTaxes: Boolean
+  collections: [ID]
+  description: String
+  isPublished: Boolean
+  name: String
+  price: Decimal
+  taxRate: TaxRateType
+  seo: SeoInput
+  weight: WeightScalar
+}
+
+type ProductType implements Node {
+  id: ID!
+  name: String!
+  hasVariants: Boolean!
+  productAttributes(before: String, after: String, first: Int, last: Int, id: ID, slug: String): ProductAttributeCountableConnection
+  variantAttributes(before: String, after: String, first: Int, last: Int, id: ID, slug: String): ProductAttributeCountableConnection
+  isShippingRequired: Boolean!
+  taxRate: TaxRateType
+  weight: Weight
+  products(before: String, after: String, first: Int, last: Int, category: ID, price: Float, price_Range: Float, price_Lte: Float, price_Gte: Float, attributes: [AttributeScalar], name: String, name_Icontains: String, productType_Name: String, isPublished: Boolean, sortBy: String): ProductCountableConnection
+}
+
+type ProductTypeCountableConnection {
+  pageInfo: PageInfo!
+  edges: [ProductTypeCountableEdge!]!
+  totalCount: Int
+}
+
+type ProductTypeCountableEdge {
+  node: ProductType!
+  cursor: String!
+}
+
+type ProductTypeCreate {
+  errors: [Error]
+  productType: ProductType
+}
+
+type ProductTypeDelete {
+  errors: [Error]
+  productType: ProductType
+}
+
+input ProductTypeInput {
+  name: String
+  hasVariants: Boolean
+  productAttributes: [ID]
+  variantAttributes: [ID]
+  isShippingRequired: Boolean
+  weight: WeightScalar
+  taxRate: TaxRateType
+}
+
+type ProductTypeUpdate {
+  errors: [Error]
+  productType: ProductType
+}
+
+type ProductUpdate {
+  errors: [Error]
+  product: Product
+}
+
+type ProductVariant implements Node {
+  id: ID!
+  sku: String!
+  name: String!
+  priceOverride: Money
+  product: Product!
+  attributes: [SelectedAttribute]
+  images(before: String, after: String, first: Int, last: Int): ProductImageCountableConnection
+  trackInventory: Boolean!
+  quantity: Int!
+  quantityAllocated: Int!
+  costPrice: Money
+  weight: Weight
+  stockQuantity: Int!
+  price: Money
+  margin: Int
+}
+
+type ProductVariantCountableConnection {
+  pageInfo: PageInfo!
+  edges: [ProductVariantCountableEdge!]!
+  totalCount: Int
+}
+
+type ProductVariantCountableEdge {
+  node: ProductVariant!
+  cursor: String!
+}
+
+type ProductVariantCreate {
+  errors: [Error]
+  productVariant: ProductVariant
+}
+
+input ProductVariantCreateInput {
+  attributes: [AttributeValueInput]
+  costPrice: Decimal
+  priceOverride: Decimal
+  sku: String
+  quantity: Int
+  trackInventory: Boolean
+  weight: WeightScalar
+  product: ID!
+}
+
+type ProductVariantDelete {
+  errors: [Error]
+  productVariant: ProductVariant
+}
+
+input ProductVariantInput {
+  attributes: [AttributeValueInput]
+  costPrice: Decimal
+  priceOverride: Decimal
+  sku: String
+  quantity: Int
+  trackInventory: Boolean
+  weight: WeightScalar
+}
+
+type ProductVariantUpdate {
+  errors: [Error]
+  productVariant: ProductVariant
+}
+
+type Query {
+  attributes(query: String, inCategory: ID, before: String, after: String, first: Int, last: Int, id: ID, slug: String): ProductAttributeCountableConnection
+  categories(query: String, level: Int, before: String, after: String, first: Int, last: Int, id: ID, name: String): CategoryCountableConnection
+  category(id: ID): Category
+  collection(id: ID): Collection
+  collections(query: String, before: String, after: String, first: Int, last: Int, name: String, name_Icontains: String, name_Istartswith: String): CollectionCountableConnection
+  menu(id: ID, name: String): Menu
+  menus(query: String, before: String, after: String, first: Int, last: Int): MenuCountableConnection
+  menuItem(id: ID): MenuItem
+  menuItems(query: String, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
+  order(id: ID): Order
+  orders(query: String, before: String, after: String, first: Int, last: Int, status: String, totalNet: Float, totalNet_Lte: Float, totalNet_Gte: Float, id: [ID], orderId: Float, created_Gte: String, created_Lte: String, user: String): OrderCountableConnection
+  page(id: ID, slug: String): Page
+  pages(query: String, before: String, after: String, first: Int, last: Int, id: ID, title: String): PageCountableConnection
+  product(id: ID): Product
+  products(query: String, before: String, after: String, first: Int, last: Int, category: ID, price: Float, price_Range: Float, price_Lte: Float, price_Gte: Float, attributes: [AttributeScalar], name: String, name_Icontains: String, productType_Name: String, isPublished: Boolean, sortBy: String): ProductCountableConnection
+  productType(id: ID): ProductType
+  productTypes(before: String, after: String, first: Int, last: Int, id: ID): ProductTypeCountableConnection
+  productVariant(id: ID): ProductVariant
+  productVariants(ids: [ID], before: String, after: String, first: Int, last: Int, id: ID): ProductVariantCountableConnection
+  sale(id: ID): Sale
+  sales(query: String, before: String, after: String, first: Int, last: Int, name_Icontains: String, type_Icontains: String, value_Gte: Float, value_Lte: Float, startDate: Date, endDate: Date): SaleCountableConnection
+  shop: Shop
+  voucher(id: ID): Voucher
+  vouchers(query: String, before: String, after: String, first: Int, last: Int, name_Icontains: String, type: String, discountValue_Gte: Float, discountValue_Lte: Float, startDate: Date, endDate: Date, minAmountSpent_Gte: Float, minAmountSpent_Lte: Float): VoucherCountableConnection
+  shippingZone(id: ID): ShippingZone
+  shippingZones(before: String, after: String, first: Int, last: Int, name_Icontains: String, countries_Icontains: String, shippingMethods_Price_Gte: Float, shippingMethods_Price_Lte: Float): ShippingZoneCountableConnection
+  user(id: ID): User
+  users(query: String, before: String, after: String, first: Int, last: Int, isStaff: Boolean): UserCountableConnection
+  node(id: ID!): Node
+}
+
+type Refresh {
+  token: String
+  payload: GenericScalar
+}
+
+type Sale implements Node {
+  id: ID!
+  name: String!
+  type: SaleType!
+  value: Float!
+  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  categories(before: String, after: String, first: Int, last: Int, id: ID, name: String): CategoryCountableConnection
+  collections(before: String, after: String, first: Int, last: Int, name: String, name_Icontains: String, name_Istartswith: String): CollectionCountableConnection
+  startDate: Date!
+  endDate: Date
+}
+
+type SaleCountableConnection {
+  pageInfo: PageInfo!
+  edges: [SaleCountableEdge!]!
+  totalCount: Int
+}
+
+type SaleCountableEdge {
+  node: Sale!
+  cursor: String!
+}
+
+type SaleCreate {
+  errors: [Error]
+  sale: Sale
+}
+
+type SaleDelete {
+  errors: [Error]
+  sale: Sale
+}
+
+input SaleInput {
+  name: String
+  type: DiscountValueTypeEnum
+  value: Decimal
+  products: [ID]
+  categories: [ID]
+  collections: [ID]
+  startDate: DateTime
+  endDate: DateTime
+}
+
+enum SaleType {
+  FIXED
+  PERCENTAGE
+}
+
+type SaleUpdate {
+  errors: [Error]
+  sale: Sale
+}
+
+type SelectedAttribute {
+  attribute: ProductAttribute
+  value: ProductAttributeValue
+}
+
+input SeoInput {
+  title: String
+  description: String
+}
+
+type SetPassword {
+  errors: [Error]
+  user: User
+}
+
+input SetPasswordInput {
+  token: String!
+  password: String!
+}
+
+type ShippingMethod implements Node {
+  id: ID!
+  name: String!
+  type: ShippingMethodType!
+  price: Money
+  minimumOrderPrice: Money
+  maximumOrderPrice: Money
+  minimumOrderWeight: Weight
+  maximumOrderWeight: Weight
+}
+
+type ShippingMethodConnection {
+  pageInfo: PageInfo!
+  edges: [ShippingMethodEdge]!
+}
+
+type ShippingMethodEdge {
+  node: ShippingMethod
+  cursor: String!
+}
+
+enum ShippingMethodType {
+  PRICE
+  WEIGHT
+}
+
+enum ShippingMethodTypeEnum {
+  PRICE_BASED
+  WEIGHT_BASED
+}
+
+type ShippingPriceCreate {
+  errors: [Error]
+  shippingMethod: ShippingMethod
+}
+
+type ShippingPriceDelete {
+  errors: [Error]
+  shippingMethod: ShippingMethod
+}
+
+input ShippingPriceInput {
+  name: String
+  price: Decimal
+  minimumOrderPrice: Decimal
+  maximumOrderPrice: Decimal
+  minimumOrderWeight: WeightScalar
+  maximumOrderWeight: WeightScalar
+  type: ShippingMethodTypeEnum
+  shippingZone: ID
+}
+
+type ShippingPriceUpdate {
+  errors: [Error]
+  shippingMethod: ShippingMethod
+}
+
+type ShippingZone implements Node {
+  id: ID!
+  name: String!
+  countries: [String]
+  shippingMethods(before: String, after: String, first: Int, last: Int): ShippingMethodConnection
+  priceRange: MoneyRange
+}
+
+type ShippingZoneCountableConnection {
+  pageInfo: PageInfo!
+  edges: [ShippingZoneCountableEdge!]!
+  totalCount: Int
+}
+
+type ShippingZoneCountableEdge {
+  node: ShippingZone!
+  cursor: String!
+}
+
+type ShippingZoneCreate {
+  errors: [Error]
+  shippingZone: ShippingZone
+}
+
+type ShippingZoneDelete {
+  errors: [Error]
+  shippingZone: ShippingZone
+}
+
+input ShippingZoneInput {
+  name: String
+  countries: [String]
+}
+
+type ShippingZoneUpdate {
+  errors: [Error]
+  shippingZone: ShippingZone
+}
+
+type Shop {
+  authorizationKeys: [AuthorizationKey]!
+  countries: [CountryDisplay]!
+  currencies: [String]!
+  defaultCurrency: String!
+  defaultCountry: CountryDisplay
+  description: String
+  domain: Domain!
+  homepageCollection: Collection
+  languages: [LanguageDisplay]!
+  name: String!
+  navigation: Navigation
+  permissions: [PermissionDisplay]!
+  phonePrefixes: [String]!
+  headerText: String
+  includeTaxesInPrices: Boolean
+  displayGrossPrices: Boolean
+  trackInventoryByDefault: Boolean
+  defaultWeightUnit: WeightUnitsEnum
+}
+
+type ShopDomainUpdate {
+  errors: [Error]
+  shop: Shop
+}
+
+input ShopSettingsInput {
+  headerText: String
+  description: String
+  includeTaxesInPrices: Boolean
+  displayGrossPrices: Boolean
+  trackInventoryByDefault: Boolean
+  defaultWeightUnit: WeightUnitsEnum
+}
+
+type ShopSettingsUpdate {
+  errors: [Error]
+  shop: Shop
+}
+
+input SiteDomainInput {
+  domain: String
+  name: String
+}
+
+type StaffCreate {
+  errors: [Error]
+  user: User
+}
+
+input StaffCreateInput {
+  email: String
+  note: String
+  permissions: [String]
+  sendPasswordEmail: Boolean
+}
+
+input StaffInput {
+  email: String
+  note: String
+  permissions: [String]
+}
+
+type StaffUpdate {
+  errors: [Error]
+  user: User
+}
+
+enum TaxRateType {
+  ACCOMODATION
+  ADMISSION_TO_CULTURAL_EVENTS
+  ADMISSION_TO_ENTERTAINMENT_EVENTS
+  ADMISSION_TO_SPORTING_EVENTS
+  ADVERTISING
+  AGRICULTURAL_SUPPLIES
+  BABY_FOODSTUFFS
+  BIKES
+  BOOKS
+  CHILDRENS_CLOTHING
+  DOMESTIC_FUEL
+  DOMESTIC_SERVICES
+  E_BOOKS
+  FOODSTUFFS
+  HOTELS
+  MEDICAL
+  NEWSPAPERS
+  PASSENGER_TRANSPORT
+  PHARMACEUTICALS
+  PROPERTY_RENOVATIONS
+  RESTAURANTS
+  SOCIAL_HOUSING
+  STANDARD
+  WATER
+}
+
+type TaxedMoney {
+  currency: String!
+  gross: Money!
+  net: Money!
+  tax: Money!
+}
+
+type TaxedMoneyRange {
+  start: TaxedMoney
+  stop: TaxedMoney
+}
+
+scalar UUID
+
+scalar Upload
+
+type User implements Node {
+  id: ID!
+  groups(before: String, after: String, first: Int, last: Int): GroupCountableConnection
+  email: String!
+  addresses(before: String, after: String, first: Int, last: Int): AddressCountableConnection
+  isStaff: Boolean!
+  token: UUID!
+  isActive: Boolean!
+  note: String
+  defaultShippingAddress: Address
+  defaultBillingAddress: Address
+  orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  permissions: [PermissionDisplay]
+}
+
+type UserCountableConnection {
+  pageInfo: PageInfo!
+  edges: [UserCountableEdge!]!
+  totalCount: Int
+}
+
+type UserCountableEdge {
+  node: User!
+  cursor: String!
+}
+
+input UserCreateInput {
+  email: String
+  note: String
+  defaultBillingAddress: AddressInput
+  defaultShippingAddress: AddressInput
+  sendPasswordEmail: Boolean
+}
+
+type VariantImageAssign {
+  errors: [Error]
+  productVariant: ProductVariant
+  image: ProductImage
+}
+
+type VariantImageUnassign {
+  errors: [Error]
+  productVariant: ProductVariant
+  image: ProductImage
+}
+
+type VerifyToken {
+  payload: GenericScalar
+  user: User
+}
+
+type Voucher implements Node {
+  id: ID!
+  type: VoucherType!
+  name: String
+  code: String!
+  usageLimit: Int
+  used: Int!
+  startDate: Date!
+  endDate: Date
+  applyOncePerOrder: Boolean!
+  discountValueType: VoucherDiscountValueType!
+  discountValue: Float!
+  countries: VoucherCountries!
+  minAmountSpent: Money
+  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  collections(before: String, after: String, first: Int, last: Int, name: String, name_Icontains: String, name_Istartswith: String): CollectionCountableConnection
+  categories(before: String, after: String, first: Int, last: Int, id: ID, name: String): CategoryCountableConnection
+}
+
+type VoucherCountableConnection {
+  pageInfo: PageInfo!
+  edges: [VoucherCountableEdge!]!
+  totalCount: Int
+}
+
+type VoucherCountableEdge {
+  node: Voucher!
+  cursor: String!
+}
+
+enum VoucherCountries {
+  AF
+  AX
+  AL
+  DZ
+  AS
+  AD
+  AO
+  AI
+  AQ
+  AG
+  AR
+  AM
+  AW
+  AU
+  AT
+  AZ
+  BS
+  BH
+  BD
+  BB
+  BY
+  BE
+  BZ
+  BJ
+  BM
+  BT
+  BO
+  BQ
+  BA
+  BW
+  BV
+  BR
+  IO
+  BN
+  BG
+  BF
+  BI
+  CV
+  KH
+  CM
+  CA
+  KY
+  CF
+  TD
+  CL
+  CN
+  CX
+  CC
+  CO
+  KM
+  CG
+  CD
+  CK
+  CR
+  CI
+  HR
+  CU
+  CW
+  CY
+  CZ
+  DK
+  DJ
+  DM
+  DO
+  EC
+  EG
+  SV
+  GQ
+  ER
+  EE
+  ET
+  EU
+  FK
+  FO
+  FJ
+  FI
+  FR
+  GF
+  PF
+  TF
+  GA
+  GM
+  GE
+  DE
+  GH
+  GI
+  GR
+  GL
+  GD
+  GP
+  GU
+  GT
+  GG
+  GN
+  GW
+  GY
+  HT
+  HM
+  VA
+  HN
+  HK
+  HU
+  IS
+  IN
+  ID
+  IR
+  IQ
+  IE
+  IM
+  IL
+  IT
+  JM
+  JP
+  JE
+  JO
+  KZ
+  KE
+  KI
+  KW
+  KG
+  LA
+  LV
+  LB
+  LS
+  LR
+  LY
+  LI
+  LT
+  LU
+  MO
+  MK
+  MG
+  MW
+  MY
+  MV
+  ML
+  MT
+  MH
+  MQ
+  MR
+  MU
+  YT
+  MX
+  FM
+  MD
+  MC
+  MN
+  ME
+  MS
+  MA
+  MZ
+  MM
+  NA
+  NR
+  NP
+  NL
+  NC
+  NZ
+  NI
+  NE
+  NG
+  NU
+  NF
+  KP
+  MP
+  NO
+  OM
+  PK
+  PW
+  PS
+  PA
+  PG
+  PY
+  PE
+  PH
+  PN
+  PL
+  PT
+  PR
+  QA
+  RE
+  RO
+  RU
+  RW
+  BL
+  SH
+  KN
+  LC
+  MF
+  PM
+  VC
+  WS
+  SM
+  ST
+  SA
+  SN
+  RS
+  SC
+  SL
+  SG
+  SX
+  SK
+  SI
+  SB
+  SO
+  ZA
+  GS
+  KR
+  SS
+  ES
+  LK
+  SD
+  SR
+  SJ
+  SZ
+  SE
+  CH
+  SY
+  TW
+  TJ
+  TZ
+  TH
+  TL
+  TG
+  TK
+  TO
+  TT
+  TN
+  TR
+  TM
+  TC
+  TV
+  UG
+  UA
+  AE
+  GB
+  UM
+  US
+  UY
+  UZ
+  VU
+  VE
+  VN
+  VG
+  VI
+  WF
+  EH
+  YE
+  ZM
+  ZW
+}
+
+type VoucherCreate {
+  errors: [Error]
+  voucher: Voucher
+}
+
+type VoucherDelete {
+  errors: [Error]
+  voucher: Voucher
+}
+
+enum VoucherDiscountValueType {
+  FIXED
+  PERCENTAGE
+}
+
+input VoucherInput {
+  type: VoucherTypeEnum
+  name: String
+  code: String
+  startDate: DateTime
+  endDate: DateTime
+  discountValueType: DiscountValueTypeEnum
+  discountValue: Decimal
+  products: [ID]
+  collections: [ID]
+  categories: [ID]
+  minAmountSpent: Decimal
+  countries: [String]
+}
+
+enum VoucherType {
+  VALUE
+  PRODUCT
+  COLLECTION
+  CATEGORY
+  SHIPPING
+}
+
+enum VoucherTypeEnum {
+  PRODUCT
+  COLLECTION
+  CATEGORY
+  SHIPPING
+  VALUE
+}
+
+type VoucherUpdate {
+  errors: [Error]
+  voucher: Voucher
+}
+
+type Weight {
+  unit: String!
+  value: Float!
+}
+
+scalar WeightScalar
+
+enum WeightUnitsEnum {
+  kg
+  lb
+  oz
+  g
+}

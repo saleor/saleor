@@ -6,11 +6,13 @@ import {
   PartialMutationProviderOutput
 } from "../..";
 import {
-  ProductTypeDeleteMutation,
-  ProductTypeDeleteMutationVariables,
-  ProductTypeUpdateMutation,
-  ProductTypeUpdateMutationVariables
-} from "../../gql-types";
+  ProductTypeDelete,
+  ProductTypeDeleteVariables
+} from "../types/ProductTypeDelete";
+import {
+  ProductTypeUpdate,
+  ProductTypeUpdateVariables
+} from "../types/ProductTypeUpdate";
 import ProductTypeDeleteProvider from "./ProductTypeDelete";
 import ProductTypeUpdateProvider from "./ProductTypeUpdate";
 
@@ -18,17 +20,17 @@ interface ProductTypeOperationsProps extends MutationProviderProps {
   id: string;
   children: MutationProviderRenderProps<{
     deleteProductType: PartialMutationProviderOutput<
-      ProductTypeDeleteMutation,
-      ProductTypeDeleteMutationVariables
+      ProductTypeDelete,
+      ProductTypeDeleteVariables
     >;
     updateProductType: PartialMutationProviderOutput<
-      ProductTypeUpdateMutation,
-      ProductTypeUpdateMutationVariables
+      ProductTypeUpdate,
+      ProductTypeUpdateVariables
     >;
     loading: boolean;
   }>;
-  onDelete?: (data: ProductTypeDeleteMutation) => void;
-  onUpdate?: (data: ProductTypeUpdateMutation) => void;
+  onDelete?: (data: ProductTypeDelete) => void;
+  onUpdate?: (data: ProductTypeUpdate) => void;
 }
 
 const ProductTypeOperations: React.StatelessComponent<

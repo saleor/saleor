@@ -1,6 +1,6 @@
 import { stringify } from "qs";
-import { TaxRateType } from "./gql-types";
 import i18n from "./i18n";
+import { TaxRateType } from "./types/globalTypes";
 
 export interface PageInfo {
   endCursor: string;

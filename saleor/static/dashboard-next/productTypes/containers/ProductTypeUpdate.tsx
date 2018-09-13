@@ -4,16 +4,16 @@ import {
   PartialMutationProviderProps,
   PartialMutationProviderRenderProps
 } from "../..";
-import {
-  ProductTypeUpdateMutation,
-  ProductTypeUpdateMutationVariables
-} from "../../gql-types";
 import { TypedProductTypeUpdateMutation } from "../mutations";
+import {
+  ProductTypeUpdate,
+  ProductTypeUpdateVariables
+} from "../types/ProductTypeUpdate";
 
 interface ProductTypeUpdateProviderProps extends PartialMutationProviderProps {
   children: PartialMutationProviderRenderProps<
-    ProductTypeUpdateMutation,
-    ProductTypeUpdateMutationVariables
+    ProductTypeUpdate,
+    ProductTypeUpdateVariables
   >;
 }
 
