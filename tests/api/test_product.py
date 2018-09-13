@@ -383,7 +383,7 @@ def test_create_product(
     product_isPublished = True
     product_chargeTaxes = True
     product_taxRate = 'STANDARD'
-    product_price = "22.33"
+    product_price = 22.33
 
     # Default attribute defined in product_type fixture
     color_attr = product_type.product_attributes.get(name='Color')

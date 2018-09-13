@@ -439,7 +439,7 @@ def test_order_capture(admin_api_client, payment_preauth, admin_user):
         }
     """
     order_id = graphene.Node.to_global_id('Order', order.id)
-    amount = str(payment_preauth.get_total_price().gross.amount)
+    amount = float(payment_preauth.get_total_price().gross.amount)
     variables = json.dumps({'id': order_id, 'amount': amount})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
@@ -461,7 +461,7 @@ def test_order_capture(admin_api_client, payment_preauth, admin_user):
         'email_type': OrderEventsEmails.PAYMENT.value}
     assert event_captured.type == OrderEvents.PAYMENT_CAPTURED.value
     assert event_captured.user == admin_user
-    assert event_captured.parameters == {'amount': '80.00'}
+    assert event_captured.parameters == {'amount': 80.00}
 
 
 def test_paid_order_mark_as_paid(
@@ -559,7 +559,7 @@ def test_order_refund(admin_api_client, payment_confirmed):
         }
     """
     order_id = graphene.Node.to_global_id('Order', order.id)
-    amount = str(payment_confirmed.get_total_price().gross.amount)
+    amount = float(payment_confirmed.get_total_price().gross.amount)
     variables = json.dumps({'id': order_id, 'amount': amount})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
