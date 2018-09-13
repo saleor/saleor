@@ -30,8 +30,9 @@ def object_hook(obj):
 
 
 def Deserializer(stream_or_string, **options):
-    """Deserialize a stream or string of JSON data. This is a copy of Django
-    implementation with additional argument <object_hook> in json.loads"""
+    """Deserialize a stream or string of JSON data. This is a slightly modified
+    copy of Django implementation with additional argument <object_hook> in
+    json.loads"""
     if not isinstance(stream_or_string, (bytes, str)):
         stream_or_string = stream_or_string.read()
     if isinstance(stream_or_string, bytes):
@@ -39,7 +40,9 @@ def Deserializer(stream_or_string, **options):
     try:
         objects = json.loads(stream_or_string, object_hook=object_hook)
         yield from PythonDeserializer(objects, **options)
-    except (GeneratorExit, DeserializationError):
-        raise
     except Exception as exc:
+        # ugly construction to overcome pylint's warning
+        # "The except handler raises immediately"
+        if isinstance(exc, GeneratorExit, DeserializationError):
+            raise
         raise DeserializationError() from exc
