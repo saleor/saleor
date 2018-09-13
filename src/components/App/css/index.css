@@ -29,6 +29,7 @@ body {
       margin-top: calc(var(--spacer) * 7);
       padding-top: calc(var(--spacer) * 2.1);
       overflow-y: scroll;
+      -webkit-overflow-scrolling: touch;
       box-sizing: content-box;
       padding-right: 17px;
       background-image: linear-gradient(-150deg, rgba(254,62,62, 0.3) 0%, rgba(125,185,232,0) 26%, rgba(125,185,232,0) 100%), url('../../../images/background.svg');
