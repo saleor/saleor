@@ -1,16 +1,16 @@
 import * as React from "react";
 import { QueryResult } from "react-apollo";
-import {
-  SearchAttributeQuery,
-  SearchAttributeQueryVariables
-} from "../../gql-types";
 import { searchAttributeQuery, TypedSearchAttributeQuery } from "../queries";
+import {
+  SearchAttribute,
+  SearchAttributeVariables
+} from "../types/SearchAttribute";
 
 interface AttributeSearchProviderProps {
   children:
     | ((
         search: (query: string) => void,
-        props: QueryResult<SearchAttributeQuery, SearchAttributeQueryVariables>
+        props: QueryResult<SearchAttribute, SearchAttributeVariables>
       ) => React.ReactElement<any>)
     | React.ReactNode;
 }

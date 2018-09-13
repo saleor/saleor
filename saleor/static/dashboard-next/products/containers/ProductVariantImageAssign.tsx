@@ -4,16 +4,16 @@ import {
   PartialMutationProviderProps,
   PartialMutationProviderRenderProps
 } from "../..";
-import {
-  VariantImageAssignMutation,
-  VariantImageAssignMutationVariables
-} from "../../gql-types";
 import { TypedVariantImageAssignMutation } from "../mutations";
+import {
+  VariantImageAssign,
+  VariantImageAssignVariables
+} from "../types/VariantImageAssign";
 
 interface VariantImageAssignProviderProps extends PartialMutationProviderProps {
   children: PartialMutationProviderRenderProps<
-    VariantImageAssignMutation,
-    VariantImageAssignMutationVariables
+    VariantImageAssign,
+    VariantImageAssignVariables
   >;
 }
 

@@ -5,15 +5,16 @@ import {
   MutationProviderRenderProps,
   PartialMutationProviderOutput
 } from "../..";
+import { VariantDelete } from "../types/VariantDelete";
 import {
-  VariantDeleteMutation,
-  VariantImageAssignMutation,
-  VariantImageAssignMutationVariables,
-  VariantImageUnassignMutation,
-  VariantImageUnassignMutationVariables,
-  VariantUpdateMutation,
-  VariantUpdateMutationVariables
-} from "../../gql-types";
+  VariantImageAssign,
+  VariantImageAssignVariables
+} from "../types/VariantImageAssign";
+import {
+  VariantImageUnassign,
+  VariantImageUnassignVariables
+} from "../types/VariantImageUnassign";
+import { VariantUpdate, VariantUpdateVariables } from "../types/VariantUpdate";
 import VariantDeleteProvider from "./ProductVariantDelete";
 import VariantImageAssignProvider from "./ProductVariantImageAssign";
 import VariantImageUnassignProvider from "./ProductVariantImageUnassign";
@@ -25,22 +26,22 @@ interface VariantDeleteOperationsProps extends MutationProviderProps {
   children: MutationProviderRenderProps<{
     deleteVariant: PartialMutationProviderOutput;
     updateVariant: PartialMutationProviderOutput<
-      VariantUpdateMutation,
-      VariantUpdateMutationVariables
+      VariantUpdate,
+      VariantUpdateVariables
     >;
     assignImage: PartialMutationProviderOutput<
-      VariantImageAssignMutation,
-      VariantImageAssignMutationVariables
+      VariantImageAssign,
+      VariantImageAssignVariables
     >;
     unassignImage: PartialMutationProviderOutput<
-      VariantImageUnassignMutation,
-      VariantImageUnassignMutationVariables
+      VariantImageUnassign,
+      VariantImageUnassignVariables
     >;
   }>;
-  onDelete?: (data: VariantDeleteMutation) => void;
-  onImageAssign?: (data: VariantImageAssignMutation) => void;
-  onImageUnassign?: (data: VariantImageUnassignMutation) => void;
-  onUpdate?: (data: VariantUpdateMutation) => void;
+  onDelete?: (data: VariantDelete) => void;
+  onImageAssign?: (data: VariantImageAssign) => void;
+  onImageUnassign?: (data: VariantImageUnassign) => void;
+  onUpdate?: (data: VariantUpdate) => void;
 }
 
 const VariantUpdateOperations: React.StatelessComponent<

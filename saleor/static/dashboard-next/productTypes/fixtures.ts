@@ -1,4 +1,4 @@
-import { TaxRateType } from "../gql-types";
+import { TaxRateType } from "../types/globalTypes";
 
 export const productTypes = [
   {

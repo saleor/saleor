@@ -1,14 +1,18 @@
 import gql from "graphql-tag";
 
-import {
-  ProductTypeCreateMutation,
-  ProductTypeCreateMutationVariables,
-  ProductTypeDeleteMutation,
-  ProductTypeDeleteMutationVariables,
-  ProductTypeUpdateMutation,
-  ProductTypeUpdateMutationVariables
-} from "../gql-types";
 import { TypedMutation } from "../mutations";
+import {
+  ProductTypeCreate,
+  ProductTypeCreateVariables
+} from "./types/ProductTypeCreate";
+import {
+  ProductTypeDelete,
+  ProductTypeDeleteVariables
+} from "./types/ProductTypeDelete";
+import {
+  ProductTypeUpdate,
+  ProductTypeUpdateVariables
+} from "./types/ProductTypeUpdate";
 
 export const productTypeDeleteMutation = gql`
   mutation ProductTypeDelete($id: ID!) {
@@ -24,8 +28,8 @@ export const productTypeDeleteMutation = gql`
   }
 `;
 export const TypedProductTypeDeleteMutation = TypedMutation<
-  ProductTypeDeleteMutation,
-  ProductTypeDeleteMutationVariables
+  ProductTypeDelete,
+  ProductTypeDeleteVariables
 >(productTypeDeleteMutation);
 
 export const productTypeUpdateMutation = gql`
@@ -64,8 +68,8 @@ export const productTypeUpdateMutation = gql`
   }
 `;
 export const TypedProductTypeUpdateMutation = TypedMutation<
-  ProductTypeUpdateMutation,
-  ProductTypeUpdateMutationVariables
+  ProductTypeUpdate,
+  ProductTypeUpdateVariables
 >(productTypeUpdateMutation);
 
 export const productTypeCreateMutation = gql`
@@ -103,6 +107,6 @@ export const productTypeCreateMutation = gql`
   }
 `;
 export const TypedProductTypeCreateMutation = TypedMutation<
-  ProductTypeCreateMutation,
-  ProductTypeCreateMutationVariables
+  ProductTypeCreate,
+  ProductTypeCreateVariables
 >(productTypeCreateMutation);

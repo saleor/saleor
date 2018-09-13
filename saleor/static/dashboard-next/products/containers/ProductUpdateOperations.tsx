@@ -8,32 +8,34 @@ import {
   PartialMutationProviderRenderProps
 } from "../..";
 import {
-  ProductDeleteMutation,
-  ProductDeleteMutationVariables,
-  ProductDetailsQuery,
-  ProductImageCreateMutation,
-  ProductImageCreateMutationVariables,
-  ProductImageDeleteMutation,
-  ProductImageDeleteMutationVariables,
-  ProductImageReorderMutation,
-  ProductImageReorderMutationVariables,
-  ProductUpdateMutation,
-  ProductUpdateMutationVariables
-} from "../../gql-types";
-import {
   TypedProductDeleteMutation,
   TypedProductImageCreateMutation,
   TypedProductImageDeleteMutation
 } from "../mutations";
+import { ProductDelete, ProductDeleteVariables } from "../types/ProductDelete";
+import { ProductDetails_product } from "../types/ProductDetails";
+import {
+  ProductImageCreate,
+  ProductImageCreateVariables
+} from "../types/ProductImageCreate";
+import {
+  ProductImageDelete,
+  ProductImageDeleteVariables
+} from "../types/ProductImageDelete";
+import {
+  ProductImageReorder,
+  ProductImageReorderVariables
+} from "../types/ProductImageReorder";
+import { ProductUpdate, ProductUpdateVariables } from "../types/ProductUpdate";
 import ProductImagesReorderProvider from "./ProductImagesReorder";
 import ProductUpdateProvider from "./ProductUpdate";
 
 interface ProductDeleteProviderProps
-  extends PartialMutationProviderProps<ProductDeleteMutation> {
+  extends PartialMutationProviderProps<ProductDelete> {
   productId: string;
   children: PartialMutationProviderRenderProps<
-    ProductDeleteMutation,
-    ProductDeleteMutationVariables
+    ProductDelete,
+    ProductDeleteVariables
   >;
 }
 
@@ -57,10 +59,10 @@ const ProductDeleteProvider: React.StatelessComponent<
 );
 
 interface ProductImageCreateProviderProps
-  extends PartialMutationProviderProps<ProductImageCreateMutation> {
+  extends PartialMutationProviderProps<ProductImageCreate> {
   children: PartialMutationProviderRenderProps<
-    ProductImageCreateMutation,
-    ProductImageCreateMutationVariables
+    ProductImageCreate,
+    ProductImageCreateVariables
   >;
 }
 
@@ -80,10 +82,10 @@ const ProductImageCreateProvider: React.StatelessComponent<
 );
 
 interface ProductImageDeleteProviderProps
-  extends PartialMutationProviderProps<ProductImageDeleteMutation> {
+  extends PartialMutationProviderProps<ProductImageDelete> {
   children: PartialMutationProviderRenderProps<
-    ProductImageDeleteMutation,
-    ProductImageDeleteMutationVariables
+    ProductImageDelete,
+    ProductImageDeleteVariables
   >;
 }
 
@@ -103,31 +105,31 @@ const ProductImageDeleteProvider: React.StatelessComponent<
 );
 
 interface ProductUpdateOperationsProps extends MutationProviderProps {
-  product?: ProductDetailsQuery["product"];
+  product?: ProductDetails_product;
   children: MutationProviderRenderProps<{
     createProductImage: PartialMutationProviderOutput<
-      ProductImageCreateMutation,
-      ProductImageCreateMutationVariables
+      ProductImageCreate,
+      ProductImageCreateVariables
     >;
     deleteProduct: PartialMutationProviderOutput;
     deleteProductImage: PartialMutationProviderOutput<
-      ProductImageDeleteMutation,
-      ProductImageDeleteMutationVariables
+      ProductImageDelete,
+      ProductImageDeleteVariables
     >;
     reorderProductImages: PartialMutationProviderOutput<
-      ProductImageReorderMutation,
-      ProductImageReorderMutationVariables
+      ProductImageReorder,
+      ProductImageReorderVariables
     >;
     updateProduct: PartialMutationProviderOutput<
-      ProductUpdateMutation,
-      ProductUpdateMutationVariables
+      ProductUpdate,
+      ProductUpdateVariables
     >;
   }>;
-  onDelete?: (data: ProductDeleteMutation) => void;
-  onImageCreate?: (data: ProductImageCreateMutation) => void;
-  onImageDelete?: (data: ProductImageDeleteMutation) => void;
-  onImageReorder?: (data: ProductImageReorderMutation) => void;
-  onUpdate?: (data: ProductUpdateMutation) => void;
+  onDelete?: (data: ProductDelete) => void;
+  onImageCreate?: (data: ProductImageCreate) => void;
+  onImageDelete?: (data: ProductImageDelete) => void;
+  onImageReorder?: (data: ProductImageReorder) => void;
+  onUpdate?: (data: ProductUpdate) => void;
 }
 
 const ProductUpdateOperations: React.StatelessComponent<
