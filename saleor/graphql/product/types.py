@@ -1,3 +1,5 @@
+import re
+
 import graphene
 from graphene import relay
 from graphene_django.filter import DjangoFilterConnectionField
@@ -15,6 +17,13 @@ from ..core.types.money import (
     Money, MoneyRange, TaxedMoney, TaxedMoneyRange, TaxRateType)
 from ..utils import get_database_id
 from .filters import ProductFilterSet
+
+
+class ProductAttribuetValueType(graphene.Enum):
+    COLOR = 'COLOR'
+    GRADIENT = 'GRADIENT'
+    URL = 'URL'
+    STRING = 'STRING'
 
 
 def resolve_attribute_list(attributes):
@@ -35,16 +44,32 @@ def resolve_attribute_list(attributes):
     return attributes_list
 
 
+def resolve_attribute_value_type(attribute_value):
+    color_pattern = '^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$'  # noqa
+    color_pattern = re.compile(color_pattern)
+    if color_pattern.match(attribute_value):
+        return ProductAttribuetValueType.COLOR
+    if 'gradient(' in attribute_value:
+        return ProductAttribuetValueType.GRADIENT
+    if '://' in attribute_value:
+        return ProductAttribuetValueType.URL
+    return ProductAttribuetValueType.STRING
+
+
 class ProductAttributeValue(CountableDjangoObjectType):
     name = graphene.String(description='Visible name for display purposes.')
     slug = graphene.String(
         description='Internal representation of an attribute name.')
+    type = ProductAttribuetValueType(description='Type of value.')
 
     class Meta:
         description = 'Represents a value of an attribute.'
         exclude_fields = ['attribute']
         interfaces = [relay.Node]
         model = models.AttributeChoiceValue
+
+    def resolve_type(self, info):
+        return resolve_attribute_value_type(self.value)
 
 
 class ProductAttribute(CountableDjangoObjectType):
