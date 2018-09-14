@@ -98,6 +98,8 @@ class Order(CountableDjangoObjectType):
     events = graphene.List(
         OrderEvent,
         description='List of events associated with the order.')
+    user_email = graphene.String(
+        required=False, description='Email address of the customer.')
 
     class Meta:
         description = 'Represents an order in the shop.'
@@ -157,6 +159,7 @@ class Order(CountableDjangoObjectType):
             return obj.user_email
         if obj.user_id:
             return obj.user.email
+        return None
 
 
 class OrderLine(CountableDjangoObjectType):
