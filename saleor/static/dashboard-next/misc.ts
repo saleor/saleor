@@ -147,7 +147,8 @@ export const translatedTaxRates = () => ({
 
 export function maybe<T>(exp: () => T, d?: T) {
   try {
-    return exp();
+    const result = exp();
+    return result === undefined ? d : result;
   } catch {
     return d;
   }
