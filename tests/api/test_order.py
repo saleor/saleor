@@ -10,7 +10,7 @@ from saleor.graphql.order.mutations.draft_orders import (
     check_for_draft_order_errors)
 from saleor.graphql.order.mutations.orders import (
     clean_refund_payment, clean_release_payment)
-from saleor.graphql.order.types import PaymentStatusEnum
+from saleor.graphql.order.types import OrderEventsEmailsEnum, PaymentStatusEnum
 from saleor.order import CustomPaymentChoices, OrderEvents, OrderEventsEmails
 from saleor.order.models import Order, OrderStatus, Payment, PaymentStatus
 from tests.utils import get_graphql_content
@@ -152,7 +152,7 @@ def test_order_events_query(admin_api_client, fulfilled_order, admin_user):
     data = content['data']['orders']['edges'][0]['node']['events'][0]
     assert data['message'] == event.parameters['message']
     assert data['amount'] == float(event.parameters['amount'])
-    assert data['emailType'] == event.parameters['email_type']
+    assert data['emailType'] == OrderEventsEmailsEnum.PAYMENT.name
     assert data['quantity'] == int(event.parameters['quantity'])
     assert data['composedId'] == event.parameters['composed_id']
     assert data['user']['email'] == admin_user.email
