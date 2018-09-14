@@ -14,7 +14,7 @@ import * as React from "react";
 
 import Form from "../../../components/Form";
 import i18n from "../../../i18n";
-import { Ø } from "../../../misc";
+import { maybe } from "../../../misc";
 
 export interface FormData {
   lines: number[];
@@ -55,7 +55,7 @@ const OrderFulfillmentDialog = decorate<OrderFulfillmentDialogProps>(
     <Dialog open={open}>
       <Form
         initial={{
-          lines: Ø(
+          lines: maybe(
             () =>
               products.map(
                 product => product.quantity - product.quantityFulfilled

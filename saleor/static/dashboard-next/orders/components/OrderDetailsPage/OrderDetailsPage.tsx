@@ -9,7 +9,7 @@ import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
-import { Ø } from "../../../misc";
+import { maybe } from "../../../misc";
 import { OrderEvents, OrderStatus } from "../../../types/globalTypes";
 import OrderAddressEditDialog from "../OrderAddressEditDialog";
 import OrderCancelDialog from "../OrderCancelDialog";
@@ -276,7 +276,7 @@ class OrderDetailsPageComponent extends React.Component<
       openedShippingMethodEditDialog
     } = this.state;
     const isDraft = order ? order.status === OrderStatus.DRAFT : false;
-    const unfulfilled = Ø(() => order.lines.edges, [])
+    const unfulfilled = maybe(() => order.lines.edges, [])
       .map(edge => edge.node)
       .filter(line => line.quantityFulfilled < line.quantity);
     return (
@@ -306,16 +306,16 @@ class OrderDetailsPageComponent extends React.Component<
         <div className={classes.root}>
           <div>
             <OrderSummary
-              authorized={Ø(() => order.totalAuthorized)}
-              paid={Ø(() => order.totalCaptured)}
-              paymentStatus={Ø(() => order.paymentStatus)}
-              lines={Ø(() => order.lines.edges.map(edge => edge.node))}
-              shippingMethodName={Ø(() => order.shippingMethodName)}
-              shippingPrice={Ø(() => order.shippingPrice)}
-              status={Ø(() => order.status)}
-              subtotal={Ø(() => order.subtotal.gross)}
-              tax={Ø(() => order.total.tax)}
-              total={Ø(() => order.total.gross)}
+              authorized={maybe(() => order.totalAuthorized)}
+              paid={maybe(() => order.totalCaptured)}
+              paymentStatus={maybe(() => order.paymentStatus)}
+              lines={maybe(() => order.lines.edges.map(edge => edge.node))}
+              shippingMethodName={maybe(() => order.shippingMethodName)}
+              shippingPrice={maybe(() => order.shippingPrice)}
+              status={maybe(() => order.status)}
+              subtotal={maybe(() => order.subtotal.gross)}
+              tax={maybe(() => order.total.tax)}
+              total={maybe(() => order.total.gross)}
               onCapture={this.togglePaymentCaptureDialog}
               onCreate={onCreate}
               onFulfill={this.toggleFulfillmentDialog}
@@ -403,7 +403,7 @@ class OrderDetailsPageComponent extends React.Component<
                         <>
                           <OrderFulfillment
                             id={fulfillment.id}
-                            lines={Ø(() =>
+                            lines={maybe(() =>
                               fulfillment.lines.edges.map(edge => edge.node)
                             )}
                             status={fulfillment.status}
@@ -447,14 +447,14 @@ class OrderDetailsPageComponent extends React.Component<
             ) : (
               <OrderFulfillment />
             )}
-            <OrderHistory history={Ø(() => order.events)} user={user} />
+            <OrderHistory history={maybe(() => order.events)} user={user} />
           </div>
           <div>
             <OrderCustomer
-              billingAddress={Ø(() => order.billingAddress)}
-              client={Ø(() => order.user)}
+              billingAddress={maybe(() => order.billingAddress)}
+              client={maybe(() => order.user)}
               editCustomer={isDraft}
-              shippingAddress={Ø(() => order.shippingAddress)}
+              shippingAddress={maybe(() => order.shippingAddress)}
               onBillingAddressEdit={this.toggleBillingAddressEditDialog}
               onCustomerEditClick={this.toggleCustomerEditDialog}
               onCustomerEmailClick={onCustomerEmailClick}

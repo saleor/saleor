@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { orderListUrl, orderUrl } from "..";
 import Navigator from "../../components/Navigator";
-import { createPaginationData, createPaginationState, Ø } from "../../misc";
+import { createPaginationData, createPaginationState, maybe } from "../../misc";
 import OrderListPage from "../components/OrderListPage/OrderListPage";
 import { TypedOrderListQuery } from "../queries";
 
@@ -32,13 +32,13 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
               navigate,
               paginationState,
               orderListUrl,
-              Ø(() => data.orders.pageInfo),
+              maybe(() => data.orders.pageInfo),
               loading
             );
             return (
               <OrderListPage
                 disabled={loading}
-                orders={Ø(() => data.orders.edges.map(edge => edge.node))}
+                orders={maybe(() => data.orders.edges.map(edge => edge.node))}
                 pageInfo={pageInfo}
                 onAdd={() => undefined}
                 onNextPage={loadNextPage}

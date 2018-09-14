@@ -13,7 +13,7 @@ import {
   OrderRefundMutation,
   OrderRefundMutationVariables
 } from "../../gql-types";
-import { Ø } from "../../misc";
+import { maybe } from "../../misc";
 import OrderCreateFulfillmentProvider from "./OrderCreateFulfillment";
 import OrderPaymentCaptureProvider from "./OrderPaymentCapture";
 import OrderPaymentRefundProvider from "./OrderPaymentRefund";
@@ -67,15 +67,15 @@ const OrderOperations: React.StatelessComponent<OrderOperationsProps> = ({
             {createFulfillment =>
               children({
                 errors: [
-                  ...Ø(
+                  ...maybe(
                     () => createFulfillment.data.fulfillmentCreate.errors,
                     [] as any
                   ),
-                  ...Ø(
+                  ...maybe(
                     () => paymentCapture.data.orderCapture.errors,
                     [] as any
                   ),
-                  ...Ø(() => paymentRefund.data.orderRefund.errors, [] as any)
+                  ...maybe(() => paymentRefund.data.orderRefund.errors, [] as any)
                 ],
                 orderCreateFulfillment: {
                   data: createFulfillment.data,
