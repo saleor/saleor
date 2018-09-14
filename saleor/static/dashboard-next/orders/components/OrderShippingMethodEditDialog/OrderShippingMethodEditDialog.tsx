@@ -18,7 +18,6 @@ interface OrderShippingMethodEditDialogProps {
   shippingMethods?: Array<{
     id: string;
     name: string;
-    country: string;
   }>;
   loading?: boolean;
   fetchShippingMethods(value: string);
@@ -63,13 +62,15 @@ const OrderShippingMethodEditDialog = decorate<
     const choices =
       !loading && shippingMethods
         ? shippingMethods.map(s => ({
-            label: `${s.name} (${s.country})`,
+            label: s.name,
             value: s.id
           }))
         : [];
     return (
       <Dialog open={open} classes={{ paper: classes.dialog }}>
-        <DialogTitle>{i18n.t("Edit customer details")}</DialogTitle>
+        <DialogTitle>
+          {i18n.t("Edit shipping method", { context: "title" })}
+        </DialogTitle>
         <DialogContent className={classes.root}>
           <SingleAutocompleteSelectField
             choices={choices}

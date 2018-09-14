@@ -4,7 +4,7 @@ import * as React from "react";
 import AddressEdit from "../../../components/AddressEdit";
 import { Container } from "../../../components/Container";
 import { customer } from "../../../customers/fixtures";
-import { countries, prefixes } from "../../../orders/fixtures";
+import { countries } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
 
 storiesOf("Generics / AddressEdit", module)
@@ -13,7 +13,6 @@ storiesOf("Generics / AddressEdit", module)
     <Container width="sm">
       <AddressEdit
         data={customer.defaultBillingAddress}
-        prefixes={prefixes}
         countries={countries}
         onChange={undefined}
       />

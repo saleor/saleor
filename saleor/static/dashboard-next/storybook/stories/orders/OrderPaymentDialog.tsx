@@ -10,15 +10,15 @@ storiesOf("Orders / OrderPaymentDialog", module)
     <OrderPaymentDialog
       variant="capture"
       open={true}
-      onChange={undefined}
-      value={120}
+      onClose={undefined}
+      onSubmit={undefined}
     />
   ))
   .add("refund payment", () => (
     <OrderPaymentDialog
       variant="refund"
       open={true}
-      onChange={undefined}
-      value={140}
+      onClose={undefined}
+      onSubmit={undefined}
     />
   ));

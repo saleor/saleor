@@ -19,19 +19,15 @@ interface AddressType {
   firstName: string;
   id: string;
   lastName: string;
-  phone: {
-    prefix: string;
-    number: string;
-  };
+  phone: string;
   postalCode: string;
-  streetAddress_1: string;
-  streetAddress_2: string;
+  streetAddress1: string;
+  streetAddress2: string;
 }
 interface OrderCustomerProps {
   client?: {
     id: string;
     email: string;
-    name: string;
   };
   shippingAddress?: AddressType;
   billingAddress?: AddressType;
@@ -88,14 +84,16 @@ const OrderCustomer = decorate<OrderCustomerProps>(
         }
       />
       <CardContent>
-        {client === undefined || client === null ? (
+        {client === undefined ? (
           <>
             <Skeleton />
             <Skeleton />
           </>
+        ) : client === null ? (
+          <Typography>{i18n.t("Anonymous customer")}</Typography>
         ) : (
           <>
-            <Typography>{client.name}</Typography>
+            <Typography>{client.email}</Typography>
             <Typography
               className={classes.link}
               onClick={
@@ -127,7 +125,7 @@ const OrderCustomer = decorate<OrderCustomerProps>(
         }
       />
       <CardContent>
-        {client === undefined || client === null ? (
+        {!shippingAddress ? (
           <>
             <Skeleton />
           </>
@@ -140,9 +138,9 @@ const OrderCustomer = decorate<OrderCustomerProps>(
               {shippingAddress.firstName} {shippingAddress.lastName}
             </Typography>
             <Typography>
-              {shippingAddress.streetAddress_1}
+              {shippingAddress.streetAddress1}
               <br />
-              {shippingAddress.streetAddress_2}
+              {shippingAddress.streetAddress2}
             </Typography>
             <Typography>
               {shippingAddress.postalCode} {shippingAddress.city}
@@ -174,7 +172,7 @@ const OrderCustomer = decorate<OrderCustomerProps>(
         }
       />
       <CardContent>
-        {client === undefined || client === null ? (
+        {!billingAddress ? (
           <>
             <Skeleton />
           </>
@@ -189,9 +187,9 @@ const OrderCustomer = decorate<OrderCustomerProps>(
               {billingAddress.firstName} {billingAddress.lastName}
             </Typography>
             <Typography>
-              {billingAddress.streetAddress_1}
+              {billingAddress.streetAddress1}
               <br />
-              {billingAddress.streetAddress_2}
+              {billingAddress.streetAddress2}
             </Typography>
             <Typography>
               {billingAddress.postalCode} {billingAddress.city}
