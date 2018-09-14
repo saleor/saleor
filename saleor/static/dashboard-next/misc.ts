@@ -145,7 +145,7 @@ export const translatedTaxRates = () => ({
   [TaxRateType.WATER]: i18n.t("Water")
 });
 
-export function Ø<T>(exp: () => T, d?: T) {
+export function maybe<T>(exp: () => T, d?: T) {
   try {
     return exp();
   } catch {

@@ -11,7 +11,7 @@ import {
   OrderRefundMutation
 } from "../../gql-types";
 import i18n from "../../i18n";
-import { Ø } from "../../misc";
+import { maybe } from "../../misc";
 import { productUrl } from "../../products";
 import OrderDetailsPage from "../components/OrderDetailsPage";
 import OrderOperations from "../containers/OrderOperations";
@@ -57,7 +57,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       data: OrderCaptureMutation
                                     ) => {
                                       if (
-                                        !Ø(
+                                        !maybe(
                                           () => data.orderCapture.errors.length
                                         )
                                       ) {
@@ -73,7 +73,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       data: OrderRefundMutation
                                     ) => {
                                       if (
-                                        !Ø(() => data.orderRefund.errors.length)
+                                        !maybe(() => data.orderRefund.errors.length)
                                       ) {
                                         pushMessage({
                                           text: i18n.t(
@@ -87,7 +87,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                       data: OrderCreateFulfillmentMutation
                                     ) => {
                                       if (
-                                        !Ø(
+                                        !maybe(
                                           () =>
                                             data.fulfillmentCreate.errors.length
                                         )
@@ -117,7 +117,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         }) => (
                                           <OrderDetailsPage
                                             fetchVariants={search}
-                                            variants={Ø(() =>
+                                            variants={maybe(() =>
                                               searchOpts.data.products.edges
                                                 .map(edge => edge.node)
                                                 .map(product => ({
@@ -146,7 +146,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                               navigate(orderListUrl)
                                             }
                                             order={order}
-                                            shippingMethods={Ø(() =>
+                                            shippingMethods={maybe(() =>
                                               ([] as Array<{
                                                 id: string;
                                                 name: string;
@@ -165,7 +165,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                               orderCreateFulfillment.mutate({
                                                 input: {
                                                   ...variables,
-                                                  lines: Ø(
+                                                  lines: maybe(
                                                     () => order.lines.edges,
                                                     []
                                                   )
