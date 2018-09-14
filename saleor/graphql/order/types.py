@@ -39,8 +39,7 @@ class OrderEvent(CountableDjangoObjectType):
         exclude_fields = ['order', 'parameters']
 
     def resolve_email(self, info):
-        email =  self.parameters.get('email')
-        return email.upper() if email else None
+        return self.parameters.get('email', None)
 
     def resolve_email_type(self, info):
         return self.parameters.get('email_type', None)
