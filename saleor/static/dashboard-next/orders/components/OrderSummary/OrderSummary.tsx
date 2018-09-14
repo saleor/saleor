@@ -12,17 +12,9 @@ import OrderProducts, {
   OrderProductsProps
 } from "../OrderProducts/OrderProducts";
 
-interface MoneyType {
-  amount: number;
-  currency: string;
-}
 interface OrderSummaryProps extends OrderProductsProps {
   paymentStatus?: string;
   paymentVariant?: string;
-  shippingMethodName?: string;
-  shippingPrice: {
-    gross: MoneyType;
-  };
   status?: OrderStatus;
   onCapture?();
   onCreate?();

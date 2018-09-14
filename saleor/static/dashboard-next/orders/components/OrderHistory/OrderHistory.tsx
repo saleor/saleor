@@ -69,15 +69,20 @@ const OrderHistory = decorate<OrderHistoryProps>(
               if (event.type === OrderEvents.NOTE_ADDED) {
                 return (
                   <TimelineNote
-                    user={event.user}
                     date={event.date}
-                    content={event.message}
+                    user={event.user}
+                    message={event.message}
                     key={event.id}
                   />
                 );
               }
               return (
                 <TimelineNode
+                  amount={event.amount}
+                  email={event.email}
+                  emailType={event.emailType}
+                  quantity={event.quantity}
+                  type={event.type}
                   date={event.date}
                   title={event.message}
                   key={event.id}

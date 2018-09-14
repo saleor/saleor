@@ -31,7 +31,7 @@ interface MoneyType {
 export interface OrderProductsProps {
   authorized?: MoneyType;
   isDraft?: boolean;
-  lines: Array<{
+  lines?: Array<{
     id: string;
     productName: string;
     unitPrice: TaxedMoneyType;

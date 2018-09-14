@@ -3,11 +3,7 @@ import * as React from "react";
 
 import { transformAddressToForm } from "../../../orders";
 import OrderAddressEditDialog from "../../../orders/components/OrderAddressEditDialog";
-import {
-  countries,
-  order as orderFixture,
-  prefixes
-} from "../../../orders/fixtures";
+import { countries, order as orderFixture } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
 
 const order = orderFixture("");
@@ -21,7 +17,6 @@ storiesOf("Orders / OrderAddressEditDialog", module)
       data={transformAddressToForm(order.shippingAddress)}
       onChange={undefined}
       countries={countries}
-      prefixes={prefixes}
     />
   ))
   .add("billing address", () => (
@@ -30,7 +25,6 @@ storiesOf("Orders / OrderAddressEditDialog", module)
       variant="billing"
       data={transformAddressToForm(order.billingAddress)}
       onChange={undefined}
-      prefixes={prefixes}
       countries={countries}
     />
   ));
