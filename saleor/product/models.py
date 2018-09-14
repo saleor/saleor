@@ -357,6 +357,7 @@ class ProductAttributeTranslation(models.Model):
 
 class AttributeChoiceValue(SortableModel):
     name = models.CharField(max_length=100)
+    value = models.CharField(max_length=100, default='')
     slug = models.SlugField(max_length=100)
     attribute = models.ForeignKey(
         ProductAttribute, related_name='values', on_delete=models.CASCADE)
