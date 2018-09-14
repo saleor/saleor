@@ -10,8 +10,8 @@ import * as React from "react";
 import i18n from "../../../i18n";
 
 interface OrderCancelDialogProps {
+  number: string;
   open: boolean;
-  id: string;
   onClose?();
   onConfirm?(event: React.FormEvent<any>);
 }
@@ -29,15 +29,15 @@ const decorate = withStyles(
   { name: "OrderCancelDialog" }
 );
 const OrderCancelDialog = decorate<OrderCancelDialogProps>(
-  ({ classes, id, open, onConfirm, onClose }) => (
+  ({ classes, number: orderNumber, open, onConfirm, onClose }) => (
     <Dialog open={open}>
       <DialogTitle>{i18n.t("Cancel order", { context: "title" })}</DialogTitle>
       <DialogContent>
         <DialogContentText
           dangerouslySetInnerHTML={{
             __html: i18n.t(
-              "Are you sure you want to cancel <strong>#{{ id }}</strong>?",
-              { id }
+              "Are you sure you want to cancel order <strong>{{ orderNumber }}</strong>?",
+              { orderNumber }
             )
           }}
         />

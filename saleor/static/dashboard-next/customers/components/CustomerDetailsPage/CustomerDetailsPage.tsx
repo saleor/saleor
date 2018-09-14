@@ -25,15 +25,17 @@ interface CustomerDetailsPageProps {
   };
   orders?: Array<{
     id: string;
-    number: number;
+    number: string;
     created: string;
-    price: {
-      amount: number;
-      currency: string;
-    };
     orderStatus: {
       localized: string;
       status: string;
+    };
+    total: {
+      gross: {
+        amount: number;
+        currency: string;
+      };
     };
   }>;
   pageInfo?: {

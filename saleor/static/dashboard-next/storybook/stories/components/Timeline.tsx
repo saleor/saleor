@@ -12,14 +12,29 @@ storiesOf("Generics / Timeline", module)
   .add("default", () => (
     <Timeline>
       <TimelineNode
+        amount={null}
+        email={null}
+        emailType={null}
+        quantity={null}
+        type={null}
         date="2018-05-07T16:58:02+00:00"
         title="Expansion panel 1"
       />
       <TimelineNode
+        amount={null}
+        email={null}
+        emailType={null}
+        quantity={null}
+        type={null}
         date="2018-05-07T16:48:02+00:00"
         title="Expansion panel 2"
       />
       <TimelineNode
+        amount={null}
+        email={null}
+        emailType={null}
+        quantity={null}
+        type={null}
         date="2018-05-06T16:58:02+00:00"
         title="Expansion panel 3"
       />
@@ -27,15 +42,39 @@ storiesOf("Generics / Timeline", module)
   ))
   .add("with expansion panels", () => (
     <Timeline>
-      <TimelineNode date="2018-05-07T16:58:02+00:00" title="Expansion panel 1">
+      <TimelineNode
+        amount={null}
+        email={null}
+        emailType={null}
+        quantity={null}
+        type={null}
+        date="2018-05-07T16:58:02+00:00"
+        title="Expansion panel 1"
+      >
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
         malesuada lacus ex, sit amet blandit leo lobortis eget.
       </TimelineNode>
-      <TimelineNode date="2018-05-07T16:48:02+00:00" title="Expansion panel 2">
+      <TimelineNode
+        amount={null}
+        email={null}
+        emailType={null}
+        quantity={null}
+        type={null}
+        date="2018-05-07T16:48:02+00:00"
+        title="Expansion panel 2"
+      >
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
         malesuada lacus ex, sit amet blandit leo lobortis eget.
       </TimelineNode>
-      <TimelineNode date="2018-05-06T16:58:02+00:00" title="Expansion panel 3">
+      <TimelineNode
+        amount={null}
+        email={null}
+        emailType={null}
+        quantity={null}
+        type={null}
+        date="2018-05-06T16:58:02+00:00"
+        title="Expansion panel 3"
+      >
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
         malesuada lacus ex, sit amet blandit leo lobortis eget.
       </TimelineNode>
@@ -43,23 +82,39 @@ storiesOf("Generics / Timeline", module)
   ))
   .add("with order notes", () => (
     <Timeline>
-      <TimelineNode date="2018-05-07T16:58:02+00:00" title="Expansion panel 1">
+      <TimelineNode
+        amount={null}
+        email={null}
+        emailType={null}
+        quantity={null}
+        type={null}
+        date="2018-05-07T16:58:02+00:00"
+        title="Expansion panel 1"
+      >
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
         malesuada lacus ex, sit amet blandit leo lobortis eget.
       </TimelineNode>
       <TimelineNote
         date="2018-05-07T16:58:02+00:00"
-        user="admin@example.com"
-        content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
+        user={{ email: "admin@example.com" }}
+        message="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
         malesuada lacus ex, sit amet blandit leo lobortis eget."
       />
       <TimelineNote
         date="2018-05-07T16:58:02+00:00"
-        user="ceo@example.com"
-        content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
+        user={{ email: "ceo@example.com" }}
+        message="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
         malesuada lacus ex, sit amet blandit leo lobortis eget."
       />
-      <TimelineNode date="2018-05-06T16:58:02+00:00" title="Expansion panel 3">
+      <TimelineNode
+        amount={null}
+        email={null}
+        emailType={null}
+        quantity={null}
+        type={null}
+        date="2018-05-06T16:58:02+00:00"
+        title="Expansion panel 3"
+      >
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
         malesuada lacus ex, sit amet blandit leo lobortis eget.
       </TimelineNode>

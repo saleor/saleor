@@ -6,11 +6,10 @@ export interface AddressTypeInput {
   countryArea?: string;
   firstName: string;
   lastName: string;
-  phone_prefix: string;
-  phone_number: string;
+  phone: string;
   postalCode: string;
-  streetAddress_1: string;
-  streetAddress_2?: string;
+  streetAddress1: string;
+  streetAddress2?: string;
 }
 export interface AddressType extends AddressTypeInput {
   id: string;

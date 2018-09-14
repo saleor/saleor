@@ -5,7 +5,6 @@ import * as React from "react";
 import { AddressTypeInput } from "../../customers/";
 import i18n from "../../i18n";
 import FormSpacer from "../FormSpacer";
-import PhoneField from "../PhoneField";
 import SingleSelectField from "../SingleSelectField";
 
 interface AddressEditProps {
@@ -14,7 +13,6 @@ interface AddressEditProps {
     label: string;
   }>;
   data: AddressTypeInput;
-  prefixes: string[];
   onChange(event: React.ChangeEvent<any>);
 }
 
@@ -26,7 +24,7 @@ const decorate = withStyles(theme => ({
   }
 }));
 const AddressEdit = decorate<AddressEditProps>(
-  ({ classes, countries, data, prefixes, onChange }) => (
+  ({ classes, countries, data, onChange }) => (
     <>
       <div className={classes.root}>
         <div>
@@ -59,17 +57,17 @@ const AddressEdit = decorate<AddressEditProps>(
       <FormSpacer />
       <TextField
         label={i18n.t("Address")}
-        name="streetAddress_1"
+        name="streetAddress1"
         onChange={onChange}
-        value={data.streetAddress_1}
+        value={data.streetAddress1}
         fullWidth
       />
       <FormSpacer />
       <TextField
         label={i18n.t("Address")}
-        name="streetAddress_2"
+        name="streetAddress2"
         onChange={onChange}
-        value={data.streetAddress_2}
+        value={data.streetAddress2}
         fullWidth
       />
       <FormSpacer />
@@ -113,12 +111,10 @@ const AddressEdit = decorate<AddressEditProps>(
         fullWidth
       />
       <FormSpacer />
-      <PhoneField
+      <TextField
         label={i18n.t("Phone")}
         name="phone"
-        prefix={data.phone_prefix}
-        number={data.phone_number}
-        prefixes={prefixes}
+        value={data.phone}
         onChange={onChange}
       />
     </>

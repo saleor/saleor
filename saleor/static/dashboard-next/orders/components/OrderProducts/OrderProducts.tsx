@@ -29,23 +29,23 @@ interface MoneyType {
   currency: string;
 }
 export interface OrderProductsProps {
+  authorized?: MoneyType;
   isDraft?: boolean;
-  net?: MoneyType;
-  paid?: MoneyType;
-  products?: Array<{
+  lines?: Array<{
     id: string;
-    name: string;
-    price: TaxedMoneyType;
+    productName: string;
+    unitPrice: TaxedMoneyType;
     quantity: number;
-    sku: string;
-    thumbnailUrl: string;
+    productSku: string;
+    thumbnailUrl?: string;
   }>;
-  shippingMethod?: {
-    name: string;
-    price: MoneyType;
+  paid?: MoneyType;
+  shippingMethodName?: string;
+  shippingPrice?: {
+    gross: MoneyType;
   };
-  refunded?: MoneyType;
   subtotal?: MoneyType;
+  tax?: MoneyType;
   total?: MoneyType;
   onOrderLineChange?(id: string): (value: string) => () => void;
   onOrderLineRemove?(id: string): () => any;
@@ -90,14 +90,15 @@ const decorate = withStyles(
 );
 const OrderProducts = decorate<OrderProductsProps>(
   ({
+    authorized,
     classes,
     isDraft,
-    net,
+    lines,
     paid,
-    products,
-    refunded,
-    shippingMethod,
+    shippingMethodName,
+    shippingPrice,
     subtotal,
+    tax,
     total,
     onOrderLineChange,
     onOrderLineRemove,
@@ -123,7 +124,7 @@ const OrderProducts = decorate<OrderProductsProps>(
       </TableHead>
       <TableBody>
         {renderCollection(
-          products,
+          lines,
           product => (
             <TableRow key={product ? product.id : "skeleton"}>
               {product && isDraft ? (
@@ -145,18 +146,20 @@ const OrderProducts = decorate<OrderProductsProps>(
                     onClick={onRowClick && onRowClick(product.id)}
                     className={classes.link}
                   >
-                    {product.name}
+                    {product.productName}
                   </span>
                 ) : (
                   <Skeleton />
                 )}
               </TableCell>
-              <TableCell>{product ? product.sku : <Skeleton />}</TableCell>
+              <TableCell>
+                {product ? product.productSku : <Skeleton />}
+              </TableCell>
               <TableCell className={classes.textRight}>
-                {product && product.price && product.price.gross ? (
+                {product && product.unitPrice && product.unitPrice.gross ? (
                   <Money
-                    amount={product.price.gross.amount}
-                    currency={product.price.gross.currency}
+                    amount={product.unitPrice.gross.amount}
+                    currency={product.unitPrice.gross.currency}
                   />
                 ) : (
                   <Skeleton />
@@ -178,10 +181,10 @@ const OrderProducts = decorate<OrderProductsProps>(
                 </TableCell>
               )}
               <TableCell className={classes.textRight}>
-                {product && product.price && product.price.gross ? (
+                {product && product.unitPrice && product.unitPrice.gross ? (
                   <Money
-                    amount={product.price.gross.amount * product.quantity}
-                    currency={product.price.gross.currency}
+                    amount={product.unitPrice.gross.amount * product.quantity}
+                    currency={product.unitPrice.gross.currency}
                   />
                 ) : (
                   <Skeleton />
@@ -204,8 +207,13 @@ const OrderProducts = decorate<OrderProductsProps>(
                 className={classNames({ [classes.link]: isDraft })}
                 onClick={onShippingMethodClick}
               >
-                {shippingMethod ? shippingMethod.name : i18n.t("Shipping")}
+                {shippingMethodName ? shippingMethodName : i18n.t("Shipping")}
               </Typography>
+              {tax && tax.amount > 0 ? (
+                <Typography>{i18n.t("Tax (included)")}</Typography>
+              ) : (
+                undefined
+              )}
               <Typography>
                 <b>{i18n.t("Total")}</b>
               </Typography>
@@ -222,10 +230,19 @@ const OrderProducts = decorate<OrderProductsProps>(
               ) : (
                 <Skeleton />
               )}
-              {shippingMethod && shippingMethod.price ? (
+              {tax && tax.amount > 0 ? (
                 <Money
-                  amount={shippingMethod.price.amount}
-                  currency={shippingMethod.price.currency}
+                  amount={tax.amount}
+                  currency={tax.currency}
+                  typographyProps={{ component: "p" }}
+                />
+              ) : (
+                undefined
+              )}
+              {shippingPrice && shippingPrice.gross ? (
+                <Money
+                  amount={shippingPrice.gross.amount}
+                  currency={shippingPrice.gross.currency}
                   typographyProps={{ component: "p" }}
                 />
               ) : (
@@ -247,8 +264,7 @@ const OrderProducts = decorate<OrderProductsProps>(
           <TableRow>
             <TableCell colSpan={5} className={classes.textRight}>
               <div className={classes.flexBox}>
-                <Typography>{i18n.t("Paid by customer")}</Typography>
-                <Typography>{i18n.t("Refunded")}</Typography>
+                <Typography>{i18n.t("Authorized")}</Typography>
                 <Typography>
                   <b>{i18n.t("Net payment")}</b>
                 </Typography>
@@ -256,28 +272,19 @@ const OrderProducts = decorate<OrderProductsProps>(
             </TableCell>
             <TableCell className={classes.textRight}>
               <div className={classes.flexBox}>
+                {authorized ? (
+                  <Money
+                    amount={authorized.amount}
+                    currency={authorized.currency}
+                    typographyProps={{ component: "p" }}
+                  />
+                ) : (
+                  <Skeleton />
+                )}
                 {paid ? (
                   <Money
                     amount={paid.amount}
                     currency={paid.currency}
-                    typographyProps={{ component: "p" }}
-                  />
-                ) : (
-                  <Skeleton />
-                )}
-                {refunded ? (
-                  <Money
-                    amount={-refunded.amount}
-                    currency={refunded.currency}
-                    typographyProps={{ component: "p" }}
-                  />
-                ) : (
-                  <Skeleton />
-                )}
-                {net ? (
-                  <Money
-                    amount={net.amount}
-                    currency={net.currency}
                     typographyProps={{ component: "p" }}
                   />
                 ) : (

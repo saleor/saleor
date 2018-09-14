@@ -61,6 +61,12 @@ const menuStructure = [
     ],
     icon: <Shop />,
     label: i18n.t("Catalogue", { context: "Menu label" })
+  },
+  {
+    ariaLabel: "orders",
+    icon: <Shop />,
+    label: i18n.t("Orders", { context: "Menu label" }),
+    url: "/orders/"
   }
 ];
 

@@ -13,8 +13,8 @@ storiesOf("Orders / OrderFulfillmentDialog", module)
   .add("default", () => (
     <OrderFulfillmentDialog
       open={true}
-      products={order.products}
-      onChange={undefined}
-      data={{}}
+      lines={order.lines}
+      onClose={undefined}
+      onSubmit={undefined}
     />
   ));

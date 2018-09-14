@@ -1,4 +1,35 @@
+import { parse as parseQs } from "qs";
+import * as React from "react";
+import { Route, RouteComponentProps, Switch } from "react-router-dom";
+
 import i18n from "../i18n";
+import { FulfillmentStatus, OrderStatus } from "../types/globalTypes";
+import OrderDetailsComponent from "./views/OrderDetails";
+import OrderListComponent from "./views/OrderList";
+
+const OrderList: React.StatelessComponent<RouteComponentProps<any>> = ({
+  location
+}) => {
+  const qs = parseQs(location.search.substr(1));
+  const params = {
+    after: qs.after,
+    before: qs.before
+  };
+  return <OrderListComponent params={params} />;
+};
+
+const OrderDetails: React.StatelessComponent<RouteComponentProps<any>> = ({
+  match
+}) => {
+  return <OrderDetailsComponent id={match.params.id} />;
+};
+
+const Component = ({ match }) => (
+  <Switch>
+    <Route exact path={match.url} component={OrderList} />
+    <Route exact path={`${match.url}/:id/`} component={OrderDetails} />
+  </Switch>
+);
 
 export interface AddressType {
   city: string;
@@ -9,13 +40,10 @@ export interface AddressType {
   firstName: string;
   id: string;
   lastName: string;
-  phone: {
-    prefix: string;
-    number: string;
-  };
+  phone: string;
   postalCode: string;
-  streetAddress_1: string;
-  streetAddress_2: string;
+  streetAddress1: string;
+  streetAddress2: string;
 }
 
 export const PaymentStatus = {
@@ -26,17 +54,6 @@ export const PaymentStatus = {
   REFUNDED: "refunded",
   REJECTED: "rejected",
   WAITING: "waiting"
-};
-export const OrderStatus = {
-  CANCELLED: "cancelled",
-  DRAFT: "draft",
-  FULFILLED: "fulfilled",
-  PARTIALLY_FULFILLED: "partially fulfilled",
-  UNFULFILLED: "unfulfilled"
-};
-export const FulfillmentStatus = {
-  CANCELLED: "cancelled",
-  FULFILLED: "fulfilled"
 };
 export const PaymentVariants = {
   MANUAL: "manual"
@@ -76,7 +93,7 @@ export const transformOrderStatus = (status: string) => {
       return { localized: i18n.t("Partially fulfilled"), status: "neutral" };
     case OrderStatus.UNFULFILLED:
       return { localized: i18n.t("Unfulfilled"), status: "error" };
-    case OrderStatus.CANCELLED:
+    case OrderStatus.CANCELED:
       return { localized: i18n.t("Cancelled"), status: "error" };
     case OrderStatus.DRAFT:
       return { localized: i18n.t("Draft"), status: "error" };
@@ -91,7 +108,7 @@ export const transformFulfillmentStatus = (status: string) => {
   switch (status) {
     case FulfillmentStatus.FULFILLED:
       return { localized: i18n.t("Fulfilled"), status: "success" };
-    case FulfillmentStatus.CANCELLED:
+    case FulfillmentStatus.CANCELED:
       return { localized: i18n.t("Cancelled"), status: "neutral" };
   }
   return {
@@ -102,7 +119,13 @@ export const transformFulfillmentStatus = (status: string) => {
 
 export const transformAddressToForm = (data: AddressType) => ({
   ...data,
-  phone: undefined,
-  phone_number: data.phone.number,
-  phone_prefix: data.phone.prefix
+  phone: data.phone
 });
+
+export const orderListUrl = "/orders/";
+
+export const orderUrl = (id: string) => {
+  return `/orders/${id}/`;
+};
+
+export default Component;
