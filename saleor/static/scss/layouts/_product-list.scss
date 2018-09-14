@@ -14,8 +14,13 @@
 .product-list {
   text-align: center;
   margin-bottom: $global-margin * 2;
-  img {
-    max-width: 100%;
+  .img-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    img {
+      max-width: 100%;
+    }
   }
   &-item-name {
     margin: $global-margin / 2 0;
