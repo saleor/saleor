@@ -23,13 +23,18 @@ import DateFormatter from "../DateFormatter";
 interface TimelineNodeProps {
   date: string;
   title: string;
+  amount: number | null;
+  email: string | null;
+  emailType: string | null;
+  type: string;
+  quantity: number | null;
 }
 interface TimelineNoteProps {
   date: string;
+  message: string | null;
   user: {
     email: string;
   };
-  content: string;
 }
 interface TimelineAddNoteProps {
   user: {
@@ -180,7 +185,7 @@ export const TimelineNode = decorate<TimelineNodeProps>(
   )
 );
 export const TimelineNote = decorate<TimelineNoteProps>(
-  ({ classes, date, user, content }) => (
+  ({ classes, date, user, message }) => (
     <Card className={classes.noteRoot}>
       <CardContent className={classes.noteTitle}>
         <Avatar
@@ -194,7 +199,7 @@ export const TimelineNote = decorate<TimelineNoteProps>(
         </div>
       </CardContent>
       <CardContent>
-        <Typography className={classes.noteContent}>{content}</Typography>
+        <Typography className={classes.noteContent}>{message}</Typography>
       </CardContent>
     </Card>
   )

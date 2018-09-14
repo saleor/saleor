@@ -68,7 +68,9 @@ const OrderShippingMethodEditDialog = decorate<
         : [];
     return (
       <Dialog open={open} classes={{ paper: classes.dialog }}>
-        <DialogTitle>{i18n.t("Edit customer details")}</DialogTitle>
+        <DialogTitle>
+          {i18n.t("Edit shipping method", { context: "title" })}
+        </DialogTitle>
         <DialogContent className={classes.root}>
           <SingleAutocompleteSelectField
             choices={choices}

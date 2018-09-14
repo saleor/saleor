@@ -22,7 +22,7 @@ export interface FormData {
 
 interface OrderFulfillmentDialogProps {
   open: boolean;
-  products?: Array<{
+  lines: Array<{
     id: string;
     productName: string;
     productSku: string;
@@ -51,13 +51,13 @@ const decorate = withStyles(
   { name: "OrderFulfillmentDialog" }
 );
 const OrderFulfillmentDialog = decorate<OrderFulfillmentDialogProps>(
-  ({ classes, open, products, onClose, onSubmit }) => (
+  ({ classes, open, lines, onClose, onSubmit }) => (
     <Dialog open={open}>
       <Form
         initial={{
           lines: maybe(
             () =>
-              products.map(
+              lines.map(
                 product => product.quantity - product.quantityFulfilled
               ),
             []
@@ -94,7 +94,7 @@ const OrderFulfillmentDialog = decorate<OrderFulfillmentDialogProps>(
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {products.map((product, productIndex) => {
+                  {lines.map((product, productIndex) => {
                     const remainingQuantity =
                       product.quantity - product.quantityFulfilled;
                     return (

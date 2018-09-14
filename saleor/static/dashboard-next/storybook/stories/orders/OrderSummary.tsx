@@ -4,6 +4,7 @@ import * as React from "react";
 import * as placeholderImage from "../../../../images/placeholder60x60.png";
 import OrderSummary from "../../../orders/components/OrderSummary";
 import { order as orderFixture } from "../../../orders/fixtures";
+import { OrderStatus } from "../../../types/globalTypes";
 import Decorator from "../../Decorator";
 
 const order = orderFixture(placeholderImage);
@@ -19,17 +20,24 @@ const callbacks = {
   onRowClick: () => undefined
 };
 
+const shippingPrice = {
+  gross: {
+    amount: 9123.12,
+    currency: "USD"
+  }
+};
+
 storiesOf("Orders / OrderSummary", module)
   .addDecorator(Decorator)
-  .add("when loading data", () => <OrderSummary />)
+  .add("when loading data", () => <OrderSummary {...callbacks} />)
   .add("order unfulfilled", () => (
     <OrderSummary
-      net={order.payment.net}
       paid={order.payment.paid}
       paymentStatus={order.paymentStatus}
       lines={order.products}
-      refunded={order.payment.refunded}
-      status={"unfulfilled"}
+      shippingMethodName="DHL"
+      shippingPrice={shippingPrice}
+      status={OrderStatus.UNFULFILLED}
       subtotal={order.subtotal}
       total={order.total}
       {...callbacks}
@@ -37,12 +45,12 @@ storiesOf("Orders / OrderSummary", module)
   ))
   .add("order partially fulfilled", () => (
     <OrderSummary
-      net={order.payment.net}
       paid={order.payment.paid}
       paymentStatus={order.paymentStatus}
-      products={order.products}
-      refunded={order.payment.refunded}
-      status={"partially fulfilled"}
+      lines={order.products}
+      shippingMethodName="DHL"
+      shippingPrice={shippingPrice}
+      status={OrderStatus.PARTIALLY_FULFILLED}
       subtotal={order.subtotal}
       total={order.total}
       {...callbacks}
@@ -50,12 +58,12 @@ storiesOf("Orders / OrderSummary", module)
   ))
   .add("order fulfilled", () => (
     <OrderSummary
-      net={order.payment.net}
       paid={order.payment.paid}
       paymentStatus={order.paymentStatus}
-      products={order.products}
-      refunded={order.payment.refunded}
-      status={"fulfilled"}
+      lines={order.products}
+      shippingMethodName="DHL"
+      shippingPrice={shippingPrice}
+      status={OrderStatus.FULFILLED}
       subtotal={order.subtotal}
       total={order.total}
       {...callbacks}
@@ -63,12 +71,12 @@ storiesOf("Orders / OrderSummary", module)
   ))
   .add("order cancelled", () => (
     <OrderSummary
-      net={order.payment.net}
       paid={order.payment.paid}
       paymentStatus={order.paymentStatus}
-      products={order.products}
-      refunded={order.payment.refunded}
-      status={"cancelled"}
+      lines={order.products}
+      shippingMethodName="DHL"
+      shippingPrice={shippingPrice}
+      status={OrderStatus.CANCELED}
       subtotal={order.subtotal}
       total={order.total}
       {...callbacks}
@@ -76,12 +84,12 @@ storiesOf("Orders / OrderSummary", module)
   ))
   .add("order draft", () => (
     <OrderSummary
-      net={order.payment.net}
       paid={order.payment.paid}
       paymentStatus={order.paymentStatus}
-      products={order.products}
-      refunded={order.payment.refunded}
-      status={"draft"}
+      lines={order.products}
+      shippingMethodName="DHL"
+      shippingPrice={shippingPrice}
+      status={OrderStatus.DRAFT}
       subtotal={order.subtotal}
       total={order.total}
       {...callbacks}
@@ -89,11 +97,11 @@ storiesOf("Orders / OrderSummary", module)
   ))
   .add("payment confirmed", () => (
     <OrderSummary
-      net={order.payment.net}
       paid={order.payment.paid}
       paymentStatus="confirmed"
-      products={order.products}
-      refunded={order.payment.refunded}
+      lines={order.products}
+      shippingMethodName="DHL"
+      shippingPrice={shippingPrice}
       status={order.status}
       subtotal={order.subtotal}
       total={order.total}
@@ -102,11 +110,11 @@ storiesOf("Orders / OrderSummary", module)
   ))
   .add("payment error", () => (
     <OrderSummary
-      net={order.payment.net}
       paid={order.payment.paid}
       paymentStatus="error"
-      products={order.products}
-      refunded={order.payment.refunded}
+      lines={order.products}
+      shippingMethodName="DHL"
+      shippingPrice={shippingPrice}
       status={order.status}
       subtotal={order.subtotal}
       total={order.total}
@@ -115,11 +123,11 @@ storiesOf("Orders / OrderSummary", module)
   ))
   .add("payment input", () => (
     <OrderSummary
-      net={order.payment.net}
       paid={order.payment.paid}
       paymentStatus="input"
-      products={order.products}
-      refunded={order.payment.refunded}
+      lines={order.products}
+      shippingMethodName="DHL"
+      shippingPrice={shippingPrice}
       status={order.status}
       subtotal={order.subtotal}
       total={order.total}
@@ -128,11 +136,11 @@ storiesOf("Orders / OrderSummary", module)
   ))
   .add("payment preauth", () => (
     <OrderSummary
-      net={order.payment.net}
       paid={order.payment.paid}
       paymentStatus="preauth"
-      products={order.products}
-      refunded={order.payment.refunded}
+      lines={order.products}
+      shippingMethodName="DHL"
+      shippingPrice={shippingPrice}
       status={order.status}
       subtotal={order.subtotal}
       total={order.total}
@@ -141,11 +149,11 @@ storiesOf("Orders / OrderSummary", module)
   ))
   .add("payment refunded", () => (
     <OrderSummary
-      net={order.payment.net}
       paid={order.payment.paid}
       paymentStatus="refunded"
-      products={order.products}
-      refunded={order.payment.refunded}
+      lines={order.products}
+      shippingMethodName="DHL"
+      shippingPrice={shippingPrice}
       status={order.status}
       subtotal={order.subtotal}
       total={order.total}
@@ -154,11 +162,11 @@ storiesOf("Orders / OrderSummary", module)
   ))
   .add("payment rejected", () => (
     <OrderSummary
-      net={order.payment.net}
       paid={order.payment.paid}
       paymentStatus="rejected"
-      products={order.products}
-      refunded={order.payment.refunded}
+      lines={order.products}
+      shippingMethodName="DHL"
+      shippingPrice={shippingPrice}
       status={order.status}
       subtotal={order.subtotal}
       total={order.total}
@@ -167,11 +175,11 @@ storiesOf("Orders / OrderSummary", module)
   ))
   .add("payment waiting", () => (
     <OrderSummary
-      net={order.payment.net}
       paid={order.payment.paid}
       paymentStatus="waiting"
-      products={order.products}
-      refunded={order.payment.refunded}
+      lines={order.products}
+      shippingMethodName="DHL"
+      shippingPrice={shippingPrice}
       status={order.status}
       subtotal={order.subtotal}
       total={order.total}

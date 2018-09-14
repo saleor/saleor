@@ -330,7 +330,7 @@ class OrderDetailsPageComponent extends React.Component<
             />
             <OrderFulfillmentDialog
               open={openedFulfillmentDialog && !!order}
-              products={unfulfilled}
+              lines={unfulfilled}
               onClose={this.toggleFulfillmentDialog}
               onSubmit={onOrderFulfill}
             />
