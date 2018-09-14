@@ -26,7 +26,9 @@ import OrderPaymentDialog, {
   FormData as OrderPaymentFormData
 } from "../OrderPaymentDialog";
 import OrderPaymentReleaseDialog from "../OrderPaymentReleaseDialog";
-import OrderProductAddDialog from "../OrderProductAddDialog";
+import OrderProductAddDialog, {
+  FormData as ProductAddFormData
+} from "../OrderProductAddDialog";
 import OrderShippingMethodEditDialog from "../OrderShippingMethodEditDialog";
 import OrderSummary from "../OrderSummary";
 
@@ -132,7 +134,7 @@ interface OrderDetailsPageProps {
     id: string;
     name: string;
     sku: string;
-    stockAllocated;
+    stockQuantity: number;
   }>;
   variantsLoading?: boolean;
   fetchUsers?(value: string);
@@ -144,6 +146,7 @@ interface OrderDetailsPageProps {
   onOrderFulfill(data: OrderFulfillFormData);
   onOrderLineChange?(id: string): (value: string) => () => void;
   onOrderLineRemove?(id: string): () => void;
+  onProductAdd(data: ProductAddFormData);
   onProductClick?(id: string);
   onPackingSlipClick?(id: string);
   onPaymentCapture(data: OrderPaymentFormData);
@@ -257,6 +260,7 @@ class OrderDetailsPageComponent extends React.Component<
       onPaymentCapture,
       onPaymentRefund,
       onPaymentRelease,
+      onProductAdd,
       onProductClick
     } = this.props;
     const {
@@ -342,31 +346,16 @@ class OrderDetailsPageComponent extends React.Component<
               onClose={this.togglePaymentRefundDialog}
               onSubmit={onPaymentRefund}
             />
+            <OrderProductAddDialog
+              loading={variantsLoading}
+              open={openedOrderProductAddDialog}
+              variants={variants}
+              fetchVariants={fetchVariants}
+              onClose={this.toggleOrderProductAddDialog}
+              onSubmit={onProductAdd}
+            />
             {order && (
               <>
-                <Form
-                  initial={{
-                    quantity: 1,
-                    variant: {
-                      label: "",
-                      value: ""
-                    }
-                  }}
-                >
-                  {({ data, change, submit }) => (
-                    <OrderProductAddDialog
-                      loading={variantsLoading}
-                      open={openedOrderProductAddDialog}
-                      quantity={data.quantity}
-                      variant={data.variant}
-                      variants={variants}
-                      fetchVariants={fetchVariants}
-                      onChange={change}
-                      onClose={this.toggleOrderProductAddDialog}
-                      onConfirm={submit}
-                    />
-                  )}
-                </Form>
                 <Form
                   initial={{
                     shippingMethod: {

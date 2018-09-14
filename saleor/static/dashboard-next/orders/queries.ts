@@ -4,6 +4,10 @@ import { TypedQuery } from "../queries";
 import { OrderDetails, OrderDetailsVariables } from "./types/OrderDetails";
 import { OrderList, OrderListVariables } from "./types/OrderList";
 import { OrderShippingMethods } from "./types/OrderShippingMethods";
+import {
+  OrderVariantSearch,
+  OrderVariantSearchVariables
+} from "./types/OrderVariantSearch";
 
 export const orderListQuery = gql`
   query OrderList($first: Int, $after: String, $last: Int, $before: String) {
@@ -200,3 +204,30 @@ export const TypedOrderShippingMethodsQuery = TypedQuery<
   OrderShippingMethods,
   {}
 >(orderShippingMethodsQuery);
+
+export const orderVariantSearchQuery = gql`
+  query OrderVariantSearch($search: String!) {
+    products(query: $search, first: 20) {
+      edges {
+        node {
+          id
+          name
+          variants {
+            edges {
+              node {
+                id
+                name
+                sku
+                stockQuantity
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+export const TypedOrderVariantSearch = TypedQuery<
+  OrderVariantSearch,
+  OrderVariantSearchVariables
+>(orderVariantSearchQuery);

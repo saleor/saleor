@@ -15,6 +15,7 @@ import { Ø } from "../../misc";
 import { productUrl } from "../../products";
 import OrderDetailsPage from "../components/OrderDetailsPage";
 import OrderOperations from "../containers/OrderOperations";
+import { OrderVariantSearchProvider } from "../containers/OrderVariantSearch";
 import {
   TypedOrderCancelMutation,
   TypedOrderReleaseMutation
@@ -49,127 +50,165 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                         <TypedOrderReleaseMutation variables={{ id }}>
                           {releasePayment => (
                             <TypedOrderShippingMethodsQuery>
-                              {({ data }) => {
-                                const handlePaymentCapture = (
-                                  data: OrderCaptureMutation
-                                ) => {
-                                  if (
-                                    !Ø(() => data.orderCapture.errors.length)
-                                  ) {
-                                    pushMessage({
-                                      text: i18n.t(
-                                        "Payment succesfully captured",
-                                        { context: "notification" }
-                                      )
-                                    });
-                                  }
-                                };
-                                const handlePaymentRefund = (
-                                  data: OrderRefundMutation
-                                ) => {
-                                  if (
-                                    !Ø(() => data.orderRefund.errors.length)
-                                  ) {
-                                    pushMessage({
-                                      text: i18n.t(
-                                        "Payment succesfully refunded",
-                                        { context: "notification" }
-                                      )
-                                    });
-                                  }
-                                };
-                                const handleFulfillmentCreate = (
-                                  data: OrderCreateFulfillmentMutation
-                                ) => {
-                                  if (
-                                    !Ø(
-                                      () => data.fulfillmentCreate.errors.length
-                                    )
-                                  ) {
-                                    pushMessage({
-                                      text: i18n.t(
-                                        "Items succesfully fulfilled",
-                                        { context: "notification" }
-                                      )
-                                    });
-                                  }
-                                };
-                                return (
-                                  <OrderOperations
-                                    order={id}
-                                    onError={undefined}
-                                    onFulfillmentCreate={
-                                      handleFulfillmentCreate
-                                    }
-                                    onPaymentCapture={handlePaymentCapture}
-                                    onPaymentRefund={handlePaymentRefund}
-                                  >
-                                    {({
-                                      orderCreateFulfillment,
-                                      orderPaymentCapture,
-                                      orderPaymentRefund
-                                    }) => (
-                                      <OrderDetailsPage
-                                        onBack={() => navigate(orderListUrl)}
-                                        order={order}
-                                        shippingMethods={Ø(() =>
-                                          ([] as Array<{
-                                            id: string;
-                                            name: string;
-                                          }>).concat(
-                                            ...data.shippingZones.edges.map(
-                                              edge =>
-                                                edge.node.shippingMethods.edges.map(
-                                                  edge => edge.node
-                                                )
-                                            )
+                              {({ data: shippingMethodsData }) => (
+                                <OrderVariantSearchProvider>
+                                  {({ variants: { search, searchOpts } }) => {
+                                    const handlePaymentCapture = (
+                                      data: OrderCaptureMutation
+                                    ) => {
+                                      if (
+                                        !Ø(
+                                          () => data.orderCapture.errors.length
+                                        )
+                                      ) {
+                                        pushMessage({
+                                          text: i18n.t(
+                                            "Payment succesfully captured",
+                                            { context: "notification" }
                                           )
-                                        )}
-                                        user={user}
-                                        onOrderCancel={cancelOrder}
-                                        onOrderFulfill={variables =>
-                                          orderCreateFulfillment.mutate({
-                                            input: {
-                                              ...variables,
-                                              lines: Ø(
-                                                () => order.lines.edges,
-                                                []
-                                              )
+                                        });
+                                      }
+                                    };
+                                    const handlePaymentRefund = (
+                                      data: OrderRefundMutation
+                                    ) => {
+                                      if (
+                                        !Ø(() => data.orderRefund.errors.length)
+                                      ) {
+                                        pushMessage({
+                                          text: i18n.t(
+                                            "Payment succesfully refunded",
+                                            { context: "notification" }
+                                          )
+                                        });
+                                      }
+                                    };
+                                    const handleFulfillmentCreate = (
+                                      data: OrderCreateFulfillmentMutation
+                                    ) => {
+                                      if (
+                                        !Ø(
+                                          () =>
+                                            data.fulfillmentCreate.errors.length
+                                        )
+                                      ) {
+                                        pushMessage({
+                                          text: i18n.t(
+                                            "Items succesfully fulfilled",
+                                            { context: "notification" }
+                                          )
+                                        });
+                                      }
+                                    };
+                                    return (
+                                      <OrderOperations
+                                        order={id}
+                                        onError={undefined}
+                                        onFulfillmentCreate={
+                                          handleFulfillmentCreate
+                                        }
+                                        onPaymentCapture={handlePaymentCapture}
+                                        onPaymentRefund={handlePaymentRefund}
+                                      >
+                                        {({
+                                          orderCreateFulfillment,
+                                          orderPaymentCapture,
+                                          orderPaymentRefund
+                                        }) => (
+                                          <OrderDetailsPage
+                                            fetchVariants={search}
+                                            variants={Ø(() =>
+                                              searchOpts.data.products.edges
                                                 .map(edge => edge.node)
-                                                .filter(
-                                                  line =>
-                                                    line.quantityFulfilled <
-                                                    line.quantity
+                                                .map(product => ({
+                                                  ...product,
+                                                  variants: product.variants.edges.map(
+                                                    edge => edge.node
+                                                  )
+                                                }))
+                                                .map(product =>
+                                                  product.variants.map(
+                                                    variant => ({
+                                                      ...variant,
+                                                      name: `${product.name}(${
+                                                        variant.name
+                                                      })`
+                                                    })
+                                                  )
                                                 )
-                                                .map((line, lineIndex) => ({
-                                                  orderLineId: line.id,
-                                                  quantity:
-                                                    variables.lines[lineIndex]
-                                                })),
-                                              order: order.id
+                                                .reduce(
+                                                  (prev, curr) =>
+                                                    prev.concat(curr),
+                                                  []
+                                                )
+                                            )}
+                                            onBack={() =>
+                                              navigate(orderListUrl)
                                             }
-                                          })
-                                        }
-                                        onPaymentCapture={variables =>
-                                          orderPaymentCapture.mutate({
-                                            ...variables,
-                                            id
-                                          })
-                                        }
-                                        onPaymentRelease={releasePayment}
-                                        onPaymentRefund={variables =>
-                                          orderPaymentRefund.mutate({
-                                            ...variables,
-                                            id
-                                          })
-                                        }
-                                        onProductClick={id => () =>
-                                          navigate(productUrl(id))}
-                                      />
-                                    )}
-                                  </OrderOperations>
-                                );
-                              }}
+                                            order={order}
+                                            shippingMethods={Ø(() =>
+                                              ([] as Array<{
+                                                id: string;
+                                                name: string;
+                                              }>).concat(
+                                                ...shippingMethodsData.shippingZones.edges.map(
+                                                  edge =>
+                                                    edge.node.shippingMethods.edges.map(
+                                                      edge => edge.node
+                                                    )
+                                                )
+                                              )
+                                            )}
+                                            user={user}
+                                            onOrderCancel={cancelOrder}
+                                            onOrderFulfill={variables =>
+                                              orderCreateFulfillment.mutate({
+                                                input: {
+                                                  ...variables,
+                                                  lines: Ø(
+                                                    () => order.lines.edges,
+                                                    []
+                                                  )
+                                                    .map(edge => edge.node)
+                                                    .filter(
+                                                      line =>
+                                                        line.quantityFulfilled <
+                                                        line.quantity
+                                                    )
+                                                    .map((line, lineIndex) => ({
+                                                      orderLineId: line.id,
+                                                      quantity:
+                                                        variables.lines[
+                                                          lineIndex
+                                                        ]
+                                                    })),
+                                                  order: order.id
+                                                }
+                                              })
+                                            }
+                                            onPaymentCapture={variables =>
+                                              orderPaymentCapture.mutate({
+                                                ...variables,
+                                                id
+                                              })
+                                            }
+                                            onPaymentRelease={releasePayment}
+                                            onPaymentRefund={variables =>
+                                              orderPaymentRefund.mutate({
+                                                ...variables,
+                                                id
+                                              })
+                                            }
+                                            onProductAdd={() => undefined}
+                                            onProductClick={id => () =>
+                                              navigate(productUrl(id))}
+                                          />
+                                        )}
+                                      </OrderOperations>
+                                    );
+                                  }}
+                                </OrderVariantSearchProvider>
+                              )}
                             </TypedOrderShippingMethodsQuery>
                           )}
                         </TypedOrderReleaseMutation>
