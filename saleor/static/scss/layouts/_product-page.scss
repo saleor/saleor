@@ -74,13 +74,8 @@
     }
     .carousel-item {
       flex-flow: column;
-      .img-wrapper {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        img {
-          width: 100%;
-        }
+      img {
+        width: 100%;
       }
     }
     .carousel-indicators {
