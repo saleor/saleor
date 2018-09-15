@@ -29,7 +29,7 @@ def send_account_delete_confirmation_email(token, recipient_email):
     delete_url = build_absolute_uri(
         reverse('account:delete-confirm', kwargs={'token': token}))
     ctx = get_email_base_context()
-    ctx.update({'url': delete_url})
+    ctx['url'] = delete_url
     send_templated_mail(
         template_name='account/account_delete',
         from_email=settings.DEFAULT_FROM_EMAIL,
