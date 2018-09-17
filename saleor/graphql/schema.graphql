@@ -1448,7 +1448,8 @@ type Query {
   shippingZone(id: ID): ShippingZone
   shippingZones(before: String, after: String, first: Int, last: Int, name_Icontains: String, countries_Icontains: String, shippingMethods_Price_Gte: Float, shippingMethods_Price_Lte: Float): ShippingZoneCountableConnection
   user(id: ID): User
-  users(query: String, before: String, after: String, first: Int, last: Int, isStaff: Boolean): UserCountableConnection
+  customers(query: String, before: String, after: String, first: Int, last: Int, isStaff: Boolean): UserCountableConnection
+  staffUsers(query: String, before: String, after: String, first: Int, last: Int, isStaff: Boolean): UserCountableConnection
   node(id: ID!): Node
 }
 
