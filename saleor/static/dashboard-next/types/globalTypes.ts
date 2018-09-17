@@ -281,6 +281,13 @@ export enum OrderEvents {
   UPDATED = "UPDATED",
 }
 
+export enum OrderEventsEmails {
+  FULFILLMENT = "FULFILLMENT",
+  ORDER = "ORDER",
+  PAYMENT = "PAYMENT",
+  SHIPPING = "SHIPPING",
+}
+
 export enum OrderStatus {
   CANCELED = "CANCELED",
   DRAFT = "DRAFT",
