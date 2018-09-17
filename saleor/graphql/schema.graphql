@@ -326,6 +326,30 @@ type AddressUpdate {
   address: Address
 }
 
+type AddressValidationData {
+  countryCode: String
+  countryName: String
+  addressFormat: String
+  addressLatinFormat: String
+  allowedFields: [String]
+  requiredFields: [String]
+  upperFields: [String]
+  countryAreaType: String
+  countryAreaChoices: [ChoiceValue]
+  cityType: String
+  cityAreaChoices: [ChoiceValue]
+  postalCodeType: String
+  postalCodeMatchers: [String]
+  postalCodeExamples: [String]
+  postalCodePrefix: String
+}
+
+input AddressValidationInput {
+  countryCode: String
+  countryArea: String
+  cityArea: String
+}
+
 type AssignNavigation {
   errors: [Error]
   menu: Menu
@@ -417,6 +441,11 @@ input CategoryInput {
 type CategoryUpdate {
   errors: [Error]
   category: Category
+}
+
+type ChoiceValue {
+  raw: String
+  verbose: String
 }
 
 type Collection implements Node {
@@ -1380,6 +1409,7 @@ type ProductVariantUpdate {
 }
 
 type Query {
+  addressValidator(input: AddressValidationInput!): AddressValidationData
   attributes(query: String, inCategory: ID, before: String, after: String, first: Int, last: Int, id: ID, slug: String): ProductAttributeCountableConnection
   categories(query: String, level: Int, before: String, after: String, first: Int, last: Int, id: ID, name: String): CategoryCountableConnection
   category(id: ID): Category

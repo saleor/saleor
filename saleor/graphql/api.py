@@ -6,8 +6,8 @@ from graphql_jwt.decorators import login_required, permission_required
 from .account.mutations import (
     CustomerCreate, CustomerUpdate, PasswordReset, SetPassword, StaffCreate,
     StaffUpdate, AddressCreate, AddressUpdate, AddressDelete)
-from .account.resolvers import resolve_users
-from .account.types import User
+from .account.resolvers import resolve_users, resolve_address_validator
+from .account.types import User, AddressValidationData, AddressValidationInput
 from .menu.resolvers import resolve_menu, resolve_menus, resolve_menu_items
 from .menu.types import Menu, MenuItem
 # FIXME: sorting import by putting below line at the beginning breaks app
@@ -66,6 +66,9 @@ from .shop.mutations import (
 
 
 class Query(graphene.ObjectType):
+    address_validator = graphene.Field(
+        AddressValidationData,
+        input=graphene.Argument(AddressValidationInput, required=True))
     attributes = DjangoFilterConnectionField(
         ProductAttribute,
         query=graphene.String(description=DESCRIPTIONS['attributes']),
@@ -249,6 +252,9 @@ class Query(graphene.ObjectType):
 
     def resolve_shipping_zones(self, info, **kwargs):
         return resolve_shipping_zones(info)
+
+    def resolve_address_validator(self, info, input):
+        return resolve_address_validator(info, input)
 
 
 class Mutations(graphene.ObjectType):
