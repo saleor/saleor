@@ -20,6 +20,8 @@ class AttributeChoiceValueInput(graphene.InputObjectType):
         required=True, description='Internal name.')
     name = graphene.String(
         required=True, description='Name displayed in the interface.')
+    value = graphene.String(
+        required=True, description='Real value eg. HEX color.')
 
 
 class AttributeChoiceValueUpdateInput(graphene.InputObjectType):

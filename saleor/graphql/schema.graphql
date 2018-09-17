@@ -369,6 +369,7 @@ input AttributeChoiceValueInput {
   attribute: ID
   slug: String!
   name: String!
+  value: String!
 }
 
 type AttributeChoiceValueUpdate {
@@ -1179,7 +1180,16 @@ type ProductAttributeValue implements Node {
   id: ID!
   sortOrder: Int!
   name: String
+  value: String!
   slug: String
+  type: ProductAttributeValueType
+}
+
+enum ProductAttributeValueType {
+  COLOR
+  GRADIENT
+  URL
+  STRING
 }
 
 input ProductAttributesInput {
