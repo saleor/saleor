@@ -130,6 +130,9 @@ class OrderUpdateShippingInput(graphene.InputObjectType):
 
 
 class OrderUpdateShipping(BaseMutation):
+    order = graphene.Field(
+        Order, description='Order with updated shipping method.')
+
     class Arguments:
         id = graphene.ID(
             required=True, name='order',
@@ -177,15 +180,15 @@ class OrderUpdateShipping(BaseMutation):
                 'shipping_method', 'shipping_price', 'shipping_method_name'])
         return OrderUpdateShipping(order=order)
 
-    order = graphene.Field(
-        Order, description='Order with updated shipping method.')
-
 
 class OrderAddNoteInput(graphene.InputObjectType):
     message = graphene.String(description='Note message.', name='message')
 
 
 class OrderAddNote(BaseMutation):
+    order = graphene.Field(Order, description='Order with the note added.')
+    event = graphene.Field(OrderEvent, description='Order note created.')
+
     class Arguments:
         id = graphene.ID(
             required=True,
@@ -196,11 +199,6 @@ class OrderAddNote(BaseMutation):
 
     class Meta:
         description = 'Adds note to the order.'
-
-    order = graphene.Field(
-        Order, description='Order with the note added.')
-    event = graphene.Field(
-        OrderEvent, description='Order note created.')
 
     @classmethod
     @permission_required('order.manage_orders')
@@ -219,6 +217,8 @@ class OrderAddNote(BaseMutation):
 
 
 class OrderCancel(BaseMutation):
+    order = graphene.Field(Order, description='Canceled order.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of the order to cancel.')
@@ -228,9 +228,6 @@ class OrderCancel(BaseMutation):
 
     class Meta:
         description = 'Cancel an order.'
-
-    order = graphene.Field(
-        Order, description='Canceled order.')
 
     @classmethod
     @permission_required('order.manage_orders')
@@ -255,15 +252,14 @@ class OrderCancel(BaseMutation):
 
 
 class OrderMarkAsPaid(BaseMutation):
+    order = graphene.Field(Order, description='Order marked as paid.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of the order to mark paid.')
 
     class Meta:
         description = 'Mark order as manually paid.'
-
-    order = graphene.Field(
-        Order, description='Order marked as paid.')
 
     @classmethod
     @permission_required('order.manage_orders')
@@ -294,6 +290,8 @@ class OrderMarkAsPaid(BaseMutation):
 
 
 class OrderCapture(BaseMutation):
+    order = graphene.Field(Order, description='Captured order.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of the order to capture.')
@@ -302,9 +300,6 @@ class OrderCapture(BaseMutation):
 
     class Meta:
         description = 'Capture an order.'
-
-    order = graphene.Field(
-        Order, description='Captured order.')
 
     @classmethod
     @permission_required('order.manage_orders')
@@ -325,15 +320,14 @@ class OrderCapture(BaseMutation):
 
 
 class OrderRelease(BaseMutation):
+    order = graphene.Field(Order, description='A released order.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of the order to release.')
 
     class Meta:
         description = 'Release an order.'
-
-    order = graphene.Field(
-        Order, description='A released order.')
 
     @classmethod
     @permission_required('order.manage_orders')
@@ -354,6 +348,8 @@ class OrderRelease(BaseMutation):
 
 
 class OrderRefund(BaseMutation):
+    order = graphene.Field(Order, description='A refunded order.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of the order to refund.')
@@ -362,9 +358,6 @@ class OrderRefund(BaseMutation):
 
     class Meta:
         description = 'Refund an order.'
-
-    order = graphene.Field(
-        Order, description='A refunded order.')
 
     @classmethod
     @permission_required('order.manage_orders')
