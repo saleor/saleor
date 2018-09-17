@@ -895,7 +895,7 @@ type Order implements Node {
   events: [OrderEvent]
   isPaid: Boolean
   number: String
-  paymentStatus: String
+  paymentStatus: PaymentStatusEnum
   paymentStatusDisplay: String
   subtotal: TaxedMoney
   statusDisplay: String
@@ -1083,6 +1083,16 @@ type PageUpdate {
 
 type PasswordReset {
   errors: [Error]
+}
+
+enum PaymentStatusEnum {
+  WAITING
+  PREAUTH
+  CONFIRMED
+  REJECTED
+  REFUNDED
+  ERROR
+  INPUT
 }
 
 type PermissionDisplay {
