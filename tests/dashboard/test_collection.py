@@ -126,3 +126,11 @@ def test_collection_is_published_toggle_view(db, admin_client, collection):
     admin_client.post(url)
     collection.refresh_from_db()
     assert collection.is_published
+
+
+def test_collection_add_not_published(admin_client, collection, site_settings):
+    collection.is_published = False
+    collection.save()
+    data = {'homepage_collection': collection.pk}
+    response = admin_client.post(reverse('dashboard:collection-list'), data)
+    assert response.status_code == 200
