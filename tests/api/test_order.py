@@ -16,6 +16,41 @@ from saleor.order.models import Order, OrderStatus, Payment, PaymentStatus
 from tests.utils import get_graphql_content
 
 
+def test_orderline_query(admin_api_client, fulfilled_order):
+    order = fulfilled_order
+    query = """
+        query OrdersQuery {
+            orders(first: 1) {
+                edges {
+                    node {
+                        lines {
+                            edges {
+                                node {
+                                    thumbnailUrl(size: 540)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    line = order.lines.first()
+    line.variant = None
+    line.save()
+
+    response = admin_api_client.post(
+        reverse('api'), {'query': query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    order_data = content['data']['orders']['edges'][0]['node']
+    lines_data = order_data['lines']['edges']
+    thumbnails = [l['node']['thumbnailUrl'] for l in lines_data]
+    assert len(thumbnails) == 2
+    assert None in thumbnails
+    assert '/static/images/placeholder540x540.png' in thumbnails
+
+
 def test_order_query(admin_api_client, fulfilled_order):
     order = fulfilled_order
     query = """
