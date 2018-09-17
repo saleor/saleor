@@ -1,16 +1,15 @@
-from decimal import Decimal
-
 import graphene
 from graphene import relay
 from payments import PaymentStatus
 
-from ...order import OrderEvents, models
+from ...order import OrderEvents, OrderEventsEmails, models
 from ...product.templatetags.product_images import get_thumbnail
 from ..account.types import User
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
 
 OrderEventsEnum = graphene.Enum.from_enum(OrderEvents)
+OrderEventsEmailsEnum = graphene.Enum.from_enum(OrderEventsEmails)
 PaymentStatusEnum = graphene.Enum(
     'PaymentStatusEnum',
     [(code.upper(), code) for code, name in PaymentStatus.CHOICES])
@@ -26,7 +25,7 @@ class OrderEvent(CountableDjangoObjectType):
     message = graphene.String(
         description='Content of a note added to the order.')
     email = graphene.String(description='Email of the customer')
-    email_type = graphene.String(
+    email_type = OrderEventsEmailsEnum(
         description='Type of an email sent to the customer')
     amount = graphene.Float(description='Amount of money.')
     quantity = graphene.Int(description='Number of items.')
