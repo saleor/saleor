@@ -1,11 +1,13 @@
+from decimal import Decimal
+
 import graphene
 from graphene import relay
 
 from ...order import OrderEvents, models
+from ...product.templatetags.product_images import get_thumbnail
 from ..account.types import User
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
-from decimal import Decimal
 
 OrderEventsEnum = graphene.Enum.from_enum(OrderEvents)
 
@@ -163,9 +165,21 @@ class Order(CountableDjangoObjectType):
 
 
 class OrderLine(CountableDjangoObjectType):
+    thumbnail_url = graphene.String(
+        description='The URL of a main thumbnail for the ordered product.',
+        size=graphene.Int(description='Size of the image'))
+
     class Meta:
         description = 'Represents order line of particular order.'
         model = models.OrderLine
         interfaces = [relay.Node]
         exclude_fields = [
             'order', 'unit_price_gross', 'unit_price_net', 'variant']
+
+    def resolve_thumbnail_url(self, info, size=None):
+        if not self.variant_id:
+            return None
+        if not size:
+            size = 255
+        return get_thumbnail(
+            self.variant.get_first_image(), size, method='thumbnail')
