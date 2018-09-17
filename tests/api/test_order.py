@@ -467,10 +467,6 @@ def test_order_capture(admin_api_client, payment_preauth, admin_user):
     query = """
         mutation captureOrder($id: ID!, $amount: Decimal!) {
             orderCapture(id: $id, amount: $amount) {
-                errors {
-                    field
-                    message
-                }
                 order {
                     paymentStatus
                     isPaid
