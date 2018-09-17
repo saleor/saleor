@@ -637,13 +637,6 @@ def test_clean_order_refund_payment():
     assert errors[0].field == 'payment'
     assert errors[0].message == 'Manual payments can not be refunded.'
 
-    payment.variant = None
-    error_msg = 'error has happened.'
-    payment.refund = Mock(side_effect=ValueError(error_msg))
-    errors = clean_refund_payment(payment, amount, [])
-    assert errors[0].field == 'payment'
-    assert errors[0].message == error_msg
-
 
 def test_clean_order_capture():
     amount = Mock(spec='string')
@@ -651,23 +644,6 @@ def test_clean_order_capture():
     assert errors[0].field == 'payment'
     assert errors[0].message == (
         'There\'s no payment associated with the order.')
-
-    payment = MagicMock(spec=Payment)
-    payment.status = PaymentStatus.ERROR
-    errors = clean_order_capture(payment, amount, [])
-    assert errors[0].field == 'payment'
-    assert errors[0].message == 'Only pre-authorized payments can be captured'
-
-    payment.status = PaymentStatus.PREAUTH
-    error_msg = 'error has happened.'
-    payment.capture = Mock(side_effect=ValueError(error_msg))
-    errors = clean_order_capture(payment, amount, [])
-    assert errors[0].field == 'payment'
-    assert errors[0].message == error_msg
-
-    payment.capture = Mock()
-    errors = clean_order_capture(payment, amount, [])
-    assert errors == []
 
 
 def test_clean_order_mark_as_paid(payment_preauth):
