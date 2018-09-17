@@ -21,7 +21,7 @@ from .filters import ProductFilterSet
 COLOR_PATTERN = r'^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$'  # noqa
 
 
-class ProductAttribuetValueType(graphene.Enum):
+class ProductAttributeValueType(graphene.Enum):
     COLOR = 'COLOR'
     GRADIENT = 'GRADIENT'
     URL = 'URL'
@@ -49,19 +49,19 @@ def resolve_attribute_list(attributes):
 def resolve_attribute_value_type(attribute_value):
     color_pattern = re.compile(COLOR_PATTERN)
     if color_pattern.match(attribute_value):
-        return ProductAttribuetValueType.COLOR
+        return ProductAttributeValueType.COLOR
     if 'gradient(' in attribute_value:
-        return ProductAttribuetValueType.GRADIENT
+        return ProductAttributeValueType.GRADIENT
     if '://' in attribute_value:
-        return ProductAttribuetValueType.URL
-    return ProductAttribuetValueType.STRING
+        return ProductAttributeValueType.URL
+    return ProductAttributeValueType.STRING
 
 
 class ProductAttributeValue(CountableDjangoObjectType):
     name = graphene.String(description='Visible name for display purposes.')
     slug = graphene.String(
         description='Internal representation of an attribute name.')
-    type = ProductAttribuetValueType(description='Type of value.')
+    type = ProductAttributeValueType(description='Type of value.')
 
     class Meta:
         description = 'Represents a value of an attribute.'

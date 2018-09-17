@@ -8,7 +8,7 @@ from tests.utils import get_graphql_content
 from saleor.product.models import (
     Category, ProductAttribute, AttributeChoiceValue)
 from saleor.graphql.product.utils import attributes_to_hstore
-from saleor.graphql.product.types import resolve_attribute_value_type, ProductAttribuetValueType
+from saleor.graphql.product.types import resolve_attribute_value_type, ProductAttributeValueType
 
 
 def test_attributes_to_hstore(product, color_attribute):
@@ -248,19 +248,19 @@ def test_delete_attribute_choice_value(admin_api_client, color_attribute, pink_c
         value.refresh_from_db()
 
 @pytest.mark.parametrize('raw_value, expected_type', [
-    ('#0000', ProductAttribuetValueType.COLOR),
-    ('#FF69B4', ProductAttribuetValueType.COLOR),
-    ('rgb(255, 0, 0)', ProductAttribuetValueType.COLOR),
-    ('hsl(0, 100%, 50%)', ProductAttribuetValueType.COLOR),
-    ('hsla(120,  60%, 70%, 0.3)', ProductAttribuetValueType.COLOR),
-    ('rgba(100%, 255, 0, 0)', ProductAttribuetValueType.COLOR),
-    ('http://example.com', ProductAttribuetValueType.URL),
-    ('https://example.com', ProductAttribuetValueType.URL),
-    ('ftp://example.com', ProductAttribuetValueType.URL),
-    ('example.com', ProductAttribuetValueType.STRING),
-    ('Foo', ProductAttribuetValueType.STRING),
-    ('linear-gradient(red, yellow)', ProductAttribuetValueType.GRADIENT),
-    ('radial-gradient(#0000, yellow)', ProductAttribuetValueType.GRADIENT),
+    ('#0000', ProductAttributeValueType.COLOR),
+    ('#FF69B4', ProductAttributeValueType.COLOR),
+    ('rgb(255, 0, 0)', ProductAttributeValueType.COLOR),
+    ('hsl(0, 100%, 50%)', ProductAttributeValueType.COLOR),
+    ('hsla(120,  60%, 70%, 0.3)', ProductAttributeValueType.COLOR),
+    ('rgba(100%, 255, 0, 0)', ProductAttributeValueType.COLOR),
+    ('http://example.com', ProductAttributeValueType.URL),
+    ('https://example.com', ProductAttributeValueType.URL),
+    ('ftp://example.com', ProductAttributeValueType.URL),
+    ('example.com', ProductAttributeValueType.STRING),
+    ('Foo', ProductAttributeValueType.STRING),
+    ('linear-gradient(red, yellow)', ProductAttributeValueType.GRADIENT),
+    ('radial-gradient(#0000, yellow)', ProductAttributeValueType.GRADIENT),
 ])
 def test_resolve_attribute_value_type(raw_value, expected_type):
     assert resolve_attribute_value_type(raw_value) == expected_type
