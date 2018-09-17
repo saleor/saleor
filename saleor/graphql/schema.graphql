@@ -975,6 +975,7 @@ type OrderLine implements Node {
   quantityFulfilled: Int!
   unitPrice: TaxedMoney
   taxRate: Float!
+  thumbnailUrl: String
 }
 
 type OrderLineCountableConnection {
