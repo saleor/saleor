@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { AddressCountry, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { AddressCountry, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderRelease
@@ -34,7 +34,7 @@ export interface OrderRelease_orderRelease_order_events {
   amount: number | null;
   date: any | null;
   email: string | null;
-  emailType: string | null;
+  emailType: OrderEventsEmails | null;
   message: string | null;
   quantity: number | null;
   type: OrderEvents | null;
