@@ -77,7 +77,7 @@ def test_mutation_returns_error_field_in_camel_case(admin_api_client, variant):
     """
     variables = json.dumps({
         'id': graphene.Node.to_global_id('ProductVariant', variant.id),
-        'cost': '12.1234'})
+        'cost': 12.1234})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)

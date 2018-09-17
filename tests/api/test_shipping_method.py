@@ -198,14 +198,14 @@ def test_delete_shipping_zone(admin_api_client, shipping_zone):
 @pytest.mark.parametrize(
     'min_price, max_price, expected_min_price, expected_max_price',
     (
-        ('10', '15', {'amount': float(10)}, {'amount': float(15)}),
-        ('10', None, {'amount': float(10)}, None)))
+        (10.32, 15.43, {'amount': 10.32}, {'amount': 15.43}),
+        (10.33, None, {'amount': 10.33}, None)))
 def test_create_shipping_method(
         admin_api_client, shipping_zone, min_price, max_price,
         expected_min_price, expected_max_price, price_based_shipping_query):
     query = price_based_shipping_query
     name = 'DHL'
-    price = '12.34'
+    price = 12.34
     shipping_zone_id = graphene.Node.to_global_id(
         'ShippingZone', shipping_zone.pk)
     variables = json.dumps({
@@ -228,9 +228,9 @@ def test_create_shipping_method(
 @pytest.mark.parametrize(
     'min_weight, max_weight, expected_min_weight, expected_max_weight',
     (
-        ('10', '15', {'value': 10, 'unit': 'kg'},
-         {'value': 15, 'unit': 'kg'}),
-        ('10', None, {'value': 10, 'unit': 'kg'}, None)))
+        (10.32, 15.64, {'value': 10.32, 'unit': 'kg'},
+         {'value': 15.64, 'unit': 'kg'}),
+        (10.92, None, {'value': 10.92, 'unit': 'kg'}, None)))
 def test_create_weight_based_shipping_method(
         shipping_zone, admin_api_client, min_weight, max_weight,
         expected_min_weight, expected_max_weight, weight_based_shipping_query):
@@ -238,7 +238,7 @@ def test_create_weight_based_shipping_method(
     shipping_zone_id = graphene.Node.to_global_id(
         'ShippingZone', shipping_zone.pk)
     variables = json.dumps({
-        'shippingZone': shipping_zone_id, 'name': 'DHL', 'price': '12.34',
+        'shippingZone': shipping_zone_id, 'name': 'DHL', 'price': 12.34,
         'minimumOrderWeight': min_weight, 'maximumOrderWeight': max_weight,
         'type': ShippingMethodTypeEnum.WEIGHT_BASED.name})
     response = admin_api_client.post(
@@ -253,11 +253,11 @@ def test_create_weight_based_shipping_method(
 @pytest.mark.parametrize(
     'min_weight, max_weight, expected_error',
     (
-        (None, 15, {
+        (None, 15.11, {
             'field': 'minimumOrderWeight',
             'message': 'Minimum order weight is required for'
                        ' Weight Based shipping.'}),
-        (20, 15, {
+        (20.21, 15.11, {
             'field': 'maximumOrderWeight',
             'message': 'Maximum order weight should be larger than the minimum.'  # noqa
         })))
@@ -268,7 +268,7 @@ def test_create_weight_shipping_method_errors(
     shipping_zone_id = graphene.Node.to_global_id(
         'ShippingZone', shipping_zone.pk)
     variables = json.dumps({
-        'shippingZone': shipping_zone_id, 'name': 'DHL', 'price': '12.34',
+        'shippingZone': shipping_zone_id, 'name': 'DHL', 'price': 12.34,
         'minimumOrderWeight': min_weight, 'maximumOrderWeight': max_weight,
         'type': ShippingMethodTypeEnum.WEIGHT_BASED.name})
     response = admin_api_client.post(
@@ -282,11 +282,11 @@ def test_create_weight_shipping_method_errors(
 @pytest.mark.parametrize(
     'min_price, max_price, expected_error',
     (
-        (None, 15, {
+        (None, 15.11, {
             'field': 'minimumOrderPrice',
             'message': 'Minimum order price is required'
                        ' for Price Based shipping.'}),
-        (20, 15, {
+        (20.21, 15.11, {
             'field': 'maximumOrderPrice',
             'message': 'Maximum order price should be larger than the minimum.'
         })))
@@ -297,7 +297,7 @@ def test_create_price_shipping_method_errors(
     shipping_zone_id = graphene.Node.to_global_id(
         'ShippingZone', shipping_zone.pk)
     variables = json.dumps({
-        'shippingZone': shipping_zone_id, 'name': 'DHL', 'price': '12.34',
+        'shippingZone': shipping_zone_id, 'name': 'DHL', 'price': 12.34,
         'minimumOrderPrice': min_price, 'maximumOrderPrice': max_price,
         'type': ShippingMethodTypeEnum.PRICE_BASED.name})
     response = admin_api_client.post(
@@ -334,7 +334,7 @@ def test_update_shipping_method(admin_api_client, shipping_zone):
     }
     """
     shipping_method = shipping_zone.shipping_methods.first()
-    price = '12.34'
+    price = 12.34
     assert not str(shipping_method.price) == price
     shipping_zone_id = graphene.Node.to_global_id(
         'ShippingZone', shipping_zone.pk)
@@ -345,7 +345,7 @@ def test_update_shipping_method(admin_api_client, shipping_zone):
             'shippingZone': shipping_zone_id,
             'price': price,
             'id': shipping_method_id,
-            'minimumOrderPrice': '12.00',
+            'minimumOrderPrice': 12.00,
             'type': ShippingMethodTypeEnum.PRICE_BASED.name})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
