@@ -30,7 +30,7 @@ def send_set_password_email(staff):
 @shared_task
 def send_promote_customer_to_staff_email(staff):
     ctx = get_email_base_context()
-    ctx['url'] = build_absolute_uri(reverse('dashboard:index'))
+    ctx['dashboard_url'] = build_absolute_uri(reverse('dashboard:index'))
     send_templated_mail(
         template_name='dashboard/staff/promote_customer',
         from_email=settings.DEFAULT_FROM_EMAIL,

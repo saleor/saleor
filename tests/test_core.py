@@ -301,12 +301,17 @@ def test_convert_weight():
     weight = Weight(kg=1)
     expected_result = Weight(g=1000)
     assert convert_weight(weight, WeightUnits.GRAM) == expected_result
-    
+
+
 def test_build_absolute_uri(site_settings):
+    # Case when we are using external service for storing static files,
+    # eg. Amazon s3
     url = 'https://example.com/static/images/image.jpg'
+    assert build_absolute_uri(location=url) == url
+
+    # Case when static url is resolved to relative url
     logo_url = build_absolute_uri(static('images/logo-document.svg'))
     protocol = 'https' if settings.ENABLE_SSL else 'http'
     current_url = '%s://%s' % (protocol, site_settings.site.domain)
     logo_location = urljoin(current_url, static('images/logo-document.svg'))
-    assert build_absolute_uri(location=url) == url
     assert logo_url == logo_location

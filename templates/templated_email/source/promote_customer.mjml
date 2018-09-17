@@ -15,7 +15,7 @@
         <mj-text>
           {% blocktrans trimmed context "Promote customer to staff member confirmation e-mail text" %}
             You're receiving this e-mail because you have been promoted to staff member at {{ domain }}.<br/>
-            To access dashboard please visit: <a href="{{ url }}">{{ url }}</a>
+            To access dashboard please visit: <a href="{{ dashboard_url }}">{{ dashboard_url }}</a>
           {% endblocktrans %}
         </mj-text>
       </mj-column>
