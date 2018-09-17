@@ -45,8 +45,9 @@ def test_orderline_query(admin_api_client, fulfilled_order):
     order_data = content['data']['orders']['edges'][0]['node']
     lines_data = order_data['lines']['edges']
     thumbnails = [l['node']['thumbnailUrl'] for l in lines_data]
-    assert sorted(thumbnails) == [
-        None, '/static/images/placeholder540x540.png']
+    assert len(thumbnails) == 2
+    assert None in thumbnails
+    assert '/static/images/placeholder540x540.png' in thumbnails
 
 
 def test_order_query(admin_api_client, fulfilled_order):
