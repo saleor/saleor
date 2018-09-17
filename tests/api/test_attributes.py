@@ -1,4 +1,5 @@
 import json
+from unittest.mock import Mock
 
 import graphene
 import pytest
@@ -7,6 +8,7 @@ from tests.utils import get_graphql_content
 from saleor.product.models import (
     Category, ProductAttribute, AttributeChoiceValue)
 from saleor.graphql.product.utils import attributes_to_hstore
+from saleor.graphql.product.types import resolve_attribute_value_type, ProductAttributeValueType
 
 
 def test_attributes_to_hstore(product, color_attribute):
@@ -165,12 +167,14 @@ def test_delete_product_attribute(admin_api_client, color_attribute):
 def test_create_attribute_choice_value(admin_api_client, color_attribute):
     attribute = color_attribute
     query = """
-    mutation createChoice($attribute: ID!, $name: String!, $slug: String!) {
+    mutation createChoice($attribute: ID!, $name: String!, $slug: String!, $value: String!) {
         attributeChoiceValueCreate(
-        input: {attribute: $attribute, name: $name, slug: $slug}) {
+        input: {attribute: $attribute, name: $name, slug: $slug, value: $value}) {
             attributeChoiceValue {
                 name
                 slug
+                type
+                value
             }
         }
     }
@@ -178,8 +182,9 @@ def test_create_attribute_choice_value(admin_api_client, color_attribute):
     attribute_id = graphene.Node.to_global_id('ProductAttribute', attribute.id)
     name = 'test name'
     slug = 'test-slug'
+    value = 'test-string'
     variables = json.dumps(
-        {'name': name, 'slug': slug, 'attribute': attribute_id})
+        {'name': name, 'slug': slug, 'value': value, 'attribute': attribute_id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
@@ -188,6 +193,8 @@ def test_create_attribute_choice_value(admin_api_client, color_attribute):
         'data']['attributeChoiceValueCreate']['attributeChoiceValue']
     assert data['name'] == name
     assert data['slug'] == slug
+    assert data['value'] == value
+    assert data['type'] == 'STRING'
 
 
 def test_update_attribute_choice_value(admin_api_client, pink_choice_value):
@@ -239,3 +246,57 @@ def test_delete_attribute_choice_value(admin_api_client, color_attribute, pink_c
     assert 'errors' not in content
     with pytest.raises(value._meta.model.DoesNotExist):
         value.refresh_from_db()
+
+@pytest.mark.parametrize('raw_value, expected_type', [
+    ('#0000', ProductAttributeValueType.COLOR),
+    ('#FF69B4', ProductAttributeValueType.COLOR),
+    ('rgb(255, 0, 0)', ProductAttributeValueType.COLOR),
+    ('hsl(0, 100%, 50%)', ProductAttributeValueType.COLOR),
+    ('hsla(120,  60%, 70%, 0.3)', ProductAttributeValueType.COLOR),
+    ('rgba(100%, 255, 0, 0)', ProductAttributeValueType.COLOR),
+    ('http://example.com', ProductAttributeValueType.URL),
+    ('https://example.com', ProductAttributeValueType.URL),
+    ('ftp://example.com', ProductAttributeValueType.URL),
+    ('example.com', ProductAttributeValueType.STRING),
+    ('Foo', ProductAttributeValueType.STRING),
+    ('linear-gradient(red, yellow)', ProductAttributeValueType.GRADIENT),
+    ('radial-gradient(#0000, yellow)', ProductAttributeValueType.GRADIENT),
+])
+def test_resolve_attribute_value_type(raw_value, expected_type):
+    assert resolve_attribute_value_type(raw_value) == expected_type
+
+
+def test_query_attribute_values(
+        color_attribute, pink_choice_value, user_api_client):
+    attribute_id = graphene.Node.to_global_id(
+        'ProductAttribute', color_attribute.id)
+    query = """
+    query getAttribute($id: ID!) {
+        attributes(id: $id) {
+            edges {
+                node {
+                    id
+                    name
+                    values {
+                        name
+                        type
+                        value
+                    }
+                }
+            }
+        }
+    }
+    """
+    variables = json.dumps({'id': attribute_id})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['attributes']['edges'][0]['node']
+    values = data['values']
+    pink = [v for v in values if v['name'] == pink_choice_value.name]
+    assert len(pink) == 1
+    pink = pink[0]
+    assert pink['value'] == '#FF69B4'
+    assert pink['type'] == 'COLOR'
+
