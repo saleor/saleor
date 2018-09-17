@@ -954,7 +954,7 @@ type OrderEvent implements Node {
   user(id: ID): User
   message: String
   email: String
-  emailType: String
+  emailType: OrderEventsEmails
   amount: Float
   quantity: Int
   composedId: String
@@ -978,6 +978,13 @@ enum OrderEvents {
   OTHER
 }
 
+enum OrderEventsEmails {
+  PAYMENT
+  SHIPPING
+  ORDER
+  FULFILLMENT
+}
+
 type OrderLine implements Node {
   id: ID!
   productName: String!
@@ -988,7 +995,7 @@ type OrderLine implements Node {
   quantityFulfilled: Int!
   unitPrice: TaxedMoney
   taxRate: Float!
-  thumbnailUrl: String
+  thumbnailUrl(size: Int): String
 }
 
 type OrderLineCountableConnection {
