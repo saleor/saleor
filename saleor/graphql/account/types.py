@@ -50,3 +50,32 @@ class User(CountableDjangoObjectType):
                 auth_models.Permission.objects.filter(group__user=self))
         permissions = permissions.select_related('content_type')
         return format_permissions_for_display(permissions)
+
+
+class AddressValidationInput(graphene.InputObjectType):
+    country_code = graphene.String()
+    country_area = graphene.String()
+    city_area = graphene.String()
+
+
+class ChoiceValue(graphene.ObjectType):
+    raw = graphene.String()
+    verbose = graphene.String()
+
+
+class AddressValidationData(graphene.ObjectType):
+    country_code = graphene.String()
+    country_name = graphene.String()
+    address_format = graphene.String()
+    address_latin_format = graphene.String()
+    allowed_fields = graphene.List(graphene.String)
+    required_fields = graphene.List(graphene.String)
+    upper_fields = graphene.List(graphene.String)
+    country_area_type = graphene.String()
+    country_area_choices = graphene.List(ChoiceValue)
+    city_type = graphene.String()
+    city_area_choices = graphene.List(ChoiceValue)
+    postal_code_type = graphene.String()
+    postal_code_matchers = graphene.List(graphene.String)
+    postal_code_examples = graphene.List(graphene.String)
+    postal_code_prefix = graphene.String()
