@@ -5,7 +5,6 @@ from ...order import OrderEvents, models
 from ..account.types import User
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
-from decimal import Decimal
 
 OrderEventsEnum = graphene.Enum.from_enum(OrderEvents)
 
@@ -41,7 +40,7 @@ class OrderEvent(CountableDjangoObjectType):
 
     def resolve_amount(self, info):
         amount = self.parameters.get('amount', None)
-        return Decimal(amount) if amount else None
+        return float(amount) if amount else None
 
     def resolve_quantity(self, info):
         quantity = self.parameters.get('quantity', None)

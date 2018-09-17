@@ -132,8 +132,8 @@ def test_create_voucher(user_api_client, admin_api_client):
         'type': VoucherTypeEnum.VALUE.name,
         'code': 'testcode123',
         'discountValueType': DiscountValueTypeEnum.FIXED.name,
-        'discountValue': '10.12',
-        'minAmountSpent': '1.12'})
+        'discountValue': 10.12,
+        'minAmountSpent': 1.12})
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     assert_no_permission(response)
@@ -144,7 +144,7 @@ def test_create_voucher(user_api_client, admin_api_client):
     assert 'errors' not in content
     data = content['data']['voucherCreate']['voucher']
     assert data['type'] == VoucherType.VALUE.upper()
-    assert data['minAmountSpent']['amount'] == float('1.12')
+    assert data['minAmountSpent']['amount'] == 1.12
     assert data['name'] == 'test voucher'
     assert data['code'] == 'testcode123'
     assert data['discountValueType'] == DiscountValueType.FIXED.upper()
