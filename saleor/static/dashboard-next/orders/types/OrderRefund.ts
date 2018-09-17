@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { AddressCountry, OrderEvents, FulfillmentStatus, OrderStatus } from "./../../types/globalTypes";
+import { AddressCountry, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderRefund
@@ -204,7 +204,7 @@ export interface OrderRefund_orderRefund_order {
   fulfillments: (OrderRefund_orderRefund_order_fulfillments | null)[];
   lines: OrderRefund_orderRefund_order_lines | null;
   number: string | null;
-  paymentStatus: string | null;
+  paymentStatus: PaymentStatusEnum | null;
   shippingAddress: OrderRefund_orderRefund_order_shippingAddress | null;
   shippingMethod: OrderRefund_orderRefund_order_shippingMethod | null;
   shippingMethodName: string | null;

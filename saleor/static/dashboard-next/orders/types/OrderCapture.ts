@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { AddressCountry, OrderEvents, FulfillmentStatus, OrderStatus } from "./../../types/globalTypes";
+import { AddressCountry, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderCapture
@@ -204,7 +204,7 @@ export interface OrderCapture_orderCapture_order {
   fulfillments: (OrderCapture_orderCapture_order_fulfillments | null)[];
   lines: OrderCapture_orderCapture_order_lines | null;
   number: string | null;
-  paymentStatus: string | null;
+  paymentStatus: PaymentStatusEnum | null;
   shippingAddress: OrderCapture_orderCapture_order_shippingAddress | null;
   shippingMethod: OrderCapture_orderCapture_order_shippingMethod | null;
   shippingMethodName: string | null;
