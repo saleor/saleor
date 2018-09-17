@@ -33,7 +33,6 @@ interface OrderCustomerProps {
   billingAddress?: AddressType;
   editCustomer?: boolean;
   onCustomerEditClick?();
-  onCustomerEmailClick?(id: string);
   onBillingAddressEdit?();
   onShippingAddressEdit?();
 }
@@ -63,7 +62,6 @@ const OrderCustomer = decorate<OrderCustomerProps>(
     editCustomer,
     shippingAddress,
     onCustomerEditClick,
-    onCustomerEmailClick,
     onBillingAddressEdit,
     onShippingAddressEdit
   }) => (
@@ -93,17 +91,12 @@ const OrderCustomer = decorate<OrderCustomerProps>(
           <Typography>{i18n.t("Anonymous customer")}</Typography>
         ) : (
           <>
-            <Typography>{client.email}</Typography>
-            <Typography
+            <a
+              href={`mailto:${client.email}`}
               className={classes.link}
-              onClick={
-                onCustomerEmailClick
-                  ? onCustomerEmailClick(client.id)
-                  : undefined
-              }
             >
-              {client.email}
-            </Typography>
+              <Typography>{client.email}</Typography>
+            </a>
           </>
         )}
       </CardContent>
