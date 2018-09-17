@@ -1120,13 +1120,6 @@ type Product implements Node {
   imageById(id: ID): ProductImage
 }
 
-enum ProductAttribuetValueType {
-  COLOR
-  GRADIENT
-  URL
-  STRING
-}
-
 type ProductAttribute implements Node {
   id: ID!
   slug: String
@@ -1166,7 +1159,14 @@ type ProductAttributeValue implements Node {
   name: String
   value: String!
   slug: String
-  type: ProductAttribuetValueType
+  type: ProductAttributeValueType
+}
+
+enum ProductAttributeValueType {
+  COLOR
+  GRADIENT
+  URL
+  STRING
 }
 
 input ProductAttributesInput {
