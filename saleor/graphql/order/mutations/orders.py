@@ -50,7 +50,6 @@ def clean_order_capture(payment, amount, errors):
             Error(
                 field='payment',
                 message='Only pre-authorized payments can be captured'))
-    try_payment_action(payment.capture, amount, errors)
     return errors
 
 
@@ -72,7 +71,6 @@ def clean_refund_payment(payment, amount, errors):
         errors.append(
             Error(field='payment',
                   message='Manual payments can not be refunded.'))
-    try_payment_action(payment.refund, amount, errors)
     return errors
 
 
@@ -229,6 +227,7 @@ class OrderCapture(BaseMutation):
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
         payment = order.get_last_payment()
         clean_order_capture(payment, amount, errors)
+        try_payment_action(payment.capture, amount, errors)
         if errors:
             return OrderCapture(errors=errors)
 
@@ -289,7 +288,7 @@ class OrderRefund(BaseMutation):
         if order:
             payment = order.get_last_payment()
             clean_refund_payment(payment, amount, errors)
-
+            try_payment_action(payment.refund, amount, errors)
         if errors:
             return OrderRefund(errors=errors)
 
