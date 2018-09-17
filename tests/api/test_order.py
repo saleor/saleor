@@ -10,6 +10,7 @@ from saleor.graphql.order.mutations.draft_orders import (
     check_for_draft_order_errors)
 from saleor.graphql.order.mutations.orders import (
     clean_refund_payment, clean_release_payment)
+from saleor.graphql.order.types import PaymentStatusEnum
 from saleor.order import CustomPaymentChoices, OrderEvents, OrderEventsEmails
 from saleor.order.models import Order, OrderStatus, Payment, PaymentStatus
 from tests.utils import get_graphql_content
@@ -446,7 +447,7 @@ def test_order_capture(admin_api_client, payment_preauth, admin_user):
     content = get_graphql_content(response)
     data = content['data']['orderCapture']['order']
     order.refresh_from_db()
-    assert data['paymentStatus'] == order.get_last_payment_status()
+    assert data['paymentStatus'] == PaymentStatusEnum.CONFIRMED.name
     assert data['isPaid']
     assert data['totalCaptured']['amount'] == float(amount)
 
@@ -539,7 +540,7 @@ def test_order_release(admin_api_client, payment_preauth, admin_user):
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderRelease']['order']
-    assert data['paymentStatus'] == PaymentStatus.REFUNDED
+    assert data['paymentStatus'] == PaymentStatusEnum.REFUNDED.name
     event_payment_released = order.events.last()
     assert event_payment_released.type == OrderEvents.PAYMENT_RELEASED.value
     assert event_payment_released.user == admin_user
@@ -567,7 +568,7 @@ def test_order_refund(admin_api_client, payment_confirmed):
     data = content['data']['orderRefund']['order']
     order.refresh_from_db()
     assert data['status'] == order.status.upper()
-    assert data['paymentStatus'] == PaymentStatus.REFUNDED
+    assert data['paymentStatus'] == PaymentStatusEnum.REFUNDED.name
     assert data['isPaid'] == False
 
     order_event = order.events.last()
