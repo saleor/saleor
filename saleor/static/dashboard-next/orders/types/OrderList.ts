@@ -26,7 +26,7 @@ export interface OrderList_orders_edges_node {
   paymentStatus: string | null;
   status: OrderStatus;
   total: OrderList_orders_edges_node_total | null;
-  userEmail: string;
+  userEmail: string | null;
 }
 
 export interface OrderList_orders_edges {

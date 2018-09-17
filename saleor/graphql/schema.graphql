@@ -626,23 +626,6 @@ input FulfillmentUpdateInput {
 
 scalar GenericScalar
 
-type Group implements Node {
-  id: ID!
-  name: String!
-  permissions: [PermissionDisplay]
-}
-
-type GroupCountableConnection {
-  pageInfo: PageInfo!
-  edges: [GroupCountableEdge!]!
-  totalCount: Int
-}
-
-type GroupCountableEdge {
-  node: Group!
-  cursor: String!
-}
-
 type HomepageCollectionUpdate {
   errors: [Error]
   shop: Shop
@@ -877,7 +860,7 @@ type Order implements Node {
   trackingClientId: String!
   billingAddress: Address
   shippingAddress: Address
-  userEmail: String!
+  userEmail: String
   shippingMethod: ShippingMethod
   shippingPrice: TaxedMoney
   shippingMethodName: String
@@ -1716,7 +1699,6 @@ scalar Upload
 
 type User implements Node {
   id: ID!
-  groups(before: String, after: String, first: Int, last: Int): GroupCountableConnection
   email: String!
   addresses(before: String, after: String, first: Int, last: Int): AddressCountableConnection
   isStaff: Boolean!
