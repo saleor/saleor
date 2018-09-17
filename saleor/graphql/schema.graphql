@@ -826,6 +826,7 @@ type Mutations {
   orderCancel(id: ID!, restock: Boolean!): OrderCancel
   orderCapture(amount: Decimal!, id: ID!): OrderCapture
   orderMarkAsPaid(id: ID!): OrderMarkAsPaid
+  orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput): OrderUpdateShipping
   orderRefund(amount: Decimal!, id: ID!): OrderRefund
   orderRelease(id: ID!): OrderRelease
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
@@ -1046,6 +1047,15 @@ input OrderUpdateInput {
   billingAddress: AddressInput
   userEmail: String
   shippingAddress: AddressInput
+}
+
+type OrderUpdateShipping {
+  errors: [Error]
+  order: Order
+}
+
+input OrderUpdateShippingInput {
+  shippingMethod: ID
 }
 
 type Page implements Node {
