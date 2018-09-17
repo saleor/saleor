@@ -1,3 +1,4 @@
+from django.db.models import Q
 from i18naddress import get_validation_rules
 
 from ...account import models
@@ -11,8 +12,16 @@ USER_SEARCH_FIELDS = (
     'default_shipping_address__country')
 
 
-def resolve_users(info, query):
-    qs = models.User.objects.all().prefetch_related('addresses')
+def resolve_customers(info, query):
+    qs = models.User.objects.filter(
+        Q(is_staff=False) | (Q(is_staff=True) & Q(orders__isnull=False))
+    ).prefetch_related('addresses')
+    return filter_by_query_param(
+        queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS)
+
+
+def resolve_staff_users(info, query):
+    qs = models.User.objects.filter(is_staff=True)
     return filter_by_query_param(
         queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS)
 

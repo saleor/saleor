@@ -143,10 +143,10 @@ def test_query_user(admin_api_client, customer_user):
     assert address['phone'] == user_address.phone.as_e164
 
 
-def test_query_users(admin_api_client, user_api_client):
+def test_query_customers(admin_api_client, user_api_client):
     query = """
-    query Users($isStaff: Boolean) {
-        users(isStaff: $isStaff) {
+    query Users {
+        customers {
             totalCount
             edges {
                 node {
@@ -156,21 +156,44 @@ def test_query_users(admin_api_client, user_api_client):
         }
     }
     """
-    variables = json.dumps({'isStaff': True})
+    variables = json.dumps({})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    users = content['data']['users']['edges']
-    assert users
-    assert all([user['node']['isStaff'] for user in users])
-
-    variables = json.dumps({'isStaff': False})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    users = content['data']['users']['edges']
+    users = content['data']['customers']['edges']
     assert users
     assert all([not user['node']['isStaff'] for user in users])
+
+    # check permissions
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    assert_no_permission(response)
+
+
+def test_query_staff(
+        admin_api_client, user_api_client, staff_user, customer_user,
+        admin_user):
+    query = """
+    {
+        staffUsers {
+            edges {
+                node {
+                    email
+                    isStaff
+                }
+            }
+        }
+    }
+    """
+    variables = json.dumps({})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['staffUsers']['edges']
+    assert len(data) == 2
+    staff_emails = [user['node']['email'] for user in data]
+    assert sorted(staff_emails) == [admin_user.email, staff_user.email]
+    assert all([user['node']['isStaff'] for user in data])
 
     # check permissions
     response = user_api_client.post(
@@ -191,7 +214,7 @@ def test_who_can_see_user(
 
     query_2 = """
     query Users {
-        users {
+        customers {
             totalCount
         }
     }
@@ -219,7 +242,7 @@ def test_who_can_see_user(
     response = staff_api_client.post(reverse('api'), {'query': query_2})
     content = get_graphql_content(response)
     model = get_user_model()
-    assert content['data']['users']['totalCount'] == model.objects.count()
+    assert content['data']['customers']['totalCount'] == 1
 
 
 @patch('saleor.account.emails.send_password_reset_email.delay')
