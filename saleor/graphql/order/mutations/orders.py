@@ -156,7 +156,10 @@ class OrderUpdateShipping(BaseMutation):
             order.shipping_method = None
             order.shipping_price = ZERO_TAXED_MONEY
             order.shipping_method_name = None
-            order.save()
+            order.save(
+                update_fields=[
+                    'shipping_method', 'shipping_price',
+                    'shipping_method_name'])
             return OrderUpdateShipping(order=order)
 
         method = cls.get_node_or_error(
@@ -169,7 +172,9 @@ class OrderUpdateShipping(BaseMutation):
         order.shipping_method = method
         order.shipping_price = method.get_total_price(info.context.taxes)
         order.shipping_method_name = method.name
-        order.save()
+        order.save(
+            update_fields=[
+                'shipping_method', 'shipping_price', 'shipping_method_name'])
         return OrderUpdateShipping(order=order)
 
     order = graphene.Field(
