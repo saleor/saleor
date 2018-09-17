@@ -19,6 +19,7 @@ from ..utils import get_database_id
 from .filters import ProductFilterSet
 
 COLOR_PATTERN = r'^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$'  # noqa
+color_pattern = re.compile(COLOR_PATTERN)
 
 
 class ProductAttributeValueType(graphene.Enum):
@@ -47,7 +48,6 @@ def resolve_attribute_list(attributes):
 
 
 def resolve_attribute_value_type(attribute_value):
-    color_pattern = re.compile(COLOR_PATTERN)
     if color_pattern.match(attribute_value):
         return ProductAttributeValueType.COLOR
     if 'gradient(' in attribute_value:
