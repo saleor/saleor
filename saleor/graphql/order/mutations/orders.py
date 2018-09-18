@@ -161,8 +161,8 @@ class OrderUpdateShipping(BaseMutation):
             order.shipping_method_name = None
             order.save(
                 update_fields=[
-                    'shipping_method', 'shipping_price',
-                    'shipping_method_name'])
+                    'shipping_method', 'shipping_price_net',
+                    'shipping_price_gross', 'shipping_method_name'])
             return OrderUpdateShipping(order=order)
 
         method = cls.get_node_or_error(
@@ -177,7 +177,8 @@ class OrderUpdateShipping(BaseMutation):
         order.shipping_method_name = method.name
         order.save(
             update_fields=[
-                'shipping_method', 'shipping_price', 'shipping_method_name'])
+                'shipping_method', 'shipping_method_name',
+                'shipping_price_net', 'shipping_price_gross'])
         return OrderUpdateShipping(order=order)
 
 
