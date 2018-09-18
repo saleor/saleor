@@ -677,7 +677,7 @@ type FulfillmentUpdate {
   fulfillment: Fulfillment
 }
 
-input FulfillmentUpdateInput {
+input FulfillmentUpdateTrackingInput {
   trackingNumber: String
   notifyCustomer: Boolean
 }
@@ -852,7 +852,7 @@ type Mutations {
   draftOrderUpdate(id: ID!, input: DraftOrderInput!): DraftOrderUpdate
   fulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
   fulfillmentCreate(input: FulfillmentCreateInput!): FulfillmentCreate
-  fulfillmentUpdate(id: ID!, input: FulfillmentUpdateInput!): FulfillmentUpdate
+  fulfillmentUpdate(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdate
   orderAddNote(order: ID!, input: OrderAddNoteInput!): OrderAddNote
   orderCancel(id: ID!, restock: Boolean!): OrderCancel
   orderCapture(amount: Decimal!, id: ID!): OrderCapture
