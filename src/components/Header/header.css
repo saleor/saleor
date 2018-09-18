@@ -15,27 +15,15 @@ header {
   }
   &.sticky {
     width: 100%;
-    @media (max-width: 1024px) {
-      width: 100%;
+    position: sticky;
+    background-color: var(--background-color);
+    z-index: 9999;
+    transition: top 0.5s ease;
+    &.top {
+      top: -20px;
     }
-    @media (max-width: 768px) {
-      width: 100%;
-    }
-    @media (max-width: 450px) {
-      width: 100%;
-    }
-    & .grid {
-      border-bottom: solid var(--border-width) var(--sectionBorder);
-    }
-    & .logo {
-      transition: padding 0.3s ease;
-      padding: calc(var(--spacer) * 1.5) 0;
-    }
-    & .menu-desktop {
-      & li {
-        transition: padding 0.3s ease;
-        padding: calc(var(--spacer) * 2) 0;
-      }
+    &.bottom {
+      top: -120px;
     }
   }
   & .news {
