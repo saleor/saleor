@@ -29,4 +29,4 @@ def test_menu(menu_with_items):
     assert result == {'horizontal': False, 'menu_items': []}
 
     result = menu(menu_with_items)
-    assert result['menu_items'] == json.loads(menu_with_items.json_content)
+    assert result['menu_items'] == menu_with_items.json_content

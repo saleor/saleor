@@ -3,11 +3,11 @@ from decimal import Decimal
 from uuid import uuid4
 
 from django.conf import settings
+from django.contrib.postgres.fields import JSONField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.encoding import smart_str
 from django_prices.models import MoneyField
-from jsonfield import JSONField
 from measurement.measures import Weight
 
 from ..account.models import Address
@@ -123,7 +123,7 @@ class CartLine(models.Model):
         'product.ProductVariant', related_name='+', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(999)])
-    data = JSONField(blank=True, default={})
+    data = JSONField(blank=True, default=dict)
 
     class Meta:
         unique_together = ('cart', 'variant', 'data')

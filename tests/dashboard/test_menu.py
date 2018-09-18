@@ -327,7 +327,6 @@ def test_get_menu_as_json(menu):
     child_item_data['child_items'] = [grand_child_data]
     top_item_data['child_items'] = [child_item_data]
     proper_data = [top_item_data]
-    proper_data = json.dumps(proper_data)
     assert proper_data == get_menu_as_json(menu)
 
 
