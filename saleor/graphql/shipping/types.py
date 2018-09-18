@@ -62,6 +62,7 @@ class ShippingZone(CountableDjangoObjectType):
     def resolve_shipping_methods(self, info):
         return self.shipping_methods.all()
 
+
 class WeightScalar(Scalar):
 
     @staticmethod
