@@ -1,12 +1,12 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import blue from "@material-ui/core/colors/blue";
 import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
+import ExternalLink from "../../../components/ExternalLink";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 
@@ -46,11 +46,6 @@ const decorate = withStyles(
       height: 1,
       width: "100%"
     },
-    link: {
-      color: blue[500],
-      cursor: "pointer",
-      textDecoration: "none"
-    }
   }),
   { name: "OrderCustomer" }
 );
@@ -90,14 +85,9 @@ const OrderCustomer = decorate<OrderCustomerProps>(
         ) : client === null ? (
           <Typography>{i18n.t("Anonymous customer")}</Typography>
         ) : (
-          <>
-            <a
-              href={`mailto:${client.email}`}
-              className={classes.link}
-            >
-              <Typography>{client.email}</Typography>
-            </a>
-          </>
+          <ExternalLink href={`mailto:${client.email}`}>
+            {client.email}
+          </ExternalLink>
         )}
       </CardContent>
       <hr className={classes.hr} />
