@@ -1562,7 +1562,7 @@ input SetPasswordInput {
 type ShippingMethod implements Node {
   id: ID!
   name: String!
-  type: ShippingMethodType!
+  type: ShippingMethodTypeEnum!
   price: Money
   minimumOrderPrice: Money
   maximumOrderPrice: Money
@@ -1570,24 +1570,9 @@ type ShippingMethod implements Node {
   maximumOrderWeight: Weight
 }
 
-type ShippingMethodConnection {
-  pageInfo: PageInfo!
-  edges: [ShippingMethodEdge]!
-}
-
-type ShippingMethodEdge {
-  node: ShippingMethod
-  cursor: String!
-}
-
-enum ShippingMethodType {
+enum ShippingMethodTypeEnum {
   PRICE
   WEIGHT
-}
-
-enum ShippingMethodTypeEnum {
-  PRICE_BASED
-  WEIGHT_BASED
 }
 
 type ShippingPriceCreate {
@@ -1620,7 +1605,7 @@ type ShippingZone implements Node {
   id: ID!
   name: String!
   countries: [String]
-  shippingMethods(before: String, after: String, first: Int, last: Int): ShippingMethodConnection
+  shippingMethods: [ShippingMethod]
   priceRange: MoneyRange
 }
 
