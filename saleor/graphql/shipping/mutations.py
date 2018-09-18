@@ -91,7 +91,7 @@ class ShippingPriceMixin(object):
             return cleaned_input
 
         field_errors = []
-        if type == ShippingMethodTypeEnum.PRICE_BASED:
+        if type == ShippingMethodTypeEnum.PRICE.value:
             min_price = cleaned_input.get('minimum_order_price')
             max_price = cleaned_input.get('maximum_order_price')
             if min_price is None:
