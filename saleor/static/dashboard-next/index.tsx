@@ -77,8 +77,13 @@ render(
             <MessageManager>
               <CssBaseline />
               <AuthProvider>
-                {({ isAuthenticated }) =>
-                  isAuthenticated ? (
+                {({
+                  hasToken,
+                  isAuthenticated,
+                  tokenAuthLoading,
+                  tokenVerifyLoading
+                }) => {
+                  return isAuthenticated ? (
                     <AppRoot>
                       <Switch>
                         <Route exact path="/" component={HomePage} />
@@ -97,10 +102,12 @@ render(
                         />
                       </Switch>
                     </AppRoot>
+                  ) : hasToken && tokenVerifyLoading ? (
+                    <>loading</>
                   ) : (
-                    <Route component={Auth} />
-                  )
-                }
+                    <Auth loading={tokenAuthLoading} />
+                  );
+                }}
               </AuthProvider>
             </MessageManager>
           </LocaleProvider>
