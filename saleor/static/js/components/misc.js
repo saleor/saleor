@@ -29,4 +29,29 @@ export default $(document).ready((e) => {
 
   // Preload all images
   window.lazySizesConfig.preloadAfterLoad = true;
+
+  // Function for update product image height
+  function updateProductImageHeight() {
+    let productImageWidth = $('.product-image').width();
+    $('.product-image').css({'height': productImageWidth + 'px'});
+  }
+
+  // Update product-image height when window is initialized
+  updateProductImageHeight();
+
+  // Only update product-image height after 5ms when window size changes
+  // This is to prevent window resize event is triggered multiple times at the same time.
+  // This can also prevent that window is resized but bootstrap's responsive component
+  // is not quick enough to resize too.
+  $(window).resize(function() {
+    if (this._timeout) clearTimeout(this._timeout);
+    this._timeout = setTimeout(function() {
+      $(this).trigger('resized');
+    }, 5);
+  });
+
+  // Update product-image height
+  $(window).bind('resized', function() {
+    updateProductImageHeight();
+  });
 });
