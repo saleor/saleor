@@ -4,6 +4,7 @@ import * as React from "react";
 import ExternalLink from "../../../components/ExternalLink";
 import Decorator from "../../Decorator";
 
-storiesOf("Generics / ExternalLink", module)
+storiesOf("Generics / External Link", module)
   .addDecorator(Decorator)
-  .add("default", () => <ExternalLink href="http://www.google.pl" />);
+  .add("default", () => <ExternalLink href="http://www.google.com">Link to google.com</ExternalLink>)
+  .add("new tab", () => <ExternalLink href="http://www.google.com" target="_blank">Link to google.com</ExternalLink>);

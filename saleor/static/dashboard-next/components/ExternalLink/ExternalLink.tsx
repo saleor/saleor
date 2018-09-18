@@ -1,7 +1,5 @@
 import { withStyles } from "@material-ui/core/styles";
 import Typography, { TypographyProps } from "@material-ui/core/Typography";
-import blue from "@material-ui/core/colors/blue";
-import * as classNames from "classnames";
 import * as React from "react";
 
 interface ExternalLinkProps extends React.HTMLProps<HTMLAnchorElement> {
@@ -12,20 +10,18 @@ interface ExternalLinkProps extends React.HTMLProps<HTMLAnchorElement> {
 
 const decorate = withStyles({
   link: {
-    color: blue[500],
-    cursor: "pointer",
     textDecoration: "none",
   },
 });
 const ExternalLink = decorate<ExternalLinkProps>(
-  ({ classes, className, children, href, theme, typographyProps, ...props }) => (
+  ({ classes, className, children, href, typographyProps, ...props }) => (
     <>
       <a
         href={href}
-        className={classNames(classes.link, className)}
+        className={classes.link}
         {...props}
       >
-        <Typography {...typographyProps}>{children}</Typography>
+        <Typography className={className} color="secondary" {...typographyProps}>{children}</Typography>
       </a>
     </>
   )
