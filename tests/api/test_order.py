@@ -131,12 +131,14 @@ def test_order_query(admin_api_client, fulfilled_order, shipping_zone):
         price=order.get_subtotal().gross.amount,
         weight=order.get_total_weight(),
         country_code=order.shipping_address.country.code)
-    assert len(order['availableShippingMethods']) == expected_methods.count()
+    assert len(order_data['availableShippingMethods']) == (
+        expected_methods.count())
 
     method = order_data['availableShippingMethods'][0]
     expected_method = expected_methods.first()
-    assert str(expected_method.price.amount) == method['price']['amount']
-    assert str(expected_method.minimum_order_price) == method['price']['amount']  # noqa
+    assert float(expected_method.price.amount) == method['price']['amount']
+    assert float(expected_method.minimum_order_price.amount) == (
+        method['minimumOrderPrice']['amount'])
     assert expected_method.type.upper() == method['type']
 
 
