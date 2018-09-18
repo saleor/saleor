@@ -3,16 +3,16 @@ from django.utils.translation import pgettext_lazy
 from graphql_jwt.decorators import permission_required
 from payments import PaymentError, PaymentStatus
 
+from ....core.utils.taxes import ZERO_TAXED_MONEY
 from ....order import CustomPaymentChoices, OrderEvents, models
 from ....order.utils import cancel_order
+from ....shipping.models import ShippingMethod as ShippingMethodModel
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation
 from ...core.types.common import Decimal, Error
 from ...order.mutations.draft_orders import DraftOrderUpdate
 from ...order.types import Order, OrderEvent
 from ...shipping.types import ShippingMethod
-from ....shipping.models import ShippingMethod as ShippingMethodModel
-from ....core.utils.taxes import ZERO_TAXED_MONEY
 
 
 def clean_order_update_shipping(order, method, errors):
