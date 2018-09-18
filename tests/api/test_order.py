@@ -17,6 +17,7 @@ from saleor.graphql.order.types import OrderEventsEmailsEnum, PaymentStatusEnum
 from saleor.order import (
     CustomPaymentChoices, OrderEvents, OrderEventsEmails, OrderStatus)
 from saleor.order.models import Order, Payment
+from saleor.shipping.models import ShippingMethod
 from tests.utils import get_graphql_content
 
 
@@ -55,7 +56,7 @@ def test_orderline_query(admin_api_client, fulfilled_order):
     assert '/static/images/placeholder540x540.png' in thumbnails
 
 
-def test_order_query(admin_api_client, fulfilled_order):
+def test_order_query(admin_api_client, fulfilled_order, shipping_zone):
     order = fulfilled_order
     query = """
     query OrdersQuery {
@@ -90,6 +91,17 @@ def test_order_query(admin_api_client, fulfilled_order):
                             amount
                         }
                     }
+                    availableShippingMethods {
+                        id
+                        price {
+                            amount
+                        }
+                        minimumOrderPrice {
+                            amount
+                            currency
+                        }
+                        type
+                    }
                 }
             }
         }
@@ -114,6 +126,18 @@ def test_order_query(admin_api_client, fulfilled_order):
     fulfillment = order.fulfillments.first().fulfillment_order
     fulfillment_order = order_data['fulfillments'][0]['fulfillmentOrder']
     assert fulfillment_order == fulfillment
+
+    expected_methods = ShippingMethod.objects.applicable_shipping_methods(
+        price=order.get_subtotal().gross.amount,
+        weight=order.get_total_weight(),
+        country_code=order.shipping_address.country.code)
+    assert len(order['availableShippingMethods']) == expected_methods.count()
+
+    method = order_data['availableShippingMethods'][0]
+    expected_method = expected_methods.first()
+    assert str(expected_method.price.amount) == method['price']['amount']
+    assert str(expected_method.minimum_order_price) == method['price']['amount']  # noqa
+    assert expected_method.type.upper() == method['type']
 
 
 def test_order_events_query(admin_api_client, fulfilled_order, admin_user):
