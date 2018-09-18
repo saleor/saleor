@@ -20,6 +20,7 @@ import {
   TypedOrderDetailsQuery,
   TypedOrderShippingMethodsQuery
 } from "../queries";
+import { OrderAddNote } from "../types/OrderAddNote";
 
 interface OrderDetailsProps {
   id: string;
@@ -103,11 +104,23 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                 )
                               });
                             };
+                            const handleNoteAdd = (data: OrderAddNote) => {
+                              if (
+                                !maybe(() => data.orderAddNote.errors.length)
+                              ) {
+                                pushMessage({
+                                  text: i18n.t("Note succesfully added", {
+                                    context: "notification"
+                                  })
+                                });
+                              }
+                            };
                             return (
                               <OrderOperations
                                 order={id}
                                 onError={undefined}
                                 onFulfillmentCreate={handleFulfillmentCreate}
+                                onNoteAdd={handleNoteAdd}
                                 onOrderCancel={handleOrderCancel}
                                 onOrderRelease={handleOrderRelease}
                                 onPaymentCapture={handlePaymentCapture}
@@ -118,9 +131,16 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                   orderPaymentCapture,
                                   orderPaymentRefund,
                                   orderCancel,
-                                  orderRelease
+                                  orderRelease,
+                                  orderAddNote
                                 }) => (
                                   <OrderDetailsPage
+                                    onNoteAdd={variables =>
+                                      orderAddNote.mutate({
+                                        input: variables,
+                                        order: id
+                                      })
+                                    }
                                     fetchVariants={search}
                                     variants={maybe(() =>
                                       searchOpts.data.products.edges

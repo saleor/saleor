@@ -350,6 +350,10 @@ export interface FulfillmentLineInput {
   quantity?: number | null;
 }
 
+export interface OrderAddNoteInput {
+  message?: string | null;
+}
+
 export interface ProductTypeInput {
   name?: string | null;
   hasVariants?: boolean | null;
