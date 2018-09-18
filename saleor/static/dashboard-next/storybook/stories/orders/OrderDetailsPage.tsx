@@ -25,6 +25,7 @@ const orderWithoutPayment = orderFixture(placeholderImage, {
 const callbacks = {
   onBack: () => undefined,
   onCreate: undefined,
+  onNoteAdd: undefined,
   onOrderCancel: undefined,
   onOrderFulfill: undefined,
   onOrderLineChange: () => () => () => undefined,
