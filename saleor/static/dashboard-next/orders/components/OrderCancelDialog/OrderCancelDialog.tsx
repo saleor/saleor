@@ -7,13 +7,18 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
+import ControlledCheckbox from "../../../components/ControlledCheckbox";
+import Form from "../../../components/Form";
 import i18n from "../../../i18n";
 
+export interface FormData {
+  restock: boolean;
+}
 interface OrderCancelDialogProps {
   number: string;
   open: boolean;
   onClose?();
-  onConfirm?(event: React.FormEvent<any>);
+  onSubmit?(data: FormData);
 }
 
 const decorate = withStyles(
@@ -29,31 +34,50 @@ const decorate = withStyles(
   { name: "OrderCancelDialog" }
 );
 const OrderCancelDialog = decorate<OrderCancelDialogProps>(
-  ({ classes, number: orderNumber, open, onConfirm, onClose }) => (
+  ({ classes, number: orderNumber, open, onSubmit, onClose }) => (
     <Dialog open={open}>
-      <DialogTitle>{i18n.t("Cancel order", { context: "title" })}</DialogTitle>
-      <DialogContent>
-        <DialogContentText
-          dangerouslySetInnerHTML={{
-            __html: i18n.t(
-              "Are you sure you want to cancel order <strong>{{ orderNumber }}</strong>?",
-              { orderNumber }
-            )
-          }}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>
-          {i18n.t("Back", { context: "button" })}
-        </Button>
-        <Button
-          className={classes.deleteButton}
-          variant="raised"
-          onClick={onConfirm}
-        >
-          {i18n.t("Cancel order", { context: "button" })}
-        </Button>
-      </DialogActions>
+      <Form
+        initial={{
+          restock: true,
+        }}
+        onSubmit={onSubmit}
+      >
+        {({ data, change }) => {
+          return (
+            <>
+              <DialogTitle>{i18n.t("Cancel order", { context: "title" })}</DialogTitle>
+              <DialogContent>
+                <DialogContentText
+                  dangerouslySetInnerHTML={{
+                    __html: i18n.t(
+                      "Are you sure you want to cancel order <strong>{{ orderNumber }}</strong>?",
+                      { orderNumber }
+                    )
+                  }}
+                />
+                <ControlledCheckbox
+                  checked={data.restock}
+                  label={i18n.t("Restock")}
+                  name="restock"
+                  onChange={change}
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={onClose}>
+                  {i18n.t("Back", { context: "button" })}
+                </Button>
+                <Button
+                  className={classes.deleteButton}
+                  variant="raised"
+                  type="submit"
+                >
+                  {i18n.t("Cancel order", { context: "button" })}
+                </Button>
+              </DialogActions>
+            </>
+          );
+        }}
+      </Form>
     </Dialog>
   )
 );
