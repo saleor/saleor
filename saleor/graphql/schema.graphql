@@ -915,6 +915,7 @@ type Order implements Node {
   statusDisplay: String
   totalAuthorized: Money
   totalCaptured: Money
+  availableShippingMethods: [ShippingMethod]
 }
 
 type OrderAddNote {
