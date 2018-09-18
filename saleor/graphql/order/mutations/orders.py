@@ -3,13 +3,41 @@ from django.utils.translation import pgettext_lazy
 from graphql_jwt.decorators import permission_required
 from payments import PaymentError, PaymentStatus
 
+from ....core.utils.taxes import ZERO_TAXED_MONEY
 from ....order import CustomPaymentChoices, OrderEvents, models
 from ....order.utils import cancel_order
+from ....shipping.models import ShippingMethod as ShippingMethodModel
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation
 from ...core.types.common import Decimal, Error
 from ...order.mutations.draft_orders import DraftOrderUpdate
 from ...order.types import Order, OrderEvent
+from ...shipping.types import ShippingMethod
+
+
+def clean_order_update_shipping(order, method, errors):
+    if not method:
+        return errors
+    if not order.shipping_address:
+        errors.append(
+            Error(
+                field='order',
+                message=(
+                    'Cannot choose a shipping method for an '
+                    'order without the shipping address.')))
+        return errors
+    valid_methods = (
+        ShippingMethodModel.objects.applicable_shipping_methods(
+            price=order.get_subtotal().gross.amount,
+            weight=order.get_total_weight(),
+            country_code=order.shipping_address.country.code))
+    valid_methods = valid_methods.values_list('id', flat=True)
+    if method.pk not in valid_methods:
+        errors.append(
+            Error(
+                field='shippingMethod',
+                message='Shipping method cannot be used with this order.'))
+    return errors
 
 
 def try_payment_action(action, money, errors):
@@ -95,11 +123,73 @@ class OrderUpdate(DraftOrderUpdate):
         model = models.Order
 
 
+class OrderUpdateShippingInput(graphene.InputObjectType):
+    shipping_method = graphene.ID(
+        description='ID of the selected shipping method.',
+        name='shippingMethod')
+
+
+class OrderUpdateShipping(BaseMutation):
+    order = graphene.Field(
+        Order, description='Order with updated shipping method.')
+
+    class Arguments:
+        id = graphene.ID(
+            required=True, name='order',
+            description='ID of the order to update a shipping method.')
+        input = OrderUpdateShippingInput(
+            description='Fields required to change '
+                        'shipping method of the order.')
+
+    class Meta:
+        description = 'Updates a shipping method of the order.'
+
+    @classmethod
+    @permission_required('order.manage_orders')
+    def mutate(cls, root, info, id, input):
+        errors = []
+        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+
+        if not input['shipping_method']:
+            if order.is_shipping_required():
+                cls.add_error(
+                    errors, 'shippingMethod',
+                    'Shipping method is required for this order.')
+                return OrderUpdateShipping(errors=errors)
+            order.shipping_method = None
+            order.shipping_price = ZERO_TAXED_MONEY
+            order.shipping_method_name = None
+            order.save(
+                update_fields=[
+                    'shipping_method', 'shipping_price_net',
+                    'shipping_price_gross', 'shipping_method_name'])
+            return OrderUpdateShipping(order=order)
+
+        method = cls.get_node_or_error(
+            info, input['shipping_method'], errors,
+            'shipping_method', ShippingMethod)
+        clean_order_update_shipping(order, method, errors)
+        if errors:
+            return OrderUpdateShipping(errors=errors)
+
+        order.shipping_method = method
+        order.shipping_price = method.get_total_price(info.context.taxes)
+        order.shipping_method_name = method.name
+        order.save(
+            update_fields=[
+                'shipping_method', 'shipping_method_name',
+                'shipping_price_net', 'shipping_price_gross'])
+        return OrderUpdateShipping(order=order)
+
+
 class OrderAddNoteInput(graphene.InputObjectType):
     message = graphene.String(description='Note message.', name='message')
 
 
 class OrderAddNote(BaseMutation):
+    order = graphene.Field(Order, description='Order with the note added.')
+    event = graphene.Field(OrderEvent, description='Order note created.')
+
     class Arguments:
         id = graphene.ID(
             required=True,
@@ -110,11 +200,6 @@ class OrderAddNote(BaseMutation):
 
     class Meta:
         description = 'Adds note to the order.'
-
-    order = graphene.Field(
-        Order, description='Order with the note added.')
-    event = graphene.Field(
-        OrderEvent, description='Order note created.')
 
     @classmethod
     @permission_required('order.manage_orders')
@@ -133,6 +218,8 @@ class OrderAddNote(BaseMutation):
 
 
 class OrderCancel(BaseMutation):
+    order = graphene.Field(Order, description='Canceled order.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of the order to cancel.')
@@ -142,9 +229,6 @@ class OrderCancel(BaseMutation):
 
     class Meta:
         description = 'Cancel an order.'
-
-    order = graphene.Field(
-        Order, description='Canceled order.')
 
     @classmethod
     @permission_required('order.manage_orders')
@@ -169,15 +253,14 @@ class OrderCancel(BaseMutation):
 
 
 class OrderMarkAsPaid(BaseMutation):
+    order = graphene.Field(Order, description='Order marked as paid.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of the order to mark paid.')
 
     class Meta:
         description = 'Mark order as manually paid.'
-
-    order = graphene.Field(
-        Order, description='Order marked as paid.')
 
     @classmethod
     @permission_required('order.manage_orders')
@@ -208,6 +291,8 @@ class OrderMarkAsPaid(BaseMutation):
 
 
 class OrderCapture(BaseMutation):
+    order = graphene.Field(Order, description='Captured order.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of the order to capture.')
@@ -216,9 +301,6 @@ class OrderCapture(BaseMutation):
 
     class Meta:
         description = 'Capture an order.'
-
-    order = graphene.Field(
-        Order, description='Captured order.')
 
     @classmethod
     @permission_required('order.manage_orders')
@@ -239,15 +321,14 @@ class OrderCapture(BaseMutation):
 
 
 class OrderRelease(BaseMutation):
+    order = graphene.Field(Order, description='A released order.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of the order to release.')
 
     class Meta:
         description = 'Release an order.'
-
-    order = graphene.Field(
-        Order, description='A released order.')
 
     @classmethod
     @permission_required('order.manage_orders')
@@ -268,6 +349,8 @@ class OrderRelease(BaseMutation):
 
 
 class OrderRefund(BaseMutation):
+    order = graphene.Field(Order, description='A refunded order.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of the order to refund.')
@@ -276,9 +359,6 @@ class OrderRefund(BaseMutation):
 
     class Meta:
         description = 'Refund an order.'
-
-    order = graphene.Field(
-        Order, description='A refunded order.')
 
     @classmethod
     @permission_required('order.manage_orders')
