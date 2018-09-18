@@ -17,8 +17,7 @@ ShippingMethodTypeEnum = graphene.Enum(
 
 
 class ShippingMethod(DjangoObjectType):
-    type = ShippingMethodTypeEnum(
-        required=True, description='Type of the shipping method.')
+    type = ShippingMethodTypeEnum(description='Type of the shipping method.')
 
     class Meta:
         description = """
