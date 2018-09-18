@@ -6,8 +6,6 @@ import {
   PartialMutationProviderOutput
 } from "../..";
 import {
-  OrderCancelMutation,
-  OrderCancelMutationVariables,
   OrderCaptureMutation,
   OrderCaptureMutationVariables,
   OrderCreateFulfillmentMutation,
@@ -19,6 +17,7 @@ import {
 } from "../../gql-types";
 import { maybe } from "../../misc";
 import { OrderAddNote, OrderAddNoteVariables } from "../types/OrderAddNote";
+import { OrderCancel, OrderCancelVariables } from "../types/OrderCancel";
 import { OrderUpdate, OrderUpdateVariables } from "../types/OrderUpdate";
 import OrderCancelMutationProvider from "./OrderCancel";
 import OrderCreateFulfillmentProvider from "./OrderCreateFulfillment";
@@ -36,8 +35,8 @@ interface OrderOperationsProps extends MutationProviderProps {
       OrderAddNoteVariables
     >;
     orderCancel: PartialMutationProviderOutput<
-      OrderCancelMutation,
-      OrderCancelMutationVariables
+      OrderCancel,
+      OrderCancelVariables
     >;
     orderCreateFulfillment: PartialMutationProviderOutput<
       OrderCreateFulfillmentMutation,
@@ -61,7 +60,7 @@ interface OrderOperationsProps extends MutationProviderProps {
     >;
   }>;
   onFulfillmentCreate: (data: OrderCreateFulfillmentMutation) => void;
-  onOrderCancel: (data: OrderCancelMutation) => void;
+  onOrderCancel: (data: OrderCancel) => void;
   onOrderRelease: (data: OrderReleaseMutation) => void;
   onNoteAdd: (data: OrderAddNote) => void;
   onPaymentCapture: (data: OrderCaptureMutation) => void;
