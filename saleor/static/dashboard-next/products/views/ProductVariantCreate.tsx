@@ -25,8 +25,8 @@ interface FormData {
   }>;
   costPrice?: string;
   priceOverride?: string;
-  stock?: number;
-  sku?: string;
+  quantity: number;
+  sku: string;
 }
 
 export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
@@ -81,7 +81,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                           costPrice: decimal(formData.costPrice),
                           priceOverride: decimal(formData.priceOverride),
                           product: productId,
-                          quantity: formData.stock,
+                          quantity: formData.quantity || null,
                           sku: formData.sku,
                           trackInventory: true
                         }
