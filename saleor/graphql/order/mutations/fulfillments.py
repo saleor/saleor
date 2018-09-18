@@ -7,7 +7,7 @@ from ....order import OrderEvents, OrderEventsEmails, models
 from ....order.emails import send_fulfillment_confirmation
 from ....order.utils import cancel_fulfillment, update_order_status
 from ...core.mutations import BaseMutation, ModelMutation
-from ...order.types import Fulfillment
+from ...order.types import Fulfillment, Order
 from ...utils import get_nodes
 from ..types import OrderLine
 
@@ -35,8 +35,6 @@ class FulfillmentLineInput(graphene.InputObjectType):
 
 
 class FulfillmentCreateInput(graphene.InputObjectType):
-    order = graphene.ID(
-        description='ID of the order to be fulfilled.', name='order')
     tracking_number = graphene.String(
         description='Fulfillment tracking number')
     notify_customer = graphene.Boolean(
@@ -45,7 +43,7 @@ class FulfillmentCreateInput(graphene.InputObjectType):
         FulfillmentLineInput, description='Item line to be fulfilled.')
 
 
-class FulfillmentUpdateInput(graphene.InputObjectType):
+class FulfillmentUpdateTrackingInput(graphene.InputObjectType):
     tracking_number = graphene.String(
         description='Fulfillment tracking number')
     notify_customer = graphene.Boolean(
@@ -57,7 +55,14 @@ class FulfillmentCancelInput(graphene.InputObjectType):
 
 
 class FulfillmentCreate(ModelMutation):
+    fulfillment = graphene.Field(
+        Fulfillment, description='A created fulfillment.')
+    order = graphene.Field(
+        Order, description='Fulfilled order.')
+
     class Arguments:
+        order = graphene.ID(
+            description='ID of the order to be fulfilled.', name='order')
         input = FulfillmentCreateInput(
             required=True,
             description='Fields required to create an fulfillment.')
@@ -130,13 +135,19 @@ class FulfillmentCreate(ModelMutation):
                     'email_type': OrderEventsEmails.FULFILLMENT.value},
                 type=OrderEvents.EMAIL_SENT.value,
                 user=info.context.user)
+        return FulfillmentCreate(fulfillment=instance, order=order)
 
 
-class FulfillmentUpdate(FulfillmentCreate):
+class FulfillmentUpdateTracking(FulfillmentCreate):
+    fulfillment = graphene.Field(
+        Fulfillment, description='A fulfillment with updated tracking.')
+    order = graphene.Field(
+        Order, description='Order which fulfillment was updated.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of an fulfillment to update.')
-        input = FulfillmentUpdateInput(
+        input = FulfillmentUpdateTrackingInput(
             required=True,
             description='Fields required to update an fulfillment.')
 
@@ -146,6 +157,11 @@ class FulfillmentUpdate(FulfillmentCreate):
 
 
 class FulfillmentCancel(BaseMutation):
+    fulfillment = graphene.Field(
+        Fulfillment, description='A canceled fulfillment.')
+    order = graphene.Field(
+        Order, description='Order which fulfillment was cancelled.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of an fulfillment to cancel.')
@@ -156,9 +172,6 @@ class FulfillmentCancel(BaseMutation):
     class Meta:
         description = """Cancels existing fulfillment
         and optionally restocks items."""
-
-    fulfillment = graphene.Field(
-        Fulfillment, description='A canceled fulfillment.')
 
     @classmethod
     @permission_required('order.manage_orders')
@@ -189,4 +202,4 @@ class FulfillmentCancel(BaseMutation):
                 parameters={'composed_id': fulfillment.composed_id},
                 type=OrderEvents.FULFILLMENT_CANCELED.value,
                 user=info.context.user)
-        return FulfillmentCancel(fulfillment=fulfillment)
+        return FulfillmentCancel(fulfillment=fulfillment, order=order)

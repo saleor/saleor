@@ -13,8 +13,8 @@ def test_create_fulfillment(admin_api_client, order_with_lines, admin_user):
     mutation fulfillOrder(
         $order: ID, $lines: [FulfillmentLineInput], $tracking: String,
         $notify: Boolean) {
-            fulfillmentCreate(
-                input: {lines: $lines, order: $order,
+            orderFulfillmentCreate(
+                order: $order, input: {lines: $lines,
                 trackingNumber: $tracking, notifyCustomer: $notify}) {
                     fulfillment {
                         fulfillmentOrder
@@ -40,7 +40,7 @@ def test_create_fulfillment(admin_api_client, order_with_lines, admin_user):
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    data = content['data']['fulfillmentCreate']['fulfillment']
+    data = content['data']['orderFulfillmentCreate']['fulfillment']
     assert data['fulfillmentOrder'] == 1
     assert data['status'] == FulfillmentStatus.FULFILLED.upper()
     assert data['trackingNumber'] == tracking
@@ -59,10 +59,10 @@ def test_create_fulfillment(admin_api_client, order_with_lines, admin_user):
         'email_type': OrderEventsEmails.FULFILLMENT.value}
 
 
-def test_update_fulfillment(admin_api_client, fulfillment):
+def test_fulfillment_update_tracking(admin_api_client, fulfillment):
     query = """
     mutation updateFulfillment($id: ID!, $tracking: String) {
-            fulfillmentUpdate(
+            orderFulfillmentUpdateTracking(
                 id: $id, input: {trackingNumber: $tracking}) {
                     fulfillment {
                         trackingNumber
@@ -78,7 +78,7 @@ def test_update_fulfillment(admin_api_client, fulfillment):
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    data = content['data']['fulfillmentUpdate']['fulfillment']
+    data = content['data']['orderFulfillmentUpdateTracking']['fulfillment']
     assert data['trackingNumber'] == tracking
 
 
@@ -86,7 +86,7 @@ def test_cancel_fulfillment_restock_items(
         admin_api_client, fulfillment, admin_user):
     query = """
     mutation cancelFulfillment($id: ID!, $restock: Boolean) {
-            fulfillmentCancel(id: $id, input: {restock: $restock}) {
+            orderFulfillmentCancel(id: $id, input: {restock: $restock}) {
                     fulfillment {
                         status
                     }
@@ -99,7 +99,7 @@ def test_cancel_fulfillment_restock_items(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    data = content['data']['fulfillmentCancel']['fulfillment']
+    data = content['data']['orderFulfillmentCancel']['fulfillment']
     assert data['status'] == FulfillmentStatus.CANCELED.upper()
     event_restocked_items = fulfillment.order.events.get()
     assert event_restocked_items.type == (
@@ -112,7 +112,7 @@ def test_cancel_fulfillment_restock_items(
 def test_cancel_fulfillment(admin_api_client, fulfillment, admin_user):
     query = """
     mutation cancelFulfillment($id: ID!, $restock: Boolean) {
-            fulfillmentCancel(id: $id, input: {restock: $restock}) {
+            orderFulfillmentCancel(id: $id, input: {restock: $restock}) {
                     fulfillment {
                         status
                     }
@@ -125,7 +125,7 @@ def test_cancel_fulfillment(admin_api_client, fulfillment, admin_user):
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    data = content['data']['fulfillmentCancel']['fulfillment']
+    data = content['data']['orderFulfillmentCancel']['fulfillment']
     assert data['status'] == FulfillmentStatus.CANCELED.upper()
     event_cancel_fulfillment = fulfillment.order.events.get()
     assert event_cancel_fulfillment.type == (
