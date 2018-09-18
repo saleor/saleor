@@ -9,7 +9,7 @@ import django.core.validators
 from django.db import migrations, models
 import django.db.models.deletion
 import django_prices.models
-import jsonfield.fields
+from django.contrib.postgres import fields
 
 
 class Migration(migrations.Migration):
@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='cart',
             name='checkout_data',
-            field=jsonfield.fields.JSONField(editable=False, null=True),
+            field=fields.JSONField(editable=False, null=True),
         ),
         migrations.AlterField(
             model_name='cart',
@@ -81,7 +81,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='cartline',
             name='data',
-            field=jsonfield.fields.JSONField(blank=True, default={}),
+            field=fields.JSONField(blank=True, default=dict),
         ),
         migrations.AlterField(
             model_name='cartline',

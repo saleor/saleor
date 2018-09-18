@@ -1,5 +1,3 @@
-import json
-
 from django.db.models import Q
 
 from ...menu.models import Menu, MenuItem
@@ -61,7 +59,7 @@ def get_menu_as_json(menu):
             child_data['child_items'] = grand_children_data
             top_item_data['child_items'].append(child_data)
         menu_data.append(top_item_data)
-    return json.dumps(menu_data)
+    return menu_data
 
 
 def update_menus(menus_pk):
