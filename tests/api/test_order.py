@@ -5,14 +5,17 @@ import pytest
 
 import graphene
 from django.shortcuts import reverse
+from payments import PaymentStatus
 from saleor.account.models import Address
 from saleor.graphql.order.mutations.draft_orders import (
     check_for_draft_order_errors)
 from saleor.graphql.order.mutations.orders import (
+    clean_order_cancel, clean_order_capture, clean_order_mark_as_paid,
     clean_refund_payment, clean_release_payment)
 from saleor.graphql.order.types import OrderEventsEmailsEnum, PaymentStatusEnum
-from saleor.order import CustomPaymentChoices, OrderEvents, OrderEventsEmails
-from saleor.order.models import Order, OrderStatus, Payment, PaymentStatus
+from saleor.order import (
+    CustomPaymentChoices, OrderEvents, OrderEventsEmails, OrderStatus)
+from saleor.order.models import Order, Payment
 from tests.utils import get_graphql_content
 
 
@@ -634,9 +637,32 @@ def test_clean_order_refund_payment():
     assert errors[0].field == 'payment'
     assert errors[0].message == 'Manual payments can not be refunded.'
 
-    payment.variant = None
-    error_msg = 'error has happened.'
-    payment.refund = Mock(side_effect=ValueError(error_msg))
-    errors = clean_refund_payment(payment, amount, [])
+
+def test_clean_order_capture():
+    amount = Mock(spec='string')
+    errors = clean_order_capture(None, amount, [])
     assert errors[0].field == 'payment'
-    assert errors[0].message == error_msg
+    assert errors[0].message == (
+        'There\'s no payment associated with the order.')
+
+
+def test_clean_order_mark_as_paid(payment_preauth):
+    order = payment_preauth.order
+    errors = clean_order_mark_as_paid(order, [])
+    assert errors[0].field == 'payment'
+    assert errors[0].message == (
+        'Orders with payments can not be manually marked as paid.')
+
+    order.payments.all().delete()
+    assert clean_order_mark_as_paid(order, []) == []
+
+
+def test_clean_order_cancel(order):
+    assert clean_order_cancel(order, []) == []
+
+    order.status = OrderStatus.DRAFT
+    order.save()
+
+    errors = clean_order_cancel(order, [])
+    assert errors[0].field == 'order'
+    assert errors[0].message == 'This order can\'t be canceled.'
