@@ -141,8 +141,9 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                         variant && variant.priceOverride
                           ? variant.priceOverride.amount.toString()
                           : null,
-                      sku: variant && variant.sku,
-                      stock: variant && variant.quantity ? variant.quantity : ""
+                      quantity:
+                        variant && variant.quantity ? variant.quantity : "",
+                      sku: variant && variant.sku
                     }}
                     errors={formErrors}
                     onSubmit={onSubmit}
@@ -200,7 +201,7 @@ const ProductVariantPage = decorate<ProductVariantPageProps>(
                             <ProductVariantStock
                               errors={errors}
                               sku={data.sku}
-                              stock={data.stock}
+                              quantity={data.quantity}
                               stockAllocated={
                                 variant ? variant.quantityAllocated : undefined
                               }
