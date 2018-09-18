@@ -25204,7 +25204,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                       <input
                         aria-invalid="false"
                         class="MuiInput-input-id"
-                        name="stock"
+                        name="quantity"
                         type="text"
                         value="0"
                       />
@@ -25573,7 +25573,7 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
                         aria-invalid="false"
                         class="MuiInput-input-id MuiInput-disabled-id"
                         disabled=""
-                        name="stock"
+                        name="quantity"
                         type="text"
                         value="0"
                       />
@@ -25979,27 +25979,22 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                     class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                   >
                     <label
-                      class="MuiFormLabel-root-id MuiFormLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                      class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
                       data-shrink="true"
                     >
                       Inventory
                     </label>
                     <div
-                      class="MuiInput-root-id MuiInput-error-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+                      class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
                     >
                       <input
-                        aria-invalid="true"
+                        aria-invalid="false"
                         class="MuiInput-input-id"
-                        name="stock"
+                        name="quantity"
                         type="text"
                         value="0"
                       />
                     </div>
-                    <p
-                      class="MuiFormHelperText-root-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
-                    >
-                      Generic error
-                    </p>
                   </div>
                 </div>
                 <div>
@@ -32415,7 +32410,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
                       <input
                         aria-invalid="false"
                         class="MuiInput-input-id"
-                        name="stock"
+                        name="quantity"
                         type="text"
                         value="19"
                       />
@@ -32840,7 +32835,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
                         aria-invalid="false"
                         class="MuiInput-input-id MuiInput-disabled-id"
                         disabled=""
-                        name="stock"
+                        name="quantity"
                         type="text"
                         value=""
                       />
