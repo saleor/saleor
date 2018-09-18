@@ -1,14 +1,6 @@
 header {
   width: 100%;
-  position: fixed;
-  top: -1px;
-  z-index: 999;
   transition: background-color 0.4s ease;
-  background-image: linear-gradient(-150deg, rgba(254,62,62, 0.3) 0%, rgba(125,185,232,0) 26%, rgba(125,185,232,0) 100%), url('../../images/background.svg');
-  background-attachment: fixed, scroll;
-  background-color: var(--background-color);
-  background-position: 0 0, 50% 0;
-  background-size: cover, cover;
   & .container {
     padding: 0 calc(var(--spacer) * 2) 0 calc(var(--spacer) * 1.1);
     @media (max-width: 1024px) {

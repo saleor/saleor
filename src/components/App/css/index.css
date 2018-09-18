@@ -6,9 +6,7 @@
 html, body {
   margin: 0;
   padding: 0;
-  height: 100vh;
   scroll-behavior: smooth;
-  overflow: hidden;
 }
 body {
   font-family: var(--font-family-base);
@@ -21,35 +19,14 @@ body {
   & #root {
     width: 100%;
     height: 100%;
-    overflow: hidden;
     padding-bottom: calc(var(--spacer) * 8);
-    & #parallax {
-      width: 100%;
-      height: 100%;
-      margin-top: calc(var(--spacer) * 7);
-      padding-top: calc(var(--spacer) * 2.1);
-      overflow-y: scroll;
-      -webkit-overflow-scrolling: touch;
-      box-sizing: content-box;
-      padding-right: 17px;
-      background-image: linear-gradient(-150deg, rgba(254,62,62, 0.3) 0%, rgba(125,185,232,0) 26%, rgba(125,185,232,0) 100%), url('../../../images/background.svg');
-      background-color: var(--background-color);
-      background-attachment: fixed, scroll;
-      background-position: 0 0, 50% 0;
-      background-size: cover, cover;
-      background-repeat: repeat, repeat-y;
-      @media (max-width: 768px) {
-        margin-top: calc(var(--spacer) * 5);
-      }
-      @media (max-width: 450px) {
-         margin-top: calc(var(--spacer) * 6);
-      }
-      &.sticky {
-        margin-top: calc(var(--spacer) * 5.5);
-      }
-    }
+    background-image: linear-gradient(-150deg, rgba(254,62,62, 0.3) 0%, rgba(125,185,232,0) 26%, rgba(125,185,232,0) 100%), url('../../../images/background.svg');
+    background-color: var(--background-color);
+    background-attachment: fixed, scroll;
+    background-position: 0 0, 50% 0;
+    background-size: cover, cover;
+    background-repeat: repeat, repeat-y;
   }
-  
 }
 
 h1 {

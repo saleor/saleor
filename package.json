@@ -5,7 +5,6 @@
     "author": "Mirumee",
     "homepage": "https://getsaleor.com/",
     "main": "dist/index.js",
-    "browserslist": "last 2 versions",
     "dependencies": {
         "axios": "^0.18.0",
         "babel-eslint": "^8.2.6",
