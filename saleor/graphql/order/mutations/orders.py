@@ -247,8 +247,7 @@ class OrderCancel(BaseMutation):
                 parameters={'quantity': order.get_total_quantity()})
         else:
             order.events.create(
-                type=OrderEvents.ORDER_CANCELED.value,
-                user=info.context.user)
+                type=OrderEvents.CANCELED.value, user=info.context.user)
         return OrderCancel(order=order)
 
 
