@@ -6,12 +6,13 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import * as React from "react";
 
 import AddressEdit from "../../../components/AddressEdit/AddressEdit";
-import { AddressType } from "../../../customers/";
+import { AddressTypeInput } from "../../../customers/";
 import i18n from "../../../i18n";
 
 interface OrderAddressEditDialogProps {
   open: boolean;
-  data: AddressType;
+  data: AddressTypeInput;
+  errors: { [T in keyof AddressTypeInput]?: string };
   variant: "billing" | "shipping" | string;
   countries?: Array<{
     code: string;
@@ -24,7 +25,16 @@ interface OrderAddressEditDialogProps {
 
 const OrderAddressEditDialog: React.StatelessComponent<
   OrderAddressEditDialogProps
-> = ({ open, variant, countries, data, onConfirm, onClose, onChange }) => (
+> = ({
+  open,
+  errors,
+  variant,
+  countries,
+  data,
+  onClose,
+  onChange,
+  onConfirm
+}) => (
   <Dialog open={open}>
     <DialogTitle>
       {variant === "billing"
@@ -32,13 +42,23 @@ const OrderAddressEditDialog: React.StatelessComponent<
         : i18n.t("Edit shipping address", { context: "title" })}
     </DialogTitle>
     <DialogContent>
-      <AddressEdit countries={countries} data={data} onChange={onChange} />
+      <AddressEdit
+        countries={countries}
+        data={data}
+        errors={errors}
+        onChange={onChange}
+      />
     </DialogContent>
     <DialogActions>
       <Button onClick={onClose}>
         {i18n.t("Cancel", { context: "button" })}
       </Button>
-      <Button color="primary" variant="raised" onClick={onConfirm}>
+      <Button
+        color="primary"
+        variant="raised"
+        onClick={onConfirm}
+        type="submit"
+      >
         {i18n.t("Confirm", { context: "button" })}
       </Button>
     </DialogActions>

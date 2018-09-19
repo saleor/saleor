@@ -2,12 +2,14 @@ import { withStyles, WithStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 import { AddressType, transformAddressToForm } from "../..";
+import { UserError } from "../../..";
 import { Container } from "../../../components/Container";
 import DateFormatter from "../../../components/DateFormatter";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
 import Toggle from "../../../components/Toggle";
+import { AddressTypeInput } from "../../../customers";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { OrderEvents, OrderStatus } from "../../../types/globalTypes";
@@ -137,10 +139,12 @@ interface OrderDetailsPageProps {
     stockQuantity: number;
   }>;
   variantsLoading?: boolean;
+  errors: UserError[];
   fetchUsers?(value: string);
   fetchShippingMethods?(value: string);
   fetchVariants?(value: string);
   onBack();
+  onBillingAddressEdit(data: AddressTypeInput);
   onCreate?();
   onOrderFulfill(data: OrderFulfillFormData);
   onOrderLineChange?(id: string): (value: string) => () => void;
@@ -151,6 +155,7 @@ interface OrderDetailsPageProps {
   onPaymentCapture(data: OrderPaymentFormData);
   onPaymentRefund(data: OrderPaymentFormData);
   onPaymentRelease?();
+  onShippingAddressEdit(data: AddressTypeInput);
   onOrderCancel?();
   onNoteAdd(data: HistoryFormData);
 }
@@ -240,6 +245,7 @@ class OrderDetailsPageComponent extends React.Component<
     const {
       classes,
       countries,
+      errors,
       order,
       shippingMethods,
       user,
@@ -250,6 +256,7 @@ class OrderDetailsPageComponent extends React.Component<
       fetchUsers,
       fetchVariants,
       onBack,
+      onBillingAddressEdit,
       onCreate,
       onNoteAdd,
       onOrderCancel,
@@ -261,7 +268,8 @@ class OrderDetailsPageComponent extends React.Component<
       onPaymentRefund,
       onPaymentRelease,
       onProductAdd,
-      onProductClick
+      onProductClick,
+      onShippingAddressEdit
     } = this.props;
     const {
       openedBillingAddressEditDialog,
@@ -457,7 +465,7 @@ class OrderDetailsPageComponent extends React.Component<
             <OrderCustomer
               billingAddress={maybe(() => order.billingAddress)}
               client={maybe(() => order.user)}
-              editCustomer={isDraft}
+              canEditCustomer={isDraft}
               shippingAddress={maybe(() => order.shippingAddress)}
               onBillingAddressEdit={this.toggleBillingAddressEditDialog}
               onCustomerEditClick={this.toggleCustomerEditDialog}
@@ -484,39 +492,40 @@ class OrderDetailsPageComponent extends React.Component<
                   )}
                 </Form>
                 <Form
-                  initial={
-                    order &&
-                    order.shippingAddress &&
-                    transformAddressToForm(order.shippingAddress)
-                  }
+                  initial={transformAddressToForm(
+                    maybe(() => order.shippingAddress)
+                  )}
+                  errors={errors}
+                  onSubmit={onShippingAddressEdit}
                 >
-                  {({ change, data, submit }) => (
+                  {({ change, data, errors: formErrors, submit }) => (
                     <OrderAddressEditDialog
                       countries={countries}
                       data={data}
+                      errors={formErrors}
                       open={openedShippingAddressEditDialog}
                       variant="shipping"
+                      onChange={change}
                       onClose={this.toggleShippingAddressEditDialog}
                       onConfirm={submit}
-                      onChange={change}
                     />
                   )}
                 </Form>
                 <Form
-                  initial={
-                    order.billingAddress &&
-                    transformAddressToForm(order.billingAddress)
-                  }
+                  initial={transformAddressToForm(order.billingAddress)}
+                  errors={errors}
+                  onSubmit={onBillingAddressEdit}
                 >
-                  {({ change, data, submit }) => (
+                  {({ change, data, errors: formErrors, submit }) => (
                     <OrderAddressEditDialog
                       countries={countries}
                       data={data}
+                      errors={formErrors}
                       open={openedBillingAddressEditDialog}
                       variant="billing"
+                      onChange={change}
                       onClose={this.toggleBillingAddressEditDialog}
                       onConfirm={submit}
-                      onChange={change}
                     />
                   )}
                 </Form>
