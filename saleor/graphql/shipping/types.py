@@ -44,7 +44,7 @@ class ShippingZone(CountableDjangoObjectType):
     class Meta:
         description = """
             Represents a shipping zone in the shop. Zones are the concept
-            used only for groupping shipping methods in the dashboard,
+            used only for grouping shipping methods in the dashboard,
             and are never exposed to the customers directly."""
         model = models.ShippingZone
         interfaces = [relay.Node]
@@ -64,7 +64,6 @@ class ShippingZone(CountableDjangoObjectType):
 
 
 class WeightScalar(Scalar):
-
     @staticmethod
     def parse_value(value):
         """Excepts value to be a string "amount unit"
