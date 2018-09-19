@@ -208,9 +208,10 @@ class DraftOrderComplete(BaseMutation):
         return DraftOrderComplete(order=order)
 
 
-class DraftOrderLineAdd(BaseMutation):
+class DraftOrderLineCreate(BaseMutation):
     order = graphene.Field(Order, description='A related draft order.')
-    order_line = graphene.Field(OrderLine, description='A newly created order line.')
+    order_line = graphene.Field(
+        OrderLine, description='A newly created order line.')
 
     class Arguments:
         id = graphene.ID(
@@ -223,7 +224,7 @@ class DraftOrderLineAdd(BaseMutation):
             products.""")
 
     class Meta:
-        description = 'Add order line to a draft order.'
+        description = 'Create an order line for a draft order.'
 
     @classmethod
     @permission_required('order.manage_orders')
@@ -235,7 +236,7 @@ class DraftOrderLineAdd(BaseMutation):
             info, variant_id, errors, 'lines', ProductVariant)
 
         if not (order or variant):
-            return DraftOrderLineAdd(errors=errors)
+            return DraftOrderLineCreate(errors=errors)
 
         if order.status != OrderStatus.DRAFT:
             cls.add_error(
@@ -246,7 +247,8 @@ class DraftOrderLineAdd(BaseMutation):
             line = add_variant_to_order(
                 order, variant, input['quantity'], allow_overselling=True)
             recalculate_order(order)
-        return DraftOrderLineAdd(order=order, order_line=line, errors=errors)
+        return DraftOrderLineCreate(
+            order=order, order_line=line, errors=errors)
 
 
 class DraftOrderLineDelete(BaseMutation):
