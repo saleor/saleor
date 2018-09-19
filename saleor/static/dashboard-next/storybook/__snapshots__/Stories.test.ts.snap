@@ -19712,7 +19712,22 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
             </aside>
             <div
               class="Component-toolbar-id"
-            />
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiButton-label-id"
+                >
+                  Edit
+                </span>
+                <span
+                  class="MuiTouchRipple-root-id"
+                />
+              </button>
+            </div>
           </div>
           <div
             class="Component-children-id"
@@ -19868,22 +19883,7 @@ exports[`Storyshots Views / Orders / Order details when loading data 1`] = `
             </aside>
             <div
               class="Component-toolbar-id"
-            >
-              <button
-                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiButton-label-id"
-                >
-                  Edit
-                </span>
-                <span
-                  class="MuiTouchRipple-root-id"
-                />
-              </button>
-            </div>
+            />
           </div>
           <div
             class="Component-children-id"
