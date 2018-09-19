@@ -189,6 +189,12 @@ export interface OrderDetails_order_user {
   email: string;
 }
 
+export interface OrderDetails_order_availableShippingMethods {
+  __typename: "ShippingMethod";
+  id: string;
+  name: string;
+}
+
 export interface OrderDetails_order {
   __typename: "Order";
   id: string;
@@ -209,6 +215,7 @@ export interface OrderDetails_order {
   totalAuthorized: OrderDetails_order_totalAuthorized | null;
   totalCaptured: OrderDetails_order_totalCaptured | null;
   user: OrderDetails_order_user | null;
+  availableShippingMethods: (OrderDetails_order_availableShippingMethods | null)[] | null;
 }
 
 export interface OrderDetails_shop_countries {

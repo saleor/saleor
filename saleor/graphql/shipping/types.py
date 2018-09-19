@@ -11,16 +11,41 @@ from ...shipping import ShippingMethodType, models
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import MoneyRange
 
+ShippingMethodTypeEnum = graphene.Enum(
+    'ShippingMethodTypeEnum',
+    [(code.upper(), code) for code, name in ShippingMethodType.CHOICES])
+
+
+class ShippingMethod(DjangoObjectType):
+    type = ShippingMethodTypeEnum(description='Type of the shipping method.')
+
+    class Meta:
+        description = """
+            Shipping method are the methods you'll use to get
+            customer's orders to them.
+            They are directly exposed to the customers."""
+        model = models.ShippingMethod
+        interfaces = [relay.Node]
+        exclude_fields = ['shipping_zone', 'orders']
+
 
 class ShippingZone(CountableDjangoObjectType):
     price_range = graphene.Field(
-        MoneyRange, description="Lowest and highest prices for the shipping.")
+        MoneyRange, description='Lowest and highest prices for the shipping.')
     countries = graphene.List(
         graphene.String,
-        description="List of countries available for the method.")
+        description='List of countries available for the method.')
+    shipping_methods = graphene.List(
+        ShippingMethod,
+        description=(
+            'List of shipping methods available for orders'
+            ' shipped to countries within this shipping zone.'))
 
     class Meta:
-        description = 'Represents a shipping zone in the shop.'
+        description = """
+            Represents a shipping zone in the shop. Zones are the concept
+            used only for grouping shipping methods in the dashboard,
+            and are never exposed to the customers directly."""
         model = models.ShippingZone
         interfaces = [relay.Node]
         filter_fields = {
@@ -34,9 +59,11 @@ class ShippingZone(CountableDjangoObjectType):
     def resolve_countries(self, info):
         return self.countries
 
+    def resolve_shipping_methods(self, info):
+        return self.shipping_methods.all()
+
 
 class WeightScalar(Scalar):
-
     @staticmethod
     def parse_value(value):
         """Excepts value to be a string "amount unit"
@@ -61,17 +88,3 @@ class WeightScalar(Scalar):
     @staticmethod
     def parse_literal(node):
         return node
-
-
-class ShippingMethod(DjangoObjectType):
-
-    class Meta:
-        description = 'Shipping method within a shipping zone.'
-        model = models.ShippingMethod
-        interfaces = [relay.Node]
-        exclude_fields = ['shipping_zone', 'orders']
-
-
-class ShippingMethodTypeEnum(graphene.Enum):
-    PRICE_BASED = ShippingMethodType.PRICE_BASED
-    WEIGHT_BASED = ShippingMethodType.WEIGHT_BASED

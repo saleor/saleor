@@ -189,6 +189,12 @@ export interface OrderRelease_orderRelease_order_user {
   email: string;
 }
 
+export interface OrderRelease_orderRelease_order_availableShippingMethods {
+  __typename: "ShippingMethod";
+  id: string;
+  name: string;
+}
+
 export interface OrderRelease_orderRelease_order {
   __typename: "Order";
   id: string;
@@ -209,6 +215,7 @@ export interface OrderRelease_orderRelease_order {
   totalAuthorized: OrderRelease_orderRelease_order_totalAuthorized | null;
   totalCaptured: OrderRelease_orderRelease_order_totalCaptured | null;
   user: OrderRelease_orderRelease_order_user | null;
+  availableShippingMethods: (OrderRelease_orderRelease_order_availableShippingMethods | null)[] | null;
 }
 
 export interface OrderRelease_orderRelease {

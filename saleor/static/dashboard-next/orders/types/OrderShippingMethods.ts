@@ -5,25 +5,15 @@
 // GraphQL query operation: OrderShippingMethods
 // ====================================================
 
-export interface OrderShippingMethods_shippingZones_edges_node_shippingMethods_edges_node {
+export interface OrderShippingMethods_shippingZones_edges_node_shippingMethods {
   __typename: "ShippingMethod";
   id: string;
   name: string;
 }
 
-export interface OrderShippingMethods_shippingZones_edges_node_shippingMethods_edges {
-  __typename: "ShippingMethodEdge";
-  node: OrderShippingMethods_shippingZones_edges_node_shippingMethods_edges_node | null;
-}
-
-export interface OrderShippingMethods_shippingZones_edges_node_shippingMethods {
-  __typename: "ShippingMethodConnection";
-  edges: (OrderShippingMethods_shippingZones_edges_node_shippingMethods_edges | null)[];
-}
-
 export interface OrderShippingMethods_shippingZones_edges_node {
   __typename: "ShippingZone";
-  shippingMethods: OrderShippingMethods_shippingZones_edges_node_shippingMethods | null;
+  shippingMethods: (OrderShippingMethods_shippingZones_edges_node_shippingMethods | null)[] | null;
 }
 
 export interface OrderShippingMethods_shippingZones_edges {
