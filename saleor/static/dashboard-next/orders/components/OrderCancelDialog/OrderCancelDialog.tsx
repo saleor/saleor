@@ -18,7 +18,7 @@ interface OrderCancelDialogProps {
   number: string;
   open: boolean;
   onClose?();
-  onSubmit?(data: FormData);
+  onSubmit(data: FormData);
 }
 
 const decorate = withStyles(
