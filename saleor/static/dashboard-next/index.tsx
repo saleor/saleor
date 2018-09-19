@@ -119,6 +119,8 @@ render(
   document.querySelector("#dashboard-app")
 );
 
+export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+
 export interface ListProps {
   disabled: boolean;
   pageInfo?: {
