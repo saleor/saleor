@@ -437,17 +437,20 @@ def test_order_add_note(admin_api_client, order_with_lines, admin_user):
     assert event.parameters == {'message': message}
 
 
-def test_order_cancel(admin_api_client, order_with_lines):
-    order = order_with_lines
-    query = """
-        mutation cancelOrder($id: ID!, $restock: Boolean!) {
-            orderCancel(id: $id, restock: $restock) {
-                order {
-                    status
-                }
+CANCEL_ORDER_QUERY = """
+    mutation cancelOrder($id: ID!, $restock: Boolean!) {
+        orderCancel(id: $id, restock: $restock) {
+            order {
+                status
             }
         }
-    """
+    }
+"""
+
+
+def test_order_cancel_and_restock(admin_api_client, order_with_lines):
+    order = order_with_lines
+    query = CANCEL_ORDER_QUERY
     order_id = graphene.Node.to_global_id('Order', order.id)
     restock = True
     quantity = order.get_total_quantity()
@@ -460,6 +463,22 @@ def test_order_cancel(admin_api_client, order_with_lines):
     order_event = order.events.last()
     assert order_event.parameters['quantity'] == quantity
     assert order_event.type == OrderEvents.FULFILLMENT_RESTOCKED_ITEMS.value
+    assert data['status'] == order.status.upper()
+
+
+def test_order_cancel(admin_api_client, order_with_lines):
+    order = order_with_lines
+    query = CANCEL_ORDER_QUERY
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    restock = False
+    variables = json.dumps({'id': order_id, 'restock': restock})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['orderCancel']['order']
+    order.refresh_from_db()
+    order_event = order.events.last()
+    assert order_event.type == OrderEvents.CANCELED.value
     assert data['status'] == order.status.upper()
 
 
