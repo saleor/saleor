@@ -7,6 +7,7 @@ from ...product.templatetags.product_images import get_thumbnail
 from ..account.types import User
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
+from ..shipping.types import ShippingMethod
 
 OrderEventsEnum = graphene.Enum.from_enum(OrderEvents)
 OrderEventsEmailsEnum = graphene.Enum.from_enum(OrderEventsEmails)
@@ -105,6 +106,9 @@ class Order(CountableDjangoObjectType):
         description='List of events associated with the order.')
     user_email = graphene.String(
         required=False, description='Email address of the customer.')
+    available_shipping_methods = graphene.List(
+        ShippingMethod, required=False,
+        description='Shipping methods that can be used with this order.')
 
     class Meta:
         description = 'Represents an order in the shop.'
@@ -165,6 +169,11 @@ class Order(CountableDjangoObjectType):
         if obj.user_id:
             return obj.user.email
         return None
+
+    @staticmethod
+    def resolve_available_shipping_methods(obj, info):
+        from .resolvers import resolve_shipping_methods
+        return resolve_shipping_methods(obj, info)
 
 
 class OrderLine(CountableDjangoObjectType):
