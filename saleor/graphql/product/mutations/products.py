@@ -332,7 +332,7 @@ class ProductVariantCreate(ModelMutation):
         model = models.ProductVariant
 
     @classmethod
-    def check_all_product_type_attributes_provided(
+    def clean_product_type_attributes(
             cls, attributes_qs, attributes_input, errors):
         product_type_attr_slugs = {attr.slug for attr in attributes_qs}
         attributes_input = {attr.slug for attr in attributes_input}
@@ -343,8 +343,9 @@ class ProductVariantCreate(ModelMutation):
                 'Missing attributes: %s' % ', '.join(missing_attributes))
 
     @classmethod
-    def clean_input(
-            cls, info, instance, input, errors, check_all_attrs_provided=True):
+    def get_cleaned_input(
+            cls, info, instance, input, errors,
+            check_if_all_attrs_provided=True):
         cleaned_input = super().clean_input(info, instance, input, errors)
 
         # Attributes are provided as list of `AttributeValueInput` objects.
@@ -360,15 +361,19 @@ class ProductVariantCreate(ModelMutation):
         if attributes and product_type:
             try:
                 qs = product_type.variant_attributes.prefetch_related('values')
-                if check_all_attrs_provided:
-                    cls.check_all_product_type_attributes_provided(
-                        qs, attributes, errors)
+                if check_if_all_attrs_provided:
+                    cls.clean_product_type_attributes(qs, attributes, errors)
                 attributes = attributes_to_hstore(attributes, qs)
             except ValueError as e:
                 cls.add_error(errors, 'attributes', str(e))
             else:
                 cleaned_input['attributes'] = attributes
         return cleaned_input
+
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        return cls.get_cleaned_input(
+            info, instance, input, errors, check_if_all_attrs_provided=True)
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -395,8 +400,8 @@ class ProductVariantUpdate(ProductVariantCreate):
 
     @classmethod
     def clean_input(cls, info, instance, input, errors):
-        return super(ProductVariantUpdate, cls).clean_input(
-            info, instance, input, errors, check_all_attrs_provided=False)
+        return super().get_cleaned_input(
+            info, instance, input, errors, check_if_all_attrs_provided=False)
 
 
 class ProductVariantDelete(ModelDeleteMutation):
