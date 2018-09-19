@@ -3,6 +3,7 @@ import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import i18n from "../i18n";
+import { maybe } from "../misc";
 import { FulfillmentStatus, OrderStatus } from "../types/globalTypes";
 import OrderDetailsComponent from "./views/OrderDetails";
 import OrderListComponent from "./views/OrderList";
@@ -118,8 +119,17 @@ export const transformFulfillmentStatus = (status: string) => {
 };
 
 export const transformAddressToForm = (data: AddressType) => ({
-  ...data,
-  phone: data.phone
+  city: maybe(() => data.city, ""),
+  cityArea: maybe(() => data.cityArea, ""),
+  companyName: maybe(() => data.companyName, ""),
+  country: maybe(() => data.country, ""),
+  countryArea: maybe(() => data.countryArea, ""),
+  firstName: maybe(() => data.firstName, ""),
+  lastName: maybe(() => data.lastName, ""),
+  phone: maybe(() => data.phone, ""),
+  postalCode: maybe(() => data.postalCode, ""),
+  streetAddress1: maybe(() => data.streetAddress1, ""),
+  streetAddress2: maybe(() => data.streetAddress2, "")
 });
 
 export const orderListUrl = "/orders/";

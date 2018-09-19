@@ -21,6 +21,7 @@ import {
   TypedOrderShippingMethodsQuery
 } from "../queries";
 import { OrderAddNote } from "../types/OrderAddNote";
+import { OrderUpdate } from "../types/OrderUpdate";
 
 interface OrderDetailsProps {
   id: string;
@@ -115,6 +116,17 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                 });
                               }
                             };
+                            const handleUpdate = (data: OrderUpdate) => {
+                              if (
+                                !maybe(() => data.orderUpdate.errors.length)
+                              ) {
+                                pushMessage({
+                                  text: i18n.t("Order succesfully updated", {
+                                    context: "notification"
+                                  })
+                                });
+                              }
+                            };
                             return (
                               <OrderOperations
                                 order={id}
@@ -125,16 +137,20 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                 onOrderRelease={handleOrderRelease}
                                 onPaymentCapture={handlePaymentCapture}
                                 onPaymentRefund={handlePaymentRefund}
+                                onUpdate={handleUpdate}
                               >
                                 {({
+                                  errors,
+                                  orderAddNote,
+                                  orderCancel,
                                   orderCreateFulfillment,
                                   orderPaymentCapture,
                                   orderPaymentRefund,
-                                  orderCancel,
                                   orderRelease,
-                                  orderAddNote
+                                  orderUpdate
                                 }) => (
                                   <OrderDetailsPage
+                                    errors={errors}
                                     onNoteAdd={variables =>
                                       orderAddNote.mutate({
                                         input: variables,
@@ -166,6 +182,13 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                     )}
                                     onBack={() => navigate(orderListUrl)}
                                     order={order}
+                                    countries={maybe(
+                                      () => data.shop.countries,
+                                      []
+                                    ).map(country => ({
+                                      code: country.code,
+                                      label: country.country
+                                    }))}
                                     shippingMethods={maybe(() =>
                                       ([] as Array<{
                                         id: string;
@@ -224,6 +247,22 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                     onProductAdd={() => undefined}
                                     onProductClick={id => () =>
                                       navigate(productUrl(id))}
+                                    onBillingAddressEdit={variables =>
+                                      orderUpdate.mutate({
+                                        id,
+                                        input: {
+                                          billingAddress: variables
+                                        }
+                                      })
+                                    }
+                                    onShippingAddressEdit={variables =>
+                                      orderUpdate.mutate({
+                                        id,
+                                        input: {
+                                          shippingAddress: variables
+                                        }
+                                      })
+                                    }
                                   />
                                 )}
                               </OrderOperations>
