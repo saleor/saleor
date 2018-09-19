@@ -79,11 +79,9 @@ class LoginForm(django_forms.AuthenticationForm, FormWithReCaptcha):
 class SignupForm(forms.ModelForm, FormWithReCaptcha):
     password = forms.CharField(
         widget=forms.PasswordInput,
-        label=pgettext(
-            'Password', 'Password'))
+        label=pgettext('Password', 'Password'))
     email = forms.EmailField(
-        label=pgettext(
-            'Email', 'Email'),
+        label=pgettext('Email', 'Email'),
         error_messages={
             'unique': pgettext_lazy(
                 'Registration error',
