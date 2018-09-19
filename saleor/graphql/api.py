@@ -26,8 +26,9 @@ from .order.filters import OrderFilter
 from .order.resolvers import resolve_order, resolve_orders
 from .order.types import Order
 from .order.mutations.draft_orders import (
-    DraftOrderComplete, DraftOrderCreate, DraftOrderDelete, DraftOrderLineAdd,
-    DraftOrderLineDelete, DraftOrderLineUpdate, DraftOrderUpdate)
+    DraftOrderComplete, DraftOrderCreate, DraftOrderDelete,
+    DraftOrderLineCreate, DraftOrderLineDelete, DraftOrderLineUpdate,
+    DraftOrderUpdate)
 from .order.mutations.fulfillments import (
     FulfillmentCancel, FulfillmentCreate, FulfillmentUpdate)
 from .order.mutations.orders import (
@@ -311,7 +312,7 @@ class Mutations(graphene.ObjectType):
     draft_order_create = DraftOrderCreate.Field()
     draft_order_complete = DraftOrderComplete.Field()
     draft_order_delete = DraftOrderDelete.Field()
-    draft_order_line_add = DraftOrderLineAdd.Field()
+    draft_order_line_create = DraftOrderLineCreate.Field()
     draft_order_line_delete = DraftOrderLineDelete.Field()
     draft_order_line_update = DraftOrderLineUpdate.Field()
     draft_order_update = DraftOrderUpdate.Field()

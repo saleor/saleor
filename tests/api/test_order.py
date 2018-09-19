@@ -355,9 +355,9 @@ def test_draft_order_complete(admin_api_client, draft_order):
     assert data['status'] == order.status.upper()
 
 
-DRAFT_ORDER_LINE_ADD_MUTATION = """
-    mutation DraftOrderLineAdd($orderId: ID!, $variantId: ID!, $quantity: Int!) {
-        draftOrderLineAdd(id: $orderId, input: {variantId: $variantId, quantity: $quantity}) {
+DRAFT_ORDER_LINE_CREATE_MUTATION = """
+    mutation DraftOrderLineCreate($orderId: ID!, $variantId: ID!, $quantity: Int!) {
+        draftOrderLineCreate(id: $orderId, input: {variantId: $variantId, quantity: $quantity}) {
             errors {
                 field
                 message
@@ -379,7 +379,7 @@ DRAFT_ORDER_LINE_ADD_MUTATION = """
 """
 
 
-def test_draft_order_line_add(
+def test_draft_order_line_create(
         draft_order, permission_manage_orders, staff_api_client):
     order = draft_order
     line = order.lines.first()
@@ -394,21 +394,21 @@ def test_draft_order_line_add(
     # mutation should fail without proper permissions
     response = staff_api_client.post(
         reverse('api'),
-        {'query': DRAFT_ORDER_LINE_ADD_MUTATION, 'variables': variables})
+        {'query': DRAFT_ORDER_LINE_CREATE_MUTATION, 'variables': variables})
     assert_no_permission(response)
 
     # assign permissions
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post(
         reverse('api'),
-        {'query': DRAFT_ORDER_LINE_ADD_MUTATION, 'variables': variables})
+        {'query': DRAFT_ORDER_LINE_CREATE_MUTATION, 'variables': variables})
     content = get_graphql_content(response)
-    data = content['data']['draftOrderLineAdd']
+    data = content['data']['draftOrderLineCreate']
     assert data['orderLine']['productSku'] == variant.sku
     assert data['orderLine']['quantity'] == old_quantity + quantity
 
 
-def test_require_draft_order_when_adding_lines(
+def test_require_draft_order_when_creating_lines(
         order_with_lines, admin_api_client):
     order = order_with_lines
     line = order.lines.first()
@@ -419,9 +419,9 @@ def test_require_draft_order_when_adding_lines(
         'orderId': order_id, 'variantId': variant_id, 'quantity': 1})
     response = admin_api_client.post(
         reverse('api'),
-        {'query': DRAFT_ORDER_LINE_ADD_MUTATION, 'variables': variables})
+        {'query': DRAFT_ORDER_LINE_CREATE_MUTATION, 'variables': variables})
     content = get_graphql_content(response)
-    data = content['data']['draftOrderLineAdd']
+    data = content['data']['draftOrderLineCreate']
     assert 'errors' in data
 
 
