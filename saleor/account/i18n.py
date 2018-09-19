@@ -98,8 +98,7 @@ class AddressForm(forms.ModelForm):
                 'Company or organization', 'Company or organization'),
             'street_address_1': pgettext_lazy(
                 'Address', 'Address'),
-            'street_address_2': pgettext_lazy(
-                'Address', 'Address'),
+            'street_address_2': '',
             'city': pgettext_lazy(
                 'City', 'City'),
             'city_area': pgettext_lazy(
