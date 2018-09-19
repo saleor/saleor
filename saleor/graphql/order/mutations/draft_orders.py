@@ -242,10 +242,16 @@ class DraftOrderLineCreate(BaseMutation):
             cls.add_error(
                 errors, 'order_id', 'Only draft orders can be edited.')
 
+        quantity = input['quantity']
+        if quantity <= 0:
+            cls.add_error(
+                errors, 'quantity',
+                'Ensure this value is greater than or equal to 1.')
+
         line = None
         if not errors:
             line = add_variant_to_order(
-                order, variant, input['quantity'], allow_overselling=True)
+                order, variant, quantity, allow_overselling=True)
             recalculate_order(order)
         return DraftOrderLineCreate(
             order=order, order_line=line, errors=errors)
@@ -311,11 +317,17 @@ class DraftOrderLineUpdate(ModelMutation):
         if instance.order.status != OrderStatus.DRAFT:
             cls.add_error(
                 errors, 'id', 'Only draft orders can be edited.')
+
+        quantity = input['quantity']
+        if quantity <= 0:
+            cls.add_error(
+                errors, 'quantity',
+                'Ensure this value is greater than or equal to 1.')
         return cleaned_input
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
-        instance.save()
+        instance.save(update_fields=['quantity'])
         recalculate_order(instance.order)
 
     @classmethod

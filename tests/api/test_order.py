@@ -407,6 +407,17 @@ def test_draft_order_line_create(
     assert data['orderLine']['productSku'] == variant.sku
     assert data['orderLine']['quantity'] == old_quantity + quantity
 
+    # mutation should fail when quantity is lower than 1
+    variables = json.dumps({
+        'orderId': order_id, 'variantId': variant_id, 'quantity': 0})
+    response = staff_api_client.post(
+        reverse('api'),
+        {'query': DRAFT_ORDER_LINE_CREATE_MUTATION, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['draftOrderLineCreate']
+    assert 'errors' in data
+    assert data['errors'][0]['field'] == 'quantity'
+
 
 def test_require_draft_order_when_creating_lines(
         order_with_lines, admin_api_client):
@@ -470,6 +481,16 @@ def test_draft_order_line_update(
     content = get_graphql_content(response)
     data = content['data']['draftOrderLineUpdate']
     assert data['orderLine']['quantity'] == new_quantity
+
+    # mutation should fail when quantity is lower than 1
+    variables = json.dumps({'lineId': line_id, 'quantity': 0})
+    response = staff_api_client.post(
+        reverse('api'),
+        {'query': DRAFT_ORDER_LINE_UPDATE_MUTATION, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['draftOrderLineUpdate']
+    assert 'errors' in data
+    assert data['errors'][0]['field'] == 'quantity'
 
 
 def test_require_draft_order_when_updating_lines(
