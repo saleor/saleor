@@ -200,7 +200,8 @@ class OrderLine(models.Model):
         blank=True, null=True)
     # max_length is as produced by ProductVariant's display_product method
     product_name = models.CharField(max_length=386)
-    translated_product_name = models.CharField(max_length=386, default='')
+    translated_product_name = models.CharField(
+        max_length=386, default='', blank=True)
     product_sku = models.CharField(max_length=32)
     is_shipping_required = models.BooleanField()
     quantity = models.IntegerField(

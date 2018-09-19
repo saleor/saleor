@@ -1,25 +1,27 @@
 import graphene
-from django.utils.translation import pgettext_lazy
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
 
 from ....account.models import Address
-from ....core.exceptions import InsufficientStock
 from ....core.utils.taxes import ZERO_TAXED_MONEY
 from ....order import OrderEvents, OrderStatus, models
-from ....order.utils import add_variant_to_order, recalculate_order
+from ....order.utils import (
+    add_variant_to_order, deallocate_stock, recalculate_order)
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import Decimal, Error
 from ...product.types import ProductVariant
-from ..types import Order
+from ..types import Order, OrderLine
 
 
 class OrderLineInput(graphene.InputObjectType):
-    variant_id = graphene.ID(
-        description='Product variant ID.', name='variantId')
     quantity = graphene.Int(
-        description='Number of variant items ordered.')
+        description='Number of variant items ordered.', required=True)
+
+
+class OrderLineCreateInput(OrderLineInput):
+    variant_id = graphene.ID(
+        description='Product variant ID.', name='variantId', required=True)
 
 
 class DraftOrderInput(InputObjectType):
@@ -29,10 +31,6 @@ class DraftOrderInput(InputObjectType):
         descripton='Customer associated with the draft order.', name='user')
     user_email = graphene.String(description='Email address of the customer.')
     discount = Decimal(description='Discount amount for the order.')
-    lines = graphene.List(
-        OrderLineInput,
-        description="""Variant line input consisting of variant ID
-        and quantity of products.""")
     shipping_address = AddressInput(
         description='Shipping address of the customer.')
     shipping_method = graphene.ID(
@@ -42,28 +40,16 @@ class DraftOrderInput(InputObjectType):
         name='voucher')
 
 
-def check_lines_quantity(variants, quantities):
-    """Check if stock is sufficient for each line in the list of dicts.
-
-    Return list of errors.
-    """
-    errors = []
-
-    for variant, quantity in zip(variants, quantities):
-        try:
-            variant.check_quantity(quantity)
-        except InsufficientStock as e:
-            message = pgettext_lazy(
-                'Add line mutation error',
-                'Could not add item. Only %(remaining)d remaining in stock.' %
-                {'remaining': e.item.quantity_available})
-            errors.append((variant.name, message))
-    return errors
+class DraftOrderCreateInput(DraftOrderInput):
+    lines = graphene.List(
+        OrderLineCreateInput,
+        description="""Variant line input consisting of variant ID
+        and quantity of products.""")
 
 
 class DraftOrderCreate(ModelMutation):
     class Arguments:
-        input = DraftOrderInput(
+        input = DraftOrderCreateInput(
             required=True,
             description='Fields required to create an order.')
 
@@ -83,13 +69,8 @@ class DraftOrderCreate(ModelMutation):
                 ids=variant_ids, only_type=ProductVariant, errors=errors,
                 field='variants')
             quantities = [line.get('quantity') for line in lines]
-            line_errors = check_lines_quantity(variants, quantities)
-            if line_errors:
-                for err in line_errors:
-                    cls.add_error(errors, field=err[0], message=err[1])
-            else:
-                cleaned_input['variants'] = variants
-                cleaned_input['quantities'] = quantities
+            cleaned_input['variants'] = variants
+            cleaned_input['quantities'] = quantities
         cleaned_input['status'] = OrderStatus.DRAFT
         display_gross_prices = info.context.site.settings.display_gross_prices
         cleaned_input['display_gross_prices'] = display_gross_prices
@@ -134,7 +115,8 @@ class DraftOrderCreate(ModelMutation):
         quantities = cleaned_input.get('quantities')
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
-                add_variant_to_order(instance, variant, quantity)
+                add_variant_to_order(
+                    instance, variant, quantity, allow_overselling=True)
         recalculate_order(instance)
 
 
@@ -192,6 +174,8 @@ def check_for_draft_order_errors(order, errors):
 
 
 class DraftOrderComplete(BaseMutation):
+    order = graphene.Field(Order, description='Completed order.')
+
     class Arguments:
         id = graphene.ID(
             required=True,
@@ -199,9 +183,6 @@ class DraftOrderComplete(BaseMutation):
 
     class Meta:
         description = 'Completes creating an order.'
-
-    order = graphene.Field(
-        Order, description='Completed order.')
 
     @classmethod
     @permission_required('order.manage_orders')
@@ -225,3 +206,118 @@ class DraftOrderComplete(BaseMutation):
             type=OrderEvents.PLACED_FROM_DRAFT.value,
             user=info.context.user)
         return DraftOrderComplete(order=order)
+
+
+class DraftOrderLineAdd(BaseMutation):
+    order = graphene.Field(Order, description='A related draft order.')
+    order_line = graphene.Field(OrderLine, description='A newly created order line.')
+
+    class Arguments:
+        id = graphene.ID(
+            required=True,
+            description='ID of the draft order to add the lines to.')
+        input = OrderLineCreateInput(
+            required=True,
+            description="""
+            Variant line input consisting of variant ID and quantity of
+            products.""")
+
+    class Meta:
+        description = 'Add order line to a draft order.'
+
+    @classmethod
+    @permission_required('order.manage_orders')
+    def mutate(cls, root, info, id, input):
+        errors = []
+        order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        variant_id = input['variant_id']
+        variant = cls.get_node_or_error(
+            info, variant_id, errors, 'lines', ProductVariant)
+
+        if not (order or variant):
+            return DraftOrderLineAdd(errors=errors)
+
+        if order.status != OrderStatus.DRAFT:
+            cls.add_error(
+                errors, 'order_id', 'Only draft orders can be edited.')
+
+        line = None
+        if not errors:
+            line = add_variant_to_order(
+                order, variant, input['quantity'], allow_overselling=True)
+            recalculate_order(order)
+        return DraftOrderLineAdd(order=order, order_line=line, errors=errors)
+
+
+class DraftOrderLineDelete(BaseMutation):
+    order = graphene.Field(Order, description='A related draft order.')
+    order_line = graphene.Field(
+        OrderLine, description='An order line that was deleted.')
+
+    class Arguments:
+        id = graphene.ID(
+            description='ID of the order line to delete.', required=True)
+
+    class Meta:
+        description = 'Deletes an order line from a draft order.'
+
+    @classmethod
+    @permission_required('order.manage_orders')
+    def mutate(cls, root, info, id):
+        errors = []
+        line = cls.get_node_or_error(info, id, errors, 'id', OrderLine)
+        if not line:
+            return DraftOrderLineDelete(errors=errors)
+
+        order = line.order
+        if order.status != OrderStatus.DRAFT:
+            cls.add_error(
+                errors, 'id', 'Only draft orders can be edited.')
+        if not errors:
+            variant = line.variant
+            if variant.track_inventory:
+                deallocate_stock(variant, line.quantity)
+            db_id = line.id
+            line.delete()
+            line.id = db_id
+            recalculate_order(order)
+        return DraftOrderLineDelete(
+            errors=errors, order=order, order_line=line)
+
+
+class DraftOrderLineUpdate(ModelMutation):
+    order = graphene.Field(Order, description='A related draft order.')
+
+    class Arguments:
+        id = graphene.ID(
+            description='ID of the order line to update.', required=True)
+        input = OrderLineInput(
+            required=True,
+            description='Fields required to update an order line')
+
+    class Meta:
+        description = 'Updates an order line of a draft order.'
+        model = models.OrderLine
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('order.manage_orders')
+
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        cleaned_input = super().clean_input(info, instance, input, errors)
+        if instance.order.status != OrderStatus.DRAFT:
+            cls.add_error(
+                errors, 'id', 'Only draft orders can be edited.')
+        return cleaned_input
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        instance.save()
+        recalculate_order(instance.order)
+
+    @classmethod
+    def success_response(cls, instance):
+        response = super().success_response(instance)
+        response.order = instance.order
+        return response

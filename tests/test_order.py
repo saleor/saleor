@@ -9,6 +9,7 @@ from tests.utils import get_redirect_location
 
 from saleor.account.models import User
 from saleor.checkout.utils import create_order
+from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import (
     DEFAULT_TAX_RATE_NAME, get_tax_rate_by_name, get_taxes_for_country)
 from saleor.order import FulfillmentStatus, OrderStatus, models
@@ -124,6 +125,22 @@ def test_add_variant_to_order_allocates_stock_for_existing_variant(
 
     variant.refresh_from_db()
     assert variant.quantity_allocated == stock_before + 1
+
+
+def test_add_variant_to_order_allow_overselling(order_with_lines):
+    existing_line = order_with_lines.lines.first()
+    variant = existing_line.variant
+    stock_before = variant.quantity_allocated
+
+    quantity = variant.quantity + 1
+    with pytest.raises(InsufficientStock):
+        add_variant_to_order(
+            order_with_lines, variant, quantity, allow_overselling=False)
+
+    add_variant_to_order(
+        order_with_lines, variant, quantity, allow_overselling=True)
+    variant.refresh_from_db()
+    assert variant.quantity_allocated == stock_before + quantity
 
 
 def test_view_connect_order_with_user_authorized_user(
