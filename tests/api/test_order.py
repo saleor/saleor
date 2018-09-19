@@ -18,6 +18,7 @@ from saleor.order import (
     CustomPaymentChoices, OrderEvents, OrderEventsEmails, OrderStatus)
 from saleor.order.models import Order, Payment
 from tests.utils import get_graphql_content
+from .utils import assert_no_permission
 
 
 def test_orderline_query(admin_api_client, fulfilled_order):
@@ -198,7 +199,7 @@ def test_draft_order_create(
     variant_0 = variant
     query = """
     mutation draftCreate(
-        $user: ID, $discount: Decimal, $lines: [OrderLineInput],
+        $user: ID, $discount: Decimal, $lines: [OrderLineCreateInput],
         $shippingAddress: AddressInput, $shippingMethod: ID, $voucher: ID) {
             draftOrderCreate(
                 input: {user: $user, discount: $discount,
@@ -352,6 +353,195 @@ def test_draft_order_complete(admin_api_client, draft_order):
     data = content['data']['draftOrderComplete']['order']
     order.refresh_from_db()
     assert data['status'] == order.status.upper()
+
+
+DRAFT_ORDER_LINE_ADD_MUTATION = """
+    mutation DraftOrderLineAdd($orderId: ID!, $variantId: ID!, $quantity: Int!) {
+        draftOrderLineAdd(id: $orderId, input: {variantId: $variantId, quantity: $quantity}) {
+            errors {
+                field
+                message
+            }
+            orderLine {
+                id
+                quantity
+                productSku
+            }
+            order {
+                total {
+                    gross {
+                        amount
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_draft_order_line_add(
+        draft_order, permission_manage_orders, staff_api_client):
+    order = draft_order
+    line = order.lines.first()
+    variant = line.variant
+    old_quantity = line.quantity
+    quantity = 1
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
+    variables = json.dumps({
+        'orderId': order_id, 'variantId': variant_id, 'quantity': quantity})
+
+    # mutation should fail without proper permissions
+    response = staff_api_client.post(
+        reverse('api'),
+        {'query': DRAFT_ORDER_LINE_ADD_MUTATION, 'variables': variables})
+    assert_no_permission(response)
+
+    # assign permissions
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post(
+        reverse('api'),
+        {'query': DRAFT_ORDER_LINE_ADD_MUTATION, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['draftOrderLineAdd']
+    assert data['orderLine']['productSku'] == variant.sku
+    assert data['orderLine']['quantity'] == old_quantity + quantity
+
+
+def test_require_draft_order_when_adding_lines(
+        order_with_lines, admin_api_client):
+    order = order_with_lines
+    line = order.lines.first()
+    variant = line.variant
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
+    variables = json.dumps({
+        'orderId': order_id, 'variantId': variant_id, 'quantity': 1})
+    response = admin_api_client.post(
+        reverse('api'),
+        {'query': DRAFT_ORDER_LINE_ADD_MUTATION, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['draftOrderLineAdd']
+    assert 'errors' in data
+
+
+DRAFT_ORDER_LINE_UPDATE_MUTATION = """
+    mutation DraftOrderLineUpdate($lineId: ID!, $quantity: Int!) {
+        draftOrderLineUpdate(id: $lineId, input: {quantity: $quantity}) {
+            errors {
+                field
+                message
+            }
+            orderLine {
+                id
+                quantity
+            }
+            order {
+                total {
+                    gross {
+                        amount
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_draft_order_line_update(
+        draft_order, permission_manage_orders, staff_api_client):
+    order = draft_order
+    line = order.lines.first()
+    new_quantity = 1
+    line_id = graphene.Node.to_global_id('OrderLine', line.id)
+    variables = json.dumps({'lineId': line_id, 'quantity': new_quantity})
+
+    # mutation should fail without proper permissions
+    response = staff_api_client.post(
+        reverse('api'),
+        {'query': DRAFT_ORDER_LINE_UPDATE_MUTATION, 'variables': variables})
+    assert_no_permission(response)
+
+    # assign permissions
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post(
+        reverse('api'),
+        {'query': DRAFT_ORDER_LINE_UPDATE_MUTATION, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['draftOrderLineUpdate']
+    assert data['orderLine']['quantity'] == new_quantity
+
+
+def test_require_draft_order_when_updating_lines(
+        order_with_lines, admin_api_client):
+    order = order_with_lines
+    line = order.lines.first()
+    line_id = graphene.Node.to_global_id('OrderLine', line.id)
+    variables = json.dumps({'lineId': line_id, 'quantity': 1})
+    response = admin_api_client.post(
+        reverse('api'),
+        {'query': DRAFT_ORDER_LINE_UPDATE_MUTATION, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['draftOrderLineUpdate']
+    assert 'errors' in data
+
+
+DRAFT_ORDER_LINE_DELETE_MUTATION = """
+    mutation DraftOrderLineDelete($id: ID!) {
+        draftOrderLineDelete(id: $id) {
+            errors {
+                field
+                message
+            }
+            orderLine {
+                id
+            }
+            order {
+                id
+            }
+        }
+    }
+"""
+
+
+def test_draft_order_line_remove(
+        draft_order, permission_manage_orders, staff_api_client):
+    order = draft_order
+    line = order.lines.first()
+    variant = line.variant
+    line_id = graphene.Node.to_global_id('OrderLine', line.id)
+    variables = json.dumps({'id': line_id})
+
+    # mutation should fail without proper permissions
+    response = staff_api_client.post(
+        reverse('api'),
+        {'query': DRAFT_ORDER_LINE_DELETE_MUTATION, 'variables': variables})
+    assert_no_permission(response)
+
+    # assign permissions
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post(
+        reverse('api'),
+        {'query': DRAFT_ORDER_LINE_DELETE_MUTATION, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['draftOrderLineDelete']
+    assert data['orderLine']['id'] == line_id
+    variant.refresh_from_db()
+    assert variant.quantity_allocated == 0
+
+
+def test_require_draft_order_when_removing_lines(
+        admin_api_client, order_with_lines, permission_manage_orders):
+    order = order_with_lines
+    line = order.lines.first()
+    line_id = graphene.Node.to_global_id('OrderLine', line.id)
+    variables = json.dumps({'id': line_id})
+    response = admin_api_client.post(
+        reverse('api'),
+        {'query': DRAFT_ORDER_LINE_DELETE_MUTATION, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['draftOrderLineDelete']
+    assert 'errors' in data
 
 
 def test_order_update(admin_api_client, order_with_lines):
