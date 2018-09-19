@@ -12,6 +12,7 @@ storiesOf("Orders / OrderAddressEditDialog", module)
   .addDecorator(Decorator)
   .add("shipping address", () => (
     <OrderAddressEditDialog
+      errors={{}}
       open={true}
       variant="shipping"
       data={transformAddressToForm(order.shippingAddress)}
@@ -21,6 +22,7 @@ storiesOf("Orders / OrderAddressEditDialog", module)
   ))
   .add("billing address", () => (
     <OrderAddressEditDialog
+      errors={{}}
       open={true}
       variant="billing"
       data={transformAddressToForm(order.billingAddress)}

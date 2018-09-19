@@ -119,10 +119,7 @@ export const order = (placeholder, args?) => ({
     firstName: "Test",
     id: "a1",
     lastName: "Client",
-    phone: {
-      number: "",
-      prefix: ""
-    },
+    phone: "",
     postalCode: "95393-6818",
     streetAddress_1: "9297 Barker Extension",
     streetAddress_2: ""
@@ -289,10 +286,7 @@ export const order = (placeholder, args?) => ({
     firstName: "Test",
     id: "a1",
     lastName: "Client",
-    phone: {
-      number: "",
-      prefix: ""
-    },
+    phone: "",
     postalCode: "95393-6818",
     streetAddress_1: "9297 Barker Extension",
     streetAddress_2: ""
