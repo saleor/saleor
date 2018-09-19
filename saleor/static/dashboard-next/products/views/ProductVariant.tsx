@@ -6,10 +6,11 @@ import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import i18n from "../../i18n";
-import { decimal } from "../../misc";
+import { decimal, maybe } from "../../misc";
 import ProductVariantPage from "../components/ProductVariantPage";
 import ProductVariantOperations from "../containers/ProductVariantOperations";
 import { productVariantQuery, TypedProductVariantQuery } from "../queries";
+import { VariantUpdate } from "../types/VariantUpdate";
 
 interface ProductUpdateProps {
   variantId: string;
@@ -24,8 +25,8 @@ interface FormData {
   }>;
   costPrice?: string;
   priceOverride?: string;
-  stock?: number;
-  sku?: string;
+  quantity: number;
+  sku: string;
 }
 
 export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
@@ -51,8 +52,11 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                 pushMessage({ text: i18n.t("Variant removed") });
                 navigate(productUrl(productId));
               };
-              const handleUpdate = () =>
-                pushMessage({ text: i18n.t("Changes saved") });
+              const handleUpdate = (data: VariantUpdate) => {
+                if (!maybe(() => data.productVariantUpdate.errors.length)) {
+                  pushMessage({ text: i18n.t("Changes saved") });
+                }
+              };
 
               return (
                 <ProductVariantOperations
@@ -64,6 +68,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                   {({
                     assignImage,
                     deleteVariant,
+                    errors,
                     updateVariant,
                     unassignImage
                   }) => {
@@ -99,14 +104,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
 
                     return (
                       <ProductVariantPage
-                        errors={
-                          updateVariant &&
-                          updateVariant.data &&
-                          updateVariant.data.productVariantUpdate &&
-                          updateVariant.data.productVariantUpdate.errors
-                            ? updateVariant.data.productVariantUpdate.errors
-                            : []
-                        }
+                        errors={errors}
                         saveButtonBarState={formSubmitState}
                         loading={disableFormSave}
                         placeholderImage={placeholderImg}
@@ -126,7 +124,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                               costPrice: decimal(data.costPrice),
                               id: variantId,
                               priceOverride: decimal(data.priceOverride),
-                              quantity: data.stock,
+                              quantity: data.quantity || null,
                               sku: data.sku,
                               trackInventory: true // FIXME: missing in UI
                             });

@@ -8,9 +8,12 @@ import CardTitle from "../../../components/CardTitle";
 import i18n from "../../../i18n";
 
 interface ProductVariantStockProps {
-  errors: { [key: string]: string };
-  sku?: string;
-  stock?: number;
+  errors: {
+    quantity?: string;
+    sku?: string;
+  };
+  sku: string;
+  quantity: number;
   stockAllocated?: number;
   loading?: boolean;
   onChange(event: any);
@@ -31,24 +34,24 @@ const decorate = withStyles(theme => ({
 }));
 
 const ProductVariantStock = decorate<ProductVariantStockProps>(
-  ({ classes, errors, sku, stock, stockAllocated, loading, onChange }) => (
+  ({ classes, errors, sku, quantity, stockAllocated, loading, onChange }) => (
     <Card className={classes.root}>
       <CardTitle title={i18n.t("Stock")} />
       <CardContent>
         <div className={classes.grid}>
           <div>
             <TextField
-              error={!!errors.stock}
-              name="stock"
-              value={stock}
+              error={!!errors.quantity}
+              name="quantity"
+              value={quantity}
               label={i18n.t("Inventory")}
               helperText={
-                errors.stock
-                  ? errors.stock
+                errors.quantity
+                  ? errors.quantity
                   : !!stockAllocated
-                    ? i18n.t("Allocated: {{ stock }}", {
+                    ? i18n.t("Allocated: {{ quantity }}", {
                         context: "variant allocated stock",
-                        stock: stockAllocated
+                        quantity: stockAllocated
                       })
                     : undefined
               }

@@ -23,7 +23,7 @@ interface FormData {
   costPrice?: string;
   images?: string[];
   priceOverride?: string;
-  stock?: number;
+  quantity?: number;
   sku?: string;
 }
 interface ProductVariantCreatePageProps {
@@ -108,8 +108,8 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
           ? product.images.edges.map(edge => edge.node.id)
           : undefined,
       priceOverride: "",
-      sku: "",
-      stock: 0
+      quantity: 0,
+      sku: ""
     };
     return (
       <Container width="md">
@@ -166,7 +166,7 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
                     <ProductVariantStock
                       errors={errors}
                       sku={data.sku}
-                      stock={data.stock}
+                      quantity={data.quantity}
                       loading={loading}
                       onChange={change}
                     />
