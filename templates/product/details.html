@@ -73,11 +73,13 @@
             <div class="carousel-inner" role="listbox">
               {% for image in images %}
                 <div class="carousel-item{% if forloop.first %} active{% endif %}">
-                  <img class="d-block img-fluid lazyload lazypreload"
-                       data-src="{% get_thumbnail image.image method="thumbnail" size=540 %}"
-                       data-srcset="{% get_thumbnail image.image method="thumbnail" size=540 %} 1x, {% get_thumbnail image.image method="thumbnail" size=1080 %} 2x"
-                       alt=""
-                       src="{% placeholder size=540 %}">
+                  <div class="product-image">
+                    <img class="d-block img-fluid lazyload lazypreload"
+                         data-src="{% get_thumbnail image.image method="thumbnail" size=540 %}"
+                         data-srcset="{% get_thumbnail image.image method="thumbnail" size=540 %} 1x, {% get_thumbnail image.image method="thumbnail" size=1080 %} 2x"
+                         alt=""
+                         src="{% placeholder size=540 %}">
+                  </div>
                 </div>
               {% endfor %}
             </div>
