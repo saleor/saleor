@@ -125,4 +125,4 @@ weasyprint==0.42.3
 webencodings==0.5.1       # via html5lib, tinycss2
 wrapt==1.10.11            # via vcrpy
 xmltodict==0.11.0         # via django-payments
-yarl==1.2.6               # via vcrpy
+yarl               # via vcrpy
