@@ -42,7 +42,23 @@ export const TypedOrderListQuery = TypedQuery<OrderList, OrderListVariables>(
   orderListQuery
 );
 
+export const fragmentOrderEvent = gql`
+  fragment OrderEventFragment on OrderEvent {
+    id
+    amount
+    date
+    email
+    emailType
+    message
+    quantity
+    type
+    user {
+      email
+    }
+  }
+`;
 export const fragmentOrderDetails = gql`
+  ${fragmentOrderEvent}
   fragment OrderDetailsFragment on Order {
     id
     billingAddress {
@@ -61,17 +77,7 @@ export const fragmentOrderDetails = gql`
     }
     created
     events {
-      id
-      amount
-      date
-      email
-      emailType
-      message
-      quantity
-      type
-      user {
-        email
-      }
+      ...OrderEventFragment
     }
     fulfillments {
       id

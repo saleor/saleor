@@ -11,6 +11,7 @@ storiesOf("Orders / OrderHistory", module)
   .addDecorator(Decorator)
   .add("default", () => (
     <OrderHistory
+      onNoteAdd={undefined}
       user={{ email: "admin@example.com" }}
       history={order.events}
     />
