@@ -195,6 +195,12 @@ export interface OrderRefund_orderRefund_order_user {
   email: string;
 }
 
+export interface OrderRefund_orderRefund_order_availableShippingMethods {
+  __typename: "ShippingMethod";
+  id: string;
+  name: string;
+}
+
 export interface OrderRefund_orderRefund_order {
   __typename: "Order";
   id: string;
@@ -215,6 +221,7 @@ export interface OrderRefund_orderRefund_order {
   totalAuthorized: OrderRefund_orderRefund_order_totalAuthorized | null;
   totalCaptured: OrderRefund_orderRefund_order_totalCaptured | null;
   user: OrderRefund_orderRefund_order_user | null;
+  availableShippingMethods: (OrderRefund_orderRefund_order_availableShippingMethods | null)[] | null;
 }
 
 export interface OrderRefund_orderRefund {

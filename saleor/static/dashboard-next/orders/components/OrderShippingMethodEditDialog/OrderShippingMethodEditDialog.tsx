@@ -6,21 +6,16 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { SingleAutocompleteSelectField } from "../../../components/SingleAutocompleteSelectField";
+import { SingleSelectField } from "../../../components/SingleSelectField";
 import i18n from "../../../i18n";
 
 interface OrderShippingMethodEditDialogProps {
   open: boolean;
-  shippingMethod?: {
-    label: string;
-    value: string;
-  };
+  shippingMethod: string;
   shippingMethods?: Array<{
     id: string;
     name: string;
   }>;
-  loading?: boolean;
-  fetchShippingMethods(value: string);
   onChange(event: React.ChangeEvent<any>);
   onClose?();
   onConfirm?(event: React.FormEvent<any>);
@@ -51,33 +46,28 @@ const OrderShippingMethodEditDialog = decorate<
   ({
     classes,
     open,
-    loading,
     shippingMethod,
     shippingMethods,
-    fetchShippingMethods,
     onChange,
     onClose,
     onConfirm
   }) => {
-    const choices =
-      !loading && shippingMethods
-        ? shippingMethods.map(s => ({
-            label: s.name,
-            value: s.id
-          }))
-        : [];
+    const choices = shippingMethods
+      ? shippingMethods.map(s => ({
+          label: s.name,
+          value: s.id
+        }))
+      : [];
     return (
       <Dialog open={open} classes={{ paper: classes.dialog }}>
         <DialogTitle>
           {i18n.t("Edit shipping method", { context: "title" })}
         </DialogTitle>
         <DialogContent className={classes.root}>
-          <SingleAutocompleteSelectField
+          <SingleSelectField
             choices={choices}
-            loading={loading}
-            name="user"
+            name="shippingMethod"
             value={shippingMethod}
-            fetchChoices={fetchShippingMethods}
             onChange={onChange}
           />
         </DialogContent>

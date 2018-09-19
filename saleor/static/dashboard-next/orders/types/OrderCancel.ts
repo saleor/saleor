@@ -189,6 +189,12 @@ export interface OrderCancel_orderCancel_order_user {
   email: string;
 }
 
+export interface OrderCancel_orderCancel_order_availableShippingMethods {
+  __typename: "ShippingMethod";
+  id: string;
+  name: string;
+}
+
 export interface OrderCancel_orderCancel_order {
   __typename: "Order";
   id: string;
@@ -209,6 +215,7 @@ export interface OrderCancel_orderCancel_order {
   totalAuthorized: OrderCancel_orderCancel_order_totalAuthorized | null;
   totalCaptured: OrderCancel_orderCancel_order_totalCaptured | null;
   user: OrderCancel_orderCancel_order_user | null;
+  availableShippingMethods: (OrderCancel_orderCancel_order_availableShippingMethods | null)[] | null;
 }
 
 export interface OrderCancel_orderCancel {
