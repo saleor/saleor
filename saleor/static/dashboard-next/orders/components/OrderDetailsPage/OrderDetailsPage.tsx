@@ -2,6 +2,7 @@ import { withStyles, WithStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 import { AddressType, transformAddressToForm } from "../..";
+import { UserError } from "../../..";
 import { Container } from "../../../components/Container";
 import DateFormatter from "../../../components/DateFormatter";
 import Form from "../../../components/Form";
@@ -32,7 +33,6 @@ import OrderProductAddDialog, {
 } from "../OrderProductAddDialog";
 import OrderShippingMethodEditDialog from "../OrderShippingMethodEditDialog";
 import OrderSummary from "../OrderSummary";
-import { UserError } from "../../..";
 
 interface TaxedMoneyType {
   gross: {
