@@ -52,6 +52,9 @@ function loadStories() {
   require("./stories/customers/CustomerEditPage");
   require("./stories/customers/CustomerListPage");
 
+  // Staff
+  require("./stories/staff/StaffListPage")
+
   // Pages
   require("./stories/pages/PageContent");
   require("./stories/pages/PageDeleteDialog");
