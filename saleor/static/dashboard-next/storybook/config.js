@@ -9,6 +9,7 @@ function loadStories() {
   require("./stories/components/DateFormatter");
   require("./stories/components/EditableTableCell");
   require("./stories/components/ErrorMessageCard");
+  require("./stories/components/ExternalLink");
   require("./stories/components/Money");
   require("./stories/components/MultiAutocompleteSelectField");
   require("./stories/components/MultiSelectField");

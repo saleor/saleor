@@ -142,7 +142,6 @@ interface OrderDetailsPageProps {
   fetchVariants?(value: string);
   onBack();
   onCreate?();
-  onCustomerEmailClick?(id: string);
   onOrderFulfill(data: OrderFulfillFormData);
   onOrderLineChange?(id: string): (value: string) => () => void;
   onOrderLineRemove?(id: string): () => void;
@@ -251,7 +250,6 @@ class OrderDetailsPageComponent extends React.Component<
       fetchVariants,
       onBack,
       onCreate,
-      onCustomerEmailClick,
       onOrderCancel,
       onOrderFulfill,
       onOrderLineChange,
@@ -457,7 +455,6 @@ class OrderDetailsPageComponent extends React.Component<
               shippingAddress={maybe(() => order.shippingAddress)}
               onBillingAddressEdit={this.toggleBillingAddressEditDialog}
               onCustomerEditClick={this.toggleCustomerEditDialog}
-              onCustomerEmailClick={onCustomerEmailClick}
               onShippingAddressEdit={this.toggleShippingAddressEditDialog}
             />
             {order && (

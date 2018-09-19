@@ -1298,6 +1298,37 @@ exports[`Storyshots Generics / ErrorMessageCard default 1`] = `
 </div>
 `;
 
+exports[`Storyshots Generics / External Link default 1`] = `
+<div>
+  <a
+    class="Component-link-id"
+    href="http://www.google.com"
+  >
+    <p
+      class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorSecondary-id"
+    >
+      Link to google.com
+    </p>
+  </a>
+</div>
+`;
+
+exports[`Storyshots Generics / External Link new tab 1`] = `
+<div>
+  <a
+    class="Component-link-id"
+    href="http://www.google.com"
+    target="_blank"
+  >
+    <p
+      class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorSecondary-id"
+    >
+      Link to google.com
+    </p>
+  </a>
+</div>
+`;
+
 exports[`Storyshots Generics / Global messages default 1`] = `
 <div>
   <button
@@ -4632,16 +4663,16 @@ exports[`Storyshots Orders / OrderCustomer when loaded data 1`] = `
     <div
       class="MuiCardContent-root-id"
     >
-      <p
-        class="MuiTypography-root-id MuiTypography-body1-id"
+      <a
+        class="Component-link-id"
+        href="mailto:test.client@example.com"
       >
-        test.client@example.com
-      </p>
-      <p
-        class="MuiTypography-root-id MuiTypography-body1-id OrderCustomer-link-id"
-      >
-        test.client@example.com
-      </p>
+        <p
+          class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorSecondary-id"
+        >
+          test.client@example.com
+        </p>
+      </a>
     </div>
     <hr
       class="OrderCustomer-hr-id"
@@ -4849,16 +4880,16 @@ exports[`Storyshots Orders / OrderCustomer with different addresses 1`] = `
     <div
       class="MuiCardContent-root-id"
     >
-      <p
-        class="MuiTypography-root-id MuiTypography-body1-id"
+      <a
+        class="Component-link-id"
+        href="mailto:test.client@example.com"
       >
-        test.client@example.com
-      </p>
-      <p
-        class="MuiTypography-root-id MuiTypography-body1-id OrderCustomer-link-id"
-      >
-        test.client@example.com
-      </p>
+        <p
+          class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorSecondary-id"
+        >
+          test.client@example.com
+        </p>
+      </a>
     </div>
     <hr
       class="OrderCustomer-hr-id"
