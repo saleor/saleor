@@ -14,6 +14,10 @@ import {
 import i18n from "../../../i18n";
 import { OrderEvents } from "../../../types/globalTypes";
 
+export interface FormData {
+  message: string;
+}
+
 interface OrderHistoryProps {
   history?: Array<{
     amount?: number;
@@ -31,6 +35,7 @@ interface OrderHistoryProps {
   user?: {
     email: string;
   };
+  onNoteAdd: (data: FormData) => void;
 }
 
 const decorate = withStyles(
@@ -43,16 +48,16 @@ const decorate = withStyles(
   { name: "OrderHistory" }
 );
 const OrderHistory = decorate<OrderHistoryProps>(
-  ({ classes, history, user }) => (
+  ({ classes, history, user, onNoteAdd }) => (
     <div className={classes.root}>
       <PageHeader title={i18n.t("Order history")} />
       {history ? (
         <Timeline>
           {user ? (
-            <Form initial={{ content: "" }}>
+            <Form initial={{ message: "" }} onSubmit={onNoteAdd}>
               {({ change, data, submit }) => (
                 <TimelineAddNote
-                  content={data.content}
+                  message={data.message}
                   onChange={change}
                   onSubmit={submit}
                   user={user}

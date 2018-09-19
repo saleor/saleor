@@ -21,7 +21,7 @@ import OrderFulfillmentDialog, {
   FormData as OrderFulfillFormData
 } from "../OrderFulfillmentDialog";
 import OrderFulfillmentTrackingDialog from "../OrderFulfillmentTrackingDialog";
-import OrderHistory from "../OrderHistory";
+import OrderHistory, { FormData as HistoryFormData } from "../OrderHistory";
 import OrderPaymentDialog, {
   FormData as OrderPaymentFormData
 } from "../OrderPaymentDialog";
@@ -152,6 +152,7 @@ interface OrderDetailsPageProps {
   onPaymentRefund(data: OrderPaymentFormData);
   onPaymentRelease?();
   onOrderCancel?();
+  onNoteAdd(data: HistoryFormData);
 }
 interface OrderDetailsPageState {
   openedBillingAddressEditDialog: boolean;
@@ -250,6 +251,7 @@ class OrderDetailsPageComponent extends React.Component<
       fetchVariants,
       onBack,
       onCreate,
+      onNoteAdd,
       onOrderCancel,
       onOrderFulfill,
       onOrderLineChange,
@@ -445,7 +447,11 @@ class OrderDetailsPageComponent extends React.Component<
             ) : (
               <OrderFulfillment />
             )}
-            <OrderHistory history={maybe(() => order.events)} user={user} />
+            <OrderHistory
+              history={maybe(() => order.events)}
+              user={user}
+              onNoteAdd={onNoteAdd}
+            />
           </div>
           <div>
             <OrderCustomer

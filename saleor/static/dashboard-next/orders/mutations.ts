@@ -1,7 +1,8 @@
 import gql from "graphql-tag";
 
 import { TypedMutation } from "../mutations";
-import { fragmentOrderDetails } from "./queries";
+import { fragmentOrderDetails, fragmentOrderEvent } from "./queries";
+import { OrderAddNote, OrderAddNoteVariables } from "./types/OrderAddNote";
 import { OrderCancel, OrderCancelVariables } from "./types/OrderCancel";
 import { OrderCapture, OrderCaptureVariables } from "./types/OrderCapture";
 import {
@@ -93,3 +94,25 @@ export const TypedOrderCreateFulfillmentMutation = TypedMutation<
   OrderCreateFulfillment,
   OrderCreateFulfillmentVariables
 >(orderCreateFulfillmentMutation);
+
+const orderAddNoteMutation = gql`
+  ${fragmentOrderEvent}
+  mutation OrderAddNote($order: ID!, $input: OrderAddNoteInput!) {
+    orderAddNote(order: $order, input: $input) {
+      errors {
+        field
+        message
+      }
+      order {
+        id
+        events {
+          ...OrderEventFragment
+        }
+      }
+    }
+  }
+`;
+export const TypedOrderAddNoteMutation = TypedMutation<
+  OrderAddNote,
+  OrderAddNoteVariables
+>(orderAddNoteMutation);
