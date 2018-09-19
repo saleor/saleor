@@ -57,23 +57,30 @@ export const fragmentOrderEvent = gql`
     }
   }
 `;
+export const fragmentAddress = gql`
+  fragment AddressFragment on Address {
+    id
+    city
+    cityArea
+    companyName
+    country
+    countryArea
+    firstName
+    lastName
+    phone
+    postalCode
+    streetAddress1
+    streetAddress2
+  }
+`;
+
 export const fragmentOrderDetails = gql`
+  ${fragmentAddress}
   ${fragmentOrderEvent}
   fragment OrderDetailsFragment on Order {
     id
     billingAddress {
-      id
-      city
-      cityArea
-      companyName
-      country
-      countryArea
-      firstName
-      lastName
-      phone
-      postalCode
-      streetAddress1
-      streetAddress2
+      ...AddressFragment
     }
     created
     events {
@@ -120,18 +127,7 @@ export const fragmentOrderDetails = gql`
     number
     paymentStatus
     shippingAddress {
-      id
-      city
-      cityArea
-      companyName
-      country
-      countryArea
-      firstName
-      lastName
-      phone
-      postalCode
-      streetAddress1
-      streetAddress2
+      ...AddressFragment
     }
     shippingMethod {
       id
@@ -180,6 +176,12 @@ export const orderDetailsQuery = gql`
   query OrderDetails($id: ID!) {
     order(id: $id) {
       ...OrderDetailsFragment
+    }
+    shop {
+      countries {
+        code
+        country
+      }
     }
   }
 `;

@@ -24,6 +24,7 @@ const orderWithoutPayment = orderFixture(placeholderImage, {
 
 const callbacks = {
   onBack: () => undefined,
+  onBillingAddressEdit: undefined,
   onCreate: undefined,
   onNoteAdd: undefined,
   onOrderCancel: undefined,
@@ -36,14 +37,18 @@ const callbacks = {
   onPaymentRelease: undefined,
   onPrintClick: undefined,
   onProductAdd: undefined,
-  onProductClick: undefined
+  onProductClick: undefined,
+  onShippingAddressEdit: undefined
 };
 
 storiesOf("Views / Orders / Order details", module)
   .addDecorator(Decorator)
-  .add("when loading data", () => <OrderDetailsPage {...callbacks} />)
+  .add("when loading data", () => (
+    <OrderDetailsPage errors={[]} {...callbacks} />
+  ))
   .add("when loaded data", () => (
     <OrderDetailsPage
+      errors={[]}
       countries={countries}
       order={order}
       user={{ email: "admin@example.com" }}
@@ -52,6 +57,7 @@ storiesOf("Views / Orders / Order details", module)
   ))
   .add("as a draft", () => (
     <OrderDetailsPage
+      errors={[]}
       countries={countries}
       order={orderDraft}
       shippingMethods={shippingMethods}
@@ -67,6 +73,7 @@ storiesOf("Views / Orders / Order details", module)
   ))
   .add("as a unpaid order", () => (
     <OrderDetailsPage
+      errors={[]}
       countries={countries}
       order={orderWithoutPayment}
       shippingMethods={shippingMethods}

@@ -13,6 +13,7 @@ interface AddressEditProps {
     label: string;
   }>;
   data: AddressTypeInput;
+  errors: { [T in keyof AddressTypeInput]?: string };
   onChange(event: React.ChangeEvent<any>);
 }
 
@@ -24,11 +25,13 @@ const decorate = withStyles(theme => ({
   }
 }));
 const AddressEdit = decorate<AddressEditProps>(
-  ({ classes, countries, data, onChange }) => (
+  ({ classes, countries, data, errors, onChange }) => (
     <>
       <div className={classes.root}>
         <div>
           <TextField
+            error={!!errors.firstName}
+            helperText={errors.firstName}
             label={i18n.t("First name")}
             name="firstName"
             onChange={onChange}
@@ -38,6 +41,8 @@ const AddressEdit = decorate<AddressEditProps>(
         </div>
         <div>
           <TextField
+            error={!!errors.lastName}
+            helperText={errors.lastName}
             label={i18n.t("Last name")}
             name="lastName"
             onChange={onChange}
@@ -48,6 +53,8 @@ const AddressEdit = decorate<AddressEditProps>(
       </div>
       <FormSpacer />
       <TextField
+        error={!!errors.companyName}
+        helperText={errors.companyName}
         label={i18n.t("Company")}
         name="companyName"
         onChange={onChange}
@@ -56,6 +63,8 @@ const AddressEdit = decorate<AddressEditProps>(
       />
       <FormSpacer />
       <TextField
+        error={!!errors.streetAddress1}
+        helperText={errors.streetAddress1}
         label={i18n.t("Address")}
         name="streetAddress1"
         onChange={onChange}
@@ -64,6 +73,8 @@ const AddressEdit = decorate<AddressEditProps>(
       />
       <FormSpacer />
       <TextField
+        error={!!errors.streetAddress2}
+        helperText={errors.streetAddress2}
         label={i18n.t("Address")}
         name="streetAddress2"
         onChange={onChange}
@@ -72,6 +83,8 @@ const AddressEdit = decorate<AddressEditProps>(
       />
       <FormSpacer />
       <TextField
+        error={!!errors.city}
+        helperText={errors.city}
         label={i18n.t("City")}
         name="city"
         onChange={onChange}
@@ -80,6 +93,8 @@ const AddressEdit = decorate<AddressEditProps>(
       />
       <FormSpacer />
       <TextField
+        error={!!errors.cityArea}
+        helperText={errors.cityArea}
         label={i18n.t("City area")}
         name="cityArea"
         onChange={onChange}
@@ -88,6 +103,8 @@ const AddressEdit = decorate<AddressEditProps>(
       />
       <FormSpacer />
       <TextField
+        error={!!errors.postalCode}
+        helperText={errors.postalCode}
         label={i18n.t("Postal code")}
         name="postalCode"
         onChange={onChange}
@@ -96,6 +113,8 @@ const AddressEdit = decorate<AddressEditProps>(
       />
       <FormSpacer />
       <SingleSelectField
+        error={!!errors.country}
+        hint={errors.country}
         label={i18n.t("Country")}
         name="country"
         onChange={onChange}
@@ -104,6 +123,8 @@ const AddressEdit = decorate<AddressEditProps>(
       />
       <FormSpacer />
       <TextField
+        error={!!errors.countryArea}
+        helperText={errors.countryArea}
         label={i18n.t("Country area")}
         name="countryArea"
         onChange={onChange}
@@ -112,6 +133,8 @@ const AddressEdit = decorate<AddressEditProps>(
       />
       <FormSpacer />
       <TextField
+        error={!!errors.phone}
+        helperText={errors.phone}
         label={i18n.t("Phone")}
         name="phone"
         value={data.phone}

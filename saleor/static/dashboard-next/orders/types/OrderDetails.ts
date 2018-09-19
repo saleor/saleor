@@ -211,8 +211,20 @@ export interface OrderDetails_order {
   user: OrderDetails_order_user | null;
 }
 
+export interface OrderDetails_shop_countries {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
+export interface OrderDetails_shop {
+  __typename: "Shop";
+  countries: (OrderDetails_shop_countries | null)[];
+}
+
 export interface OrderDetails {
   order: OrderDetails_order | null;
+  shop: OrderDetails_shop | null;
 }
 
 export interface OrderDetailsVariables {

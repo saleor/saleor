@@ -4,6 +4,7 @@ import * as React from "react";
 import AddressEdit from "../../../components/AddressEdit";
 import { Container } from "../../../components/Container";
 import { customer } from "../../../customers/fixtures";
+import { transformAddressToForm } from "../../../orders";
 import { countries } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
 
@@ -12,7 +13,8 @@ storiesOf("Generics / AddressEdit", module)
   .add("default", () => (
     <Container width="sm">
       <AddressEdit
-        data={customer.defaultBillingAddress}
+        errors={{}}
+        data={transformAddressToForm(customer.defaultBillingAddress)}
         countries={countries}
         onChange={undefined}
       />
