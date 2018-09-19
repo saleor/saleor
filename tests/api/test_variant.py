@@ -150,6 +150,94 @@ def test_create_variant(admin_api_client, product, product_type):
     assert data['weight']['value'] == weight
 
 
+def test_create_product_variant_not_all_attributes(
+        admin_api_client, product, product_type, color_attribute):
+    query = """
+            mutation createVariant (
+                $productId: ID!,
+                $sku: String!,
+                $priceOverride: Decimal,
+                $costPrice: Decimal,
+                $quantity: Int!,
+                $attributes: [AttributeValueInput],
+                $weight: WeightScalar,
+                $trackInventory: Boolean!) {
+                    productVariantCreate(
+                        input: {
+                            product: $productId,
+                            sku: $sku,
+                            priceOverride: $priceOverride,
+                            costPrice: $costPrice,
+                            quantity: $quantity,
+                            attributes: $attributes,
+                            trackInventory: $trackInventory,
+                            weight: $weight
+                        }) {
+                        errors {
+                            field
+                            message
+                        }
+                        productVariant {
+                            name
+                            sku
+                            attributes {
+                                attribute {
+                                    slug
+                                }
+                                value {
+                                    slug
+                                }
+                            }
+                            quantity
+                            priceOverride {
+                                currency
+                                amount
+                                localized
+                            }
+                            costPrice {
+                                currency
+                                amount
+                                localized
+                            }
+                            weight {
+                                value
+                                unit
+                            }
+                        }
+                    }
+                }
+
+        """
+    product_id = graphene.Node.to_global_id('Product', product.pk)
+    sku = "1"
+    price_override = 1.32
+    cost_price = 3.22
+    quantity = 10
+    weight = 10.22
+    variant_slug = product_type.variant_attributes.first().slug
+    variant_value = 'test-value'
+    product_type.variant_attributes.add(color_attribute)
+
+    variables = json.dumps({
+        'productId': product_id,
+        'sku': sku,
+        'quantity': quantity,
+        'costPrice': cost_price,
+        'priceOverride': price_override,
+        'weight': weight,
+        'attributes': [
+            {'slug': variant_slug, 'value': variant_value}],
+        'trackInventory': True})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    assert 'errors' in content['data']['productVariantCreate']
+    assert content['data']['productVariantCreate']['errors'] == [{
+        'field': 'attributes', 'message': 'Missing attributes: color'}]
+    assert not product.variants.filter(sku=sku).exists()
+
+
 def test_update_product_variant(admin_api_client, product):
     query = """
         mutation updateVariant (
