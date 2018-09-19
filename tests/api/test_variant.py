@@ -156,22 +156,12 @@ def test_create_product_variant_not_all_attributes(
             mutation createVariant (
                 $productId: ID!,
                 $sku: String!,
-                $priceOverride: Decimal,
-                $costPrice: Decimal,
-                $quantity: Int!,
-                $attributes: [AttributeValueInput],
-                $weight: WeightScalar,
-                $trackInventory: Boolean!) {
+                $attributes: [AttributeValueInput]!) {
                     productVariantCreate(
                         input: {
                             product: $productId,
                             sku: $sku,
-                            priceOverride: $priceOverride,
-                            costPrice: $costPrice,
-                            quantity: $quantity,
-                            attributes: $attributes,
-                            trackInventory: $trackInventory,
-                            weight: $weight
+                            attributes: $attributes
                         }) {
                         errors {
                             field
@@ -179,30 +169,7 @@ def test_create_product_variant_not_all_attributes(
                         }
                         productVariant {
                             name
-                            sku
-                            attributes {
-                                attribute {
-                                    slug
-                                }
-                                value {
-                                    slug
-                                }
-                            }
-                            quantity
-                            priceOverride {
-                                currency
-                                amount
-                                localized
-                            }
-                            costPrice {
-                                currency
-                                amount
-                                localized
-                            }
-                            weight {
-                                value
-                                unit
-                            }
+                            sku          
                         }
                     }
                 }
@@ -210,10 +177,6 @@ def test_create_product_variant_not_all_attributes(
         """
     product_id = graphene.Node.to_global_id('Product', product.pk)
     sku = "1"
-    price_override = 1.32
-    cost_price = 3.22
-    quantity = 10
-    weight = 10.22
     variant_slug = product_type.variant_attributes.first().slug
     variant_value = 'test-value'
     product_type.variant_attributes.add(color_attribute)
@@ -221,13 +184,7 @@ def test_create_product_variant_not_all_attributes(
     variables = json.dumps({
         'productId': product_id,
         'sku': sku,
-        'quantity': quantity,
-        'costPrice': cost_price,
-        'priceOverride': price_override,
-        'weight': weight,
-        'attributes': [
-            {'slug': variant_slug, 'value': variant_value}],
-        'trackInventory': True})
+        'attributes': [{'slug': variant_slug, 'value': variant_value}]})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
