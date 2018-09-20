@@ -3,11 +3,11 @@ import Card from "@material-ui/core/Card";
 import CardActions from "@material-ui/core/CardActions";
 import * as React from "react";
 
-import { PaymentStatus, PaymentVariants, transformOrderStatus } from "../..";
+import { transformOrderStatus } from "../..";
 import CardTitle from "../../../components/CardTitle";
 import StatusLabel from "../../../components/StatusLabel/StatusLabel";
 import i18n from "../../../i18n";
-import { OrderStatus } from "../../../types/globalTypes";
+import { OrderStatus, PaymentStatusEnum } from "../../../types/globalTypes";
 import OrderProducts, {
   OrderProductsProps
 } from "../OrderProducts/OrderProducts";
@@ -33,7 +33,6 @@ const OrderSummary: React.StatelessComponent<OrderSummaryProps> = ({
   lines,
   paid,
   paymentStatus,
-  paymentVariant,
   shippingMethodName,
   shippingPrice,
   status,
@@ -54,22 +53,23 @@ const OrderSummary: React.StatelessComponent<OrderSummaryProps> = ({
   const orderStatus = status ? transformOrderStatus(status) : undefined;
   const canCapture =
     paymentStatus && status
-      ? paymentStatus === PaymentStatus.PREAUTH &&
+      ? paymentStatus === PaymentStatusEnum.PREAUTH &&
         !([OrderStatus.DRAFT, OrderStatus.CANCELED] as any).includes(status)
       : false;
   const canRelease =
-    paymentStatus && status ? paymentStatus === PaymentStatus.PREAUTH : false;
+    paymentStatus && status
+      ? paymentStatus === PaymentStatusEnum.PREAUTH
+      : false;
   const canRefund =
     paymentStatus && status
-      ? paymentStatus === PaymentStatus.CONFIRMED &&
-        paymentVariant !== PaymentVariants.MANUAL
+      ? paymentStatus === PaymentStatusEnum.CONFIRMED
       : false;
   const canFulfill = [
     OrderStatus.UNFULFILLED,
     OrderStatus.PARTIALLY_FULFILLED
   ].includes(status);
   const canCancel = status !== OrderStatus.CANCELED;
-  const canGetInvoice = paymentStatus === PaymentStatus.CONFIRMED;
+  const canGetInvoice = paymentStatus === PaymentStatusEnum.CONFIRMED;
   const isDraft = status === OrderStatus.DRAFT;
   return (
     <Card>
