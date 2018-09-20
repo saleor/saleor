@@ -122,7 +122,7 @@ class CartLine(models.Model):
     variant = models.ForeignKey(
         'product.ProductVariant', related_name='+', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(999)])
+        validators=[MinValueValidator(1), MaxValueValidator(999)])
     data = JSONField(blank=True, default=dict)
 
     class Meta:
