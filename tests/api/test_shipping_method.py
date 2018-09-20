@@ -88,7 +88,6 @@ def test_shipping_zone_query(user_api_client, shipping_zone):
         }
     }
     """
-
     ID = graphene.Node.to_global_id('ShippingZone', shipping.id)
     variables = json.dumps({'id': ID})
     response = user_api_client.post(
@@ -125,22 +124,30 @@ def test_shipping_zones_query(user_api_client, shipping_zone):
 
 def test_create_shipping_zone(admin_api_client):
     query = """
-        mutation createShipping{
+        mutation createShipping(
+            $id: ID!, $name: String, $default: Boolean, $countries: [String]) {
             shippingZoneCreate(
-                input: {name: "test shipping", countries: ["PL"]}) {
-                    shippingZone {
-                        name
-                        countries
-                    }
+                input: {name: $name, countries: $countries, default: $default})
+            {
+                shippingZone {
+                    name
+                    countries
+                    default
                 }
+            }
         }
     """
-    response = admin_api_client.post(reverse('api'), {'query': query})
+    variables = json.dumps(
+        {'default': True, 'name': "test shipping", 'countries': ['PL']})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query}, variables)
     content = get_graphql_content(response)
+
     assert 'errors' not in content
     data = content['data']['shippingZoneCreate']['shippingZone']
     assert data['name'] == 'test shipping'
     assert data['countries'] == ['PL']
+    assert data['default'] == True
 
 
 def test_update_shipping_zone(admin_api_client, shipping_zone):
