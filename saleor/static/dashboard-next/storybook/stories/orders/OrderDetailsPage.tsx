@@ -65,7 +65,6 @@ storiesOf("Views / Orders / Order details", module)
       users={clients}
       variants={variants}
       variantsLoading={false}
-      fetchShippingMethods={undefined}
       fetchUsers={undefined}
       fetchVariants={undefined}
       {...callbacks}
@@ -81,7 +80,6 @@ storiesOf("Views / Orders / Order details", module)
       users={clients}
       variants={variants}
       variantsLoading={false}
-      fetchShippingMethods={undefined}
       fetchUsers={undefined}
       fetchVariants={undefined}
       {...callbacks}
