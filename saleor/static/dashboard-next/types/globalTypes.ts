@@ -384,6 +384,10 @@ export interface OrderUpdateInput {
   shippingAddress?: AddressInput | null;
 }
 
+export interface OrderUpdateShippingInput {
+  shippingMethod?: string | null;
+}
+
 export interface ProductTypeInput {
   name?: string | null;
   hasVariants?: boolean | null;
