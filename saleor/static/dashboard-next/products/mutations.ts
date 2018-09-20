@@ -243,7 +243,7 @@ export const TypedVariantUpdateMutation = TypedMutation<
 export const variantCreateMutation = gql`
   ${fragmentVariant}
   mutation VariantCreate(
-    $attributes: [AttributeValueInput]
+    $attributes: [AttributeValueInput]!
     $costPrice: Decimal
     $priceOverride: Decimal
     $product: ID!

@@ -1452,7 +1452,7 @@ type ProductVariantCreate {
 }
 
 input ProductVariantCreateInput {
-  attributes: [AttributeValueInput]
+  attributes: [AttributeValueInput]!
   costPrice: Decimal
   priceOverride: Decimal
   sku: String
@@ -1598,7 +1598,7 @@ input SetPasswordInput {
 type ShippingMethod implements Node {
   id: ID!
   name: String!
-  type: ShippingMethodTypeEnum!
+  type: ShippingMethodTypeEnum
   price: Money
   minimumOrderPrice: Money
   maximumOrderPrice: Money
