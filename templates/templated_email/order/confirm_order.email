@@ -11,7 +11,7 @@
 Hi!
 
 Thank you for your order. Below is the list of ordered products. To see your payment details please visit:
-{{ url }}{% endblocktrans %}
+{{ order_details_url }}{% endblocktrans %}
 {% for line in order %}
 {{ line.quantity }} x {{ line.product_name }}, {% price line.get_total display_gross=order.display_gross_prices html=False %}
 {% endfor %}
