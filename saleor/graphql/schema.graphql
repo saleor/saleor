@@ -627,6 +627,7 @@ type Fulfillment implements Node {
 type FulfillmentCancel {
   errors: [Error]
   fulfillment: Fulfillment
+  order: Order
 }
 
 input FulfillmentCancelInput {
@@ -636,13 +637,13 @@ input FulfillmentCancelInput {
 type FulfillmentCreate {
   errors: [Error]
   fulfillment: Fulfillment
+  order: Order
 }
 
 input FulfillmentCreateInput {
-  order: ID
   trackingNumber: String
   notifyCustomer: Boolean
-  lines: [FulfillmentLineInput]
+  lines: [FulfillmentLineInput]!
 }
 
 type FulfillmentLine implements Node {
@@ -672,9 +673,10 @@ enum FulfillmentStatus {
   CANCELED
 }
 
-type FulfillmentUpdate {
+type FulfillmentUpdateTracking {
   errors: [Error]
   fulfillment: Fulfillment
+  order: Order
 }
 
 input FulfillmentUpdateTrackingInput {
@@ -850,9 +852,9 @@ type Mutations {
   draftOrderLineDelete(id: ID!): DraftOrderLineDelete
   draftOrderLineUpdate(id: ID!, input: OrderLineInput!): DraftOrderLineUpdate
   draftOrderUpdate(id: ID!, input: DraftOrderInput!): DraftOrderUpdate
-  fulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
-  fulfillmentCreate(input: FulfillmentCreateInput!): FulfillmentCreate
-  fulfillmentUpdate(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdate
+  orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
+  orderFulfillmentCreate(input: FulfillmentCreateInput!, order: ID): FulfillmentCreate
+  orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
   orderAddNote(order: ID!, input: OrderAddNoteInput!): OrderAddNote
   orderCancel(id: ID!, restock: Boolean!): OrderCancel
   orderCapture(amount: Decimal!, id: ID!): OrderCapture
@@ -1007,6 +1009,7 @@ enum OrderEvents {
   FULFILLMENT_CANCELED
   FULFILLMENT_RESTOCKED_ITEMS
   FULFILLMENT_FULFILLED_ITEMS
+  TRACKING_UPDATED
   NOTE_ADDED
   OTHER
 }

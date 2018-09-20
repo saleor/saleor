@@ -278,6 +278,7 @@ export enum OrderEvents {
   PAYMENT_RELEASED = "PAYMENT_RELEASED",
   PLACED = "PLACED",
   PLACED_FROM_DRAFT = "PLACED_FROM_DRAFT",
+  TRACKING_UPDATED = "TRACKING_UPDATED",
   UPDATED = "UPDATED",
 }
 
@@ -363,10 +364,9 @@ export interface DraftOrderInput {
 }
 
 export interface FulfillmentCreateInput {
-  order?: string | null;
   trackingNumber?: string | null;
   notifyCustomer?: boolean | null;
-  lines?: (FulfillmentLineInput | null)[] | null;
+  lines: (FulfillmentLineInput | null)[];
 }
 
 export interface FulfillmentLineInput {
