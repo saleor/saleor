@@ -13,8 +13,16 @@ import {
   OrderCreateFulfillment,
   OrderCreateFulfillmentVariables
 } from "./types/OrderCreateFulfillment";
+import {
+  OrderDraftUpdate,
+  OrderDraftUpdateVariables
+} from "./types/OrderDraftUpdate";
 import { OrderRefund, OrderRefundVariables } from "./types/OrderRefund";
 import { OrderRelease, OrderReleaseVariables } from "./types/OrderRelease";
+import {
+  OrderShippingMethodUpdate,
+  OrderShippingMethodUpdateVariables
+} from "./types/OrderShippingMethodUpdate";
 import { OrderUpdate, OrderUpdateVariables } from "./types/OrderUpdate";
 
 const orderCancelMutation = gql`
@@ -117,6 +125,10 @@ const orderAddNoteMutation = gql`
     }
   }
 `;
+export const TypedOrderAddNoteMutation = TypedMutation<
+  OrderAddNote,
+  OrderAddNoteVariables
+>(orderAddNoteMutation);
 
 const orderUpdateMutation = gql`
   ${fragmentAddress}
@@ -139,11 +151,62 @@ const orderUpdateMutation = gql`
     }
   }
 `;
-export const TypedOrderAddNoteMutation = TypedMutation<
-  OrderAddNote,
-  OrderAddNoteVariables
->(orderAddNoteMutation);
 export const TypedOrderUpdateMutation = TypedMutation<
   OrderUpdate,
   OrderUpdateVariables
 >(orderUpdateMutation);
+
+const orderDraftUpdateMutation = gql`
+  ${fragmentOrderDetails}
+  mutation OrderDraftUpdate($id: ID!, $input: DraftOrderInput!) {
+    draftOrderUpdate(id: $id, input: $input) {
+      errors {
+        field
+        message
+      }
+      order {
+        ...OrderDetailsFragment
+      }
+    }
+  }
+`;
+export const TypedOrderDraftUpdateMutation = TypedMutation<
+  OrderDraftUpdate,
+  OrderDraftUpdateVariables
+>(orderDraftUpdateMutation);
+
+const orderShippingMethodUpdateMutation = gql`
+  mutation OrderShippingMethodUpdate(
+    $id: ID!
+    $input: OrderUpdateShippingInput!
+  ) {
+    orderUpdateShipping(order: $id, input: $input) {
+      errors {
+        field
+        message
+      }
+      order {
+        id
+        shippingMethod {
+          id
+          name
+          price {
+            amount
+            currency
+          }
+        }
+        shippingMethodName
+        shippingPrice {
+          gross {
+            amount
+            currency
+          }
+        }
+      }
+    }
+  }
+`;
+export const TypedOrderShippingMethodUpdateMutation = TypedMutation<
+  OrderShippingMethodUpdate,
+  OrderShippingMethodUpdateVariables
+>(orderShippingMethodUpdateMutation);

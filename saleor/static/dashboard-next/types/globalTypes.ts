@@ -352,6 +352,16 @@ export interface AttributeValueInput {
   value: string;
 }
 
+export interface DraftOrderInput {
+  billingAddress?: AddressInput | null;
+  user?: string | null;
+  userEmail?: string | null;
+  discount?: any | null;
+  shippingAddress?: AddressInput | null;
+  shippingMethod?: string | null;
+  voucher?: string | null;
+}
+
 export interface FulfillmentCreateInput {
   order?: string | null;
   trackingNumber?: string | null;
@@ -372,6 +382,10 @@ export interface OrderUpdateInput {
   billingAddress?: AddressInput | null;
   userEmail?: string | null;
   shippingAddress?: AddressInput | null;
+}
+
+export interface OrderUpdateShippingInput {
+  shippingMethod?: string | null;
 }
 
 export interface ProductTypeInput {

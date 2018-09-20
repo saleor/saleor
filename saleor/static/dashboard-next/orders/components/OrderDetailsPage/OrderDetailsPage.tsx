@@ -33,7 +33,9 @@ import OrderPaymentReleaseDialog from "../OrderPaymentReleaseDialog";
 import OrderProductAddDialog, {
   FormData as ProductAddFormData
 } from "../OrderProductAddDialog";
-import OrderShippingMethodEditDialog from "../OrderShippingMethodEditDialog";
+import OrderShippingMethodEditDialog, {
+  FormData as ShippingMethodForm
+} from "../OrderShippingMethodEditDialog";
 import OrderSummary from "../OrderSummary";
 
 interface TaxedMoneyType {
@@ -157,6 +159,7 @@ interface OrderDetailsPageProps {
   onPaymentRefund(data: OrderPaymentFormData);
   onPaymentRelease?();
   onShippingAddressEdit(data: AddressTypeInput);
+  onShippingMethodEdit(data: ShippingMethodForm);
   onOrderCancel(data: OrderCancelFormData);
   onNoteAdd(data: HistoryFormData);
 }
@@ -269,7 +272,8 @@ class OrderDetailsPageComponent extends React.Component<
       onPaymentRelease,
       onProductAdd,
       onProductClick,
-      onShippingAddressEdit
+      onShippingAddressEdit,
+      onShippingMethodEdit
     } = this.props;
     const {
       openedBillingAddressEditDialog,
@@ -362,23 +366,15 @@ class OrderDetailsPageComponent extends React.Component<
               onClose={this.toggleOrderProductAddDialog}
               onSubmit={onProductAdd}
             />
+            <OrderShippingMethodEditDialog
+              open={openedShippingMethodEditDialog}
+              shippingMethod={maybe(() => order.shippingMethod.id, "")}
+              shippingMethods={shippingMethods}
+              onClose={this.toggleShippingMethodEditDialog}
+              onSubmit={onShippingMethodEdit}
+            />
             {order && (
               <>
-                <Form
-                  initial={{
-                    shippingMethod: maybe(() => order.shippingMethod.id, "")
-                  }}
-                >
-                  {({ change, data }) => (
-                    <OrderShippingMethodEditDialog
-                      open={openedShippingMethodEditDialog}
-                      shippingMethod={data.shippingMethod}
-                      shippingMethods={shippingMethods}
-                      onChange={change}
-                      onClose={this.toggleShippingMethodEditDialog}
-                    />
-                  )}
-                </Form>
                 <OrderCancelDialog
                   number={order.number}
                   open={openedOrderCancelDialog}
