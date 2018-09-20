@@ -205,7 +205,7 @@ class OrderLine(models.Model):
     product_sku = models.CharField(max_length=32)
     is_shipping_required = models.BooleanField()
     quantity = models.IntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(999)])
+        validators=[MinValueValidator(1), MaxValueValidator(999)])
     quantity_fulfilled = models.IntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(999)], default=0)
     unit_price_net = MoneyField(
@@ -275,7 +275,7 @@ class FulfillmentLine(models.Model):
     fulfillment = models.ForeignKey(
         Fulfillment, related_name='lines', on_delete=models.CASCADE)
     quantity = models.IntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(999)])
+        validators=[MinValueValidator(1), MaxValueValidator(999)])
 
 
 class Payment(BasePayment):
