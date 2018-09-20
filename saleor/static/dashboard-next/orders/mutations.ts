@@ -13,6 +13,7 @@ import {
   OrderCreateFulfillment,
   OrderCreateFulfillmentVariables
 } from "./types/OrderCreateFulfillment";
+import { OrderDraftUpdate, OrderDraftUpdateVariables } from "./types/OrderDraftUpdate";
 import { OrderRefund, OrderRefundVariables } from "./types/OrderRefund";
 import { OrderRelease, OrderReleaseVariables } from "./types/OrderRelease";
 import { OrderUpdate, OrderUpdateVariables } from "./types/OrderUpdate";
@@ -117,6 +118,10 @@ const orderAddNoteMutation = gql`
     }
   }
 `;
+export const TypedOrderAddNoteMutation = TypedMutation<
+  OrderAddNote,
+  OrderAddNoteVariables
+>(orderAddNoteMutation);
 
 const orderUpdateMutation = gql`
   ${fragmentAddress}
@@ -139,11 +144,35 @@ const orderUpdateMutation = gql`
     }
   }
 `;
-export const TypedOrderAddNoteMutation = TypedMutation<
-  OrderAddNote,
-  OrderAddNoteVariables
->(orderAddNoteMutation);
 export const TypedOrderUpdateMutation = TypedMutation<
   OrderUpdate,
   OrderUpdateVariables
 >(orderUpdateMutation);
+
+const orderDraftUpdateMutation = gql`
+  mutation OrderDraftUpdate($id: ID!, $input: DraftOrderInput!) {
+    draftOrderUpdate(id: $id, input: $input) {
+      errors {
+        field
+        message
+      }
+      order {
+        id
+        userEmail
+        shippingMethod {
+          id
+          name
+          price {
+            amount
+            currency
+          }
+        }
+        shippingMethodName
+      }
+    }
+  }
+`;
+export const TypedOrderDraftUpdateMutation = TypedMutation<
+  OrderDraftUpdate,
+  OrderDraftUpdateVariables
+>(orderDraftUpdateMutation);
