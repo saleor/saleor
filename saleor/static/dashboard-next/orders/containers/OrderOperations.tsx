@@ -74,13 +74,15 @@ const OrderOperations: React.StatelessComponent<OrderOperationsProps> = ({
   onError,
   onFulfillmentCreate,
   onNoteAdd,
+  onOrderCancel,
+  onOrderRelease,
   onPaymentCapture,
   onPaymentRefund,
   onUpdate
 }) => (
-  <OrderReleaseMutationProvider>
+  <OrderReleaseMutationProvider onError={onError} onSuccess={onOrderRelease}>
     {orderRelease => (
-      <OrderCancelMutationProvider>
+      <OrderCancelMutationProvider onError={onError} onSuccess={onOrderCancel}>
         {orderCancel => (
           <OrderPaymentCaptureProvider
             id={order}
