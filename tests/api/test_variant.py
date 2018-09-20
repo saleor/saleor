@@ -70,7 +70,7 @@ def test_create_variant(admin_api_client, product, product_type):
             $priceOverride: Decimal,
             $costPrice: Decimal,
             $quantity: Int!,
-            $attributes: [AttributeValueInput],
+            $attributes: [AttributeValueInput]!,
             $weight: WeightScalar,
             $trackInventory: Boolean!) {
                 productVariantCreate(
@@ -186,8 +186,7 @@ def test_create_product_variant_not_all_attributes(
     content = get_graphql_content(response)
     assert 'errors' not in content
     assert 'errors' in content['data']['productVariantCreate']
-    assert content['data']['productVariantCreate']['errors'] == [{
-        'field': 'attributes', 'message': 'Missing attributes: color'}]
+    assert content['data']['productVariantCreate']['errors'][0]['field'] == 'attributes:color'
     assert not product.variants.filter(sku=sku).exists()
 
 
@@ -285,8 +284,7 @@ def test_update_product_variant_not_all_attributes(
     content = get_graphql_content(response)
     assert 'errors' not in content
     assert 'errors' in content['data']['productVariantUpdate']
-    assert content['data']['productVariantUpdate']['errors'] == [{
-        'field': 'attributes', 'message': 'Missing attributes: color'}]
+    assert content['data']['productVariantUpdate']['errors'][0]['field'] == 'attributes:color'
     assert not product.variants.filter(sku=sku).exists()
 
 
