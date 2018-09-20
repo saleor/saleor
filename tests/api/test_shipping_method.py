@@ -122,56 +122,128 @@ def test_shipping_zones_query(user_api_client, shipping_zone):
     assert content['data']['shippingZones']['totalCount'] == num_of_shippings
 
 
+CREATE_SHIPPING_ZONE_QUERY = """
+    mutation createShipping(
+        $name: String, $default: Boolean, $countries: [String]) {
+        shippingZoneCreate(
+            input: {name: $name, countries: $countries, default: $default})
+        {
+            errors {
+                field
+                message
+            }
+            shippingZone {
+                name
+                countries
+                default
+            }
+        }
+    }
+"""
+
+
 def test_create_shipping_zone(admin_api_client):
-    query = """
-        mutation createShipping(
-            $id: ID!, $name: String, $default: Boolean, $countries: [String]) {
-            shippingZoneCreate(
-                input: {name: $name, countries: $countries, default: $default})
-            {
-                shippingZone {
-                    name
-                    countries
-                    default
-                }
-            }
-        }
-    """
+    query = CREATE_SHIPPING_ZONE_QUERY
     variables = json.dumps(
-        {'default': True, 'name': "test shipping", 'countries': ['PL']})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query}, variables)
-    content = get_graphql_content(response)
-
-    assert 'errors' not in content
-    data = content['data']['shippingZoneCreate']['shippingZone']
-    assert data['name'] == 'test shipping'
-    assert data['countries'] == ['PL']
-    assert data['default'] == True
-
-
-def test_update_shipping_zone(admin_api_client, shipping_zone):
-    query = """
-        mutation updateShipping($id: ID!, $name: String) {
-            shippingZoneUpdate(id: $id, input: {name: $name}) {
-                shippingZone {
-                    name
-                }
-            }
-        }
-    """
-    name = 'Parabolic name'
-    shipping_id = graphene.Node.to_global_id(
-        'ShippingZone', shipping_zone.pk)
-    assert shipping_zone.name != name
-    variables = json.dumps(
-        {'id': shipping_id, 'name': name})
+        {'name': 'test shipping', 'countries': ['PL']})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
+    data = content['data']['shippingZoneCreate']
+    assert not data['errors']
+    zone = data['shippingZone']
+    assert zone['name'] == 'test shipping'
+    assert zone['countries'] == ['PL']
+    assert zone['default'] == False
+
+
+def test_create_default_shipping_zone(admin_api_client):
+    query = CREATE_SHIPPING_ZONE_QUERY
+    variables = json.dumps(
+        {'default': True, 'name': 'test shipping', 'countries': ['PL']})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['shippingZoneCreate']
+    assert not data['errors']
+    zone = data['shippingZone']
+    assert zone['name'] == 'test shipping'
+    assert zone['countries'] == []
+    assert zone['default'] == True
+
+
+def test_create_duplicated_default_shipping_zone(
+        admin_api_client, shipping_zone):
+    shipping_zone.default = True
+    shipping_zone.save()
+
+    query = CREATE_SHIPPING_ZONE_QUERY
+    variables = json.dumps(
+        {'default': True, 'name': 'test shipping', 'countries': ['PL']})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['shippingZoneCreate']
+    assert data['errors']
+    assert data['errors'][0]['field'] == 'default'
+    assert data['errors'][0]['message'] == (
+        'Default shipping zone already exists.')
+
+
+UPDATE_SHIPPING_ZONE_QUERY = """
+    mutation updateShipping(
+            $id: ID!, $name: String, $default: Boolean, $countries: [String]) {
+        shippingZoneUpdate(
+            id: $id,
+            input: {name: $name, default: $default, countries: $countries})
+        {
+            shippingZone {
+                name
+            }
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+def test_update_shipping_zone(admin_api_client, shipping_zone):
+    query = UPDATE_SHIPPING_ZONE_QUERY
+    name = 'Parabolic name'
+    shipping_id = graphene.Node.to_global_id('ShippingZone', shipping_zone.pk)
+    variables = json.dumps({'id': shipping_id, 'name': name, 'countries': []})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['shippingZoneUpdate']
+    assert not data['errors']
     data = content['data']['shippingZoneUpdate']['shippingZone']
     assert data['name'] == name
+
+
+def test_update_shipping_zone_default_exists(
+        admin_api_client, shipping_zone):
+    query = UPDATE_SHIPPING_ZONE_QUERY
+    default_zone = shipping_zone
+    default_zone.default = True
+    default_zone.pk = None
+    default_zone.save()
+    shipping_zone = shipping_zone.__class__.objects.filter(default=False).get()
+
+    name = 'Parabolic name'
+    shipping_id = graphene.Node.to_global_id('ShippingZone', shipping_zone.pk)
+    variables = json.dumps(
+        {'id': shipping_id, 'name': name, 'countries': [], 'default': True})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['shippingZoneUpdate']
+    assert data['errors']
+    assert data['errors'][0]['field'] == 'default'
+    assert data['errors'][0]['message'] == (
+        'Default shipping zone already exists.')
 
 
 def test_delete_shipping_zone(admin_api_client, shipping_zone):
