@@ -67,7 +67,9 @@ class ShippingMethodQueryset(models.QuerySet):
         """
         # If dedicated shipping zone for the country exists, we should use it
         # in the first place
-        qs = self.filter(shipping_zone__countries__contains=country_code)
+        qs = self.filter(
+            shipping_zone__countries__contains=country_code,
+            shipping_zone__default=False)
         if not qs.exists():
             # Otherwise default shipping zone should be used
             qs = self.filter(shipping_zone__default=True)
