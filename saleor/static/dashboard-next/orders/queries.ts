@@ -120,6 +120,7 @@ export const fragmentOrderDetails = gql`
               currency
             }
           }
+          thumbnailUrl
         }
       }
     }
