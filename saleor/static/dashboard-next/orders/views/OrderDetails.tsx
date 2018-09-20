@@ -18,6 +18,8 @@ import OrderOperations from "../containers/OrderOperations";
 import { OrderVariantSearchProvider } from "../containers/OrderVariantSearch";
 import { TypedOrderDetailsQuery } from "../queries";
 import { OrderAddNote } from "../types/OrderAddNote";
+import { OrderDraftUpdate } from "../types/OrderDraftUpdate";
+import { OrderShippingMethodUpdate } from "../types/OrderShippingMethodUpdate";
 import { OrderUpdate } from "../types/OrderUpdate";
 
 interface OrderDetailsProps {
@@ -109,6 +111,33 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             });
                           }
                         };
+                        const handleDraftUpdate = (data: OrderDraftUpdate) => {
+                          if (
+                            !maybe(() => data.draftOrderUpdate.errors.length)
+                          ) {
+                            pushMessage({
+                              text: i18n.t("Order succesfully updated", {
+                                context: "notification"
+                              })
+                            });
+                          }
+                        };
+                        const handleShippingMethodUpdate = (
+                          data: OrderShippingMethodUpdate
+                        ) => {
+                          if (
+                            !maybe(() => data.orderUpdateShipping.errors.length)
+                          ) {
+                            pushMessage({
+                              text: i18n.t(
+                                "Shipping method succesfully updated",
+                                {
+                                  context: "notification"
+                                }
+                              )
+                            });
+                          }
+                        };
                         return (
                           <OrderOperations
                             order={id}
@@ -120,6 +149,8 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             onPaymentCapture={handlePaymentCapture}
                             onPaymentRefund={handlePaymentRefund}
                             onUpdate={handleUpdate}
+                            onDraftUpdate={handleDraftUpdate}
+                            onShippingMethodUpdate={handleShippingMethodUpdate}
                           >
                             {({
                               errors,
@@ -129,6 +160,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                               orderPaymentCapture,
                               orderPaymentRefund,
                               orderRelease,
+                              orderShippingMethodUpdate,
                               orderUpdate
                             }) => (
                               <OrderDetailsPage
@@ -230,6 +262,14 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                     id,
                                     input: {
                                       shippingAddress: variables
+                                    }
+                                  })
+                                }
+                                onShippingMethodEdit={variables =>
+                                  orderShippingMethodUpdate.mutate({
+                                    id,
+                                    input: {
+                                      shippingMethod: variables.shippingMethod
                                     }
                                   })
                                 }
