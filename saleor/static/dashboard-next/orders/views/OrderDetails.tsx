@@ -139,6 +139,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                               orderAddNote,
                               orderCancel,
                               orderCreateFulfillment,
+                              orderDraftUpdate,
                               orderPaymentCapture,
                               orderPaymentRefund,
                               orderRelease,
@@ -243,6 +244,14 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                     id,
                                     input: {
                                       shippingAddress: variables
+                                    }
+                                  })
+                                }
+                                onShippingMethodEdit={variables =>
+                                  orderDraftUpdate.mutate({
+                                    id,
+                                    input: {
+                                      shippingMethod: variables.shippingMethod
                                     }
                                   })
                                 }
