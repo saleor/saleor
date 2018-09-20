@@ -98,6 +98,7 @@ export interface OrderDetailsFragment_lines_edges_node {
   quantity: number;
   quantityFulfilled: number;
   unitPrice: OrderDetailsFragment_lines_edges_node_unitPrice | null;
+  thumbnailUrl: string | null;
 }
 
 export interface OrderDetailsFragment_lines_edges {

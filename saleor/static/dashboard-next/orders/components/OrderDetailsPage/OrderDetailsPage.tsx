@@ -89,7 +89,7 @@ interface OrderDetailsPageProps {
           id: string;
           productName: string;
           productSku: string;
-          thumbnailUrl?: string;
+          thumbnailUrl: string;
           unitPrice: TaxedMoneyType;
           quantity: number;
           quantityFulfilled: number;

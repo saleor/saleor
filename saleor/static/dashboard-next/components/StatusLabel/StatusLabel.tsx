@@ -31,6 +31,7 @@ const decorate = withStyles(theme => {
     },
     root: {
       display: "inline",
+      marginLeft: theme.spacing.unit + 8,
       position: "relative" as "relative"
     },
     span: {

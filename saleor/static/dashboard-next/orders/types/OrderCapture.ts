@@ -104,6 +104,7 @@ export interface OrderCapture_orderCapture_order_lines_edges_node {
   quantity: number;
   quantityFulfilled: number;
   unitPrice: OrderCapture_orderCapture_order_lines_edges_node_unitPrice | null;
+  thumbnailUrl: string | null;
 }
 
 export interface OrderCapture_orderCapture_order_lines_edges {
