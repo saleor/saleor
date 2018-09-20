@@ -98,6 +98,7 @@ export interface OrderRelease_orderRelease_order_lines_edges_node {
   quantity: number;
   quantityFulfilled: number;
   unitPrice: OrderRelease_orderRelease_order_lines_edges_node_unitPrice | null;
+  thumbnailUrl: string | null;
 }
 
 export interface OrderRelease_orderRelease_order_lines_edges {

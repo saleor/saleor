@@ -104,6 +104,7 @@ export interface OrderRefund_orderRefund_order_lines_edges_node {
   quantity: number;
   quantityFulfilled: number;
   unitPrice: OrderRefund_orderRefund_order_lines_edges_node_unitPrice | null;
+  thumbnailUrl: string | null;
 }
 
 export interface OrderRefund_orderRefund_order_lines_edges {
