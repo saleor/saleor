@@ -150,6 +150,47 @@ def test_create_variant(admin_api_client, product, product_type):
     assert data['weight']['value'] == weight
 
 
+def test_create_product_variant_not_all_attributes(
+        admin_api_client, product, product_type, color_attribute):
+    query = """
+            mutation createVariant (
+                $productId: ID!,
+                $sku: String!,
+                $attributes: [AttributeValueInput]!) {
+                    productVariantCreate(
+                        input: {
+                            product: $productId,
+                            sku: $sku,
+                            attributes: $attributes
+                        }) {
+                        errors {
+                            field
+                            message
+                        }
+                    }
+                }
+
+        """
+    product_id = graphene.Node.to_global_id('Product', product.pk)
+    sku = "1"
+    variant_slug = product_type.variant_attributes.first().slug
+    variant_value = 'test-value'
+    product_type.variant_attributes.add(color_attribute)
+
+    variables = json.dumps({
+        'productId': product_id,
+        'sku': sku,
+        'attributes': [{'slug': variant_slug, 'value': variant_value}]})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    assert 'errors' in content['data']['productVariantCreate']
+    assert content['data']['productVariantCreate']['errors'] == [{
+        'field': 'attributes', 'message': 'Missing attributes: color'}]
+    assert not product.variants.filter(sku=sku).exists()
+
+
 def test_update_product_variant(admin_api_client, product):
     query = """
         mutation updateVariant (
@@ -203,6 +244,50 @@ def test_update_product_variant(admin_api_client, product):
     assert data['quantity'] == quantity
     assert data['costPrice']['amount'] == cost_price
     assert data['sku'] == sku
+
+
+def test_update_product_variant_not_all_attributes(
+        admin_api_client, product, product_type, color_attribute):
+    query = """
+        mutation updateVariant (
+            $id: ID!,
+            $sku: String!,
+            $attributes: [AttributeValueInput]!) {
+                productVariantUpdate(
+                    id: $id,
+                    input: {
+                        sku: $sku,
+                        attributes: $attributes
+                    }) {
+                    errors {
+                        field
+                        message
+                    }
+                }
+            }
+
+    """
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
+    sku = "test sku"
+    variant_slug = product_type.variant_attributes.first().slug
+    variant_value = 'test-value'
+    product_type.variant_attributes.add(color_attribute)
+
+    variables = json.dumps({
+        'id': variant_id,
+        'sku': sku,
+        'attributes': [{'slug': variant_slug, 'value': variant_value}]})
+
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    assert 'errors' in content['data']['productVariantUpdate']
+    assert content['data']['productVariantUpdate']['errors'] == [{
+        'field': 'attributes', 'message': 'Missing attributes: color'}]
+    assert not product.variants.filter(sku=sku).exists()
 
 
 def test_delete_variant(admin_api_client, product):
