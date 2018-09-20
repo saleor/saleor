@@ -1,41 +1,44 @@
 import json
 
 import graphene
+import pytest
 from django.shortcuts import reverse
+from tests.utils import get_graphql_content
+
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.models import FulfillmentStatus
-from tests.utils import get_graphql_content
+
+CREATE_FULFILLMENT_QUERY = """
+    mutation fulfillOrder(
+        $order: ID, $lines: [FulfillmentLineInput]!, $tracking: String,
+        $notify: Boolean
+    ) {
+        orderFulfillmentCreate(
+            order: $order,
+            input: {
+                lines: $lines, trackingNumber: $tracking,
+                notifyCustomer: $notify}
+        ) {
+            errors {
+                field
+                message
+            }
+            fulfillment {
+                fulfillmentOrder
+                status
+                trackingNumber
+            lines {
+                totalCount
+            }
+        }
+    }
+}
+"""
 
 
 def test_create_fulfillment(admin_api_client, order_with_lines, admin_user):
     order = order_with_lines
-    query = """
-        mutation fulfillOrder(
-            $order: ID, $lines: [FulfillmentLineInput]!, $tracking: String,
-            $notify: Boolean
-        ) {
-            orderFulfillmentCreate(
-                order: $order,
-                input: {
-                    lines: $lines, trackingNumber: $tracking,
-                    notifyCustomer: $notify}
-            ) {
-                errors {
-                    field
-                    message
-                }
-                fulfillment {
-                    fulfillmentOrder
-                    status
-                    trackingNumber
-                lines {
-                    totalCount
-                }
-            }
-        }
-    }
-
-    """
+    query = CREATE_FULFILLMENT_QUERY
     order_id = graphene.Node.to_global_id('Order', order.id)
     order_line = order.lines.first()
     order_line_id = graphene.Node.to_global_id('OrderLine', order_line.id)
@@ -66,6 +69,29 @@ def test_create_fulfillment(admin_api_client, order_with_lines, admin_user):
     assert event_email_sent.parameters == {
         'email': order.user_email,
         'email_type': OrderEventsEmails.FULFILLMENT.value}
+
+
+@pytest.mark.parametrize(
+    'quantity, error_message',
+    (
+        (0, 'Quantity must be larger than 0.'),
+        (100, 'Only 3 items remaining to fulfill.')))
+def test_create_fulfillment_not_sufficient_quantity(
+        admin_api_client, order_with_lines, admin_user, quantity,
+        error_message):
+    query = CREATE_FULFILLMENT_QUERY
+    order_line = order_with_lines.lines.first()
+    order_line_id = graphene.Node.to_global_id('OrderLine', order_line.id)
+    variables = json.dumps({
+        'order': graphene.Node.to_global_id('Order', order_with_lines.id),
+        'lines': [{'orderLineId': order_line_id, 'quantity': quantity}]})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['orderFulfillmentCreate']
+    assert 'errors' in data
+    assert data['errors'][0]['field'] == str(order_line)
+    assert data['errors'][0]['message'] == error_message
 
 
 def test_fulfillment_update_tracking(admin_api_client, fulfillment):

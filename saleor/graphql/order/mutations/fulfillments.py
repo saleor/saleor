@@ -74,12 +74,12 @@ class FulfillmentCreate(BaseMutation):
             elif quantity > order_line.quantity_unfulfilled:
                 msg = npgettext_lazy(
                     'Fulfill order line mutation error',
-                    '%(quantity)d item remaining to fulfill.',
-                    '%(quantity)d items remaining to fulfill.',
+                    'Only %(quantity)d item remaining to fulfill.',
+                    'Only %(quantity)d items remaining to fulfill.',
                     'quantity') % {
                         'quantity': order_line.quantity_unfulfilled,
                         'order_line': order_line}
-                cls.add_error(errors, order_line.variant.name, msg)
+                cls.add_error(errors, order_line, msg)
         return errors
 
     @classmethod
@@ -103,7 +103,6 @@ class FulfillmentCreate(BaseMutation):
         fulfillment.save()
         order_lines = cleaned_input.get('order_lines')
         quantities = cleaned_input.get('quantities')
-
         fulfillment_lines = []
         for order_line, quantity in zip(order_lines, quantities):
             fulfill_order_line(order_line, quantity)
