@@ -36,7 +36,7 @@ export interface OrderProductsProps {
     unitPrice: TaxedMoneyType;
     quantity: number;
     productSku: string;
-    thumbnailUrl?: string;
+    thumbnailUrl: string;
   }>;
   paid?: MoneyType;
   shippingMethodName?: string;
@@ -142,8 +142,10 @@ const OrderProducts = decorate<OrderProductsProps>(
                     <CloseIcon />
                   </IconButton>
                 </TableCell>
+              ) : product ? (
+                <TableCellAvatar thumbnail={product.thumbnailUrl} />
               ) : (
-                <TableCellAvatar thumbnail={product && product.thumbnailUrl} />
+                <TableCellAvatar />
               )}
               <TableCell>
                 {product ? (
