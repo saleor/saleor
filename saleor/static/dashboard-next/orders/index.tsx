@@ -59,7 +59,7 @@ export const transformPaymentStatus = (status: string) => {
       return { localized: i18n.t("Refunded"), status: "success" };
     case PaymentStatusEnum.WAITING:
       return {
-        localized: i18n.t("Waiting for confirmation"),
+        localized: i18n.t("Waiting"),
         status: "neutral"
       };
     case PaymentStatusEnum.PREAUTH:
