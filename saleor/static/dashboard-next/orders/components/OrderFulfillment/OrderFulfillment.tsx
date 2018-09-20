@@ -28,7 +28,7 @@ interface OrderFulfillmentProps {
     };
   }>;
   trackingCode?: string;
-  onFulfillmentCancel?();
+  onOrderFulfillmentCancel?();
   onTrackingCodeAdd?();
   onPackingSlipClick?();
 }
@@ -62,7 +62,7 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
     lines,
     status,
     trackingCode,
-    onFulfillmentCancel,
+    onOrderFulfillmentCancel,
     onTrackingCodeAdd,
     onPackingSlipClick
   }) => (
@@ -127,7 +127,7 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
               ? i18n.t("Add tracking number")
               : i18n.t("Edit tracking number")}
           </Button>
-          <Button onClick={onFulfillmentCancel}>
+          <Button onClick={onOrderFulfillmentCancel}>
             {i18n.t("Cancel shipment")}
           </Button>
         </CardActions>

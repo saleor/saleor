@@ -66,11 +66,13 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             });
                           }
                         };
-                        const handleFulfillmentCreate = (
+                        const handleOrderFulfillmentCreate = (
                           data: OrderCreateFulfillmentMutation
                         ) => {
                           if (
-                            !maybe(() => data.fulfillmentCreate.errors.length)
+                            !maybe(
+                              () => data.OrderFulfillmentCreate.errors.length
+                            )
                           ) {
                             pushMessage({
                               text: i18n.t("Items succesfully fulfilled", {
@@ -142,7 +144,9 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                           <OrderOperations
                             order={id}
                             onError={undefined}
-                            onFulfillmentCreate={handleFulfillmentCreate}
+                            onOrderFulfillmentCreate={
+                              handleOrderFulfillmentCreate
+                            }
                             onNoteAdd={handleNoteAdd}
                             onOrderCancel={handleOrderCancel}
                             onOrderRelease={handleOrderRelease}
