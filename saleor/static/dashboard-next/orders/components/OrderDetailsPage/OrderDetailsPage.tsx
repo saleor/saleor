@@ -14,7 +14,9 @@ import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { OrderEvents, OrderStatus } from "../../../types/globalTypes";
 import OrderAddressEditDialog from "../OrderAddressEditDialog";
-import OrderCancelDialog from "../OrderCancelDialog";
+import OrderCancelDialog, {
+  FormData as OrderCancelFormData
+} from "../OrderCancelDialog";
 import OrderCustomer from "../OrderCustomer";
 import OrderCustomerEditDialog from "../OrderCustomerEditDialog";
 import OrderFulfillment from "../OrderFulfillment";
@@ -155,7 +157,7 @@ interface OrderDetailsPageProps {
   onPaymentRefund(data: OrderPaymentFormData);
   onPaymentRelease?();
   onShippingAddressEdit(data: AddressTypeInput);
-  onOrderCancel?();
+  onOrderCancel(data: OrderCancelFormData);
   onNoteAdd(data: HistoryFormData);
 }
 interface OrderDetailsPageState {
@@ -381,7 +383,7 @@ class OrderDetailsPageComponent extends React.Component<
                   number={order.number}
                   open={openedOrderCancelDialog}
                   onClose={this.toggleOrderCancelDialog}
-                  onConfirm={onOrderCancel}
+                  onSubmit={onOrderCancel}
                 />
                 <OrderPaymentReleaseDialog
                   open={openedPaymentReleaseDialog}

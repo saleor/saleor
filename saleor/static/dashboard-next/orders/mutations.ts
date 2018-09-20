@@ -19,8 +19,8 @@ import { OrderUpdate, OrderUpdateVariables } from "./types/OrderUpdate";
 
 const orderCancelMutation = gql`
   ${fragmentOrderDetails}
-  mutation OrderCancel($id: ID!) {
-    orderCancel(id: $id, restock: true) {
+  mutation OrderCancel($id: ID!, $restock: Boolean!) {
+    orderCancel(id: $id, restock: $restock) {
       order {
         ...OrderDetailsFragment
       }
