@@ -2,21 +2,26 @@ import Button from "@material-ui/core/Button";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
-import { Omit, PageListProps } from "../../..";
+import { ListProps, Omit, UserError } from "../../..";
 import { Container } from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
 import { StaffList_staffUsers_edges_node } from "../../types/StaffList";
-import StaffAddMemberDialog from "../StaffAddMemberDialog/StaffAddMemberDialog";
+import StaffAddMemberDialog, {
+  FormData as AddStaffMemberForm
+} from "../StaffAddMemberDialog/StaffAddMemberDialog";
 import StaffList from "../StaffList/StaffList";
 
-export interface StaffListPageProps extends PageListProps {
+export interface StaffListPageProps extends ListProps {
+  errors: UserError[];
   staffMembers: Array<Omit<StaffList_staffUsers_edges_node, "__typename">>;
+  onAdd: (data: AddStaffMemberForm) => void;
 }
 
 const StaffListPage: React.StatelessComponent<StaffListPageProps> = ({
   disabled,
+  errors,
   pageInfo,
   staffMembers,
   onAdd,
@@ -47,6 +52,7 @@ const StaffListPage: React.StatelessComponent<StaffListPageProps> = ({
           onRowClick={onRowClick}
         />
         <StaffAddMemberDialog
+          errors={errors}
           open={openedAddStaffMemberDialog}
           onClose={toggleAddStaffMemberDialog}
           onConfirm={onAdd}

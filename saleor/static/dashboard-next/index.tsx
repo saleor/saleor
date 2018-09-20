@@ -26,6 +26,7 @@ import OrdersSection from "./orders";
 import PageSection from "./pages";
 import ProductSection from "./products";
 import ProductTypesSection from "./productTypes";
+import StaffSection from "./staff";
 import theme from "./theme";
 
 const cookies = new Cookies();
@@ -96,6 +97,7 @@ render(
                           path="/productTypes"
                           component={ProductTypesSection}
                         />
+                        <Route path="/staff" component={StaffSection} />
                         <Route
                           exact
                           path="/configuration"

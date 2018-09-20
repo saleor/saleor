@@ -8,15 +8,17 @@ import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
+import { UserError } from "../../..";
 import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
 import Form from "../../../components/Form";
 import i18n from "../../../i18n";
 
-interface FormData {
+export interface FormData {
   email: string;
   fullAccess: boolean;
 }
 interface StaffAddMemberDialogProps {
+  errors: UserError[];
   open: boolean;
   onClose: () => void;
   onConfirm: (data: FormData) => void;
@@ -41,20 +43,22 @@ const decorate = withStyles(theme => ({
   }
 }));
 const StaffAddMemberDialog = decorate<StaffAddMemberDialogProps>(
-  ({ classes, open, onClose, onConfirm }) => (
+  ({ classes, errors, open, onClose, onConfirm }) => (
     <Dialog open={open}>
-      <Form initial={initialForm} onSubmit={onConfirm}>
-        {({ change, data, hasChanged }) => (
+      <Form errors={errors} initial={initialForm} onSubmit={onConfirm}>
+        {({ change, data, errors: formErrors, hasChanged }) => (
           <>
             <DialogTitle>{i18n.t("Add Staff Member")}</DialogTitle>
             <DialogContent>
               <TextField
+                error={!!formErrors.email}
                 fullWidth
+                helperText={formErrors.email}
                 label={i18n.t("E-mail")}
                 name="email"
-                onChange={change}
                 type="email"
                 value={data.email}
+                onChange={change}
               />
             </DialogContent>
             <hr className={classes.hr} />

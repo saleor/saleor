@@ -11,6 +11,7 @@ import Navigation from "../icons/Navigation";
 import Pages from "../icons/Pages";
 import StoreMall from "../icons/StoreMall";
 import { productTypeListUrl } from "../productTypes";
+import { staffListUrl } from "../staff";
 import ConfigurationPage from "./ConfigurationPage";
 
 export const configurationMenu = [
@@ -30,7 +31,8 @@ export const configurationMenu = [
     description: i18n.t("Manage your employees and their permissions"),
     disabled: true,
     icon: <AccountCircle fontSize="inherit" />,
-    title: i18n.t("Staff Members")
+    title: i18n.t("Staff Members"),
+    url: staffListUrl
   },
   {
     description: i18n.t("Manage how you ship out orders."),
