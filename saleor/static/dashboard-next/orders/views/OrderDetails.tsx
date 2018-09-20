@@ -18,6 +18,7 @@ import OrderOperations from "../containers/OrderOperations";
 import { OrderVariantSearchProvider } from "../containers/OrderVariantSearch";
 import { TypedOrderDetailsQuery } from "../queries";
 import { OrderAddNote } from "../types/OrderAddNote";
+import { OrderDraftUpdate } from "../types/OrderDraftUpdate";
 import { OrderUpdate } from "../types/OrderUpdate";
 
 interface OrderDetailsProps {
@@ -109,6 +110,17 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             });
                           }
                         };
+                        const handleDraftUpdate = (data: OrderDraftUpdate) => {
+                          if (
+                            !maybe(() => data.draftOrderUpdate.errors.length)
+                          ) {
+                            pushMessage({
+                              text: i18n.t("Order succesfully updated", {
+                                context: "notification"
+                              })
+                            });
+                          }
+                        };
                         return (
                           <OrderOperations
                             order={id}
@@ -120,6 +132,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             onPaymentCapture={handlePaymentCapture}
                             onPaymentRefund={handlePaymentRefund}
                             onUpdate={handleUpdate}
+                            onDraftUpdate={handleDraftUpdate}
                           >
                             {({
                               errors,
