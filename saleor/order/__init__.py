@@ -80,7 +80,7 @@ class OrderEvents(Enum):
     FULFILLMENT_CANCELED = 'fulfillment_canceled'
     FULFILLMENT_RESTOCKED_ITEMS = 'restocked_items'
     FULFILLMENT_FULFILLED_ITEMS = 'fulfilled_items'
-
+    TRACKING_UPDATED = 'tracking_updated'
     NOTE_ADDED = 'note_added'
 
     # Used mostly for importing legacy data from before Enum-based events
@@ -191,6 +191,14 @@ def display_order_event(order_event):
             'Dashboard message related to an order',
             'Order details were updated by %(user_name)s' % {
                 'user_name': order_event.user})
+    if event_type == OrderEvents.TRACKING_UPDATED.value:
+        return pgettext_lazy(
+            'Fulfillment #%(fulfillment)s tracking was updated to'
+            ' %(tracking_number)s by %(user_name)s') % {
+                'fulfillment': params['composed_id'],
+                'tracking_number': params['tracking_number'],
+                'user_name': order_event.user}
+
     if event_type == OrderEvents.OTHER.value:
         return order_event.parameters['message']
     raise ValueError('Not supported event type: %s' % (event_type))

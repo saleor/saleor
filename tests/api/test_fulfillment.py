@@ -10,22 +10,31 @@ from tests.utils import get_graphql_content
 def test_create_fulfillment(admin_api_client, order_with_lines, admin_user):
     order = order_with_lines
     query = """
-    mutation fulfillOrder(
-        $order: ID, $lines: [FulfillmentLineInput], $tracking: String,
-        $notify: Boolean) {
+        mutation fulfillOrder(
+            $order: ID, $lines: [FulfillmentLineInput]!, $tracking: String,
+            $notify: Boolean
+        ) {
             orderFulfillmentCreate(
-                order: $order, input: {lines: $lines,
-                trackingNumber: $tracking, notifyCustomer: $notify}) {
-                    fulfillment {
-                        fulfillmentOrder
-                        status
-                        trackingNumber
-                        lines {
-                            totalCount
-                        }
-                    }
+                order: $order,
+                input: {
+                    lines: $lines, trackingNumber: $tracking,
+                    notifyCustomer: $notify}
+            ) {
+                errors {
+                    field
+                    message
                 }
+                fulfillment {
+                    fulfillmentOrder
+                    status
+                    trackingNumber
+                lines {
+                    totalCount
+                }
+            }
         }
+    }
+
     """
     order_id = graphene.Node.to_global_id('Order', order.id)
     order_line = order.lines.first()
