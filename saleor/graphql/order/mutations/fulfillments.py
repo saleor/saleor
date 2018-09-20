@@ -116,11 +116,10 @@ class FulfillmentCreate(BaseMutation):
             parameters={'quantity': sum(quantities)},
             type=OrderEvents.FULFILLMENT_FULFILLED_ITEMS.value,
             user=user)
-
         if cleaned_input.get('notify_customer'):
             send_fulfillment_confirmation_to_customer(
                 order, fulfillment, user)
-        return FulfillmentCreate(fulfillment=fulfillment, order=order)
+        return fulfillment
 
     @classmethod
     @permission_required('order.manage_orders')
@@ -135,8 +134,10 @@ class FulfillmentCreate(BaseMutation):
         cleaned_input = cls.clean_input(input, errors)
         if errors:
             return cls(errors=errors)
-        cls.save(info.context.user, fulfillment, order, cleaned_input)
-        return FulfillmentCreate(fulfillment=fulfillment, order=order)
+        fulfillment = cls.save(
+            info.context.user, fulfillment, order, cleaned_input)
+        return FulfillmentCreate(
+            fulfillment=fulfillment, order=fulfillment.order)
 
 
 class FulfillmentUpdateTracking(BaseMutation):
