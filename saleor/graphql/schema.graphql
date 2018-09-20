@@ -560,6 +560,17 @@ type DraftOrderCreate {
   order: Order
 }
 
+input DraftOrderCreateInput {
+  billingAddress: AddressInput
+  user: ID
+  userEmail: String
+  discount: Decimal
+  shippingAddress: AddressInput
+  shippingMethod: ID
+  voucher: ID
+  lines: [OrderLineCreateInput]
+}
+
 type DraftOrderDelete {
   errors: [Error]
   order: Order
@@ -570,10 +581,27 @@ input DraftOrderInput {
   user: ID
   userEmail: String
   discount: Decimal
-  lines: [OrderLineInput]
   shippingAddress: AddressInput
   shippingMethod: ID
   voucher: ID
+}
+
+type DraftOrderLineCreate {
+  errors: [Error]
+  order: Order
+  orderLine: OrderLine
+}
+
+type DraftOrderLineDelete {
+  errors: [Error]
+  order: Order
+  orderLine: OrderLine
+}
+
+type DraftOrderLineUpdate {
+  errors: [Error]
+  order: Order
+  orderLine: OrderLine
 }
 
 type DraftOrderUpdate {
@@ -815,9 +843,12 @@ type Mutations {
   menuItemCreate(input: MenuItemCreateInput!): MenuItemCreate
   menuItemDelete(id: ID!): MenuItemDelete
   menuItemUpdate(id: ID!, input: MenuItemInput!): MenuItemUpdate
-  draftOrderCreate(input: DraftOrderInput!): DraftOrderCreate
+  draftOrderCreate(input: DraftOrderCreateInput!): DraftOrderCreate
   draftOrderComplete(id: ID!): DraftOrderComplete
   draftOrderDelete(id: ID!): DraftOrderDelete
+  draftOrderLineCreate(id: ID!, input: OrderLineCreateInput!): DraftOrderLineCreate
+  draftOrderLineDelete(id: ID!): DraftOrderLineDelete
+  draftOrderLineUpdate(id: ID!, input: OrderLineInput!): DraftOrderLineUpdate
   draftOrderUpdate(id: ID!, input: DraftOrderInput!): DraftOrderUpdate
   fulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
   fulfillmentCreate(input: FulfillmentCreateInput!): FulfillmentCreate
@@ -1011,9 +1042,13 @@ type OrderLineCountableEdge {
   cursor: String!
 }
 
+input OrderLineCreateInput {
+  quantity: Int!
+  variantId: ID!
+}
+
 input OrderLineInput {
-  variantId: ID
-  quantity: Int
+  quantity: Int!
 }
 
 type OrderMarkAsPaid {
