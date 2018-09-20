@@ -229,4 +229,5 @@ export interface OrderCancel {
 
 export interface OrderCancelVariables {
   id: string;
+  restock: boolean;
 }

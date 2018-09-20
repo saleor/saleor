@@ -174,7 +174,12 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                   []
                                 )}
                                 user={user}
-                                onOrderCancel={() => orderCancel.mutate({ id })}
+                                onOrderCancel={variables =>
+                                  orderCancel.mutate({
+                                    id,
+                                    ...variables
+                                  })
+                                }
                                 onOrderFulfill={variables =>
                                   orderCreateFulfillment.mutate({
                                     input: {

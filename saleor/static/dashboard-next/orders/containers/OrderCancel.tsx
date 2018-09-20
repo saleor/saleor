@@ -1,10 +1,7 @@
 import * as React from "react";
 
-import {
-  OrderCancelMutation,
-  OrderCancelMutationVariables
-} from "../../gql-types";
 import { TypedOrderCancelMutation } from "../mutations";
+import { OrderCancel, OrderCancelVariables } from "../types/OrderCancel";
 
 import {
   PartialMutationProviderProps,
@@ -12,10 +9,10 @@ import {
 } from "../..";
 
 interface OrderCancelMutationProviderProps
-  extends PartialMutationProviderProps<OrderCancelMutation> {
+  extends PartialMutationProviderProps<OrderCancel> {
   children: PartialMutationProviderRenderProps<
-    OrderCancelMutation,
-    OrderCancelMutationVariables
+    OrderCancel,
+    OrderCancelVariables
   >;
 }
 
