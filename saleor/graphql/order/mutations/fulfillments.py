@@ -6,25 +6,18 @@ from ....dashboard.order.utils import fulfill_order_line
 from ....order import OrderEvents, OrderEventsEmails, models
 from ....order.emails import send_fulfillment_confirmation
 from ....order.utils import cancel_fulfillment, update_order_status
-from ...core.mutations import BaseMutation, ModelMutation
+from ...core.mutations import BaseMutation
 from ...order.types import Fulfillment, Order
-from ...utils import get_nodes
 from ..types import OrderLine
 
 
-def clean_lines_quantities(order_lines, quantities):
-    errors = []
-    for order_line, quantity in zip(order_lines, quantities):
-        if quantity > order_line.quantity_unfulfilled:
-            msg = npgettext_lazy(
-                'Fulfill order line mutation error',
-                '%(quantity)d item remaining to fulfill.',
-                '%(quantity)d items remaining to fulfill.',
-                'quantity') % {
-                    'quantity': order_line.quantity_unfulfilled,
-                    'order_line': order_line}
-            errors.append((order_line.variant.name, msg))
-    return errors
+def send_fulfillment_confirmation_to_customer(order, fulfillment, user):
+    send_fulfillment_confirmation.delay(order.pk, fulfillment.pk)
+    order.events.create(
+        parameters={
+            'email': order.get_user_current_email(),
+            'email_type': OrderEventsEmails.FULFILLMENT.value},
+        type=OrderEvents.EMAIL_SENT.value, user=user)
 
 
 class FulfillmentLineInput(graphene.InputObjectType):
@@ -40,7 +33,8 @@ class FulfillmentCreateInput(graphene.InputObjectType):
     notify_customer = graphene.Boolean(
         description='If true, send an email notification to the customer.')
     lines = graphene.List(
-        FulfillmentLineInput, description='Item line to be fulfilled.')
+        FulfillmentLineInput, required=True,
+        description='Item line to be fulfilled.')
 
 
 class FulfillmentUpdateTrackingInput(graphene.InputObjectType):
@@ -54,7 +48,7 @@ class FulfillmentCancelInput(graphene.InputObjectType):
     restock = graphene.Boolean(description='Whether item lines are restocked.')
 
 
-class FulfillmentCreate(ModelMutation):
+class FulfillmentCreate(BaseMutation):
     fulfillment = graphene.Field(
         Fulfillment, description='A created fulfillment.')
     order = graphene.Field(
@@ -69,76 +63,85 @@ class FulfillmentCreate(ModelMutation):
 
     class Meta:
         description = 'Creates a new fulfillment for an order.'
-        model = models.Fulfillment
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        lines = input.pop('lines', None)
-        cleaned_input = super().clean_input(info, instance, input, errors)
-        if lines:
-            lines_ids = [line.get('order_line_id') for line in lines]
-            quantities = [line.get('quantity') for line in lines]
-            order_lines = get_nodes(
-                ids=lines_ids, graphene_type=OrderLine)
-            line_errors = clean_lines_quantities(order_lines, quantities)
-            if line_errors:
-                for err in line_errors:
-                    cls.add_error(errors, field=err[0], message=err[1])
-            else:
-                cleaned_input['order_lines'] = order_lines
-                cleaned_input['quantities'] = quantities
-        return cleaned_input
+    def clean_lines(cls, order_lines, quantities, errors):
+        for order_line, quantity in zip(order_lines, quantities):
+            if quantity <= 0:
+                cls.add_error(
+                    errors, order_line,
+                    'Quantity must be larger than 0.')
+            elif quantity > order_line.quantity_unfulfilled:
+                msg = npgettext_lazy(
+                    'Fulfill order line mutation error',
+                    '%(quantity)d item remaining to fulfill.',
+                    '%(quantity)d items remaining to fulfill.',
+                    'quantity') % {
+                        'quantity': order_line.quantity_unfulfilled,
+                        'order_line': order_line}
+                cls.add_error(errors, order_line.variant.name, msg)
+        return errors
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('order.manage_orders')
+    def clean_input(cls, input, errors):
+        lines = input['lines']
+        quantities = [line['quantity'] for line in lines]
+        lines_ids = [line['order_line_id'] for line in lines]
+        order_lines = cls.get_nodes_or_error(
+            lines_ids, errors, 'lines', OrderLine)
+
+        cls.clean_lines(order_lines, quantities, errors)
+        if errors:
+            return cls(errors=errors)
+        else:
+            input['order_lines'] = order_lines
+            input['quantities'] = quantities
+        return input
 
     @classmethod
-    def construct_instance(cls, instance, cleaned_data):
-        instance.order = cleaned_data.get('order') or instance.order
-        return super().construct_instance(instance, cleaned_data)
-
-    @classmethod
-    def save(cls, info, instance, cleaned_input):
+    def save(cls, user, fulfillment, order, cleaned_input):
+        fulfillment.save()
         order_lines = cleaned_input.get('order_lines')
         quantities = cleaned_input.get('quantities')
-        super().save(info, instance, cleaned_input)
-        order = instance.order
-        if order_lines and quantities:
-            quantity_fulfilled = 0
-            lines_to_fulfill = [
-                (order_line, quantity) for order_line, quantity
-                in zip(order_lines, quantities) if quantity > 0]
-            for line in lines_to_fulfill:
-                order_line = line[0]
-                quantity = line[1]
-                fulfill_order_line(order_line, quantity)
-                quantity_fulfilled += quantity
-            fulfillment_lines = [
+
+        fulfillment_lines = []
+        for order_line, quantity in zip(order_lines, quantities):
+            fulfill_order_line(order_line, quantity)
+            fulfillment_lines.append(
                 models.FulfillmentLine(
-                    order_line=line[0],
-                    fulfillment=instance,
-                    quantity=line[1]) for line in lines_to_fulfill]
-            models.FulfillmentLine.objects.bulk_create(fulfillment_lines)
-            update_order_status(order)
-            order.events.create(
-                parameters={'quantity': quantity_fulfilled},
-                type=OrderEvents.FULFILLMENT_FULFILLED_ITEMS.value,
-                user=info.context.user)
-        super().save(info, instance, cleaned_input)
+                    order_line=order_line, fulfillment=fulfillment,
+                    quantity=quantity))
+
+        fulfillment.lines.bulk_create(fulfillment_lines)
+        update_order_status(order)
+        order.events.create(
+            parameters={'quantity': sum(quantities)},
+            type=OrderEvents.FULFILLMENT_FULFILLED_ITEMS.value,
+            user=user)
 
         if cleaned_input.get('notify_customer'):
-            send_fulfillment_confirmation.delay(order.pk, instance.pk)
-            order.events.create(
-                parameters={
-                    'email': order.get_user_current_email(),
-                    'email_type': OrderEventsEmails.FULFILLMENT.value},
-                type=OrderEvents.EMAIL_SENT.value,
-                user=info.context.user)
-        return FulfillmentCreate(fulfillment=instance, order=order)
+            send_fulfillment_confirmation_to_customer(
+                order, fulfillment, user)
+        return FulfillmentCreate(fulfillment=fulfillment, order=order)
+
+    @classmethod
+    @permission_required('order.manage_orders')
+    def mutate(cls, root, info, order, input):
+        errors = []
+        order = cls.get_node_or_error(
+            info, order, errors, 'order', Order)
+        if errors:
+            return cls(errors=errors)
+        fulfillment = models.Fulfillment(
+            tracking_number=input.pop('tracking_number') or '', order=order)
+        cleaned_input = cls.clean_input(input, errors)
+        if errors:
+            return cls(errors=errors)
+        cls.save(info.context.user, fulfillment, order, cleaned_input)
+        return FulfillmentCreate(fulfillment=fulfillment, order=order)
 
 
-class FulfillmentUpdateTracking(FulfillmentCreate):
+class FulfillmentUpdateTracking(BaseMutation):
     fulfillment = graphene.Field(
         Fulfillment, description='A fulfillment with updated tracking.')
     order = graphene.Field(
@@ -153,7 +156,26 @@ class FulfillmentUpdateTracking(FulfillmentCreate):
 
     class Meta:
         description = 'Updates a fulfillment for an order.'
-        model = models.Fulfillment
+
+    @classmethod
+    @permission_required('order.manage_orders')
+    def mutate(cls, root, info, id, input):
+        errors = []
+        fulfillment = cls.get_node_or_error(
+            info, id, errors, 'id', Fulfillment)
+        if errors:
+            return cls(errors=errors)
+        tracking_number = input.get('tracking_number')
+        fulfillment.tracking_number = input.get('tracking_number')
+        fulfillment.save()
+        order = fulfillment.order
+        order.events.create(
+            parameters={
+                'tracking_numner': tracking_number,
+                'fulfillment': fulfillment.composed_id},
+            type=OrderEvents.TRACKING_UPDATED.value,
+            user=info.context.user)
+        return FulfillmentUpdateTracking(fulfillment=fulfillment, order=order)
 
 
 class FulfillmentCancel(BaseMutation):
