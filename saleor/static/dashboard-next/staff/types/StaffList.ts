@@ -5,6 +5,17 @@
 // GraphQL query operation: StaffList
 // ====================================================
 
+export interface StaffList_shop_permissions {
+  __typename: "PermissionDisplay";
+  code: string;
+  name: string;
+}
+
+export interface StaffList_shop {
+  __typename: "Shop";
+  permissions: (StaffList_shop_permissions | null)[];
+}
+
 export interface StaffList_staffUsers_edges_node {
   __typename: "User";
   id: string;
@@ -33,6 +44,7 @@ export interface StaffList_staffUsers {
 }
 
 export interface StaffList {
+  shop: StaffList_shop | null;
   staffUsers: StaffList_staffUsers | null;
 }
 

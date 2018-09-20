@@ -68,6 +68,7 @@ const StaffList = decorate<StaffListProps>(
                   [classes.tableRow]: !!staffMember
                 })}
                 hover={!!staffMember}
+                onClick={!!staffMember ? onRowClick(staffMember.id) : undefined}
                 key={staffMember ? staffMember.id : "skeleton"}
               >
                 <TableCell>

@@ -26,6 +26,12 @@ export const staffMemberDetailsFragment = gql`
 const staffList = gql`
   ${staffMemberFragment}
   query StaffList($first: Int, $after: String, $last: Int, $before: String) {
+    shop {
+      permissions {
+        code
+        name
+      }
+    }
     staffUsers(before: $before, after: $after, first: $first, last: $last) {
       edges {
         cursor
