@@ -3654,11 +3654,8 @@ exports[`Storyshots Generics / Skeleton default 1`] = `
 exports[`Storyshots Generics / StatusLabel when error 1`] = `
 <div>
   <div
-    class="Component-root-id"
+    class="Component-root-id undefined Component-errorDot-id"
   >
-    <span
-      class="Component-errorDot-id"
-    />
     Example label
   </div>
 </div>
@@ -3667,11 +3664,8 @@ exports[`Storyshots Generics / StatusLabel when error 1`] = `
 exports[`Storyshots Generics / StatusLabel when neutral 1`] = `
 <div>
   <div
-    class="Component-root-id"
+    class="Component-root-id undefined Component-neutralDot-id"
   >
-    <span
-      class="Component-neutralDot-id"
-    />
     Example label
   </div>
 </div>
@@ -3680,11 +3674,8 @@ exports[`Storyshots Generics / StatusLabel when neutral 1`] = `
 exports[`Storyshots Generics / StatusLabel when success 1`] = `
 <div>
   <div
-    class="Component-root-id"
+    class="Component-root-id undefined Component-successDot-id"
   >
-    <span
-      class="Component-successDot-id"
-    />
     Example label
   </div>
 </div>
@@ -5399,11 +5390,8 @@ exports[`Storyshots Orders / OrderSummary order cancelled 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id"
+        class="Component-root-id undefined Component-errorDot-id"
       >
-        <span
-          class="Component-errorDot-id"
-        />
         <span
           class="MuiTypography-root-id MuiTypography-body1-id Component-span-id"
         >
@@ -5627,38 +5615,6 @@ exports[`Storyshots Orders / OrderSummary order cancelled 1`] = `
         />
       </tbody>
     </table>
-    <div
-      class="MuiCardActions-root-id"
-    >
-      <button
-        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiButton-label-id"
-        >
-          Invoice
-        </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
-      </button>
-      <button
-        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiButton-label-id"
-        >
-          Refund
-        </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
-      </button>
-    </div>
   </div>
 </div>
 `;
@@ -5699,11 +5655,8 @@ exports[`Storyshots Orders / OrderSummary order draft 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id"
+        class="Component-root-id undefined Component-errorDot-id"
       >
-        <span
-          class="Component-errorDot-id"
-        />
         <span
           class="MuiTypography-root-id MuiTypography-body1-id Component-span-id"
         >
@@ -5934,11 +5887,8 @@ exports[`Storyshots Orders / OrderSummary order fulfilled 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id"
+        class="Component-root-id undefined Component-successDot-id"
       >
-        <span
-          class="Component-successDot-id"
-        />
         <span
           class="MuiTypography-root-id MuiTypography-body1-id Component-span-id"
         >
@@ -6173,34 +6123,6 @@ exports[`Storyshots Orders / OrderSummary order fulfilled 1`] = `
         <span
           class="MuiButton-label-id"
         >
-          Invoice
-        </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
-      </button>
-      <button
-        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiButton-label-id"
-        >
-          Refund
-        </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
-      </button>
-      <button
-        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiButton-label-id"
-        >
           Cancel order
         </span>
         <span
@@ -6233,11 +6155,8 @@ exports[`Storyshots Orders / OrderSummary order partially fulfilled 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id"
+        class="Component-root-id undefined Component-neutralDot-id"
       >
-        <span
-          class="Component-neutralDot-id"
-        />
         <span
           class="MuiTypography-root-id MuiTypography-body1-id Component-span-id"
         >
@@ -6472,35 +6391,7 @@ exports[`Storyshots Orders / OrderSummary order partially fulfilled 1`] = `
         <span
           class="MuiButton-label-id"
         >
-          Invoice
-        </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
-      </button>
-      <button
-        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiButton-label-id"
-        >
           Fulfill
-        </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
-      </button>
-      <button
-        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiButton-label-id"
-        >
-          Refund
         </span>
         <span
           class="MuiTouchRipple-root-id"
@@ -6546,11 +6437,8 @@ exports[`Storyshots Orders / OrderSummary order unfulfilled 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id"
+        class="Component-root-id undefined Component-errorDot-id"
       >
-        <span
-          class="Component-errorDot-id"
-        />
         <span
           class="MuiTypography-root-id MuiTypography-body1-id Component-span-id"
         >
@@ -6785,35 +6673,7 @@ exports[`Storyshots Orders / OrderSummary order unfulfilled 1`] = `
         <span
           class="MuiButton-label-id"
         >
-          Invoice
-        </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
-      </button>
-      <button
-        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiButton-label-id"
-        >
           Fulfill
-        </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
-      </button>
-      <button
-        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiButton-label-id"
-        >
-          Refund
         </span>
         <span
           class="MuiTouchRipple-root-id"
@@ -6859,11 +6719,8 @@ exports[`Storyshots Orders / OrderSummary payment confirmed 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id"
+        class="Component-root-id undefined Component-errorDot-id"
       >
-        <span
-          class="Component-errorDot-id"
-        />
         <span
           class="MuiTypography-root-id MuiTypography-body1-id Component-span-id"
         >
@@ -7098,34 +6955,6 @@ exports[`Storyshots Orders / OrderSummary payment confirmed 1`] = `
         <span
           class="MuiButton-label-id"
         >
-          Invoice
-        </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
-      </button>
-      <button
-        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiButton-label-id"
-        >
-          Refund
-        </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
-      </button>
-      <button
-        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiButton-label-id"
-        >
           Cancel order
         </span>
         <span
@@ -7158,11 +6987,8 @@ exports[`Storyshots Orders / OrderSummary payment error 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id"
+        class="Component-root-id undefined Component-errorDot-id"
       >
-        <span
-          class="Component-errorDot-id"
-        />
         <span
           class="MuiTypography-root-id MuiTypography-body1-id Component-span-id"
         >
@@ -7429,11 +7255,8 @@ exports[`Storyshots Orders / OrderSummary payment input 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id"
+        class="Component-root-id undefined Component-errorDot-id"
       >
-        <span
-          class="Component-errorDot-id"
-        />
         <span
           class="MuiTypography-root-id MuiTypography-body1-id Component-span-id"
         >
@@ -7700,11 +7523,8 @@ exports[`Storyshots Orders / OrderSummary payment preauth 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id"
+        class="Component-root-id undefined Component-errorDot-id"
       >
-        <span
-          class="Component-errorDot-id"
-        />
         <span
           class="MuiTypography-root-id MuiTypography-body1-id Component-span-id"
         >
@@ -7939,34 +7759,6 @@ exports[`Storyshots Orders / OrderSummary payment preauth 1`] = `
         <span
           class="MuiButton-label-id"
         >
-          Capture
-        </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
-      </button>
-      <button
-        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiButton-label-id"
-        >
-          Release
-        </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
-      </button>
-      <button
-        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiButton-label-id"
-        >
           Cancel order
         </span>
         <span
@@ -7999,11 +7791,8 @@ exports[`Storyshots Orders / OrderSummary payment refunded 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id"
+        class="Component-root-id undefined Component-errorDot-id"
       >
-        <span
-          class="Component-errorDot-id"
-        />
         <span
           class="MuiTypography-root-id MuiTypography-body1-id Component-span-id"
         >
@@ -8270,11 +8059,8 @@ exports[`Storyshots Orders / OrderSummary payment rejected 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id"
+        class="Component-root-id undefined Component-errorDot-id"
       >
-        <span
-          class="Component-errorDot-id"
-        />
         <span
           class="MuiTypography-root-id MuiTypography-body1-id Component-span-id"
         >
@@ -8541,11 +8327,8 @@ exports[`Storyshots Orders / OrderSummary payment waiting 1`] = `
       class="Component-children-id"
     >
       <div
-        class="Component-root-id"
+        class="Component-root-id undefined Component-errorDot-id"
       >
-        <span
-          class="Component-errorDot-id"
-        />
         <span
           class="MuiTypography-root-id MuiTypography-body1-id Component-span-id"
         >
@@ -13128,11 +12911,8 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                     class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
                     <div
-                      class="Component-root-id"
+                      class="Component-root-id undefined Component-successDot-id"
                     >
-                      <span
-                        class="Component-successDot-id"
-                      />
                       Published
                     </div>
                   </td>
@@ -13154,11 +12934,8 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                     class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
                     <div
-                      class="Component-root-id"
+                      class="Component-root-id undefined Component-errorDot-id"
                     >
-                      <span
-                        class="Component-errorDot-id"
-                      />
                       Not published
                     </div>
                   </td>
@@ -13180,11 +12957,8 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                     class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
                     <div
-                      class="Component-root-id"
+                      class="Component-root-id undefined Component-successDot-id"
                     >
-                      <span
-                        class="Component-successDot-id"
-                      />
                       Published
                     </div>
                   </td>
@@ -13206,11 +12980,8 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                     class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
                     <div
-                      class="Component-root-id"
+                      class="Component-root-id undefined Component-successDot-id"
                     >
-                      <span
-                        class="Component-successDot-id"
-                      />
                       Published
                     </div>
                   </td>
@@ -13232,11 +13003,8 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                     class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
                     <div
-                      class="Component-root-id"
+                      class="Component-root-id undefined Component-successDot-id"
                     >
-                      <span
-                        class="Component-successDot-id"
-                      />
                       Published
                     </div>
                   </td>
@@ -14083,11 +13851,8 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-successDot-id"
               >
-                <span
-                  class="Component-successDot-id"
-                />
                 Published
               </div>
             </td>
@@ -14109,11 +13874,8 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                <span
-                  class="Component-errorDot-id"
-                />
                 Not published
               </div>
             </td>
@@ -14135,11 +13897,8 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                <span
-                  class="Component-errorDot-id"
-                />
                 Not published
               </div>
             </td>
@@ -14161,11 +13920,8 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-successDot-id"
               >
-                <span
-                  class="Component-successDot-id"
-                />
                 Published
               </div>
             </td>
@@ -14187,11 +13943,8 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-successDot-id"
               >
-                <span
-                  class="Component-successDot-id"
-                />
                 Published
               </div>
             </td>
@@ -14213,11 +13966,8 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                <span
-                  class="Component-errorDot-id"
-                />
                 Not published
               </div>
             </td>
@@ -14239,11 +13989,8 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-successDot-id"
               >
-                <span
-                  class="Component-successDot-id"
-                />
                 Published
               </div>
             </td>
@@ -14265,11 +14012,8 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                <span
-                  class="Component-errorDot-id"
-                />
                 Not published
               </div>
             </td>
@@ -14291,11 +14035,8 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-successDot-id"
               >
-                <span
-                  class="Component-successDot-id"
-                />
                 Published
               </div>
             </td>
@@ -14317,11 +14058,8 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-successDot-id"
               >
-                <span
-                  class="Component-successDot-id"
-                />
                 Published
               </div>
             </td>
@@ -15016,11 +14754,8 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
               class="MuiTypography-root-id MuiTypography-body1-id"
             >
               <div
-                class="Component-root-id Component-status-id"
+                class="Component-root-id Component-status-id Component-successDot-id"
               >
-                <span
-                  class="Component-successDot-id"
-                />
                 Active
               </div>
             </span>
@@ -15190,11 +14925,8 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <div
-                    class="Component-root-id"
+                    class="Component-root-id undefined Component-errorDot-id"
                   >
-                    <span
-                      class="Component-errorDot-id"
-                    />
                     fulfilled
                   </div>
                 </td>
@@ -15229,11 +14961,8 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <div
-                    class="Component-root-id"
+                    class="Component-root-id undefined Component-errorDot-id"
                   >
-                    <span
-                      class="Component-errorDot-id"
-                    />
                     unfulfilled
                   </div>
                 </td>
@@ -15268,11 +14997,8 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <div
-                    class="Component-root-id"
+                    class="Component-root-id undefined Component-errorDot-id"
                   >
-                    <span
-                      class="Component-errorDot-id"
-                    />
                     fulfilled
                   </div>
                 </td>
@@ -15307,11 +15033,8 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <div
-                    class="Component-root-id"
+                    class="Component-root-id undefined Component-errorDot-id"
                   >
-                    <span
-                      class="Component-errorDot-id"
-                    />
                     fulfilled
                   </div>
                 </td>
@@ -15346,11 +15069,8 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <div
-                    class="Component-root-id"
+                    class="Component-root-id undefined Component-errorDot-id"
                   >
-                    <span
-                      class="Component-errorDot-id"
-                    />
                     fulfilled
                   </div>
                 </td>
@@ -15385,11 +15105,8 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <div
-                    class="Component-root-id"
+                    class="Component-root-id undefined Component-errorDot-id"
                   >
-                    <span
-                      class="Component-errorDot-id"
-                    />
                     unfulfilled
                   </div>
                 </td>
@@ -17079,11 +16796,8 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
             class="Component-children-id"
           >
             <div
-              class="Component-root-id"
+              class="Component-root-id undefined Component-errorDot-id"
             >
-              <span
-                class="Component-errorDot-id"
-              />
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-span-id"
               >
@@ -17822,11 +17536,8 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
             class="Component-children-id"
           >
             <div
-              class="Component-root-id"
+              class="Component-root-id undefined Component-errorDot-id"
             >
-              <span
-                class="Component-errorDot-id"
-              />
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-span-id"
               >
@@ -18140,11 +17851,8 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
             class="Component-children-id"
           >
             <div
-              class="Component-root-id"
+              class="Component-root-id undefined Component-errorDot-id"
             >
-              <span
-                class="Component-errorDot-id"
-              />
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-span-id"
               >
@@ -18268,11 +17976,8 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
             class="Component-children-id"
           >
             <div
-              class="Component-root-id"
+              class="Component-root-id undefined Component-errorDot-id"
             >
-              <span
-                class="Component-errorDot-id"
-              />
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-span-id"
               >
@@ -18857,11 +18562,8 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
             class="Component-children-id"
           >
             <div
-              class="Component-root-id"
+              class="Component-root-id undefined Component-errorDot-id"
             >
-              <span
-                class="Component-errorDot-id"
-              />
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-span-id"
               >
@@ -19104,34 +18806,6 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
               <span
                 class="MuiButton-label-id"
               >
-                Invoice
-              </span>
-              <span
-                class="MuiTouchRipple-root-id"
-              />
-            </button>
-            <button
-              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id"
-              tabindex="0"
-              type="button"
-            >
-              <span
-                class="MuiButton-label-id"
-              >
-                Refund
-              </span>
-              <span
-                class="MuiTouchRipple-root-id"
-              />
-            </button>
-            <button
-              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id"
-              tabindex="0"
-              type="button"
-            >
-              <span
-                class="MuiButton-label-id"
-              >
                 Cancel order
               </span>
               <span
@@ -19175,11 +18849,8 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
             class="Component-children-id"
           >
             <div
-              class="Component-root-id"
+              class="Component-root-id undefined Component-errorDot-id"
             >
-              <span
-                class="Component-errorDot-id"
-              />
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-span-id"
               >
@@ -19303,11 +18974,8 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
             class="Component-children-id"
           >
             <div
-              class="Component-root-id"
+              class="Component-root-id undefined Component-errorDot-id"
             >
-              <span
-                class="Component-errorDot-id"
-              />
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-span-id"
               >
@@ -20577,11 +20245,8 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                <span
-                  class="Component-errorDot-id"
-                />
                 fulfilled
               </div>
             </td>
@@ -20607,12 +20272,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined"
               >
-                <span
-                  class="Component-successDot-id"
-                />
-                Confirmed
+                confirmed
               </div>
             </td>
             <td
@@ -20633,11 +20295,8 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                <span
-                  class="Component-errorDot-id"
-                />
                 unfulfilled
               </div>
             </td>
@@ -20663,12 +20322,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined"
               >
-                <span
-                  class="Component-successDot-id"
-                />
-                Confirmed
+                confirmed
               </div>
             </td>
             <td
@@ -20689,11 +20345,8 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                <span
-                  class="Component-errorDot-id"
-                />
                 fulfilled
               </div>
             </td>
@@ -20719,12 +20372,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined"
               >
-                <span
-                  class="Component-errorDot-id"
-                />
-                Rejected
+                rejected
               </div>
             </td>
             <td
@@ -20745,11 +20395,8 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                <span
-                  class="Component-errorDot-id"
-                />
                 fulfilled
               </div>
             </td>
@@ -20775,11 +20422,8 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined"
               >
-                <span
-                  class="Component-errorDot-id"
-                />
                 unknown
               </div>
             </td>
@@ -20801,11 +20445,8 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                <span
-                  class="Component-errorDot-id"
-                />
                 fulfilled
               </div>
             </td>
@@ -20831,12 +20472,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined"
               >
-                <span
-                  class="Component-neutralDot-id"
-                />
-                Waiting for confirmation
+                waiting
               </div>
             </td>
             <td
@@ -20857,11 +20495,8 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                <span
-                  class="Component-errorDot-id"
-                />
                 unfulfilled
               </div>
             </td>
@@ -20887,12 +20522,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined"
               >
-                <span
-                  class="Component-errorDot-id"
-                />
-                Rejected
+                rejected
               </div>
             </td>
             <td
@@ -22057,11 +21689,8 @@ exports[`Storyshots Views / Pages / Page list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-successDot-id"
               >
-                <span
-                  class="Component-successDot-id"
-                />
                 Published
               </div>
             </td>
@@ -22083,11 +21712,8 @@ exports[`Storyshots Views / Pages / Page list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                <span
-                  class="Component-errorDot-id"
-                />
                 Not published
               </div>
             </td>
@@ -26993,11 +26619,8 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                       class="MuiTableCell-root-id MuiTableCell-body-id"
                     >
                       <div
-                        class="Component-root-id"
+                        class="Component-root-id undefined Component-successDot-id"
                       >
-                        <span
-                          class="Component-successDot-id"
-                        />
                         Available
                       </div>
                     </td>
@@ -27019,11 +26642,8 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                       class="MuiTableCell-root-id MuiTableCell-body-id"
                     >
                       <div
-                        class="Component-root-id"
+                        class="Component-root-id undefined Component-successDot-id"
                       >
-                        <span
-                          class="Component-successDot-id"
-                        />
                         Available
                       </div>
                     </td>
@@ -28756,11 +28376,8 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
                       class="MuiTableCell-root-id MuiTableCell-body-id"
                     >
                       <div
-                        class="Component-root-id"
+                        class="Component-root-id undefined Component-successDot-id"
                       >
-                        <span
-                          class="Component-successDot-id"
-                        />
                         Available
                       </div>
                     </td>
@@ -28782,11 +28399,8 @@ exports[`Storyshots Views / Products / Product edit when product has no images 1
                       class="MuiTableCell-root-id MuiTableCell-body-id"
                     >
                       <div
-                        class="Component-root-id"
+                        class="Component-root-id undefined Component-successDot-id"
                       >
-                        <span
-                          class="Component-successDot-id"
-                        />
                         Available
                       </div>
                     </td>
@@ -31258,11 +30872,8 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-successDot-id"
               >
-                <span
-                  class="Component-successDot-id"
-                />
                 Published
               </div>
             </td>
@@ -31301,11 +30912,8 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-successDot-id"
               >
-                <span
-                  class="Component-successDot-id"
-                />
                 Published
               </div>
             </td>
@@ -31344,11 +30952,8 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                <span
-                  class="Component-errorDot-id"
-                />
                 Not published
               </div>
             </td>
@@ -31387,11 +30992,8 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                <span
-                  class="Component-errorDot-id"
-                />
                 Not published
               </div>
             </td>
@@ -31430,11 +31032,8 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-successDot-id"
               >
-                <span
-                  class="Component-successDot-id"
-                />
                 Published
               </div>
             </td>
@@ -31473,11 +31072,8 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                <span
-                  class="Component-errorDot-id"
-                />
                 Not published
               </div>
             </td>
@@ -31516,11 +31112,8 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                <span
-                  class="Component-errorDot-id"
-                />
                 Not published
               </div>
             </td>
@@ -31559,11 +31152,8 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                <span
-                  class="Component-errorDot-id"
-                />
                 Not published
               </div>
             </td>
@@ -31602,11 +31192,8 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-successDot-id"
               >
-                <span
-                  class="Component-successDot-id"
-                />
                 Published
               </div>
             </td>
@@ -31645,11 +31232,8 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                <span
-                  class="Component-errorDot-id"
-                />
                 Not published
               </div>
             </td>

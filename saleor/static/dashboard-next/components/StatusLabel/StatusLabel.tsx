@@ -14,45 +14,44 @@ interface StatusLabelProps {
 const decorate = withStyles(theme => {
   const dot = {
     borderRadius: "100%",
-    display: "inline-block",
-    height: theme.spacing.unit,
-    marginBottom: 1,
-    marginRight: theme.spacing.unit,
-    width: theme.spacing.unit
+    content: "''",
+    display: "block",
+    height: 8,
+    left: -theme.spacing.unit * 2,
+    position: "absolute" as "absolute",
+    top: "calc(50% - 5px)",
+    width: 8
   };
   return {
     errorDot: {
-      ...dot,
-      backgroundColor: theme.palette.error.main
+      "&:before": { backgroundColor: theme.palette.error.main, ...dot }
     },
     neutralDot: {
-      ...dot,
-      backgroundColor: yellow[500]
+      "&:before": { backgroundColor: yellow[500], ...dot }
     },
     root: {
-      display: "inline-block"
+      display: "inline",
+      position: "relative" as "relative"
     },
     span: {
       display: "inline"
     },
     successDot: {
-      ...dot,
-      backgroundColor: theme.palette.primary.main
+      "&:before": { backgroundColor: theme.palette.primary.main, ...dot }
     }
   };
 });
 const StatusLabel = decorate<StatusLabelProps>(
   ({ classes, className, label, status, typographyProps }) => (
-    <div className={classNames(classes.root, className)}>
-      <span
-        className={
-          status === "success"
-            ? classes.successDot
-            : status === "neutral"
-              ? classes.neutralDot
-              : classes.errorDot
-        }
-      />
+    <div
+      className={classNames({
+        [classes.root]: true,
+        [className]: true,
+        [classes.successDot]: status === "success",
+        [classes.neutralDot]: status === "neutral",
+        [classes.errorDot]: status === "error"
+      })}
+    >
       {typographyProps ? (
         <Typography
           component="span"

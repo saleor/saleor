@@ -15,7 +15,7 @@ import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
-import { renderCollection } from "../../../misc";
+import { maybe, renderCollection } from "../../../misc";
 
 interface OrderListProps extends ListProps {
   orders?: Array<{
@@ -124,11 +124,13 @@ export const OrderList = decorate<OrderListProps>(
                   )}
                 </TableCell>
                 <TableCell>
-                  {order && order.paymentStatus ? (
-                    <StatusLabel
-                      status={order.paymentStatus.status}
-                      label={order.paymentStatus.localized}
-                    />
+                  {maybe(() => order.paymentStatus.status) !== undefined ? (
+                    order.paymentStatus.status === null ? null : (
+                      <StatusLabel
+                        status={order.paymentStatus.status}
+                        label={order.paymentStatus.localized}
+                      />
+                    )
                   ) : (
                     <Skeleton />
                   )}
