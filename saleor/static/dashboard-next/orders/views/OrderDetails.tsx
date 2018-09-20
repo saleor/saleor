@@ -19,6 +19,7 @@ import { OrderVariantSearchProvider } from "../containers/OrderVariantSearch";
 import { TypedOrderDetailsQuery } from "../queries";
 import { OrderAddNote } from "../types/OrderAddNote";
 import { OrderDraftUpdate } from "../types/OrderDraftUpdate";
+import { OrderShippingMethodUpdate } from "../types/OrderShippingMethodUpdate";
 import { OrderUpdate } from "../types/OrderUpdate";
 
 interface OrderDetailsProps {
@@ -121,6 +122,22 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             });
                           }
                         };
+                        const handleShippingMethodUpdate = (
+                          data: OrderShippingMethodUpdate
+                        ) => {
+                          if (
+                            !maybe(() => data.orderUpdateShipping.errors.length)
+                          ) {
+                            pushMessage({
+                              text: i18n.t(
+                                "Shipping method succesfully updated",
+                                {
+                                  context: "notification"
+                                }
+                              )
+                            });
+                          }
+                        };
                         return (
                           <OrderOperations
                             order={id}
@@ -133,16 +150,17 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             onPaymentRefund={handlePaymentRefund}
                             onUpdate={handleUpdate}
                             onDraftUpdate={handleDraftUpdate}
+                            onShippingMethodUpdate={handleShippingMethodUpdate}
                           >
                             {({
                               errors,
                               orderAddNote,
                               orderCancel,
                               orderCreateFulfillment,
-                              orderDraftUpdate,
                               orderPaymentCapture,
                               orderPaymentRefund,
                               orderRelease,
+                              orderShippingMethodUpdate,
                               orderUpdate
                             }) => (
                               <OrderDetailsPage
@@ -248,7 +266,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                   })
                                 }
                                 onShippingMethodEdit={variables =>
-                                  orderDraftUpdate.mutate({
+                                  orderShippingMethodUpdate.mutate({
                                     id,
                                     input: {
                                       shippingMethod: variables.shippingMethod
