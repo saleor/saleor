@@ -193,6 +193,7 @@ def display_order_event(order_event):
                 'user_name': order_event.user})
     if event_type == OrderEvents.TRACKING_UPDATED.value:
         return pgettext_lazy(
+            'Dashboard message related to an order',
             'Fulfillment #%(fulfillment)s tracking was updated to'
             ' %(tracking_number)s by %(user_name)s') % {
                 'fulfillment': params['composed_id'],
