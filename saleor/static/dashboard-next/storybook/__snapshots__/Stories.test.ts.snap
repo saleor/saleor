@@ -17294,7 +17294,6 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
             </button>
           </div>
         </div>
-        <form />
         <div
           class="OrderHistory-root-id"
         >
@@ -18105,7 +18104,6 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
             </button>
           </div>
         </div>
-        <form />
         <div
           class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id OrderFulfillment-root-id"
         >
@@ -19140,7 +19138,6 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
             </button>
           </div>
         </div>
-        <form />
         <div
           class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id OrderFulfillment-root-id"
         >
