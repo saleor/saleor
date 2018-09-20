@@ -93,9 +93,8 @@ class FulfillmentCreate(BaseMutation):
         cls.clean_lines(order_lines, quantities, errors)
         if errors:
             return cls(errors=errors)
-        else:
-            input['order_lines'] = order_lines
-            input['quantities'] = quantities
+        input['order_lines'] = order_lines
+        input['quantities'] = quantities
         return input
 
     @classmethod
