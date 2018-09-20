@@ -155,7 +155,7 @@ export interface VariantCreate {
 }
 
 export interface VariantCreateVariables {
-  attributes?: (AttributeValueInput | null)[] | null;
+  attributes: (AttributeValueInput | null)[];
   costPrice?: any | null;
   priceOverride?: any | null;
   product: string;
