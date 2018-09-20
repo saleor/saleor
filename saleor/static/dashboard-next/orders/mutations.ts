@@ -13,6 +13,7 @@ import {
   OrderCreateFulfillment,
   OrderCreateFulfillmentVariables
 } from "./types/OrderCreateFulfillment";
+import { OrderDraftCreate } from "./types/OrderDraftCreate";
 import {
   OrderDraftUpdate,
   OrderDraftUpdateVariables
@@ -210,3 +211,17 @@ export const TypedOrderShippingMethodUpdateMutation = TypedMutation<
   OrderShippingMethodUpdate,
   OrderShippingMethodUpdateVariables
 >(orderShippingMethodUpdateMutation);
+
+const orderDraftCreateMutation = gql`
+  mutation OrderDraftCreate {
+    draftOrderCreate(input: {}) {
+      order {
+        id
+      }
+    }
+  }
+`;
+export const TypedOrderDraftCreateMutation = TypedMutation<
+  OrderDraftCreate,
+  {}
+>(orderDraftCreateMutation);
