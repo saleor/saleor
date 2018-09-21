@@ -3,7 +3,6 @@ import re
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
-from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.fields import DjangoConnectionField
 from graphql.error import GraphQLError
 
@@ -15,12 +14,13 @@ from ...product.utils.availability import get_availability
 from ...product.utils.costs import (
     get_margin_for_variant, get_product_costs_data)
 from ..core.decorators import permission_required
+from ..core.fields import PrefetchingConnectionField
 from ..core.types import (
     CountableDjangoObjectType, Money, MoneyRange, ReportingPeriod, TaxedMoney,
     TaxedMoneyRange, TaxRateType)
 from ..utils import get_database_id, reporting_period_to_date
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
-from .filters import ProductFilterSet
+
 
 COLOR_PATTERN = r'^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$'  # noqa
 color_pattern = re.compile(COLOR_PATTERN)
@@ -98,7 +98,6 @@ class Attribute(CountableDjangoObjectType):
         assigned to products and variants at the product type level."""
         exclude_fields = []
         interfaces = [relay.Node]
-        filter_fields = ['id', 'slug']
         model = models.Attribute
 
     def resolve_values(self, info):
@@ -148,7 +147,6 @@ class ProductVariant(CountableDjangoObjectType):
         exclude_fields = ['variant_images']
         interfaces = [relay.Node]
         model = models.ProductVariant
-        filter_fields = ['id']
 
     def resolve_stock_quantity(self, info):
         return self.quantity_available
@@ -281,7 +279,7 @@ class Product(CountableDjangoObjectType):
             raise GraphQLError('Product image not found.')
 
     @gql_optimizer.resolver_hints(model_field='images')
-    def resolve_variants(self, info, **kwargs):
+    def resolve_images(self, info, **kwargs):
         return self.images.all()
 
     @gql_optimizer.resolver_hints(model_field='variants')
@@ -294,9 +292,8 @@ class Product(CountableDjangoObjectType):
 
 
 class ProductType(CountableDjangoObjectType):
-    products = DjangoFilterConnectionField(
+    products = PrefetchingConnectionField(
         Product,
-        filterset_class=ProductFilterSet,
         description='List of products of this type.')
     tax_rate = TaxRateType(description='A type of tax rate.')
     variant_attributes = graphene.List(
@@ -309,7 +306,6 @@ class ProductType(CountableDjangoObjectType):
         attributes are available to products of this type."""
         interfaces = [relay.Node]
         model = models.ProductType
-        filter_fields = ['id']
 
     def resolve_products(self, info, **kwargs):
         user = info.context.user
@@ -324,16 +320,13 @@ class ProductType(CountableDjangoObjectType):
 
 
 class Collection(CountableDjangoObjectType):
-    products = DjangoFilterConnectionField(
-        Product, filterset_class=ProductFilterSet,
-        description='List of collection products.')
+    products = PrefetchingConnectionField(
+        Product, description='List of collection products.')
     background_image = graphene.Field(Image)
 
     class Meta:
         description = "Represents a collection of products."
         exclude_fields = ['voucher_set', 'sale_set', 'menuitem_set']
-        filter_fields = {
-            'name': ['exact', 'icontains', 'istartswith']}
         interfaces = [relay.Node]
         model = models.Collection
 
@@ -347,16 +340,14 @@ class Collection(CountableDjangoObjectType):
 
 
 class Category(CountableDjangoObjectType):
-    products = DjangoFilterConnectionField(
-        Product,
-        filterset_class=ProductFilterSet,
-        description='List of products in the category.')
+    products = PrefetchingConnectionField(
+        Product, description='List of products in the category.')
     url = graphene.String(
         description='The storefront\'s URL for the category.')
-    ancestors = DjangoFilterConnectionField(
+    ancestors = PrefetchingConnectionField(
         lambda: Category,
         description='List of ancestors of the category.')
-    children = DjangoFilterConnectionField(
+    children = PrefetchingConnectionField(
         lambda: Category,
         description='List of children of the category.')
     background_image = graphene.Field(Image)
@@ -369,7 +360,6 @@ class Category(CountableDjangoObjectType):
             'lft', 'rght', 'tree_id', 'voucher_set', 'sale_set',
             'menuitem_set']
         interfaces = [relay.Node]
-        filter_fields = ['id', 'name']
         model = models.Category
 
     def resolve_ancestors(self, info, **kwargs):

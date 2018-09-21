@@ -48,10 +48,6 @@ class ShippingZone(CountableDjangoObjectType):
             and are never exposed to the customers directly."""
         model = models.ShippingZone
         interfaces = [relay.Node]
-        filter_fields = {
-            'name': ['icontains'],
-            'countries': ['icontains'],
-            'shipping_methods__price': ['gte', 'lte']}
 
     def resolve_price_range(self, info):
         return self.price_range
