@@ -14,6 +14,7 @@ import * as Cookies from "universal-cookie";
 import AppRoot from "./AppRoot";
 import Auth, { getAuthToken, removeAuthToken } from "./auth";
 import AuthProvider from "./auth/AuthProvider";
+import LoginLoading from "./auth/components/LoginLoading/LoginLoading";
 import CategorySection from "./categories";
 import { DateProvider } from "./components/DateFormatter";
 import { LocaleProvider } from "./components/Locale";
@@ -77,8 +78,13 @@ render(
             <MessageManager>
               <CssBaseline />
               <AuthProvider>
-                {({ isAuthenticated }) =>
-                  isAuthenticated ? (
+                {({
+                  hasToken,
+                  isAuthenticated,
+                  tokenAuthLoading,
+                  tokenVerifyLoading
+                }) => {
+                  return isAuthenticated ? (
                     <AppRoot>
                       <Switch>
                         <Route exact path="/" component={HomePage} />
@@ -97,10 +103,12 @@ render(
                         />
                       </Switch>
                     </AppRoot>
+                  ) : hasToken && tokenVerifyLoading ? (
+                    <LoginLoading />
                   ) : (
-                    <Route component={Auth} />
-                  )
-                }
+                    <Auth loading={tokenAuthLoading} />
+                  );
+                }}
               </AuthProvider>
             </MessageManager>
           </LocaleProvider>
