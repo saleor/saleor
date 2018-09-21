@@ -232,10 +232,9 @@ def test_update_shipping_zone_default_exists(
     default_zone.save()
     shipping_zone = shipping_zone.__class__.objects.filter(default=False).get()
 
-    name = 'Parabolic name'
     shipping_id = graphene.Node.to_global_id('ShippingZone', shipping_zone.pk)
     variables = json.dumps(
-        {'id': shipping_id, 'name': name, 'countries': [], 'default': True})
+        {'id': shipping_id, 'name': 'Name', 'countries': [], 'default': True})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
