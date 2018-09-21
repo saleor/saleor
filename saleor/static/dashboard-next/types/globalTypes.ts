@@ -378,6 +378,11 @@ export interface OrderAddNoteInput {
   message?: string | null;
 }
 
+export interface OrderLineCreateInput {
+  quantity: number;
+  variantId: string;
+}
+
 export interface OrderUpdateInput {
   billingAddress?: AddressInput | null;
   userEmail?: string | null;
