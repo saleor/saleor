@@ -21,7 +21,6 @@ interface OrderSummaryProps extends OrderProductsProps {
   onFulfill?();
   onOrderCancel?();
   onOrderLineChange?(id: string): (value: string) => () => void;
-  onOrderLineRemove?(id: string): () => void;
   onProductAdd?();
   onRefund?();
   onRelease?();

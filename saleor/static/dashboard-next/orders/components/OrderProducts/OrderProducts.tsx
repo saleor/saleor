@@ -47,7 +47,7 @@ export interface OrderProductsProps {
   tax?: MoneyType;
   total?: MoneyType;
   onOrderLineChange?(id: string): (value: string) => () => void;
-  onOrderLineRemove?(id: string): () => any;
+  onOrderLineRemove(id: string);
   onRowClick?(id: string): () => any;
   onShippingMethodClick?();
 }
@@ -135,7 +135,7 @@ const OrderProducts = decorate<OrderProductsProps>(
               {product && isDraft ? (
                 <TableCell className={classes.avatarCell}>
                   <IconButton
-                    onClick={onOrderLineRemove && onOrderLineRemove(product.id)}
+                    onClick={() => onOrderLineRemove(product.id)}
                     disabled={!onOrderLineRemove}
                     className={classes.deleteIcon}
                   >
@@ -201,8 +201,7 @@ const OrderProducts = decorate<OrderProductsProps>(
           ),
           () => (
             <TableRow>
-              <TableCell className={classes.avatarCell} />
-              <TableCell colSpan={2}>{i18n.t("No products found")}</TableCell>
+              <TableCell colSpan={6}>{i18n.t("No products found")}</TableCell>
             </TableRow>
           )
         )}

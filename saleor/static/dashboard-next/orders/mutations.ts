@@ -18,6 +18,10 @@ import {
   OrderDraftUpdate,
   OrderDraftUpdateVariables
 } from "./types/OrderDraftUpdate";
+import {
+  OrderLineDelete,
+  OrderLineDeleteVariables
+} from "./types/OrderLineDelete";
 import { OrderRefund, OrderRefundVariables } from "./types/OrderRefund";
 import { OrderRelease, OrderReleaseVariables } from "./types/OrderRelease";
 import {
@@ -228,3 +232,22 @@ export const TypedOrderDraftCreateMutation = TypedMutation<
   OrderDraftCreate,
   {}
 >(orderDraftCreateMutation);
+
+const orderLineDeleteMutation = gql`
+  ${fragmentOrderDetails}
+  mutation OrderLineDelete($id: ID!) {
+    draftOrderLineDelete(id: $id) {
+      errors {
+        field
+        message
+      }
+      order {
+        ...OrderDetailsFragment
+      }
+    }
+  }
+`;
+export const TypedOrderLineDeleteMutation = TypedMutation<
+  OrderLineDelete,
+  OrderLineDeleteVariables
+>(orderLineDeleteMutation);

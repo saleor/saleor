@@ -151,7 +151,7 @@ interface OrderDetailsPageProps {
   onCreate?();
   onOrderFulfill(data: OrderFulfillFormData);
   onOrderLineChange?(id: string): (value: string) => () => void;
-  onOrderLineRemove?(id: string): () => void;
+  onOrderLineRemove(id: string);
   onProductAdd(data: ProductAddFormData);
   onProductClick?(id: string);
   onPackingSlipClick?(id: string);
