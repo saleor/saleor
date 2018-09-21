@@ -17,9 +17,17 @@ env = environ.Env(
     DEBUG=(bool, True),
     INTERNAL_IPS=(list, []),
     SALEOR_LANGUAGES=(list, []),
+    ENABLE_SSL=(bool, False),
+    ENABLE_SILK=(bool, False),
+    VATLAYER_USE_HTTPS=(bool, False),
+    ALLOWED_HOSTS=(list, []),
+    AWS_QUERYSTRING_AUTH=(bool, False),
+    CREATE_IMAGES_ON_DEMAND=(bool, True),
+    MAX_CART_LINE_QUANTITY=(int, 50)
 )
 
-environ.Env.read_env(env_file=os.path.abspath(os.path.join(os.path.dirname(__file__), '.env')))  # noqa
+env_file = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.env'))  # noqa
+environ.Env.read_env(env_file=env_file)
 
 
 # def get_list(text):
@@ -106,9 +114,10 @@ USE_TZ = True
 
 FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 
+EMAIL_URL = env.email_url('EMAIL_URL')
 EMAIL_URL = env('EMAIL_URL')
-SENDGRID_USERNAME = env('SENDGRID_USERNAME')
-SENDGRID_PASSWORD = env('SENDGRID_PASSWORD')
+SENDGRID_USERNAME = env('SENDGRID_USERNAME', default='')
+SENDGRID_PASSWORD = env('SENDGRID_PASSWORD', default='')
 if not EMAIL_URL and SENDGRID_USERNAME and SENDGRID_PASSWORD:
     EMAIL_URL = 'smtp://%s:%s@smtp.sendgrid.net:587/?tls=True' % (
         SENDGRID_USERNAME, SENDGRID_PASSWORD)
@@ -123,19 +132,19 @@ EMAIL_BACKEND = email_config['EMAIL_BACKEND']
 EMAIL_USE_TLS = email_config['EMAIL_USE_TLS']
 EMAIL_USE_SSL = email_config['EMAIL_USE_SSL']
 
-ENABLE_SSL = get_bool_from_env('ENABLE_SSL', False)
+ENABLE_SSL = env('ENABLE_SSL', default=False)
 
 if ENABLE_SSL:
     SECURE_SSL_REDIRECT = not DEBUG
 
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
-ORDER_FROM_EMAIL = os.getenv('ORDER_FROM_EMAIL', DEFAULT_FROM_EMAIL)
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
+ORDER_FROM_EMAIL = env('ORDER_FROM_EMAIL', default=DEFAULT_FROM_EMAIL)
 
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'media')
-MEDIA_URL = env('MEDIA_URL', '/media/')
+MEDIA_URL = env('MEDIA_URL', default='/media/')
 
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
-STATIC_URL = env('STATIC_URL', '/static/')
+STATIC_URL = env('STATIC_URL', default='/static/')
 STATICFILES_DIRS = [
     ('assets', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'assets')),
     ('favicons', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'favicons')),
@@ -277,7 +286,7 @@ if DEBUG:
     DEBUG_TOOLBAR_CONFIG = {
         'RESULTS_STORE_SIZE': 100}
 
-ENABLE_SILK = get_bool_from_env('ENABLE_SILK', False)
+ENABLE_SILK = env('ENABLE_SILK', False)
 if ENABLE_SILK:
     MIDDLEWARE.insert(0, 'silk.middleware.SilkyMiddleware')
     INSTALLED_APPS.append('silk')
@@ -325,8 +334,8 @@ AUTH_USER_MODEL = 'account.User'
 
 LOGIN_URL = '/account/login/'
 
-DEFAULT_COUNTRY = env('DEFAULT_COUNTRY', 'US')
-DEFAULT_CURRENCY = env('DEFAULT_CURRENCY', 'USD')
+DEFAULT_COUNTRY = env('DEFAULT_COUNTRY', default='US')
+DEFAULT_CURRENCY = env('DEFAULT_CURRENCY', default='USD')
 DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 COUNTRIES_OVERRIDE = {
@@ -334,19 +343,19 @@ COUNTRIES_OVERRIDE = {
         'Name of political and economical union of european countries',
         'European Union')}
 
-OPENEXCHANGERATES_API_KEY = env('OPENEXCHANGERATES_API_KEY')
+OPENEXCHANGERATES_API_KEY = env('OPENEXCHANGERATES_API_KEY', default='')
 
 # VAT configuration
 # Enabling vat requires valid vatlayer access key.
 # If you are subscribed to a paid vatlayer plan, you can enable HTTPS.
-VATLAYER_ACCESS_KEY = env('VATLAYER_ACCESS_KEY')
-VATLAYER_USE_HTTPS = get_bool_from_env('VATLAYER_USE_HTTPS', False)
+VATLAYER_ACCESS_KEY = env('VATLAYER_ACCESS_KEY', default='')
+VATLAYER_USE_HTTPS = env('VATLAYER_USE_HTTPS', default=False)
 
 ACCOUNT_ACTIVATION_DAYS = 3
 
 LOGIN_REDIRECT_URL = 'home'
 
-GOOGLE_ANALYTICS_TRACKING_ID = env('GOOGLE_ANALYTICS_TRACKING_ID')
+GOOGLE_ANALYTICS_TRACKING_ID = env('GOOGLE_ANALYTICS_TRACKING_ID',default='')
 
 
 def get_host():
@@ -375,7 +384,7 @@ MESSAGE_TAGS = {
     messages.ERROR: 'danger'}
 
 LOW_STOCK_THRESHOLD = 10
-MAX_CART_LINE_QUANTITY = int(env('MAX_CART_LINE_QUANTITY', 50))
+MAX_CART_LINE_QUANTITY = env('MAX_CART_LINE_QUANTITY', default=50)
 
 PAGINATE_BY = 16
 DASHBOARD_PAGINATE_BY = 30
@@ -390,20 +399,19 @@ bootstrap4 = {
 
 TEST_RUNNER = ''
 
-ALLOWED_HOSTS = get_list(
-    env('ALLOWED_HOSTS', 'localhost,127.0.0.1'))
+ALLOWED_HOSTS = env('ALLOWED_HOSTS', default='localhost,127.0.0.1')
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Amazon S3 configuration
-AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
-AWS_LOCATION = env('AWS_LOCATION', '')
-AWS_MEDIA_BUCKET_NAME = env('AWS_MEDIA_BUCKET_NAME')
-AWS_MEDIA_CUSTOM_DOMAIN = env('AWS_MEDIA_CUSTOM_DOMAIN')
-AWS_QUERYSTRING_AUTH = get_bool_from_env('AWS_QUERYSTRING_AUTH', False)
-AWS_S3_CUSTOM_DOMAIN = env('AWS_STATIC_CUSTOM_DOMAIN')
-AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
-AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
+AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', default='')
+AWS_LOCATION = env('AWS_LOCATION', default='')
+AWS_MEDIA_BUCKET_NAME = env('AWS_MEDIA_BUCKET_NAME', default='')
+AWS_MEDIA_CUSTOM_DOMAIN = env('AWS_MEDIA_CUSTOM_DOMAIN', default='')
+AWS_QUERYSTRING_AUTH = env('AWS_QUERYSTRING_AUTH', default=False)
+AWS_S3_CUSTOM_DOMAIN = env('AWS_STATIC_CUSTOM_DOMAIN', default='')
+AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', default='')
+AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME', default='')
 
 if AWS_STORAGE_BUCKET_NAME:
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
@@ -425,8 +433,8 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
 
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment
-    'create_images_on_demand': get_bool_from_env(
-        'CREATE_IMAGES_ON_DEMAND', DEBUG),
+    'create_images_on_demand': env(
+        'CREATE_IMAGES_ON_DEMAND', default=DEBUG),
 }
 
 PLACEHOLDER_IMAGES = {
@@ -455,8 +463,8 @@ LOGOUT_ON_PASSWORD_CHANGE = False
 DB_SEARCH_ENABLED = True
 
 # support deployment-dependant elastic enviroment variable
-ES_URL = (env('ELASTICSEARCH_URL') or
-          env('SEARCHBOX_URL') or env('BONSAI_URL'))
+ES_URL = (env('ELASTICSEARCH_URL', default='') or
+          env('SEARCHBOX_URL', default='') or env('BONSAI_URL', default=''))
 
 ENABLE_SEARCH = bool(ES_URL) or DB_SEARCH_ENABLED  # global search disabling
 
@@ -496,7 +504,7 @@ SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
 
 # CELERY SETTINGS
 CELERY_BROKER_URL = env(
-    'CELERY_BROKER_URL', env('CLOUDAMQP_URL')) or ''
+    'CELERY_BROKER_URL', default=env('CLOUDAMQP_URL', default='')) or ''
 CELERY_TASK_ALWAYS_EAGER = False if CELERY_BROKER_URL else True
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
@@ -545,12 +553,12 @@ DEFAULT_MENUS = {
 NOCAPTCHA = True
 
 # Set Google's reCaptcha keys
-RECAPTCHA_PUBLIC_KEY = env('RECAPTCHA_PUBLIC_KEY')
-RECAPTCHA_PRIVATE_KEY = env('RECAPTCHA_PRIVATE_KEY')
+RECAPTCHA_PUBLIC_KEY = env('RECAPTCHA_PUBLIC_KEY', default='')
+RECAPTCHA_PRIVATE_KEY = env('RECAPTCHA_PRIVATE_KEY', default='')
 
 
 #  Sentry
-SENTRY_DSN = env('SENTRY_DSN')
+SENTRY_DSN = env('SENTRY_DSN', default='')
 if SENTRY_DSN:
     INSTALLED_APPS.append('raven.contrib.django.raven_compat')
     RAVEN_CONFIG = {
