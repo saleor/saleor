@@ -150,8 +150,8 @@ interface OrderDetailsPageProps {
   onBillingAddressEdit(data: AddressTypeInput);
   onCreate?();
   onOrderFulfill(data: OrderFulfillFormData);
-  onOrderLineChange?(id: string): (value: string) => () => void;
-  onOrderLineRemove?(id: string): () => void;
+  onOrderLineChange(id: string): (value: string) => void;
+  onOrderLineRemove(id: string);
   onProductAdd(data: ProductAddFormData);
   onProductClick?(id: string);
   onPackingSlipClick?(id: string);
@@ -332,7 +332,7 @@ class OrderDetailsPageComponent extends React.Component<
               onCreate={onCreate}
               onFulfill={this.toggleFulfillmentDialog}
               onOrderCancel={this.toggleOrderCancelDialog}
-              onOrderLineChange={onOrderLineChange}
+              onOrderLineChange={isDraft ? onOrderLineChange : undefined}
               onOrderLineRemove={onOrderLineRemove}
               onProductAdd={this.toggleOrderProductAddDialog}
               onRefund={this.togglePaymentRefundDialog}

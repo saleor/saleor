@@ -16,9 +16,12 @@ import { OrderAddNote } from "../types/OrderAddNote";
 import { OrderCapture } from "../types/OrderCapture";
 import { OrderCreateFulfillment } from "../types/OrderCreateFulfillment";
 import { OrderDraftUpdate } from "../types/OrderDraftUpdate";
+import { OrderLineAdd } from "../types/OrderLineAdd";
+import { OrderLineDelete } from "../types/OrderLineDelete";
 import { OrderRefund } from "../types/OrderRefund";
 import { OrderShippingMethodUpdate } from "../types/OrderShippingMethodUpdate";
 import { OrderUpdate } from "../types/OrderUpdate";
+import { OrderLineUpdate } from "../types/OrderLineUpdate";
 
 interface OrderDetailsProps {
   id: string;
@@ -134,6 +137,45 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             });
                           }
                         };
+                        const handleLineDelete = (data: OrderLineDelete) => {
+                          if (
+                            !maybe(
+                              () => data.draftOrderLineDelete.errors.length
+                            )
+                          ) {
+                            pushMessage({
+                              text: i18n.t("Order line deleted", {
+                                context: "notification"
+                              })
+                            });
+                          }
+                        };
+                        const handleLineAdd = (data: OrderLineAdd) => {
+                          if (
+                            !maybe(
+                              () => data.draftOrderLineCreate.errors.length
+                            )
+                          ) {
+                            pushMessage({
+                              text: i18n.t("Order line added", {
+                                context: "notification"
+                              })
+                            });
+                          }
+                        };
+                        const handleLineUpdate = (data: OrderLineUpdate) => {
+                          if (
+                            !maybe(
+                              () => data.draftOrderLineUpdate.errors.length
+                            )
+                          ) {
+                            pushMessage({
+                              text: i18n.t("Order line updated", {
+                                context: "notification"
+                              })
+                            });
+                          }
+                        };
                         return (
                           <OrderOperations
                             order={id}
@@ -149,12 +191,18 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             onUpdate={handleUpdate}
                             onDraftUpdate={handleDraftUpdate}
                             onShippingMethodUpdate={handleShippingMethodUpdate}
+                            onOrderLineDelete={handleLineDelete}
+                            onOrderLineAdd={handleLineAdd}
+                            onOrderLineUpdate={handleLineUpdate}
                           >
                             {({
                               errors,
                               orderAddNote,
                               orderCancel,
                               orderCreateFulfillment,
+                              orderLineAdd,
+                              orderLineDelete,
+                              orderLineUpdate,
                               orderPaymentCapture,
                               orderPaymentRefund,
                               orderRelease,
@@ -244,7 +292,15 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                     id
                                   })
                                 }
-                                onProductAdd={() => undefined}
+                                onProductAdd={variables =>
+                                  orderLineAdd.mutate({
+                                    id,
+                                    input: {
+                                      quantity: variables.quantity,
+                                      variantId: variables.variant.value
+                                    }
+                                  })
+                                }
                                 onProductClick={id => () =>
                                   navigate(productUrl(id))}
                                 onBillingAddressEdit={variables =>
@@ -271,6 +327,14 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                     }
                                   })
                                 }
+                                onOrderLineRemove={id =>
+                                  orderLineDelete.mutate({ id })
+                                }
+                                onOrderLineChange={id => quantity =>
+                                  orderLineUpdate.mutate({
+                                    id,
+                                    input: { quantity: parseInt(quantity, 10) }
+                                  })}
                               />
                             )}
                           </OrderOperations>
