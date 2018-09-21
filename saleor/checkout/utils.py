@@ -726,7 +726,7 @@ def recalculate_cart_discount(cart, discounts, taxes):
         else:
             subtotal = cart.get_subtotal(discounts, taxes).gross
             cart.discount_amount = min(discount, subtotal)
-            cart.discount_name = voucher.name
+            cart.discount_name = str(voucher)
             cart.translated_discount_name = (
                 voucher.translated.name
                 if voucher.translated.name != voucher.name else '')
