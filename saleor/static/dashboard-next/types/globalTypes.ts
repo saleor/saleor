@@ -383,6 +383,10 @@ export interface OrderLineCreateInput {
   variantId: string;
 }
 
+export interface OrderLineInput {
+  quantity: number;
+}
+
 export interface OrderUpdateInput {
   billingAddress?: AddressInput | null;
   userEmail?: string | null;
