@@ -54,6 +54,7 @@ function loadStories() {
 
   // Staff
   require("./stories/staff/StaffListPage")
+  require("./stories/staff/StaffDetailsPage")
 
   // Pages
   require("./stories/pages/PageContent");
