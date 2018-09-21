@@ -9,7 +9,7 @@ import TableRow from "@material-ui/core/TableRow";
 import * as classNames from "classnames";
 import * as React from "react";
 
-import { ListProps, Omit } from "../../..";
+import { ListProps } from "../../..";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import TablePagination from "../../../components/TablePagination";
@@ -18,7 +18,7 @@ import { renderCollection } from "../../../misc";
 import { StaffList_staffUsers_edges_node } from "../../types/StaffList";
 
 interface StaffListProps extends ListProps {
-  staffMembers: Array<Omit<StaffList_staffUsers_edges_node, "__typename">>;
+  staffMembers: StaffList_staffUsers_edges_node[];
 }
 
 const decorate = withStyles({

@@ -2,7 +2,7 @@ import Button from "@material-ui/core/Button";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
-import { ListProps, Omit, UserError } from "../../..";
+import { ListProps, UserError } from "../../..";
 import { Container } from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import Toggle from "../../../components/Toggle";
@@ -15,7 +15,7 @@ import StaffList from "../StaffList/StaffList";
 
 export interface StaffListPageProps extends ListProps {
   errors: UserError[];
-  staffMembers: Array<Omit<StaffList_staffUsers_edges_node, "__typename">>;
+  staffMembers: StaffList_staffUsers_edges_node[];
   onAdd: (data: AddStaffMemberForm) => void;
 }
 
