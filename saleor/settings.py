@@ -399,7 +399,10 @@ bootstrap4 = {
 
 TEST_RUNNER = ''
 
-ALLOWED_HOSTS = env('ALLOWED_HOSTS', default='localhost,127.0.0.1')
+ALLOWED_HOSTS = env('ALLOWED_HOSTS', default=[
+    'localhost',
+    'localhost:8000',
+    '127.0.0.1'],)
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
