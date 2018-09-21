@@ -1,2 +1,10 @@
+coverage
+django-extensions
 django-silk==2.0.0
 pip-tools
+pylint
+pylint-celery
+pylint-django
+pylint-plugin-utils
+pytest-cov
+yapf
