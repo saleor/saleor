@@ -1,8 +1,9 @@
 import graphene
-from django.contrib.auth import get_user_model, models as auth_models
+from django.contrib.auth import get_user_model
 from graphene import relay
 
 from ...account import models
+from ...core.permissions import get_permissions
 from ..core.types.common import CountableDjangoObjectType, PermissionDisplay
 from ..utils import format_permissions_for_display
 
@@ -43,12 +44,10 @@ class User(CountableDjangoObjectType):
 
     def resolve_permissions(self, info, **kwargs):
         if self.is_superuser:
-            permissions = auth_models.Permission.objects.all()
+            permissions = get_permissions()
         else:
-            permissions = (
-                self.user_permissions.all() |
-                auth_models.Permission.objects.filter(group__user=self))
-        permissions = permissions.select_related('content_type')
+            permissions = self.user_permissions.prefetch_related(
+                'content_type').order_by('codename')
         return format_permissions_for_display(permissions)
 
 
