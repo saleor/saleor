@@ -23,5 +23,6 @@ export interface OrderCreateFulfillment {
 }
 
 export interface OrderCreateFulfillmentVariables {
+  order: string;
   input: FulfillmentCreateInput;
 }

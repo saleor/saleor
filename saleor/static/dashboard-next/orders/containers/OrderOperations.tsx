@@ -5,23 +5,20 @@ import {
   MutationProviderRenderProps,
   PartialMutationProviderOutput
 } from "../..";
-import {
-  OrderCaptureMutation,
-  OrderCaptureMutationVariables,
-  OrderCreateFulfillmentMutation,
-  OrderCreateFulfillmentMutationVariables,
-  OrderRefundMutation,
-  OrderRefundMutationVariables,
-  OrderReleaseMutation,
-  OrderReleaseMutationVariables
-} from "../../gql-types";
 import { maybe } from "../../misc";
 import { OrderAddNote, OrderAddNoteVariables } from "../types/OrderAddNote";
 import { OrderCancel, OrderCancelVariables } from "../types/OrderCancel";
+import { OrderCapture, OrderCaptureVariables } from "../types/OrderCapture";
+import {
+  OrderCreateFulfillment,
+  OrderCreateFulfillmentVariables
+} from "../types/OrderCreateFulfillment";
 import {
   OrderDraftUpdate,
   OrderDraftUpdateVariables
 } from "../types/OrderDraftUpdate";
+import { OrderRefund, OrderRefundVariables } from "../types/OrderRefund";
+import { OrderRelease, OrderReleaseVariables } from "../types/OrderRelease";
 import {
   OrderShippingMethodUpdate,
   OrderShippingMethodUpdateVariables
@@ -49,20 +46,20 @@ interface OrderOperationsProps extends MutationProviderProps {
       OrderCancelVariables
     >;
     orderCreateFulfillment: PartialMutationProviderOutput<
-      OrderCreateFulfillmentMutation,
-      OrderCreateFulfillmentMutationVariables
+      OrderCreateFulfillment,
+      OrderCreateFulfillmentVariables
     >;
     orderPaymentCapture: PartialMutationProviderOutput<
-      OrderCaptureMutation,
-      OrderCaptureMutationVariables
+      OrderCapture,
+      OrderCaptureVariables
     >;
     orderPaymentRefund: PartialMutationProviderOutput<
-      OrderRefundMutation,
-      OrderRefundMutationVariables
+      OrderRefund,
+      OrderRefundVariables
     >;
     orderRelease: PartialMutationProviderOutput<
-      OrderReleaseMutation,
-      OrderReleaseMutationVariables
+      OrderRelease,
+      OrderReleaseVariables
     >;
     orderUpdate: PartialMutationProviderOutput<
       OrderUpdate,
@@ -77,12 +74,12 @@ interface OrderOperationsProps extends MutationProviderProps {
       OrderShippingMethodUpdateVariables
     >;
   }>;
-  onOrderFulfillmentCreate: (data: OrderCreateFulfillmentMutation) => void;
+  onOrderFulfillmentCreate: (data: OrderCreateFulfillment) => void;
   onOrderCancel: (data: OrderCancel) => void;
-  onOrderRelease: (data: OrderReleaseMutation) => void;
+  onOrderRelease: (data: OrderRelease) => void;
   onNoteAdd: (data: OrderAddNote) => void;
-  onPaymentCapture: (data: OrderCaptureMutation) => void;
-  onPaymentRefund: (data: OrderRefundMutation) => void;
+  onPaymentCapture: (data: OrderCapture) => void;
+  onPaymentRefund: (data: OrderRefund) => void;
   onUpdate: (data: OrderUpdate) => void;
   onDraftUpdate: (data: OrderDraftUpdate) => void;
   onShippingMethodUpdate: (data: OrderShippingMethodUpdate) => void;
@@ -149,7 +146,7 @@ const OrderOperations: React.StatelessComponent<OrderOperationsProps> = ({
                                           ...maybe(
                                             () =>
                                               createFulfillment.data
-                                                .fulfillmentCreate.errors,
+                                                .orderFulfillmentCreate.errors,
                                             []
                                           ),
                                           ...maybe(
@@ -202,9 +199,9 @@ const OrderOperations: React.StatelessComponent<OrderOperationsProps> = ({
                                               variables: {
                                                 ...variables,
                                                 input: {
-                                                  ...variables.input,
-                                                  order
-                                                }
+                                                  ...variables.input
+                                                },
+                                                order
                                               }
                                             })
                                         },

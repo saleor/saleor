@@ -1,10 +1,7 @@
 import * as React from "react";
 
-import {
-  OrderReleaseMutation,
-  OrderReleaseMutationVariables
-} from "../../gql-types";
 import { TypedOrderReleaseMutation } from "../mutations";
+import { OrderRelease, OrderReleaseVariables } from "../types/OrderRelease";
 
 import {
   PartialMutationProviderProps,
@@ -12,10 +9,10 @@ import {
 } from "../..";
 
 interface OrderReleaseMutationProviderProps
-  extends PartialMutationProviderProps<OrderReleaseMutation> {
+  extends PartialMutationProviderProps<OrderRelease> {
   children: PartialMutationProviderRenderProps<
-    OrderReleaseMutation,
-    OrderReleaseMutationVariables
+    OrderRelease,
+    OrderReleaseVariables
   >;
 }
 
