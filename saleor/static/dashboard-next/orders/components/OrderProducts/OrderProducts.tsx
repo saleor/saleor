@@ -46,7 +46,7 @@ export interface OrderProductsProps {
   subtotal?: MoneyType;
   tax?: MoneyType;
   total?: MoneyType;
-  onOrderLineChange?(id: string): (value: string) => () => void;
+  onOrderLineChange?(id: string): (value: string) => void;
   onOrderLineRemove(id: string);
   onRowClick?(id: string): () => any;
   onShippingMethodClick?();

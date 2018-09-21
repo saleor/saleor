@@ -21,6 +21,7 @@ import { OrderLineDelete } from "../types/OrderLineDelete";
 import { OrderRefund } from "../types/OrderRefund";
 import { OrderShippingMethodUpdate } from "../types/OrderShippingMethodUpdate";
 import { OrderUpdate } from "../types/OrderUpdate";
+import { OrderLineUpdate } from "../types/OrderLineUpdate";
 
 interface OrderDetailsProps {
   id: string;
@@ -162,6 +163,19 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             });
                           }
                         };
+                        const handleLineUpdate = (data: OrderLineUpdate) => {
+                          if (
+                            !maybe(
+                              () => data.draftOrderLineUpdate.errors.length
+                            )
+                          ) {
+                            pushMessage({
+                              text: i18n.t("Order line updated", {
+                                context: "notification"
+                              })
+                            });
+                          }
+                        };
                         return (
                           <OrderOperations
                             order={id}
@@ -179,6 +193,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             onShippingMethodUpdate={handleShippingMethodUpdate}
                             onOrderLineDelete={handleLineDelete}
                             onOrderLineAdd={handleLineAdd}
+                            onOrderLineUpdate={handleLineUpdate}
                           >
                             {({
                               errors,
@@ -187,6 +202,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                               orderCreateFulfillment,
                               orderLineAdd,
                               orderLineDelete,
+                              orderLineUpdate,
                               orderPaymentCapture,
                               orderPaymentRefund,
                               orderRelease,
@@ -314,6 +330,11 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                 onOrderLineRemove={id =>
                                   orderLineDelete.mutate({ id })
                                 }
+                                onOrderLineChange={id => quantity =>
+                                  orderLineUpdate.mutate({
+                                    id,
+                                    input: { quantity: parseInt(quantity, 10) }
+                                  })}
                               />
                             )}
                           </OrderOperations>
