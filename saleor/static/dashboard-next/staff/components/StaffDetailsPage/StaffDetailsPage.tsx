@@ -3,15 +3,15 @@ import * as React from "react";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
+import SaveButtonBar from "../../../components/SaveButtonBar";
 import { maybe } from "../../../misc";
 import {
   StaffMemberDetails_shop_permissions,
   StaffMemberDetails_user
 } from "../../types/StaffMemberDetails";
+import StaffPermissions from "../StaffPermissions/StaffPermissions";
 import StaffProperties from "../StaffProperties/StaffProperties";
 import StaffStatus from "../StaffStatus/StaffStatus";
-import StaffPermissions from "../StaffPermissions/StaffPermissions";
-import SaveButtonBar from "../../../components/SaveButtonBar";
 
 interface FormData {
   hasFullAccess: boolean;
@@ -39,7 +39,15 @@ const decorate = withStyles(theme => ({
   }
 }));
 const StaffDetailsPage = decorate<StaffDetailsPageProps>(
-  ({ classes, disabled, permissions, staffMember, onBack }) => {
+  ({
+    classes,
+    disabled,
+    permissions,
+    staffMember,
+    onBack,
+    onDelete,
+    onSubmit
+  }) => {
     const initialForm: FormData = {
       hasFullAccess:
         maybe(() => permissions, []).filter(
@@ -54,7 +62,7 @@ const StaffDetailsPage = decorate<StaffDetailsPageProps>(
       )
     };
     return (
-      <Form initial={initialForm}>
+      <Form initial={initialForm} onSubmit={onSubmit}>
         {({ data, change, submit }) => (
           <Container width="md">
             <PageHeader
@@ -84,7 +92,11 @@ const StaffDetailsPage = decorate<StaffDetailsPageProps>(
                 />
               </div>
             </div>
-            <SaveButtonBar onCancel={onBack} onSave={submit} />
+            <SaveButtonBar
+              onCancel={onBack}
+              onSave={submit}
+              onDelete={onDelete}
+            />
           </Container>
         )}
       </Form>
