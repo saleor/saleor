@@ -1,4 +1,7 @@
-export const staffMembers = [
+import { StaffList_staffUsers_edges_node } from "./types/StaffList";
+import { StaffMemberDetails_user } from "./types/StaffMemberDetails";
+
+export const staffMembers: StaffList_staffUsers_edges_node[] = [
   {
     email: "admin@example.com",
     id: "VXNlcjoyMQ==",
@@ -59,8 +62,9 @@ export const staffMembers = [
     id: "VXNlcjoyMQ==",
     isActive: true
   }
-];
-export const staffMember = {
+].map(staffMember => ({ __typename: "User" as "User", ...staffMember }));
+export const staffMember: StaffMemberDetails_user = {
+  __typename: "User",
   email: "admin@example.com",
   id: "VXNlcjoyMQ==",
   isActive: true,
@@ -789,5 +793,8 @@ export const staffMember = {
       code: "social_django.delete_usersocialauth",
       name: "Can delete user social auth"
     }
-  ]
+  ].map(perm => ({
+    __typename: "PermissionDisplay" as "PermissionDisplay",
+    ...perm
+  }))
 };
