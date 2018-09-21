@@ -5,11 +5,6 @@ import { UserContext } from "../../auth";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
-import {
-  OrderCaptureMutation,
-  OrderCreateFulfillmentMutation,
-  OrderRefundMutation
-} from "../../gql-types";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
 import { productUrl } from "../../products";
@@ -18,7 +13,10 @@ import OrderOperations from "../containers/OrderOperations";
 import { OrderVariantSearchProvider } from "../containers/OrderVariantSearch";
 import { TypedOrderDetailsQuery } from "../queries";
 import { OrderAddNote } from "../types/OrderAddNote";
+import { OrderCapture } from "../types/OrderCapture";
+import { OrderCreateFulfillment } from "../types/OrderCreateFulfillment";
 import { OrderDraftUpdate } from "../types/OrderDraftUpdate";
+import { OrderRefund } from "../types/OrderRefund";
 import { OrderShippingMethodUpdate } from "../types/OrderShippingMethodUpdate";
 import { OrderUpdate } from "../types/OrderUpdate";
 
@@ -44,9 +42,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                   {({ user }) => (
                     <OrderVariantSearchProvider>
                       {({ variants: { search, searchOpts } }) => {
-                        const handlePaymentCapture = (
-                          data: OrderCaptureMutation
-                        ) => {
+                        const handlePaymentCapture = (data: OrderCapture) => {
                           if (!maybe(() => data.orderCapture.errors.length)) {
                             pushMessage({
                               text: i18n.t("Payment succesfully captured", {
@@ -55,9 +51,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             });
                           }
                         };
-                        const handlePaymentRefund = (
-                          data: OrderRefundMutation
-                        ) => {
+                        const handlePaymentRefund = (data: OrderRefund) => {
                           if (!maybe(() => data.orderRefund.errors.length)) {
                             pushMessage({
                               text: i18n.t("Payment succesfully refunded", {
@@ -66,11 +60,13 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             });
                           }
                         };
-                        const handleFulfillmentCreate = (
-                          data: OrderCreateFulfillmentMutation
+                        const handleOrderFulfillmentCreate = (
+                          data: OrderCreateFulfillment
                         ) => {
                           if (
-                            !maybe(() => data.fulfillmentCreate.errors.length)
+                            !maybe(
+                              () => data.orderFulfillmentCreate.errors.length
+                            )
                           ) {
                             pushMessage({
                               text: i18n.t("Items succesfully fulfilled", {
@@ -142,7 +138,9 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                           <OrderOperations
                             order={id}
                             onError={undefined}
-                            onFulfillmentCreate={handleFulfillmentCreate}
+                            onOrderFulfillmentCreate={
+                              handleOrderFulfillmentCreate
+                            }
                             onNoteAdd={handleNoteAdd}
                             onOrderCancel={handleOrderCancel}
                             onOrderRelease={handleOrderRelease}
@@ -226,9 +224,9 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         .map((line, lineIndex) => ({
                                           orderLineId: line.id,
                                           quantity: variables.lines[lineIndex]
-                                        })),
-                                      order: order.id
-                                    }
+                                        }))
+                                    },
+                                    order: order.id
                                   })
                                 }
                                 onPaymentCapture={variables =>

@@ -37,7 +37,8 @@ const callbacks = {
   onPrintClick: undefined,
   onProductAdd: undefined,
   onProductClick: undefined,
-  onShippingAddressEdit: undefined
+  onShippingAddressEdit: undefined,
+  onShippingMethodEdit: undefined
 };
 
 storiesOf("Views / Orders / Order details", module)

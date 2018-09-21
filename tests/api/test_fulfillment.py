@@ -1,32 +1,44 @@
 import json
 
 import graphene
+import pytest
 from django.shortcuts import reverse
+from tests.utils import get_graphql_content
+
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.models import FulfillmentStatus
-from tests.utils import get_graphql_content
+
+CREATE_FULFILLMENT_QUERY = """
+    mutation fulfillOrder(
+        $order: ID, $lines: [FulfillmentLineInput]!, $tracking: String,
+        $notify: Boolean
+    ) {
+        orderFulfillmentCreate(
+            order: $order,
+            input: {
+                lines: $lines, trackingNumber: $tracking,
+                notifyCustomer: $notify}
+        ) {
+            errors {
+                field
+                message
+            }
+            fulfillment {
+                fulfillmentOrder
+                status
+                trackingNumber
+            lines {
+                totalCount
+            }
+        }
+    }
+}
+"""
 
 
 def test_create_fulfillment(admin_api_client, order_with_lines, admin_user):
     order = order_with_lines
-    query = """
-    mutation fulfillOrder(
-        $order: ID, $lines: [FulfillmentLineInput], $tracking: String,
-        $notify: Boolean) {
-            fulfillmentCreate(
-                input: {lines: $lines, order: $order,
-                trackingNumber: $tracking, notifyCustomer: $notify}) {
-                    fulfillment {
-                        fulfillmentOrder
-                        status
-                        trackingNumber
-                        lines {
-                            totalCount
-                        }
-                    }
-                }
-        }
-    """
+    query = CREATE_FULFILLMENT_QUERY
     order_id = graphene.Node.to_global_id('Order', order.id)
     order_line = order.lines.first()
     order_line_id = graphene.Node.to_global_id('OrderLine', order_line.id)
@@ -40,7 +52,7 @@ def test_create_fulfillment(admin_api_client, order_with_lines, admin_user):
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    data = content['data']['fulfillmentCreate']['fulfillment']
+    data = content['data']['orderFulfillmentCreate']['fulfillment']
     assert data['fulfillmentOrder'] == 1
     assert data['status'] == FulfillmentStatus.FULFILLED.upper()
     assert data['trackingNumber'] == tracking
@@ -59,10 +71,33 @@ def test_create_fulfillment(admin_api_client, order_with_lines, admin_user):
         'email_type': OrderEventsEmails.FULFILLMENT.value}
 
 
-def test_update_fulfillment(admin_api_client, fulfillment):
+@pytest.mark.parametrize(
+    'quantity, error_message',
+    (
+        (0, 'Quantity must be larger than 0.'),
+        (100, 'Only 3 items remaining to fulfill.')))
+def test_create_fulfillment_not_sufficient_quantity(
+        admin_api_client, order_with_lines, admin_user, quantity,
+        error_message):
+    query = CREATE_FULFILLMENT_QUERY
+    order_line = order_with_lines.lines.first()
+    order_line_id = graphene.Node.to_global_id('OrderLine', order_line.id)
+    variables = json.dumps({
+        'order': graphene.Node.to_global_id('Order', order_with_lines.id),
+        'lines': [{'orderLineId': order_line_id, 'quantity': quantity}]})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['orderFulfillmentCreate']
+    assert 'errors' in data
+    assert data['errors'][0]['field'] == str(order_line)
+    assert data['errors'][0]['message'] == error_message
+
+
+def test_fulfillment_update_tracking(admin_api_client, fulfillment):
     query = """
     mutation updateFulfillment($id: ID!, $tracking: String) {
-            fulfillmentUpdate(
+            orderFulfillmentUpdateTracking(
                 id: $id, input: {trackingNumber: $tracking}) {
                     fulfillment {
                         trackingNumber
@@ -78,7 +113,7 @@ def test_update_fulfillment(admin_api_client, fulfillment):
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    data = content['data']['fulfillmentUpdate']['fulfillment']
+    data = content['data']['orderFulfillmentUpdateTracking']['fulfillment']
     assert data['trackingNumber'] == tracking
 
 
@@ -86,7 +121,7 @@ def test_cancel_fulfillment_restock_items(
         admin_api_client, fulfillment, admin_user):
     query = """
     mutation cancelFulfillment($id: ID!, $restock: Boolean) {
-            fulfillmentCancel(id: $id, input: {restock: $restock}) {
+            orderFulfillmentCancel(id: $id, input: {restock: $restock}) {
                     fulfillment {
                         status
                     }
@@ -99,7 +134,7 @@ def test_cancel_fulfillment_restock_items(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    data = content['data']['fulfillmentCancel']['fulfillment']
+    data = content['data']['orderFulfillmentCancel']['fulfillment']
     assert data['status'] == FulfillmentStatus.CANCELED.upper()
     event_restocked_items = fulfillment.order.events.get()
     assert event_restocked_items.type == (
@@ -112,7 +147,7 @@ def test_cancel_fulfillment_restock_items(
 def test_cancel_fulfillment(admin_api_client, fulfillment, admin_user):
     query = """
     mutation cancelFulfillment($id: ID!, $restock: Boolean) {
-            fulfillmentCancel(id: $id, input: {restock: $restock}) {
+            orderFulfillmentCancel(id: $id, input: {restock: $restock}) {
                     fulfillment {
                         status
                     }
@@ -125,7 +160,7 @@ def test_cancel_fulfillment(admin_api_client, fulfillment, admin_user):
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    data = content['data']['fulfillmentCancel']['fulfillment']
+    data = content['data']['orderFulfillmentCancel']['fulfillment']
     assert data['status'] == FulfillmentStatus.CANCELED.upper()
     event_cancel_fulfillment = fulfillment.order.events.get()
     assert event_cancel_fulfillment.type == (

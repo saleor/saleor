@@ -1,10 +1,10 @@
 import * as React from "react";
 
-import {
-  OrderCreateFulfillmentMutation,
-  OrderCreateFulfillmentMutationVariables
-} from "../../gql-types";
 import { TypedOrderCreateFulfillmentMutation } from "../mutations";
+import {
+  OrderCreateFulfillment,
+  OrderCreateFulfillmentVariables
+} from "../types/OrderCreateFulfillment";
 
 import {
   PartialMutationProviderProps,
@@ -12,11 +12,11 @@ import {
 } from "../..";
 
 interface OrderCreateFulfillmentProviderProps
-  extends PartialMutationProviderProps<OrderCreateFulfillmentMutation> {
+  extends PartialMutationProviderProps<OrderCreateFulfillment> {
   id: string;
   children: PartialMutationProviderRenderProps<
-    OrderCreateFulfillmentMutation,
-    OrderCreateFulfillmentMutationVariables
+    OrderCreateFulfillment,
+    OrderCreateFulfillmentVariables
   >;
 }
 

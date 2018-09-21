@@ -95,8 +95,11 @@ export const TypedOrderCaptureMutation = TypedMutation<
 >(orderCaptureMutation);
 
 const orderCreateFulfillmentMutation = gql`
-  mutation OrderCreateFulfillment($input: FulfillmentCreateInput!) {
-    fulfillmentCreate(input: $input) {
+  mutation OrderCreateFulfillment(
+    $order: ID!
+    $input: FulfillmentCreateInput!
+  ) {
+    orderFulfillmentCreate(order: $order, input: $input) {
       errors {
         field
         message
