@@ -6,6 +6,7 @@ import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
+import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { StaffMemberDetails_shop_permissions } from "../../types/StaffMemberDetails";
 
@@ -38,7 +39,7 @@ const StaffPermissions = decorate<StaffPermissionsProps>(
       onChange({
         target: {
           name: "permissions",
-          value: permissions.map(perm => perm.code)
+          value: event.target.value ? permissions.map(perm => perm.code) : []
         }
       } as any);
     };
@@ -71,22 +72,28 @@ const StaffPermissions = decorate<StaffPermissionsProps>(
             onChange={handleFullAccessChange}
           />
         </CardContent>
-        {data.hasFullAccess && (
+        {!data.hasFullAccess && (
           <>
             <hr className={classes.hr} />
             <CardContent>
-              {permissions.map(perm => (
-                <ControlledCheckbox
-                  checked={
-                    data.permissions.filter(userPerm => userPerm === perm.code)
-                      .length === 1
-                  }
-                  disabled={disabled}
-                  label={perm.name.replace(/\./, "")}
-                  name={perm.code}
-                  onChange={handlePermissionChange}
-                />
-              ))}
+              {permissions === undefined ? (
+                <Skeleton />
+              ) : (
+                permissions.map(perm => (
+                  <ControlledCheckbox
+                    checked={
+                      data.permissions.filter(
+                        userPerm => userPerm === perm.code
+                      ).length === 1
+                    }
+                    disabled={disabled}
+                    label={perm.name.replace(/\./, "")}
+                    name={perm.code}
+                    onChange={handlePermissionChange}
+                    key={perm.code}
+                  />
+                ))
+              )}
             </CardContent>
           </>
         )}

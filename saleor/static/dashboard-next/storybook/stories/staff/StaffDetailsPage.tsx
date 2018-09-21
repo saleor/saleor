@@ -4,7 +4,7 @@ import * as React from "react";
 import StaffDetailsPage, {
   StaffDetailsPageProps
 } from "../../../staff/components/StaffDetailsPage";
-import { staffMember } from "../../../staff/fixtures";
+import { permissions, staffMember } from "../../../staff/fixtures";
 import Decorator from "../../Decorator";
 
 const props: StaffDetailsPageProps = {
@@ -12,6 +12,7 @@ const props: StaffDetailsPageProps = {
   onBack: () => undefined,
   onDelete: () => undefined,
   onSubmit: () => undefined,
+  permissions,
   staffMember
 };
 
@@ -20,4 +21,13 @@ storiesOf("Views / Staff / Staff member details", module)
   .add("default", () => <StaffDetailsPage {...props} />)
   .add("loading", () => (
     <StaffDetailsPage {...props} disabled={true} staffMember={undefined} />
+  ))
+  .add("not admin", () => (
+    <StaffDetailsPage
+      {...props}
+      staffMember={{
+        ...staffMember,
+        permissions: staffMember.permissions.slice(1)
+      }}
+    />
   ));
