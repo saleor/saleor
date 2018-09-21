@@ -309,8 +309,7 @@ class ProductType(CountableDjangoObjectType):
 
     def resolve_products(self, info, **kwargs):
         user = info.context.user
-        return products_with_details(
-            user=user).filter(product_type=self).distinct()
+        return products_with_details(user=user).filter(product_type=self)
 
     def resolve_variant_attributes(self, info):
         return self.variant_attributes.prefetch_related('values')
@@ -335,8 +334,7 @@ class Collection(CountableDjangoObjectType):
 
     def resolve_products(self, info, **kwargs):
         user = info.context.user
-        return products_with_details(
-            user=user).filter(collections=self).distinct()
+        return products_with_details(user=user).filter(collections=self)
 
 
 class Category(CountableDjangoObjectType):
@@ -363,20 +361,19 @@ class Category(CountableDjangoObjectType):
         model = models.Category
 
     def resolve_ancestors(self, info, **kwargs):
-        return self.get_ancestors().distinct()
+        return self.get_ancestors()
 
     def resolve_background_image(self, info, **kwargs):
         return self.background_image or None
 
     def resolve_children(self, info, **kwargs):
-        return self.children.distinct()
+        return self.children.all()
 
     def resolve_url(self, info):
         return self.get_absolute_url()
 
     def resolve_products(self, info, **kwargs):
-        qs = models.Product.objects.available_products().prefetch_related(
-            'variants', 'images', 'product_type')
+        qs = models.Product.objects.available_products()
         categories_tree = self.get_descendants(include_self=True)
         qs = qs.filter(category__in=categories_tree)
         return qs.distinct()

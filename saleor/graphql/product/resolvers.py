@@ -1,9 +1,10 @@
 import graphene
+import graphene_django_optimizer as gql_optimizer
 from django.db.models import Sum, Q
 
 from ...order import OrderStatus
 from ...product import models
-from ...product.utils import products_with_details
+from ...product.utils import products_visible_to_user
 from ..utils import filter_by_query_param, filter_by_period, get_database_id
 from .types import Category, ProductVariant, StockAvailability
 
@@ -31,15 +32,14 @@ def resolve_attributes(info, category_id, query):
         queryset = queryset.filter(
             Q(product_type__in=product_types)
             | Q(product_variant_type__in=product_types))
-    return queryset.distinct()
+    return queryset
 
 
 def resolve_categories(info, query, level=None):
     queryset = models.Category.objects.all()
     if level is not None:
         queryset = queryset.filter(level=level)
-    queryset = filter_by_query_param(queryset, query, CATEGORY_SEARCH_FIELDS)
-    return queryset.distinct()
+    return filter_by_query_param(queryset, query, CATEGORY_SEARCH_FIELDS)
 
 
 def resolve_collections(info, query):
@@ -53,9 +53,8 @@ def resolve_collections(info, query):
 
 def resolve_products(info, category_id, stock_availability, query):
     user = info.context.user
-    qs = products_with_details(user=user)
+    qs = products_visible_to_user(user=user)
     qs = filter_by_query_param(qs, query, PRODUCT_SEARCH_FIELDS)
-
     if category_id is not None:
         category = graphene.Node.get_node_from_global_id(
             info, category_id, Category)
@@ -70,15 +69,16 @@ def resolve_products(info, category_id, stock_availability, query):
         elif stock_availability == StockAvailability.OUT_OF_STOCK:
             qs = qs.filter(total_quantity__lte=0)
 
-    return qs.distinct()
+    qs = qs.distinct()
+    return gql_optimizer.query(qs, info)
 
 
 def resolve_product_types():
-    return models.ProductType.objects.all().distinct()
+    return models.ProductType.objects.all()
 
 
 def resolve_product_variants(info, ids=None):
-    queryset = models.ProductVariant.objects.distinct()
+    queryset = models.ProductVariant.objects.all()
     if ids:
         db_ids = [
             get_database_id(info, node_id, only_type=ProductVariant)
