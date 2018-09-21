@@ -1,12 +1,13 @@
 from unittest.mock import Mock
 
 import pytest
-
+from measurement.measures import Weight
 from prices import Money, TaxedMoney
+
 from saleor.core.utils import format_money
 from saleor.core.utils.taxes import get_taxed_shipping_price
-from saleor.shipping.models import ShippingMethod, ShippingMethodType
-from measurement.measures import Weight
+from saleor.shipping.models import (
+    ShippingMethod, ShippingMethodType, ShippingZone)
 
 
 def money(amount):
@@ -128,3 +129,29 @@ def test_applicable_shipping_methods(shipping_zone):
         price=money(5), weight=Weight(kg=5), country_code='PL')
     assert price_method in result
     assert weight_method in result
+
+
+def test_use_default_shipping_zone(shipping_zone):
+    shipping_zone.countries = ['PL']
+    shipping_zone.save()
+
+    default_zone = ShippingZone.objects.create(default=True, name='Default')
+    weight_method = default_zone.shipping_methods.create(
+        minimum_order_weight=Weight(kg=1), maximum_order_weight=Weight(kg=10),
+        type=ShippingMethodType.WEIGHT_BASED)
+    result = ShippingMethod.objects.applicable_shipping_methods(
+        price=money(5), weight=Weight(kg=5), country_code='DE')
+    assert result[0] == weight_method
+
+
+@pytest.mark.parametrize(
+    'countries, result',
+    (
+        (['PL'], 'Poland'),
+        (['PL', 'DE', 'IT'], 'Poland, Germany, Italy'),
+        (['PL', 'DE', 'IT', 'LE'], '4 countries'),
+        ([], '0 countries')))
+def test_countries_display(shipping_zone, countries, result):
+    shipping_zone.countries = countries
+    shipping_zone.save()
+    assert shipping_zone.countries_display() == result
