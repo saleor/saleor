@@ -1,7 +1,5 @@
 import graphene
 import graphql_jwt
-from graphene_django import DjangoConnectionField
-from graphene_django.filter import DjangoFilterConnectionField
 from graphql_jwt.decorators import login_required, permission_required
 
 from .account.mutations import (
@@ -12,6 +10,7 @@ from .account.types import AddressValidationData, AddressValidationInput, User
 from .account.resolvers import (
     resolve_address_validator, resolve_customers, resolve_staff_users)
 from .core.types import TaxedMoney, ReportingPeriod
+from .core.fields import PrefetchingConnectionField
 from .menu.resolvers import resolve_menu, resolve_menus, resolve_menu_items
 from .menu.types import Menu, MenuItem
 # FIXME: sorting import by putting below line at the beginning breaks app
@@ -61,13 +60,13 @@ class Query(ProductQueries):
         Menu, id=graphene.Argument(graphene.ID),
         name=graphene.Argument(graphene.String, description="Menu name."),
         description='Lookup a menu by ID or name.')
-    menus = DjangoFilterConnectionField(
+    menus = PrefetchingConnectionField(
         Menu, query=graphene.String(description=DESCRIPTIONS['menu']),
         description="List of the shop\'s menus.")
     menu_item = graphene.Field(
         MenuItem, id=graphene.Argument(graphene.ID),
         description='Lookup a menu item by ID.')
-    menu_items = DjangoFilterConnectionField(
+    menu_items = PrefetchingConnectionField(
         MenuItem, query=graphene.String(description=DESCRIPTIONS['menu_item']),
         description='List of the shop\'s menu items.')
     order = graphene.Field(
@@ -78,7 +77,7 @@ class Query(ProductQueries):
         period=graphene.Argument(
             ReportingPeriod,
             description='Get total sales for selected span of time.'))
-    orders = DjangoConnectionField(
+    orders = PrefetchingConnectionField(
         Order,
         query=graphene.String(description=DESCRIPTIONS['order']),
         created=graphene.Argument(
@@ -87,42 +86,42 @@ class Query(ProductQueries):
         status=graphene.Argument(
             OrderStatusFilter, description='Filter order by status'),
         description='List of the shop\'s orders.')
-    homepage_events = DjangoConnectionField(
+    homepage_events = PrefetchingConnectionField(
         OrderEvent, description='''List of activity events to display on
         homepage (at the moment it only contains order-events).''')
     page = graphene.Field(
         Page, id=graphene.Argument(graphene.ID), slug=graphene.String(),
         description='Lookup a page by ID or by slug.')
-    pages = DjangoFilterConnectionField(
+    pages = PrefetchingConnectionField(
         Page, query=graphene.String(
             description=DESCRIPTIONS['page']),
         description='List of the shop\'s pages.')
     sale = graphene.Field(
         Sale, id=graphene.Argument(graphene.ID),
         description='Lookup a sale by ID.')
-    sales = DjangoFilterConnectionField(
+    sales = PrefetchingConnectionField(
         Sale, query=graphene.String(description=DESCRIPTIONS['sale']),
         description="List of the shop\'s sales.")
     shop = graphene.Field(Shop, description='Represents a shop resources.')
     voucher = graphene.Field(
         Voucher, id=graphene.Argument(graphene.ID),
         description='Lookup a voucher by ID.')
-    vouchers = DjangoFilterConnectionField(
+    vouchers = PrefetchingConnectionField(
         Voucher, query=graphene.String(description=DESCRIPTIONS['product']),
         description="List of the shop\'s vouchers.")
     shipping_zone = graphene.Field(
         ShippingZone, id=graphene.Argument(graphene.ID),
         description='Lookup a shipping zone by ID.')
-    shipping_zones = DjangoFilterConnectionField(
+    shipping_zones = PrefetchingConnectionField(
         ShippingZone, description='List of the shop\'s shipping zones.')
     user = graphene.Field(
         User, id=graphene.Argument(graphene.ID),
         description='Lookup an user by ID.')
-    customers = DjangoFilterConnectionField(
+    customers = PrefetchingConnectionField(
         User, description='List of the shop\'s users.',
         query=graphene.String(
             description=DESCRIPTIONS['user']))
-    staff_users = DjangoFilterConnectionField(
+    staff_users = PrefetchingConnectionField(
         User, description='List of the shop\'s staff users.',
         query=graphene.String(description=DESCRIPTIONS['user']))
     node = graphene.Node.Field()

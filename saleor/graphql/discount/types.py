@@ -10,13 +10,6 @@ class Voucher(CountableDjangoObjectType):
         description = """A token that can be used to purchase products
         for discounted price."""
         interfaces = [relay.Node]
-        filter_fields = {
-            'name': ['icontains'],
-            'type': ['exact'],
-            'discount_value': ['gte', 'lte'],
-            'start_date': ['exact'],
-            'end_date': ['exact'],
-            'min_amount_spent': ['gte', 'lte']}
         model = models.Voucher
 
 
@@ -25,12 +18,6 @@ class Sale(CountableDjangoObjectType):
         description = """A special event featuring discounts
         for selected products"""
         interfaces = [relay.Node]
-        filter_fields = {
-            'name': ['icontains'],
-            'type': ['icontains'],
-            'value': ['gte', 'lte'],
-            'start_date': ['exact'],
-            'end_date': ['exact']}
         model = models.Sale
 
 
