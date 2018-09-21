@@ -3,7 +3,6 @@ import re
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
-from graphene_django.fields import DjangoConnectionField
 from graphql.error import GraphQLError
 
 from ...product import models
@@ -229,9 +228,9 @@ class Product(CountableDjangoObjectType):
             graphene.ID, description='ID of a product image.'),
         description='Get a single product image by ID')
     variants = gql_optimizer.field(
-        DjangoConnectionField(ProductVariant), model_field='variants')
+        PrefetchingConnectionField(ProductVariant), model_field='variants')
     images = gql_optimizer.field(
-        DjangoConnectionField(lambda: ProductImage), model_field='images')
+        PrefetchingConnectionField(lambda: ProductImage), model_field='images')
 
     class Meta:
         description = """Represents an individual item for sale in the
@@ -257,9 +256,6 @@ class Product(CountableDjangoObjectType):
 
     def resolve_attributes(self, info):
         return resolve_attribute_list(self.attributes)
-
-    def resolve_product_type(self, info):
-        return self.product_type
 
     @permission_required('product.manage_products')
     def resolve_purchase_cost(self, info):
