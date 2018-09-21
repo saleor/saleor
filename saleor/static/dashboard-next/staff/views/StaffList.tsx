@@ -20,7 +20,7 @@ interface OrderListProps {
 
 const PAGINATE_BY = 20;
 
-export const OrderList: React.StatelessComponent<OrderListProps> = ({
+export const StaffList: React.StatelessComponent<OrderListProps> = ({
   params
 }) => (
   <Navigator>
@@ -99,4 +99,4 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
   </Navigator>
 );
 
-export default OrderList;
+export default StaffList;
