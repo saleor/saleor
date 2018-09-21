@@ -42,7 +42,10 @@ export const permissions = [
     code: "account.manage_users",
     name: "Manage customers."
   }
-];
+].map(perm => ({
+  __typename: "PermissionDisplay" as "PermissionDisplay",
+  ...perm
+}));
 export const staffMembers: StaffList_staffUsers_edges_node[] = [
   {
     email: "admin@example.com",

@@ -49,13 +49,16 @@ const StaffDetailsPage = decorate<StaffDetailsPageProps>(
     onSubmit
   }) => {
     const initialForm: FormData = {
-      hasFullAccess:
-        maybe(() => permissions, []).filter(
-          perm =>
-            maybe(() => staffMember.permissions, []).filter(
-              userPerm => userPerm.code === perm.code
-            ).length === 0
-        ).length === 0,
+      hasFullAccess: maybe(
+        () =>
+          permissions.filter(
+            perm =>
+              maybe(() => staffMember.permissions, []).filter(
+                userPerm => userPerm.code === perm.code
+              ).length === 0
+          ).length === 0,
+        false
+      ),
       isActive: maybe(() => staffMember.isActive, false),
       permissions: maybe(() => staffMember.permissions, []).map(
         perm => perm.code
@@ -81,7 +84,7 @@ const StaffDetailsPage = decorate<StaffDetailsPageProps>(
                   <StaffPermissions
                     data={data}
                     disabled={disabled}
-                    permissions={maybe(() => staffMember.permissions)}
+                    permissions={permissions}
                     onChange={change}
                   />
                 </div>
