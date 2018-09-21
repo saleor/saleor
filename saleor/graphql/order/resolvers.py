@@ -30,7 +30,7 @@ def resolve_orders(info, created, status, query):
     if created is not None:
         qs = filter_by_period(qs, created, 'created')
 
-    return qs.prefetch_related('lines').distinct()
+    return qs.prefetch_related('lines')
 
 
 def resolve_orders_total(info, period):

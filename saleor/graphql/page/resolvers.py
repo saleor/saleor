@@ -23,5 +23,4 @@ def resolve_pages(info, query):
         qs = models.Page.objects.all()
     else:
         qs = models.Page.objects.public()
-    qs = filter_by_query_param(qs, query, PAGE_SEARCH_FIELDS)
-    return qs.distinct()
+    return filter_by_query_param(qs, query, PAGE_SEARCH_FIELDS)
