@@ -1,5 +1,5 @@
 *.py[cod]
-.*
+.idea
 !.babelrc
 !.circleci
 !.codeclimate.yml
