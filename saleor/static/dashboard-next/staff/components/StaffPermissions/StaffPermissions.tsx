@@ -21,8 +21,8 @@ interface StaffPermissionsProps {
 }
 
 const decorate = withStyles(theme => ({
-  checkbox: {
-    marginBottom: theme.spacing.unit
+  checkboxContainer: {
+    marginTop: theme.spacing.unit
   },
   hr: {
     backgroundColor: "#eaeaea",
@@ -62,15 +62,17 @@ const StaffPermissions = decorate<StaffPermissionsProps>(
               "Expand or restrict user's permissions to access certain part of saleor system."
             )}
           </Typography>
-          <ControlledCheckbox
-            checked={data.hasFullAccess}
-            disabled={disabled}
-            label={i18n.t("User has full access to the store", {
-              context: "checkbox label"
-            })}
-            name="hasFullAccess"
-            onChange={handleFullAccessChange}
-          />
+          <div className={classes.checkboxContainer}>
+            <ControlledCheckbox
+              checked={data.hasFullAccess}
+              disabled={disabled}
+              label={i18n.t("User has full access to the store", {
+                context: "checkbox label"
+              })}
+              name="hasFullAccess"
+              onChange={handleFullAccessChange}
+            />
+          </div>
         </CardContent>
         {!data.hasFullAccess && (
           <>
