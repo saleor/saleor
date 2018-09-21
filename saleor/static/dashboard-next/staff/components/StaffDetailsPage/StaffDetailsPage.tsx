@@ -4,8 +4,14 @@ import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
 import { maybe } from "../../../misc";
-import { StaffMemberDetails_user } from "../../types/StaffMemberDetails";
+import {
+  StaffMemberDetails_shop_permissions,
+  StaffMemberDetails_user
+} from "../../types/StaffMemberDetails";
 import StaffProperties from "../StaffProperties/StaffProperties";
+import StaffStatus from "../StaffStatus/StaffStatus";
+import StaffPermissions from "../StaffPermissions/StaffPermissions";
+import SaveButtonBar from "../../../components/SaveButtonBar";
 
 interface FormData {
   hasFullAccess: boolean;
@@ -15,6 +21,7 @@ interface FormData {
 
 export interface StaffDetailsPageProps {
   disabled: boolean;
+  permissions: StaffMemberDetails_shop_permissions[];
   staffMember: StaffMemberDetails_user;
   onBack: () => void;
   onDelete: () => void;
@@ -23,22 +30,32 @@ export interface StaffDetailsPageProps {
 
 const decorate = withStyles(theme => ({
   card: {
-    marginBottom: theme.spacing.unit * 2
+    marginBottom: theme.spacing.unit * 2 + "px"
   },
   root: {
     display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2,
+    gridColumnGap: theme.spacing.unit * 2 + "px",
     gridTemplateColumns: "9fr 4fr"
   }
 }));
 const StaffDetailsPage = decorate<StaffDetailsPageProps>(
-  ({ classes, staffMember, onBack }) => {
+  ({ classes, disabled, permissions, staffMember, onBack }) => {
     const initialForm: FormData = {
-      hasFullAccess
+      hasFullAccess:
+        maybe(() => permissions, []).filter(
+          perm =>
+            maybe(() => staffMember.permissions, []).filter(
+              userPerm => userPerm.code === perm.code
+            ).length === 0
+        ).length === 0,
+      isActive: maybe(() => staffMember.isActive, false),
+      permissions: maybe(() => staffMember.permissions, []).map(
+        perm => perm.code
+      )
     };
     return (
       <Form initial={initialForm}>
-        {({ change, data, hasChanged }) => (
+        {({ data, change, submit }) => (
           <Container width="md">
             <PageHeader
               title={maybe(() => staffMember.email)}
@@ -51,8 +68,23 @@ const StaffDetailsPage = decorate<StaffDetailsPageProps>(
                   staffMember={staffMember}
                 />
               </div>
-              <div />
+              <div>
+                <div className={classes.card}>
+                  <StaffPermissions
+                    data={data}
+                    disabled={disabled}
+                    permissions={maybe(() => staffMember.permissions)}
+                    onChange={change}
+                  />
+                </div>
+                <StaffStatus
+                  data={data}
+                  disabled={disabled}
+                  onChange={change}
+                />
+              </div>
             </div>
+            <SaveButtonBar onCancel={onBack} onSave={submit} />
           </Container>
         )}
       </Form>
