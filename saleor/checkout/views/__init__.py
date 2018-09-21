@@ -63,17 +63,18 @@ def checkout_shipping_address(request, cart):
 @add_voucher_form
 def checkout_shipping_method(request, cart):
     """Display the shipping method selection step."""
+    discounts = request.discounts
     taxes = get_taxes_for_cart(cart, request.taxes)
-    is_valid_shipping_method(cart, request.taxes, request.discounts)
+    is_valid_shipping_method(cart, request.taxes, discounts)
 
     form = CartShippingMethodForm(
-        request.POST or None, taxes=taxes, instance=cart,
+        request.POST or None, discounts=discounts, taxes=taxes, instance=cart,
         initial={'shipping_method': cart.shipping_method})
     if form.is_valid():
         form.save()
         return redirect('checkout:summary')
 
-    ctx = get_cart_data_for_checkout(cart, request.discounts, taxes)
+    ctx = get_cart_data_for_checkout(cart, discounts, taxes)
     ctx.update({'shipping_method_form': form})
     return TemplateResponse(request, 'checkout/shipping_method.html', ctx)
 
