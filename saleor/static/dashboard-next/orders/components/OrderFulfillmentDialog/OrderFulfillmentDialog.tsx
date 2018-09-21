@@ -1,4 +1,3 @@
-import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
@@ -13,6 +12,7 @@ import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
 import Form from "../../../components/Form";
+import TableCellAvatar from "../../../components/TableCellAvatar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 
@@ -99,9 +99,7 @@ const OrderFulfillmentDialog = decorate<OrderFulfillmentDialogProps>(
                       product.quantity - product.quantityFulfilled;
                     return (
                       <TableRow key={product.id}>
-                        <TableCell className={classes.avatarCell}>
-                          <Avatar src={product.thumbnailUrl} />
-                        </TableCell>
+                        <TableCellAvatar thumbnail={product.thumbnailUrl} />
                         <TableCell>{product.productName}</TableCell>
                         <TableCell>{product.productSku}</TableCell>
                         <TableCell className={classes.textRight}>
