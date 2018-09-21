@@ -32,8 +32,20 @@ export interface StaffList_staffUsers {
   pageInfo: StaffList_staffUsers_pageInfo;
 }
 
+export interface StaffList_shop_permissions {
+  __typename: "PermissionDisplay";
+  code: string;
+  name: string;
+}
+
+export interface StaffList_shop {
+  __typename: "Shop";
+  permissions: (StaffList_shop_permissions | null)[];
+}
+
 export interface StaffList {
   staffUsers: StaffList_staffUsers | null;
+  shop: StaffList_shop | null;
 }
 
 export interface StaffListVariables {
