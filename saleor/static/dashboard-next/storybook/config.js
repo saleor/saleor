@@ -32,6 +32,7 @@ function loadStories() {
 
   // Authentication
   require("./stories/auth/LoginPage");
+  require("./stories/auth/LoginLoading");
 
   // Categories
   require("./stories/categories/CategoryDeleteDialog");
