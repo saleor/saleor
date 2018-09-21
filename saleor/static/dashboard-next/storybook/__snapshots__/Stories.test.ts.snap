@@ -10870,8 +10870,9 @@ exports[`Storyshots Views / Authentication / Log in default 1`] = `
           class="Component-spacer-id"
         />
         <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id Component-loginButton-id"
-          tabindex="0"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id Component-loginButton-id"
+          disabled=""
+          tabindex="-1"
           type="submit"
         >
           <span
@@ -10879,9 +10880,6 @@ exports[`Storyshots Views / Authentication / Log in default 1`] = `
           >
             Login
           </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
         </button>
       </div>
     </div>
@@ -11002,8 +11000,9 @@ exports[`Storyshots Views / Authentication / Log in error 1`] = `
           class="Component-spacer-id"
         />
         <button
-          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id Component-loginButton-id"
-          tabindex="0"
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id Component-loginButton-id"
+          disabled=""
+          tabindex="-1"
           type="submit"
         >
           <span
@@ -11011,13 +11010,157 @@ exports[`Storyshots Views / Authentication / Log in error 1`] = `
           >
             Login
           </span>
-          <span
-            class="MuiTouchRipple-root-id"
-          />
         </button>
       </div>
     </div>
   </form>
+</div>
+`;
+
+exports[`Storyshots Views / Authentication / Log in loading 1`] = `
+<div>
+  <form>
+    <div
+      class="Component-sm-id Component-root-id"
+    >
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-card-id"
+      >
+        <span
+          class="isvg pending Component-logo-id"
+        />
+        <div
+          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+        >
+          <label
+            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+            data-shrink="false"
+          >
+            Email
+          </label>
+          <div
+            class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+          >
+            <input
+              aria-invalid="false"
+              autocomplete="username"
+              autofocus=""
+              class="MuiInput-input-id"
+              name="email"
+              type="text"
+              value=""
+            />
+          </div>
+        </div>
+        <div
+          class="Component-spacer-id"
+        />
+        <div
+          class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+        >
+          <label
+            class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+            data-shrink="false"
+          >
+            Password
+          </label>
+          <div
+            class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+          >
+            <input
+              aria-invalid="false"
+              autocomplete="current-password"
+              class="MuiInput-input-id MuiInput-inputType-id"
+              name="password"
+              type="password"
+              value=""
+            />
+          </div>
+        </div>
+        <div
+          class="Component-spacer-id"
+        />
+        <label
+          class="MuiFormControlLabel-root-id"
+        >
+          <span
+            class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id"
+          >
+            <span
+              class="MuiIconButton-label-id"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root-id"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                />
+              </svg>
+              <input
+                class="MuiSwitchBase-input-id"
+                name="rememberMe"
+                type="checkbox"
+              />
+            </span>
+            <span
+              class="MuiTouchRipple-root-id"
+            />
+          </span>
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+          >
+            Remember me
+          </span>
+        </label>
+        <div
+          class="Component-spacer-id"
+        />
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id Component-loginButton-id"
+          disabled=""
+          tabindex="-1"
+          type="submit"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Login
+          </span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Authentication / Verifying remembered user default 1`] = `
+<div>
+  <div
+    class="Component-root-id"
+  >
+    <div
+      class="MuiCircularProgress-root-id MuiCircularProgress-colorPrimary-id MuiCircularProgress-indeterminate-id"
+      role="progressbar"
+      style="width:128px;height:128px"
+    >
+      <svg
+        class="MuiCircularProgress-svg-id"
+        viewBox="22 22 44 44"
+      >
+        <circle
+          class="MuiCircularProgress-circle-id MuiCircularProgress-circleIndeterminate-id"
+          cx="44"
+          cy="44"
+          fill="none"
+          r="20.2"
+          stroke-width="3.6"
+        />
+      </svg>
+    </div>
+  </div>
 </div>
 `;
 
