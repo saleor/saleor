@@ -1,10 +1,7 @@
 import * as React from "react";
 
-import {
-  OrderRefundMutation,
-  OrderRefundMutationVariables
-} from "../../gql-types";
 import { TypedOrderRefundMutation } from "../mutations";
+import { OrderRefund, OrderRefundVariables } from "../types/OrderRefund";
 
 import {
   PartialMutationProviderProps,
@@ -12,11 +9,11 @@ import {
 } from "../..";
 
 interface OrderPaymentCaptureProviderProps
-  extends PartialMutationProviderProps<OrderRefundMutation> {
+  extends PartialMutationProviderProps<OrderRefund> {
   id: string;
   children: PartialMutationProviderRenderProps<
-    OrderRefundMutation,
-    OrderRefundMutationVariables
+    OrderRefund,
+    OrderRefundVariables
   >;
 }
 
