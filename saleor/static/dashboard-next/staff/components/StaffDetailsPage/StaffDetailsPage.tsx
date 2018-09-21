@@ -65,7 +65,11 @@ const StaffDetailsPage = decorate<StaffDetailsPageProps>(
       )
     };
     return (
-      <Form initial={initialForm} onSubmit={onSubmit}>
+      <Form
+        initial={initialForm}
+        onSubmit={onSubmit}
+        key={JSON.stringify({ staffMember, permissions })}
+      >
         {({ data, change, submit }) => (
           <Container width="md">
             <PageHeader

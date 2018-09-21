@@ -40,6 +40,12 @@ const staffList = gql`
         endCursor
       }
     }
+    shop {
+      permissions {
+        code
+        name
+      }
+    }
   }
 `;
 export const TypedStaffListQuery = TypedQuery<StaffList, StaffListVariables>(
@@ -60,7 +66,7 @@ export const staffMemberDetails = gql`
     }
   }
 `;
-export const TypedOrderDetailsQuery = TypedQuery<
+export const TypedStaffMemberDetailsQuery = TypedQuery<
   StaffMemberDetails,
   StaffMemberDetailsVariables
 >(staffMemberDetails);

@@ -414,6 +414,12 @@ export interface StaffCreateInput {
   sendPasswordEmail?: boolean | null;
 }
 
+export interface StaffInput {
+  email?: string | null;
+  note?: string | null;
+  permissions?: (string | null)[] | null;
+}
+
 //==============================================================
 // END Enums and Input Objects
 //==============================================================
