@@ -14,6 +14,7 @@ import * as Cookies from "universal-cookie";
 import AppRoot from "./AppRoot";
 import Auth, { getAuthToken, removeAuthToken } from "./auth";
 import AuthProvider from "./auth/AuthProvider";
+import LoginLoading from "./auth/components/LoginLoading/LoginLoading";
 import CategorySection from "./categories";
 import { DateProvider } from "./components/DateFormatter";
 import { LocaleProvider } from "./components/Locale";
@@ -103,7 +104,7 @@ render(
                       </Switch>
                     </AppRoot>
                   ) : hasToken && tokenVerifyLoading ? (
-                    <>loading</>
+                    <LoginLoading />
                   ) : (
                     <Auth loading={tokenAuthLoading} />
                   );
