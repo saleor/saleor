@@ -14,9 +14,8 @@ storiesOf("Orders / OrderShippingMethodEditDialog", module)
   .addDecorator(Decorator)
   .add("default", () => (
     <OrderShippingMethodEditDialog
-      onChange={undefined}
       onClose={undefined}
-      onConfirm={undefined}
+      onSubmit={undefined}
       open={true}
       shippingMethod={order.shippingMethod.id}
       shippingMethods={shippingMethods}
