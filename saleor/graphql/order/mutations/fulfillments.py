@@ -164,8 +164,8 @@ class FulfillmentUpdateTracking(BaseMutation):
             info, id, errors, 'id', Fulfillment)
         if errors:
             return cls(errors=errors)
-        tracking_number = input.get('tracking_number')
-        fulfillment.tracking_number = input.get('tracking_number')
+        tracking_number = input.get('tracking_number') or ''
+        fulfillment.tracking_number = tracking_number
         fulfillment.save()
         order = fulfillment.order
         order.events.create(
