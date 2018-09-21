@@ -6,7 +6,6 @@ import pytest
 from django.urls import reverse
 from django_countries.fields import Country
 from freezegun import freeze_time
-from measurement.measures import Weight
 from prices import Money, TaxedMoney
 from saleor.account.models import Address
 from saleor.checkout import views
@@ -25,7 +24,6 @@ from saleor.core.utils.taxes import (
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
 from saleor.product.models import Category
-from saleor.shipping import ShippingMethodType
 from saleor.shipping.models import ShippingZone
 
 from .utils import compare_taxes, get_redirect_location
@@ -45,52 +43,23 @@ def test_country_form_country_choices():
     assert form.fields['country'].choices == expected_choices
 
 
-def test_is_valid_shipping_method_no_shipping_method(vatlayer):
-    cart = Mock(shipping_method=False)
+def test_is_valid_shipping_method(
+        cart_with_item, address, shipping_zone, vatlayer):
+    cart = cart_with_item
+    cart.shipping_address = address
+    cart.save()
+    # no shipping method assigned
     assert not is_valid_shipping_method(cart, vatlayer, None)
+    shipping_method = shipping_zone.shipping_methods.first()
+    cart.shipping_method = shipping_method
+    cart.save()
 
-
-@patch('saleor.checkout.utils.clear_shipping_method')
-def test_is_valid_shipping_method_shipping_outside_the_shipping_zone(
-        mock_clear_shipping_method, vatlayer):
-    cart = Mock(
-        shipping_address=Mock(country=Country('PL')),
-        shipping_method=Mock(shipping_zone=Mock(countries=['DE'])))
-    assert not is_valid_shipping_method(cart, vatlayer, None)
-    mock_clear_shipping_method.assert_called_once_with(cart)
-
-
-@patch('saleor.checkout.utils.clear_shipping_method')
-def test_is_valid_shipping_method_not_valid(
-        mock_clear_shipping_method, vatlayer):
-    cart = Mock(
-        shipping_address=Mock(country=Country('PL')),
-        shipping_method=Mock(
-            shipping_zone=Mock(countries=['PL']),
-            minimum_order_price=Money(10, 'USD'),
-            maximum_order_price=None,
-            type=ShippingMethodType.PRICE_BASED),
-        get_total_weight=Mock(return_value=Weight(kg=0)),
-        get_subtotal=Mock(
-            return_value=TaxedMoney(
-                gross=Money(5, 'USD'), net=Money(5, 'USD'))))
-    assert not is_valid_shipping_method(cart, vatlayer, None)
-    mock_clear_shipping_method.assert_called_once_with(cart)
-
-
-def test_is_valid_shipping_method(vatlayer):
-    cart = Mock(
-        shipping_address=Mock(country=Country('PL')),
-        shipping_method=Mock(
-            shipping_zone=Mock(countries=['PL']),
-            minimum_order_price=Money(10, 'USD'),
-            maximum_order_price=None,
-            type=ShippingMethodType.PRICE_BASED),
-        get_total_weight=Mock(return_value=Weight(kg=0)),
-        get_subtotal=Mock(
-            return_value=TaxedMoney(
-                gross=Money(15, 'USD'), net=Money(15, 'USD'))))
     assert is_valid_shipping_method(cart, vatlayer, None)
+
+    zone = ShippingZone.objects.create(name='DE', countries=['DE'])
+    shipping_method.shipping_zone = zone
+    shipping_method.save()
+    assert not is_valid_shipping_method(cart, vatlayer, None)
 
 
 def test_clear_shipping_method(cart, shipping_method):

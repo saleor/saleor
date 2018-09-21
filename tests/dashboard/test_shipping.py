@@ -1,12 +1,28 @@
+import pytest
 from django.urls import reverse
 from prices import Money
-import pytest
+
+from saleor.account.i18n import COUNTRY_CHOICES
+from saleor.core.weight import WeightUnits
 from saleor.dashboard.shipping.forms import (
     PriceShippingMethodForm, ShippingZoneForm, WeightShippingMethodForm,
-    currently_used_countries)
+    currently_used_countries, default_shipping_zone_exists,
+    get_available_countries)
 from saleor.shipping import ShippingMethodType
 from saleor.shipping.models import ShippingMethod, ShippingZone
-from saleor.core.weight import WeightUnits
+
+
+def test_default_shipping_zone_exists(shipping_zone):
+    shipping_zone.default = True
+    shipping_zone.save()
+    assert default_shipping_zone_exists()
+    assert not default_shipping_zone_exists(shipping_zone.pk)
+
+
+def test_get_available_countries(shipping_zone):
+    assert get_available_countries(shipping_zone.pk) == set(COUNTRY_CHOICES)
+    assert get_available_countries() == (
+        set(COUNTRY_CHOICES) - currently_used_countries())
 
 
 def test_currently_used_countries():
@@ -34,6 +50,27 @@ def test_shipping_zone_form():
             'countries': ['DE']})
     assert not form.is_valid()
     assert 'countries' in form.errors
+
+
+def test_create_duplicated_default_shipping_zone_form(shipping_zone):
+    default_zone = ShippingZone.objects.create(name='Zone', default=True)
+    form = ShippingZoneForm(
+        instance=shipping_zone,
+        data={'name': 'Zone', 'default': True, 'countries': ['PL']})
+    assert form.fields['countries'].required
+    assert form.fields['default'].disabled
+    assert form.is_valid()
+    zone = form.save()
+    assert not zone.default
+
+
+def test_add_default_shipping_zone_form():
+    form = ShippingZoneForm(
+        data={'name': 'Zone', 'countries': ['PL'], 'default': True})
+    assert form.is_valid()
+    zone = form.save()
+    assert zone.default
+    assert not zone.countries
 
 
 @pytest.mark.parametrize(

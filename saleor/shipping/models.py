@@ -31,7 +31,7 @@ class ShippingZone(models.Model):
         if self.default:
             from ..dashboard.shipping.forms import get_available_countries
             countries = get_available_countries()
-        if len(countries) <= 3:
+        if len(countries) > 0 and len(countries) <= 3:
             return ', '.join((country.name for country in countries))
         return pgettext_lazy(
             'Number of countries shipping zone apply to',
