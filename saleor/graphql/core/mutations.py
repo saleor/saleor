@@ -229,7 +229,7 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        """Determine wheter user has rights to perform this mutation.
+        """Determine whether user has rights to perform this mutation.
 
         Default implementation assumes that user is allowed to perform any
         mutation. By overriding this method, you can restrict access to it.
