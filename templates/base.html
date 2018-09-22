@@ -5,6 +5,7 @@
 {% load render_bundle from webpack_loader %}
 {% load staticfiles %}
 {% load translate_url from urls %}
+{% load attributes %}
 
 <html lang="{{ LANGUAGE_CODE }}" class="no-js" data-shipping-options-url="{% url 'cart:shipping-options' %}" data-cart-summary-url="{% url 'cart:summary' %}">
 <head>
@@ -48,6 +49,24 @@
 
 <body>
 {% block header %}
+
+      {#  display some critical check#}
+      {% if debug %}
+        <div class="bg-warning">
+          Warning, <a href="https://saleor.readthedocs.io/en/latest/gettingstarted/configuration.html">
+          Debug = True!</a>
+        </div>
+      {% endif %}
+
+      {% settings_value "IS_BAD_SECRET_KEY" as bad_key %}
+      {% if bad_key %}
+        <div class="bg-warning">
+          Warning, <a href="https://saleor.readthedocs.io/en/latest/gettingstarted/configuration.html">
+          SECRET_KEY is default!</a>
+         </div>
+      {% endif %}
+
+
   <header class="navbar" role="navigation">
     <div class="navbar__login container-fluid {% if user.is_impersonate %} bg-warning{% endif %}">
       <div class=" d-none d-md-block container">

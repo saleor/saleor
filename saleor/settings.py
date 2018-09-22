@@ -1,20 +1,22 @@
 import ast
+import importlib
 import os.path
 
 import dj_database_url
 import dj_email_url
 import django_cache_url
+import environ
+from email.utils import getaddresses
 from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _, pgettext_lazy
 from django_prices.templatetags.prices_i18n import get_currency_fraction
-import environ
-from email.utils import getaddresses
 
 from . import __version__
 
 env = environ.Env(
     # set casting, default value
     DEBUG=(bool, True),
+    SECRET_KEY=(str, 'your-secret-key'),
     INTERNAL_IPS=(list, []),
     SALEOR_LANGUAGES=(list, []),
     ENABLE_SSL=(bool, False),
@@ -23,27 +25,12 @@ env = environ.Env(
     ALLOWED_HOSTS=(list, []),
     AWS_QUERYSTRING_AUTH=(bool, False),
     CREATE_IMAGES_ON_DEMAND=(bool, True),
-    MAX_CART_LINE_QUANTITY=(int, 50)
+    MAX_CART_LINE_QUANTITY=(int, 50),
+    # DEBUG_TOOLBAR=(bool, True),
 )
 
-env_file = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.env'))  # noqa
+env_file = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.env'))
 environ.Env.read_env(env_file=env_file)
-
-
-# def get_list(text):
-#     return [item.strip() for item in text.split(',')]
-#
-#
-# def get_bool_from_env(name, default_value):
-#     if name in os.environ:
-#         value = os.environ[name]
-#         try:
-#             return ast.literal_eval(value)
-#         except ValueError as e:
-#             raise ValueError(
-#                 '{} is an invalid value for {}'.format(value, name)) from e
-#     return default_value
-
 
 DEBUG = env('DEBUG', default=True)
 
@@ -55,23 +42,22 @@ ROOT_URLCONF = 'saleor.urls'
 
 WSGI_APPLICATION = 'saleor.wsgi.application'
 
-ADMINS = getaddresses([env('DJANGO_ADMINS')])
+ADMINS = getaddresses([env('DJANGO_ADMINS', default='')])
 MANAGERS = ADMINS
 
 # INTERNAL_IPS = get_list(env('INTERNAL_IPS', '127.0.0.1'))
-INTERNAL_IPS = env('INTERNAL_IPS', default='127.0.0.1')
+INTERNAL_IPS = env('INTERNAL_IPS', default=['127.0.0.1'])
 
 # Some cloud providers like Heroku export REDIS_URL variable instead of CACHE_URL
-REDIS_URL = env.cache('REDIS_URL')
-# if REDIS_URL:
-#     CACHE_URL = env.cache('CACHE_URL', REDIS_URL)
-# CACHES = {'default': django_cache_url.config()}
-CACHES = {'default': REDIS_URL}
+REDIS_URL = env('REDIS_URL', default=None)
+if REDIS_URL:
+    CACHE_URL = env('CACHE_URL', default=REDIS_URL)
+CACHES = {'default': django_cache_url.config()}
 
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=env.db(),
+        default=env('DATABASE_URL', default='postgres://saleor:saleor@localhost:5432/saleor'),
         conn_max_age=600)}
 
 
@@ -114,8 +100,8 @@ USE_TZ = True
 
 FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 
-EMAIL_URL = env.email_url('EMAIL_URL')
-EMAIL_URL = env('EMAIL_URL')
+# EMAIL_URL = env.email_url('EMAIL_URL')
+EMAIL_URL = env('EMAIL_URL', default='')
 SENDGRID_USERNAME = env('SENDGRID_USERNAME', default='')
 SENDGRID_PASSWORD = env('SENDGRID_PASSWORD', default='')
 if not EMAIL_URL and SENDGRID_USERNAME and SENDGRID_PASSWORD:
@@ -187,7 +173,11 @@ TEMPLATES = [{
         'string_if_invalid': '<< MISSING VARIABLE "%s" >>' if DEBUG else ''}}]
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = env('SECRET_KEY')
+SECRET_KEY = env('SECRET_KEY', '')
+IS_BAD_SECRET_KEY = SECRET_KEY in [   # check if SECRET_KEY not set
+    '',
+    'your-secret-key',
+]
 
 MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -261,7 +251,7 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'captcha']
 
-if DEBUG:
+if DEBUG and env('DEBUG_TOOLBAR', default=True):
     MIDDLEWARE.append(
         'debug_toolbar.middleware.DebugToolbarMiddleware')
     INSTALLED_APPS.append('debug_toolbar')
@@ -355,7 +345,7 @@ ACCOUNT_ACTIVATION_DAYS = 3
 
 LOGIN_REDIRECT_URL = 'home'
 
-GOOGLE_ANALYTICS_TRACKING_ID = env('GOOGLE_ANALYTICS_TRACKING_ID',default='')
+GOOGLE_ANALYTICS_TRACKING_ID = env('GOOGLE_ANALYTICS_TRACKING_ID', default='')
 
 
 def get_host():
@@ -399,10 +389,11 @@ bootstrap4 = {
 
 TEST_RUNNER = ''
 
-ALLOWED_HOSTS = env('ALLOWED_HOSTS', default=[
-    'localhost',
-    'localhost:8000',
-    '127.0.0.1'],)
+if not DEBUG:
+    ALLOWED_HOSTS = env('ALLOWED_HOSTS', default=[
+        'localhost',
+        'localhost:8000',
+        '127.0.0.1'],)
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
@@ -508,7 +499,8 @@ SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
 # CELERY SETTINGS
 CELERY_BROKER_URL = env(
     'CELERY_BROKER_URL', default=env('CLOUDAMQP_URL', default='')) or ''
-CELERY_TASK_ALWAYS_EAGER = False if CELERY_BROKER_URL else True
+
+CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -571,3 +563,10 @@ if SENTRY_DSN:
 
 SERIALIZATION_MODULES = {
     'json': 'saleor.core.utils.json_serializer'}
+
+
+# you can override settings also in local_settings.py
+try:
+    from local_settings import *
+except ImportError:
+    pass
