@@ -1,7 +1,9 @@
 import os
 
-import environ
 from celery import Celery
+
+import environ
+
 
 env = environ.Env()
 environ.Env.read_env(env_file=os.path.abspath(os.path.join(
