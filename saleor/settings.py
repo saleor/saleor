@@ -46,7 +46,7 @@ MANAGERS = ADMINS
 
 INTERNAL_IPS = env('INTERNAL_IPS', default=['127.0.0.1'])
 
-# Some cloud providers (Heroku..) export REDIS_URL variable instead of CACHE_URL
+# Cloud providers like Heroku export REDIS_URL variable instead of CACHE_URL
 REDIS_URL = env('REDIS_URL', default=None)
 if REDIS_URL:
     CACHE_URL = env('CACHE_URL', default=REDIS_URL)
