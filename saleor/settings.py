@@ -508,7 +508,8 @@ CELERY_RESULT_BACKEND = 'django-db'
 # Impersonate module settings
 IMPERSONATE = {
     'URI_EXCLUSIONS': [r'^dashboard/'],
-    'CUSTOM_USER_QUERYSET': 'saleor.account.impersonate.get_impersonatable_users',  # noqa
+    'CUSTOM_USER_QUERYSET':
+        'saleor.account.impersonate.get_impersonatable_users',
     'USE_HTTP_REFERER': True,
     'CUSTOM_ALLOW': 'saleor.account.impersonate.can_impersonate'}
 
