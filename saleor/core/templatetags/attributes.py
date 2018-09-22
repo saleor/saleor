@@ -1,6 +1,6 @@
-from saleor import settings
-
 from django.template import Library
+
+from saleor import settings
 
 register = Library()
 
