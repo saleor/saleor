@@ -19,7 +19,7 @@ def get_object_properties(object, properties):
 @register.simple_tag
 def settings_value(name):
     """Return any value from settings.py
-    :param name: name value
+    :param name: settings.name
     :return: value
     """
     return getattr(settings, name, "")
