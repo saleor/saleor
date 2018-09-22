@@ -27,7 +27,8 @@ env = environ.Env(
     # DEBUG_TOOLBAR=(bool, True),
 )
 
-env_file = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.env'))
+env_file = os.path.abspath(os.path.join(
+    os.path.dirname(__file__), '..', '.env'))
 environ.Env.read_env(env_file=env_file)
 
 DEBUG = env('DEBUG', default=True)
@@ -43,7 +44,6 @@ WSGI_APPLICATION = 'saleor.wsgi.application'
 ADMINS = getaddresses([env('DJANGO_ADMINS', default='')])
 MANAGERS = ADMINS
 
-# INTERNAL_IPS = get_list(env('INTERNAL_IPS', '127.0.0.1'))
 INTERNAL_IPS = env('INTERNAL_IPS', default=['127.0.0.1'])
 
 # Some cloud providers like Heroku export REDIS_URL variable instead of CACHE_URL
@@ -55,7 +55,8 @@ CACHES = {'default': django_cache_url.config()}
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=env('DATABASE_URL', default='postgres://saleor:saleor@localhost:5432/saleor'),
+        default=env('DATABASE_URL',
+                    default='postgres://saleor:saleor@localhost:5432/saleor'),
         conn_max_age=600)}
 
 
@@ -565,6 +566,6 @@ SERIALIZATION_MODULES = {
 
 # you can override settings also in local_settings.py
 try:
-    from local_settings import *
+    from local_settings import *  # noqa
 except ImportError:
     pass
