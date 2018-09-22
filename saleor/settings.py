@@ -1,5 +1,3 @@
-import ast
-import importlib
 import os.path
 
 import dj_database_url
