@@ -1,6 +1,7 @@
 import decimal
 
 import graphene
+import graphene_django_optimizer as gql_optimizer
 from graphene_django import DjangoObjectType
 from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.graphql.core.utils import str_to_enum
@@ -48,6 +49,12 @@ class CountableDjangoObjectType(DjangoObjectType):
             node=cls)
         super().__init_subclass_with_meta__(
             *args, connection=countable_conn, **kwargs)
+
+    @classmethod
+    def get_node(cls, info, id):
+        qs = cls._meta.model.objects.filter(pk=id)
+        qs = gql_optimizer.query(qs, info)
+        return qs[0] if qs else None
 
 
 class Error(graphene.ObjectType):
