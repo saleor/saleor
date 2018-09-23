@@ -87,9 +87,9 @@ LANGUAGES = [
     ('zh-hans', _('Chinese')),
     ('zh-tw', _('Chinese (Taiwan)'))]
 
-_tmp = env('SALEOR_LANGUAGES')
-if _tmp:
-    LANGUAGES = [i for i in LANGUAGES if i[0] in _tmp]
+_tmp_saleor_languages = env('SALEOR_LANGUAGES')
+if _tmp_saleor_languages:
+    LANGUAGES = [i for i in LANGUAGES if i[0] in _tmp_saleor_languages]
 
 
 LOCALE_PATHS = [os.path.join(PROJECT_ROOT, 'locale')]
