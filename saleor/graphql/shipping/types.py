@@ -3,7 +3,6 @@ import decimal
 import graphene
 from graphene import relay
 from graphene.types import Scalar
-from graphene_django import DjangoObjectType
 from measurement.measures import Weight
 
 from ...core.weight import convert_weight, get_default_weight_unit
@@ -16,7 +15,7 @@ ShippingMethodTypeEnum = graphene.Enum(
     [(code.upper(), code) for code, name in ShippingMethodType.CHOICES])
 
 
-class ShippingMethod(DjangoObjectType):
+class ShippingMethod(CountableDjangoObjectType):
     type = ShippingMethodTypeEnum(description='Type of the shipping method.')
 
     class Meta:

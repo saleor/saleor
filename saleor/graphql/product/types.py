@@ -2,13 +2,13 @@ import re
 
 import graphene
 import graphene_django_optimizer as gql_optimizer
+from django.db.models import Prefetch
 from graphene import relay
 from graphql.error import GraphQLError
 
 from ...product import models
 from ...product.templatetags.product_images import get_thumbnail
-from ...product.utils import (
-    products_with_details, calculate_revenue_for_variant)
+from ...product.utils import calculate_revenue_for_variant
 from ...product.utils.availability import get_availability
 from ...product.utils.costs import (
     get_margin_for_variant, get_product_costs_data)
@@ -42,21 +42,25 @@ class StockAvailability(graphene.Enum):
     OUT_OF_STOCK = 'OUT_OF_STOCK'
 
 
-def resolve_attribute_list(attributes):
+def resolve_attribute_list(attributes_hstore, attributes_qs):
+    """Resolve attributes dict into a list of `SelectedAttribute`s.
     keys = list(attributes.keys())
     values = list(attributes.values())
 
-    attributes_map = {
-        att.pk: att for att in models.Attribute.objects.filter(
-            pk__in=keys)}
-    values_map = {
-        val.pk: val for val in models.AttributeValue.objects.filter(
-            pk__in=values)}
+    `attributes_qs` is the queryset of attribute objects. If it's prefetch
+    beforehand along with the values, it saves database queries.
+    """
+    attributes_map = {}
+    values_map = {}
+    for attr in attributes_qs:
+        attributes_map[attr.pk] = attr
+        for val in attr.values.all():
+            values_map[val.pk] = val
 
     attributes_list = [SelectedAttribute(
         attribute=attributes_map.get(int(k)),
         value=values_map.get(int(v)))
-        for k, v in attributes.items()]
+        for k, v in attributes_hstore.items()]
     return attributes_list
 
 
@@ -89,8 +93,10 @@ class AttributeValue(CountableDjangoObjectType):
 class Attribute(CountableDjangoObjectType):
     name = graphene.String(description=AttributeDescriptions.NAME)
     slug = graphene.String(description=AttributeDescriptions.SLUG)
-    values = graphene.List(
-        AttributeValue, description=AttributeDescriptions.VALUES)
+    values = gql_optimizer.field(
+        graphene.List(
+            AttributeValue, description=AttributeDescriptions.VALUES),
+        model_field='values')
 
     class Meta:
         description = """Custom attribute of a product. Attributes can be
@@ -150,8 +156,11 @@ class ProductVariant(CountableDjangoObjectType):
     def resolve_stock_quantity(self, info):
         return self.quantity_available
 
+    @gql_optimizer.resolver_hints(
+        prefetch_related='product__product_type__variant_attributes__values')
     def resolve_attributes(self, info):
-        return resolve_attribute_list(self.attributes)
+        attributes_qs = self.product.product_type.variant_attributes.all()
+        return resolve_attribute_list(self.attributes, attributes_qs)
 
     def resolve_margin(self, info):
         return get_margin_for_variant(self)
@@ -247,15 +256,20 @@ class Product(CountableDjangoObjectType):
     def resolve_url(self, info):
         return self.get_absolute_url()
 
-    @gql_optimizer.resolver_hints(prefetch_related='variants', only=['available_on', 'charge_taxes', 'tax_rate'])
+    @gql_optimizer.resolver_hints(
+            prefetch_related='variants',
+            only=['available_on', 'charge_taxes', 'price', 'tax_rate'])
     def resolve_availability(self, info):
         context = info.context
         availability = get_availability(
             self, context.discounts, context.taxes, context.currency)
         return ProductAvailability(**availability._asdict())
 
+    @gql_optimizer.resolver_hints(
+            prefetch_related='product_type__product_attributes__values')
     def resolve_attributes(self, info):
-        return resolve_attribute_list(self.attributes)
+        attributes_qs = self.product_type.product_attributes.all()
+        return resolve_attribute_list(self.attributes, attributes_qs)
 
     @permission_required('product.manage_products')
     def resolve_purchase_cost(self, info):
@@ -278,19 +292,29 @@ class Product(CountableDjangoObjectType):
     def resolve_images(self, info, **kwargs):
         return self.images.all()
 
-    @gql_optimizer.resolver_hints(model_field='variants')
     def resolve_variants(self, info, **kwargs):
         return self.variants.all()
 
-    @gql_optimizer.resolver_hints(prefetch_related='product_type')
-    def resolve_product_type(self, info, **kwargs):
-        return self.product_type
+
+def prefetch_products_for_user(info, *args, **kwargs):
+    user = info.context.user
+    qs = models.Product.objects.visible_to_user(user)
+    return Prefetch(
+        'products', queryset=gql_optimizer.query(qs, info),
+        to_attr='products_visible_to_user')
 
 
 class ProductType(CountableDjangoObjectType):
-    products = PrefetchingConnectionField(
-        Product,
-        description='List of products of this type.')
+    products = gql_optimizer.field(
+        PrefetchingConnectionField(
+            Product, description='List of products of this type.'),
+        prefetch_related=prefetch_products_for_user)
+    product_attributes = gql_optimizer.field(
+        PrefetchingConnectionField(Attribute),
+        model_field='product_attributes')
+    variant_attributes = gql_optimizer.field(
+        PrefetchingConnectionField(Attribute),
+        model_field='variant_attributes')
     tax_rate = TaxRateType(description='A type of tax rate.')
     variant_attributes = graphene.List(
         Attribute, description='Variant attributes of that product type.')
@@ -303,9 +327,15 @@ class ProductType(CountableDjangoObjectType):
         interfaces = [relay.Node]
         model = models.ProductType
 
+    def resolve_product_attributes(self, info, **kwargs):
+        return self.product_attributes.all()
+
+    def resolve_variant_attributes(self, info, **kwargs):
+        return self.variant_attributes.all()
+
     def resolve_products(self, info, **kwargs):
-        user = info.context.user
-        return products_with_details(user=user).filter(product_type=self)
+        # products_visible_to_user is set by prefetch_products_for_user
+        return self.products_visible_to_user
 
     def resolve_variant_attributes(self, info):
         return self.variant_attributes.prefetch_related('values')
@@ -315,8 +345,10 @@ class ProductType(CountableDjangoObjectType):
 
 
 class Collection(CountableDjangoObjectType):
-    products = PrefetchingConnectionField(
-        Product, description='List of collection products.')
+    products = gql_optimizer.field(
+        PrefetchingConnectionField(
+            Product, description='List of collection products.'),
+        prefetch_related=prefetch_products_for_user)
     background_image = graphene.Field(Image)
 
     class Meta:
@@ -329,8 +361,8 @@ class Collection(CountableDjangoObjectType):
         return self.background_image or None
 
     def resolve_products(self, info, **kwargs):
-        user = info.context.user
-        return products_with_details(user=user).filter(collections=self)
+        # products_visible_to_user is set by prefetch_products_for_user
+        return self.products_visible_to_user
 
 
 class Category(CountableDjangoObjectType):
@@ -369,10 +401,11 @@ class Category(CountableDjangoObjectType):
         return self.get_absolute_url()
 
     def resolve_products(self, info, **kwargs):
-        qs = models.Product.objects.available_products()
-        categories_tree = self.get_descendants(include_self=True)
-        qs = qs.filter(category__in=categories_tree)
-        return qs.distinct()
+        # FIXME: optimize products connection
+        # FIXME: include products from subcategories
+        # categories_tree = self.get_descendants(include_self=True)
+        # qs = qs.filter(category__in=categories_tree)
+        return self.products.visible_to_user(info.request.user).all()
 
 
 class ProductImage(CountableDjangoObjectType):

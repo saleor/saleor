@@ -4,7 +4,6 @@ from django.db.models import Sum, Q
 
 from ...order import OrderStatus
 from ...product import models
-from ...product.utils import products_visible_to_user
 from ..utils import filter_by_query_param, filter_by_period, get_database_id
 from .types import Category, ProductVariant, StockAvailability
 
@@ -15,15 +14,15 @@ ATTRIBUTES_SEARCH_FIELDS = ('name', 'slug')
 
 
 def resolve_attributes(info, category_id, query):
-    queryset = models.Attribute.objects.prefetch_related('values')
-    queryset = filter_by_query_param(queryset, query, ATTRIBUTES_SEARCH_FIELDS)
+    qs = models.Attribute.objects.all()
+    qs = filter_by_query_param(qs, query, ATTRIBUTES_SEARCH_FIELDS)
     if category_id:
         # Get attributes that are used with product types
         # within the given category.
         category = graphene.Node.get_node_from_global_id(
             info, category_id, Category)
         if category is None:
-            return queryset.none()
+            return qs.none()
         tree = category.get_descendants(include_self=True)
         product_types = {
             obj[0]
@@ -32,29 +31,29 @@ def resolve_attributes(info, category_id, query):
         queryset = queryset.filter(
             Q(product_type__in=product_types)
             | Q(product_variant_type__in=product_types))
-    return queryset
+    return gql_optimizer.query(qs, info)
 
 
 def resolve_categories(info, query, level=None):
-    queryset = models.Category.objects.all()
+    qs = models.Category.objects.all()
     if level is not None:
-        queryset = queryset.filter(level=level)
-    return filter_by_query_param(queryset, query, CATEGORY_SEARCH_FIELDS)
+        qs = qs.filter(level=level)
+    qs = filter_by_query_param(qs, query, CATEGORY_SEARCH_FIELDS)
+    return gql_optimizer.query(qs, info)
 
 
 def resolve_collections(info, query):
     user = info.context.user
-    if user.has_perm('product.manage_products'):
-        qs = models.Collection.objects.all()
-    else:
-        qs = models.Collection.objects.public()
-    return filter_by_query_param(qs, query, COLLECTION_SEARCH_FIELDS)
+    qs = models.Collection.objects.visible_to_user(user)
+    qs = filter_by_query_param(qs, query, COLLECTION_SEARCH_FIELDS)
+    return gql_optimizer.query(qs, info)
 
 
 def resolve_products(info, category_id, stock_availability, query):
     user = info.context.user
-    qs = products_visible_to_user(user=user)
+    qs = models.Product.objects.visible_to_user(user)
     qs = filter_by_query_param(qs, query, PRODUCT_SEARCH_FIELDS)
+
     if category_id is not None:
         category = graphene.Node.get_node_from_global_id(
             info, category_id, Category)
@@ -73,18 +72,20 @@ def resolve_products(info, category_id, stock_availability, query):
     return gql_optimizer.query(qs, info)
 
 
-def resolve_product_types():
-    return models.ProductType.objects.all()
+def resolve_product_types(info):
+    qs = models.ProductType.objects.all()
+    return gql_optimizer.query(qs, info)
 
 
 def resolve_product_variants(info, ids=None):
-    queryset = models.ProductVariant.objects.all()
+    # fixme: add visible_to_user for variants
+    qs = models.ProductVariant.objects.all()
     if ids:
         db_ids = [
             get_database_id(info, node_id, only_type=ProductVariant)
             for node_id in ids]
-        queryset = queryset.filter(pk__in=db_ids)
-    return queryset
+        qs = qs.filter(pk__in=db_ids)
+    return gql_optimizer.query(qs, info)
 
 
 def resolve_report_product_sales(info, period):

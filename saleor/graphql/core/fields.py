@@ -1,4 +1,5 @@
 import graphene
+from django.db.models.query import QuerySet
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
 from graphene_django.converter import convert_django_field
@@ -32,7 +33,12 @@ class PrefetchingConnectionField(DjangoConnectionField):
     def resolve_connection(cls, connection, default_manager, args, iterable):
         if iterable is None:
             iterable = default_manager
-        _len = iterable.count()
+
+        if isinstance(iterable, QuerySet):
+            _len = iterable.count()
+        else:
+            _len = len(iterable)
+
         connection = connection_from_list_slice(
             iterable,
             args,
