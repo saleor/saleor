@@ -131,6 +131,7 @@ MEDIA_URL = env('MEDIA_URL', default='/media/')
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
 STATIC_URL = env('STATIC_URL', default='/static/')
 STATICFILES_DIRS = [
+    'static_local',
     ('assets', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'assets')),
     ('favicons', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'favicons')),
     ('images', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'images')),
