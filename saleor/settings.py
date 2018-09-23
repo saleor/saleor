@@ -164,7 +164,9 @@ if not DEBUG:
 
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
-    'DIRS': [os.path.join(PROJECT_ROOT, 'templates')],
+    'DIRS': [os.path.join(PROJECT_ROOT, 'templates_local'),
+             os.path.join(PROJECT_ROOT, 'templates'),
+             ],
     'OPTIONS': {
         'debug': DEBUG,
         'context_processors': context_processors,
@@ -567,6 +569,6 @@ SERIALIZATION_MODULES = {
 
 # you can override settings also in local_settings.py
 try:
-    from local_settings import *  # noqa
+    from settings_local import *  # noqa
 except ImportError:
     pass
