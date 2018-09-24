@@ -3,38 +3,26 @@ import {
   BrowserRouter as Router,
   Route,
   Link,
-  Switch
+  Switch,
+  Redirect
 } from 'react-router-dom';
-import { CookiesProvider } from 'react-cookie';
 import { Home, Header, Footer, PrivacyPolicy, Roadmap, Feature } from '..';
 import css from './css/index.css';
+import { CookiesProvider } from 'react-cookie';
 
-import { I18nProvider } from '@lingui/react';
+import AppRouter from './AppRouter' 
 
-class App extends Component {
-
-  render() {
-    return (
-      <I18nProvider language='en'>
-        <Router>
-          <Fragment>
-            <CookiesProvider>
-              <Header cookies={this.props.cookies} />
-            </CookiesProvider>
-            <section className="container">
-              <Switch>
-                <Route exact path="/:lang(pl|fr|)" component={Home} />
-                <Route path=":lang(/pl|/fr|)/features" component={Feature} />
-                <Route path=":lang(/pl|/fr|)/privacy-policy" component={PrivacyPolicy} />
-                <Route path=":lang(/pl|/fr|)/roadmap" component={Roadmap} />
-              </Switch>
-            </section>
-            <Footer />
-          </Fragment>
-        </Router>
-      </I18nProvider>
-    );
-  }
-}
-
+const App = () => <Router>
+<Fragment>
+  <section className="container">
+    <Switch>
+      <Route exact path="/" component={AppRouter}/>
+      <Route exact path="/roadmap" component={AppRouter}/>
+      <Route exact path="/features" component={AppRouter}/>
+      <Route exact path="/privacy-policy" component={AppRouter}/>
+      <Route path="/:lang" component={AppRouter}/>
+    </Switch>
+  </section>
+</Fragment>
+</Router>
 export default App;

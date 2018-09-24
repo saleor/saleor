@@ -8,6 +8,7 @@ import decoration10 from '../../images/decoration10.png';
 import css from './roadmap.css';
 
 const Roadmap = (props) => (
+
 	<div id="roadmap">
     <section className="hero">
       <div className="bg-container"></div>

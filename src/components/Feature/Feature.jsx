@@ -30,9 +30,9 @@ import gdprReady from '../../images/gdpr-ready.svg';
 import analytics from '../../images/analytics.svg';
 import patchGardenLogo from '../../images/patch-garden.png';
 
-const Feature = () => (
+const Feature = (props) => (
   <div>
-    
+    {console.log(props.match)}
     <div id="feature">
       <section className="hero">
         <div className="feature bg-container"></div>

@@ -4,7 +4,7 @@ import ReactSVG from 'react-svg';
 
 import css from './footer.css';
 
-const Footer = () => (
+const Footer = (props) => (
   <footer>
     <div className="container">
       <div className="logo">
@@ -25,8 +25,8 @@ const Footer = () => (
               <div className="col-xs-4 col-sm-4 col-md-3 col-lg-2">
                 <ul>
                   <li><h4>Solution</h4></li>
-                  <li><NavLink to="/features">Features</NavLink></li>
-                  <li><NavLink to="/roadmap">Roadmap</NavLink></li>
+                  <li><NavLink to={props.pageLanguage ==  'en' ? `/features` : `/${props.pageLanguage}/features`}>Features</NavLink></li>
+                  <li><NavLink to={props.pageLanguage ==  'en' ? `/roadmap` : `/${props.pageLanguage}/roadmap`}>Roadmap</NavLink></li>
                   <li><a href="https://saleor.readthedocs.io/en/latest/">Docs</a></li>
                   <li><a href="https://demo.getsaleor.com/en/">Demo</a></li>
                 </ul>
@@ -61,11 +61,10 @@ const Footer = () => (
           <a href="">Terms of service</a>
         </div>
         <div className="col-xs-6 col-sm-3 col-md-2">
-          <Link to="/privacy-policy">Privacy policy</Link>
+          <Link to={props.pageLanguage ==  'en' ? `/privacy-policy` : `/${props.pageLanguage}/privacy-policy`}>Privacy policy</Link>
         </div>
       </div>
     </div>
   </footer>
 )
-
 export default Footer;

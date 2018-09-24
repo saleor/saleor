@@ -5,7 +5,6 @@ import ReactSVG from 'react-svg';
 import { withCookies, Cookies } from 'react-cookie';
 
 import { GitHubLink } from '..';
-
 import css from './header.css';
 
 import { Trans } from '@lingui/macro';
@@ -67,6 +66,7 @@ class Header extends Component {
   }
 
   render() {
+    const { pageLanguage } = this.props;
     return (
       <header className={this.state.sticky ? ('sticky '+ this.state.scrollDirection) : null}>
         {this.state.visibleNewsBar ?
@@ -79,13 +79,14 @@ class Header extends Component {
         <div className="container">
           <div className="grid">
             <div className={this.state.mobileMenu ? 'logo open col-xs-3 col-ls-6 col-sm-6 col-md-3 col-lg-6' : 'logo col-xs-3 col-sm-6 col-md-3 col-lg-6'}>
-              <NavLink to="/"><ReactSVG className="logo-svg" path="images/saleor-logo.svg" /></NavLink>
+            
+              <NavLink to={pageLanguage ==  'en' || !pageLanguage ? `/` : `/${pageLanguage}`}><ReactSVG className="logo-svg" path="/images/saleor-logo.svg" /></NavLink>
             </div>
             <nav className={this.state.visibleNewsBar ? 'menu newsbar col-xs-9 col-ls-6 col-sm-6 col-md-9 col-lg-6' : 'menu col-xs-9 col-sm-6 col-md-9 col-lg-6'}>
               <ul className={this.state.mobileMenu ? 'menu-mobile hovered' : 'menu-desktop'}>
                 <li><span className="count">01. </span><NavLink exact to="/" onClick={this.closeMenu}><Trans>Home</Trans></NavLink></li>
-                <li className="underline"><span className="count">02. </span><NavLink to="/features" onClick={this.closeMenu}><Trans>Features</Trans></NavLink></li>
-                <li className="underline"><span className="count">03. </span><NavLink to="/roadmap" onClick={this.closeMenu}><Trans>Roadmap</Trans></NavLink></li>
+                <li className="underline"><span className="count">02. </span><NavLink to={pageLanguage ==  'en' || !pageLanguage ? `/features` : `/${pageLanguage}/features`} onClick={this.closeMenu}><Trans>Features</Trans></NavLink></li>
+                <li className="underline"><span className="count">03. </span><NavLink to={pageLanguage ==  'en' || !pageLanguage ? `/roadmap` : `/${pageLanguage}/roadmap`} onClick={this.closeMenu}><Trans>Roadmap</Trans></NavLink></li>
                 <li className="underline"><span className="count">04. </span><a href="https://saleor.readthedocs.io/en/latest/"><Trans>Docs</Trans></a></li>
                 <li className="underline"><span className="count">05. </span><a href="https://medium.com/saleor"><Trans>Blog</Trans></a></li>
                 <li className="github-link"><GitHubLink owner="mirumee" name="saleor" /></li>
