@@ -54,7 +54,7 @@ class UserCreateInput(CustomerInput):
 
 class StaffInput(UserInput):
     is_active = graphene.Boolean(
-        description='User account is activated.')
+        required=False, description='User account is activated.')
     permissions = graphene.List(
         graphene.String,
         description='List of permission code names to assign to this user.')
@@ -253,16 +253,26 @@ class StaffUpdate(StaffCreate):
         model = models.User
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
-        if cleaned_input.get('is_active'):
-            if info.context.user == instance:
+    def clean_is_active(cls, is_active, instance, user, errors):
+        if is_active is None:
+            return errors
+
+        if not is_active:
+            if user == instance:
                 cls.add_error(
                     errors, 'is_active', 'Cannot deactivate your own account.')
-            elif info.context.user.is_superuser:
+            elif instance.is_superuser:
                 cls.add_error(
                     errors, 'is_active',
                     'Cannot deactivate superuser\'s account.')
+        return errors
+
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        cleaned_input = super().clean_input(info, instance, input, errors)
+        cls.clean_is_active(
+            cleaned_input.get('is_active'), instance, info.context.user,
+            errors)
         return cleaned_input
 
 
