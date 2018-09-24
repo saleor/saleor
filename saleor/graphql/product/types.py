@@ -296,19 +296,25 @@ class Product(CountableDjangoObjectType):
         return self.variants.all()
 
 
-def prefetch_products_for_user(info, *args, **kwargs):
+def prefetch_products(info, *args, **kwargs):
+    """Prefetch products visible to the current user.
+
+    Can be used with models that have the `products` relationship. Queryset of
+    products being prefetched is filtered based on permissions of the viewing
+    user, to restrict access to unpublished products to non-staff users.
+    """
     user = info.context.user
     qs = models.Product.objects.visible_to_user(user)
     return Prefetch(
         'products', queryset=gql_optimizer.query(qs, info),
-        to_attr='products_visible_to_user')
+        to_attr='prefetched_products')
 
 
 class ProductType(CountableDjangoObjectType):
     products = gql_optimizer.field(
         PrefetchingConnectionField(
             Product, description='List of products of this type.'),
-        prefetch_related=prefetch_products_for_user)
+        prefetch_related=prefetch_products)
     product_attributes = gql_optimizer.field(
         PrefetchingConnectionField(Attribute),
         model_field='product_attributes')
@@ -334,8 +340,7 @@ class ProductType(CountableDjangoObjectType):
         return self.variant_attributes.all()
 
     def resolve_products(self, info, **kwargs):
-        # products_visible_to_user is set by prefetch_products_for_user
-        return self.products_visible_to_user
+        return self.prefetched_products
 
     def resolve_variant_attributes(self, info):
         return self.variant_attributes.prefetch_related('values')
@@ -348,7 +353,7 @@ class Collection(CountableDjangoObjectType):
     products = gql_optimizer.field(
         PrefetchingConnectionField(
             Product, description='List of collection products.'),
-        prefetch_related=prefetch_products_for_user)
+        prefetch_related=prefetch_products)
     background_image = graphene.Field(Image)
 
     class Meta:
@@ -361,13 +366,14 @@ class Collection(CountableDjangoObjectType):
         return self.background_image or None
 
     def resolve_products(self, info, **kwargs):
-        # products_visible_to_user is set by prefetch_products_for_user
-        return self.products_visible_to_user
+        return self.prefetched_products
 
 
 class Category(CountableDjangoObjectType):
-    products = PrefetchingConnectionField(
-        Product, description='List of products in the category.')
+    products = gql_optimizer.field(
+        PrefetchingConnectionField(
+            Product, description='List of products in the category.'),
+        prefetch_related=prefetch_products)
     url = graphene.String(
         description='The storefront\'s URL for the category.')
     ancestors = PrefetchingConnectionField(
@@ -389,23 +395,21 @@ class Category(CountableDjangoObjectType):
         model = models.Category
 
     def resolve_ancestors(self, info, **kwargs):
-        return self.get_ancestors()
+        qs = self.get_ancestors()
+        return gql_optimizer.query(qs, info)
 
     def resolve_background_image(self, info, **kwargs):
         return self.background_image or None
 
     def resolve_children(self, info, **kwargs):
-        return self.children.all()
+        qs = self.children.all()
+        return gql_optimizer.query(qs, info)
 
     def resolve_url(self, info):
         return self.get_absolute_url()
 
     def resolve_products(self, info, **kwargs):
-        # FIXME: optimize products connection
-        # FIXME: include products from subcategories
-        # categories_tree = self.get_descendants(include_self=True)
-        # qs = qs.filter(category__in=categories_tree)
-        return self.products.visible_to_user(info.request.user).all()
+        return self.prefetched_products
 
 
 class ProductImage(CountableDjangoObjectType):
