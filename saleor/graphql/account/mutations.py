@@ -5,9 +5,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from graphql_jwt.decorators import permission_required
+from graphql_jwt.exceptions import PermissionDenied
 
 from ...account import emails, models
 from ...core.permissions import MODELS_PERMISSIONS, get_permissions
+from ...dashboard.staff.utils import remove_staff_member
 from ..account.types import AddressInput, User
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import Error
@@ -51,6 +53,8 @@ class UserCreateInput(CustomerInput):
 
 
 class StaffInput(UserInput):
+    is_active = graphene.Boolean(
+        description='User account is activated.')
     permissions = graphene.List(
         graphene.String,
         description='List of permission code names to assign to this user.')
@@ -140,6 +144,56 @@ class CustomerUpdate(CustomerCreate):
         model = models.User
 
 
+class StaffDelete(ModelMutation):
+    class Meta:
+        description = 'Deletes a staff user.'
+        model = models.User
+
+    class Arguments:
+        id = graphene.ID(
+            required=True, description='ID of a staff user to delete.')
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('account.manage_staff')
+
+    @classmethod
+    def mutate(cls, root, info, **data):
+        if not cls.user_is_allowed(info.context.user, data):
+            raise PermissionDenied()
+
+        errors = []
+        user_id = data.get('id')
+        instance = cls.get_node_or_error(info, user_id, errors, 'id', User)
+        cls.clean_user(instance, info.context.user, errors)
+        if errors:
+            return cls(errors=errors)
+
+        db_id = instance.id
+        remove_staff_member(instance)
+        # After the instance is deleted, set its ID to the original database's
+        # ID so that the success response contains ID of the deleted object.
+        instance.id = db_id
+        return cls.success_response(instance)
+
+    @classmethod
+    def clean_user(cls, instance, user, errors):
+        if not instance:
+            return
+        if not instance.is_staff:
+            cls.add_error(
+                errors, 'id',
+                'Only staff users can be deleted with this mutation.')
+        elif instance == user:
+            cls.add_error(
+                errors, 'id',
+                'You cannot delete your own account via dashboard.')
+        elif instance.is_superuser:
+            cls.add_error(
+                errors, 'id', 'Only superuser can delete his own account.')
+        return errors
+
+
 class StaffCreate(ModelMutation):
     class Arguments:
         input = StaffCreateInput(
@@ -197,6 +251,19 @@ class StaffUpdate(StaffCreate):
         description = 'Updates an existing staff user.'
         exclude = ['password']
         model = models.User
+
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        cleaned_input = super().clean_input(info, instance, input, errors)
+        if cleaned_input.get('is_active'):
+            if info.context.user == instance:
+                cls.add_error(
+                    errors, 'is_active', 'Cannot deactivate your own account.')
+            elif info.context.user.is_superuser:
+                cls.add_error(
+                    errors, 'is_active',
+                    'Cannot deactivate superuser\'s account.')
+        return cleaned_input
 
 
 class SetPasswordInput(graphene.InputObjectType):

@@ -5,7 +5,7 @@ from graphql_jwt.decorators import login_required, permission_required
 
 from .account.mutations import (
     CustomerCreate, CustomerUpdate, PasswordReset, SetPassword, StaffCreate,
-    StaffUpdate, AddressCreate, AddressUpdate, AddressDelete)
+    StaffDelete, StaffUpdate, AddressCreate, AddressUpdate, AddressDelete)
 from .account.types import AddressValidationData, AddressValidationInput, User
 from .account.resolvers import (
     resolve_address_validator, resolve_customers, resolve_staff_users)
@@ -290,6 +290,7 @@ class Mutations(graphene.ObjectType):
 
     staff_create = StaffCreate.Field()
     staff_update = StaffUpdate.Field()
+    staff_delete = StaffDelete.Field()
 
     address_create = AddressCreate.Field()
     address_update = AddressUpdate.Field()
