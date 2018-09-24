@@ -43,6 +43,6 @@ def Deserializer(stream_or_string, **options):
     except Exception as exc:
         # ugly construction to overcome pylint's warning
         # "The except handler raises immediately"
-        if isinstance(exc, GeneratorExit, DeserializationError):
+        if isinstance(exc, (GeneratorExit, DeserializationError)):
             raise
         raise DeserializationError() from exc
