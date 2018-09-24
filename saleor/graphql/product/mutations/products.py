@@ -262,18 +262,16 @@ class ProductCreate(ModelMutation):
     @classmethod
     def clean_default_variant(cls, cleaned_input, product_type, errors):
         default_variant = cleaned_input.pop('default_variant', None)
-        if product_type.has_variants:
-            if default_variant:
-                cls.add_error(
-                    errors, 'default_variant', 'Product type has variants')
-        else:
-            if default_variant:
-                cleaned_input['default_variant'] = \
-                    ProductVariantCreate.clean_attributes_input(
-                        product_type, default_variant, errors)
-            else:
-                cls.add_error(
-                    errors, 'default_variant', 'No default variant provided')
+        if default_variant and product_type.has_variants:
+            cls.add_error(
+                errors, 'default_variant', 'Product type has variants')
+        elif default_variant and not product_type.has_variants:
+            cleaned_input['default_variant'] = \
+                ProductVariantCreate.clean_attributes_input(
+                    product_type, default_variant, errors)
+        elif not default_variant and not product_type.has_variants:
+            cls.add_error(
+                errors, 'default_variant', 'No default variant provided')
         return cleaned_input
 
     @classmethod
