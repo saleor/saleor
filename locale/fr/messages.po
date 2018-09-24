@@ -1,0 +1,42 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2018-09-24 11:49+0200\n"
+"Mime-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: fr\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#: src/components/Header/Header.jsx:75
+msgid "<0>April release is out. <1>Check out what's new!</1></0>"
+msgstr "<0>Sortie d'avril est sorti. <1> Découvrez les nouveautés!</1></0>"
+
+#: src/components/Header/Header.jsx:90
+msgid "Blog"
+msgstr "Blog"
+
+#: src/components/Header/Header.jsx:92
+msgid "Contact Us"
+msgstr "Nous contacter""
+
+#: src/components/Header/Header.jsx:89
+msgid "Docs"
+msgstr "Docs"
+
+#: src/components/Header/Header.jsx:87
+msgid "Features"
+msgstr "Caractéristiques"
+
+#: src/components/Header/Header.jsx:86
+msgid "Home"
+msgstr "Home"
+
+#: src/components/Header/Header.jsx:88
+msgid "Roadmap"
+msgstr "Feuille de route"

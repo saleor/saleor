@@ -1,0 +1,58 @@
+{
+  "<0>April release is out. <1>Check out what's new!</1></0>": {
+    "origin": [
+      [
+        "src/components/Header/Header.jsx",
+        75
+      ]
+    ]
+  },
+  "Home": {
+    "origin": [
+      [
+        "src/components/Header/Header.jsx",
+        86
+      ]
+    ]
+  },
+  "Features": {
+    "origin": [
+      [
+        "src/components/Header/Header.jsx",
+        87
+      ]
+    ]
+  },
+  "Roadmap": {
+    "origin": [
+      [
+        "src/components/Header/Header.jsx",
+        88
+      ]
+    ]
+  },
+  "Docs": {
+    "origin": [
+      [
+        "src/components/Header/Header.jsx",
+        89
+      ]
+    ]
+  },
+  "Blog": {
+    "origin": [
+      [
+        "src/components/Header/Header.jsx",
+        90
+      ]
+    ]
+  },
+  "Contact Us": {
+    "origin": [
+      [
+        "src/components/Header/Header.jsx",
+        92
+      ]
+    ]
+  }
+}

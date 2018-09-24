@@ -6,6 +6,7 @@
     "homepage": "https://getsaleor.com/",
     "main": "dist/index.js",
     "dependencies": {
+        "@lingui/react": "^2.7.0",
         "axios": "^0.18.0",
         "babel-eslint": "^8.2.6",
         "eslint-config-prettier": "^2.9.0",
@@ -21,8 +22,10 @@
         "reset-css": "^4.0.1"
     },
     "devDependencies": {
+        "@lingui/macro": "^2.7.0",
         "babel-core": "^6.26.3",
         "babel-loader": "^7.1.5",
+        "babel-plugin-macros": "^2.4.2",
         "babel-preset-env": "^1.7.0",
         "babel-preset-react": "^6.24.1",
         "babel-preset-stage-0": "^6.24.1",

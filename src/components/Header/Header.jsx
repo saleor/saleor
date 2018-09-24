@@ -8,6 +8,8 @@ import { GitHubLink } from '..';
 
 import css from './header.css';
 
+import { Trans } from '@lingui/macro';
+
 class Header extends Component {
 
   constructor(props) {
@@ -70,7 +72,7 @@ class Header extends Component {
         {this.state.visibleNewsBar ?
         <div className="news">
           <div className="content">
-            <a href="">April release is out. <span className="text-underline">Check out what's new!</span></a>
+          <Trans><a href="">April release is out. <span className="text-underline">Check out what's new!</span></a></Trans>
             <div className="close-icon" onClick={this.closeNewsBar}></div>
           </div>
         </div> : null}
@@ -81,13 +83,13 @@ class Header extends Component {
             </div>
             <nav className={this.state.visibleNewsBar ? 'menu newsbar col-xs-9 col-ls-6 col-sm-6 col-md-9 col-lg-6' : 'menu col-xs-9 col-sm-6 col-md-9 col-lg-6'}>
               <ul className={this.state.mobileMenu ? 'menu-mobile hovered' : 'menu-desktop'}>
-                <li><span className="count">01. </span><NavLink exact to="/" onClick={this.closeMenu}>Home</NavLink></li>
-                <li className="underline"><span className="count">02. </span><NavLink to="/features" onClick={this.closeMenu}>Features</NavLink></li>
-                <li className="underline"><span className="count">03. </span><NavLink to="/roadmap" onClick={this.closeMenu}>Roadmap</NavLink></li>
-                <li className="underline"><span className="count">04. </span><a href="https://saleor.readthedocs.io/en/latest/">Docs</a></li>
-                <li className="underline"><span className="count">05. </span><a href="https://medium.com/saleor">Blog</a></li>
+                <li><span className="count">01. </span><NavLink exact to="/" onClick={this.closeMenu}><Trans>Home</Trans></NavLink></li>
+                <li className="underline"><span className="count">02. </span><NavLink to="/features" onClick={this.closeMenu}><Trans>Features</Trans></NavLink></li>
+                <li className="underline"><span className="count">03. </span><NavLink to="/roadmap" onClick={this.closeMenu}><Trans>Roadmap</Trans></NavLink></li>
+                <li className="underline"><span className="count">04. </span><a href="https://saleor.readthedocs.io/en/latest/"><Trans>Docs</Trans></a></li>
+                <li className="underline"><span className="count">05. </span><a href="https://medium.com/saleor"><Trans>Blog</Trans></a></li>
                 <li className="github-link"><GitHubLink owner="mirumee" name="saleor" /></li>
-                <li><span className="count">06. </span><a className={this.state.mobileMenu ? null : 'btn btn-primary'} href="https://mirumee.com/hire-us/">Contact Us</a></li>
+                <li><span className="count">06. </span><a className={this.state.mobileMenu ? null : 'btn btn-primary'} href="https://mirumee.com/hire-us/"><Trans>Contact Us</Trans></a></li>
               </ul>
               <ul className="mobile-btn">
                 <li className={this.state.mobileMenu ? 'github-link open' : 'github-link'} onClick={this.toggleMenu}><GitHubLink owner="mirumee" name="saleor" /></li>
