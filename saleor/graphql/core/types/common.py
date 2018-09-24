@@ -52,6 +52,8 @@ class CountableDjangoObjectType(DjangoObjectType):
 
     @classmethod
     def get_node(cls, info, id):
+        # Custom `get_node` implementation to use gql_optimizer to fetch
+        # single objects.
         qs = cls._meta.model.objects.filter(pk=id)
         qs = gql_optimizer.query(qs, info)
         return qs[0] if qs else None
