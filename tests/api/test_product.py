@@ -317,7 +317,7 @@ def test_sort_products(user_api_client, product):
     assert price_0 > price_1
 
 
-def test_create_product(
+def test_create_product_of_type_with_variants(
         admin_api_client, product_type, category, size_attribute):
     query = """
         mutation createProduct(
@@ -374,6 +374,8 @@ def test_create_product(
                       }
     """
 
+    product_type.has_variants = True
+    product_type.save()
     product_type_id = graphene.Node.to_global_id(
         'ProductType', product_type.pk)
     category_id = graphene.Node.to_global_id(
@@ -427,6 +429,244 @@ def test_create_product(
         data['product']['attributes'][1]['value']['slug'])
     assert slugify(non_existent_attr_value) in values
     assert color_value_slug in values
+
+
+def test_create_product_of_type_without_variants(
+        admin_api_client, product_type, category, size_attribute):
+    query = """
+        mutation createProduct(
+            $productTypeId: ID!,
+            $categoryId: ID!
+            $name: String!,
+            $description: String!,
+            $price: Decimal!,
+            $attributes: [AttributeValueInput!],
+            $sku: String!,
+            $defaultVariantAttributes: [AttributeValueInput!]) {
+                productCreate(
+                    input: {
+                        category: $categoryId,
+                        productType: $productTypeId,
+                        name: $name,
+                        description: $description,
+                        price: $price,
+                        attributes: $attributes,
+                        defaultVariant: {
+                            sku: $sku,
+                            attributes: $defaultVariantAttributes
+                        }
+                    }) {
+                        product {
+                            name
+                          }
+                          errors {
+                            message
+                            field
+                          }
+                        }
+                      }
+    """
+
+    product_type_id = graphene.Node.to_global_id(
+        'ProductType', product_type.pk)
+    category_id = graphene.Node.to_global_id(
+        'Category', category.pk)
+    product_description = 'test description'
+    product_name = 'test name'
+    product_price = 22.33
+    sku = '1'
+
+    # Default attribute defined in product_type fixture
+    color_attr = product_type.product_attributes.get(name='Color')
+    color_value_slug = color_attr.values.first().slug
+    color_attr_slug = color_attr.slug
+
+    # default variant attribute
+    size_attr = product_type.variant_attributes.get(name='Size')
+    size_value_slug = size_attr.values.first().slug
+    size_attr_slug = size_attr.slug
+
+    # Add second attribute
+    product_type.product_attributes.add(size_attribute)
+    non_existent_attr_value = 'The cake is a lie'
+
+    # test creating root product
+    variables = json.dumps({
+        'productTypeId': product_type_id,
+        'categoryId': category_id,
+        'name': product_name,
+        'description': product_description,
+        'price': product_price,
+        'sku': sku,
+        'attributes': [
+            {'slug': color_attr_slug, 'value': color_value_slug},
+            {'slug': size_attr_slug, 'value': non_existent_attr_value}],
+        'defaultVariantAttributes': [
+            {'slug': size_attr_slug, 'value': size_value_slug}]})
+
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productCreate']
+    assert data['errors'] == []
+    assert Product.objects.filter(name=product_name).exists()
+    assert ProductVariant.objects.filter(sku=sku).exists()
+
+
+def test_create_product_of_type_with_variants_default_variant_provided(
+        admin_api_client, product_type, category, size_attribute):
+    query = """
+            mutation createProduct(
+                $productTypeId: ID!,
+                $categoryId: ID!
+                $name: String!,
+                $description: String!,
+                $price: Decimal!,
+                $attributes: [AttributeValueInput!],
+                $sku: String!,
+                $defaultVariantAttributes: [AttributeValueInput!]) {
+                    productCreate(
+                        input: {
+                            category: $categoryId,
+                            productType: $productTypeId,
+                            name: $name,
+                            description: $description,
+                            price: $price,
+                            attributes: $attributes,
+                            defaultVariant: {
+                                sku: $sku,
+                                attributes: $defaultVariantAttributes
+                            }
+                        }) {
+                            product {
+                                name
+                              }
+                              errors {
+                                message
+                                field
+                              }
+                            }
+                          }
+        """
+
+    product_type.has_variants = True
+    product_type.save()
+    product_type_id = graphene.Node.to_global_id(
+        'ProductType', product_type.pk)
+    category_id = graphene.Node.to_global_id(
+        'Category', category.pk)
+    product_description = 'test description'
+    product_name = 'test name'
+    product_price = 22.33
+    sku = '1'
+
+    # Default attribute defined in product_type fixture
+    color_attr = product_type.product_attributes.get(name='Color')
+    color_value_slug = color_attr.values.first().slug
+    color_attr_slug = color_attr.slug
+
+    # default variant attribute
+    size_attr = product_type.variant_attributes.get(name='Size')
+    size_value_slug = size_attr.values.first().slug
+    size_attr_slug = size_attr.slug
+
+    # Add second attribute
+    product_type.product_attributes.add(size_attribute)
+    non_existent_attr_value = 'The cake is a lie'
+
+    # test creating root product
+    variables = json.dumps({
+        'productTypeId': product_type_id,
+        'categoryId': category_id,
+        'name': product_name,
+        'description': product_description,
+        'price': product_price,
+        'sku': sku,
+        'attributes': [
+            {'slug': color_attr_slug, 'value': color_value_slug},
+            {'slug': size_attr_slug, 'value': non_existent_attr_value}],
+        'defaultVariantAttributes': [
+            {'slug': size_attr_slug, 'value': size_value_slug}]})
+
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productCreate']
+    assert data['errors'] == [{
+        'field': 'defaultVariant', 'message': 'Product type has variants'}]
+    assert not Product.objects.filter(name=product_name).exists()
+    assert not ProductVariant.objects.filter(sku=sku).exists()
+
+
+def test_create_product_of_type_without_variants_no_default_variant_provided(
+        admin_api_client, product_type, category, size_attribute):
+    query = """
+            mutation createProduct(
+                $productTypeId: ID!,
+                $categoryId: ID!
+                $name: String!,
+                $description: String!,
+                $price: Decimal!,
+                $attributes: [AttributeValueInput!]) {
+                    productCreate(
+                        input: {
+                            category: $categoryId,
+                            productType: $productTypeId,
+                            name: $name,
+                            description: $description,
+                            price: $price,
+                            attributes: $attributes
+                        }) {
+                            product {
+                                name
+                              }
+                              errors {
+                                message
+                                field
+                              }
+                            }
+                          }
+        """
+
+    product_type_id = graphene.Node.to_global_id(
+        'ProductType', product_type.pk)
+    category_id = graphene.Node.to_global_id(
+        'Category', category.pk)
+    product_description = 'test description'
+    product_name = 'test name'
+    product_price = 22.33
+
+    # Default attribute defined in product_type fixture
+    color_attr = product_type.product_attributes.get(name='Color')
+    color_value_slug = color_attr.values.first().slug
+    color_attr_slug = color_attr.slug
+
+    # Add second attribute
+    product_type.product_attributes.add(size_attribute)
+    size_attr_slug = product_type.product_attributes.get(name='Size').slug
+    non_existent_attr_value = 'The cake is a lie'
+
+    # test creating root product
+    variables = json.dumps({
+        'productTypeId': product_type_id,
+        'categoryId': category_id,
+        'name': product_name,
+        'description': product_description,
+        'price': product_price,
+        'attributes': [
+            {'slug': color_attr_slug, 'value': color_value_slug},
+            {'slug': size_attr_slug, 'value': non_existent_attr_value}]})
+
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productCreate']
+    assert data['errors'] == [{
+        'field': 'defaultVariant', 'message': 'No default variant provided'}]
+    assert not Product.objects.filter(name=product_name).exists()
 
 
 def test_update_product(

@@ -196,6 +196,24 @@ class AttributeValueInput(InputObjectType):
         required=True, description='Value of an attribute.')
 
 
+class ProductVariantInput(graphene.InputObjectType):
+    attributes = graphene.List(
+        AttributeValueInput, required=False,
+        description='List of attributes specific to this variant.')
+    cost_price = Decimal(description='Cost price of the variant.')
+    price_override = Decimal(
+        description='Special price of the particular variant.')
+    sku = graphene.String(description='Stock keeping unit.')
+    quantity = graphene.Int(
+        description='The total quantity of this variant available for sale.')
+    track_inventory = graphene.Boolean(
+        description="""Determines if the inventory of this variant should
+        be tracked. If false, the quantity won't change when customers
+        buy this item.""")
+    weight = WeightScalar(
+        description='Weight of the Product Variant.', required=False)
+
+
 class ProductInput(graphene.InputObjectType):
     attributes = graphene.List(
         AttributeValueInput,
@@ -225,6 +243,11 @@ class ProductCreateInput(ProductInput):
     product_type = graphene.ID(
         description='ID of the type that product belongs to.',
         name='productType', required=True)
+    default_variant = ProductVariantInput(
+        required=False, description="""
+            Default variant to assign to product of type that does not have
+            variants. If product type has variants and default variant is give,
+            returns an error""")
 
 
 class ProductCreate(ModelMutation):
@@ -235,6 +258,23 @@ class ProductCreate(ModelMutation):
     class Meta:
         description = 'Creates a new product.'
         model = models.Product
+
+    @classmethod
+    def clean_default_variant(cls, cleaned_input, product_type, errors):
+        default_variant = cleaned_input.pop('default_variant', None)
+        if product_type.has_variants:
+            if default_variant:
+                cls.add_error(
+                    errors, 'default_variant', 'Product type has variants')
+        else:
+            if default_variant:
+                cleaned_input['default_variant'] = \
+                    ProductVariantCreate.clean_attributes_input(
+                        product_type, default_variant, errors)
+            else:
+                cls.add_error(
+                    errors, 'default_variant', 'No default variant provided')
+        return cleaned_input
 
     @classmethod
     def clean_input(cls, info, instance, input, errors):
@@ -249,6 +289,11 @@ class ProductCreate(ModelMutation):
             instance.product_type
             if instance.pk else cleaned_input.get('product_type'))
 
+        if 'default_variant' in cls.Arguments.input._meta.fields:
+            # clean default variant only in create mutation
+            cleaned_input = cls.clean_default_variant(
+                cleaned_input, product_type, errors)
+
         if attributes and product_type:
             qs = product_type.product_attributes.prefetch_related('values')
             try:
@@ -259,6 +304,20 @@ class ProductCreate(ModelMutation):
                 cleaned_input['attributes'] = attributes
         clean_seo_fields(cleaned_input)
         return cleaned_input
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        default_variant_data = cleaned_input.get('default_variant', None)
+        instance.save()
+        if default_variant_data:
+            default_variant_instance = models.ProductVariant()
+            default_variant_instance = ProductVariantCreate.construct_instance(
+                default_variant_instance, default_variant_data)
+            default_variant_instance.product = instance
+            default_variant_instance.save()
+            ProductVariantCreate.save(
+                info, default_variant_instance, default_variant_data)
+        return instance
 
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):
@@ -297,24 +356,6 @@ class ProductDelete(ModelDeleteMutation):
         return user.has_perm('product.manage_products')
 
 
-class ProductVariantInput(graphene.InputObjectType):
-    attributes = graphene.List(
-        AttributeValueInput, required=False,
-        description='List of attributes specific to this variant.')
-    cost_price = Decimal(description='Cost price of the variant.')
-    price_override = Decimal(
-        description='Special price of the particular variant.')
-    sku = graphene.String(description='Stock keeping unit.')
-    quantity = graphene.Int(
-        description='The total quantity of this variant available for sale.')
-    track_inventory = graphene.Boolean(
-        description="""Determines if the inventory of this variant should
-        be tracked. If false, the quantity won't change when customers
-        buy this item.""")
-    weight = WeightScalar(
-        description='Weight of the Product Variant.', required=False)
-
-
 class ProductVariantCreateInput(ProductVariantInput):
     attributes = graphene.List(
         AttributeValueInput, required=True,
@@ -348,30 +389,35 @@ class ProductVariantCreate(ModelMutation):
                 cls.add_error(errors, fieldname, 'This field cannot be blank.')
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
-
+    def clean_attributes_input(cls, product_type, input, errors):
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
         # `Product` model, which is HStore field that maps attribute's PK to
         # the value's PK.
 
+        attributes_input = input.pop('attributes')
+        variant_attrs = product_type.variant_attributes.prefetch_related(
+            'values')
+        try:
+            cls.clean_product_type_attributes(
+                variant_attrs, attributes_input, errors)
+            attributes = attributes_to_hstore(
+                attributes_input, variant_attrs)
+        except ValueError as e:
+            cls.add_error(errors, 'attributes', str(e))
+        else:
+            input['attributes'] = attributes
+        return input
+
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        cleaned_input = super().clean_input(info, instance, input, errors)
         if 'attributes' in input:
-            attributes_input = cleaned_input.pop('attributes')
             product = instance.product if instance.pk else cleaned_input.get(
                 'product')
             product_type = product.product_type
-            variant_attrs = product_type.variant_attributes.prefetch_related(
-                'values')
-            try:
-                cls.clean_product_type_attributes(
-                    variant_attrs, attributes_input, errors)
-                attributes = attributes_to_hstore(
-                    attributes_input, variant_attrs)
-            except ValueError as e:
-                cls.add_error(errors, 'attributes', str(e))
-            else:
-                cleaned_input['attributes'] = attributes
+            cleaned_input = cls.clean_attributes_input(
+                product_type, cleaned_input, errors)
         return cleaned_input
 
     @classmethod
