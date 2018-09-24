@@ -100,8 +100,10 @@ def get_menu_obj_text(obj):
     elif isinstance(obj, Page) and obj.is_visible and obj.available_on:
         return pgettext(
             'Menu item page hidden status',
-            'Hidden (will become visible on %(available_on_date)s)' % (
-                {'available_on_date': localize(obj.available_on)}))
+            '%(menu_item_name)s is hidden '
+            '(will become visible on %(available_on_date)s)' % ({
+                'available_on_date': localize(obj.available_on),
+                'menu_item_name': str(obj)}))
     return pgettext(
         'Menu item published status',
         '%(menu_item_name)s (Not published)' % {
