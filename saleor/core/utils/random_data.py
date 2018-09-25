@@ -29,8 +29,8 @@ from ...order.models import Fulfillment, Order, Payment
 from ...order.utils import update_order_status
 from ...page.models import Page
 from ...product.models import (
-    AttributeValue, Category, Collection, Product, Attribute,
-    ProductImage, ProductType, ProductVariant)
+    Attribute, AttributeValue, Category, Collection, Product, ProductImage,
+    ProductType, ProductVariant)
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
 from ...shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
