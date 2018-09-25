@@ -26,6 +26,29 @@ export const attributeFragment = gql`
     }
   }
 `;
+export const productTypeFragment = gql`
+  fragment ProductTypeFragment on ProductType {
+    id
+    name
+    hasVariants
+    isShippingRequired
+    taxRate
+  }
+`;
+
+export const productTypeDetailsFragment = gql`
+  ${attributeFragment}
+  ${productTypeFragment}
+  fragment ProductTypeDetailsFragment on ProductType {
+    ...ProductTypeFragment
+    productAttributes {
+      ...AttributeFragment
+    }
+    variantAttributes {
+      ...AttributeFragment
+    }
+  }
+`;
 
 export const TypedProductTypeListQuery = Query as React.ComponentType<
   QueryProps<ProductTypeList, ProductTypeListVariables>
