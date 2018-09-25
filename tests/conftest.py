@@ -709,7 +709,7 @@ def vatlayer(db, settings, tax_rates, taxes):
 def translated_variant_fr(product):
     attribute = product.product_type.variant_attributes.first()
     return AttributeTranslation.objects.create(
-        language_code='fr', product_attribute=attribute,
+        language_code='fr', attribute=attribute,
         name='Name tranlsated to french')
 
 
@@ -717,7 +717,7 @@ def translated_variant_fr(product):
 def translated_attribute(product):
     attribute = product.product_type.product_attributes.first()
     return AttributeTranslation.objects.create(
-        language_code='fr', product_attribute=attribute,
+        language_code='fr', attribute=attribute,
         name='Name tranlsated to french')
 
 

@@ -640,11 +640,11 @@ def test_variant_picker_data_with_translations(
 
 
 def test_get_product_attributes_data_translation(
-        product, settings, translated_product_attribute):
+        product, settings, translated_attribute):
     settings.LANGUAGE_CODE = 'fr'
     attributes_data = get_product_attributes_data(product)
     attributes_keys = [attr.name for attr in attributes_data.keys()]
-    assert translated_product_attribute.name in attributes_keys
+    assert translated_attribute.name in attributes_keys
 
 
 def test_homepage_collection_render(
