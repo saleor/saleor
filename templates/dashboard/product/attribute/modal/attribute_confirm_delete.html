@@ -5,19 +5,19 @@
 {% block form_class %}{% endblock %}
 
 {% block action_url %}
-{% url "dashboard:product-attribute-value-delete" attribute_pk=attribute_pk value_pk=value.pk %}
+{% url "dashboard:attribute-delete" pk=attribute.pk %}
 {% endblock %}
 
 {% block title %}
-{% blocktrans trimmed context "Modal delete attribute text" %}
-Delete attribute choice value {{ value }}
+{% blocktrans trimmed context "Modal remove attribute text" %}
+  Remove attribute {{ attribute }}
 {% endblocktrans %}
 {% endblock title %}
 
 {% block content %}
   <div class="col s12">
-    {% blocktrans trimmed context "Modal delete attribute text" %}
-      Are you sure you want to remove attribute choice value <strong>{{ value }}</strong>?
+    {% blocktrans trimmed context "Modal remove attribute text" %}
+      Are you sure you want to remove attribute <strong>{{ attribute }}</strong>?
     {% endblocktrans %}
   </div>
 {% endblock content %}

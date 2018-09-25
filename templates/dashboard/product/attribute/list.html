@@ -14,7 +14,7 @@
 
 {% block header_extra %}
   <div class="btn-fab-fixed">
-    <a class="btn-fab-default waves-effect waves-light" href="{% url 'dashboard:product-attribute-add' %}" title="{% trans "Add attribute" context "Attribute list add button text" %}">
+    <a class="btn-fab-default waves-effect waves-light" href="{% url 'dashboard:attribute-add' %}" title="{% trans "Add attribute" context "Attribute list add button text" %}">
       <svg data-src="{% static "dashboard/images/add.svg" %}" />
     </a>
   </div>
@@ -48,7 +48,7 @@
               </thead>
               <tbody>
                 {% for pk, name, values in attributes %}
-                  <tr data-action-go="{% url 'dashboard:product-attribute-details' pk=pk %}">
+                  <tr data-action-go="{% url 'dashboard:attribute-details' pk=pk %}">
                     <td>
                       {{ name }}
                     </td>
