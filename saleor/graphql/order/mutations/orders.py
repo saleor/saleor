@@ -173,7 +173,7 @@ class OrderUpdateShipping(BaseMutation):
             return OrderUpdateShipping(errors=errors)
 
         order.shipping_method = method
-        order.shipping_price = method.get_total_price(info.context.taxes)
+        order.shipping_price = method.get_total(info.context.taxes)
         order.shipping_method_name = method.name
         order.save(
             update_fields=[

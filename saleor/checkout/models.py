@@ -82,7 +82,7 @@ class Cart(models.Model):
 
     def get_shipping_price(self, taxes):
         return (
-            self.shipping_method.get_total_price(taxes)
+            self.shipping_method.get_total(taxes)
             if self.shipping_method and self.is_shipping_required()
             else ZERO_TAXED_MONEY)
 

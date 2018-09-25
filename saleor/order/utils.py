@@ -86,7 +86,7 @@ def update_order_prices(order, discounts):
             line.save()
 
     if order.shipping_method:
-        order.shipping_price = order.shipping_method.get_total_price(taxes)
+        order.shipping_price = order.shipping_method.get_total(taxes)
         order.save()
 
     recalculate_order(order)
