@@ -14,7 +14,8 @@ const decorate = withStyles(theme => ({
     backgroundColor: "#eaeaea",
     border: "none",
     height: 1,
-    marginBottom: 0
+    marginBottom: 0,
+    marginTop: 0
   },
   root: theme.mixins.gutters({
     display: "flex",
@@ -36,7 +37,7 @@ const CardTitle = decorate<CardTitleProps>(
   ({ classes, children, title, toolbar, onClick, ...props }) => (
     <>
       <div className={classes.root} {...props}>
-        <Typography className={classes.title} variant="body2" onClick={onClick}>
+        <Typography className={classes.title} variant="body1" onClick={onClick}>
           {title}
         </Typography>
         <div className={classes.toolbar}>{toolbar}</div>
