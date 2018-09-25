@@ -1,7 +1,10 @@
 coverage
 django-extensions
 django-silk==2.0.0
+isort
 pip-tools
+pycodestyle
+pydocstyle
 pylint
 pylint-celery
 pylint-django
