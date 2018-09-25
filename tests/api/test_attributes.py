@@ -94,8 +94,8 @@ def test_attributes_in_category_query(user_api_client, product):
 def test_create_attribute(admin_api_client):
     query = """
     mutation createAttribute($name: String!, $slug: String!) {
-        productAttributeCreate(input: {name: $name, slug: $slug}) {
-            productAttribute {
+        attributeCreate(input: {name: $name, slug: $slug}) {
+            Attribute {
                 name
                 slug
                 values {
@@ -113,7 +113,7 @@ def test_create_attribute(admin_api_client):
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    data = content['data']['productAttributeCreate']['productAttribute']
+    data = content['data']['attributeCreate']['Attribute']
     assert data['name'] == name
     assert data['slug'] == slug
     assert not data['values']
@@ -123,8 +123,8 @@ def test_update_attribute(admin_api_client, color_attribute):
     attribute = color_attribute
     query = """
     mutation updateAttribute($id: ID!, $name: String!, $slug: String!) {
-        productAttributeUpdate(id: $id, input: {name: $name, slug: $slug}) {
-            productAttribute {
+        attributeUpdate(id: $id, input: {name: $name, slug: $slug}) {
+            Attribute {
                 name
             }
         }
@@ -139,7 +139,7 @@ def test_update_attribute(admin_api_client, color_attribute):
     content = get_graphql_content(response)
     attribute.refresh_from_db()
     assert 'errors' not in content
-    data = content['data']['productAttributeUpdate']['productAttribute']
+    data = content['data']['attributeUpdate']['Attribute']
     assert data['name'] == name == attribute.name
 
 
@@ -147,8 +147,8 @@ def test_delete_attribute(admin_api_client, color_attribute):
     attribute = color_attribute
     query = """
     mutation deleteAttribute($id: ID!) {
-        productAttributeDelete(id: $id) {
-            productAttribute {
+        attributeDelete(id: $id) {
+            Attribute {
                 id
             }
         }

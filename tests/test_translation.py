@@ -16,7 +16,7 @@ def product_translation_pl(product):
 
 @pytest.fixture
 def attribute_value_translation_fr(translated_attribute):
-    value = translated_attribute.product_attribute.values.first()
+    value = translated_attribute.attribute.values.first()
     return AttributeValueTranslation.objects.create(
         language_code='fr', attribute_value=value,
         name='French name')
