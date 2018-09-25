@@ -407,6 +407,21 @@ export interface ProductTypeInput {
   taxRate?: TaxRateType | null;
 }
 
+export interface StaffCreateInput {
+  email?: string | null;
+  note?: string | null;
+  isActive?: boolean | null;
+  permissions?: (string | null)[] | null;
+  sendPasswordEmail?: boolean | null;
+}
+
+export interface StaffInput {
+  email?: string | null;
+  note?: string | null;
+  isActive?: boolean | null;
+  permissions?: (string | null)[] | null;
+}
+
 //==============================================================
 // END Enums and Input Objects
 //==============================================================

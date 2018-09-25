@@ -831,6 +831,7 @@ type Mutations {
   customerUpdate(id: ID!, input: CustomerInput!): CustomerUpdate
   staffCreate(input: StaffCreateInput!): StaffCreate
   staffUpdate(id: ID!, input: StaffInput!): StaffUpdate
+  staffDelete(id: ID!): StaffDelete
   addressCreate(input: AddressCreateInput!): AddressCreate
   addressUpdate(id: ID!, input: AddressInput!): AddressUpdate
   addressDelete(id: ID!): AddressDelete
@@ -1732,13 +1733,20 @@ type StaffCreate {
 input StaffCreateInput {
   email: String
   note: String
+  isActive: Boolean
   permissions: [String]
   sendPasswordEmail: Boolean
+}
+
+type StaffDelete {
+  errors: [Error]
+  user: User
 }
 
 input StaffInput {
   email: String
   note: String
+  isActive: Boolean
   permissions: [String]
 }
 
