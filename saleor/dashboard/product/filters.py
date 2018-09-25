@@ -64,10 +64,10 @@ class ProductFilter(SortedFilterSet):
 
 class AttributeFilter(SortedFilterSet):
     name = CharFilter(
-        label=pgettext_lazy('Product attribute list filter label', 'Name'),
+        label=pgettext_lazy('Attribute list filter label', 'Name'),
         lookup_expr='icontains')
     sort_by = OrderingFilter(
-        label=pgettext_lazy('Product attribute list filter label', 'Sort by'),
+        label=pgettext_lazy('Attribute list filter label', 'Sort by'),
         fields=PRODUCT_TYPE_SORT_BY_FIELDS.keys(),
         field_labels=PRODUCT_TYPE_SORT_BY_FIELDS)
 
@@ -78,8 +78,7 @@ class AttributeFilter(SortedFilterSet):
     def get_summary_message(self):
         counter = self.qs.count()
         return npgettext(
-            'Number of matching records in the dashboard '
-            'product attributes list',
+            'Number of matching records in the dashboard attributes list',
             'Found %(counter)d matching attribute',
             'Found %(counter)d matching attributes',
             number=counter) % {'counter': counter}

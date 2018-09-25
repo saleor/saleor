@@ -106,7 +106,7 @@ class SelectedAttribute(graphene.ObjectType):
         default_value=None, description='Value of an attribute.')
 
     class Meta:
-        description = 'Represents a custom product attribute.'
+        description = 'Represents a custom attribute.'
 
 
 class ProductVariant(CountableDjangoObjectType):
@@ -195,7 +195,7 @@ class Product(CountableDjangoObjectType):
         applied).""")
     attributes = graphene.List(
         SelectedAttribute,
-        description='List of product attributes assigned to this product.')
+        description='List of attributes assigned to this product.')
     purchase_cost = graphene.Field(MoneyRange)
     margin = graphene.Field(Margin)
     image_by_id = graphene.Field(
