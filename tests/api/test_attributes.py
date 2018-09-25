@@ -1,5 +1,4 @@
 import json
-from unittest.mock import Mock
 
 import graphene
 import pytest
@@ -95,7 +94,7 @@ def test_create_attribute(admin_api_client):
     query = """
     mutation createAttribute($name: String!, $slug: String!) {
         attributeCreate(input: {name: $name, slug: $slug}) {
-            Attribute {
+            attribute {
                 name
                 slug
                 values {
@@ -113,7 +112,7 @@ def test_create_attribute(admin_api_client):
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    data = content['data']['attributeCreate']['Attribute']
+    data = content['data']['attributeCreate']['attribute']
     assert data['name'] == name
     assert data['slug'] == slug
     assert not data['values']
@@ -124,7 +123,7 @@ def test_update_attribute(admin_api_client, color_attribute):
     query = """
     mutation updateAttribute($id: ID!, $name: String!, $slug: String!) {
         attributeUpdate(id: $id, input: {name: $name, slug: $slug}) {
-            Attribute {
+            attribute {
                 name
             }
         }
@@ -139,7 +138,7 @@ def test_update_attribute(admin_api_client, color_attribute):
     content = get_graphql_content(response)
     attribute.refresh_from_db()
     assert 'errors' not in content
-    data = content['data']['attributeUpdate']['Attribute']
+    data = content['data']['attributeUpdate']['attribute']
     assert data['name'] == name == attribute.name
 
 
@@ -148,7 +147,7 @@ def test_delete_attribute(admin_api_client, color_attribute):
     query = """
     mutation deleteAttribute($id: ID!) {
         attributeDelete(id: $id) {
-            Attribute {
+            attribute {
                 id
             }
         }

@@ -8,7 +8,7 @@ from django_filters.fields import Lookup
 from graphene_django.filter.filterset import Filter, FilterSet
 
 from ...product.filters import SORT_BY_FIELDS
-from ...product.models import Product, Attribute
+from ...product.models import Attribute, Product
 from .fields import AttributeField
 
 

@@ -1,7 +1,6 @@
 from django.utils.text import slugify
 
-from ...product.models import (
-    AttributeValue, Attribute, ProductVariant)
+from ...product.models import Attribute, AttributeValue, ProductVariant
 from ...product.utils.attributes import get_name_from_attributes
 
 

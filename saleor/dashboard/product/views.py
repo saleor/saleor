@@ -14,7 +14,7 @@ from . import forms
 from ...core.utils import get_paginator_items
 from ...discount.models import Sale
 from ...product.models import (
-    AttributeValue, Product, Attribute, ProductImage, ProductType,
+    Attribute, AttributeValue, Product, ProductImage, ProductType,
     ProductVariant)
 from ...product.utils.availability import get_availability
 from ...product.utils.costs import (

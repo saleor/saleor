@@ -13,10 +13,10 @@ from mptt.forms import TreeNodeChoiceField
 from . import ProductBulkAction
 from ...core import TaxRateType
 from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME, include_taxes_in_prices
-from ...core.weight import WeightField, get_default_weight_unit
+from ...core.weight import WeightField
 from ...product.models import (
-    AttributeValue, Category, Collection, Product, Attribute,
-    ProductImage, ProductType, ProductVariant, VariantImage)
+    Attribute, AttributeValue, Category, Collection, Product, ProductImage,
+    ProductType, ProductVariant, VariantImage)
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
 from ..forms import ModelChoiceOrCreationField, OrderedModelMultipleChoiceField

@@ -10,7 +10,7 @@ from django.utils.encoding import smart_text
 
 from ..discount.models import Sale
 from ..product.models import (
-    AttributeValue, Category, Attribute, ProductVariant)
+    Attribute, AttributeValue, Category, ProductVariant)
 
 CATEGORY_SEPARATOR = ' > '
 

@@ -5,7 +5,7 @@ from django_filters import (
     RangeFilter)
 
 from ...core.filters import SortedFilterSet
-from ...product.models import Category, Product, Attribute, ProductType
+from ...product.models import Attribute, Category, Product, ProductType
 from ..widgets import MoneyRangeWidget
 
 PRODUCT_SORT_BY_FIELDS = {
