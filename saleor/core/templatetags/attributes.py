@@ -1,5 +1,7 @@
 from django.template import Library
 
+from saleor import settings
+
 register = Library()
 
 
@@ -12,3 +14,12 @@ def get_object_properties(object, properties):
         if attribute:
             return getattr(object.translated, property)
     return ''
+
+
+@register.simple_tag
+def settings_value(name):
+    """Return any value from settings.py
+    :param name: settings.name
+    :return: value
+    """
+    return getattr(settings, name, "")

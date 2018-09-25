@@ -1,32 +1,37 @@
-import ast
 import os.path
+from email.utils import getaddresses
 
 import dj_database_url
 import dj_email_url
 import django_cache_url
+import environ
 from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _, pgettext_lazy
 from django_prices.templatetags.prices_i18n import get_currency_fraction
 
 from . import __version__
 
+env = environ.Env(
+    # set casting, default value
+    DEBUG=(bool, True),
+    SECRET_KEY=(str, 'your-secret-key'),
+    INTERNAL_IPS=(list, []),
+    SALEOR_LANGUAGES=(list, []),
+    ENABLE_SSL=(bool, False),
+    ENABLE_SILK=(bool, False),
+    VATLAYER_USE_HTTPS=(bool, False),
+    ALLOWED_HOSTS=(list, []),
+    AWS_QUERYSTRING_AUTH=(bool, False),
+    CREATE_IMAGES_ON_DEMAND=(bool, True),
+    MAX_CART_LINE_QUANTITY=(int, 50),
+    # DEBUG_TOOLBAR=(bool, True),
+)
 
-def get_list(text):
-    return [item.strip() for item in text.split(',')]
+env_file = os.path.abspath(os.path.join(
+    os.path.dirname(__file__), '..', '.env'))
+environ.Env.read_env(env_file=env_file)
 
-
-def get_bool_from_env(name, default_value):
-    if name in os.environ:
-        value = os.environ[name]
-        try:
-            return ast.literal_eval(value)
-        except ValueError as e:
-            raise ValueError(
-                '{} is an invalid value for {}'.format(value, name)) from e
-    return default_value
-
-
-DEBUG = get_bool_from_env('DEBUG', True)
+DEBUG = env('DEBUG', default=True)
 
 SITE_ID = 1
 
@@ -36,26 +41,26 @@ ROOT_URLCONF = 'saleor.urls'
 
 WSGI_APPLICATION = 'saleor.wsgi.application'
 
-ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
-)
+ADMINS = getaddresses([env('DJANGO_ADMINS', default='')])
 MANAGERS = ADMINS
 
-INTERNAL_IPS = get_list(os.environ.get('INTERNAL_IPS', '127.0.0.1'))
+INTERNAL_IPS = env('INTERNAL_IPS', default=['127.0.0.1'])
 
-# Some cloud providers like Heroku export REDIS_URL variable instead of CACHE_URL
-REDIS_URL = os.environ.get('REDIS_URL')
+# Cloud providers like Heroku export REDIS_URL variable instead of CACHE_URL
+REDIS_URL = env('REDIS_URL', default=None)
 if REDIS_URL:
-    CACHE_URL = os.environ.setdefault('CACHE_URL', REDIS_URL)
+    CACHE_URL = env('CACHE_URL', default=REDIS_URL)
 CACHES = {'default': django_cache_url.config()}
+
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgres://saleor:saleor@localhost:5432/saleor',
+        default=env('DATABASE_URL',
+                    default='postgres://saleor:saleor@localhost:5432/saleor'),
         conn_max_age=600)}
 
 
-TIME_ZONE = 'America/Chicago'
+TIME_ZONE = env('TIME_ZONE', default='America/Chicago')
 LANGUAGE_CODE = 'en'
 LANGUAGES = [
     ('bg', _('Bulgarian')),
@@ -81,6 +86,12 @@ LANGUAGES = [
     ('vi', _('Vietnamese')),
     ('zh-hans', _('Chinese')),
     ('zh-tw', _('Chinese (Taiwan)'))]
+
+_tmp_saleor_languages = env('SALEOR_LANGUAGES')
+if _tmp_saleor_languages:
+    LANGUAGES = [i for i in LANGUAGES if i[0] in _tmp_saleor_languages]
+
+
 LOCALE_PATHS = [os.path.join(PROJECT_ROOT, 'locale')]
 USE_I18N = True
 USE_L10N = True
@@ -88,9 +99,10 @@ USE_TZ = True
 
 FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 
-EMAIL_URL = os.environ.get('EMAIL_URL')
-SENDGRID_USERNAME = os.environ.get('SENDGRID_USERNAME')
-SENDGRID_PASSWORD = os.environ.get('SENDGRID_PASSWORD')
+# EMAIL_URL = env.email_url('EMAIL_URL')
+EMAIL_URL = env('EMAIL_URL', default='')
+SENDGRID_USERNAME = env('SENDGRID_USERNAME', default='')
+SENDGRID_PASSWORD = env('SENDGRID_PASSWORD', default='')
 if not EMAIL_URL and SENDGRID_USERNAME and SENDGRID_PASSWORD:
     EMAIL_URL = 'smtp://%s:%s@smtp.sendgrid.net:587/?tls=True' % (
         SENDGRID_USERNAME, SENDGRID_PASSWORD)
@@ -105,20 +117,21 @@ EMAIL_BACKEND = email_config['EMAIL_BACKEND']
 EMAIL_USE_TLS = email_config['EMAIL_USE_TLS']
 EMAIL_USE_SSL = email_config['EMAIL_USE_SSL']
 
-ENABLE_SSL = get_bool_from_env('ENABLE_SSL', False)
+ENABLE_SSL = env('ENABLE_SSL', default=False)
 
 if ENABLE_SSL:
     SECURE_SSL_REDIRECT = not DEBUG
 
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
-ORDER_FROM_EMAIL = os.getenv('ORDER_FROM_EMAIL', DEFAULT_FROM_EMAIL)
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
+ORDER_FROM_EMAIL = env('ORDER_FROM_EMAIL', default=DEFAULT_FROM_EMAIL)
 
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'media')
-MEDIA_URL = os.environ.get('MEDIA_URL', '/media/')
+MEDIA_URL = env('MEDIA_URL', default='/media/')
 
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
-STATIC_URL = os.environ.get('STATIC_URL', '/static/')
+STATIC_URL = env('STATIC_URL', default='/static/')
 STATICFILES_DIRS = [
+    'static_local',
     ('assets', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'assets')),
     ('favicons', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'favicons')),
     ('images', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'images')),
@@ -152,7 +165,9 @@ if not DEBUG:
 
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
-    'DIRS': [os.path.join(PROJECT_ROOT, 'templates')],
+    'DIRS': [os.path.join(PROJECT_ROOT, 'templates_local'),
+             os.path.join(PROJECT_ROOT, 'templates'),
+             ],
     'OPTIONS': {
         'debug': DEBUG,
         'context_processors': context_processors,
@@ -160,7 +175,11 @@ TEMPLATES = [{
         'string_if_invalid': '<< MISSING VARIABLE "%s" >>' if DEBUG else ''}}]
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = os.environ.get('SECRET_KEY')
+SECRET_KEY = env('SECRET_KEY', '')
+IS_BAD_SECRET_KEY = SECRET_KEY in [   # check if SECRET_KEY not set
+    '',
+    'your-secret-key',
+]
 
 MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -234,7 +253,7 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'captcha']
 
-if DEBUG:
+if DEBUG and env('DEBUG_TOOLBAR', default=True):
     MIDDLEWARE.append(
         'debug_toolbar.middleware.DebugToolbarMiddleware')
     INSTALLED_APPS.append('debug_toolbar')
@@ -259,7 +278,7 @@ if DEBUG:
     DEBUG_TOOLBAR_CONFIG = {
         'RESULTS_STORE_SIZE': 100}
 
-ENABLE_SILK = get_bool_from_env('ENABLE_SILK', False)
+ENABLE_SILK = env('ENABLE_SILK', False)
 if ENABLE_SILK:
     MIDDLEWARE.insert(0, 'silk.middleware.SilkyMiddleware')
     INSTALLED_APPS.append('silk')
@@ -307,8 +326,8 @@ AUTH_USER_MODEL = 'account.User'
 
 LOGIN_URL = '/account/login/'
 
-DEFAULT_COUNTRY = os.environ.get('DEFAULT_COUNTRY', 'US')
-DEFAULT_CURRENCY = os.environ.get('DEFAULT_CURRENCY', 'USD')
+DEFAULT_COUNTRY = env('DEFAULT_COUNTRY', default='US')
+DEFAULT_CURRENCY = env('DEFAULT_CURRENCY', default='USD')
 DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 COUNTRIES_OVERRIDE = {
@@ -316,19 +335,19 @@ COUNTRIES_OVERRIDE = {
         'Name of political and economical union of european countries',
         'European Union')}
 
-OPENEXCHANGERATES_API_KEY = os.environ.get('OPENEXCHANGERATES_API_KEY')
+OPENEXCHANGERATES_API_KEY = env('OPENEXCHANGERATES_API_KEY', default='')
 
 # VAT configuration
 # Enabling vat requires valid vatlayer access key.
 # If you are subscribed to a paid vatlayer plan, you can enable HTTPS.
-VATLAYER_ACCESS_KEY = os.environ.get('VATLAYER_ACCESS_KEY')
-VATLAYER_USE_HTTPS = get_bool_from_env('VATLAYER_USE_HTTPS', False)
+VATLAYER_ACCESS_KEY = env('VATLAYER_ACCESS_KEY', default='')
+VATLAYER_USE_HTTPS = env('VATLAYER_USE_HTTPS', default=False)
 
 ACCOUNT_ACTIVATION_DAYS = 3
 
 LOGIN_REDIRECT_URL = 'home'
 
-GOOGLE_ANALYTICS_TRACKING_ID = os.environ.get('GOOGLE_ANALYTICS_TRACKING_ID')
+GOOGLE_ANALYTICS_TRACKING_ID = env('GOOGLE_ANALYTICS_TRACKING_ID', default='')
 
 
 def get_host():
@@ -357,7 +376,7 @@ MESSAGE_TAGS = {
     messages.ERROR: 'danger'}
 
 LOW_STOCK_THRESHOLD = 10
-MAX_CART_LINE_QUANTITY = int(os.environ.get('MAX_CART_LINE_QUANTITY', 50))
+MAX_CART_LINE_QUANTITY = env('MAX_CART_LINE_QUANTITY', default=50)
 
 PAGINATE_BY = 16
 DASHBOARD_PAGINATE_BY = 30
@@ -372,20 +391,23 @@ bootstrap4 = {
 
 TEST_RUNNER = ''
 
-ALLOWED_HOSTS = get_list(
-    os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1'))
+if not DEBUG:
+    ALLOWED_HOSTS = env('ALLOWED_HOSTS', default=[
+        'localhost',
+        'localhost:8000',
+        '127.0.0.1'],)
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Amazon S3 configuration
-AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-AWS_LOCATION = os.environ.get('AWS_LOCATION', '')
-AWS_MEDIA_BUCKET_NAME = os.environ.get('AWS_MEDIA_BUCKET_NAME')
-AWS_MEDIA_CUSTOM_DOMAIN = os.environ.get('AWS_MEDIA_CUSTOM_DOMAIN')
-AWS_QUERYSTRING_AUTH = get_bool_from_env('AWS_QUERYSTRING_AUTH', False)
-AWS_S3_CUSTOM_DOMAIN = os.environ.get('AWS_STATIC_CUSTOM_DOMAIN')
-AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', default=None)
+AWS_LOCATION = env('AWS_LOCATION', default='')
+AWS_MEDIA_BUCKET_NAME = env('AWS_MEDIA_BUCKET_NAME', default=None)
+AWS_MEDIA_CUSTOM_DOMAIN = env('AWS_MEDIA_CUSTOM_DOMAIN', default=None)
+AWS_QUERYSTRING_AUTH = env('AWS_QUERYSTRING_AUTH', default=False)
+AWS_S3_CUSTOM_DOMAIN = env('AWS_STATIC_CUSTOM_DOMAIN', default=None)
+AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', default=None)
+AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME', default=None)
 
 if AWS_STORAGE_BUCKET_NAME:
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
@@ -407,8 +429,8 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
 
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment
-    'create_images_on_demand': get_bool_from_env(
-        'CREATE_IMAGES_ON_DEMAND', DEBUG),
+    'create_images_on_demand': env(
+        'CREATE_IMAGES_ON_DEMAND', default=DEBUG),
 }
 
 PLACEHOLDER_IMAGES = {
@@ -437,8 +459,8 @@ LOGOUT_ON_PASSWORD_CHANGE = False
 DB_SEARCH_ENABLED = True
 
 # support deployment-dependant elastic enviroment variable
-ES_URL = (os.environ.get('ELASTICSEARCH_URL') or
-          os.environ.get('SEARCHBOX_URL') or os.environ.get('BONSAI_URL'))
+ES_URL = (env('ELASTICSEARCH_URL', default='') or
+          env('SEARCHBOX_URL', default='') or env('BONSAI_URL', default=''))
 
 ENABLE_SEARCH = bool(ES_URL) or DB_SEARCH_ENABLED  # global search disabling
 
@@ -477,9 +499,10 @@ SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
 SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
 
 # CELERY SETTINGS
-CELERY_BROKER_URL = os.environ.get(
-    'CELERY_BROKER_URL', os.environ.get('CLOUDAMQP_URL')) or ''
-CELERY_TASK_ALWAYS_EAGER = False if CELERY_BROKER_URL else True
+CELERY_BROKER_URL = env(
+    'CELERY_BROKER_URL', default=env('CLOUDAMQP_URL', default='')) or ''
+
+CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -488,7 +511,8 @@ CELERY_RESULT_BACKEND = 'django-db'
 # Impersonate module settings
 IMPERSONATE = {
     'URI_EXCLUSIONS': [r'^dashboard/'],
-    'CUSTOM_USER_QUERYSET': 'saleor.account.impersonate.get_impersonatable_users',  # noqa
+    'CUSTOM_USER_QUERYSET':
+        'saleor.account.impersonate.get_impersonatable_users',
     'USE_HTTP_REFERER': True,
     'CUSTOM_ALLOW': 'saleor.account.impersonate.can_impersonate'}
 
@@ -527,12 +551,12 @@ DEFAULT_MENUS = {
 NOCAPTCHA = True
 
 # Set Google's reCaptcha keys
-RECAPTCHA_PUBLIC_KEY = os.environ.get('RECAPTCHA_PUBLIC_KEY')
-RECAPTCHA_PRIVATE_KEY = os.environ.get('RECAPTCHA_PRIVATE_KEY')
+RECAPTCHA_PUBLIC_KEY = env('RECAPTCHA_PUBLIC_KEY', default='')
+RECAPTCHA_PRIVATE_KEY = env('RECAPTCHA_PRIVATE_KEY', default='')
 
 
 #  Sentry
-SENTRY_DSN = os.environ.get('SENTRY_DSN')
+SENTRY_DSN = env('SENTRY_DSN', default='')
 if SENTRY_DSN:
     INSTALLED_APPS.append('raven.contrib.django.raven_compat')
     RAVEN_CONFIG = {
@@ -542,3 +566,10 @@ if SENTRY_DSN:
 
 SERIALIZATION_MODULES = {
     'json': 'saleor.core.utils.json_serializer'}
+
+
+# you can override settings also in local_settings.py
+try:
+    from settings_local import *  # noqa
+except ImportError:
+    pass

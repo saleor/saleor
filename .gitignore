@@ -1,5 +1,5 @@
 *.py[cod]
-.*
+.idea/
 !.babelrc
 !.circleci
 !.codeclimate.yml
@@ -18,8 +18,9 @@
 *.log
 *.pot
 *.pyc
-local_settings.py
+settings_local.py
 __pycache__/
+.pytest_cache/
 build/
 coverage/
 dist/
@@ -33,3 +34,4 @@ dist/
 webpack-bundle.json
 /templates/templated_email/compiled/*
 !/templates/templated_email/compiled/.gitkeep
+/templates_local/

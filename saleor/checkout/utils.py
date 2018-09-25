@@ -766,7 +766,7 @@ def value_in_range(minimum, maximum, value):
     If the maximum in None, then there's no upper limit."""
     if maximum is None:
         return value >= minimum
-    return value >= minimum and value <= maximum
+    return minimum <= value <= maximum
 
 
 def shipping_method_applicable(price, weight, method):
