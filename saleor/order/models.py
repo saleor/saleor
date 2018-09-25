@@ -115,7 +115,7 @@ class Order(models.Model):
     def is_fully_paid(self):
         total_paid = sum(
             [
-                payment.get_total_price() for payment in
+                payment.get_total() for payment in
                 self.payments.filter(status=PaymentStatus.CONFIRMED)],
             ZERO_TAXED_MONEY)
         return total_paid.gross >= self.total.gross
@@ -312,7 +312,7 @@ class Payment(BasePayment):
                     currency=self.order.discount_amount.currency))
         return lines
 
-    def get_total_price(self):
+    def get_total(self):
         return TaxedMoney(
             net=Money(self.total - self.tax, self.currency),
             gross=Money(self.total, self.currency))

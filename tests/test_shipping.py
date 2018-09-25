@@ -29,7 +29,7 @@ def test_get_taxed_shipping_price(
     assert shipping_price == expected_price
 
 
-def test_shipping_get_total_price(monkeypatch, shipping_zone, vatlayer):
+def test_shipping_get_total(monkeypatch, shipping_zone, vatlayer):
     method = shipping_zone.shipping_methods.get()
     price = Money(10, 'USD')
     taxed_price = TaxedMoney(
@@ -37,7 +37,7 @@ def test_shipping_get_total_price(monkeypatch, shipping_zone, vatlayer):
     mock_get_price = Mock(return_value=taxed_price)
     monkeypatch.setattr(
         'saleor.shipping.models.get_taxed_shipping_price', mock_get_price)
-    method.get_total_price(taxes=vatlayer)
+    method.get_total(taxes=vatlayer)
     mock_get_price.assert_called_once_with(price, vatlayer)
 
 

@@ -735,7 +735,7 @@ def test_order_capture(admin_api_client, payment_preauth, admin_user):
         }
     """
     order_id = graphene.Node.to_global_id('Order', order.id)
-    amount = float(payment_preauth.get_total_price().gross.amount)
+    amount = float(payment_preauth.get_total().gross.amount)
     variables = json.dumps({'id': order_id, 'amount': amount})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
@@ -855,7 +855,7 @@ def test_order_refund(admin_api_client, payment_confirmed):
         }
     """
     order_id = graphene.Node.to_global_id('Order', order.id)
-    amount = float(payment_confirmed.get_total_price().gross.amount)
+    amount = float(payment_confirmed.get_total().gross.amount)
     variables = json.dumps({'id': order_id, 'amount': amount})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
@@ -956,7 +956,7 @@ def test_order_update_shipping(
     assert data['order']['id'] == order_id
 
     order.refresh_from_db()
-    shipping_price = shipping_method.get_total_price()
+    shipping_price = shipping_method.get_total()
     assert order.shipping_method == shipping_method
     assert order.shipping_price_net == shipping_price.net
     assert order.shipping_price_gross == shipping_price.gross
@@ -966,7 +966,7 @@ def test_order_update_shipping(
 def test_order_update_shipping_clear_shipping_method(
         admin_api_client, order, admin_user, shipping_method):
     order.shipping_method = shipping_method
-    order.shipping_price = shipping_method.get_total_price()
+    order.shipping_price = shipping_method.get_total()
     order.shipping_method_name = 'Example shipping'
     order.save()
 
