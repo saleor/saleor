@@ -354,6 +354,32 @@ class PasswordReset(BaseMutation):
         send_user_password_reset_email(user, site)
 
 
+class CustomerPasswordResetInput(graphene.InputObjectType):
+    email = graphene.String(
+        required=True, description=(
+            'Email of the user that will be used for password recovery.'))
+
+
+class CustomerPasswordReset(BaseMutation):
+    class Arguments:
+        input = CustomerPasswordResetInput(
+            description='Fields required to reset customer\'s password',
+            required=True)
+
+    class Meta:
+        description = 'Resets the customer\'s password.'
+
+    @classmethod
+    def mutate(cls, root, info, input):
+        email = input['email']
+        try:
+            user = models.User.objects.get(email=email)
+        except ObjectDoesNotExist:
+            return
+        site = info.context.site
+        send_user_password_reset_email(user, site)
+
+
 class AddressCreateInput(AddressInput):
     user_id = graphene.ID(
         description='ID of a user to create address for', required=True)
