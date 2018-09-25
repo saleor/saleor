@@ -40,8 +40,8 @@ from .page.types import Page
 from .page.mutations import PageCreate, PageDelete, PageUpdate
 from .product.filters import ProductFilterSet
 from .product.mutations.attributes import (
-    AttributeChoiceValueCreate, AttributeChoiceValueDelete,
-    AttributeChoiceValueUpdate, ProductAttributeCreate, ProductAttributeDelete,
+    AttributeValueCreate, AttributeValueDelete,
+    AttributeValueUpdate, ProductAttributeCreate, ProductAttributeDelete,
     ProductAttributeUpdate)
 from .product.mutations.products import (
     CategoryCreate, CategoryDelete, CategoryUpdate,
@@ -278,9 +278,9 @@ class Mutations(graphene.ObjectType):
     set_password = SetPassword.Field()
     password_reset = PasswordReset.Field()
 
-    attribute_choice_value_create = AttributeChoiceValueCreate.Field()
-    attribute_choice_value_delete = AttributeChoiceValueDelete.Field()
-    attribute_choice_value_update = AttributeChoiceValueUpdate.Field()
+    attribute_value_create = AttributeValueCreate.Field()
+    attribute_value_delete = AttributeValueDelete.Field()
+    attribute_value_update = AttributeValueUpdate.Field()
 
     category_create = CategoryCreate.Field()
     category_delete = CategoryDelete.Field()

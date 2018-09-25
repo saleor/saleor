@@ -68,14 +68,14 @@ urlpatterns = [
     url(r'attributes/(?P<pk>[0-9]+)/delete/$',
         views.attribute_delete, name='product-attribute-delete'),
     url(r'attributes/(?P<attribute_pk>[0-9]+)/value/add/$',
-        views.attribute_choice_value_create,
+        views.attribute_value_create,
         name='product-attribute-value-add'),
     url(r'attributes/(?P<attribute_pk>[0-9]+)/value/(?P<value_pk>[0-9]+)/update/$',  # noqa
-        views.attribute_choice_value_edit,
+        views.attribute_value_edit,
         name='product-attribute-value-update'),
     url(r'attributes/(?P<attribute_pk>[0-9]+)/value/(?P<value_pk>[0-9]+)/delete/$',  # noqa
-        views.attribute_choice_value_delete,
+        views.attribute_value_delete,
         name='product-attribute-value-delete'),
     url(r'attributes/(?P<attribute_pk>[0-9]+)/values/reorder/$',
-        views.ajax_reorder_attribute_choice_values,
+        views.ajax_reorder_attribute_values,
         name='product-attribute-values-reorder')]

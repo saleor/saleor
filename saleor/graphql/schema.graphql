@@ -355,29 +355,29 @@ type AssignNavigation {
   menu: Menu
 }
 
-type AttributeChoiceValueCreate {
+type AttributeValueCreate {
   errors: [Error]
-  attributeChoiceValue: ProductAttributeValue
+  attributeValue: ProductAttributeValue
 }
 
-type AttributeChoiceValueDelete {
+type AttributeValueDelete {
   errors: [Error]
-  attributeChoiceValue: ProductAttributeValue
+  attributeValue: ProductAttributeValue
 }
 
-input AttributeChoiceValueInput {
+input AttributeValueInput {
   attribute: ID
   slug: String!
   name: String!
   value: String!
 }
 
-type AttributeChoiceValueUpdate {
+type AttributeValueUpdate {
   errors: [Error]
-  attributeChoiceValue: ProductAttributeValue
+  attributeValue: ProductAttributeValue
 }
 
-input AttributeChoiceValueUpdateInput {
+input AttributeValueUpdateInput {
   slug: String!
   name: String!
 }
@@ -821,9 +821,9 @@ type Mutations {
   tokenVerify(token: String): VerifyToken
   setPassword(id: ID!, input: SetPasswordInput!): SetPassword
   passwordReset(email: String!): PasswordReset
-  attributeChoiceValueCreate(input: AttributeChoiceValueInput!): AttributeChoiceValueCreate
-  attributeChoiceValueDelete(id: ID!): AttributeChoiceValueDelete
-  attributeChoiceValueUpdate(id: ID!, input: AttributeChoiceValueUpdateInput!): AttributeChoiceValueUpdate
+  attributeValueCreate(input: AttributeValueInput!): AttributeValueCreate
+  attributeValueDelete(id: ID!): AttributeValueDelete
+  attributeValueUpdate(id: ID!, input: AttributeValueUpdateInput!): AttributeValueUpdate
   categoryCreate(input: CategoryInput!): CategoryCreate
   categoryDelete(id: ID!): CategoryDelete
   categoryUpdate(id: ID!, input: CategoryInput!): CategoryUpdate

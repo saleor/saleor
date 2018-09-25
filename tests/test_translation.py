@@ -1,7 +1,7 @@
 import pytest
 
 from saleor.product.models import (
-    AttributeChoiceValueTranslation, CategoryTranslation,
+    AttributeValueTranslation, CategoryTranslation,
     CollectionTranslation, ProductAttributeTranslation, ProductTranslation,
     ProductVariantTranslation)
 from saleor.shipping.models import ShippingMethodTranslation
@@ -15,10 +15,10 @@ def product_translation_pl(product):
 
 
 @pytest.fixture
-def attribute_choice_translation_fr(translated_product_attribute):
+def attribute_value_translation_fr(translated_product_attribute):
     value = translated_product_attribute.product_attribute.values.first()
-    return AttributeChoiceValueTranslation.objects.create(
-        language_code='fr', attribute_choice_value=value,
+    return AttributeValueTranslation.objects.create(
+        language_code='fr', attribute_value=value,
         name='French name')
 
 
@@ -107,8 +107,8 @@ def test_product_attribute_translation(settings, color_attribute):
     assert color_attribute.translated.name == 'French name'
 
 
-def test_attribute_choice_value_translation(
-        settings, product, attribute_choice_translation_fr):
+def test_attribute_value_translation(
+        settings, product, attribute_value_translation_fr):
     attribute = product.product_type.product_attributes.first().values.first()
     assert not attribute.translated.name == 'French name'
     settings.LANGUAGE_CODE = 'fr'

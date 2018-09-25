@@ -37,7 +37,7 @@ def resolve_attribute_list(attributes):
         att.pk: att for att in models.ProductAttribute.objects.filter(
             pk__in=keys)}
     values_map = {
-        val.pk: val for val in models.AttributeChoiceValue.objects.filter(
+        val.pk: val for val in models.AttributeValue.objects.filter(
             pk__in=values)}
 
     attributes_list = [SelectedAttribute(
@@ -67,7 +67,7 @@ class ProductAttributeValue(CountableDjangoObjectType):
         description = 'Represents a value of an attribute.'
         exclude_fields = ['attribute']
         interfaces = [relay.Node]
-        model = models.AttributeChoiceValue
+        model = models.AttributeValue
 
     def resolve_type(self, info):
         return resolve_attribute_value_type(self.value)
