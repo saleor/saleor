@@ -7,6 +7,10 @@ import {
   StaffMemberAddVariables
 } from "./types/StaffMemberAdd";
 import {
+  StaffMemberDelete,
+  StaffMemberDeleteVariables
+} from "./types/StaffMemberDelete";
+import {
   StaffMemberUpdate,
   StaffMemberUpdateVariables
 } from "./types/StaffMemberUpdate";
@@ -48,3 +52,18 @@ export const TypedStaffMemberUpdateMutation = TypedMutation<
   StaffMemberUpdate,
   StaffMemberUpdateVariables
 >(staffMemberUpdateMutation);
+
+const staffMemberDeleteMutation = gql`
+  mutation StaffMemberDelete($id: ID!) {
+    staffDelete(id: $id) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedStaffMemberDeleteMutation = TypedMutation<
+  StaffMemberDelete,
+  StaffMemberDeleteVariables
+>(staffMemberDeleteMutation);
