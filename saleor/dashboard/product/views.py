@@ -14,7 +14,7 @@ from . import forms
 from ...core.utils import get_paginator_items
 from ...discount.models import Sale
 from ...product.models import (
-    AttributeChoiceValue, Product, ProductAttribute, ProductImage, ProductType,
+    AttributeValue, Product, ProductAttribute, ProductImage, ProductType,
     ProductVariant)
 from ...product.utils.availability import get_availability
 from ...product.utils.costs import (
@@ -611,10 +611,10 @@ def attribute_delete(request, pk):
 
 @staff_member_required
 @permission_required('product.manage_products')
-def attribute_choice_value_create(request, attribute_pk):
+def attribute_value_create(request, attribute_pk):
     attribute = get_object_or_404(ProductAttribute, pk=attribute_pk)
-    value = AttributeChoiceValue(attribute_id=attribute_pk)
-    form = forms.AttributeChoiceValueForm(request.POST or None, instance=value)
+    value = AttributeValue(attribute_id=attribute_pk)
+    form = forms.AttributeValueForm(request.POST or None, instance=value)
     if form.is_valid():
         form.save()
         msg = pgettext_lazy(
@@ -630,10 +630,10 @@ def attribute_choice_value_create(request, attribute_pk):
 
 @staff_member_required
 @permission_required('product.manage_products')
-def attribute_choice_value_edit(request, attribute_pk, value_pk):
+def attribute_value_edit(request, attribute_pk, value_pk):
     attribute = get_object_or_404(ProductAttribute, pk=attribute_pk)
-    value = get_object_or_404(AttributeChoiceValue, pk=value_pk)
-    form = forms.AttributeChoiceValueForm(request.POST or None, instance=value)
+    value = get_object_or_404(AttributeValue, pk=value_pk)
+    form = forms.AttributeValueForm(request.POST or None, instance=value)
     if form.is_valid():
         form.save()
         msg = pgettext_lazy(
@@ -649,8 +649,8 @@ def attribute_choice_value_edit(request, attribute_pk, value_pk):
 
 @staff_member_required
 @permission_required('product.manage_products')
-def attribute_choice_value_delete(request, attribute_pk, value_pk):
-    value = get_object_or_404(AttributeChoiceValue, pk=value_pk)
+def attribute_value_delete(request, attribute_pk, value_pk):
+    value = get_object_or_404(AttributeValue, pk=value_pk)
     if request.method == 'POST':
         value.delete()
         msg = pgettext_lazy(
@@ -666,9 +666,9 @@ def attribute_choice_value_delete(request, attribute_pk, value_pk):
 
 @staff_member_required
 @permission_required('product.manage_products')
-def ajax_reorder_attribute_choice_values(request, attribute_pk):
+def ajax_reorder_attribute_values(request, attribute_pk):
     attribute = get_object_or_404(ProductAttribute, pk=attribute_pk)
-    form = forms.ReorderAttributeChoiceValuesForm(
+    form = forms.ReorderAttributeValuesForm(
         request.POST, instance=attribute)
     status = 200
     ctx = {}

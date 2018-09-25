@@ -1,7 +1,7 @@
 from django.utils.text import slugify
 
 from ...product.models import (
-    AttributeChoiceValue, ProductAttribute, ProductVariant)
+    AttributeValue, ProductAttribute, ProductVariant)
 from ...product.utils.attributes import get_name_from_attributes
 
 
@@ -16,7 +16,7 @@ def attributes_to_hstore(attribute_value_input, attributes_queryset):
 
     attributes_hstore = {}
     values_map = dict(
-        AttributeChoiceValue.objects.values_list('slug', 'id'))
+        AttributeValue.objects.values_list('slug', 'id'))
 
     for attribute in attribute_value_input:
         attr_slug = attribute.get('slug')
@@ -33,7 +33,7 @@ def attributes_to_hstore(attribute_value_input, attributes_queryset):
         value_id = values_map.get(value)
 
         if value_id is None:
-            # `value_id` was not found; create a new AttributeChoiceValue
+            # `value_id` was not found; create a new AttributeValue
             # instance from the provided `value`.
             attr_instance = ProductAttribute.objects.get(slug=attr_slug)
             obj = attr_instance.values.get_or_create(

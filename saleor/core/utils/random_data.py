@@ -29,7 +29,7 @@ from ...order.models import Fulfillment, Order, Payment
 from ...order.utils import update_order_status
 from ...page.models import Page
 from ...product.models import (
-    AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
+    AttributeValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant)
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
@@ -343,7 +343,7 @@ def create_attribute_value(attribute, **kwargs):
         'name': name}
     defaults.update(kwargs)
     defaults['slug'] = slugify(defaults['name'])
-    attribute_value = AttributeChoiceValue.objects.get_or_create(**defaults)[0]
+    attribute_value = AttributeValue.objects.get_or_create(**defaults)[0]
     return attribute_value
 
 

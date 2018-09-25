@@ -31,7 +31,7 @@ from saleor.order.models import Order
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.product.models import (
-    AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
+    AttributeValue, Category, Collection, Product, ProductAttribute,
     ProductAttributeTranslation, ProductImage, ProductTranslation, ProductType,
     ProductVariant)
 from saleor.shipping.models import (
@@ -245,16 +245,16 @@ def shipping_method(shipping_zone):
 def color_attribute(db):  # pylint: disable=W0613
     attribute = ProductAttribute.objects.create(
         slug='color', name='Color')
-    AttributeChoiceValue.objects.create(
+    AttributeValue.objects.create(
         attribute=attribute, name='Red', slug='red')
-    AttributeChoiceValue.objects.create(
+    AttributeValue.objects.create(
         attribute=attribute, name='Blue', slug='blue')
     return attribute
 
 
 @pytest.fixture
-def pink_choice_value(color_attribute):  # pylint: disable=W0613
-    value = AttributeChoiceValue.objects.create(
+def pink_attribute_value(color_attribute):  # pylint: disable=W0613
+    value = AttributeValue.objects.create(
         slug='pink', name='Pink', attribute=color_attribute, value='#FF69B4')
     return value
 
@@ -262,9 +262,9 @@ def pink_choice_value(color_attribute):  # pylint: disable=W0613
 @pytest.fixture
 def size_attribute(db):  # pylint: disable=W0613
     attribute = ProductAttribute.objects.create(slug='size', name='Size')
-    AttributeChoiceValue.objects.create(
+    AttributeValue.objects.create(
         attribute=attribute, name='Small', slug='small')
-    AttributeChoiceValue.objects.create(
+    AttributeValue.objects.create(
         attribute=attribute, name='Big', slug='big')
     return attribute
 

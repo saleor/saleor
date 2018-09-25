@@ -12,7 +12,7 @@ from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import ProductForm, ProductVariantForm
 from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
-    AttributeChoiceValue, Collection, Product, ProductAttribute, ProductImage,
+    AttributeValue, Collection, Product, ProductAttribute, ProductImage,
     ProductType, ProductVariant)
 
 from ..utils import create_image
@@ -858,8 +858,8 @@ def test_view_attribute_not_deleted_before_confirmation(
     assert ProductAttribute.objects.filter(pk=color_attribute.pk)
 
 
-def test_view_attribute_choice_value_create(color_attribute, admin_client):
-    values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
+def test_view_attribute_value_create(color_attribute, admin_client):
+    values = AttributeValue.objects.filter(attribute=color_attribute.pk)
     assert values.count() == 2
     url = reverse(
         'dashboard:product-attribute-value-add',
@@ -869,13 +869,13 @@ def test_view_attribute_choice_value_create(color_attribute, admin_client):
     response = admin_client.post(url, data, follow=True)
 
     assert response.status_code == 200
-    values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
+    values = AttributeValue.objects.filter(attribute=color_attribute.pk)
     assert values.count() == 3
 
 
-def test_view_attribute_choice_value_create_invalid(
+def test_view_attribute_value_create_invalid(
         color_attribute, admin_client):
-    values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
+    values = AttributeValue.objects.filter(attribute=color_attribute.pk)
     assert values.count() == 2
     url = reverse(
         'dashboard:product-attribute-value-add',
@@ -885,12 +885,12 @@ def test_view_attribute_choice_value_create_invalid(
     response = admin_client.post(url, data, follow=True)
 
     assert response.status_code == 200
-    values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
+    values = AttributeValue.objects.filter(attribute=color_attribute.pk)
     assert values.count() == 2
 
 
-def test_view_attribute_choice_value_edit(color_attribute, admin_client):
-    values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
+def test_view_attribute_value_edit(color_attribute, admin_client):
+    values = AttributeValue.objects.filter(attribute=color_attribute.pk)
     assert values.count() == 2
     url = reverse(
         'dashboard:product-attribute-value-update',
@@ -900,14 +900,14 @@ def test_view_attribute_choice_value_edit(color_attribute, admin_client):
     response = admin_client.post(url, data, follow=True)
 
     assert response.status_code == 200
-    values = AttributeChoiceValue.objects.filter(
+    values = AttributeValue.objects.filter(
         attribute=color_attribute.pk, name='Pink')
     assert len(values) == 1
     assert values[0].name == 'Pink'
 
 
-def test_view_attribute_choice_value_delete(color_attribute, admin_client):
-    values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
+def test_view_attribute_value_delete(color_attribute, admin_client):
+    values = AttributeValue.objects.filter(attribute=color_attribute.pk)
     assert values.count() == 2
     deleted_value = values[0]
     url = reverse(
@@ -918,12 +918,12 @@ def test_view_attribute_choice_value_delete(color_attribute, admin_client):
     response = admin_client.post(url, follow=True)
 
     assert response.status_code == 200
-    values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
+    values = AttributeValue.objects.filter(attribute=color_attribute.pk)
     assert len(values) == 1
     assert deleted_value not in values
 
 
-def test_view_ajax_reorder_attribute_choice_values(
+def test_view_ajax_reorder_attribute_values(
         admin_client, color_attribute):
     order_before = [val.pk for val in color_attribute.values.all()]
     ordered_values = list(reversed(order_before))
@@ -938,7 +938,7 @@ def test_view_ajax_reorder_attribute_choice_values(
     assert order_after == ordered_values
 
 
-def test_view_ajax_reorder_attribute_choice_values_invalid(
+def test_view_ajax_reorder_attribute_values_invalid(
         admin_client, color_attribute):
     order_before = [val.pk for val in color_attribute.values.all()]
     ordered_values = list(reversed(order_before)).append(3)
@@ -1009,7 +1009,7 @@ def test_product_form_change_attributes(db, product, color_attribute):
     assert product.attributes[str(color_attribute.pk)] == str(color_value.pk)
 
     # Check that new attribute was created for author
-    author_value = AttributeChoiceValue.objects.get(name=new_author)
+    author_value = AttributeValue.objects.get(name=new_author)
     assert product.attributes[str(text_attribute.pk)] == str(author_value.pk)
 
 

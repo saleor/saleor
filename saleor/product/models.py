@@ -355,7 +355,7 @@ class ProductAttributeTranslation(models.Model):
         return self.name
 
 
-class AttributeChoiceValue(SortableModel):
+class AttributeValue(SortableModel):
     name = models.CharField(max_length=100)
     value = models.CharField(max_length=100, default='')
     slug = models.SlugField(max_length=100)
@@ -375,21 +375,21 @@ class AttributeChoiceValue(SortableModel):
         return self.attribute.values.all()
 
 
-class AttributeChoiceValueTranslation(models.Model):
+class AttributeValueTranslation(models.Model):
     language_code = models.CharField(max_length=10)
-    attribute_choice_value = models.ForeignKey(
-        AttributeChoiceValue, related_name='translations',
+    attribute_value = models.ForeignKey(
+        AttributeValue, related_name='translations',
         on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
 
     class Meta:
-        unique_together = (('language_code', 'attribute_choice_value'),)
+        unique_together = (('language_code', 'attribute_value'),)
 
     def __repr__(self):
         class_ = type(self)
-        return '%s(pk=%r, name=%r, attribute_choice_value_pk=%r)' % (
+        return '%s(pk=%r, name=%r, attribute_value_pk=%r)' % (
             class_.__name__, self.pk, self.name,
-            self.attribute_choice_value_id)
+            self.attribute_value_id)
 
     def __str__(self):
         return self.name
