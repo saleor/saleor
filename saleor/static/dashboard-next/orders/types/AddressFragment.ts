@@ -17,7 +17,7 @@ export interface AddressFragment {
   city: string;
   cityArea: string;
   companyName: string;
-  country: AddressFragment_country | null;
+  country: AddressFragment_country;
   countryArea: string;
   firstName: string;
   lastName: string;

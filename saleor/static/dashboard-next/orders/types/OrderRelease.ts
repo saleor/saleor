@@ -19,7 +19,7 @@ export interface OrderRelease_orderRelease_order_billingAddress {
   city: string;
   cityArea: string;
   companyName: string;
-  country: OrderRelease_orderRelease_order_billingAddress_country | null;
+  country: OrderRelease_orderRelease_order_billingAddress_country;
   countryArea: string;
   firstName: string;
   lastName: string;
@@ -129,7 +129,7 @@ export interface OrderRelease_orderRelease_order_shippingAddress {
   city: string;
   cityArea: string;
   companyName: string;
-  country: OrderRelease_orderRelease_order_shippingAddress_country | null;
+  country: OrderRelease_orderRelease_order_shippingAddress_country;
   countryArea: string;
   firstName: string;
   lastName: string;

@@ -25,7 +25,7 @@ export interface OrderUpdate_orderUpdate_order_billingAddress {
   city: string;
   cityArea: string;
   companyName: string;
-  country: OrderUpdate_orderUpdate_order_billingAddress_country | null;
+  country: OrderUpdate_orderUpdate_order_billingAddress_country;
   countryArea: string;
   firstName: string;
   lastName: string;
@@ -47,7 +47,7 @@ export interface OrderUpdate_orderUpdate_order_shippingAddress {
   city: string;
   cityArea: string;
   companyName: string;
-  country: OrderUpdate_orderUpdate_order_shippingAddress_country | null;
+  country: OrderUpdate_orderUpdate_order_shippingAddress_country;
   countryArea: string;
   firstName: string;
   lastName: string;

@@ -19,7 +19,7 @@ export interface OrderDetailsFragment_billingAddress {
   city: string;
   cityArea: string;
   companyName: string;
-  country: OrderDetailsFragment_billingAddress_country | null;
+  country: OrderDetailsFragment_billingAddress_country;
   countryArea: string;
   firstName: string;
   lastName: string;
@@ -129,7 +129,7 @@ export interface OrderDetailsFragment_shippingAddress {
   city: string;
   cityArea: string;
   companyName: string;
-  country: OrderDetailsFragment_shippingAddress_country | null;
+  country: OrderDetailsFragment_shippingAddress_country;
   countryArea: string;
   firstName: string;
   lastName: string;
