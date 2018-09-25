@@ -12,25 +12,24 @@ import { ListProps } from "../../..";
 import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
-import { maybe, renderCollection } from "../../../misc";
-import { AttributeType } from "../../../products";
+import { maybe, renderCollection, translatedTaxRates } from "../../../misc";
+import { ProductTypeList_productTypes_edges_node } from "../../types/ProductTypeList";
 
 interface ProductTypeListProps extends ListProps {
-  productTypes?: Array<{
-    id: string;
-    name?: string;
-    hasVariants?: boolean;
-    productAttributes?: AttributeType[];
-    variantAttributes?: AttributeType[];
-  }>;
+  productTypes: ProductTypeList_productTypes_edges_node[];
 }
 
-const decorate = withStyles(theme => ({
+const decorate = withStyles({
+  leftText: {
+    textAlign: "left" as "left"
+  },
   link: {
-    color: theme.palette.secondary.main,
     cursor: "pointer" as "pointer"
+  },
+  wideCell: {
+    width: "60%"
   }
-}));
+});
 const ProductTypeList = decorate<ProductTypeListProps>(
   ({
     classes,
@@ -45,12 +44,14 @@ const ProductTypeList = decorate<ProductTypeListProps>(
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>{i18n.t("Name", { context: "object" })}</TableCell>
-            <TableCell>
-              {i18n.t("Product attributes", { context: "object" })}
+            <TableCell className={classes.wideCell}>
+              {i18n.t("Type Name", { context: "table header" })}
             </TableCell>
-            <TableCell>
-              {i18n.t("Variant attributes", { context: "object" })}
+            <TableCell className={classes.leftText}>
+              {i18n.t("Type", { context: "table header" })}
+            </TableCell>
+            <TableCell className={classes.leftText}>
+              {i18n.t("Tax", { context: "table header" })}
             </TableCell>
           </TableRow>
         </TableHead>
@@ -71,37 +72,30 @@ const ProductTypeList = decorate<ProductTypeListProps>(
           {renderCollection(
             productTypes,
             productType => (
-              <TableRow key={productType ? productType.id : "skeleton"}>
+              <TableRow
+                className={!!productType ? classes.link : undefined}
+                hover={!!productType}
+                key={productType ? productType.id : "skeleton"}
+              >
                 <TableCell
-                  onClick={
-                    productType && onRowClick && onRowClick(productType.id)
-                  }
-                  className={classes.link}
+                  onClick={productType ? onRowClick(productType.id) : undefined}
                 >
                   {productType ? productType.name : <Skeleton />}
                 </TableCell>
-                <TableCell>
-                  {maybe(() => productType.productAttributes) ? (
-                    productType.productAttributes
-                      .map(attribute => attribute.name)
-                      .join(", ")
+                <TableCell className={classes.leftText}>
+                  {maybe(() => productType.isShippingRequired) !== undefined ? (
+                    productType.isShippingRequired ? (
+                      <>{i18n.t("Physical", { context: "product type" })}</>
+                    ) : (
+                      <>{i18n.t("Digital", { context: "product type" })}</>
+                    )
                   ) : (
                     <Skeleton />
                   )}
                 </TableCell>
-                <TableCell>
-                  {maybe(() => productType.hasVariants) !== undefined ? (
-                    maybe(() => productType.variantAttributes) ? (
-                      productType.variantAttributes.length > 0 ? (
-                        productType.variantAttributes
-                          .map(attribute => attribute.name)
-                          .join(", ")
-                      ) : (
-                        "-"
-                      )
-                    ) : (
-                      <Skeleton />
-                    )
+                <TableCell className={classes.leftText}>
+                  {maybe(() => productType.taxRate) ? (
+                    translatedTaxRates()[productType.taxRate]
                   ) : (
                     <Skeleton />
                   )}

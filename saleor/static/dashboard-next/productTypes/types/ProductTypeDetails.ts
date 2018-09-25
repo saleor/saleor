@@ -42,10 +42,10 @@ export interface ProductTypeDetails_productType {
   id: string;
   name: string;
   hasVariants: boolean;
-  productAttributes: (ProductTypeDetails_productType_productAttributes | null)[] | null;
-  variantAttributes: (ProductTypeDetails_productType_variantAttributes | null)[] | null;
   isShippingRequired: boolean;
   taxRate: TaxRateType | null;
+  productAttributes: (ProductTypeDetails_productType_productAttributes | null)[] | null;
+  variantAttributes: (ProductTypeDetails_productType_variantAttributes | null)[] | null;
 }
 
 export interface ProductTypeDetails {

@@ -54,7 +54,7 @@ export const TypedProductTypeListQuery = Query as React.ComponentType<
   QueryProps<ProductTypeList, ProductTypeListVariables>
 >;
 export const productTypeListQuery = gql`
-  ${attributeFragment}
+  ${productTypeFragment}
   query ProductTypeList(
     $after: String
     $before: String
@@ -64,15 +64,7 @@ export const productTypeListQuery = gql`
     productTypes(after: $after, before: $before, first: $first, last: $last) {
       edges {
         node {
-          id
-          name
-          hasVariants
-          productAttributes {
-            ...AttributeFragment
-          }
-          variantAttributes {
-            ...AttributeFragment
-          }
+          ...ProductTypeFragment
         }
       }
       pageInfo {
@@ -89,20 +81,10 @@ export const TypedProductTypeDetailsQuery = Query as React.ComponentType<
   QueryProps<ProductTypeDetails, ProductTypeDetailsVariables>
 >;
 export const productTypeDetailsQuery = gql`
-  ${attributeFragment}
+  ${productTypeDetailsFragment}
   query ProductTypeDetails($id: ID!) {
     productType(id: $id) {
-      id
-      name
-      hasVariants
-      productAttributes {
-        ...AttributeFragment
-      }
-      variantAttributes {
-        ...AttributeFragment
-      }
-      isShippingRequired
-      taxRate
+      ...ProductTypeDetailsFragment
     }
   }
 `;
