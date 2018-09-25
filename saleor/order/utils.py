@@ -150,7 +150,7 @@ def attach_order_to_user(order, user):
 
 def add_variant_to_order(
         order, variant, quantity, discounts=None, taxes=None,
-        allow_overselling=False):
+        allow_overselling=False, track_inventory=True):
     """Add total_quantity of variant to order.
 
     Returns an order line the variant was added to.
@@ -178,7 +178,7 @@ def add_variant_to_order(
             variant=variant,
             unit_price=variant.get_price(discounts, taxes),
             tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes))
-    if variant.track_inventory:
+    if variant.track_inventory and track_inventory:
         allocate_stock(variant, quantity)
     return line
 
