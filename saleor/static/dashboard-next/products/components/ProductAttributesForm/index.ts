@@ -1,2 +1,2 @@
-export { default } from "./ProductAttributesForm";
-export * from "./ProductAttributesForm";
+export { default } from "./AttributesForm";
+export * from "./AttributesForm";

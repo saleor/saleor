@@ -5,7 +5,7 @@ from django_filters import (
     RangeFilter)
 
 from ...core.filters import SortedFilterSet
-from ...product.models import Category, Product, ProductAttribute, ProductType
+from ...product.models import Category, Product, Attribute, ProductType
 from ..widgets import MoneyRangeWidget
 
 PRODUCT_SORT_BY_FIELDS = {
@@ -62,7 +62,7 @@ class ProductFilter(SortedFilterSet):
             number=counter) % {'counter': counter}
 
 
-class ProductAttributeFilter(SortedFilterSet):
+class AttributeFilter(SortedFilterSet):
     name = CharFilter(
         label=pgettext_lazy('Product attribute list filter label', 'Name'),
         lookup_expr='icontains')
@@ -72,7 +72,7 @@ class ProductAttributeFilter(SortedFilterSet):
         field_labels=PRODUCT_TYPE_SORT_BY_FIELDS)
 
     class Meta:
-        model = ProductAttribute
+        model = Attribute
         fields = []
 
     def get_summary_message(self):
@@ -97,12 +97,12 @@ class ProductTypeFilter(SortedFilterSet):
         label=pgettext_lazy(
             'Product type list filter label', 'Product attributes'),
         field_name='product_attributes',
-        queryset=ProductAttribute.objects.all())
+        queryset=Attribute.objects.all())
     variant_attributes = ModelMultipleChoiceFilter(
         label=pgettext_lazy(
             'Product type list filter label', 'Variant attributes'),
         field_name='variant_attributes',
-        queryset=ProductAttribute.objects.all())
+        queryset=Attribute.objects.all())
 
     class Meta:
         model = ProductType

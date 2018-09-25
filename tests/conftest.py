@@ -31,8 +31,8 @@ from saleor.order.models import Order
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.product.models import (
-    AttributeValue, Category, Collection, Product, ProductAttribute,
-    ProductAttributeTranslation, ProductImage, ProductTranslation, ProductType,
+    AttributeValue, Category, Collection, Product, Attribute,
+    AttributeTranslation, ProductImage, ProductTranslation, ProductType,
     ProductVariant)
 from saleor.shipping.models import (
     ShippingMethod, ShippingMethodType, ShippingZone)
@@ -243,7 +243,7 @@ def shipping_method(shipping_zone):
 
 @pytest.fixture
 def color_attribute(db):  # pylint: disable=W0613
-    attribute = ProductAttribute.objects.create(
+    attribute = Attribute.objects.create(
         slug='color', name='Color')
     AttributeValue.objects.create(
         attribute=attribute, name='Red', slug='red')
@@ -261,7 +261,7 @@ def pink_attribute_value(color_attribute):  # pylint: disable=W0613
 
 @pytest.fixture
 def size_attribute(db):  # pylint: disable=W0613
-    attribute = ProductAttribute.objects.create(slug='size', name='Size')
+    attribute = Attribute.objects.create(slug='size', name='Size')
     AttributeValue.objects.create(
         attribute=attribute, name='Small', slug='small')
     AttributeValue.objects.create(
@@ -708,15 +708,15 @@ def vatlayer(db, settings, tax_rates, taxes):
 @pytest.fixture
 def translated_variant_fr(product):
     attribute = product.product_type.variant_attributes.first()
-    return ProductAttributeTranslation.objects.create(
+    return AttributeTranslation.objects.create(
         language_code='fr', product_attribute=attribute,
         name='Name tranlsated to french')
 
 
 @pytest.fixture
-def translated_product_attribute(product):
+def translated_attribute(product):
     attribute = product.product_type.product_attributes.first()
-    return ProductAttributeTranslation.objects.create(
+    return AttributeTranslation.objects.create(
         language_code='fr', product_attribute=attribute,
         name='Name tranlsated to french')
 

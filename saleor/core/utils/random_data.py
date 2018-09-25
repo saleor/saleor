@@ -29,7 +29,7 @@ from ...order.models import Fulfillment, Order, Payment
 from ...order.utils import update_order_status
 from ...page.models import Page
 from ...product.models import (
-    AttributeValue, Category, Collection, Product, ProductAttribute,
+    AttributeValue, Category, Collection, Product, Attribute,
     ProductImage, ProductType, ProductVariant)
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
@@ -159,9 +159,9 @@ def create_product_types_by_schema(root_schema):
 
 def set_product_attributes(product, product_type):
     attr_dict = {}
-    for product_attribute in product_type.product_attributes.all():
-        value = random.choice(product_attribute.values.all())
-        attr_dict[str(product_attribute.pk)] = str(value.pk)
+    for attribute in product_type.product_attributes.all():
+        value = random.choice(attribute.values.all())
+        attr_dict[str(attribute.pk)] = str(value.pk)
     product.attributes = attr_dict
     product.save(update_fields=['attributes'])
 
@@ -332,7 +332,7 @@ def create_attribute(**kwargs):
         'slug': slug,
         'name': slug.title()}
     defaults.update(kwargs)
-    attribute = ProductAttribute.objects.get_or_create(**defaults)[0]
+    attribute = Attribute.objects.get_or_create(**defaults)[0]
     return attribute
 
 

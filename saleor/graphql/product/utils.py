@@ -1,7 +1,7 @@
 from django.utils.text import slugify
 
 from ...product.models import (
-    AttributeValue, ProductAttribute, ProductVariant)
+    AttributeValue, Attribute, ProductVariant)
 from ...product.utils.attributes import get_name_from_attributes
 
 
@@ -35,7 +35,7 @@ def attributes_to_hstore(attribute_value_input, attributes_queryset):
         if value_id is None:
             # `value_id` was not found; create a new AttributeValue
             # instance from the provided `value`.
-            attr_instance = ProductAttribute.objects.get(slug=attr_slug)
+            attr_instance = Attribute.objects.get(slug=attr_slug)
             obj = attr_instance.values.get_or_create(
                 name=value, slug=slugify(value))[0]
             value_id = obj.pk

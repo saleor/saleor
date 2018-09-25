@@ -6,7 +6,7 @@
 // ====================================================
 
 export interface ProductCreateData_productTypes_edges_node_productAttributes_edges_node_values {
-  __typename: "ProductAttributeValue";
+  __typename: "AttributeValue";
   id: string;
   sortOrder: number;
   name: string | null;
@@ -14,7 +14,7 @@ export interface ProductCreateData_productTypes_edges_node_productAttributes_edg
 }
 
 export interface ProductCreateData_productTypes_edges_node_productAttributes_edges_node {
-  __typename: "ProductAttribute";
+  __typename: "Attribute";
   id: string;
   slug: string | null;
   name: string | null;
@@ -22,12 +22,12 @@ export interface ProductCreateData_productTypes_edges_node_productAttributes_edg
 }
 
 export interface ProductCreateData_productTypes_edges_node_productAttributes_edges {
-  __typename: "ProductAttributeCountableEdge";
+  __typename: "AttributeCountableEdge";
   node: ProductCreateData_productTypes_edges_node_productAttributes_edges_node;
 }
 
 export interface ProductCreateData_productTypes_edges_node_productAttributes {
-  __typename: "ProductAttributeCountableConnection";
+  __typename: "AttributeCountableConnection";
   edges: ProductCreateData_productTypes_edges_node_productAttributes_edges[];
 }
 

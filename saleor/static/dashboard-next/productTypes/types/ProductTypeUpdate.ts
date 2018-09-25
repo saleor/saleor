@@ -14,36 +14,36 @@ export interface ProductTypeUpdate_productTypeUpdate_errors {
 }
 
 export interface ProductTypeUpdate_productTypeUpdate_productType_productAttributes_edges_node {
-  __typename: "ProductAttribute";
+  __typename: "Attribute";
   id: string;
   slug: string | null;
   name: string | null;
 }
 
 export interface ProductTypeUpdate_productTypeUpdate_productType_productAttributes_edges {
-  __typename: "ProductAttributeCountableEdge";
+  __typename: "AttributeCountableEdge";
   node: ProductTypeUpdate_productTypeUpdate_productType_productAttributes_edges_node;
 }
 
 export interface ProductTypeUpdate_productTypeUpdate_productType_productAttributes {
-  __typename: "ProductAttributeCountableConnection";
+  __typename: "AttributeCountableConnection";
   edges: ProductTypeUpdate_productTypeUpdate_productType_productAttributes_edges[];
 }
 
 export interface ProductTypeUpdate_productTypeUpdate_productType_variantAttributes_edges_node {
-  __typename: "ProductAttribute";
+  __typename: "Attribute";
   id: string;
   slug: string | null;
   name: string | null;
 }
 
 export interface ProductTypeUpdate_productTypeUpdate_productType_variantAttributes_edges {
-  __typename: "ProductAttributeCountableEdge";
+  __typename: "AttributeCountableEdge";
   node: ProductTypeUpdate_productTypeUpdate_productType_variantAttributes_edges_node;
 }
 
 export interface ProductTypeUpdate_productTypeUpdate_productType_variantAttributes {
-  __typename: "ProductAttributeCountableConnection";
+  __typename: "AttributeCountableConnection";
   edges: ProductTypeUpdate_productTypeUpdate_productType_variantAttributes_edges[];
 }
 

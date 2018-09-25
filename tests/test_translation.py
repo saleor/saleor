@@ -2,7 +2,7 @@ import pytest
 
 from saleor.product.models import (
     AttributeValueTranslation, CategoryTranslation,
-    CollectionTranslation, ProductAttributeTranslation, ProductTranslation,
+    CollectionTranslation, AttributeTranslation, ProductTranslation,
     ProductVariantTranslation)
 from saleor.shipping.models import ShippingMethodTranslation
 
@@ -98,8 +98,8 @@ def test_product_variant_translation(settings, variant):
     assert variant.translated.name == french_name
 
 
-def test_product_attribute_translation(settings, color_attribute):
-    ProductAttributeTranslation.objects.create(
+def test_attribute_translation(settings, color_attribute):
+    AttributeTranslation.objects.create(
         language_code='fr', product_attribute=color_attribute,
         name='French name')
     assert not color_attribute.translated.name == 'French name'

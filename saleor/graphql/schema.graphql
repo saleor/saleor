@@ -357,12 +357,12 @@ type AssignNavigation {
 
 type AttributeValueCreate {
   errors: [Error]
-  attributeValue: ProductAttributeValue
+  attributeValue: AttributeValue
 }
 
 type AttributeValueDelete {
   errors: [Error]
-  attributeValue: ProductAttributeValue
+  attributeValue: AttributeValue
 }
 
 input AttributeValueInput {
@@ -374,7 +374,7 @@ input AttributeValueInput {
 
 type AttributeValueUpdate {
   errors: [Error]
-  attributeValue: ProductAttributeValue
+  attributeValue: AttributeValue
 }
 
 input AttributeValueUpdateInput {
@@ -867,9 +867,9 @@ type Mutations {
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
-  productAttributeCreate(input: ProductAttributesInput!): ProductAttributeCreate
-  productAttributeDelete(id: ID!): ProductAttributeDelete
-  productAttributeUpdate(id: ID!, input: ProductAttributesInput!): ProductAttributeUpdate
+  productAttributeCreate(input: AttributesInput!): AttributeCreate
+  productAttributeDelete(id: ID!): AttributeDelete
+  productAttributeUpdate(id: ID!, input: AttributesInput!): AttributeUpdate
   productCreate(input: ProductCreateInput!): ProductCreate
   productDelete(id: ID!): ProductDelete
   productUpdate(id: ID!, input: ProductInput!): ProductUpdate
@@ -1200,56 +1200,56 @@ type Product implements Node {
   imageById(id: ID): ProductImage
 }
 
-type ProductAttribute implements Node {
+type Attribute implements Node {
   id: ID!
   slug: String
   name: String
-  values: [ProductAttributeValue]
+  values: [AttributeValue]
 }
 
-type ProductAttributeCountableConnection {
+type AttributeCountableConnection {
   pageInfo: PageInfo!
-  edges: [ProductAttributeCountableEdge!]!
+  edges: [AttributeCountableEdge!]!
   totalCount: Int
 }
 
-type ProductAttributeCountableEdge {
-  node: ProductAttribute!
+type AttributeCountableEdge {
+  node: Attribute!
   cursor: String!
 }
 
-type ProductAttributeCreate {
+type AttributeCreate {
   errors: [Error]
-  productAttribute: ProductAttribute
+  productAttribute: Attribute
 }
 
-type ProductAttributeDelete {
+type AttributeDelete {
   errors: [Error]
-  productAttribute: ProductAttribute
+  productAttribute: Attribute
 }
 
-type ProductAttributeUpdate {
+type AttributeUpdate {
   errors: [Error]
-  productAttribute: ProductAttribute
+  productAttribute: Attribute
 }
 
-type ProductAttributeValue implements Node {
+type AttributeValue implements Node {
   id: ID!
   sortOrder: Int!
   name: String
   value: String!
   slug: String
-  type: ProductAttributeValueType
+  type: AttributeValueType
 }
 
-enum ProductAttributeValueType {
+enum AttributeValueType {
   COLOR
   GRADIENT
   URL
   STRING
 }
 
-input ProductAttributesInput {
+input AttributesInput {
   slug: String!
   name: String!
 }
@@ -1372,8 +1372,8 @@ type ProductType implements Node {
   id: ID!
   name: String!
   hasVariants: Boolean!
-  productAttributes(before: String, after: String, first: Int, last: Int, id: ID, slug: String): ProductAttributeCountableConnection
-  variantAttributes(before: String, after: String, first: Int, last: Int, id: ID, slug: String): ProductAttributeCountableConnection
+  productAttributes(before: String, after: String, first: Int, last: Int, id: ID, slug: String): AttributeCountableConnection
+  variantAttributes(before: String, after: String, first: Int, last: Int, id: ID, slug: String): AttributeCountableConnection
   isShippingRequired: Boolean!
   taxRate: TaxRateType
   weight: Weight
@@ -1488,7 +1488,7 @@ type ProductVariantUpdate {
 
 type Query {
   addressValidator(input: AddressValidationInput!): AddressValidationData
-  attributes(query: String, inCategory: ID, before: String, after: String, first: Int, last: Int, id: ID, slug: String): ProductAttributeCountableConnection
+  attributes(query: String, inCategory: ID, before: String, after: String, first: Int, last: Int, id: ID, slug: String): AttributeCountableConnection
   categories(query: String, level: Int, before: String, after: String, first: Int, last: Int, id: ID, name: String): CategoryCountableConnection
   category(id: ID): Category
   collection(id: ID): Collection
@@ -1580,8 +1580,8 @@ type SaleUpdate {
 }
 
 type SelectedAttribute {
-  attribute: ProductAttribute
-  value: ProductAttributeValue
+  attribute: Attribute
+  value: AttributeValue
 }
 
 input SeoInput {

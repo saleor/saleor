@@ -12,7 +12,7 @@ from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import ProductForm, ProductVariantForm
 from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
-    AttributeValue, Collection, Product, ProductAttribute, ProductImage,
+    AttributeValue, Collection, Product, Attribute, ProductImage,
     ProductType, ProductVariant)
 
 from ..utils import create_image
@@ -790,7 +790,7 @@ def test_view_attribute_details(admin_client, color_attribute):
 
 
 def test_view_attribute_details_no_choices(admin_client):
-    attribute = ProductAttribute.objects.create(slug='size', name='Size')
+    attribute = Attribute.objects.create(slug='size', name='Size')
     url = reverse(
         'dashboard:product-attribute-details', kwargs={'pk': attribute.pk})
 
@@ -807,7 +807,7 @@ def test_view_attribute_create(admin_client, color_attribute):
     response = admin_client.post(url, data, follow=True)
 
     assert response.status_code == 200
-    assert ProductAttribute.objects.count() == 2
+    assert Attribute.objects.count() == 2
 
 
 def test_view_attribute_create_not_valid(admin_client, color_attribute):
@@ -817,7 +817,7 @@ def test_view_attribute_create_not_valid(admin_client, color_attribute):
     response = admin_client.post(url, data, follow=True)
 
     assert response.status_code == 200
-    assert ProductAttribute.objects.count() == 1
+    assert Attribute.objects.count() == 1
 
 
 def test_view_attribute_edit(color_attribute, admin_client):
@@ -829,7 +829,7 @@ def test_view_attribute_edit(color_attribute, admin_client):
     response = admin_client.post(url, data, follow=True)
 
     assert response.status_code == 200
-    assert ProductAttribute.objects.count() == 1
+    assert Attribute.objects.count() == 1
     color_attribute.refresh_from_db()
     assert color_attribute.name == 'new_name'
     assert color_attribute.slug == 'new_slug'
@@ -843,7 +843,7 @@ def test_view_attribute_delete(admin_client, color_attribute):
     response = admin_client.post(url)
 
     assert response.status_code == 302
-    assert not ProductAttribute.objects.filter(pk=color_attribute.pk).exists()
+    assert not Attribute.objects.filter(pk=color_attribute.pk).exists()
 
 
 def test_view_attribute_not_deleted_before_confirmation(
@@ -855,7 +855,7 @@ def test_view_attribute_not_deleted_before_confirmation(
     response = admin_client.get(url)
 
     assert response.status_code == 200
-    assert ProductAttribute.objects.filter(pk=color_attribute.pk)
+    assert Attribute.objects.filter(pk=color_attribute.pk)
 
 
 def test_view_attribute_value_create(color_attribute, admin_client):
@@ -955,7 +955,7 @@ def test_view_ajax_reorder_attribute_values_invalid(
 
 
 def test_get_formfield_name_with_unicode_characters(db):
-    text_attribute = ProductAttribute.objects.create(
+    text_attribute = Attribute.objects.create(
         slug='ąęαβδηθλμπ', name='ąęαβδηθλμπ')
     assert text_attribute.get_formfield_name() == 'attribute-ąęαβδηθλμπ'
 
@@ -989,7 +989,7 @@ def test_hide_field_in_variant_choice_field_form():
 
 def test_product_form_change_attributes(db, product, color_attribute):
     product_type = product.product_type
-    text_attribute = ProductAttribute.objects.create(
+    text_attribute = Attribute.objects.create(
         slug='author', name='Author')
     product_type.product_attributes.add(text_attribute)
     color_value = color_attribute.values.first()

@@ -4,7 +4,7 @@ from ....product import models
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 
 
-class ProductAttributesInput(graphene.InputObjectType):
+class AttributesInput(graphene.InputObjectType):
     slug = graphene.String(
         required=True, description='Internal name.')
     name = graphene.String(
@@ -31,42 +31,42 @@ class AttributeValueUpdateInput(graphene.InputObjectType):
         required=True, description='Name displayed in the interface.')
 
 
-class ProductAttributeCreate(ModelMutation):
+class AttributeCreate(ModelMutation):
     class Arguments:
-        input = ProductAttributesInput(
+        input = AttributesInput(
             required=True,
             description='Fields required to create a product attribute.')
 
     class Meta:
         description = 'Creates a product attribute.'
-        model = models.ProductAttribute
+        model = models.Attribute
 
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('product.manage_products')
 
 
-class ProductAttributeUpdate(ProductAttributeCreate):
+class AttributeUpdate(AttributeCreate):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a product attribute to update.')
-        input = ProductAttributesInput(
+        input = AttributesInput(
             required=True,
             description='Fields required to update a product attribute.')
 
     class Meta:
         description = 'Updates a product attribute.'
-        model = models.ProductAttribute
+        model = models.Attribute
 
 
-class ProductAttributeDelete(ModelDeleteMutation):
+class AttributeDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of a product attribute to delete.')
 
     class Meta:
         description = 'Deletes a product attribute.'
-        model = models.ProductAttribute
+        model = models.Attribute
 
     @classmethod
     def user_is_allowed(cls, user, input):

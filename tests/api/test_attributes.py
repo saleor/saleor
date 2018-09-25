@@ -6,9 +6,9 @@ import pytest
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 from saleor.product.models import (
-    Category, ProductAttribute, AttributeValue)
+    Category, Attribute, AttributeValue)
 from saleor.graphql.product.utils import attributes_to_hstore
-from saleor.graphql.product.types import resolve_attribute_value_type, ProductAttributeValueType
+from saleor.graphql.product.types import resolve_attribute_value_type, AttributeValueType
 
 
 def test_attributes_to_hstore(product, color_attribute):
@@ -38,7 +38,7 @@ def test_attributes_to_hstore(product, color_attribute):
 
 
 def test_attributes_query(user_api_client, product):
-    attributes = ProductAttribute.objects.prefetch_related('values')
+    attributes = Attribute.objects.prefetch_related('values')
     query = '''
     query {
         attributes {
@@ -88,10 +88,10 @@ def test_attributes_in_category_query(user_api_client, product):
     content = get_graphql_content(response)
     assert 'errors' not in content
     attributes_data = content['data']['attributes']['edges']
-    assert len(attributes_data) == ProductAttribute.objects.count()
+    assert len(attributes_data) == Attribute.objects.count()
 
 
-def test_create_product_attribute(admin_api_client):
+def test_create_attribute(admin_api_client):
     query = """
     mutation createAttribute($name: String!, $slug: String!) {
         productAttributeCreate(input: {name: $name, slug: $slug}) {
@@ -119,7 +119,7 @@ def test_create_product_attribute(admin_api_client):
     assert not data['values']
 
 
-def test_update_product_attribute(admin_api_client, color_attribute):
+def test_update_attribute(admin_api_client, color_attribute):
     attribute = color_attribute
     query = """
     mutation updateAttribute($id: ID!, $name: String!, $slug: String!) {
@@ -132,7 +132,7 @@ def test_update_product_attribute(admin_api_client, color_attribute):
     """
     name = 'Wings name'
     slug = attribute.slug
-    id = graphene.Node.to_global_id('ProductAttribute', attribute.id)
+    id = graphene.Node.to_global_id('Attribute', attribute.id)
     variables = json.dumps({'name': name, 'id': id, 'slug': slug})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
@@ -143,7 +143,7 @@ def test_update_product_attribute(admin_api_client, color_attribute):
     assert data['name'] == name == attribute.name
 
 
-def test_delete_product_attribute(admin_api_client, color_attribute):
+def test_delete_attribute(admin_api_client, color_attribute):
     attribute = color_attribute
     query = """
     mutation deleteAttribute($id: ID!) {
@@ -154,7 +154,7 @@ def test_delete_product_attribute(admin_api_client, color_attribute):
         }
     }
     """
-    id = graphene.Node.to_global_id('ProductAttribute', attribute.id)
+    id = graphene.Node.to_global_id('Attribute', attribute.id)
     variables = json.dumps({'id': id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
@@ -179,7 +179,7 @@ def test_create_attribute_value(admin_api_client, color_attribute):
         }
     }
     """
-    attribute_id = graphene.Node.to_global_id('ProductAttribute', attribute.id)
+    attribute_id = graphene.Node.to_global_id('Attribute', attribute.id)
     name = 'test name'
     slug = 'test-slug'
     value = 'test-string'
@@ -210,7 +210,7 @@ def test_update_attribute_value(admin_api_client, pink_attribute_value):
         }
     }
     """
-    id = graphene.Node.to_global_id('ProductAttributeValue', value.id)
+    id = graphene.Node.to_global_id('AttributeValue', value.id)
     name = 'Crimson'
     slug = value.slug
     variables = json.dumps(
@@ -239,7 +239,7 @@ def test_delete_attribute_value(
         }
     }
     """
-    id = graphene.Node.to_global_id('ProductAttributeValue', value.id)
+    id = graphene.Node.to_global_id('AttributeValue', value.id)
     variables = json.dumps({'id': id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
@@ -250,19 +250,19 @@ def test_delete_attribute_value(
 
 
 @pytest.mark.parametrize('raw_value, expected_type', [
-    ('#0000', ProductAttributeValueType.COLOR),
-    ('#FF69B4', ProductAttributeValueType.COLOR),
-    ('rgb(255, 0, 0)', ProductAttributeValueType.COLOR),
-    ('hsl(0, 100%, 50%)', ProductAttributeValueType.COLOR),
-    ('hsla(120,  60%, 70%, 0.3)', ProductAttributeValueType.COLOR),
-    ('rgba(100%, 255, 0, 0)', ProductAttributeValueType.COLOR),
-    ('http://example.com', ProductAttributeValueType.URL),
-    ('https://example.com', ProductAttributeValueType.URL),
-    ('ftp://example.com', ProductAttributeValueType.URL),
-    ('example.com', ProductAttributeValueType.STRING),
-    ('Foo', ProductAttributeValueType.STRING),
-    ('linear-gradient(red, yellow)', ProductAttributeValueType.GRADIENT),
-    ('radial-gradient(#0000, yellow)', ProductAttributeValueType.GRADIENT),
+    ('#0000', AttributeValueType.COLOR),
+    ('#FF69B4', AttributeValueType.COLOR),
+    ('rgb(255, 0, 0)', AttributeValueType.COLOR),
+    ('hsl(0, 100%, 50%)', AttributeValueType.COLOR),
+    ('hsla(120,  60%, 70%, 0.3)', AttributeValueType.COLOR),
+    ('rgba(100%, 255, 0, 0)', AttributeValueType.COLOR),
+    ('http://example.com', AttributeValueType.URL),
+    ('https://example.com', AttributeValueType.URL),
+    ('ftp://example.com', AttributeValueType.URL),
+    ('example.com', AttributeValueType.STRING),
+    ('Foo', AttributeValueType.STRING),
+    ('linear-gradient(red, yellow)', AttributeValueType.GRADIENT),
+    ('radial-gradient(#0000, yellow)', AttributeValueType.GRADIENT),
 ])
 def test_resolve_attribute_value_type(raw_value, expected_type):
     assert resolve_attribute_value_type(raw_value) == expected_type
@@ -271,7 +271,7 @@ def test_resolve_attribute_value_type(raw_value, expected_type):
 def test_query_attribute_values(
         color_attribute, pink_attribute_value, user_api_client):
     attribute_id = graphene.Node.to_global_id(
-        'ProductAttribute', color_attribute.id)
+        'Attribute', color_attribute.id)
     query = """
     query getAttribute($id: ID!) {
         attributes(id: $id) {
@@ -301,4 +301,3 @@ def test_query_attribute_values(
     pink = pink[0]
     assert pink['value'] == '#FF69B4'
     assert pink['type'] == 'COLOR'
-

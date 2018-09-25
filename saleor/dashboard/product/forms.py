@@ -15,7 +15,7 @@ from ...core import TaxRateType
 from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME, include_taxes_in_prices
 from ...core.weight import WeightField, get_default_weight_unit
 from ...product.models import (
-    AttributeValue, Category, Collection, Product, ProductAttribute,
+    AttributeValue, Category, Collection, Product, Attribute,
     ProductImage, ProductType, ProductVariant, VariantImage)
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
@@ -160,7 +160,7 @@ class ProductTypeForm(forms.ModelForm):
 class AttributesMixin(object):
     """Form mixin that dynamically adds attribute fields."""
 
-    available_attributes = ProductAttribute.objects.none()
+    available_attributes = Attribute.objects.none()
 
     # Name of a field in self.instance that hold attributes HStore
     model_attributes_field = None
@@ -419,9 +419,9 @@ class VariantImagesSelectForm(forms.Form):
         VariantImage.objects.bulk_create(images)
 
 
-class ProductAttributeForm(forms.ModelForm):
+class AttributeForm(forms.ModelForm):
     class Meta:
-        model = ProductAttribute
+        model = Attribute
         exclude = []
         labels = {
             'name': pgettext_lazy(
@@ -449,7 +449,7 @@ class ReorderAttributeValuesForm(forms.ModelForm):
         queryset=AttributeValue.objects.none())
 
     class Meta:
-        model = ProductAttribute
+        model = Attribute
         fields = ()
 
     def __init__(self, *args, **kwargs):
