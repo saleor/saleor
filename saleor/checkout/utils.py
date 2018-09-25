@@ -25,7 +25,7 @@ from ..discount.utils import (
     get_products_voucher_discount, get_shipping_voucher_discount,
     get_value_voucher_discount, increase_voucher_usage)
 from ..order.models import Order
-from ..shipping import ShippingMethodType
+from ..shipping.models import ShippingMethod
 from .forms import (
     AddressChoiceForm, AnonymousUserBillingForm, AnonymousUserShippingForm,
     BillingAddressChoiceForm)
@@ -761,42 +761,16 @@ def get_taxes_for_cart(cart, default_taxes):
     return default_taxes
 
 
-def value_in_range(minimum, maximum, value):
-    """Check if value is in the certain range.
-    If the maximum in None, then there's no upper limit."""
-    if maximum is None:
-        return value >= minimum
-    return value >= minimum and value <= maximum
-
-
-def shipping_method_applicable(price, weight, method):
-    """Checks if all shipping method requirements are fullfilled
-    (eg. minimum order value or maximum order weight).
-    """
-    if method.type == ShippingMethodType.PRICE_BASED:
-        return value_in_range(
-            minimum=method.minimum_order_price,
-            maximum=method.maximum_order_price, value=price)
-    return value_in_range(
-        minimum=method.minimum_order_weight,
-        maximum=method.maximum_order_weight, value=weight)
-
-
 def is_valid_shipping_method(cart, taxes, discounts):
     """Check if shipping method is valid and remove (if not)."""
     if not cart.shipping_method:
         return False
-    shipping_outside_the_shipping_zone = (
-        cart.shipping_address.country.code not in
-        cart.shipping_method.shipping_zone.countries)
-    if shipping_outside_the_shipping_zone:
-        clear_shipping_method(cart)
-        return False
 
-    is_valid_shipping = shipping_method_applicable(
+    valid_methods = ShippingMethod.objects.applicable_shipping_methods(
         price=cart.get_subtotal(discounts, taxes).gross,
-        weight=cart.get_total_weight(), method=cart.shipping_method)
-    if not is_valid_shipping:
+        weight=cart.get_total_weight(),
+        country_code=cart.shipping_address.country.code)
+    if cart.shipping_method not in valid_methods:
         clear_shipping_method(cart)
         return False
     return True

@@ -1,19 +1,28 @@
 from django import forms
 from django.utils.translation import pgettext_lazy
 
+from ...account.i18n import COUNTRY_CHOICES
 from ...core.weight import WeightField
 from ...shipping import ShippingMethodType
 from ...shipping.models import ShippingMethod, ShippingZone
 from ...site.models import SiteSettings
 
 
-def currently_used_countries(shipping_zone_pk=None):
-    shipping_zones = ShippingZone.objects.exclude(pk=shipping_zone_pk)
+def currently_used_countries(zone_pk=None):
+    shipping_zones = ShippingZone.objects.exclude(pk=zone_pk)
     used_countries = {
         (country.code, country.name)
         for shipping_zone in shipping_zones
         for country in shipping_zone.countries}
     return used_countries
+
+
+def get_available_countries(zone_pk=None):
+    return set(COUNTRY_CHOICES) - currently_used_countries(zone_pk)
+
+
+def default_shipping_zone_exists(zone_pk=None):
+    return ShippingZone.objects.exclude(pk=zone_pk).filter(default=True)
 
 
 class ChangeDefaultWeightUnit(forms.ModelForm):
@@ -34,10 +43,12 @@ class ChangeDefaultWeightUnit(forms.ModelForm):
 class ShippingZoneForm(forms.ModelForm):
     class Meta:
         model = ShippingZone
-        exclude = ['shipping_methods']
+        fields = ['name', 'default', 'countries']
         labels = {
             'name': pgettext_lazy(
                 'Shippment Zone field name', 'Shipping zone name'),
+            'default': pgettext_lazy(
+                'Shipping Zone field name', 'Rest of World'),
             'countries': pgettext_lazy(
                 'List of countries to pick from', 'Countries')}
         help_texts = {
@@ -47,13 +58,36 @@ class ShippingZoneForm(forms.ModelForm):
             'name': pgettext_lazy(
                 'Help text for ShippingZone name',
                 'Name is for internal use only, it won\'t '
-                'be displayed to your customers')}
+                'be displayed to your customers'),
+            'default': pgettext_lazy(
+                'Help text for ShippingZone name',
+                'If selected, this zone will include any countries that'
+                ' are not already listed in your other shipping zones.')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['countries'].choices = (
-            set(self.fields['countries'].choices) - currently_used_countries(
-                self.instance.pk if self.instance else None))
+        pk = self.instance.pk if self.instance else None
+        available_countries = get_available_countries(pk)
+        self.fields['countries'].choices = sorted(
+            available_countries, key=lambda choice: choice[1])
+
+        if default_shipping_zone_exists(pk):
+            self.fields['default'].disabled = True
+            self.fields['countries'].required = True
+
+    def clean_default(self):
+        default = self.cleaned_data.get('default')
+        if not default:
+            return default
+        shipping_zone_exists = default_shipping_zone_exists(
+            self.instance.pk if self.instance else None)
+        if not shipping_zone_exists:
+            return default
+        self.add_error(
+            'default', pgettext_lazy(
+                'ShippingZone  with "default" option selected already exists',
+                'Default ShippingZone already exists.'))
+        return default
 
     def clean_countries(self):
         countries = self.cleaned_data.get('countries')
@@ -69,6 +103,15 @@ class ShippingZoneForm(forms.ModelForm):
                     'shipping zone: %(list_of_countries)s' % {
                         'list_of_countries': ', '.join(duplicated_countries)}))
         return countries
+
+    def clean(self):
+        data = super().clean()
+        if not data.get('default') and not data.get('countries'):
+            self.add_error('countries', pgettext_lazy(
+                'ShippingZone field error', 'This field is required.'))
+        if data.get('default'):
+            data['countries'] = []
+        return data
 
 
 class ShippingMethodForm(forms.ModelForm):
