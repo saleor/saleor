@@ -8,36 +8,36 @@ import { TaxRateType } from "./../../types/globalTypes";
 // ====================================================
 
 export interface ProductTypeDetails_productType_productAttributes_edges_node {
-  __typename: "ProductAttribute";
+  __typename: "Attribute";
   id: string;
   slug: string | null;
   name: string | null;
 }
 
 export interface ProductTypeDetails_productType_productAttributes_edges {
-  __typename: "ProductAttributeCountableEdge";
+  __typename: "AttributeCountableEdge";
   node: ProductTypeDetails_productType_productAttributes_edges_node;
 }
 
 export interface ProductTypeDetails_productType_productAttributes {
-  __typename: "ProductAttributeCountableConnection";
+  __typename: "AttributeCountableConnection";
   edges: ProductTypeDetails_productType_productAttributes_edges[];
 }
 
 export interface ProductTypeDetails_productType_variantAttributes_edges_node {
-  __typename: "ProductAttribute";
+  __typename: "Attribute";
   id: string;
   slug: string | null;
   name: string | null;
 }
 
 export interface ProductTypeDetails_productType_variantAttributes_edges {
-  __typename: "ProductAttributeCountableEdge";
+  __typename: "AttributeCountableEdge";
   node: ProductTypeDetails_productType_variantAttributes_edges_node;
 }
 
 export interface ProductTypeDetails_productType_variantAttributes {
-  __typename: "ProductAttributeCountableConnection";
+  __typename: "AttributeCountableConnection";
   edges: ProductTypeDetails_productType_variantAttributes_edges[];
 }
 

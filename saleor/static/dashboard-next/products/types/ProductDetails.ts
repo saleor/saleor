@@ -58,13 +58,13 @@ export interface ProductDetails_product_purchaseCost {
 }
 
 export interface ProductDetails_product_attributes_attribute_values {
-  __typename: "ProductAttributeValue";
+  __typename: "AttributeValue";
   name: string | null;
   slug: string | null;
 }
 
 export interface ProductDetails_product_attributes_attribute {
-  __typename: "ProductAttribute";
+  __typename: "Attribute";
   id: string;
   slug: string | null;
   name: string | null;
@@ -72,7 +72,7 @@ export interface ProductDetails_product_attributes_attribute {
 }
 
 export interface ProductDetails_product_attributes_value {
-  __typename: "ProductAttributeValue";
+  __typename: "AttributeValue";
   id: string;
   name: string | null;
   slug: string | null;

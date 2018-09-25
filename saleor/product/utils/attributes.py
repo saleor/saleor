@@ -1,6 +1,6 @@
 def get_product_attributes_data(product):
     """Returns attributes associated with the product,
-    as dict of ProductAttribute: AttributeValue values.
+    as dict of Attribute: AttributeValue values.
     """
     attributes = product.product_type.product_attributes.all()
     attributes_map = {
@@ -19,10 +19,10 @@ def get_name_from_attributes(variant, attributes):
 
 def get_attributes_display_map(obj, attributes):
     """Returns attributes associated with an object,
-    as dict of ProductAttribute: AttributeValue values.
+    as dict of Attribute: AttributeValue values.
 
     Args:
-        attributes: ProductAttribute Iterable
+        attributes: Attribute Iterable
     """
     display_map = {}
     for attribute in attributes:

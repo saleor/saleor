@@ -10,7 +10,7 @@ import SingleSelectField from "../../../components/SingleSelectField";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 
-interface ProductAttributesFormProps {
+interface AttributesFormProps {
   attributes?: Array<{
     attribute: AttributeType;
     value: AttributeValueType;
@@ -22,8 +22,8 @@ interface ProductAttributesFormProps {
   onChange(event: any);
 }
 
-export const ProductAttributesForm: React.StatelessComponent<
-  ProductAttributesFormProps
+export const AttributesForm: React.StatelessComponent<
+  AttributesFormProps
 > = ({ attributes, data, disabled, onChange }) => (
   <Card>
     <PageHeader title={i18n.t("Attributes")} />
@@ -52,4 +52,4 @@ export const ProductAttributesForm: React.StatelessComponent<
     </CardContent>
   </Card>
 );
-export default ProductAttributesForm;
+export default AttributesForm;

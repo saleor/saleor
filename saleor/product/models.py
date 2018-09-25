@@ -76,9 +76,9 @@ class ProductType(models.Model):
     name = models.CharField(max_length=128)
     has_variants = models.BooleanField(default=True)
     product_attributes = models.ManyToManyField(
-        'ProductAttribute', related_name='product_types', blank=True)
+        'Attribute', related_name='product_types', blank=True)
     variant_attributes = models.ManyToManyField(
-        'ProductAttribute', related_name='product_variant_types', blank=True)
+        'Attribute', related_name='product_variant_types', blank=True)
     is_shipping_required = models.BooleanField(default=False)
     tax_rate = models.CharField(
         max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True,
@@ -317,7 +317,7 @@ class ProductVariantTranslation(models.Model):
         return self.name or str(self.product_variant)
 
 
-class ProductAttribute(models.Model):
+class Attribute(models.Model):
     slug = models.SlugField(max_length=50, unique=True)
     name = models.CharField(max_length=100)
 
@@ -336,20 +336,20 @@ class ProductAttribute(models.Model):
         return self.values.exists()
 
 
-class ProductAttributeTranslation(models.Model):
+class AttributeTranslation(models.Model):
     language_code = models.CharField(max_length=10)
-    product_attribute = models.ForeignKey(
-        ProductAttribute, related_name='translations',
+    attribute = models.ForeignKey(
+        Attribute, related_name='translations',
         on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
 
     class Meta:
-        unique_together = (('language_code', 'product_attribute'),)
+        unique_together = (('language_code', 'attribute'),)
 
     def __repr__(self):
         class_ = type(self)
         return '%s(pk=%r, name=%r, attribute_pk=%r)' % (
-            class_.__name__, self.pk, self.name, self.product_attribute_id)
+            class_.__name__, self.pk, self.name, self.attribute_id)
 
     def __str__(self):
         return self.name
@@ -360,7 +360,7 @@ class AttributeValue(SortableModel):
     value = models.CharField(max_length=100, default='')
     slug = models.SlugField(max_length=100)
     attribute = models.ForeignKey(
-        ProductAttribute, related_name='values', on_delete=models.CASCADE)
+        Attribute, related_name='values', on_delete=models.CASCADE)
 
     translated = TranslationProxy()
 

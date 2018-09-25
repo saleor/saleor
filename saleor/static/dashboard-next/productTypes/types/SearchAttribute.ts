@@ -6,19 +6,19 @@
 // ====================================================
 
 export interface SearchAttribute_attributes_edges_node {
-  __typename: "ProductAttribute";
+  __typename: "Attribute";
   id: string;
   slug: string | null;
   name: string | null;
 }
 
 export interface SearchAttribute_attributes_edges {
-  __typename: "ProductAttributeCountableEdge";
+  __typename: "AttributeCountableEdge";
   node: SearchAttribute_attributes_edges_node;
 }
 
 export interface SearchAttribute_attributes {
-  __typename: "ProductAttributeCountableConnection";
+  __typename: "AttributeCountableConnection";
   edges: SearchAttribute_attributes_edges[];
 }
 

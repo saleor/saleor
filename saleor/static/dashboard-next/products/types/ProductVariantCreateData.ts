@@ -23,7 +23,7 @@ export interface ProductVariantCreateData_product_images {
 }
 
 export interface ProductVariantCreateData_product_productType_variantAttributes_edges_node_values {
-  __typename: "ProductAttributeValue";
+  __typename: "AttributeValue";
   id: string;
   sortOrder: number;
   name: string | null;
@@ -31,7 +31,7 @@ export interface ProductVariantCreateData_product_productType_variantAttributes_
 }
 
 export interface ProductVariantCreateData_product_productType_variantAttributes_edges_node {
-  __typename: "ProductAttribute";
+  __typename: "Attribute";
   id: string;
   slug: string | null;
   name: string | null;
@@ -39,12 +39,12 @@ export interface ProductVariantCreateData_product_productType_variantAttributes_
 }
 
 export interface ProductVariantCreateData_product_productType_variantAttributes_edges {
-  __typename: "ProductAttributeCountableEdge";
+  __typename: "AttributeCountableEdge";
   node: ProductVariantCreateData_product_productType_variantAttributes_edges_node;
 }
 
 export interface ProductVariantCreateData_product_productType_variantAttributes {
-  __typename: "ProductAttributeCountableConnection";
+  __typename: "AttributeCountableConnection";
   edges: ProductVariantCreateData_product_productType_variantAttributes_edges[];
 }
 
