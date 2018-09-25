@@ -25,7 +25,7 @@ class AddressInput(graphene.InputObjectType):
 
 class Address(CountableDjangoObjectType):
     country = graphene.Field(
-        CountryDisplay, description='Default shop\'s country')
+        CountryDisplay, required=True, description='Default shop\'s country')
 
     class Meta:
         exclude_fields = ['user_set', 'user_addresses']
@@ -34,10 +34,8 @@ class Address(CountableDjangoObjectType):
         model = models.Address
 
     def resolve_country(self, info):
-        if self.country:
-            return CountryDisplay(
-                code=self.country.code, country=self.country.name)
-        return None
+        return CountryDisplay(
+            code=self.country.code, country=self.country.name)
 
 
 class User(CountableDjangoObjectType):

@@ -13,7 +13,7 @@ type Address implements Node {
   city: String!
   cityArea: String!
   postalCode: String!
-  country: CountryDisplay
+  country: CountryDisplay!
   countryArea: String!
   phone: String
 }
