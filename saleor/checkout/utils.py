@@ -661,7 +661,7 @@ def _get_shipping_voucher_discount_for_cart(voucher, cart):
             'This offer is not valid in your country.')
         raise NotApplicable(msg)
     return get_shipping_voucher_discount(
-        voucher, cart.get_subtotal(), shipping_method.get_total_price())
+        voucher, cart.get_subtotal(), shipping_method.get_total())
 
 
 def _get_products_voucher_discount(order_or_cart, voucher):

@@ -126,7 +126,7 @@ class Order(CountableDjangoObjectType):
     def resolve_total_authorized(obj, info):
         payment = obj.get_last_payment()
         if payment:
-            return payment.get_total_price().gross
+            return payment.get_total().gross
 
     @staticmethod
     def resolve_total_captured(obj, info):

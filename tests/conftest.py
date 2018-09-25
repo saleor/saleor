@@ -452,7 +452,7 @@ def order_with_lines(
     method = shipping_zone.shipping_methods.get()
     order.shipping_method_name = method.name
     order.shipping_method = method
-    order.shipping_price = method.get_total_price(taxes)
+    order.shipping_price = method.get_total(taxes)
     order.save()
 
     recalculate_order(order)
