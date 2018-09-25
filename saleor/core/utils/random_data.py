@@ -172,8 +172,8 @@ def get_variant_combinations(product):
     # Size has available values: [S, M], Color has values [Red, Green]
     # All combinations will be generated (S, Red), (S, Green), (M, Red),
     # (M, Green)
-    # Output is list of dicts, where key is product attribute id and value is
-    # attribute value id. Casted to string.
+    # Output is list of dicts, where key is Attribute id and value is
+    # AttributeValue id. Casted to string.
     variant_attr_map = {
         attr: attr.values.all()
         for attr in product.product_type.variant_attributes.all()}

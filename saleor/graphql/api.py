@@ -77,7 +77,7 @@ class Query(graphene.ObjectType):
         Attribute,
         query=graphene.String(description=DESCRIPTIONS['attributes']),
         in_category=graphene.Argument(graphene.ID),
-        description='List of the shop\'s product attributes.')
+        description='List of the shop\'s attributes.')
     categories = DjangoFilterConnectionField(
         Category, query=graphene.String(
             description=DESCRIPTIONS['category']),

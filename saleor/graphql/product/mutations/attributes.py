@@ -35,10 +35,10 @@ class AttributeCreate(ModelMutation):
     class Arguments:
         input = AttributesInput(
             required=True,
-            description='Fields required to create a product attribute.')
+            description='Fields required to create an attribute.')
 
     class Meta:
-        description = 'Creates a product attribute.'
+        description = 'Creates an attribute.'
         model = models.Attribute
 
     @classmethod
@@ -49,23 +49,23 @@ class AttributeCreate(ModelMutation):
 class AttributeUpdate(AttributeCreate):
     class Arguments:
         id = graphene.ID(
-            required=True, description='ID of a product attribute to update.')
+            required=True, description='ID of an attribute to update.')
         input = AttributesInput(
             required=True,
-            description='Fields required to update a product attribute.')
+            description='Fields required to update an attribute.')
 
     class Meta:
-        description = 'Updates a product attribute.'
+        description = 'Updates anattribute.'
         model = models.Attribute
 
 
 class AttributeDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(
-            required=True, description='ID of a product attribute to delete.')
+            required=True, description='ID of an attribute to delete.')
 
     class Meta:
-        description = 'Deletes a product attribute.'
+        description = 'Deletes an attribute.'
         model = models.Attribute
 
     @classmethod

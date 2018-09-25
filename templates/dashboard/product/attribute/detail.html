@@ -84,10 +84,10 @@
                   </td>
                   <td class="right-align">
                     <a href="{% url 'dashboard:attribute-value-update' attribute_pk=attribute.pk value_pk=value.pk %}" class="btn-flat waves-effect">
-                      {% trans 'Edit' context 'Attribute choice value edit action' %}
+                      {% trans 'Edit' context 'Attribute value edit action' %}
                     </a>
                     <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:attribute-value-delete' attribute_pk=attribute.pk value_pk=value.pk %}">
-                      {% trans 'Remove' context 'Attribute choice value edit action' %}
+                      {% trans 'Remove' context 'Attribute value edit action' %}
                     </a>
                   </td>
                 </tr>
