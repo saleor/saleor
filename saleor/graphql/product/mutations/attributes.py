@@ -11,7 +11,7 @@ class AttributesInput(graphene.InputObjectType):
         required=True, description='Name displayed in the interface.')
 
 
-class AttributeValueInput(graphene.InputObjectType):
+class AttributeValueCreateInput(graphene.InputObjectType):
     attribute = graphene.ID(
         required=False,
         description='Attribute to which value will be assigned.',
@@ -75,7 +75,7 @@ class AttributeDelete(ModelDeleteMutation):
 
 class AttributeValueCreate(ModelMutation):
     class Arguments:
-        input = AttributeValueInput(
+        input = AttributeValueCreateInput(
             required=True,
             description='Fields required to create an attribute choice value.')
 
