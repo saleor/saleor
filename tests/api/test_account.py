@@ -817,3 +817,33 @@ def test_address_validator_uses_geip_when_country_code_missing(
     data = content['data']['addressValidator']
     assert data['countryCode'] == 'US'
     assert data['countryName'] == 'UNITED STATES'
+
+
+@patch('saleor.account.emails.send_password_reset_email.delay')
+def test_customer_reset_password(
+        send_password_reset_mock, user_api_client, customer_user):
+    query = """
+        mutation CustomerPasswordReset($email: String!) {
+            customerPasswordReset(input: {email: $email}) {
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    # we have no user with given email
+    variables = json.dumps({'email': 'non-existing-email@email.com'})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    assert not send_password_reset_mock.called
+
+    variables = json.dumps({'email': customer_user.email})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    assert send_password_reset_mock.called
+    assert send_password_reset_mock.mock_calls[0][1][1] == customer_user.email
