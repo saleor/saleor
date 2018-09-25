@@ -410,6 +410,7 @@ export interface ProductTypeInput {
 export interface StaffCreateInput {
   email?: string | null;
   note?: string | null;
+  isActive?: boolean | null;
   permissions?: (string | null)[] | null;
   sendPasswordEmail?: boolean | null;
 }
@@ -417,6 +418,7 @@ export interface StaffCreateInput {
 export interface StaffInput {
   email?: string | null;
   note?: string | null;
+  isActive?: boolean | null;
   permissions?: (string | null)[] | null;
 }
 
