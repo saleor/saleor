@@ -355,9 +355,60 @@ type AssignNavigation {
   menu: Menu
 }
 
+type Attribute implements Node {
+  id: ID!
+  slug: String
+  name: String
+  values: [AttributeValue]
+}
+
+type AttributeCountableConnection {
+  pageInfo: PageInfo!
+  edges: [AttributeCountableEdge!]!
+  totalCount: Int
+}
+
+type AttributeCountableEdge {
+  node: Attribute!
+  cursor: String!
+}
+
+type AttributeCreate {
+  errors: [Error]
+  attribute: Attribute
+}
+
+type AttributeDelete {
+  errors: [Error]
+  attribute: Attribute
+}
+
+scalar AttributeScalar
+
+type AttributeUpdate {
+  errors: [Error]
+  attribute: Attribute
+}
+
+type AttributeValue implements Node {
+  id: ID!
+  sortOrder: Int!
+  name: String
+  value: String!
+  slug: String
+  type: AttributeValueType
+}
+
 type AttributeValueCreate {
   errors: [Error]
   attributeValue: AttributeValue
+}
+
+input AttributeValueCreateInput {
+  attribute: ID
+  slug: String!
+  name: String!
+  value: String!
 }
 
 type AttributeValueDelete {
@@ -366,10 +417,15 @@ type AttributeValueDelete {
 }
 
 input AttributeValueInput {
-  attribute: ID
   slug: String!
-  name: String!
   value: String!
+}
+
+enum AttributeValueType {
+  COLOR
+  GRADIENT
+  URL
+  STRING
 }
 
 type AttributeValueUpdate {
@@ -382,11 +438,9 @@ input AttributeValueUpdateInput {
   name: String!
 }
 
-scalar AttributeScalar
-
-input AttributeValueInput {
+input AttributesInput {
   slug: String!
-  value: String!
+  name: String!
 }
 
 type AuthorizationKey {
@@ -821,7 +875,7 @@ type Mutations {
   tokenVerify(token: String): VerifyToken
   setPassword(id: ID!, input: SetPasswordInput!): SetPassword
   passwordReset(email: String!): PasswordReset
-  attributeValueCreate(input: AttributeValueInput!): AttributeValueCreate
+  attributeValueCreate(input: AttributeValueCreateInput!): AttributeValueCreate
   attributeValueDelete(id: ID!): AttributeValueDelete
   attributeValueUpdate(id: ID!, input: AttributeValueUpdateInput!): AttributeValueUpdate
   categoryCreate(input: CategoryInput!): CategoryCreate
@@ -867,9 +921,9 @@ type Mutations {
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
-  productAttributeCreate(input: AttributesInput!): AttributeCreate
-  productAttributeDelete(id: ID!): AttributeDelete
-  productAttributeUpdate(id: ID!, input: AttributesInput!): AttributeUpdate
+  attributeCreate(input: AttributesInput!): AttributeCreate
+  attributeDelete(id: ID!): AttributeDelete
+  attributeUpdate(id: ID!, input: AttributesInput!): AttributeUpdate
   productCreate(input: ProductCreateInput!): ProductCreate
   productDelete(id: ID!): ProductDelete
   productUpdate(id: ID!, input: ProductInput!): ProductUpdate
@@ -1198,60 +1252,6 @@ type Product implements Node {
   purchaseCost: MoneyRange
   margin: Margin
   imageById(id: ID): ProductImage
-}
-
-type Attribute implements Node {
-  id: ID!
-  slug: String
-  name: String
-  values: [AttributeValue]
-}
-
-type AttributeCountableConnection {
-  pageInfo: PageInfo!
-  edges: [AttributeCountableEdge!]!
-  totalCount: Int
-}
-
-type AttributeCountableEdge {
-  node: Attribute!
-  cursor: String!
-}
-
-type AttributeCreate {
-  errors: [Error]
-  productAttribute: Attribute
-}
-
-type AttributeDelete {
-  errors: [Error]
-  productAttribute: Attribute
-}
-
-type AttributeUpdate {
-  errors: [Error]
-  productAttribute: Attribute
-}
-
-type AttributeValue implements Node {
-  id: ID!
-  sortOrder: Int!
-  name: String
-  value: String!
-  slug: String
-  type: AttributeValueType
-}
-
-enum AttributeValueType {
-  COLOR
-  GRADIENT
-  URL
-  STRING
-}
-
-input AttributesInput {
-  slug: String!
-  name: String!
 }
 
 type ProductAvailability {
