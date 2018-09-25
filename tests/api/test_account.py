@@ -246,6 +246,39 @@ def test_who_can_see_user(
     assert content['data']['customers']['totalCount'] == 1
 
 
+def test_customer_register(user_api_client):
+    query = """
+        mutation RegisterCustomer($password: String!, $email: String!) {
+            customerRegister(input: {password: $password, email: $email}) {
+                errors {
+                    field
+                    message
+                }
+                user {
+                    id
+                }
+            }
+        }
+    """
+    email = 'customer@example.com'
+    variables = json.dumps({'email': email, 'password': 'Password'})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['customerRegister']
+    assert not data['errors']
+    assert User.objects.filter(email=email).exists()
+
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['customerRegister']
+    assert data['errors']
+    assert data['errors'][0]['field'] == 'email'
+    assert data['errors'][0]['message'] == (
+        'User with this Email already exists.')
+
+
 @patch('saleor.account.emails.send_password_reset_email.delay')
 def test_customer_create(
         send_password_reset_mock, admin_api_client, user_api_client, address):
