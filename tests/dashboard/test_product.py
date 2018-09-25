@@ -765,7 +765,7 @@ def test_view_ajax_upload_image(monkeypatch, admin_client, product_with_image):
 
 
 def test_view_attribute_list(db, admin_client, color_attribute):
-    url = reverse('dashboard:product-attributes')
+    url = reverse('dashboard:attributes')
 
     response = admin_client.get(url)
 
@@ -780,7 +780,7 @@ def test_view_attribute_list(db, admin_client, color_attribute):
 
 def test_view_attribute_details(admin_client, color_attribute):
     url = reverse(
-        'dashboard:product-attribute-details',
+        'dashboard:attribute-details',
         kwargs={'pk': color_attribute.pk})
 
     response = admin_client.get(url)
@@ -792,7 +792,7 @@ def test_view_attribute_details(admin_client, color_attribute):
 def test_view_attribute_details_no_choices(admin_client):
     attribute = Attribute.objects.create(slug='size', name='Size')
     url = reverse(
-        'dashboard:product-attribute-details', kwargs={'pk': attribute.pk})
+        'dashboard:attribute-details', kwargs={'pk': attribute.pk})
 
     response = admin_client.get(url)
 
@@ -801,7 +801,7 @@ def test_view_attribute_details_no_choices(admin_client):
 
 
 def test_view_attribute_create(admin_client, color_attribute):
-    url = reverse('dashboard:product-attribute-add')
+    url = reverse('dashboard:attribute-add')
     data = {'name': 'test', 'slug': 'test'}
 
     response = admin_client.post(url, data, follow=True)
@@ -811,7 +811,7 @@ def test_view_attribute_create(admin_client, color_attribute):
 
 
 def test_view_attribute_create_not_valid(admin_client, color_attribute):
-    url = reverse('dashboard:product-attribute-add')
+    url = reverse('dashboard:attribute-add')
     data = {}
 
     response = admin_client.post(url, data, follow=True)
@@ -822,7 +822,7 @@ def test_view_attribute_create_not_valid(admin_client, color_attribute):
 
 def test_view_attribute_edit(color_attribute, admin_client):
     url = reverse(
-        'dashboard:product-attribute-update',
+        'dashboard:attribute-update',
         kwargs={'pk': color_attribute.pk})
     data = {'name': 'new_name', 'slug': 'new_slug'}
 
@@ -837,7 +837,7 @@ def test_view_attribute_edit(color_attribute, admin_client):
 
 def test_view_attribute_delete(admin_client, color_attribute):
     url = reverse(
-        'dashboard:product-attribute-delete',
+        'dashboard:attribute-delete',
         kwargs={'pk': color_attribute.pk})
 
     response = admin_client.post(url)
@@ -849,7 +849,7 @@ def test_view_attribute_delete(admin_client, color_attribute):
 def test_view_attribute_not_deleted_before_confirmation(
         admin_client, color_attribute):
     url = reverse(
-        'dashboard:product-attribute-delete',
+        'dashboard:attribute-delete',
         kwargs={'pk': color_attribute.pk})
 
     response = admin_client.get(url)
@@ -862,7 +862,7 @@ def test_view_attribute_value_create(color_attribute, admin_client):
     values = AttributeValue.objects.filter(attribute=color_attribute.pk)
     assert values.count() == 2
     url = reverse(
-        'dashboard:product-attribute-value-add',
+        'dashboard:attribute-value-add',
         kwargs={'attribute_pk': color_attribute.pk})
     data = {'name': 'Pink', 'attribute': color_attribute.pk}
 
@@ -878,7 +878,7 @@ def test_view_attribute_value_create_invalid(
     values = AttributeValue.objects.filter(attribute=color_attribute.pk)
     assert values.count() == 2
     url = reverse(
-        'dashboard:product-attribute-value-add',
+        'dashboard:attribute-value-add',
         kwargs={'attribute_pk': color_attribute.pk})
     data = {}
 
@@ -893,7 +893,7 @@ def test_view_attribute_value_edit(color_attribute, admin_client):
     values = AttributeValue.objects.filter(attribute=color_attribute.pk)
     assert values.count() == 2
     url = reverse(
-        'dashboard:product-attribute-value-update',
+        'dashboard:attribute-value-update',
         kwargs={'attribute_pk': color_attribute.pk, 'value_pk': values[0].pk})
     data = {'name': 'Pink', 'attribute': color_attribute.pk}
 
@@ -911,7 +911,7 @@ def test_view_attribute_value_delete(color_attribute, admin_client):
     assert values.count() == 2
     deleted_value = values[0]
     url = reverse(
-        'dashboard:product-attribute-value-delete',
+        'dashboard:attribute-value-delete',
         kwargs={
             'attribute_pk': color_attribute.pk, 'value_pk': deleted_value.pk})
 
@@ -928,7 +928,7 @@ def test_view_ajax_reorder_attribute_values(
     order_before = [val.pk for val in color_attribute.values.all()]
     ordered_values = list(reversed(order_before))
     url = reverse(
-        'dashboard:product-attribute-values-reorder',
+        'dashboard:attribute-values-reorder',
         kwargs={'attribute_pk': color_attribute.pk})
     data = {'ordered_values': ordered_values}
     response = admin_client.post(
@@ -943,7 +943,7 @@ def test_view_ajax_reorder_attribute_values_invalid(
     order_before = [val.pk for val in color_attribute.values.all()]
     ordered_values = list(reversed(order_before)).append(3)
     url = reverse(
-        'dashboard:product-attribute-values-reorder',
+        'dashboard:attribute-values-reorder',
         kwargs={'attribute_pk': color_attribute.pk})
     data = {'ordered_values': ordered_values}
     response = admin_client.post(

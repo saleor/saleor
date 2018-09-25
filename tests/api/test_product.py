@@ -690,6 +690,7 @@ def test_product_type_create_mutation(admin_api_client, product_type):
     new_instance = ProductType.objects.latest('pk')
     assert new_instance.tax_rate == 'standard'
 
+
 def test_product_type_update_mutation(admin_api_client, product_type):
     query = """
     mutation updateProductType(

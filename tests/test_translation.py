@@ -15,8 +15,8 @@ def product_translation_pl(product):
 
 
 @pytest.fixture
-def attribute_value_translation_fr(translated_product_attribute):
-    value = translated_product_attribute.product_attribute.values.first()
+def attribute_value_translation_fr(translated_attribute):
+    value = translated_attribute.product_attribute.values.first()
     return AttributeValueTranslation.objects.create(
         language_code='fr', attribute_value=value,
         name='French name')
@@ -100,7 +100,7 @@ def test_product_variant_translation(settings, variant):
 
 def test_attribute_translation(settings, color_attribute):
     AttributeTranslation.objects.create(
-        language_code='fr', product_attribute=color_attribute,
+        language_code='fr', attribute=color_attribute,
         name='French name')
     assert not color_attribute.translated.name == 'French name'
     settings.LANGUAGE_CODE = 'fr'
