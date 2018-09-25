@@ -528,6 +528,24 @@ input CustomerInput {
   defaultShippingAddress: AddressInput
 }
 
+type CustomerPasswordReset {
+  errors: [Error]
+}
+
+input CustomerPasswordResetInput {
+  email: String!
+}
+
+type CustomerRegister {
+  errors: [Error]
+  user: User
+}
+
+input CustomerRegisterInput {
+  email: String!
+  password: String!
+}
+
 type CustomerUpdate {
   errors: [Error]
   user: User
@@ -829,6 +847,8 @@ type Mutations {
   categoryUpdate(id: ID!, input: CategoryInput!): CategoryUpdate
   customerCreate(input: UserCreateInput!): CustomerCreate
   customerUpdate(id: ID!, input: CustomerInput!): CustomerUpdate
+  customerPasswordReset(input: CustomerPasswordResetInput!): CustomerPasswordReset
+  customerRegister(input: CustomerRegisterInput!): CustomerRegister
   staffCreate(input: StaffCreateInput!): StaffCreate
   staffUpdate(id: ID!, input: StaffInput!): StaffUpdate
   staffDelete(id: ID!): StaffDelete
@@ -1645,6 +1665,7 @@ type ShippingZone implements Node {
   id: ID!
   name: String!
   countries: [String]
+  default: Boolean!
   shippingMethods: [ShippingMethod]
   priceRange: MoneyRange
 }
@@ -1673,6 +1694,7 @@ type ShippingZoneDelete {
 input ShippingZoneInput {
   name: String
   countries: [String]
+  default: Boolean
 }
 
 type ShippingZoneUpdate {
