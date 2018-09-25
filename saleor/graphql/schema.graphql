@@ -1063,7 +1063,8 @@ input ProductCreateInput {
   taxRate: TaxRateType
   seo: SeoInput
   weight: WeightScalar
-  productType: ID!
+  productType: ID!,
+  defaultVariant: ProductVariantInput
 }
 
 type ProductDelete {
