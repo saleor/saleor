@@ -1,12 +1,27 @@
-from graphene_django.views import GraphQLView
 import json
+
 import graphene
+from django.conf import settings
+from graphene_django.views import GraphQLView
 
 # This class is modified verion of the `ModifiedGraphQLView` class from
 # `graphene-file-upload` (https://github.com/lmcgartland/graphene-file-upload).
 
 
 class FileUploadGraphQLView(GraphQLView):
+    def dispatch(self, request, *args, **kwargs):
+        # Handle options method the GraphQlView restricts it.
+        if request.method == 'OPTIONS':
+            response = self.options(request, *args, **kwargs)
+        else:
+            response = super().dispatch(request, *args, **kwargs)
+        # Add access control headers
+        response['Access-Control-Allow-Origin'] = ','.join(
+            settings.ALLOWED_HOSTS)
+        response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response[
+            'Access-Control-Allow-Headers'] = 'Origin, Content-Type, Accept, Authorization'
+        return response
 
     @staticmethod
     def get_graphql_params(request, data):
