@@ -135,7 +135,7 @@ def order_details(request, order_pk):
         can_refund = (
             payment.status == PaymentStatus.CONFIRMED and
             payment.variant != CustomPaymentChoices.MANUAL)
-        preauthorized = payment.get_total_price()
+        preauthorized = payment.get_total()
         if payment.status == PaymentStatus.CONFIRMED:
             captured = payment.get_captured_price()
             balance = captured - order.total.gross

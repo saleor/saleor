@@ -396,7 +396,7 @@ def test_update_order_prices(order_with_lines):
     line_2 = order_with_lines.lines.last()
     price_1 = line_1.variant.get_price(taxes=taxes)
     price_2 = line_2.variant.get_price(taxes=taxes)
-    shipping_price = order_with_lines.shipping_method.get_total_price(taxes)
+    shipping_price = order_with_lines.shipping_method.get_total(taxes)
 
     update_order_prices(order_with_lines, None)
 

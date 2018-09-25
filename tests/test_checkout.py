@@ -589,7 +589,7 @@ def test_get_discount_for_cart_shipping_voucher(
         get_subtotal=Mock(return_value=subtotal),
         is_shipping_required=Mock(return_value=True),
         shipping_method=Mock(
-            get_total_price=Mock(return_value=shipping_total)),
+            get_total=Mock(return_value=shipping_total)),
         shipping_address=Mock(country=Country(shipping_country_code)))
     voucher = Voucher(
         code='unique', type=VoucherType.SHIPPING,

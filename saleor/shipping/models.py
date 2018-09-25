@@ -41,7 +41,7 @@ class ShippingZone(models.Model):
     @property
     def price_range(self):
         prices = [
-            shipping_method.get_total_price()
+            shipping_method.get_total()
             for shipping_method in self.shipping_methods.all()]
         if prices:
             return MoneyRange(min(prices).net, max(prices).net)
@@ -124,7 +124,7 @@ class ShippingMethod(models.Model):
             self.type, get_weight_type_display(
                 self.minimum_order_weight, self.maximum_order_weight))
 
-    def get_total_price(self, taxes=None):
+    def get_total(self, taxes=None):
         return get_taxed_shipping_price(self.price, taxes)
 
     def get_ajax_label(self):
