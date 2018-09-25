@@ -22,7 +22,12 @@ export function TypedQuery<TData, TVariables>(query: DocumentNode) {
   }: TypedQueryInnerProps<TData, TVariables>) => (
     <Messages>
       {pushMessage => (
-        <StrictTypedQuery query={query} variables={variables} skip={skip}>
+        <StrictTypedQuery
+          fetchPolicy="cache-and-network"
+          query={query}
+          variables={variables}
+          skip={skip}
+        >
           {props => {
             if (props.error) {
               const msg = i18n.t("Something went wrong: {{ message }}", {
