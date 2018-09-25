@@ -9,7 +9,25 @@ from templated_email import send_templated_mail
 from saleor.account.models import User
 from saleor.core.utils import build_absolute_uri
 from saleor.dashboard.staff.forms import StaffForm
+from saleor.dashboard.staff.utils import remove_staff_member
 from saleor.settings import DEFAULT_FROM_EMAIL
+
+
+def test_remove_staff_member_with_orders(
+        staff_user, permission_manage_products, order):
+    order.user = staff_user
+    order.save()
+    staff_user.user_permissions.add(permission_manage_products)
+
+    remove_staff_member(staff_user)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert not staff_user.is_staff
+    assert not staff_user.user_permissions.exists()
+
+
+def test_remove_staff_member(staff_user):
+    remove_staff_member(staff_user)
+    assert not User.objects.filter(pk=staff_user.pk).exists()
 
 
 def test_staff_form_not_valid(db):
