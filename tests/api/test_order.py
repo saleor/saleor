@@ -556,6 +556,8 @@ def test_draft_order_line_remove(
     order = draft_order
     line = order.lines.first()
     variant = line.variant
+    assert variant.quantity_allocated == 3
+
     line_id = graphene.Node.to_global_id('OrderLine', line.id)
     variables = json.dumps({'id': line_id})
 
@@ -574,7 +576,7 @@ def test_draft_order_line_remove(
     data = content['data']['draftOrderLineDelete']
     assert data['orderLine']['id'] == line_id
     variant.refresh_from_db()
-    assert variant.quantity_allocated == 0
+    assert variant.quantity_allocated == 3
 
 
 def test_require_draft_order_when_removing_lines(
