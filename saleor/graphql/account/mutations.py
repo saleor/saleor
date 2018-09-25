@@ -34,6 +34,29 @@ BILLING_ADDRESS_FIELD = 'default_billing_address'
 SHIPPING_ADDRESS_FIELD = 'default_shipping_address'
 
 
+class CustomerRegisterInput(graphene.InputObjectType):
+    email = graphene.String(
+        description='The unique email address of the user.', required=True)
+    password = graphene.String(description='Password', required=True)
+
+
+class CustomerRegister(ModelMutation):
+    class Arguments:
+        input = CustomerRegisterInput(
+            description='Fields required to create a user.', required=True)
+
+    class Meta:
+        description = 'Register a new user.'
+        exclude = ['password']
+        model = models.User
+
+    @classmethod
+    def save(cls, info, user, cleaned_input):
+        password = cleaned_input['password']
+        user.set_password(password)
+        user.save()
+
+
 class UserInput(graphene.InputObjectType):
     email = graphene.String(
         description='The unique email address of the user.')
@@ -111,7 +134,6 @@ class CustomerCreate(ModelMutation):
             billing_address = cls.construct_address(
                 BILLING_ADDRESS_FIELD, billing_address_input, instance, errors)
             cleaned_input[BILLING_ADDRESS_FIELD] = billing_address
-
         return cleaned_input
 
     @classmethod
