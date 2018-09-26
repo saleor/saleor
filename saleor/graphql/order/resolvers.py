@@ -1,8 +1,8 @@
 import graphene
+import graphene_django_optimizer as gql_optimizer
 
 from ...order import models, OrderStatus, OrderEvents
 from ...order.utils import sum_order_totals
-from ...shipping import models as shipping_models
 from ..utils import filter_by_query_param, filter_by_period
 from .types import Order, OrderStatusFilter
 
@@ -30,7 +30,7 @@ def resolve_orders(info, created, status, query):
     if created is not None:
         qs = filter_by_period(qs, created, 'created')
 
-    return qs.prefetch_related('lines')
+    return gql_optimizer.query(qs, info)
 
 
 def resolve_orders_total(info, period):
@@ -46,18 +46,6 @@ def resolve_order(info, id):
     if user.has_perm('order.manage_orders') or order.user == user:
         return order
     return None
-
-
-def resolve_shipping_methods(obj, info):
-    if not obj.is_shipping_required():
-        return None
-    if not obj.shipping_address:
-        return None
-
-    qs = shipping_models.ShippingMethod.objects
-    return qs.applicable_shipping_methods(
-        price=obj.get_subtotal().gross.amount, weight=obj.get_total_weight(),
-        country_code=obj.shipping_address.country.code)
 
 
 def resolve_homepage_events(info):

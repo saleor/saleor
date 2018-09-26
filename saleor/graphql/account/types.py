@@ -1,9 +1,11 @@
 import graphene
+import graphene_django_optimizer as gql_optimizer
 from django.contrib.auth import get_user_model
 from graphene import relay
 
 from ...account import models
 from ...core.permissions import get_permissions
+from ..core.fields import PrefetchingConnectionField
 from ..core.types.common import (
     CountableDjangoObjectType, CountryDisplay, PermissionDisplay)
 from ..utils import format_permissions_for_display
@@ -39,7 +41,12 @@ class Address(CountableDjangoObjectType):
 
 
 class User(CountableDjangoObjectType):
-    permissions = graphene.List(PermissionDisplay)
+    permissions = graphene.List(
+        PermissionDisplay, description='List of user\'s permissions.')
+    addresses = gql_optimizer.field(
+        PrefetchingConnectionField(
+            Address, description='List of all user\'s addresses.'),
+        model_field='addresses')
 
     class Meta:
         exclude_fields = ['password', 'is_superuser', 'OrderEvent_set']
@@ -54,6 +61,9 @@ class User(CountableDjangoObjectType):
             permissions = self.user_permissions.prefetch_related(
                 'content_type').order_by('codename')
         return format_permissions_for_display(permissions)
+
+    def resolve_addresses(self, info, **kwargs):
+        return self.addresses.all()
 
 
 class AddressValidationInput(graphene.InputObjectType):
