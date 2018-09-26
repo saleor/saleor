@@ -1,10 +1,13 @@
 import graphene
+import graphene_django_optimizer as gql_optimizer
 from graphene import relay
 from payments import PaymentStatus
 
 from ...order import OrderEvents, OrderEventsEmails, models
 from ...product.templatetags.product_images import get_thumbnail
+from ...shipping import models as shipping_models
 from ..account.types import User
+from ..core.fields import PrefetchingConnectionField
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
 from ..shipping.types import ShippingMethod
@@ -71,6 +74,9 @@ class OrderEvent(CountableDjangoObjectType):
 
 
 class Fulfillment(CountableDjangoObjectType):
+    lines = gql_optimizer.field(
+        PrefetchingConnectionField(lambda: FulfillmentLine),
+        model_field='lines')
     status_display = graphene.String(
         description='User-friendly fulfillment status.')
 
@@ -80,50 +86,47 @@ class Fulfillment(CountableDjangoObjectType):
         model = models.Fulfillment
         exclude_fields = ['order']
 
+    def resolve_lines(self, info):
+        return self.lines.all()
+
     def resolve_status_display(self, info):
         return self.get_status_display()
 
 
 class FulfillmentLine(CountableDjangoObjectType):
+    order_line = graphene.Field(lambda: OrderLine)
+
     class Meta:
         description = 'Represents line of the fulfillment.'
         interfaces = [relay.Node]
         model = models.FulfillmentLine
         exclude_fields = ['fulfillment']
 
-
-class OrderLine(CountableDjangoObjectType):
-    thumbnail_url = graphene.String(
-        description='The URL of a main thumbnail for the ordered product.',
-        size=graphene.Int(description='Size of the image'))
-
-    class Meta:
-        description = 'Represents order line of particular order.'
-        model = models.OrderLine
-        interfaces = [relay.Node]
-        exclude_fields = [
-            'order', 'unit_price_gross', 'unit_price_net', 'variant']
-
-    def resolve_thumbnail_url(self, info, size=None):
-        if not self.variant_id:
-            return None
-        if not size:
-            size = 255
-        return get_thumbnail(
-            self.variant.get_first_image(), size, method='thumbnail')
+    @gql_optimizer.resolver_hints(prefetch_related='order_line')
+    def resolve_order_line(self, info):
+        return self.order_line
 
 
 class Order(CountableDjangoObjectType):
-    fulfillments = graphene.List(
-        Fulfillment,
-        required=True,
-        description='List of shipments for the order.')
+    fulfillments = gql_optimizer.field(
+        graphene.List(
+            Fulfillment, required=True,
+            description='List of shipments for the order.'),
+        model_field='fulfillments')
+    lines = gql_optimizer.field(
+        PrefetchingConnectionField(
+            lambda: OrderLine, description='List of order lines.'),
+        model_field='lines')
     is_paid = graphene.Boolean(
         description='Informs if an order is fully paid.')
     number = graphene.String(description='User-friendly number of an order.')
     payment_status = PaymentStatusEnum(description='Internal payment status.')
     payment_status_display = graphene.String(
         description='User-friendly payment status.')
+    total = graphene.Field(
+        TaxedMoney, description='Total amount of the order.')
+    shipping_price = graphene.Field(
+        TaxedMoney, description='Total price of shipping.')
     subtotal = graphene.Field(
         TaxedMoney,
         description='The sum of line prices not including shipping.')
@@ -132,9 +135,11 @@ class Order(CountableDjangoObjectType):
         Money, description='Amount authorized for the order.')
     total_captured = graphene.Field(
         Money, description='Amount captured by payment.')
-    events = graphene.List(
-        OrderEvent,
-        description='List of events associated with the order.')
+    events = gql_optimizer.field(
+        graphene.List(
+            OrderEvent,
+            description='List of events associated with the order.'),
+        model_field='events')
     user_email = graphene.String(
         required=False, description='Email address of the customer.')
     available_shipping_methods = graphene.List(
@@ -153,16 +158,26 @@ class Order(CountableDjangoObjectType):
             'total_net']
 
     @staticmethod
+    def resolve_shipping_price(obj, info):
+        return obj.shipping_price
+
+    @staticmethod
     def resolve_subtotal(obj, info):
         return obj.get_subtotal()
 
     @staticmethod
+    def resolve_total(obj, info):
+        return obj.total
+
+    @staticmethod
+    @gql_optimizer.resolver_hints(prefetch_related='payments')
     def resolve_total_authorized(obj, info):
         payment = obj.get_last_payment()
         if payment:
             return payment.get_total().gross
 
     @staticmethod
+    @gql_optimizer.resolver_hints(prefetch_related='payments')
     def resolve_total_captured(obj, info):
         payment = obj.get_last_payment()
         if payment:
@@ -173,10 +188,15 @@ class Order(CountableDjangoObjectType):
         return obj.fulfillments.all()
 
     @staticmethod
+    def resolve_lines(obj, info):
+        return obj.lines.all()
+
+    @staticmethod
     def resolve_events(obj, info):
         return obj.events.all()
 
     @staticmethod
+    @gql_optimizer.resolver_hints(prefetch_related='payments')
     def resolve_is_paid(obj, info):
         return obj.is_fully_paid()
 
@@ -185,10 +205,12 @@ class Order(CountableDjangoObjectType):
         return str(obj.pk)
 
     @staticmethod
+    @gql_optimizer.resolver_hints(prefetch_related='payments')
     def resolve_payment_status(obj, info):
         return obj.get_last_payment_status()
 
     @staticmethod
+    @gql_optimizer.resolver_hints(prefetch_related='payments')
     def resolve_payment_status_display(obj, info):
         return obj.get_last_payment_status_display()
 
@@ -206,9 +228,45 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_available_shipping_methods(obj, info):
-        from .resolvers import resolve_shipping_methods
-        return resolve_shipping_methods(obj, info)
+        if not obj.is_shipping_required():
+            return None
+        if not obj.shipping_address:
+            return None
+        qs = shipping_models.ShippingMethod.objects
+        qs = qs.applicable_shipping_methods(
+            price=obj.get_subtotal().gross.amount, weight=obj.get_total_weight(),
+            country_code=obj.shipping_address.country.code)
+        return qs
 
     @staticmethod
     def resolve_lines(obj, info):
         return obj.lines.all()
+
+
+class OrderLine(CountableDjangoObjectType):
+    thumbnail_url = graphene.String(
+        description='The URL of a main thumbnail for the ordered product.',
+        size=graphene.Int(description='Size of the image'))
+    unit_price = graphene.Field(
+        TaxedMoney, description='Price of the single item in the order line.')
+
+    class Meta:
+        description = 'Represents order line of particular order.'
+        model = models.OrderLine
+        interfaces = [relay.Node]
+        exclude_fields = [
+            'order', 'unit_price_gross', 'unit_price_net', 'variant']
+
+    @gql_optimizer.resolver_hints(
+        prefetch_related=['variant__images', 'variant__product__images'])
+    def resolve_thumbnail_url(self, info, size=None):
+        if not self.variant_id:
+            return None
+        if not size:
+            size = 255
+        return get_thumbnail(
+            self.variant.get_first_image(), size, method='thumbnail')
+
+    @staticmethod
+    def resolve_unit_price(obj, info):
+        return obj.unit_price
