@@ -8,7 +8,7 @@ from measurement.measures import Weight
 
 from ...core.weight import convert_weight, get_default_weight_unit
 from ...shipping import ShippingMethodType, models
-from ..core.types.common import CountableDjangoObjectType
+from ..core.types.common import CountableDjangoObjectType, CountryDisplay
 from ..core.types.money import MoneyRange
 
 ShippingMethodTypeEnum = graphene.Enum(
@@ -33,7 +33,7 @@ class ShippingZone(CountableDjangoObjectType):
     price_range = graphene.Field(
         MoneyRange, description='Lowest and highest prices for the shipping.')
     countries = graphene.List(
-        graphene.String,
+        CountryDisplay,
         description='List of countries available for the method.')
     shipping_methods = graphene.List(
         ShippingMethod,
@@ -57,7 +57,9 @@ class ShippingZone(CountableDjangoObjectType):
         return self.price_range
 
     def resolve_countries(self, info):
-        return self.countries
+        return [
+            CountryDisplay(code=country.code, country=country.name)
+            for country in self.countries]
 
     def resolve_shipping_methods(self, info):
         return self.shipping_methods.all()
