@@ -4,6 +4,7 @@ import * as React from "react";
 
 import ActionDialog from "../../../components/ActionDialog";
 import Container from "../../../components/Container";
+import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar, {
@@ -11,42 +12,35 @@ import SaveButtonBar, {
 } from "../../../components/SaveButtonBar";
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
-import { TaxRateType } from "../../../types/globalTypes";
+import { maybe } from "../../../misc";
+import { TaxRateType, WeightUnitsEnum } from "../../../types/globalTypes";
+import { ProductTypeDetails_productType } from "../../types/ProductTypeDetails";
+import ProductTypeAttributes from "../ProductTypeAttributes/ProductTypeAttributes";
 import ProductTypeDetails from "../ProductTypeDetails/ProductTypeDetails";
-import ProductTypeProperties from "../ProductTypeProperties/ProductTypeProperties";
+import ProductTypeShipping from "../ProductTypeShipping/ProductTypeShipping";
+import ProductTypeTaxes from "../ProductTypeTaxes/ProductTypeTaxes";
 
 interface ChoiceType {
   label: string;
   value: string;
 }
 export interface ProductTypeForm {
+  chargeTaxes: boolean;
   name: string;
   hasVariants: boolean;
   isShippingRequired: boolean;
   taxRate: TaxRateType;
   productAttributes: ChoiceType[];
   variantAttributes: ChoiceType[];
+  weight: number;
 }
 interface ProductTypeDetailsPageProps {
   errors: Array<{
     field: string;
     message: string;
   }>;
-  productType?: {
-    id?: string;
-    name?: string;
-    hasVariants?: boolean;
-    isShippingRequired?: boolean;
-    taxRate?: TaxRateType;
-  };
-  productAttributes?: Array<{
-    id: string;
-    name: string;
-  }>;
-  variantAttributes?: Array<{
-    id: string;
-    name: string;
-  }>;
+  productType: ProductTypeDetails_productType;
+  defaultWeightUnit: WeightUnitsEnum;
   disabled: boolean;
   pageTitle: string;
   saveButtonBarState: SaveButtonBarState;
@@ -62,6 +56,9 @@ interface ProductTypeDetailsPageProps {
 }
 
 const decorate = withStyles(theme => ({
+  cardContainer: {
+    marginTop: theme.spacing.unit * 2
+  },
   root: {
     display: "grid" as "grid",
     gridColumnGap: theme.spacing.unit * 2 + "px",
@@ -71,40 +68,46 @@ const decorate = withStyles(theme => ({
 const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
   ({
     classes,
+    defaultWeightUnit,
     disabled,
     errors,
     pageTitle,
-    productAttributes,
     productType,
     saveButtonBarState,
-    searchLoading,
-    searchResults,
-    variantAttributes,
-    onAttributeSearch,
     onBack,
     onDelete,
     onSubmit
   }) => {
     const formInitialData: ProductTypeForm = {
+      chargeTaxes: maybe(() => productType.taxRate !== null, false),
       hasVariants:
-        productType && productType.hasVariants !== undefined
+        maybe(() => productType.hasVariants) !== undefined
           ? productType.hasVariants
           : false,
       isShippingRequired:
-        productType && productType.isShippingRequired !== undefined
+        maybe(() => productType.isShippingRequired) !== undefined
           ? productType.isShippingRequired
           : false,
-      name:
-        productType && productType.name !== undefined ? productType.name : "",
+      name: maybe(() => productType.name) !== undefined ? productType.name : "",
       productAttributes:
-        productAttributes !== undefined
-          ? productAttributes.map(a => ({ label: a.name, value: a.id }))
+        maybe(() => productType.productAttributes.edges) !== undefined
+          ? productType.productAttributes.edges.map(edge => ({
+              label: edge.node.name,
+              value: edge.node.id
+            }))
           : [],
-      taxRate: productType && productType.taxRate ? productType.taxRate : null,
+      taxRate:
+        maybe(() => productType.taxRate) !== undefined
+          ? productType.taxRate
+          : null,
       variantAttributes:
-        variantAttributes !== undefined
-          ? variantAttributes.map(a => ({ label: a.name, value: a.id }))
-          : []
+        maybe(() => productType.variantAttributes.edges) !== undefined
+          ? productType.variantAttributes.edges.map(edge => ({
+              label: edge.node.name,
+              value: edge.node.id
+            }))
+          : [],
+      weight: maybe(() => productType.weight.value)
     };
     return (
       <Toggle>
@@ -124,30 +127,54 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
                       <ProductTypeDetails
                         data={data}
                         disabled={disabled}
-                        searchLoading={searchLoading}
-                        searchResults={searchResults
-                          .filter(
-                            suggestion =>
-                              data.productAttributes
-                                .map(v => v.value)
-                                .indexOf(suggestion.id) === -1
-                          )
-                          .filter(
-                            suggestion =>
-                              data.variantAttributes
-                                .map(v => v.value)
-                                .indexOf(suggestion.id) === -1
-                          )}
-                        onAttributeSearch={onAttributeSearch}
                         onChange={change}
                       />
+                      <div className={classes.cardContainer}>
+                        <ProductTypeAttributes
+                          attributes={maybe(() =>
+                            productType.productAttributes.edges.map(
+                              edge => edge.node
+                            )
+                          )}
+                          title={i18n.t("Product Attributes")}
+                        />
+                      </div>
+                      <div className={classes.cardContainer}>
+                        <ControlledCheckbox
+                          checked={data.hasVariants}
+                          disabled={disabled}
+                          label={i18n.t("This product type has variants")}
+                          name="hasVariants"
+                          onChange={change}
+                        />
+                      </div>
+                      {data.hasVariants && (
+                        <div className={classes.cardContainer}>
+                          <ProductTypeAttributes
+                            attributes={maybe(() =>
+                              productType.variantAttributes.edges.map(
+                                edge => edge.node
+                              )
+                            )}
+                            title={i18n.t("Variant Attributes")}
+                          />
+                        </div>
+                      )}
                     </div>
                     <div>
-                      <ProductTypeProperties
-                        data={data}
+                      <ProductTypeShipping
                         disabled={disabled}
+                        data={data}
+                        defaultWeightUnit={defaultWeightUnit}
                         onChange={change}
                       />
+                      <div className={classes.cardContainer}>
+                        <ProductTypeTaxes
+                          disabled={disabled}
+                          data={data}
+                          onChange={change}
+                        />
+                      </div>
                     </div>
                   </div>
                   <SaveButtonBar
@@ -161,24 +188,22 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
               )}
             </Form>
 
-            {productType && (
-              <ActionDialog
-                open={openedDeleteDialog}
-                onClose={toggleDeleteDialog}
-                onConfirm={onDelete}
-                title={i18n.t("Remove product type")}
-                variant="delete"
-              >
-                <DialogContentText
-                  dangerouslySetInnerHTML={{
-                    __html: i18n.t(
-                      "Are you sure you want to remove <strong>{{ name }}</strong>?",
-                      { name: productType.name }
-                    )
-                  }}
-                />
-              </ActionDialog>
-            )}
+            <ActionDialog
+              open={openedDeleteDialog}
+              onClose={toggleDeleteDialog}
+              onConfirm={onDelete}
+              title={i18n.t("Remove product type")}
+              variant="delete"
+            >
+              <DialogContentText
+                dangerouslySetInnerHTML={{
+                  __html: i18n.t(
+                    "Are you sure you want to remove <strong>{{ name }}</strong>?",
+                    { name: maybe(() => productType.name) }
+                  )
+                }}
+              />
+            </ActionDialog>
           </>
         )}
       </Toggle>

@@ -6,6 +6,7 @@ import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
+import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import { ListProps } from "../../..";
@@ -80,7 +81,20 @@ const ProductTypeList = decorate<ProductTypeListProps>(
                 <TableCell
                   onClick={productType ? onRowClick(productType.id) : undefined}
                 >
-                  {productType ? productType.name : <Skeleton />}
+                  {productType ? (
+                    <>
+                      {productType.name}
+                      <Typography variant="caption">
+                        {maybe(() => productType.hasVariants)
+                          ? i18n.t("Configurable", { context: "product type" })
+                          : i18n.t("Simple product", {
+                              context: "product type"
+                            })}
+                      </Typography>
+                    </>
+                  ) : (
+                    <Skeleton />
+                  )}
                 </TableCell>
                 <TableCell className={classes.leftText}>
                   {maybe(() => productType.isShippingRequired) !== undefined ? (
