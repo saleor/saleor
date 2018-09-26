@@ -68,7 +68,7 @@ class AttributeCreate(ModelMutation):
                     if field == 'attribute':
                         continue
                     for message in validation_errors.message_dict[field]:
-                        error_field = 'values-%(field)s' % {'field': field}
+                        error_field = 'values:%(field)s' % {'field': field}
                         cls.add_error(errors, error_field, message)
         return cleaned_input
 
