@@ -16,7 +16,7 @@ from saleor.graphql.order.mutations.orders import (
 from saleor.graphql.order.types import OrderEventsEmailsEnum, PaymentStatusEnum
 from saleor.order import (
     CustomPaymentChoices, OrderEvents, OrderEventsEmails, OrderStatus)
-from saleor.order.models import Order, Payment
+from saleor.order.models import Order, Payment, OrderEvent
 from saleor.shipping.models import ShippingMethod
 from tests.utils import get_graphql_content
 from .utils import assert_no_permission
@@ -359,7 +359,7 @@ def test_check_for_draft_order_errors_no_order_lines(order):
     assert errors[0].message == 'Could not create order without any products.'
 
 
-def test_draft_order_complete(admin_api_client, draft_order):
+def test_draft_order_complete(admin_api_client, admin_user, draft_order):
     order = draft_order
     query = """
         mutation draftComplete($id: ID!) {
@@ -370,6 +370,10 @@ def test_draft_order_complete(admin_api_client, draft_order):
             }
         }
         """
+    line = order.lines.first()
+    line.quantity = 1
+    line.save(update_fields=['quantity'])
+
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = json.dumps({'id': order_id})
     response = admin_api_client.post(
@@ -379,6 +383,15 @@ def test_draft_order_complete(admin_api_client, draft_order):
     data = content['data']['draftOrderComplete']['order']
     order.refresh_from_db()
     assert data['status'] == order.status.upper()
+    missing_stock_event, draft_placed_event = OrderEvent.objects.all()
+
+    assert missing_stock_event.user == admin_user
+    assert missing_stock_event.type == OrderEvents.PLACED_WITH_MISSING_STOCK.value  # noqa
+    assert missing_stock_event.parameters == {'quantity': 2, 'variant_id': 2}
+
+    assert draft_placed_event.user == admin_user
+    assert draft_placed_event.type == OrderEvents.PLACED_FROM_DRAFT.value
+    assert draft_placed_event.parameters == {}
 
 
 DRAFT_ORDER_LINE_CREATE_MUTATION = """

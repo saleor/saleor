@@ -59,6 +59,9 @@ class OrderEvent(CountableDjangoObjectType):
     def resolve_composed_id(self, info):
         return self.parameters.get('composed_id', None)
 
+    def resolve_variant_id(self, info):
+        return self.parameters.get('variant_id', None)
+
 
 class Fulfillment(CountableDjangoObjectType):
     status_display = graphene.String(
