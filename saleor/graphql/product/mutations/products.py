@@ -1,4 +1,5 @@
 import graphene
+from django.db import transaction
 from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
@@ -260,19 +261,30 @@ class ProductCreate(ModelMutation):
         model = models.Product
 
     @classmethod
-    def clean_default_variant(cls, cleaned_input, product_type, errors):
+    def clean_default_variant(
+            cls, info, product_instance, cleaned_input, errors):
         default_variant = cleaned_input.pop('default_variant', None)
+        product_type = product_instance.product_type
+        default_variant_instance = None
         if default_variant and product_type.has_variants:
             cls.add_error(
-                errors, 'default_variant', 'Product type has variants')
-        elif default_variant and not product_type.has_variants:
-            cleaned_input['default_variant'] = \
-                ProductVariantCreate.clean_attributes_input(
-                    product_type, default_variant, errors)
+                errors, 'default_variant',
+                'This field is invalid with product type %(product_type)s '
+                'that allows multiple variants' % {
+                    'product_type': product_type})
         elif not default_variant and not product_type.has_variants:
             cls.add_error(
-                errors, 'default_variant', 'No default variant provided')
-        return cleaned_input
+                errors, 'default_variant',
+                'No default variant provided for product of '
+                'type %(product_type)s that has no variants' % {
+                    'product_type': product_type})
+        elif default_variant and not product_type.has_variants:
+            default_variant_instance = models.ProductVariant()
+            default_variant['product'] = product_instance
+            cleaned_input['default_variant'] = \
+                ProductDefaultVariantCreate.clean_input(
+                    info, default_variant_instance, default_variant, errors)
+        return cleaned_input, default_variant_instance
 
     @classmethod
     def clean_input(cls, info, instance, input, errors):
@@ -287,11 +299,6 @@ class ProductCreate(ModelMutation):
             instance.product_type
             if instance.pk else cleaned_input.get('product_type'))
 
-        if 'default_variant' in cls.Arguments.input._meta.fields:
-            # clean default variant only in create mutation
-            cleaned_input = cls.clean_default_variant(
-                cleaned_input, product_type, errors)
-
         if attributes and product_type:
             qs = product_type.product_attributes.prefetch_related('values')
             try:
@@ -304,28 +311,80 @@ class ProductCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def save(cls, info, instance, cleaned_input):
-        default_variant_data = cleaned_input.get('default_variant', None)
-        instance.save()
-        if default_variant_data:
-            default_variant_instance = models.ProductVariant()
-            default_variant_instance = ProductVariantCreate.construct_instance(
-                default_variant_instance, default_variant_data)
-            default_variant_instance.product = instance
-            default_variant_instance.save()
-            ProductVariantCreate.save(
-                info, default_variant_instance, default_variant_data)
-        return instance
-
-    @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):
         collections = cleaned_data.get('collections', None)
         if collections is not None:
             instance.collections.set(collections)
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('product.manage_products')
+    def get_product_instance(cls, id, info, errors):
+        """ Initialize model instance based on presence of `id` attribute. """
+        if id:
+            return cls.get_node_or_error(
+                info, id, errors, 'id', Product)
+        return cls._meta.model()
+
+    @classmethod
+    def perform_save_transaction(
+            cls, info, cleaned_input, product_instance,
+            default_variant_instance, errors):
+        with transaction.atomic():
+            cls.save(info, product_instance, cleaned_input)
+            if default_variant_instance:
+                default_variant_instance = \
+                    ProductDefaultVariantCreate.construct_instance(
+                        default_variant_instance,
+                        cleaned_input['default_variant'])
+                ProductDefaultVariantCreate.clean_instance(
+                    default_variant_instance, errors)
+
+            if errors:
+                transaction.set_rollback(True)
+                return
+
+            if default_variant_instance:
+                ProductDefaultVariantCreate.save(
+                    info, default_variant_instance,
+                    cleaned_input['default_variant'])
+            cls._save_m2m(info, product_instance, cleaned_input)
+        return product_instance
+
+    @classmethod
+    @permission_required('product.manage_products')
+    def mutate(cls, root, info, **data):
+        id = data.get('id')
+        input = data.get('input')
+
+        # Initialize the errors list.
+        errors = []
+
+        product_instance = cls.get_product_instance(id, info, errors)
+        if errors:
+            return cls(errors=errors)
+
+        default_variant_instance = None
+        cleaned_input = cls.clean_input(info, product_instance, input, errors)
+        product_instance = cls.construct_instance(
+            product_instance, cleaned_input)
+        cls.clean_instance(product_instance, errors)
+
+        if 'default_variant' in cls.Arguments.input._meta.fields:
+            # clean default variant only in create mutation
+            cleaned_input, default_variant_instance = \
+                cls.clean_default_variant(
+                    info, product_instance, cleaned_input, errors)
+        if errors:
+            # return errors found during input cleaning and before product
+            # instance saving
+            return cls(errors=errors)
+
+        product_instance = cls.perform_save_transaction(
+            info, cleaned_input, product_instance, default_variant_instance,
+            errors)
+        if errors:
+            return cls(errors=errors)
+
+        return cls.success_response(product_instance)
 
 
 class ProductUpdate(ProductCreate):
@@ -408,8 +467,8 @@ class ProductVariantCreate(ModelMutation):
         return input
 
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
+    def clean_variant_input_fields(
+            cls, cleaned_input, info, instance, input, errors):
         if 'attributes' in input:
             product = instance.product if instance.pk else cleaned_input.get(
                 'product')
@@ -417,6 +476,15 @@ class ProductVariantCreate(ModelMutation):
             cleaned_input = cls.clean_attributes_input(
                 product_type, cleaned_input, errors)
         return cleaned_input
+
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        cleaned_input = super().clean_input(info, instance, input, errors)
+        # separate call to parent's class method from other code is needed
+        # for default_variant handling in productCreate (see
+        # ProductDefaultVariantCreate)
+        return cls.clean_variant_input_fields(
+            cleaned_input, info, instance, input, errors)
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -427,6 +495,32 @@ class ProductVariantCreate(ModelMutation):
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('product.manage_products')
+
+
+class ProductDefaultVariantCreate(ProductVariantCreate):
+    # Not a 'public' mutation. Class is used just to override some behaviour
+    # of ProductVariantCreate for creating defaultVariant in ProductCreate
+    # mutation
+
+    class Arguments:
+        input = ProductVariantInput(required=True)
+
+    class Meta:
+        model = models.ProductVariant
+
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        # clean_input of ProductVariantCreate expects product to already exist.
+        # Thus after calling ModelMutation's clean_input which fills
+        # cleaned_input with values, product is injected into cleaned_input
+        # which is then passed to the method which cleans the fields according
+        # to variant's logic
+        product = input['product']
+        cleaned_input = ModelMutation.clean_input.__func__(
+            cls, info, instance, input, errors)
+        cleaned_input['product'] = product
+        return ProductVariantCreate.clean_variant_input_fields(
+            cleaned_input, info, instance, input, errors)
 
 
 class ProductVariantUpdate(ProductVariantCreate):

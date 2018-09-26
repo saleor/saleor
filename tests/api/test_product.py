@@ -595,7 +595,10 @@ def test_create_product_of_type_with_variants_default_variant_provided(
     assert 'errors' not in content
     data = content['data']['productCreate']
     assert data['errors'] == [{
-        'field': 'defaultVariant', 'message': 'Product type has variants'}]
+        'field': 'defaultVariant',
+        'message': 'This field is invalid with product type %(product_type)s '
+                   'that allows multiple variants' % {
+                       'product_type': product_type}}]
     assert not Product.objects.filter(name=product_name).exists()
     assert not ProductVariant.objects.filter(sku=sku).exists()
 
@@ -665,7 +668,10 @@ def test_create_product_of_type_without_variants_no_default_variant_provided(
     assert 'errors' not in content
     data = content['data']['productCreate']
     assert data['errors'] == [{
-        'field': 'defaultVariant', 'message': 'No default variant provided'}]
+        'field': 'defaultVariant',
+        'message': 'No default variant provided for product of type '
+                   '%(product_type)s that has no variants' % {
+                       'product_type': product_type}}]
     assert not Product.objects.filter(name=product_name).exists()
 
 
