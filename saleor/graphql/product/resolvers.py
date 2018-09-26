@@ -13,7 +13,7 @@ ATTRIBUTES_SEARCH_FIELDS = ('name', 'slug')
 
 
 def resolve_attributes(info, category_id, query):
-    queryset = models.ProductAttribute.objects.prefetch_related('values')
+    queryset = models.Attribute.objects.prefetch_related('values')
     queryset = filter_by_query_param(queryset, query, ATTRIBUTES_SEARCH_FIELDS)
     if category_id:
         # Get attributes that are used with product types

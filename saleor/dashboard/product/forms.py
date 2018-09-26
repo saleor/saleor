@@ -13,10 +13,10 @@ from mptt.forms import TreeNodeChoiceField
 from . import ProductBulkAction
 from ...core import TaxRateType
 from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME, include_taxes_in_prices
-from ...core.weight import WeightField, get_default_weight_unit
+from ...core.weight import WeightField
 from ...product.models import (
-    AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
-    ProductImage, ProductType, ProductVariant, VariantImage)
+    Attribute, AttributeValue, Category, Collection, Product, ProductImage,
+    ProductType, ProductVariant, VariantImage)
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
 from ..forms import ModelChoiceOrCreationField, OrderedModelMultipleChoiceField
@@ -160,7 +160,7 @@ class ProductTypeForm(forms.ModelForm):
 class AttributesMixin(object):
     """Form mixin that dynamically adds attribute fields."""
 
-    available_attributes = ProductAttribute.objects.none()
+    available_attributes = Attribute.objects.none()
 
     # Name of a field in self.instance that hold attributes HStore
     model_attributes_field = None
@@ -195,8 +195,8 @@ class AttributesMixin(object):
             if value:
                 # if the passed attribute value is a string,
                 # create the attribute value.
-                if not isinstance(value, AttributeChoiceValue):
-                    value = AttributeChoiceValue(
+                if not isinstance(value, AttributeValue):
+                    value = AttributeValue(
                         attribute_id=attr.pk, name=value, slug=slugify(value))
                     value.save()
                 attributes[smart_text(attr.pk)] = smart_text(value.pk)
@@ -419,9 +419,9 @@ class VariantImagesSelectForm(forms.Form):
         VariantImage.objects.bulk_create(images)
 
 
-class ProductAttributeForm(forms.ModelForm):
+class AttributeForm(forms.ModelForm):
     class Meta:
-        model = ProductAttribute
+        model = Attribute
         exclude = []
         labels = {
             'name': pgettext_lazy(
@@ -430,9 +430,9 @@ class ProductAttributeForm(forms.ModelForm):
                 'Product internal name', 'Internal name')}
 
 
-class AttributeChoiceValueForm(forms.ModelForm):
+class AttributeValueForm(forms.ModelForm):
     class Meta:
-        model = AttributeChoiceValue
+        model = AttributeValue
         fields = ['attribute', 'name']
         widgets = {'attribute': forms.widgets.HiddenInput()}
         labels = {
@@ -444,12 +444,12 @@ class AttributeChoiceValueForm(forms.ModelForm):
         return super().save(commit=commit)
 
 
-class ReorderAttributeChoiceValuesForm(forms.ModelForm):
+class ReorderAttributeValuesForm(forms.ModelForm):
     ordered_values = OrderedModelMultipleChoiceField(
-        queryset=AttributeChoiceValue.objects.none())
+        queryset=AttributeValue.objects.none())
 
     class Meta:
-        model = ProductAttribute
+        model = Attribute
         fields = ()
 
     def __init__(self, *args, **kwargs):

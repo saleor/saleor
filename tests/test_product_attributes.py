@@ -1,7 +1,7 @@
 import pytest
 
 from saleor.product.models import (
-    AttributeChoiceValue, Product, ProductAttribute)
+    AttributeValue, Product, Attribute)
 from saleor.product.utils.attributes import (
     generate_name_from_values, get_attributes_display_map,
     get_name_from_attributes)
@@ -51,13 +51,13 @@ def test_get_name_from_attributes_no_attributes(product_with_no_attributes):
 
 
 def test_generate_name_from_values():
-    attribute = ProductAttribute.objects.create(
+    attribute = Attribute.objects.create(
         slug='color', name='Color')
-    red = AttributeChoiceValue.objects.create(
+    red = AttributeValue.objects.create(
         attribute=attribute, name='Red', slug='red')
-    blue = AttributeChoiceValue.objects.create(
+    blue = AttributeValue.objects.create(
         attribute=attribute, name='Blue', slug='blue')
-    yellow = AttributeChoiceValue.objects.create(
+    yellow = AttributeValue.objects.create(
         attribute=attribute, name='Yellow', slug='yellow')
     values = {'3': red, '2': blue, '1': yellow}
     name = generate_name_from_values(values)

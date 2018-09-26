@@ -660,11 +660,11 @@ def test_product_type_create_mutation(admin_api_client, product_type):
     require_shipping = True
     product_attributes = product_type.product_attributes.all()
     product_attributes_ids = [
-        graphene.Node.to_global_id('ProductAttribute', att.id) for att in
+        graphene.Node.to_global_id('Attribute', att.id) for att in
         product_attributes]
     variant_attributes = product_type.variant_attributes.all()
     variant_attributes_ids = [
-        graphene.Node.to_global_id('ProductAttribute', att.id) for att in
+        graphene.Node.to_global_id('Attribute', att.id) for att in
         variant_attributes]
 
     variables = json.dumps({
@@ -689,6 +689,7 @@ def test_product_type_create_mutation(admin_api_client, product_type):
     assert len(data['productType']['variantAttributes']['edges']) == no_va
     new_instance = ProductType.objects.latest('pk')
     assert new_instance.tax_rate == 'standard'
+
 
 def test_product_type_update_mutation(admin_api_client, product_type):
     query = """
@@ -731,7 +732,7 @@ def test_product_type_update_mutation(admin_api_client, product_type):
     # but do not change variant attributes
     product_attributes = []
     product_attributes_ids = [
-        graphene.Node.to_global_id('ProductAttribute', att.id) for att in
+        graphene.Node.to_global_id('Attribute', att.id) for att in
         product_attributes]
     variant_attributes = product_type.variant_attributes.all()
 
@@ -1220,7 +1221,7 @@ def test_product_type_update_changes_variant_name(
 
     variant_attributes = product_type.variant_attributes.all()
     variant_attributes_ids = [
-        graphene.Node.to_global_id('ProductAttribute', att.id) for att in
+        graphene.Node.to_global_id('Attribute', att.id) for att in
         variant_attributes]
     variables = json.dumps({
         'id': product_type_id,

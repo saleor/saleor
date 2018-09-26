@@ -29,8 +29,8 @@ from ...order.models import Fulfillment, Order, Payment
 from ...order.utils import update_order_status
 from ...page.models import Page
 from ...product.models import (
-    AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
-    ProductImage, ProductType, ProductVariant)
+    Attribute, AttributeValue, Category, Collection, Product, ProductImage,
+    ProductType, ProductVariant)
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
 from ...shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
@@ -159,9 +159,9 @@ def create_product_types_by_schema(root_schema):
 
 def set_product_attributes(product, product_type):
     attr_dict = {}
-    for product_attribute in product_type.product_attributes.all():
-        value = random.choice(product_attribute.values.all())
-        attr_dict[str(product_attribute.pk)] = str(value.pk)
+    for attribute in product_type.product_attributes.all():
+        value = random.choice(attribute.values.all())
+        attr_dict[str(attribute.pk)] = str(value.pk)
     product.attributes = attr_dict
     product.save(update_fields=['attributes'])
 
@@ -172,8 +172,8 @@ def get_variant_combinations(product):
     # Size has available values: [S, M], Color has values [Red, Green]
     # All combinations will be generated (S, Red), (S, Green), (M, Red),
     # (M, Green)
-    # Output is list of dicts, where key is product attribute id and value is
-    # attribute value id. Casted to string.
+    # Output is list of dicts, where key is Attribute id and value is
+    # AttributeValue id. Casted to string.
     variant_attr_map = {
         attr: attr.values.all()
         for attr in product.product_type.variant_attributes.all()}
@@ -332,7 +332,7 @@ def create_attribute(**kwargs):
         'slug': slug,
         'name': slug.title()}
     defaults.update(kwargs)
-    attribute = ProductAttribute.objects.get_or_create(**defaults)[0]
+    attribute = Attribute.objects.get_or_create(**defaults)[0]
     return attribute
 
 
@@ -343,7 +343,7 @@ def create_attribute_value(attribute, **kwargs):
         'name': name}
     defaults.update(kwargs)
     defaults['slug'] = slugify(defaults['name'])
-    attribute_value = AttributeChoiceValue.objects.get_or_create(**defaults)[0]
+    attribute_value = AttributeValue.objects.get_or_create(**defaults)[0]
     return attribute_value
 
 

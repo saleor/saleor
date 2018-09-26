@@ -80,7 +80,7 @@ const ProductVariantAttributes = decorate<ProductVariantAttributesProps>(
                     }))
                   : [];
               };
-              const handleProductAttributeValueSelect = (
+              const handleAttributeValueSelect = (
                 event: React.ChangeEvent<{
                   name: string;
                   value: {
@@ -109,7 +109,7 @@ const ProductVariantAttributes = decorate<ProductVariantAttributesProps>(
                     disabled={disabled}
                     name={item.slug}
                     label={item.name}
-                    onChange={handleProductAttributeValueSelect}
+                    onChange={handleAttributeValueSelect}
                     value={getAttributeValue(item.slug)}
                     choices={getAttributeValues(item.slug)}
                     key={index}

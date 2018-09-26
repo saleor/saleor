@@ -162,7 +162,7 @@ def test_real_query(user_api_client, product):
         __typename
     }
 
-    fragment ProductFiltersFragmentQuery on ProductAttribute {
+    fragment ProductFiltersFragmentQuery on Attribute {
         id
         name
         slug

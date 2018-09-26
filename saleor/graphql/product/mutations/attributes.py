@@ -4,14 +4,14 @@ from ....product import models
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 
 
-class ProductAttributesInput(graphene.InputObjectType):
+class AttributesInput(graphene.InputObjectType):
     slug = graphene.String(
         required=True, description='Internal name.')
     name = graphene.String(
         required=True, description='Name displayed in the interface.')
 
 
-class AttributeChoiceValueInput(graphene.InputObjectType):
+class AttributeValueCreateInput(graphene.InputObjectType):
     attribute = graphene.ID(
         required=False,
         description='Attribute to which value will be assigned.',
@@ -24,85 +24,85 @@ class AttributeChoiceValueInput(graphene.InputObjectType):
         required=True, description='Real value eg. HEX color.')
 
 
-class AttributeChoiceValueUpdateInput(graphene.InputObjectType):
+class AttributeValueUpdateInput(graphene.InputObjectType):
     slug = graphene.String(
         required=True, description='Internal name.')
     name = graphene.String(
         required=True, description='Name displayed in the interface.')
 
 
-class ProductAttributeCreate(ModelMutation):
+class AttributeCreate(ModelMutation):
     class Arguments:
-        input = ProductAttributesInput(
+        input = AttributesInput(
             required=True,
-            description='Fields required to create a product attribute.')
+            description='Fields required to create an attribute.')
 
     class Meta:
-        description = 'Creates a product attribute.'
-        model = models.ProductAttribute
+        description = 'Creates an attribute.'
+        model = models.Attribute
 
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('product.manage_products')
 
 
-class ProductAttributeUpdate(ProductAttributeCreate):
+class AttributeUpdate(AttributeCreate):
     class Arguments:
         id = graphene.ID(
-            required=True, description='ID of a product attribute to update.')
-        input = ProductAttributesInput(
+            required=True, description='ID of an attribute to update.')
+        input = AttributesInput(
             required=True,
-            description='Fields required to update a product attribute.')
+            description='Fields required to update an attribute.')
 
     class Meta:
-        description = 'Updates a product attribute.'
-        model = models.ProductAttribute
+        description = 'Updates attribute.'
+        model = models.Attribute
 
 
-class ProductAttributeDelete(ModelDeleteMutation):
+class AttributeDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(
-            required=True, description='ID of a product attribute to delete.')
+            required=True, description='ID of an attribute to delete.')
 
     class Meta:
-        description = 'Deletes a product attribute.'
-        model = models.ProductAttribute
+        description = 'Deletes an attribute.'
+        model = models.Attribute
 
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('product.manage_products')
 
 
-class AttributeChoiceValueCreate(ModelMutation):
+class AttributeValueCreate(ModelMutation):
     class Arguments:
-        input = AttributeChoiceValueInput(
+        input = AttributeValueCreateInput(
             required=True,
             description='Fields required to create an attribute choice value.')
 
     class Meta:
         description = 'Creates an attribute choice value.'
-        model = models.AttributeChoiceValue
+        model = models.AttributeValue
 
     @classmethod
     def user_is_allowed(cls, user, input):
         return user.has_perm('product.manage_products')
 
 
-class AttributeChoiceValueUpdate(AttributeChoiceValueCreate):
+class AttributeValueUpdate(AttributeValueCreate):
     class Arguments:
         id = graphene.ID(
             required=True,
             description='ID of an attribute choice value to update.')
-        input = AttributeChoiceValueUpdateInput(
+        input = AttributeValueUpdateInput(
             required=True,
             description='Fields required to update an attribute choice value.')
 
     class Meta:
         description = 'Updates an attribute choice value.'
-        model = models.AttributeChoiceValue
+        model = models.AttributeValue
 
 
-class AttributeChoiceValueDelete(ModelDeleteMutation):
+class AttributeValueDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(
             required=True,
@@ -110,7 +110,7 @@ class AttributeChoiceValueDelete(ModelDeleteMutation):
 
     class Meta:
         description = 'Deletes an attribute choice value.'
-        model = models.AttributeChoiceValue
+        model = models.AttributeValue
 
     @classmethod
     def user_is_allowed(cls, user, input):

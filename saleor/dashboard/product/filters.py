@@ -5,7 +5,7 @@ from django_filters import (
     RangeFilter)
 
 from ...core.filters import SortedFilterSet
-from ...product.models import Category, Product, ProductAttribute, ProductType
+from ...product.models import Attribute, Category, Product, ProductType
 from ..widgets import MoneyRangeWidget
 
 PRODUCT_SORT_BY_FIELDS = {
@@ -62,24 +62,23 @@ class ProductFilter(SortedFilterSet):
             number=counter) % {'counter': counter}
 
 
-class ProductAttributeFilter(SortedFilterSet):
+class AttributeFilter(SortedFilterSet):
     name = CharFilter(
-        label=pgettext_lazy('Product attribute list filter label', 'Name'),
+        label=pgettext_lazy('Attribute list filter label', 'Name'),
         lookup_expr='icontains')
     sort_by = OrderingFilter(
-        label=pgettext_lazy('Product attribute list filter label', 'Sort by'),
+        label=pgettext_lazy('Attribute list filter label', 'Sort by'),
         fields=PRODUCT_TYPE_SORT_BY_FIELDS.keys(),
         field_labels=PRODUCT_TYPE_SORT_BY_FIELDS)
 
     class Meta:
-        model = ProductAttribute
+        model = Attribute
         fields = []
 
     def get_summary_message(self):
         counter = self.qs.count()
         return npgettext(
-            'Number of matching records in the dashboard '
-            'product attributes list',
+            'Number of matching records in the dashboard attributes list',
             'Found %(counter)d matching attribute',
             'Found %(counter)d matching attributes',
             number=counter) % {'counter': counter}
@@ -97,12 +96,12 @@ class ProductTypeFilter(SortedFilterSet):
         label=pgettext_lazy(
             'Product type list filter label', 'Product attributes'),
         field_name='product_attributes',
-        queryset=ProductAttribute.objects.all())
+        queryset=Attribute.objects.all())
     variant_attributes = ModelMultipleChoiceFilter(
         label=pgettext_lazy(
             'Product type list filter label', 'Variant attributes'),
         field_name='variant_attributes',
-        queryset=ProductAttribute.objects.all())
+        queryset=Attribute.objects.all())
 
     class Meta:
         model = ProductType

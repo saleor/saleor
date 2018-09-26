@@ -14,14 +14,14 @@ export interface VariantUpdate_productVariantUpdate_errors {
 }
 
 export interface VariantUpdate_productVariantUpdate_productVariant_attributes_attribute_values {
-  __typename: "ProductAttributeValue";
+  __typename: "AttributeValue";
   id: string;
   name: string | null;
   slug: string | null;
 }
 
 export interface VariantUpdate_productVariantUpdate_productVariant_attributes_attribute {
-  __typename: "ProductAttribute";
+  __typename: "Attribute";
   id: string;
   name: string | null;
   slug: string | null;
@@ -29,7 +29,7 @@ export interface VariantUpdate_productVariantUpdate_productVariant_attributes_at
 }
 
 export interface VariantUpdate_productVariantUpdate_productVariant_attributes_value {
-  __typename: "ProductAttributeValue";
+  __typename: "AttributeValue";
   id: string;
   name: string | null;
   slug: string | null;

@@ -1,6 +1,6 @@
 def get_product_attributes_data(product):
     """Returns attributes associated with the product,
-    as dict of ProductAttribute: AttributeChoiceValue values.
+    as dict of Attribute: AttributeValue values.
     """
     attributes = product.product_type.product_attributes.all()
     attributes_map = {
@@ -19,10 +19,10 @@ def get_name_from_attributes(variant, attributes):
 
 def get_attributes_display_map(obj, attributes):
     """Returns attributes associated with an object,
-    as dict of ProductAttribute: AttributeChoiceValue values.
+    as dict of Attribute: AttributeValue values.
 
     Args:
-        attributes: ProductAttribute Iterable
+        attributes: Attribute Iterable
     """
     display_map = {}
     for attribute in attributes:
@@ -34,14 +34,14 @@ def get_attributes_display_map(obj, attributes):
 
 
 def generate_name_from_values(attributes_dict):
-    """Generates name from AttributeChoiceValues. Attributes dict is sorted,
+    """Generates name from AttributeValues. Attributes dict is sorted,
     as attributes order should be kept within each save.
 
     Args:
-        attributes_dict: dict of attribute_pk: AttributeChoiceValue values
+        attributes_dict: dict of attribute_pk: AttributeValue values
     """
     return ' / '.join(
-        str(attributechoice_value)
-        for attribute_pk, attributechoice_value in sorted(
+        str(attribute_value)
+        for attribute_pk, attribute_value in sorted(
             attributes_dict.items(),
             key=lambda x: x[0]))

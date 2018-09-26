@@ -6,34 +6,34 @@
 // ====================================================
 
 export interface ProductTypeList_productTypes_edges_node_productAttributes_edges_node {
-  __typename: "ProductAttribute";
+  __typename: "Attribute";
   id: string;
   name: string | null;
 }
 
 export interface ProductTypeList_productTypes_edges_node_productAttributes_edges {
-  __typename: "ProductAttributeCountableEdge";
+  __typename: "AttributeCountableEdge";
   node: ProductTypeList_productTypes_edges_node_productAttributes_edges_node;
 }
 
 export interface ProductTypeList_productTypes_edges_node_productAttributes {
-  __typename: "ProductAttributeCountableConnection";
+  __typename: "AttributeCountableConnection";
   edges: ProductTypeList_productTypes_edges_node_productAttributes_edges[];
 }
 
 export interface ProductTypeList_productTypes_edges_node_variantAttributes_edges_node {
-  __typename: "ProductAttribute";
+  __typename: "Attribute";
   id: string;
   name: string | null;
 }
 
 export interface ProductTypeList_productTypes_edges_node_variantAttributes_edges {
-  __typename: "ProductAttributeCountableEdge";
+  __typename: "AttributeCountableEdge";
   node: ProductTypeList_productTypes_edges_node_variantAttributes_edges_node;
 }
 
 export interface ProductTypeList_productTypes_edges_node_variantAttributes {
-  __typename: "ProductAttributeCountableConnection";
+  __typename: "AttributeCountableConnection";
   edges: ProductTypeList_productTypes_edges_node_variantAttributes_edges[];
 }
 
