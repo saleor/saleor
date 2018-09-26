@@ -10,7 +10,6 @@ from prices import Money
 from tests.utils import (
     create_image, create_pdf_file_with_image_ext, get_graphql_content)
 
-from saleor.core import TaxRateType
 from saleor.graphql.product.utils import update_variants_names
 from saleor.product.models import (
     Category, Collection, Product, ProductImage, ProductType, ProductVariant)
