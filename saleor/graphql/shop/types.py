@@ -5,6 +5,7 @@ from graphql_jwt.decorators import permission_required
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
 from ...core.permissions import get_permissions
+from ...core.utils import get_client_ip, get_country_by_ip
 from ...site import models as site_models
 from ..core.types.common import (
     CountryDisplay, LanguageDisplay, PermissionDisplay, WeightUnitsEnum)
@@ -38,7 +39,19 @@ class Domain(graphene.ObjectType):
         description = 'Represents shop\'s domain.'
 
 
+class Geolocalization(graphene.ObjectType):
+    country = graphene.Field(
+        CountryDisplay, required=True,
+        description='Country of the user acquired by his IP address.')
+
+    class Meta:
+        description = 'Represents customers\'s geolocalization data.'
+
+
 class Shop(graphene.ObjectType):
+    geolocalization = graphene.Field(
+        Geolocalization,
+        description='Customer\'s geolocalization data.')
     authorization_keys = graphene.List(
         AuthorizationKey, description='List of configured authorization keys.',
         required=True)
@@ -101,6 +114,15 @@ class Shop(graphene.ObjectType):
             host=site.domain,
             ssl_enabled=settings.ENABLE_SSL,
             url=info.context.build_absolute_uri('/'))
+
+    def resolve_geolocalization(self, info):
+        client_ip = get_client_ip(info.context)
+        country = get_country_by_ip(client_ip)
+        if country:
+            return Geolocalization(
+                country=CountryDisplay(
+                    code=country.code, country=country.name))
+        return Geolocalization(country=None)
 
     def resolve_default_currency(self, info):
         return settings.DEFAULT_CURRENCY
