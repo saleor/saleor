@@ -55,7 +55,7 @@ class AttributeUpdate(AttributeCreate):
             description='Fields required to update an attribute.')
 
     class Meta:
-        description = 'Updates anattribute.'
+        description = 'Updates attribute.'
         model = models.Attribute
 
 
