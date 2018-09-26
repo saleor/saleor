@@ -1068,11 +1068,13 @@ type OrderEvent implements Node {
   amount: Float
   quantity: Int
   composedId: String
+  oversoldItems: [String]
 }
 
 enum OrderEvents {
   PLACED
   PLACED_FROM_DRAFT
+  OVERSOLD_ITEMS
   ORDER_MARKED_AS_PAID
   CANCELED
   ORDER_FULLY_PAID
