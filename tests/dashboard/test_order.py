@@ -1235,7 +1235,7 @@ def test_order_event_display(admin_user, type, order):
         'amount': '80.00',
         'composed_id': 12,
         'tracking_number': '5421AB',
-        'variant_id': 12}
+        'oversold_items': ['Blue Shirt', 'Red Shirt']}
     event = OrderEvent(
         user=admin_user, order=order, parameters=parameters, type=type)
     event.get_event_display()

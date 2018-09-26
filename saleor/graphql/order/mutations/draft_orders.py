@@ -204,20 +204,20 @@ class DraftOrderComplete(BaseMutation):
             if order.shipping_address:
                 order.shipping_address.delete()
         order.save()
+        oversold_items = []
         for line in order:
             quantity = line.quantity
             try:
                 line.variant.check_quantity(quantity)
                 allocate_stock(line.variant, quantity)
             except InsufficientStock:
-                available = line.variant.quantity_available
-                allocate_stock(line.variant, available)
-                order.events.create(
-                    type=OrderEvents.PLACED_WITH_MISSING_STOCK.value,
-                    user=info.context.user,
-                    parameters={
-                        'quantity': quantity - available,
-                        'variant_id': line.variant_id})
+                allocate_stock(line.variant, line.variant.quantity_available)
+                oversold_items.append(str(line))
+        if oversold_items:
+            order.events.create(
+                type=OrderEvents.PLACED_AND_OVERSOLD_STOCK.value,
+                user=info.context.user,
+                parameters={'oversold_items': oversold_items})
         order.events.create(
             type=OrderEvents.PLACED_FROM_DRAFT.value,
             user=info.context.user)
