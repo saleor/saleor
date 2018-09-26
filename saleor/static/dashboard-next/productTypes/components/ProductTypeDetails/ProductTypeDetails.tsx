@@ -4,28 +4,14 @@ import { withStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import FormSpacer from "../../../components/FormSpacer";
-import MultiAutocompleteSelectField from "../../../components/MultiAutocompleteSelectField";
+import CardTitle from "../../../components/CardTitle";
 import i18n from "../../../i18n";
 
-interface ChoiceType {
-  label: string;
-  value: string;
-}
 interface ProductTypeDetailsProps {
   data?: {
     name: string;
-    hasVariants: boolean;
-    productAttributes: ChoiceType[];
-    variantAttributes: ChoiceType[];
   };
   disabled: boolean;
-  searchLoading: boolean;
-  searchResults: Array<{
-    id: string;
-    name: string;
-  }>;
-  onAttributeSearch: (name: string) => void;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
@@ -35,49 +21,18 @@ const decorate = withStyles({
   }
 });
 const ProductTypeDetails = decorate<ProductTypeDetailsProps>(
-  ({
-    classes,
-    data,
-    disabled,
-    searchLoading,
-    searchResults,
-    onAttributeSearch,
-    onChange
-  }) => (
+  ({ classes, data, disabled, onChange }) => (
     <Card className={classes.root}>
+      <CardTitle title={i18n.t("Information")} />
       <CardContent>
         <TextField
           disabled={disabled}
           fullWidth
-          label={i18n.t("Name")}
+          label={i18n.t("Product Type Name")}
           name="name"
           onChange={onChange}
           value={data.name}
         />
-        <FormSpacer />
-        <MultiAutocompleteSelectField
-          choices={searchResults.map(s => ({ label: s.name, value: s.id }))}
-          fetchChoices={onAttributeSearch}
-          helperText={i18n.t("Optional")}
-          label={i18n.t("Product attributes")}
-          loading={searchLoading}
-          name="productAttributes"
-          onChange={onChange}
-          value={data.productAttributes}
-        />
-        <FormSpacer />
-        {data.hasVariants && (
-          <MultiAutocompleteSelectField
-            choices={searchResults.map(s => ({ label: s.name, value: s.id }))}
-            fetchChoices={onAttributeSearch}
-            helperText={i18n.t("Optional")}
-            label={i18n.t("Variant attributes")}
-            loading={searchLoading}
-            name="variantAttributes"
-            onChange={onChange}
-            value={data.variantAttributes}
-          />
-        )}
       </CardContent>
     </Card>
   )

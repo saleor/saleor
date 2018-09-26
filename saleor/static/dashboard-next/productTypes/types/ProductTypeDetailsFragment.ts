@@ -37,6 +37,12 @@ export interface ProductTypeDetailsFragment_variantAttributes {
   values: (ProductTypeDetailsFragment_variantAttributes_values | null)[] | null;
 }
 
+export interface ProductTypeDetailsFragment_weight {
+  __typename: "Weight";
+  unit: string;
+  value: number;
+}
+
 export interface ProductTypeDetailsFragment {
   __typename: "ProductType";
   id: string;
@@ -46,4 +52,5 @@ export interface ProductTypeDetailsFragment {
   taxRate: TaxRateType | null;
   productAttributes: (ProductTypeDetailsFragment_productAttributes | null)[] | null;
   variantAttributes: (ProductTypeDetailsFragment_variantAttributes | null)[] | null;
+  weight: ProductTypeDetailsFragment_weight | null;
 }

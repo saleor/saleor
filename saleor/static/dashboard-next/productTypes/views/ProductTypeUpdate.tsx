@@ -11,10 +11,7 @@ import ProductTypeDetailsPage, {
 } from "../components/ProductTypeDetailsPage";
 import { AttributeSearchProvider } from "../containers/AttributeSearch";
 import ProductTypeOperations from "../containers/ProductTypeOperations";
-import {
-  productTypeDetailsQuery,
-  TypedProductTypeDetailsQuery
-} from "../queries";
+import { TypedProductTypeDetailsQuery } from "../queries";
 import { ProductTypeDelete } from "../types/ProductTypeDelete";
 import { ProductTypeUpdate as ProductTypeUpdateMutation } from "../types/ProductTypeUpdate";
 
@@ -29,10 +26,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
     {pushMessage => (
       <Navigator>
         {navigate => (
-          <TypedProductTypeDetailsQuery
-            query={productTypeDetailsQuery}
-            variables={{ id }}
-          >
+          <TypedProductTypeDetailsQuery variables={{ id }}>
             {({ data, error, loading: dataLoading }) => {
               if (error) {
                 return (
@@ -81,19 +75,26 @@ export const ProductTypeUpdate: React.StatelessComponent<
                             updateProductType.mutate({
                               id,
                               input: {
-                                ...formData,
+                                hasVariants: formData.hasVariants,
+                                isShippingRequired: formData.isShippingRequired,
+                                name: formData.name,
                                 productAttributes: formData.productAttributes.map(
                                   choice => choice.value
                                 ),
+                                taxRate: formData.taxRate,
                                 variantAttributes: formData.variantAttributes.map(
                                   choice => choice.value
-                                )
+                                ),
+                                weight: formData.weight
                               }
                             });
                           };
                           const loading = mutationLoading || dataLoading;
                           return (
                             <ProductTypeDetailsPage
+                              defaultWeightUnit={maybe(
+                                () => data.shop.defaultWeightUnit
+                              )}
                               disabled={loading}
                               errors={errors}
                               pageTitle={
@@ -101,30 +102,18 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                   ? data.productType.name
                                   : undefined
                               }
-                              productType={data ? data.productType : undefined}
-                              productAttributes={maybe(
-                                () => data.productType.productAttributes,
-                                []
-                              )}
-                              variantAttributes={maybe(
-                                () => data.productType.variantAttributes,
-                                []
-                              )}
+                              productType={maybe(() => data.productType)}
                               saveButtonBarState={
                                 loading ? "loading" : "default"
                               }
-                              searchLoading={
-                                searchState ? searchState.loading : false
-                              }
-                              searchResults={
-                                searchState &&
-                                searchState.data &&
-                                searchState.data.attributes
-                                  ? searchState.data.attributes.edges.map(
-                                      edge => edge.node
-                                    )
-                                  : []
-                              }
+                              searchLoading={maybe(() => searchState.loading)}
+                              searchResults={maybe(
+                                () =>
+                                  searchState.data.attributes.edges.map(
+                                    edge => edge.node
+                                  ),
+                                []
+                              )}
                               onAttributeSearch={searchAttribute}
                               onBack={() => navigate(productTypeListUrl)}
                               onDelete={handleDelete}

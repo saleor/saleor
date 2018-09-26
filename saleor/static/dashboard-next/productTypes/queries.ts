@@ -1,6 +1,7 @@
 import gql from "graphql-tag";
-import { Query, QueryProps } from "react-apollo";
 
+import { TypedQuery } from "../queries";
+import { ProductTypeCreateData } from "./types/ProductTypeCreateData";
 import {
   ProductTypeDetails,
   ProductTypeDetailsVariables
@@ -47,12 +48,13 @@ export const productTypeDetailsFragment = gql`
     variantAttributes {
       ...AttributeFragment
     }
+    weight {
+      unit
+      value
+    }
   }
 `;
 
-export const TypedProductTypeListQuery = Query as React.ComponentType<
-  QueryProps<ProductTypeList, ProductTypeListVariables>
->;
 export const productTypeListQuery = gql`
   ${productTypeFragment}
   query ProductTypeList(
@@ -76,22 +78,39 @@ export const productTypeListQuery = gql`
     }
   }
 `;
+export const TypedProductTypeListQuery = TypedQuery<
+  ProductTypeList,
+  ProductTypeListVariables
+>(productTypeListQuery);
 
-export const TypedProductTypeDetailsQuery = Query as React.ComponentType<
-  QueryProps<ProductTypeDetails, ProductTypeDetailsVariables>
->;
 export const productTypeDetailsQuery = gql`
   ${productTypeDetailsFragment}
   query ProductTypeDetails($id: ID!) {
     productType(id: $id) {
       ...ProductTypeDetailsFragment
     }
+    shop {
+      defaultWeightUnit
+    }
   }
 `;
+export const TypedProductTypeDetailsQuery = TypedQuery<
+  ProductTypeDetails,
+  ProductTypeDetailsVariables
+>(productTypeDetailsQuery);
 
-export const TypedSearchAttributeQuery = Query as React.ComponentType<
-  QueryProps<SearchAttribute, SearchAttributeVariables>
->;
+export const productTypeCreateDataQuery = gql`
+  query ProductTypeCreateData {
+    shop {
+      defaultWeightUnit
+    }
+  }
+`;
+export const TypedProductTypeCreateDataQuery = TypedQuery<
+  ProductTypeCreateData,
+  {}
+>(productTypeCreateDataQuery);
+
 export const searchAttributeQuery = gql`
   ${attributeFragment}
   query SearchAttribute($search: String!) {
@@ -104,3 +123,7 @@ export const searchAttributeQuery = gql`
     }
   }
 `;
+export const TypedSearchAttributeQuery = TypedQuery<
+  SearchAttribute,
+  SearchAttributeVariables
+>(searchAttributeQuery);
