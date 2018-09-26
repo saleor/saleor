@@ -8,11 +8,11 @@ from django_filters.fields import Lookup
 from graphene_django.filter.filterset import Filter, FilterSet
 
 from ...product.filters import SORT_BY_FIELDS
-from ...product.models import Product, ProductAttribute
+from ...product.models import Attribute, Product
 from .fields import AttributeField
 
 
-class ProductAttributeFilter(Filter):
+class AttributeFilter(Filter):
     field_class = AttributeField
 
     def filter(self, qs, value):
@@ -22,7 +22,7 @@ class ProductAttributeFilter(Filter):
         if not value:
             return qs.distinct() if self.distinct else qs
 
-        attributes = ProductAttribute.objects.prefetch_related('values')
+        attributes = Attribute.objects.prefetch_related('values')
         attributes_map = {
             attribute.slug: attribute.pk for attribute in attributes}
         values_map = {
@@ -67,7 +67,7 @@ class ProductFilterSet(FilterSet):
     @classmethod
     def filter_for_field(cls, f, field_name, lookup_expr='exact'):
         if field_name == 'attributes':
-            return ProductAttributeFilter(
+            return AttributeFilter(
                 field_name=field_name, lookup_expr=lookup_expr, distinct=True)
         # this class method is called during class construction so we can't
         # reference ProductFilterSet here yet

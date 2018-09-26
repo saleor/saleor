@@ -22,7 +22,7 @@ COLOR_PATTERN = r'^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+
 color_pattern = re.compile(COLOR_PATTERN)
 
 
-class ProductAttributeValueType(graphene.Enum):
+class AttributeValueType(graphene.Enum):
     COLOR = 'COLOR'
     GRADIENT = 'GRADIENT'
     URL = 'URL'
@@ -34,10 +34,10 @@ def resolve_attribute_list(attributes):
     values = list(attributes.values())
 
     attributes_map = {
-        att.pk: att for att in models.ProductAttribute.objects.filter(
+        att.pk: att for att in models.Attribute.objects.filter(
             pk__in=keys)}
     values_map = {
-        val.pk: val for val in models.AttributeChoiceValue.objects.filter(
+        val.pk: val for val in models.AttributeValue.objects.filter(
             pk__in=values)}
 
     attributes_list = [SelectedAttribute(
@@ -49,36 +49,36 @@ def resolve_attribute_list(attributes):
 
 def resolve_attribute_value_type(attribute_value):
     if color_pattern.match(attribute_value):
-        return ProductAttributeValueType.COLOR
+        return AttributeValueType.COLOR
     if 'gradient(' in attribute_value:
-        return ProductAttributeValueType.GRADIENT
+        return AttributeValueType.GRADIENT
     if '://' in attribute_value:
-        return ProductAttributeValueType.URL
-    return ProductAttributeValueType.STRING
+        return AttributeValueType.URL
+    return AttributeValueType.STRING
 
 
-class ProductAttributeValue(CountableDjangoObjectType):
+class AttributeValue(CountableDjangoObjectType):
     name = graphene.String(description='Visible name for display purposes.')
     slug = graphene.String(
         description='Internal representation of an attribute name.')
-    type = ProductAttributeValueType(description='Type of value.')
+    type = AttributeValueType(description='Type of value.')
 
     class Meta:
         description = 'Represents a value of an attribute.'
         exclude_fields = ['attribute']
         interfaces = [relay.Node]
-        model = models.AttributeChoiceValue
+        model = models.AttributeValue
 
     def resolve_type(self, info):
         return resolve_attribute_value_type(self.value)
 
 
-class ProductAttribute(CountableDjangoObjectType):
+class Attribute(CountableDjangoObjectType):
     name = graphene.String(description='Visible name for display purposes.')
     slug = graphene.String(
         description='Internal representation of an attribute name.')
     values = graphene.List(
-        ProductAttributeValue, description='List of attribute\'s values.')
+        AttributeValue, description='List of attribute\'s values.')
 
     class Meta:
         description = """Custom attribute of a product. Attributes can be
@@ -86,7 +86,7 @@ class ProductAttribute(CountableDjangoObjectType):
         exclude_fields = ['product_types', 'product_variant_types']
         interfaces = [relay.Node]
         filter_fields = ['id', 'slug']
-        model = models.ProductAttribute
+        model = models.Attribute
 
     def resolve_values(self, info):
         return self.values.all()
@@ -99,14 +99,14 @@ class Margin(graphene.ObjectType):
 
 class SelectedAttribute(graphene.ObjectType):
     attribute = graphene.Field(
-        ProductAttribute,
+        Attribute,
         default_value=None, description='Name of an attribute')
     value = graphene.Field(
-        ProductAttributeValue,
+        AttributeValue,
         default_value=None, description='Value of an attribute.')
 
     class Meta:
-        description = 'Represents a custom product attribute.'
+        description = 'Represents a custom attribute.'
 
 
 class ProductVariant(CountableDjangoObjectType):
@@ -195,7 +195,7 @@ class Product(CountableDjangoObjectType):
         applied).""")
     attributes = graphene.List(
         SelectedAttribute,
-        description='List of product attributes assigned to this product.')
+        description='List of attributes assigned to this product.')
     purchase_cost = graphene.Field(MoneyRange)
     margin = graphene.Field(Margin)
     image_by_id = graphene.Field(

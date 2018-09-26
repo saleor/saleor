@@ -133,7 +133,7 @@ const ProductOrganization = decorate<ProductOrganizationProps>(
         }
       });
     };
-    const handleProductAttributeValueSelect = (
+    const handleAttributeValueSelect = (
       event: React.ChangeEvent<{
         name: string;
         value: {
@@ -207,7 +207,7 @@ const ProductOrganization = decorate<ProductOrganizationProps>(
                     disabled={disabled}
                     name={item.slug}
                     label={getAttributeName(item.slug)}
-                    onChange={handleProductAttributeValueSelect}
+                    onChange={handleAttributeValueSelect}
                     value={getAttributeValue(item.slug)}
                     choices={getAttributeValues(item.slug).map(v => ({
                       label: v.name,

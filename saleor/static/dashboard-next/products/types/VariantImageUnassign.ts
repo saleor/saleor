@@ -12,14 +12,14 @@ export interface VariantImageUnassign_variantImageUnassign_errors {
 }
 
 export interface VariantImageUnassign_variantImageUnassign_productVariant_attributes_attribute_values {
-  __typename: "ProductAttributeValue";
+  __typename: "AttributeValue";
   id: string;
   name: string | null;
   slug: string | null;
 }
 
 export interface VariantImageUnassign_variantImageUnassign_productVariant_attributes_attribute {
-  __typename: "ProductAttribute";
+  __typename: "Attribute";
   id: string;
   name: string | null;
   slug: string | null;
@@ -27,7 +27,7 @@ export interface VariantImageUnassign_variantImageUnassign_productVariant_attrib
 }
 
 export interface VariantImageUnassign_variantImageUnassign_productVariant_attributes_value {
-  __typename: "ProductAttributeValue";
+  __typename: "AttributeValue";
   id: string;
   name: string | null;
   slug: string | null;

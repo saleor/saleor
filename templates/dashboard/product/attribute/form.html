@@ -17,7 +17,7 @@
 {% block menu_attributes_class %}active{% endblock %}
 
 {% block header_menu %}
-  {% url "dashboard:product-attributes" as url %}
+  {% url "dashboard:attributes" as url %}
   {% include "dashboard/includes/_back_link.html" with url=url %}
 {% endblock %}
 
@@ -25,18 +25,18 @@
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
-      <a href="{% url 'dashboard:product-attributes' %}" class="breadcrumbs--ellipsed-item">
+      <a href="{% url 'dashboard:attributes' %}" class="breadcrumbs--ellipsed-item">
         {% trans "Attributes" context "Dashboard attributes list" %}
       </a>
     </li>
     <li class="back-mobile">
-      <a href="{% url 'dashboard:product-attributes' %}">
+      <a href="{% url 'dashboard:attributes' %}">
         <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
     {% if attribute.pk %}
     <li>
-      <a href="{% url 'dashboard:product-attribute-details' attribute.pk %}" class="breadcrumbs--ellipsed-item">
+      <a href="{% url 'dashboard:attribute-details' attribute.pk %}" class="breadcrumbs--ellipsed-item">
         {{ attribute }}
       </a>
     </li>
@@ -73,14 +73,14 @@
           </div>
           <div class="card-action right-align">
             {% if attribute.pk %}
-              <a href="{% url 'dashboard:product-attribute-details' attribute.pk %}" class="btn-flat waves-effect">
+              <a href="{% url 'dashboard:attribute-details' attribute.pk %}" class="btn-flat waves-effect">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect">
                 {% trans "Save" context "Dashboard update action" %}
               </button>
             {% else %}
-              <a href="{% url 'dashboard:product-attributes' %}" class="btn-flat waves-effect">
+              <a href="{% url 'dashboard:attributes' %}" class="btn-flat waves-effect">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect">

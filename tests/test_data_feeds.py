@@ -6,7 +6,7 @@ from django.utils.encoding import smart_text
 
 from saleor.data_feeds.google_merchant import (
     get_feed_items, item_attributes, item_google_product_category, write_feed)
-from saleor.product.models import AttributeChoiceValue, Category
+from saleor.product.models import AttributeValue, Category
 
 
 def test_saleor_feed_items(product, site_settings):
@@ -19,7 +19,7 @@ def test_saleor_feed_items(product, site_settings):
     attributes_dict = {}
     current_site = site_settings.site
     attribute_values_dict = {smart_text(a.pk): smart_text(a) for a
-                             in AttributeChoiceValue.objects.all()}
+                             in AttributeValue.objects.all()}
     attributes = item_attributes(items[0], categories, category_paths,
                                  current_site, discounts, attributes_dict,
                                  attribute_values_dict)

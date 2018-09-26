@@ -634,20 +634,20 @@ def test_staff_can_access_product_image_delete(
 def test_staff_with_permissions_can_view_products_attributes_list(
         staff_client, staff_user, permission_manage_products, color_attribute):
     assert not staff_user.has_perm('product.manage_products')
-    response = staff_client.get(reverse('dashboard:product-attributes'))
+    response = staff_client.get(reverse('dashboard:attributes'))
     assert response.status_code == 302
     response = staff_client.get(
         reverse(
-            'dashboard:product-attribute-details', args=[color_attribute.pk]))
+            'dashboard:attribute-details', args=[color_attribute.pk]))
     assert response.status_code == 302
     staff_user.user_permissions.add(permission_manage_products)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm('product.manage_products')
-    response = staff_client.get(reverse('dashboard:product-attributes'))
+    response = staff_client.get(reverse('dashboard:attributes'))
     assert response.status_code == 200
     response = staff_client.get(
         reverse(
-            'dashboard:product-attribute-details', args=[color_attribute.pk]))
+            'dashboard:attribute-details', args=[color_attribute.pk]))
     assert response.status_code == 200
 
 
@@ -656,26 +656,26 @@ def test_staff_with_permissions_can_update_add_and_delete_products_attributes(
     assert not staff_user.has_perm('product.manage_products')
     response = staff_client.get(
         reverse(
-            'dashboard:product-attribute-update', args=[color_attribute.pk]))
+            'dashboard:attribute-update', args=[color_attribute.pk]))
     assert response.status_code == 302
     response = staff_client.get(
         reverse(
-            'dashboard:product-attribute-delete', args=[color_attribute.pk]))
+            'dashboard:attribute-delete', args=[color_attribute.pk]))
     assert response.status_code == 302
-    response = staff_client.get(reverse('dashboard:product-attribute-add'))
+    response = staff_client.get(reverse('dashboard:attribute-add'))
     assert response.status_code == 302
     staff_user.user_permissions.add(permission_manage_products)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm('product.manage_products')
     response = staff_client.get(
         reverse(
-            'dashboard:product-attribute-update', args=[color_attribute.pk]))
+            'dashboard:attribute-update', args=[color_attribute.pk]))
     assert response.status_code == 200
     response = staff_client.get(
         reverse(
-            'dashboard:product-attribute-delete', args=[color_attribute.pk]))
+            'dashboard:attribute-delete', args=[color_attribute.pk]))
     assert response.status_code == 200
-    response = staff_client.get(reverse('dashboard:product-attribute-add'))
+    response = staff_client.get(reverse('dashboard:attribute-add'))
     assert response.status_code == 200
 
 
@@ -683,7 +683,7 @@ def test_staff_can_access_attribute_create(
         staff_client, staff_user, permission_manage_products, color_attribute):
     assert not staff_user.has_perm('product.manage_products')
     url = reverse(
-        'dashboard:product-attribute-value-add',
+        'dashboard:attribute-value-add',
         kwargs={'attribute_pk': color_attribute.pk})
 
     response = staff_client.get(url)
@@ -702,7 +702,7 @@ def test_staff_can_access_attribute_edit(
     value = color_attribute.values.first()
     assert not staff_user.has_perm('product.manage_products')
     url = reverse(
-        'dashboard:product-attribute-value-update',
+        'dashboard:attribute-value-update',
         kwargs={
             'attribute_pk': color_attribute.pk,
             'value_pk': value.pk})
@@ -723,7 +723,7 @@ def test_staff_can_access_attribute_delete(
     value = color_attribute.values.first()
     assert not staff_user.has_perm('product.manage_products')
     url = reverse(
-        'dashboard:product-attribute-value-delete',
+        'dashboard:attribute-value-delete',
         kwargs={
             'attribute_pk': color_attribute.pk,
             'value_pk': value.pk})

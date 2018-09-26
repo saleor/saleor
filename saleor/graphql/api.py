@@ -40,9 +40,9 @@ from .page.types import Page
 from .page.mutations import PageCreate, PageDelete, PageUpdate
 from .product.filters import ProductFilterSet
 from .product.mutations.attributes import (
-    AttributeChoiceValueCreate, AttributeChoiceValueDelete,
-    AttributeChoiceValueUpdate, ProductAttributeCreate, ProductAttributeDelete,
-    ProductAttributeUpdate)
+    AttributeValueCreate, AttributeValueDelete,
+    AttributeValueUpdate, AttributeCreate, AttributeDelete,
+    AttributeUpdate)
 from .product.mutations.products import (
     CategoryCreate, CategoryDelete, CategoryUpdate,
     CollectionAddProducts, CollectionCreate, CollectionDelete,
@@ -56,7 +56,7 @@ from .product.resolvers import (
     resolve_attributes, resolve_categories, resolve_collections,
     resolve_products, resolve_product_types, resolve_product_variants)
 from .product.types import (
-    Category, Collection, Product, ProductAttribute, ProductType,
+    Category, Collection, Product, Attribute, ProductType,
     ProductVariant)
 from .shipping.resolvers import resolve_shipping_zones
 from .shipping.types import ShippingZone
@@ -74,10 +74,10 @@ class Query(graphene.ObjectType):
         AddressValidationData,
         input=graphene.Argument(AddressValidationInput, required=True))
     attributes = DjangoFilterConnectionField(
-        ProductAttribute,
+        Attribute,
         query=graphene.String(description=DESCRIPTIONS['attributes']),
         in_category=graphene.Argument(graphene.ID),
-        description='List of the shop\'s product attributes.')
+        description='List of the shop\'s attributes.')
     categories = DjangoFilterConnectionField(
         Category, query=graphene.String(
             description=DESCRIPTIONS['category']),
@@ -278,9 +278,9 @@ class Mutations(graphene.ObjectType):
     set_password = SetPassword.Field()
     password_reset = PasswordReset.Field()
 
-    attribute_choice_value_create = AttributeChoiceValueCreate.Field()
-    attribute_choice_value_delete = AttributeChoiceValueDelete.Field()
-    attribute_choice_value_update = AttributeChoiceValueUpdate.Field()
+    attribute_value_create = AttributeValueCreate.Field()
+    attribute_value_delete = AttributeValueDelete.Field()
+    attribute_value_update = AttributeValueUpdate.Field()
 
     category_create = CategoryCreate.Field()
     category_delete = CategoryDelete.Field()
@@ -336,9 +336,9 @@ class Mutations(graphene.ObjectType):
     page_delete = PageDelete.Field()
     page_update = PageUpdate.Field()
 
-    product_attribute_create = ProductAttributeCreate.Field()
-    product_attribute_delete = ProductAttributeDelete.Field()
-    product_attribute_update = ProductAttributeUpdate.Field()
+    attribute_create = AttributeCreate.Field()
+    attribute_delete = AttributeDelete.Field()
+    attribute_update = AttributeUpdate.Field()
 
     product_create = ProductCreate.Field()
     product_delete = ProductDelete.Field()

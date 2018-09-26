@@ -1,14 +1,13 @@
 import json
-from unittest.mock import Mock
 
 import graphene
 import pytest
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 from saleor.product.models import (
-    Category, ProductAttribute, AttributeChoiceValue)
+    Category, Attribute, AttributeValue)
 from saleor.graphql.product.utils import attributes_to_hstore
-from saleor.graphql.product.types import resolve_attribute_value_type, ProductAttributeValueType
+from saleor.graphql.product.types import resolve_attribute_value_type, AttributeValueType
 
 
 def test_attributes_to_hstore(product, color_attribute):
@@ -26,7 +25,7 @@ def test_attributes_to_hstore(product, color_attribute):
     input_data = [{
         'slug': color_attribute.slug, 'value': 'Space Grey'}]
     ids = attributes_to_hstore(input_data, attrs_qs)
-    new_value = AttributeChoiceValue.objects.get(slug='space-grey')
+    new_value = AttributeValue.objects.get(slug='space-grey')
     assert str(color_attribute.pk) in ids
     assert ids[str(color_attribute.pk)] == str(new_value.pk)
 
@@ -38,7 +37,7 @@ def test_attributes_to_hstore(product, color_attribute):
 
 
 def test_attributes_query(user_api_client, product):
-    attributes = ProductAttribute.objects.prefetch_related('values')
+    attributes = Attribute.objects.prefetch_related('values')
     query = '''
     query {
         attributes {
@@ -88,14 +87,14 @@ def test_attributes_in_category_query(user_api_client, product):
     content = get_graphql_content(response)
     assert 'errors' not in content
     attributes_data = content['data']['attributes']['edges']
-    assert len(attributes_data) == ProductAttribute.objects.count()
+    assert len(attributes_data) == Attribute.objects.count()
 
 
-def test_create_product_attribute(admin_api_client):
+def test_create_attribute(admin_api_client):
     query = """
     mutation createAttribute($name: String!, $slug: String!) {
-        productAttributeCreate(input: {name: $name, slug: $slug}) {
-            productAttribute {
+        attributeCreate(input: {name: $name, slug: $slug}) {
+            attribute {
                 name
                 slug
                 values {
@@ -113,18 +112,18 @@ def test_create_product_attribute(admin_api_client):
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
-    data = content['data']['productAttributeCreate']['productAttribute']
+    data = content['data']['attributeCreate']['attribute']
     assert data['name'] == name
     assert data['slug'] == slug
     assert not data['values']
 
 
-def test_update_product_attribute(admin_api_client, color_attribute):
+def test_update_attribute(admin_api_client, color_attribute):
     attribute = color_attribute
     query = """
     mutation updateAttribute($id: ID!, $name: String!, $slug: String!) {
-        productAttributeUpdate(id: $id, input: {name: $name, slug: $slug}) {
-            productAttribute {
+        attributeUpdate(id: $id, input: {name: $name, slug: $slug}) {
+            attribute {
                 name
             }
         }
@@ -132,29 +131,29 @@ def test_update_product_attribute(admin_api_client, color_attribute):
     """
     name = 'Wings name'
     slug = attribute.slug
-    id = graphene.Node.to_global_id('ProductAttribute', attribute.id)
+    id = graphene.Node.to_global_id('Attribute', attribute.id)
     variables = json.dumps({'name': name, 'id': id, 'slug': slug})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     attribute.refresh_from_db()
     assert 'errors' not in content
-    data = content['data']['productAttributeUpdate']['productAttribute']
+    data = content['data']['attributeUpdate']['attribute']
     assert data['name'] == name == attribute.name
 
 
-def test_delete_product_attribute(admin_api_client, color_attribute):
+def test_delete_attribute(admin_api_client, color_attribute):
     attribute = color_attribute
     query = """
     mutation deleteAttribute($id: ID!) {
-        productAttributeDelete(id: $id) {
-            productAttribute {
+        attributeDelete(id: $id) {
+            attribute {
                 id
             }
         }
     }
     """
-    id = graphene.Node.to_global_id('ProductAttribute', attribute.id)
+    id = graphene.Node.to_global_id('Attribute', attribute.id)
     variables = json.dumps({'id': id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
@@ -164,13 +163,13 @@ def test_delete_product_attribute(admin_api_client, color_attribute):
         attribute.refresh_from_db()
 
 
-def test_create_attribute_choice_value(admin_api_client, color_attribute):
+def test_create_attribute_value(admin_api_client, color_attribute):
     attribute = color_attribute
     query = """
     mutation createChoice($attribute: ID!, $name: String!, $slug: String!, $value: String!) {
-        attributeChoiceValueCreate(
+        attributeValueCreate(
         input: {attribute: $attribute, name: $name, slug: $slug, value: $value}) {
-            attributeChoiceValue {
+            attributeValue {
                 name
                 slug
                 type
@@ -179,7 +178,7 @@ def test_create_attribute_choice_value(admin_api_client, color_attribute):
         }
     }
     """
-    attribute_id = graphene.Node.to_global_id('ProductAttribute', attribute.id)
+    attribute_id = graphene.Node.to_global_id('Attribute', attribute.id)
     name = 'test name'
     slug = 'test-slug'
     value = 'test-string'
@@ -190,27 +189,27 @@ def test_create_attribute_choice_value(admin_api_client, color_attribute):
     content = get_graphql_content(response)
     assert 'errors' not in content
     data = content[
-        'data']['attributeChoiceValueCreate']['attributeChoiceValue']
+        'data']['attributeValueCreate']['attributeValue']
     assert data['name'] == name
     assert data['slug'] == slug
     assert data['value'] == value
     assert data['type'] == 'STRING'
 
 
-def test_update_attribute_choice_value(admin_api_client, pink_choice_value):
-    value = pink_choice_value
+def test_update_attribute_value(admin_api_client, pink_attribute_value):
+    value = pink_attribute_value
     query = """
     mutation updateChoice($id: ID!, $name: String!, $slug: String!) {
-        attributeChoiceValueUpdate(
+        attributeValueUpdate(
         id: $id, input: {name: $name, slug: $slug}) {
-            attributeChoiceValue {
+            attributeValue {
                 name
                 slug
             }
         }
     }
     """
-    id = graphene.Node.to_global_id('ProductAttributeValue', value.id)
+    id = graphene.Node.to_global_id('AttributeValue', value.id)
     name = 'Crimson'
     slug = value.slug
     variables = json.dumps(
@@ -221,24 +220,25 @@ def test_update_attribute_choice_value(admin_api_client, pink_choice_value):
     assert 'errors' not in content
     value.refresh_from_db()
     data = content[
-        'data']['attributeChoiceValueUpdate']['attributeChoiceValue']
+        'data']['attributeValueUpdate']['attributeValue']
     assert data['name'] == name == value.name
 
 
-def test_delete_attribute_choice_value(admin_api_client, color_attribute, pink_choice_value):
-    value = pink_choice_value
+def test_delete_attribute_value(
+        admin_api_client, color_attribute, pink_attribute_value):
+    value = pink_attribute_value
     value = color_attribute.values.get(name='Red')
     query = """
     mutation updateChoice($id: ID!) {
-        attributeChoiceValueDelete(id: $id) {
-            attributeChoiceValue {
+        attributeValueDelete(id: $id) {
+            attributeValue {
                 name
                 slug
             }
         }
     }
     """
-    id = graphene.Node.to_global_id('ProductAttributeValue', value.id)
+    id = graphene.Node.to_global_id('AttributeValue', value.id)
     variables = json.dumps({'id': id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
@@ -247,29 +247,30 @@ def test_delete_attribute_choice_value(admin_api_client, color_attribute, pink_c
     with pytest.raises(value._meta.model.DoesNotExist):
         value.refresh_from_db()
 
+
 @pytest.mark.parametrize('raw_value, expected_type', [
-    ('#0000', ProductAttributeValueType.COLOR),
-    ('#FF69B4', ProductAttributeValueType.COLOR),
-    ('rgb(255, 0, 0)', ProductAttributeValueType.COLOR),
-    ('hsl(0, 100%, 50%)', ProductAttributeValueType.COLOR),
-    ('hsla(120,  60%, 70%, 0.3)', ProductAttributeValueType.COLOR),
-    ('rgba(100%, 255, 0, 0)', ProductAttributeValueType.COLOR),
-    ('http://example.com', ProductAttributeValueType.URL),
-    ('https://example.com', ProductAttributeValueType.URL),
-    ('ftp://example.com', ProductAttributeValueType.URL),
-    ('example.com', ProductAttributeValueType.STRING),
-    ('Foo', ProductAttributeValueType.STRING),
-    ('linear-gradient(red, yellow)', ProductAttributeValueType.GRADIENT),
-    ('radial-gradient(#0000, yellow)', ProductAttributeValueType.GRADIENT),
+    ('#0000', AttributeValueType.COLOR),
+    ('#FF69B4', AttributeValueType.COLOR),
+    ('rgb(255, 0, 0)', AttributeValueType.COLOR),
+    ('hsl(0, 100%, 50%)', AttributeValueType.COLOR),
+    ('hsla(120,  60%, 70%, 0.3)', AttributeValueType.COLOR),
+    ('rgba(100%, 255, 0, 0)', AttributeValueType.COLOR),
+    ('http://example.com', AttributeValueType.URL),
+    ('https://example.com', AttributeValueType.URL),
+    ('ftp://example.com', AttributeValueType.URL),
+    ('example.com', AttributeValueType.STRING),
+    ('Foo', AttributeValueType.STRING),
+    ('linear-gradient(red, yellow)', AttributeValueType.GRADIENT),
+    ('radial-gradient(#0000, yellow)', AttributeValueType.GRADIENT),
 ])
 def test_resolve_attribute_value_type(raw_value, expected_type):
     assert resolve_attribute_value_type(raw_value) == expected_type
 
 
 def test_query_attribute_values(
-        color_attribute, pink_choice_value, user_api_client):
+        color_attribute, pink_attribute_value, user_api_client):
     attribute_id = graphene.Node.to_global_id(
-        'ProductAttribute', color_attribute.id)
+        'Attribute', color_attribute.id)
     query = """
     query getAttribute($id: ID!) {
         attributes(id: $id) {
@@ -294,9 +295,8 @@ def test_query_attribute_values(
     assert 'errors' not in content
     data = content['data']['attributes']['edges'][0]['node']
     values = data['values']
-    pink = [v for v in values if v['name'] == pink_choice_value.name]
+    pink = [v for v in values if v['name'] == pink_attribute_value.name]
     assert len(pink) == 1
     pink = pink[0]
     assert pink['value'] == '#FF69B4'
     assert pink['type'] == 'COLOR'
-
