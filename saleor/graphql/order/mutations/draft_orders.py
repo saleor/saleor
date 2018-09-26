@@ -3,6 +3,7 @@ from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
 
 from ....account.models import Address
+from ....core.exceptions import InsufficientStock
 from ....core.utils.taxes import ZERO_TAXED_MONEY
 from ....order import OrderEvents, OrderStatus, models
 from ....order.utils import (
@@ -204,7 +205,19 @@ class DraftOrderComplete(BaseMutation):
                 order.shipping_address.delete()
         order.save()
         for line in order:
-            allocate_stock(line.variant, line.quantity)
+            quantity = line.quantity
+            try:
+                line.variant.check_quantity(quantity)
+                allocate_stock(line.variant, quantity)
+            except InsufficientStock:
+                available = line.variant.quantity_available
+                allocate_stock(line.variant, available)
+                order.events.create(
+                    type=OrderEvents.PLACED_WITH_MISSING_STOCK.value,
+                    user=info.context.user,
+                    parameters={
+                        'quantity': quantity - available,
+                        'variant_id': line.variant_id})
         order.events.create(
             type=OrderEvents.PLACED_FROM_DRAFT.value,
             user=info.context.user)
