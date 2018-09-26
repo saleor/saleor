@@ -1664,7 +1664,7 @@ type ShippingPriceUpdate {
 type ShippingZone implements Node {
   id: ID!
   name: String!
-  countries: [String]
+  countries: [CountryDisplay]
   default: Boolean!
   shippingMethods: [ShippingMethod]
   priceRange: MoneyRange
