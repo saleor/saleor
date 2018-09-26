@@ -26,7 +26,10 @@ interface CustomerListPageProps extends PageListProps {
       firstName: string;
       lastName: string;
       city: string;
-      country: string;
+      country: {
+        code: string;
+        country: string;
+      };
     };
   }>;
 }
@@ -109,7 +112,7 @@ const CustomerListPage = decorate<CustomerListPageProps>(
                     {customer && customer.defaultBillingAddress ? (
                       customer.defaultBillingAddress.city +
                       ", " +
-                      customer.defaultBillingAddress.country
+                      customer.defaultBillingAddress.country.country
                     ) : (
                       <Skeleton />
                     )}
