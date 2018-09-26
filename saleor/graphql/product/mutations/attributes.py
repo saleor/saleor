@@ -18,18 +18,14 @@ class AttributeValueCreateInput(graphene.InputObjectType):
         required=True, description='Real value eg. HEX color.')
 
 
-class AttributeValueUpdateInput(graphene.InputObjectType):
+class AttributeInput(graphene.InputObjectType):
     slug = graphene.String(
         required=True, description='Internal name.')
     name = graphene.String(
         required=True, description='Name displayed in the interface.')
 
 
-class AttributeCreateInput(graphene.InputObjectType):
-    slug = graphene.String(
-        required=True, description='Internal name.')
-    name = graphene.String(
-        required=True, description='Name displayed in the interface.')
+class AttributeCreateInput(AttributeInput):
     values = graphene.List(
         AttributeValueCreateInput,
         description='Attribute values to be created for this attribute.')
@@ -80,18 +76,11 @@ class AttributeCreate(ModelMutation):
             instance.values.create(**value)
 
 
-class AttributesInput(graphene.InputObjectType):
-    slug = graphene.String(
-        required=True, description='Internal name.')
-    name = graphene.String(
-        required=True, description='Name displayed in the interface.')
-
-
 class AttributeUpdate(AttributeCreate):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of an attribute to update.')
-        input = AttributesInput(
+        input = AttributeInput(
             required=True,
             description='Fields required to update an attribute.')
 
@@ -134,7 +123,7 @@ class AttributeValueUpdate(AttributeValueCreate):
         id = graphene.ID(
             required=True,
             description='ID of an attribute choice value to update.')
-        input = AttributeValueUpdateInput(
+        input = AttributeInput(
             required=True,
             description='Fields required to update an attribute choice value.')
 
