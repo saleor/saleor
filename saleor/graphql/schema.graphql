@@ -378,6 +378,12 @@ type AttributeCreate {
   attribute: Attribute
 }
 
+input AttributeCreateInput {
+  slug: String!
+  name: String!
+  values: [AttributeValueCreateInput]
+}
+
 type AttributeDelete {
   errors: [Error]
   attribute: Attribute
@@ -941,7 +947,7 @@ type Mutations {
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
-  attributeCreate(input: AttributesInput!): AttributeCreate
+  attributeCreate(input: AttributeCreateInput!): AttributeCreate
   attributeDelete(id: ID!): AttributeDelete
   attributeUpdate(id: ID!, input: AttributesInput!): AttributeUpdate
   productCreate(input: ProductCreateInput!): ProductCreate
