@@ -555,9 +555,6 @@ def test_draft_order_line_remove(
         draft_order, permission_manage_orders, staff_api_client):
     order = draft_order
     line = order.lines.first()
-    variant = line.variant
-    assert variant.quantity_allocated == 3
-
     line_id = graphene.Node.to_global_id('OrderLine', line.id)
     variables = json.dumps({'id': line_id})
 
@@ -575,8 +572,7 @@ def test_draft_order_line_remove(
     content = get_graphql_content(response)
     data = content['data']['draftOrderLineDelete']
     assert data['orderLine']['id'] == line_id
-    variant.refresh_from_db()
-    assert variant.quantity_allocated == 3
+    assert line not in order.lines.all()
 
 
 def test_require_draft_order_when_removing_lines(
