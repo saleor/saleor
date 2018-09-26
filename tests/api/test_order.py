@@ -370,9 +370,11 @@ def test_draft_order_complete(admin_api_client, admin_user, draft_order):
             }
         }
         """
-    line = order.lines.first()
-    line.quantity = 1
-    line.save(update_fields=['quantity'])
+    line_1, line_2 = order.lines.order_by('-quantity').all()
+    line_1.quantity = 1
+    line_1.save(update_fields=['quantity'])
+    assert line_1.variant.quantity_available >= line_1.quantity
+    assert line_2.variant.quantity_available < line_2.quantity
 
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = json.dumps({'id': order_id})
@@ -387,7 +389,8 @@ def test_draft_order_complete(admin_api_client, admin_user, draft_order):
 
     assert missing_stock_event.user == admin_user
     assert missing_stock_event.type == OrderEvents.PLACED_WITH_MISSING_STOCK.value  # noqa
-    assert missing_stock_event.parameters == {'quantity': 2, 'variant_id': 2}
+    assert missing_stock_event.parameters == {
+        'quantity': 2, 'variant_id': line_2.variant_id}
 
     assert draft_placed_event.user == admin_user
     assert draft_placed_event.type == OrderEvents.PLACED_FROM_DRAFT.value
