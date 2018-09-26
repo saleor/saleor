@@ -388,9 +388,8 @@ def test_draft_order_complete(admin_api_client, admin_user, draft_order):
     missing_stock_event, draft_placed_event = OrderEvent.objects.all()
 
     assert missing_stock_event.user == admin_user
-    assert missing_stock_event.type == OrderEvents.PLACED_WITH_MISSING_STOCK.value  # noqa
-    assert missing_stock_event.parameters == {
-        'quantity': 2, 'variant_id': line_2.variant_id}
+    assert missing_stock_event.type == OrderEvents.PLACED_AND_OVERSOLD_STOCK.value  # noqa
+    assert missing_stock_event.parameters == {'oversold_items': [str(line_2)]}
 
     assert draft_placed_event.user == admin_user
     assert draft_placed_event.type == OrderEvents.PLACED_FROM_DRAFT.value
