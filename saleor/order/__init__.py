@@ -66,6 +66,7 @@ class CustomPaymentChoices:
 class OrderEvents(Enum):
     PLACED = 'placed'
     PLACED_FROM_DRAFT = 'draft_placed'
+    OVERSOLD_ITEMS = 'oversold_items'
     ORDER_MARKED_AS_PAID = 'marked_as_paid'
     CANCELED = 'canceled'
     ORDER_FULLY_PAID = 'order_paid'
@@ -199,6 +200,12 @@ def display_order_event(order_event):
                 'fulfillment': params['composed_id'],
                 'tracking_number': params['tracking_number'],
                 'user_name': order_event.user}
+    if event_type == OrderEvents.OVERSOLD_ITEMS.value:
+        return npgettext_lazy(
+            'Dashboard message related to an order',
+            '%(quantity)d line item oversold on this order.',
+            '%(quantity)d line items oversold on this order.') % {
+                'quantity': len(params['oversold_items'])}
 
     if event_type == OrderEvents.OTHER.value:
         return order_event.parameters['message']

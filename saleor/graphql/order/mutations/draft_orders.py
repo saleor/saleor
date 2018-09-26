@@ -3,10 +3,11 @@ from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
 
 from ....account.models import Address
+from ....core.exceptions import InsufficientStock
 from ....core.utils.taxes import ZERO_TAXED_MONEY
 from ....order import OrderEvents, OrderStatus, models
 from ....order.utils import (
-    add_variant_to_order, deallocate_stock, recalculate_order)
+    add_variant_to_order, allocate_stock, recalculate_order)
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import Decimal, Error
@@ -116,7 +117,8 @@ class DraftOrderCreate(ModelMutation):
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
                 add_variant_to_order(
-                    instance, variant, quantity, allow_overselling=True)
+                    instance, variant, quantity, allow_overselling=True,
+                    track_inventory=False)
         recalculate_order(instance)
 
 
@@ -202,6 +204,19 @@ class DraftOrderComplete(BaseMutation):
             if order.shipping_address:
                 order.shipping_address.delete()
         order.save()
+        oversold_items = []
+        for line in order:
+            try:
+                line.variant.check_quantity(line.quantity)
+                allocate_stock(line.variant, line.quantity)
+            except InsufficientStock:
+                allocate_stock(line.variant, line.variant.quantity_available)
+                oversold_items.append(str(line))
+        if oversold_items:
+            order.events.create(
+                type=OrderEvents.OVERSOLD_ITEMS.value,
+                user=info.context.user,
+                parameters={'oversold_items': oversold_items})
         order.events.create(
             type=OrderEvents.PLACED_FROM_DRAFT.value,
             user=info.context.user)
@@ -282,9 +297,6 @@ class DraftOrderLineDelete(BaseMutation):
             cls.add_error(
                 errors, 'id', 'Only draft orders can be edited.')
         if not errors:
-            variant = line.variant
-            if variant.track_inventory:
-                deallocate_stock(variant, line.quantity)
             db_id = line.id
             line.delete()
             line.id = db_id

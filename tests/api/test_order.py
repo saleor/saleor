@@ -16,7 +16,7 @@ from saleor.graphql.order.mutations.orders import (
 from saleor.graphql.order.types import OrderEventsEmailsEnum, PaymentStatusEnum
 from saleor.order import (
     CustomPaymentChoices, OrderEvents, OrderEventsEmails, OrderStatus)
-from saleor.order.models import Order, Payment
+from saleor.order.models import Order, Payment, OrderEvent
 from saleor.shipping.models import ShippingMethod
 from tests.utils import get_graphql_content
 from .utils import assert_no_permission
@@ -359,7 +359,7 @@ def test_check_for_draft_order_errors_no_order_lines(order):
     assert errors[0].message == 'Could not create order without any products.'
 
 
-def test_draft_order_complete(admin_api_client, draft_order):
+def test_draft_order_complete(admin_api_client, admin_user, draft_order):
     order = draft_order
     query = """
         mutation draftComplete($id: ID!) {
@@ -370,6 +370,12 @@ def test_draft_order_complete(admin_api_client, draft_order):
             }
         }
         """
+    line_1, line_2 = order.lines.order_by('-quantity').all()
+    line_1.quantity = 1
+    line_1.save(update_fields=['quantity'])
+    assert line_1.variant.quantity_available >= line_1.quantity
+    assert line_2.variant.quantity_available < line_2.quantity
+
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = json.dumps({'id': order_id})
     response = admin_api_client.post(
@@ -379,6 +385,15 @@ def test_draft_order_complete(admin_api_client, draft_order):
     data = content['data']['draftOrderComplete']['order']
     order.refresh_from_db()
     assert data['status'] == order.status.upper()
+    missing_stock_event, draft_placed_event = OrderEvent.objects.all()
+
+    assert missing_stock_event.user == admin_user
+    assert missing_stock_event.type == OrderEvents.OVERSOLD_ITEMS.value
+    assert missing_stock_event.parameters == {'oversold_items': [str(line_2)]}
+
+    assert draft_placed_event.user == admin_user
+    assert draft_placed_event.type == OrderEvents.PLACED_FROM_DRAFT.value
+    assert draft_placed_event.parameters == {}
 
 
 DRAFT_ORDER_LINE_CREATE_MUTATION = """
@@ -555,7 +570,6 @@ def test_draft_order_line_remove(
         draft_order, permission_manage_orders, staff_api_client):
     order = draft_order
     line = order.lines.first()
-    variant = line.variant
     line_id = graphene.Node.to_global_id('OrderLine', line.id)
     variables = json.dumps({'id': line_id})
 
@@ -573,8 +587,7 @@ def test_draft_order_line_remove(
     content = get_graphql_content(response)
     data = content['data']['draftOrderLineDelete']
     assert data['orderLine']['id'] == line_id
-    variant.refresh_from_db()
-    assert variant.quantity_allocated == 0
+    assert line not in order.lines.all()
 
 
 def test_require_draft_order_when_removing_lines(
