@@ -389,6 +389,11 @@ type AttributeDelete {
   attribute: Attribute
 }
 
+input AttributeInput {
+  slug: String!
+  name: String!
+}
+
 scalar AttributeScalar
 
 type AttributeUpdate {
@@ -437,16 +442,6 @@ enum AttributeValueType {
 type AttributeValueUpdate {
   errors: [Error]
   attributeValue: AttributeValue
-}
-
-input AttributeValueUpdateInput {
-  slug: String!
-  name: String!
-}
-
-input AttributesInput {
-  slug: String!
-  name: String!
 }
 
 type AuthorizationKey {
@@ -901,7 +896,7 @@ type Mutations {
   passwordReset(email: String!): PasswordReset
   attributeValueCreate(input: AttributeValueCreateInput!): AttributeValueCreate
   attributeValueDelete(id: ID!): AttributeValueDelete
-  attributeValueUpdate(id: ID!, input: AttributeValueUpdateInput!): AttributeValueUpdate
+  attributeValueUpdate(id: ID!, input: AttributeInput!): AttributeValueUpdate
   categoryCreate(input: CategoryInput!): CategoryCreate
   categoryDelete(id: ID!): CategoryDelete
   categoryUpdate(id: ID!, input: CategoryInput!): CategoryUpdate
@@ -949,7 +944,7 @@ type Mutations {
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
   attributeCreate(input: AttributeCreateInput!): AttributeCreate
   attributeDelete(id: ID!): AttributeDelete
-  attributeUpdate(id: ID!, input: AttributesInput!): AttributeUpdate
+  attributeUpdate(id: ID!, input: AttributeInput!): AttributeUpdate
   productCreate(input: ProductCreateInput!): ProductCreate
   productDelete(id: ID!): ProductDelete
   productUpdate(id: ID!, input: ProductInput!): ProductUpdate

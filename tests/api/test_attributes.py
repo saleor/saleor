@@ -161,7 +161,7 @@ def test_create_attribute_and_attribute_values_errors(admin_api_client):
     assert errors
     assert errors[0]['field'] == 'values'
     assert errors[0]['message'] == 'Duplicated attribute value names provided.'
-    assert errors[1]['field'] == 'values-slug'
+    assert errors[1]['field'] == 'values:slug'
     assert errors[1]['message'] == (
         'Enter a valid \'slug\' consisting of letters, '
         'numbers, underscores or hyphens.')
