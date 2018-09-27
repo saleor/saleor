@@ -84,10 +84,11 @@ class AuthProvider extends React.Component<
       if (user) {
         setAuthToken(tokenAuth.data.tokenCreate.token, this.state.persistToken);
       }
-    }
-    if (tokenVerify.data && tokenVerify.data.tokenVerify.user) {
-      const user = tokenVerify.data.tokenVerify.user;
-      this.setState({ user });
+    } else {
+      if (tokenVerify.data && tokenVerify.data.tokenVerify.user) {
+        const user = tokenVerify.data.tokenVerify.user;
+        this.setState({ user });
+      }
     }
   }
 
