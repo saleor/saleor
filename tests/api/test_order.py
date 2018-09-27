@@ -30,11 +30,7 @@ def test_orderline_query(admin_api_client, fulfilled_order):
                 edges {
                     node {
                         lines {
-                            edges {
-                                node {
-                                    thumbnailUrl(size: 540)
-                                }
-                            }
+                            thumbnailUrl(size: 540)
                         }
                     }
                 }
@@ -50,8 +46,7 @@ def test_orderline_query(admin_api_client, fulfilled_order):
     content = get_graphql_content(response)
     assert 'errors' not in content
     order_data = content['data']['orders']['edges'][0]['node']
-    lines_data = order_data['lines']['edges']
-    thumbnails = [l['node']['thumbnailUrl'] for l in lines_data]
+    thumbnails = [l['thumbnailUrl'] for l in order_data['lines']]
     assert len(thumbnails) == 2
     assert None in thumbnails
     assert '/static/images/placeholder540x540.png' in thumbnails
@@ -77,7 +72,7 @@ def test_order_query(admin_api_client, fulfilled_order, shipping_zone):
                         }
                     }
                     lines {
-                        totalCount
+                        id
                     }
                     fulfillments {
                         fulfillmentOrder
@@ -123,7 +118,7 @@ def test_order_query(admin_api_client, fulfilled_order, shipping_zone):
     assert order_data['userEmail'] == order.user_email
     expected_price = order_data['shippingPrice']['gross']['amount']
     assert expected_price == order.shipping_price.gross.amount
-    assert order_data['lines']['totalCount'] == order.lines.count()
+    assert len(order_data['lines']) == order.lines.count()
     fulfillment = order.fulfillments.first().fulfillment_order
     fulfillment_order = order_data['fulfillments'][0]['fulfillmentOrder']
     assert fulfillment_order == fulfillment
@@ -241,13 +236,9 @@ def test_draft_order_create(
                         }
                         discountName
                         lines {
-                            edges {
-                                node {
-                                    productName
-                                    productSku
-                                    quantity
-                                }
-                            }
+                            productName
+                            productSku
+                            quantity
                         }
                         status
                         voucher {
