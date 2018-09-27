@@ -79,8 +79,8 @@ export interface OrderCancel_orderCancel_order_fulfillments_lines_edges_node_ord
 export interface OrderCancel_orderCancel_order_fulfillments_lines_edges_node {
   __typename: "FulfillmentLine";
   id: string;
+  orderLine: OrderCancel_orderCancel_order_fulfillments_lines_edges_node_orderLine | null;
   quantity: number;
-  orderLine: OrderCancel_orderCancel_order_fulfillments_lines_edges_node_orderLine;
 }
 
 export interface OrderCancel_orderCancel_order_fulfillments_lines_edges {

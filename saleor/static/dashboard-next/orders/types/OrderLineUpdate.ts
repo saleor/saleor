@@ -85,8 +85,8 @@ export interface OrderLineUpdate_draftOrderLineUpdate_order_fulfillments_lines_e
 export interface OrderLineUpdate_draftOrderLineUpdate_order_fulfillments_lines_edges_node {
   __typename: "FulfillmentLine";
   id: string;
+  orderLine: OrderLineUpdate_draftOrderLineUpdate_order_fulfillments_lines_edges_node_orderLine | null;
   quantity: number;
-  orderLine: OrderLineUpdate_draftOrderLineUpdate_order_fulfillments_lines_edges_node_orderLine;
 }
 
 export interface OrderLineUpdate_draftOrderLineUpdate_order_fulfillments_lines_edges {

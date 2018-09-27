@@ -106,8 +106,7 @@ class ProductQuerySet(models.QuerySet):
 
     def visible_to_user(self, user):
         has_access_to_all = (
-            user.is_authenticated and user.is_active and
-            user.has_perm('products.manage_products'))
+            user.is_active and user.has_perm('product.manage_products'))
         if has_access_to_all:
             return self.all()
         return self.available_products()
@@ -438,8 +437,7 @@ class CollectionQuerySet(models.QuerySet):
 
     def visible_to_user(self, user):
         has_access_to_all = (
-            user.is_authenticated and user.is_active and
-            user.has_perm('products.manage_products'))
+            user.is_active and user.has_perm('product.manage_products'))
         if has_access_to_all:
             return self.all()
         return self.public()
