@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load utils %}
 {% load staticfiles %}
+{% load status %}
 
 <div class="card">
   <div class="card-content">
@@ -24,6 +25,7 @@
 
           {% trans "Points to" context "Menu items list table header points to" as label %}
           <th>{{ label }}</th>
+          <th>{% trans "Status" context "Menu items status"%}</th>
 
           <th></th>
         </tr>
@@ -39,6 +41,15 @@
             </td>
             <td>
               {{ item.destination_display }}
+            </td>
+            <td>
+              {% if item.is_public %}
+                <div class="label label-success">{% trans "Published" context "Menu items status"%}</div>
+              {% elif item.page %}
+                {% render_page_availability item.page %}
+              {% else %}
+                <div class="label label-danger">{% trans "Not published" context "Menu items status"%}</div>
+              {% endif %}
             </td>
             <td class="right-align ignore-link">
               <a href="{% url 'dashboard:menu-item-edit' menu_pk=menu.pk item_pk=item.pk %}" class="btn-flat waves-effect">

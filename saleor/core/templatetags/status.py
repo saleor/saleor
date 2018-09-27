@@ -1,5 +1,3 @@
-import datetime
-
 from django.template import Library
 from payments import PaymentStatus
 
@@ -64,12 +62,8 @@ def render_variant_availability_status(variant):
 
 @register.inclusion_tag('dashboard/includes/_page_availability.html')
 def render_page_availability(page):
-    today = datetime.date.today()
-    is_published = (
-        page.is_visible and (
-            page.available_on is None or page.available_on <= today))
-    ctx = {'is_published': is_published, 'page': page}
-    if is_published:
+    ctx = {'is_published': page.is_published, 'page': page}
+    if page.is_published:
         label_cls = LABEL_SUCCESS
         ctx.update({'label_cls': label_cls})
     return ctx
