@@ -281,3 +281,31 @@ def test_query_default_country(user_api_client, settings):
     data = content['data']['shop']['defaultCountry']
     assert data['code'] == settings.DEFAULT_COUNTRY
     assert data['country'] == 'United States of America'
+
+
+def test_query_geolocalization(user_api_client):
+    query = """
+        query {
+            shop {
+                geolocalization {
+                    country {
+                        code
+                    }
+                }
+            }
+        }
+    """
+    GERMAN_IP = '79.222.222.22'
+    response = user_api_client.post(
+        reverse('api'), {'query': query}, HTTP_X_FORWARDED_FOR=GERMAN_IP)
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['shop']['geolocalization']
+    assert data['country']['code'] == 'DE'
+
+    response = user_api_client.post(
+        reverse('api'), {'query': query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['shop']['geolocalization']
+    assert data['country'] is None
