@@ -108,22 +108,18 @@ export const product = (placeholderImage: string) => ({
     name: "Versatile",
     seoDescription: "Omnis rerum ea. Fugit dignissimos modi est rerum",
     seoTitle: "Ergonomic Plastic Bacon",
-    variantAttributes: {
-      edges: [
-        {
-          node: {
-            id: "pta18161",
-            name: "Color",
-            slug: "color",
-            sortNumber: 0,
-            values: [
-              { id: "ptvav47282", sortNumber: 0, name: "Black", slug: "black" },
-              { id: "ptvav17253", sortNumber: 1, name: "White", slug: "white" }
-            ]
-          }
-        }
-      ]
-    }
+    variantAttributes: [
+      {
+        id: "pta18161",
+        name: "Color",
+        slug: "color",
+        sortNumber: 0,
+        values: [
+          { id: "ptvav47282", sortNumber: 0, name: "Black", slug: "black" },
+          { id: "ptvav17253", sortNumber: 1, name: "White", slug: "white" }
+        ]
+      }
+    ]
   },
   purchaseCost: {
     start: { currency: "NZD", amount: 339.39, localized: "339.39 NZD" },
