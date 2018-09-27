@@ -5,6 +5,7 @@ import { productTypeListUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import i18n from "../../i18n";
+import { maybe } from "../../misc";
 import ProductTypeDetailsPage, {
   ProductTypeForm
 } from "../components/ProductTypeDetailsPage";
@@ -101,26 +102,14 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                   : undefined
                               }
                               productType={data ? data.productType : undefined}
-                              productAttributes={
-                                data &&
-                                data.productType &&
-                                data.productType.productAttributes &&
-                                data.productType.productAttributes.edges
-                                  ? data.productType.productAttributes.edges.map(
-                                      edge => edge.node
-                                    )
-                                  : undefined
-                              }
-                              variantAttributes={
-                                data &&
-                                data.productType &&
-                                data.productType.variantAttributes &&
-                                data.productType.variantAttributes.edges
-                                  ? data.productType.variantAttributes.edges.map(
-                                      edge => edge.node
-                                    )
-                                  : undefined
-                              }
+                              productAttributes={maybe(
+                                () => data.productType.productAttributes,
+                                []
+                              )}
+                              variantAttributes={maybe(
+                                () => data.productType.variantAttributes,
+                                []
+                              )}
                               saveButtonBarState={
                                 loading ? "loading" : "default"
                               }

@@ -13,38 +13,18 @@ export interface ProductTypeUpdate_productTypeUpdate_errors {
   message: string | null;
 }
 
-export interface ProductTypeUpdate_productTypeUpdate_productType_productAttributes_edges_node {
-  __typename: "Attribute";
-  id: string;
-  slug: string | null;
-  name: string | null;
-}
-
-export interface ProductTypeUpdate_productTypeUpdate_productType_productAttributes_edges {
-  __typename: "AttributeCountableEdge";
-  node: ProductTypeUpdate_productTypeUpdate_productType_productAttributes_edges_node;
-}
-
 export interface ProductTypeUpdate_productTypeUpdate_productType_productAttributes {
-  __typename: "AttributeCountableConnection";
-  edges: ProductTypeUpdate_productTypeUpdate_productType_productAttributes_edges[];
-}
-
-export interface ProductTypeUpdate_productTypeUpdate_productType_variantAttributes_edges_node {
   __typename: "Attribute";
   id: string;
   slug: string | null;
   name: string | null;
-}
-
-export interface ProductTypeUpdate_productTypeUpdate_productType_variantAttributes_edges {
-  __typename: "AttributeCountableEdge";
-  node: ProductTypeUpdate_productTypeUpdate_productType_variantAttributes_edges_node;
 }
 
 export interface ProductTypeUpdate_productTypeUpdate_productType_variantAttributes {
-  __typename: "AttributeCountableConnection";
-  edges: ProductTypeUpdate_productTypeUpdate_productType_variantAttributes_edges[];
+  __typename: "Attribute";
+  id: string;
+  slug: string | null;
+  name: string | null;
 }
 
 export interface ProductTypeUpdate_productTypeUpdate_productType {
@@ -53,8 +33,8 @@ export interface ProductTypeUpdate_productTypeUpdate_productType {
   name: string;
   hasVariants: boolean;
   taxRate: TaxRateType | null;
-  productAttributes: ProductTypeUpdate_productTypeUpdate_productType_productAttributes | null;
-  variantAttributes: ProductTypeUpdate_productTypeUpdate_productType_variantAttributes | null;
+  productAttributes: (ProductTypeUpdate_productTypeUpdate_productType_productAttributes | null)[] | null;
+  variantAttributes: (ProductTypeUpdate_productTypeUpdate_productType_variantAttributes | null)[] | null;
   isShippingRequired: boolean;
 }
 

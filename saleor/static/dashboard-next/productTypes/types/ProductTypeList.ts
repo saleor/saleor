@@ -5,36 +5,34 @@
 // GraphQL query operation: ProductTypeList
 // ====================================================
 
-export interface ProductTypeList_productTypes_edges_node_productAttributes_edges_node {
-  __typename: "Attribute";
+export interface ProductTypeList_productTypes_edges_node_productAttributes_values {
+  __typename: "AttributeValue";
   id: string;
   name: string | null;
-}
-
-export interface ProductTypeList_productTypes_edges_node_productAttributes_edges {
-  __typename: "AttributeCountableEdge";
-  node: ProductTypeList_productTypes_edges_node_productAttributes_edges_node;
+  slug: string | null;
 }
 
 export interface ProductTypeList_productTypes_edges_node_productAttributes {
-  __typename: "AttributeCountableConnection";
-  edges: ProductTypeList_productTypes_edges_node_productAttributes_edges[];
-}
-
-export interface ProductTypeList_productTypes_edges_node_variantAttributes_edges_node {
   __typename: "Attribute";
   id: string;
   name: string | null;
+  slug: string | null;
+  values: (ProductTypeList_productTypes_edges_node_productAttributes_values | null)[] | null;
 }
 
-export interface ProductTypeList_productTypes_edges_node_variantAttributes_edges {
-  __typename: "AttributeCountableEdge";
-  node: ProductTypeList_productTypes_edges_node_variantAttributes_edges_node;
+export interface ProductTypeList_productTypes_edges_node_variantAttributes_values {
+  __typename: "AttributeValue";
+  id: string;
+  name: string | null;
+  slug: string | null;
 }
 
 export interface ProductTypeList_productTypes_edges_node_variantAttributes {
-  __typename: "AttributeCountableConnection";
-  edges: ProductTypeList_productTypes_edges_node_variantAttributes_edges[];
+  __typename: "Attribute";
+  id: string;
+  name: string | null;
+  slug: string | null;
+  values: (ProductTypeList_productTypes_edges_node_variantAttributes_values | null)[] | null;
 }
 
 export interface ProductTypeList_productTypes_edges_node {
@@ -42,8 +40,8 @@ export interface ProductTypeList_productTypes_edges_node {
   id: string;
   name: string;
   hasVariants: boolean;
-  productAttributes: ProductTypeList_productTypes_edges_node_productAttributes | null;
-  variantAttributes: ProductTypeList_productTypes_edges_node_variantAttributes | null;
+  productAttributes: (ProductTypeList_productTypes_edges_node_productAttributes | null)[] | null;
+  variantAttributes: (ProductTypeList_productTypes_edges_node_variantAttributes | null)[] | null;
 }
 
 export interface ProductTypeList_productTypes_edges {

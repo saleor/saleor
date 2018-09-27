@@ -297,18 +297,14 @@ export const productCreateQuery = gql`
           name
           hasVariants
           productAttributes {
-            edges {
-              node {
-                id
-                slug
-                name
-                values {
-                  id
-                  sortOrder
-                  name
-                  slug
-                }
-              }
+            id
+            slug
+            name
+            values {
+              id
+              sortOrder
+              name
+              slug
             }
           }
         }
@@ -352,18 +348,14 @@ export const productVariantCreateQuery = gql`
       productType {
         id
         variantAttributes {
-          edges {
-            node {
-              id
-              slug
-              name
-              values {
-                id
-                sortOrder
-                name
-                slug
-              }
-            }
+          id
+          slug
+          name
+          values {
+            id
+            sortOrder
+            name
+            slug
           }
         }
       }

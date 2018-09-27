@@ -7,7 +7,7 @@ import {
 } from "../";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
-import { createPaginationData, createPaginationState } from "../../misc";
+import { createPaginationData, createPaginationState, maybe } from "../../misc";
 import ProductTypeListPage from "../components/ProductTypeListPage";
 import { productTypeListQuery, TypedProductTypeListQuery } from "../queries";
 
@@ -52,11 +52,9 @@ export const ProductTypeList: React.StatelessComponent<
             return (
               <ProductTypeListPage
                 disabled={loading}
-                productTypes={
-                  data && data.productTypes
-                    ? data.productTypes.edges.map(edge => edge.node)
-                    : undefined
-                }
+                productTypes={maybe(() =>
+                  data.productTypes.edges.map(edge => edge.node)
+                )}
                 pageInfo={pageInfo}
                 onAdd={() => navigate(productTypeAddUrl)}
                 onNextPage={loadNextPage}
