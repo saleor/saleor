@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderUpdateInput, AddressCountry } from "./../../types/globalTypes";
+import { OrderUpdateInput } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderUpdate
@@ -13,13 +13,19 @@ export interface OrderUpdate_orderUpdate_errors {
   message: string | null;
 }
 
+export interface OrderUpdate_orderUpdate_order_billingAddress_country {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface OrderUpdate_orderUpdate_order_billingAddress {
   __typename: "Address";
   id: string;
   city: string;
   cityArea: string;
   companyName: string;
-  country: AddressCountry;
+  country: OrderUpdate_orderUpdate_order_billingAddress_country;
   countryArea: string;
   firstName: string;
   lastName: string;
@@ -29,13 +35,19 @@ export interface OrderUpdate_orderUpdate_order_billingAddress {
   streetAddress2: string;
 }
 
+export interface OrderUpdate_orderUpdate_order_shippingAddress_country {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface OrderUpdate_orderUpdate_order_shippingAddress {
   __typename: "Address";
   id: string;
   city: string;
   cityArea: string;
   companyName: string;
-  country: AddressCountry;
+  country: OrderUpdate_orderUpdate_order_shippingAddress_country;
   countryArea: string;
   firstName: string;
   lastName: string;

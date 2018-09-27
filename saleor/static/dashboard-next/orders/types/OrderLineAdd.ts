@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderLineCreateInput, AddressCountry, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderLineCreateInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderLineAdd
@@ -13,13 +13,19 @@ export interface OrderLineAdd_draftOrderLineCreate_errors {
   message: string | null;
 }
 
+export interface OrderLineAdd_draftOrderLineCreate_order_billingAddress_country {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface OrderLineAdd_draftOrderLineCreate_order_billingAddress {
   __typename: "Address";
   id: string;
   city: string;
   cityArea: string;
   companyName: string;
-  country: AddressCountry;
+  country: OrderLineAdd_draftOrderLineCreate_order_billingAddress_country;
   countryArea: string;
   firstName: string;
   lastName: string;
@@ -117,13 +123,19 @@ export interface OrderLineAdd_draftOrderLineCreate_order_lines {
   edges: OrderLineAdd_draftOrderLineCreate_order_lines_edges[];
 }
 
+export interface OrderLineAdd_draftOrderLineCreate_order_shippingAddress_country {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface OrderLineAdd_draftOrderLineCreate_order_shippingAddress {
   __typename: "Address";
   id: string;
   city: string;
   cityArea: string;
   companyName: string;
-  country: AddressCountry;
+  country: OrderLineAdd_draftOrderLineCreate_order_shippingAddress_country;
   countryArea: string;
   firstName: string;
   lastName: string;

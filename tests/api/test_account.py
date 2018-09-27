@@ -110,9 +110,11 @@ def test_query_user(admin_api_client, customer_user):
                 city
                 cityArea
                 postalCode
-                country
                 countryArea
                 phone
+                country {
+                    code
+                }
             }
         }
     }
@@ -139,7 +141,7 @@ def test_query_user(admin_api_client, customer_user):
     assert address['city'] == user_address.city
     assert address['cityArea'] == user_address.city_area
     assert address['postalCode'] == user_address.postal_code
-    assert address['country'] == user_address.country.code
+    assert address['country']['code'] == user_address.country.code
     assert address['countryArea'] == user_address.country_area
     assert address['phone'] == user_address.phone.as_e164
 
@@ -689,7 +691,9 @@ def test_create_address_mutation(admin_api_client, customer_user):
          address {
             id
             city
-            country
+            country {
+                code
+            }
          }
         }
     }
@@ -703,7 +707,7 @@ def test_create_address_mutation(admin_api_client, customer_user):
     assert content['data']['addressCreate']['errors'] == []
     address_response = content['data']['addressCreate']['address']
     assert address_response['city'] == 'Dummy'
-    assert address_response['country'] == 'PL'
+    assert address_response['country']['code'] == 'PL'
     address_obj = Address.objects.get(city='Dummy')
     assert address_obj.user_addresses.first() == customer_user
 

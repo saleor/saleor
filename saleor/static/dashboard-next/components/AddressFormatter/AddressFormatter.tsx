@@ -34,8 +34,8 @@ const AddressFormatter: React.StatelessComponent<AddressFormatterProps> = ({
       </Typography>
       <Typography component="span">
         {address.countryArea
-          ? address.countryArea + ", " + address.country
-          : address.country}
+          ? address.countryArea + ", " + address.country.country
+          : address.country.country}
       </Typography>
     </address>
   );

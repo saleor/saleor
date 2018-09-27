@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderLineInput, AddressCountry, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderLineInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderLineUpdate
@@ -13,13 +13,19 @@ export interface OrderLineUpdate_draftOrderLineUpdate_errors {
   message: string | null;
 }
 
+export interface OrderLineUpdate_draftOrderLineUpdate_order_billingAddress_country {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface OrderLineUpdate_draftOrderLineUpdate_order_billingAddress {
   __typename: "Address";
   id: string;
   city: string;
   cityArea: string;
   companyName: string;
-  country: AddressCountry;
+  country: OrderLineUpdate_draftOrderLineUpdate_order_billingAddress_country;
   countryArea: string;
   firstName: string;
   lastName: string;
@@ -117,13 +123,19 @@ export interface OrderLineUpdate_draftOrderLineUpdate_order_lines {
   edges: OrderLineUpdate_draftOrderLineUpdate_order_lines_edges[];
 }
 
+export interface OrderLineUpdate_draftOrderLineUpdate_order_shippingAddress_country {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface OrderLineUpdate_draftOrderLineUpdate_order_shippingAddress {
   __typename: "Address";
   id: string;
   city: string;
   cityArea: string;
   companyName: string;
-  country: AddressCountry;
+  country: OrderLineUpdate_draftOrderLineUpdate_order_shippingAddress_country;
   countryArea: string;
   firstName: string;
   lastName: string;

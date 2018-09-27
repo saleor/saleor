@@ -1,11 +1,15 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { AddressCountry } from "./../../types/globalTypes";
-
 // ====================================================
 // GraphQL fragment: AddressFragment
 // ====================================================
+
+export interface AddressFragment_country {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
 
 export interface AddressFragment {
   __typename: "Address";
@@ -13,7 +17,7 @@ export interface AddressFragment {
   city: string;
   cityArea: string;
   companyName: string;
-  country: AddressCountry;
+  country: AddressFragment_country;
   countryArea: string;
   firstName: string;
   lastName: string;

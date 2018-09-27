@@ -40,7 +40,10 @@ export interface AddressType {
   city: string;
   cityArea: string;
   companyName: string;
+  country: {
+    code: string;
   country: string;
+  };
   countryArea: string;
   firstName: string;
   id: string;
@@ -113,7 +116,7 @@ export const transformAddressToForm = (data: AddressType) => ({
   city: maybe(() => data.city, ""),
   cityArea: maybe(() => data.cityArea, ""),
   companyName: maybe(() => data.companyName, ""),
-  country: maybe(() => data.country, ""),
+  country: maybe(() => data.country.code, ""),
   countryArea: maybe(() => data.countryArea, ""),
   firstName: maybe(() => data.firstName, ""),
   lastName: maybe(() => data.lastName, ""),

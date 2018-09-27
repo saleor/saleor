@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { AddressCountry, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderLineDelete
@@ -13,13 +13,19 @@ export interface OrderLineDelete_draftOrderLineDelete_errors {
   message: string | null;
 }
 
+export interface OrderLineDelete_draftOrderLineDelete_order_billingAddress_country {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface OrderLineDelete_draftOrderLineDelete_order_billingAddress {
   __typename: "Address";
   id: string;
   city: string;
   cityArea: string;
   companyName: string;
-  country: AddressCountry;
+  country: OrderLineDelete_draftOrderLineDelete_order_billingAddress_country;
   countryArea: string;
   firstName: string;
   lastName: string;
@@ -117,13 +123,19 @@ export interface OrderLineDelete_draftOrderLineDelete_order_lines {
   edges: OrderLineDelete_draftOrderLineDelete_order_lines_edges[];
 }
 
+export interface OrderLineDelete_draftOrderLineDelete_order_shippingAddress_country {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface OrderLineDelete_draftOrderLineDelete_order_shippingAddress {
   __typename: "Address";
   id: string;
   city: string;
   cityArea: string;
   companyName: string;
-  country: AddressCountry;
+  country: OrderLineDelete_draftOrderLineDelete_order_shippingAddress_country;
   countryArea: string;
   firstName: string;
   lastName: string;
