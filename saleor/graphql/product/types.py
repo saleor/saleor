@@ -254,6 +254,10 @@ class ProductType(CountableDjangoObjectType):
         filterset_class=ProductFilterSet,
         description='List of products of this type.')
     tax_rate = TaxRateType(description='A type of tax rate.')
+    variant_attributes = graphene.List(
+        Attribute, description='Variant attributes of that product type.')
+    product_attributes = graphene.List(
+        Attribute, description='Product attributes of that product type.')
 
     class Meta:
         description = """Represents a type of product. It defines what
@@ -266,6 +270,12 @@ class ProductType(CountableDjangoObjectType):
         user = info.context.user
         return products_with_details(
             user=user).filter(product_type=self).distinct()
+
+    def resolve_variant_attributes(self, info):
+        return self.variant_attributes.prefetch_related('values')
+
+    def resolve_product_attributes(self, info):
+        return self.product_attributes.prefetch_related('values')
 
 
 class Collection(CountableDjangoObjectType):
