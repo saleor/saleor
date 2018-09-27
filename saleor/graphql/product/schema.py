@@ -1,10 +1,9 @@
 import graphene
-from graphene_django.filter import DjangoFilterConnectionField
 from graphql_jwt.decorators import permission_required
 
 from ..descriptions import DESCRIPTIONS
+from ..core.fields import PrefetchingConnectionField
 from ..core.types import ReportingPeriod
-from .filters import ProductFilterSet
 from .mutations.attributes import (
     AttributeValueCreate, AttributeValueDelete,
     AttributeValueUpdate, AttributeCreate, AttributeDelete,
@@ -23,17 +22,17 @@ from .resolvers import (
     resolve_products, resolve_product_types, resolve_product_variants,
     resolve_report_product_sales)
 from .types import (
-    Category, Collection, Product, Attribute, ProductType,
+    Category, Collection, Product, Attribute, AttributeScalar, ProductType,
     ProductVariant, StockAvailability)
 
 
 class ProductQueries(graphene.ObjectType):
-    attributes = DjangoFilterConnectionField(
+    attributes = PrefetchingConnectionField(
         Attribute,
         query=graphene.String(description=DESCRIPTIONS['attributes']),
         in_category=graphene.Argument(graphene.ID),
         description='List of the shop\'s attributes.')
-    categories = DjangoFilterConnectionField(
+    categories = PrefetchingConnectionField(
         Category, query=graphene.String(
             description=DESCRIPTIONS['category']),
         level=graphene.Argument(graphene.Int),
@@ -44,15 +43,23 @@ class ProductQueries(graphene.ObjectType):
     collection = graphene.Field(
         Collection, id=graphene.Argument(graphene.ID),
         description='Lookup a collection by ID.')
-    collections = DjangoFilterConnectionField(
+    collections = PrefetchingConnectionField(
         Collection, query=graphene.String(
             description=DESCRIPTIONS['collection']),
         description='List of the shop\'s collections.')
     product = graphene.Field(
         Product, id=graphene.Argument(graphene.ID),
         description='Lookup a product by ID.')
-    products = DjangoFilterConnectionField(
-        Product, filterset_class=ProductFilterSet,
+    products = PrefetchingConnectionField(
+        Product,
+        attributes=graphene.List(
+            AttributeScalar, description='Filter products by attributes.'),
+        category=graphene.ID(description='Filter products by category.'),
+        price_lte=graphene.Float(
+            description='Filter by price less than or equal to the given value.'),
+        price_gte=graphene.Float(
+            description='Filter by price greater than or equal to the given value.'),
+        sort_by=graphene.String(description='Sort products.'),
         query=graphene.String(description=DESCRIPTIONS['product']),
         stock_availability=graphene.Argument(
             StockAvailability,
@@ -61,15 +68,15 @@ class ProductQueries(graphene.ObjectType):
     product_type = graphene.Field(
         ProductType, id=graphene.Argument(graphene.ID),
         description='Lookup a product type by ID.')
-    product_types = DjangoFilterConnectionField(
+    product_types = PrefetchingConnectionField(
         ProductType, description='List of the shop\'s product types.')
     product_variant = graphene.Field(
         ProductVariant, id=graphene.Argument(graphene.ID),
         description='Lookup a variant by ID.')
-    product_variants = DjangoFilterConnectionField(
+    product_variants = PrefetchingConnectionField(
         ProductVariant, ids=graphene.List(graphene.ID),
         description='Lookup multiple variants by ID')
-    report_product_sales = DjangoFilterConnectionField(
+    report_product_sales = PrefetchingConnectionField(
         ProductVariant,
         period=graphene.Argument(
             ReportingPeriod, required=True, description='Span of time.'),
@@ -94,15 +101,17 @@ class ProductQueries(graphene.ObjectType):
         return graphene.Node.get_node_from_global_id(info, id, Product)
 
     def resolve_products(
-            self, info, category_id=None, stock_availability=None, query=None,
-            **kwargs):
-        return resolve_products(info, category_id, stock_availability, query)
+            self, info, attributes=None, category=None, stock_availability=None,
+            query=None, price_lte=None, price_gte=None, sort_by=None, **kwargs):
+        return resolve_products(
+            info, attributes, category, stock_availability, query,
+            price_lte, price_gte, sort_by)
 
     def resolve_product_type(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ProductType)
 
     def resolve_product_types(self, info, **kwargs):
-        return resolve_product_types()
+        return resolve_product_types(info)
 
     def resolve_product_variant(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ProductVariant)

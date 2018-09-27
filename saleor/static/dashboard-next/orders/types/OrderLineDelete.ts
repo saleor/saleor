@@ -85,8 +85,8 @@ export interface OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_e
 export interface OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_edges_node {
   __typename: "FulfillmentLine";
   id: string;
+  orderLine: OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_edges_node_orderLine | null;
   quantity: number;
-  orderLine: OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_edges_node_orderLine;
 }
 
 export interface OrderLineDelete_draftOrderLineDelete_order_fulfillments_lines_edges {

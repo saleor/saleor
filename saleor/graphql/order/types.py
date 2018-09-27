@@ -107,6 +107,35 @@ class FulfillmentLine(CountableDjangoObjectType):
         return self.order_line
 
 
+class OrderLine(CountableDjangoObjectType):
+    thumbnail_url = graphene.String(
+        description='The URL of a main thumbnail for the ordered product.',
+        size=graphene.Int(description='Size of the image'))
+    unit_price = graphene.Field(
+        TaxedMoney, description='Price of the single item in the order line.')
+
+    class Meta:
+        description = 'Represents order line of particular order.'
+        model = models.OrderLine
+        interfaces = [relay.Node]
+        exclude_fields = [
+            'order', 'unit_price_gross', 'unit_price_net', 'variant']
+
+    @gql_optimizer.resolver_hints(
+        prefetch_related=['variant__images', 'variant__product__images'])
+    def resolve_thumbnail_url(self, info, size=None):
+        if not self.variant_id:
+            return None
+        if not size:
+            size = 255
+        return get_thumbnail(
+            self.variant.get_first_image(), size, method='thumbnail')
+
+    @staticmethod
+    def resolve_unit_price(obj, info):
+        return obj.unit_price
+
+
 class Order(CountableDjangoObjectType):
     fulfillments = gql_optimizer.field(
         graphene.List(
@@ -241,32 +270,3 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_lines(obj, info):
         return obj.lines.all()
-
-
-class OrderLine(CountableDjangoObjectType):
-    thumbnail_url = graphene.String(
-        description='The URL of a main thumbnail for the ordered product.',
-        size=graphene.Int(description='Size of the image'))
-    unit_price = graphene.Field(
-        TaxedMoney, description='Price of the single item in the order line.')
-
-    class Meta:
-        description = 'Represents order line of particular order.'
-        model = models.OrderLine
-        interfaces = [relay.Node]
-        exclude_fields = [
-            'order', 'unit_price_gross', 'unit_price_net', 'variant']
-
-    @gql_optimizer.resolver_hints(
-        prefetch_related=['variant__images', 'variant__product__images'])
-    def resolve_thumbnail_url(self, info, size=None):
-        if not self.variant_id:
-            return None
-        if not size:
-            size = 255
-        return get_thumbnail(
-            self.variant.get_first_image(), size, method='thumbnail')
-
-    @staticmethod
-    def resolve_unit_price(obj, info):
-        return obj.unit_price

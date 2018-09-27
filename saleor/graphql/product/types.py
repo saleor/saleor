@@ -18,8 +18,10 @@ from ..core.types import (
     CountableDjangoObjectType, Money, MoneyRange, ReportingPeriod, TaxedMoney,
     TaxedMoneyRange, TaxRateType)
 from ..utils import get_database_id, reporting_period_to_date
+from .filters import (
+    filter_products_by_attributes, filter_products_by_price, sort_qs)
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
-
+from .scalars import AttributeScalar
 
 COLOR_PATTERN = r'^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$'  # noqa
 color_pattern = re.compile(COLOR_PATTERN)
@@ -340,7 +342,10 @@ class ProductType(CountableDjangoObjectType):
         return self.variant_attributes.all()
 
     def resolve_products(self, info, **kwargs):
-        return self.prefetched_products
+        if hasattr(self, 'prefetched_products'):
+            return self.prefetched_products
+        qs = self.products.visible_to_user(info.context.user)
+        return gql_optimizer.query(qs, info)
 
     def resolve_variant_attributes(self, info):
         return self.variant_attributes.prefetch_related('values')
@@ -352,7 +357,15 @@ class ProductType(CountableDjangoObjectType):
 class Collection(CountableDjangoObjectType):
     products = gql_optimizer.field(
         PrefetchingConnectionField(
-            Product, description='List of collection products.'),
+            Product,
+            attributes=graphene.List(
+                AttributeScalar, description='Filter products by attributes.'),
+            price_lte=graphene.Float(
+                description='Filter by price less than or equal to the given value.'),
+            price_gte=graphene.Float(
+                description='Filter by price greater than or equal to the given value.'),
+            sort_by=graphene.String(description='Sort products.'),
+            description='List of collection products.'),
         prefetch_related=prefetch_products)
     background_image = graphene.Field(Image)
 
@@ -365,14 +378,34 @@ class Collection(CountableDjangoObjectType):
     def resolve_background_image(self, info, **kwargs):
         return self.background_image or None
 
-    def resolve_products(self, info, **kwargs):
-        return self.prefetched_products
+    def resolve_products(
+            self, info, attributes=None, price_lte=None, price_gte=None,
+            sort_by=None, **kwargs):
+
+        # FIXME: Fix prefetching products
+        # if hasattr(self, 'prefetched_products'):
+        #     return self.prefetched_products
+
+        qs = self.products.visible_to_user(info.context.user)
+        qs = filter_products_by_price(qs, price_lte, price_gte)
+        if attributes:
+            qs = filter_products_by_attributes(qs, attributes)
+        qs = sort_qs(qs, sort_by)
+        return gql_optimizer.query(qs, info)
 
 
 class Category(CountableDjangoObjectType):
     products = gql_optimizer.field(
         PrefetchingConnectionField(
-            Product, description='List of products in the category.'),
+            Product,
+            attributes=graphene.List(
+                AttributeScalar, description='Filter products by attributes.'),
+            price_lte=graphene.Float(
+                description='Filter by price less than or equal to the given value.'),
+            price_gte=graphene.Float(
+                description='Filter by price greater than or equal to the given value.'),
+            sort_by=graphene.String(description='Sort products.'),
+            description='List of products in the category.'),
         prefetch_related=prefetch_products)
     url = graphene.String(
         description='The storefront\'s URL for the category.')
@@ -408,8 +441,20 @@ class Category(CountableDjangoObjectType):
     def resolve_url(self, info):
         return self.get_absolute_url()
 
-    def resolve_products(self, info, **kwargs):
-        return self.prefetched_products
+    def resolve_products(
+            self, info, attributes=None, price_lte=None, price_gte=None,
+            sort_by=None, **kwargs):
+
+        # FIXME: Fix prefetching products
+        # if hasattr(self, 'prefetched_products'):
+        #     return self.prefetched_products
+
+        qs = self.products.visible_to_user(info.context.user)
+        qs = filter_products_by_price(qs, price_lte, price_gte)
+        if attributes:
+            qs = filter_products_by_attributes(qs, attributes)
+        qs = sort_qs(qs, sort_by)
+        return gql_optimizer.query(qs, info)
 
 
 class ProductImage(CountableDjangoObjectType):

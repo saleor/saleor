@@ -85,7 +85,7 @@ def test_real_query(user_api_client, product):
                 }
             }
         }
-        products(first: $first, sortBy: $sortBy, attributes: $attributesFilter, price_Gte: $minPrice, price_Lte: $maxPrice) {
+        products(first: $first, sortBy: $sortBy, attributes: $attributesFilter, priceGte: $minPrice, priceLte: $maxPrice) {
             ...ProductListFragmentQuery
             __typename
         }
