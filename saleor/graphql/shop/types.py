@@ -41,7 +41,7 @@ class Domain(graphene.ObjectType):
 
 class Geolocalization(graphene.ObjectType):
     country = graphene.Field(
-        CountryDisplay, required=True,
+        CountryDisplay,
         description='Country of the user acquired by his IP address.')
 
     class Meta:
