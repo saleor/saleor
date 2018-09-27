@@ -1095,7 +1095,7 @@ exports[`Storyshots Generics / AddressEdit default 1`] = `
           <input
             name="country"
             type="hidden"
-            value="Swaziland"
+            value="SW"
           />
           <svg
             aria-hidden="true"
@@ -4721,9 +4721,7 @@ exports[`Storyshots Orders / OrderCustomer when loaded data 1`] = `
       </p>
       <p
         class="MuiTypography-root-id MuiTypography-body1-id"
-      >
-        Cyprus
-      </p>
+      />
     </div>
     <hr
       class="OrderCustomer-hr-id"
@@ -4994,9 +4992,7 @@ exports[`Storyshots Orders / OrderCustomer with different addresses 1`] = `
       </p>
       <p
         class="MuiTypography-root-id MuiTypography-body1-id"
-      >
-        Cyprus
-      </p>
+      />
     </div>
     <hr
       class="OrderCustomer-hr-id"
@@ -5054,9 +5050,7 @@ exports[`Storyshots Orders / OrderCustomer with different addresses 1`] = `
       </p>
       <p
         class="MuiTypography-root-id MuiTypography-body1-id"
-      >
-        Cyprus
-      </p>
+      />
     </div>
   </div>
 </div>
@@ -17541,9 +17535,7 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
             </p>
             <p
               class="MuiTypography-root-id MuiTypography-body1-id"
-            >
-              Cyprus
-            </p>
+            />
           </div>
           <hr
             class="OrderCustomer-hr-id"
@@ -18566,9 +18558,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
             </p>
             <p
               class="MuiTypography-root-id MuiTypography-body1-id"
-            >
-              Cyprus
-            </p>
+            />
           </div>
           <hr
             class="OrderCustomer-hr-id"
@@ -19563,9 +19553,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
             </p>
             <p
               class="MuiTypography-root-id MuiTypography-body1-id"
-            >
-              Cyprus
-            </p>
+            />
           </div>
           <hr
             class="OrderCustomer-hr-id"

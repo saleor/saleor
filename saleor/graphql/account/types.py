@@ -4,7 +4,8 @@ from graphene import relay
 
 from ...account import models
 from ...core.permissions import get_permissions
-from ..core.types.common import CountableDjangoObjectType, PermissionDisplay
+from ..core.types.common import (
+    CountableDjangoObjectType, CountryDisplay, PermissionDisplay)
 from ..utils import format_permissions_for_display
 
 
@@ -23,11 +24,18 @@ class AddressInput(graphene.InputObjectType):
 
 
 class Address(CountableDjangoObjectType):
+    country = graphene.Field(
+        CountryDisplay, required=True, description='Default shop\'s country')
+
     class Meta:
         exclude_fields = ['user_set', 'user_addresses']
         description = 'Represents user address data.'
         interfaces = [relay.Node]
         model = models.Address
+
+    def resolve_country(self, info):
+        return CountryDisplay(
+            code=self.country.code, country=self.country.name)
 
 
 class User(CountableDjangoObjectType):

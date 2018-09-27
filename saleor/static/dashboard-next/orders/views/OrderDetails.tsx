@@ -18,10 +18,10 @@ import { OrderCreateFulfillment } from "../types/OrderCreateFulfillment";
 import { OrderDraftUpdate } from "../types/OrderDraftUpdate";
 import { OrderLineAdd } from "../types/OrderLineAdd";
 import { OrderLineDelete } from "../types/OrderLineDelete";
+import { OrderLineUpdate } from "../types/OrderLineUpdate";
 import { OrderRefund } from "../types/OrderRefund";
 import { OrderShippingMethodUpdate } from "../types/OrderShippingMethodUpdate";
 import { OrderUpdate } from "../types/OrderUpdate";
-import { OrderLineUpdate } from "../types/OrderLineUpdate";
 
 interface OrderDetailsProps {
   id: string;

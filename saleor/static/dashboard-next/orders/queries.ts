@@ -62,7 +62,10 @@ export const fragmentAddress = gql`
     city
     cityArea
     companyName
-    country
+    country {
+      code
+      country
+    }
     countryArea
     firstName
     lastName

@@ -1,11 +1,17 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { AddressCountry, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL fragment: OrderDetailsFragment
 // ====================================================
+
+export interface OrderDetailsFragment_billingAddress_country {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
 
 export interface OrderDetailsFragment_billingAddress {
   __typename: "Address";
@@ -13,7 +19,7 @@ export interface OrderDetailsFragment_billingAddress {
   city: string;
   cityArea: string;
   companyName: string;
-  country: AddressCountry;
+  country: OrderDetailsFragment_billingAddress_country;
   countryArea: string;
   firstName: string;
   lastName: string;
@@ -111,13 +117,19 @@ export interface OrderDetailsFragment_lines {
   edges: OrderDetailsFragment_lines_edges[];
 }
 
+export interface OrderDetailsFragment_shippingAddress_country {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface OrderDetailsFragment_shippingAddress {
   __typename: "Address";
   id: string;
   city: string;
   cityArea: string;
   companyName: string;
-  country: AddressCountry;
+  country: OrderDetailsFragment_shippingAddress_country;
   countryArea: string;
   firstName: string;
   lastName: string;

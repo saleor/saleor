@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { AddressCountry, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderRefund
@@ -13,13 +13,19 @@ export interface OrderRefund_orderRefund_errors {
   message: string | null;
 }
 
+export interface OrderRefund_orderRefund_order_billingAddress_country {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface OrderRefund_orderRefund_order_billingAddress {
   __typename: "Address";
   id: string;
   city: string;
   cityArea: string;
   companyName: string;
-  country: AddressCountry;
+  country: OrderRefund_orderRefund_order_billingAddress_country;
   countryArea: string;
   firstName: string;
   lastName: string;
@@ -117,13 +123,19 @@ export interface OrderRefund_orderRefund_order_lines {
   edges: OrderRefund_orderRefund_order_lines_edges[];
 }
 
+export interface OrderRefund_orderRefund_order_shippingAddress_country {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
 export interface OrderRefund_orderRefund_order_shippingAddress {
   __typename: "Address";
   id: string;
   city: string;
   cityArea: string;
   companyName: string;
-  country: AddressCountry;
+  country: OrderRefund_orderRefund_order_shippingAddress_country;
   countryArea: string;
   firstName: string;
   lastName: string;

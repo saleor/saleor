@@ -5,7 +5,10 @@ export const customers = [
       city: "Thompsontown",
       cityArea: "Rhode Island",
       companyName: null,
-      country: "Swaziland",
+      country: {
+        code: "SW",
+        country: "Swaziland"
+      },
       countryArea: "Buckinghamshire",
       firstName: "Alexander",
       id: "52402",
@@ -19,7 +22,10 @@ export const customers = [
       city: "West Bret",
       cityArea: "North Dakota",
       companyName: null,
-      country: "Sudan",
+      country: {
+        code: "SD",
+        country: "Sudan"
+      },
       countryArea: null,
       firstName: "Alexander",
       id: "77109",
@@ -41,7 +47,10 @@ export const customers = [
       city: "Lake Adela",
       cityArea: "Maryland",
       companyName: "Kemmer Group",
-      country: "Kenya",
+      country: {
+        code: "KE",
+        country: "Kenya"
+      },
       countryArea: null,
       firstName: "Augustus",
       id: "81868",
@@ -55,7 +64,10 @@ export const customers = [
       city: "East Brandttown",
       cityArea: "Missouri",
       companyName: null,
-      country: "Somalia",
+      country: {
+        code: "SO",
+        country: "Somalia"
+      },
       countryArea: null,
       firstName: "Augustus",
       id: "11788",
@@ -77,7 +89,10 @@ export const customers = [
       city: "East Raymond",
       cityArea: "Delaware",
       companyName: null,
-      country: "San Marino",
+      country: {
+        code: "SM",
+        country: "San Marino"
+      },
       countryArea: null,
       firstName: "Kelton",
       id: "77939",
@@ -91,7 +106,10 @@ export const customers = [
       city: "East Raymond",
       cityArea: "Delaware",
       companyName: null,
-      country: "San Marino",
+      country: {
+        code: "SM",
+        country: "San Marino"
+      },
       countryArea: null,
       firstName: "Kelton",
       id: "77939",
@@ -113,7 +131,10 @@ export const customers = [
       city: "Torphyton",
       cityArea: "Iowa",
       companyName: null,
-      country: "Chad",
+      country: {
+        code: "CD",
+        country: "Chad"
+      },
       countryArea: null,
       firstName: "Magnolia",
       id: "2237",
@@ -127,7 +148,10 @@ export const customers = [
       city: "Torphyton",
       cityArea: "Iowa",
       companyName: null,
-      country: "Chad",
+      country: {
+        code: "CD",
+        country: "Chad"
+      },
       countryArea: null,
       firstName: "Magnolia",
       id: "2237",
@@ -149,7 +173,10 @@ export const customers = [
       city: "Port Savanahfort",
       cityArea: "Nebraska",
       companyName: null,
-      country: "Greenland",
+      country: {
+        code: "GD",
+        country: "Greenland"
+      },
       countryArea: null,
       firstName: "Adonis",
       id: "10532",
@@ -163,7 +190,10 @@ export const customers = [
       city: "East Fletcher",
       cityArea: "New Hampshire",
       companyName: null,
-      country: "Kyrgyz Republic",
+      country: {
+        code: "KR",
+        country: "Kyrgyz Republic"
+      },
       countryArea: null,
       firstName: "Adonis",
       id: "45425",
@@ -185,7 +215,10 @@ export const customers = [
       city: "New Eugenia",
       cityArea: "Michigan",
       companyName: null,
-      country: "Iceland",
+      country: {
+        code: "IC",
+        country: "Iceland"
+      },
       countryArea: null,
       firstName: "Carlie",
       id: "83778",
@@ -199,7 +232,10 @@ export const customers = [
       city: "North Tanyafurt",
       cityArea: "Wyoming",
       companyName: null,
-      country: "Rwanda",
+      country: {
+        code: "RW",
+        country: "Rwanda"
+      },
       countryArea: null,
       firstName: "Carlie",
       id: "14941",
@@ -221,7 +257,10 @@ export const customers = [
       city: "Labadiechester",
       cityArea: "Iowa",
       companyName: null,
-      country: "Morocco",
+      country: {
+        code: "MA",
+        country: "Morocco"
+      },
       countryArea: "Buckinghamshire",
       firstName: "Junius",
       id: "86163",
@@ -235,7 +274,10 @@ export const customers = [
       city: "Kaylistad",
       cityArea: "Louisiana",
       companyName: null,
-      country: "Equatorial Guinea",
+      country: {
+        code: "EG",
+        country: "Equatorial Guinea"
+      },
       countryArea: "Bedfordshire",
       firstName: "Junius",
       id: "78537",
@@ -257,7 +299,10 @@ export const customers = [
       city: "Lydiahaven",
       cityArea: "Arkansas",
       companyName: null,
-      country: "Cambodia",
+      country: {
+        code: "CB",
+        country: "Cambodia"
+      },
       countryArea: "Berkshire",
       firstName: "Pedro",
       id: "70545",
@@ -271,7 +316,10 @@ export const customers = [
       city: "Lydiahaven",
       cityArea: "Arkansas",
       companyName: null,
-      country: "Cambodia",
+      country: {
+        code: "CB",
+        country: "Cambodia"
+      },
       countryArea: "Berkshire",
       firstName: "Pedro",
       id: "70545",
@@ -293,7 +341,10 @@ export const customers = [
       city: "East Leilafurt",
       cityArea: "Arizona",
       companyName: null,
-      country: "Bulgaria",
+      country: {
+        code: "BG",
+        country: "Bulgaria"
+      },
       countryArea: null,
       firstName: "Raven",
       id: "9167",
@@ -307,7 +358,10 @@ export const customers = [
       city: "South Hendersonbury",
       cityArea: "Nevada",
       companyName: "Raynor Inc",
-      country: "Turkmenistan",
+      country: {
+        code: "TK",
+        country: "Turkmenistan"
+      },
       countryArea: null,
       firstName: "Raven",
       id: "48467",
@@ -329,7 +383,10 @@ export const customers = [
       city: "Windlerton",
       cityArea: "Texas",
       companyName: "Heller, Bauch and Friesen",
-      country: "Andorra",
+      country: {
+        code: "AN",
+        country: "Andorra"
+      },
       countryArea: null,
       firstName: "Paige",
       id: "63622",
@@ -343,7 +400,10 @@ export const customers = [
       city: "Windlerton",
       cityArea: "Texas",
       companyName: "Heller, Bauch and Friesen",
-      country: "Andorra",
+      country: {
+        code: "AN",
+        country: "Andorra"
+      },
       countryArea: null,
       firstName: "Paige",
       id: "63622",
@@ -365,7 +425,10 @@ export const customers = [
       city: "Gleichnerborough",
       cityArea: "Missouri",
       companyName: null,
-      country: "Dominica",
+      country: {
+        code: "DM",
+        country: "Dominica"
+      },
       countryArea: null,
       firstName: "Santino",
       id: "89962",
@@ -379,7 +442,10 @@ export const customers = [
       city: "West Jolieland",
       cityArea: "Connecticut",
       companyName: null,
-      country: "Saint Helena",
+      country: {
+        code: "SH",
+        country: "Saint Helena"
+      },
       countryArea: "Bedfordshire",
       firstName: "Santino",
       id: "58915",
@@ -401,7 +467,10 @@ export const customers = [
       city: "North Sister",
       cityArea: "Ohio",
       companyName: null,
-      country: "Bangladesh",
+      country: {
+        code: "BN",
+        country: "Bangladesh"
+      },
       countryArea: "Bedfordshire",
       firstName: "Quinn",
       id: "94894",
@@ -415,7 +484,10 @@ export const customers = [
       city: "North Sister",
       cityArea: "Ohio",
       companyName: null,
-      country: "Bangladesh",
+      country: {
+        code: "BN",
+        country: "Bangladesh"
+      },
       countryArea: "Bedfordshire",
       firstName: "Quinn",
       id: "94894",
@@ -437,7 +509,10 @@ export const customers = [
       city: "Kenstad",
       cityArea: "Alabama",
       companyName: null,
-      country: "United Arab Emirates",
+      country: {
+        code: "UA",
+        country: "United Arab Emirates"
+      },
       countryArea: null,
       firstName: "Berry",
       id: "93575",
@@ -451,7 +526,10 @@ export const customers = [
       city: "Kenstad",
       cityArea: "Alabama",
       companyName: null,
-      country: "United Arab Emirates",
+      country: {
+        code: "UA",
+        country: "United Arab Emirates"
+      },
       countryArea: null,
       firstName: "Berry",
       id: "93575",
@@ -473,7 +551,10 @@ export const customers = [
       city: "Jamilstad",
       cityArea: "Idaho",
       companyName: "Kilback - Crooks",
-      country: "Uruguay",
+      country: {
+        code: "UR",
+        country: "Uruguay"
+      },
       countryArea: null,
       firstName: "Johnathon",
       id: "78744",
@@ -487,7 +568,10 @@ export const customers = [
       city: "Jamilstad",
       cityArea: "Idaho",
       companyName: "Kilback - Crooks",
-      country: "Uruguay",
+      country: {
+        code: "UR",
+        country: "Uruguay"
+      },
       countryArea: null,
       firstName: "Johnathon",
       id: "78744",
@@ -509,7 +593,10 @@ export const customers = [
       city: "Keltonland",
       cityArea: "West Virginia",
       companyName: "Bailey, Barrows and Prosacco",
-      country: "Denmark",
+      country: {
+        code: "DN",
+        country: "Denmark"
+      },
       countryArea: null,
       firstName: "Linwood",
       id: "19005",
@@ -523,7 +610,10 @@ export const customers = [
       city: "Keltonland",
       cityArea: "West Virginia",
       companyName: "Bailey, Barrows and Prosacco",
-      country: "Denmark",
+      country: {
+        code: "DN",
+        country: "Denmark"
+      },
       countryArea: null,
       firstName: "Linwood",
       id: "19005",
@@ -545,7 +635,10 @@ export const customers = [
       city: "West Feliciamouth",
       cityArea: "Montana",
       companyName: null,
-      country: "Japan",
+      country: {
+        code: "JA",
+        country: "Japan"
+      },
       countryArea: null,
       firstName: "Timmy",
       id: "33855",
@@ -559,7 +652,10 @@ export const customers = [
       city: "Larkinstad",
       cityArea: "California",
       companyName: null,
-      country: "Somalia",
+      country: {
+        code: "SO",
+        country: "Somalia"
+      },
       countryArea: null,
       firstName: "Timmy",
       id: "67467",

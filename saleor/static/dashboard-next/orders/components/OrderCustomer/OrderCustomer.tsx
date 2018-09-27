@@ -14,7 +14,10 @@ interface AddressType {
   city: string;
   cityArea: string;
   companyName: string;
-  country: string;
+  country: {
+    code: string;
+    country: string;
+  };
   countryArea: string;
   firstName: string;
   id: string;
@@ -45,7 +48,7 @@ const decorate = withStyles(
       display: "block",
       height: 1,
       width: "100%"
-    },
+    }
   }),
   { name: "OrderCustomer" }
 );
@@ -129,8 +132,10 @@ const OrderCustomer = decorate<OrderCustomerProps>(
             </Typography>
             <Typography>
               {shippingAddress.countryArea
-                ? shippingAddress.countryArea + ", " + shippingAddress.country
-                : shippingAddress.country}
+                ? shippingAddress.countryArea +
+                  ", " +
+                  shippingAddress.country.country
+                : shippingAddress.country.country}
             </Typography>
           </>
         )}
@@ -176,8 +181,10 @@ const OrderCustomer = decorate<OrderCustomerProps>(
             </Typography>
             <Typography>
               {billingAddress.countryArea
-                ? billingAddress.countryArea + ", " + billingAddress.country
-                : billingAddress.country}
+                ? billingAddress.countryArea +
+                  ", " +
+                  billingAddress.country.country
+                : billingAddress.country.country}
             </Typography>
           </>
         )}
