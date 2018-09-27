@@ -13,12 +13,8 @@ storiesOf("Views / Product types / Product type details", module)
       errors={[]}
       pageTitle={productType.name}
       productType={productType}
-      productAttributes={productType.productAttributes.edges.map(
-        edge => edge.node
-      )}
-      variantAttributes={productType.variantAttributes.edges.map(
-        edge => edge.node
-      )}
+      productAttributes={productType.productAttributes}
+      variantAttributes={productType.variantAttributes}
       saveButtonBarState="default"
       searchLoading={false}
       searchResults={attributes}
