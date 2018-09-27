@@ -134,7 +134,9 @@ CREATE_SHIPPING_ZONE_QUERY = """
             }
             shippingZone {
                 name
-                countries
+                countries {
+                    code
+                }
                 default
             }
         }
@@ -153,7 +155,7 @@ def test_create_shipping_zone(admin_api_client):
     assert not data['errors']
     zone = data['shippingZone']
     assert zone['name'] == 'test shipping'
-    assert zone['countries'] == ['PL']
+    assert zone['countries'] == [{'code': 'PL'}]
     assert zone['default'] == False
 
 
