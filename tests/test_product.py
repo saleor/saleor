@@ -1,4 +1,5 @@
 import datetime
+import io
 import json
 from decimal import Decimal
 from unittest.mock import patch
@@ -7,6 +8,7 @@ import pytest
 
 from django.conf import settings
 from django.core import serializers
+from django.core.serializers.base import DeserializationError
 from django.urls import reverse
 from prices import Money, TaxedMoney, TaxedMoneyRange
 from saleor.checkout import utils
@@ -597,7 +599,8 @@ def test_product_json_serialization(product):
     product.save()
     data = json.loads(serializers.serialize(
         "json", models.Product.objects.all()))
-    assert data[0]['fields']['price'] == '10.00'
+    assert data[0]['fields']['price'] == {
+        '_type': 'Money', 'amount': '10.00', 'currency': 'USD'}
 
 
 def test_product_json_deserialization(category, product_type):
@@ -612,7 +615,7 @@ def test_product_json_deserialization(category, product_type):
             "name": "Kelly-Clark",
             "description": "Future almost cup national",
             "category": {category_pk},
-            "price": "35.98",
+            "price": {{"_type": "Money", "amount": "35.98", "currency": "USD"}},
             "available_on": null,
             "is_published": true,
             "attributes": "{{\\"9\\": \\"24\\", \\"10\\": \\"26\\"}}",
@@ -629,6 +632,51 @@ def test_product_json_deserialization(category, product_type):
     product_deserialized.save()
     product = models.Product.objects.first()
     assert product.price == Money(Decimal('35.98'), 'USD')
+
+    # same test for bytes
+    product_json_bytes = bytes(product_json, 'utf-8')
+    product_deserialized = list(serializers.deserialize(
+        'json', product_json_bytes, ignorenonexistent=True))[0]
+    product_deserialized.save()
+    product = models.Product.objects.first()
+    assert product.price == Money(Decimal('35.98'), 'USD')
+
+    # same test for stream
+    product_json_stream = io.StringIO(product_json)
+    product_deserialized = list(serializers.deserialize(
+        'json', product_json_stream, ignorenonexistent=True))[0]
+    product_deserialized.save()
+    product = models.Product.objects.first()
+    assert product.price == Money(Decimal('35.98'), 'USD')
+
+
+def test_json_no_currency_deserialization(category, product_type):
+    product_json = """
+    [{{
+        "model": "product.product",
+        "pk": 60,
+        "fields": {{
+            "seo_title": null,
+            "seo_description": "Future almost cup national.",
+            "product_type": {product_type_pk},
+            "name": "Kelly-Clark",
+            "description": "Future almost cup national",
+            "category": {category_pk},
+            "price": {{"_type": "Money", "amount": "35.98"}},
+            "available_on": null,
+            "is_published": true,
+            "attributes": "{{\\"9\\": \\"24\\", \\"10\\": \\"26\\"}}",
+            "updated_at": "2018-07-19T13:30:24.195Z",
+            "is_featured": false,
+            "charge_taxes": true,
+            "tax_rate": "standard"
+        }}
+    }}]
+    """.format(
+        category_pk=category.pk, product_type_pk=product_type.pk)
+    with pytest.raises(DeserializationError):
+        list(serializers.deserialize(
+            'json', product_json, ignorenonexistent=True))
 
 
 def test_variant_picker_data_with_translations(
