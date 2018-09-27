@@ -90,16 +90,20 @@ const ProductTypeList = decorate<ProductTypeListProps>(
                   )}
                 </TableCell>
                 <TableCell>
-                  {maybe(() => productType.hasVariants) ? (
+                  {maybe(() => productType.hasVariants) !== undefined ? (
                     maybe(() => productType.variantAttributes) ? (
-                      productType.variantAttributes
-                        .map(attribute => attribute.name)
-                        .join(", ")
+                      productType.variantAttributes.length > 0 ? (
+                        productType.variantAttributes
+                          .map(attribute => attribute.name)
+                          .join(", ")
+                      ) : (
+                        "-"
+                      )
                     ) : (
                       <Skeleton />
                     )
                   ) : (
-                    "-"
+                    <Skeleton />
                   )}
                 </TableCell>
               </TableRow>
