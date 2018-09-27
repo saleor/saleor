@@ -90,10 +90,16 @@ def test_attributes_in_category_query(user_api_client, product):
     assert len(attributes_data) == Attribute.objects.count()
 
 
-def test_create_attribute(admin_api_client):
-    query = """
-    mutation createAttribute($name: String!, $slug: String!) {
-        attributeCreate(input: {name: $name, slug: $slug}) {
+CREATE_ATTRIBUTES_QUERY = """
+    mutation createAttribute(
+            $name: String!, $slug: String!,
+            $values: [AttributeValueCreateInput]) {
+        attributeCreate(
+                input: {name: $name, slug: $slug, values: $values}) {
+            errors {
+                field
+                message
+            }
             attribute {
                 name
                 slug
@@ -104,18 +110,61 @@ def test_create_attribute(admin_api_client):
             }
         }
     }
-    """
+"""
+
+
+def test_create_attribute(admin_api_client):
+    query = CREATE_ATTRIBUTES_QUERY
     name = 'test name'
     slug = 'test-slug'
-    variables = json.dumps({'name': name, 'slug': slug})
+    variables = json.dumps({'name': name, 'slug': slug, 'values': []})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
+    assert not content['data']['attributeCreate']['errors']
     data = content['data']['attributeCreate']['attribute']
     assert data['name'] == name
     assert data['slug'] == slug
     assert not data['values']
+
+
+def test_create_attribute_and_attribute_values(admin_api_client):
+    query = CREATE_ATTRIBUTES_QUERY
+    name = 'Value name'
+    slug = 'value-slug'
+    variables = json.dumps({
+        'name': 'Example name', 'slug': 'example-slug',
+        'values': [{'slug': slug, 'name': name, 'value': '#1231'}]})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    assert not content['data']['attributeCreate']['errors']
+    data = content['data']['attributeCreate']['attribute']['values']
+    assert len(data) == 1
+    assert data[0]['name'] == name
+    assert data[0]['slug'] == slug
+
+
+def test_create_attribute_and_attribute_values_errors(admin_api_client):
+    query = CREATE_ATTRIBUTES_QUERY
+    variables = json.dumps({
+        'name': 'Example name', 'slug': 'example-slug',
+        'values': [
+            {'slug': 'slug', 'name': 'Red Color', 'value': '#1231'},
+            {'slug': 'Incorrect slug', 'name': 'Red Color', 'value': '#121'}]})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    errors = content['data']['attributeCreate']['errors']
+    assert errors
+    assert errors[0]['field'] == 'values'
+    assert errors[0]['message'] == 'Duplicated attribute value names provided.'
+    assert errors[1]['field'] == 'values:slug'
+    assert errors[1]['message'] == (
+        'Enter a valid \'slug\' consisting of letters, '
+        'numbers, underscores or hyphens.')
 
 
 def test_update_attribute(admin_api_client, color_attribute):
