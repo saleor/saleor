@@ -81,6 +81,7 @@ header {
     & .logo-svg {
       transition: width 0.5s;
       width: 120px;
+      padding-left: calc(var(--spacer));
       @media (max-width: 1024px) {
         width: 130px;
       }
@@ -123,11 +124,17 @@ header {
         transition: top 0.5s;
         padding: calc(var(--spacer) * 3.5) 0 calc(var(--spacer) * 2) 0;
         & a {
+          color: var(--body-color);
+          text-transform: uppercase;
           font-size: var(--font-size-base);
-          font-weight: var(--font-weight-light);
+          font-weight: var(--font-weight-lighter);
           text-decoration: none;
           @media (max-width: 1024px) {
             font-size: calc(var(--font-size-base) * 1.2);
+          }
+          &.contactBtn {
+            color: var(--primaryColor);
+            text-decoration: underline;
           }
         }
         &.home {
@@ -137,6 +144,12 @@ header {
           }
         }
         &.github-link {
+          & svg {
+            fill: var(--body-color);
+            & path {
+              fill: var(--body-color);
+            }
+          }
           @media (max-width: 1024px) {
             top: calc(var(--spacer) * -0.3)
           }

@@ -10,7 +10,7 @@
   --spacer: 1rem;
   --body-color: #fff;
   --background-color: #190B3C;
-  --layout-width: 1300px;
+  --layout-width: 1920px;
   --footer-border: #13657F;
   --mobile-background: #130D44;
   --sectionBorder: rgba(19, 190, 187, 0.5);
@@ -32,6 +32,7 @@
   --font-size-lg:                calc(var(--font-size-base) * 1.5);
   --font-size-sm:                calc(var(--font-size-base) * .875);
 
+  --font-weight-lighter:         200;
   --font-weight-light:           300;
   --font-weight-normal:          400;
   --font-weight-medium:          500;

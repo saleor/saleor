@@ -20,9 +20,9 @@ body {
     width: 100%;
     height: 100%;
     padding-bottom: calc(var(--spacer) * 8);
-    background-image: linear-gradient(-150deg, rgba(254,62,62, 0.3) 0%, rgba(125,185,232,0) 26%, rgba(125,185,232,0) 100%), url('../../../images/background.svg');
+    background-image: linear-gradient(-150deg, rgba(254,62,62, 0.3) 0%, rgba(125,185,232,0) 10%, rgba(125,185,232,0) 100%), url('../../../images/background.svg');
     background-color: var(--background-color);
-    background-attachment: fixed, scroll;
+    background-attachment: scroll, scroll;
     background-position: 0 0, 50% 0;
     background-size: cover, cover;
     background-repeat: repeat, repeat-y;
