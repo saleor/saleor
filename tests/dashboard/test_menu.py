@@ -2,6 +2,8 @@ import json
 from unittest import mock
 import pytest
 from django.urls import reverse
+from django.utils import timezone
+from django.utils.formats import localize
 
 from saleor.dashboard.menu.forms import AssignMenuForm
 from saleor.dashboard.menu.utils import (
@@ -258,15 +260,25 @@ def test_view_ajax_reorder_menu_items_with_parent(
 
 @pytest.mark.integration
 def test_view_ajax_menu_links(admin_client, collection, category, page):
+    collection.is_published = False
+    collection.save()
+    page.is_visible = True
+    page.available_on = timezone.now() + timezone.timedelta(days=1)
+    page.save()
+    page.refresh_from_db()
+
     collection_repr = {
         'id': str(collection.pk) + '_' + 'Collection',
-        'text': str(collection)}
+        'text': str(collection) + ' (Not published)'}
     category_repr = {
         'id': str(category.pk) + '_' + 'Category',
         'text': str(category)}
     page_repr = {
         'id': str(page.pk) + '_' + 'Page',
-        'text': str(page)}
+        'text': '%(menu_item_name)s is hidden '
+                '(will become visible on %(available_on_date)s)' % ({
+                    'available_on_date': localize(page.available_on),
+                    'menu_item_name': str(page)})}
     groups = [
         {'text': 'Collection', 'children': [collection_repr]},
         {'text': 'Category', 'children': [category_repr]},
@@ -361,3 +373,28 @@ def test_get_menus_that_needs_update(category, collection, page):
     result = get_menus_that_needs_update(
         categories=[category], collection=collection, page=page)
     assert sorted(list(result)) == sorted([m.pk for m in menus])
+
+
+def test_menu_item_status(menu, category, collection, page):
+    item = MenuItem.objects.create(name='Name', menu=menu)
+    assert item.is_public()
+
+    item = MenuItem.objects.create(
+        name='Name', menu=menu, collection=collection)
+    assert item.is_public()
+    collection.is_published = False
+    collection.save()
+    item.refresh_from_db()
+    assert not item.is_public()
+
+    item = MenuItem.objects.create(
+        name='Name', menu=menu, category=category)
+    assert item.is_public()
+
+    item = MenuItem.objects.create(
+        name='Name', menu=menu, page=page)
+    assert not item.is_public()
+    page.is_visible = True
+    page.save()
+    item.refresh_from_db()
+    assert item.is_public()

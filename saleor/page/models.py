@@ -44,6 +44,12 @@ class Page(SeoModel):
     def get_full_url(self):
         return build_absolute_uri(self.get_absolute_url())
 
+    @property
+    def is_published(self):
+        today = datetime.date.today()
+        return self.is_visible and (
+            self.available_on is None or self.available_on <= today)
+
 
 class PageTranslation(SeoModelTranslation):
     language_code = models.CharField(max_length=10)
