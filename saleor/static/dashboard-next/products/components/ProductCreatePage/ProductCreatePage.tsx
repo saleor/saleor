@@ -35,9 +35,7 @@ interface FormData {
       hasVariants: boolean;
       id: string;
       name: string;
-      productAttributes: {
-        edges: Array<{ node: AttributeType }>;
-      };
+      productAttributes: AttributeType[];
     };
   };
   seoDescription: string;
@@ -61,11 +59,7 @@ interface ProductCreatePageProps {
     id: string;
     name: string;
     hasVariants: boolean;
-    productAttributes: {
-      edges: Array<{
-        node: AttributeType;
-      }>;
-    };
+    productAttributes: AttributeType[];
   }>;
   header: string;
   saveButtonBarState?: SaveButtonBarState;
@@ -124,9 +118,7 @@ export const ProductCreatePage = decorate<ProductCreatePageProps>(
           hasVariants: false,
           id: "",
           name: "",
-          productAttributes: {
-            edges: [] as Array<{ node: AttributeType }>
-          }
+          productAttributes: [] as AttributeType[]
         }
       },
       seoDescription: "",

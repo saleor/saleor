@@ -5,7 +5,7 @@ import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import i18n from "../../i18n";
-import { decimal } from "../../misc";
+import { decimal, maybe } from "../../misc";
 import ProductVariantCreatePage from "../components/ProductVariantCreatePage";
 import { TypedVariantCreateMutation } from "../mutations";
 import {
@@ -93,20 +93,15 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                       productLoading || variantCreateResult.loading;
                     return (
                       <ProductVariantCreatePage
-                        errors={
-                          variantCreateResult.data &&
-                          variantCreateResult.data.productVariantCreate &&
-                          variantCreateResult.data.productVariantCreate &&
-                          variantCreateResult.data.productVariantCreate.errors
-                            ? variantCreateResult.data.productVariantCreate
-                                .errors
-                            : []
-                        }
+                        errors={maybe(
+                          () =>
+                            variantCreateResult.data.productVariantCreate
+                              .errors,
+                          []
+                        )}
                         header={i18n.t("Add Variant")}
                         loading={loading}
-                        product={
-                          data && data.product ? data.product : undefined
-                        }
+                        product={maybe(() => data.product)}
                         onBack={handleBack}
                         onSubmit={handleSubmit}
                         onVariantClick={handleVariantClick}

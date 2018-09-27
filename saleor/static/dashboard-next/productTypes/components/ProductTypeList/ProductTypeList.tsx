@@ -12,27 +12,16 @@ import { ListProps } from "../../..";
 import Skeleton from "../../../components/Skeleton";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
-import { renderCollection } from "../../../misc";
+import { maybe, renderCollection } from "../../../misc";
+import { AttributeType } from "../../../products";
 
-interface AttributeType {
-  id: string;
-  sortNumber?: number;
-  name?: string;
-}
-interface AttributeEdgeType {
-  node: AttributeType;
-}
 interface ProductTypeListProps extends ListProps {
   productTypes?: Array<{
     id: string;
     name?: string;
     hasVariants?: boolean;
-    productAttributes?: {
-      edges: AttributeEdgeType[];
-    };
-    variantAttributes?: {
-      edges: AttributeEdgeType[];
-    };
+    productAttributes?: AttributeType[];
+    variantAttributes?: AttributeType[];
   }>;
 }
 
@@ -92,28 +81,25 @@ const ProductTypeList = decorate<ProductTypeListProps>(
                   {productType ? productType.name : <Skeleton />}
                 </TableCell>
                 <TableCell>
-                  {productType &&
-                  productType.productAttributes &&
-                  productType.productAttributes.edges ? (
-                    productType.productAttributes.edges
-                      .map(edge => edge.node.name)
+                  {maybe(() => productType.productAttributes) ? (
+                    productType.productAttributes
+                      .map(attribute => attribute.name)
                       .join(", ")
                   ) : (
                     <Skeleton />
                   )}
                 </TableCell>
                 <TableCell>
-                  {productType &&
-                  productType.hasVariants &&
-                  productType.variantAttributes &&
-                  productType.variantAttributes.edges !== undefined ? (
-                    productType.variantAttributes.edges
-                      .map(edge => edge.node.name)
-                      .join(", ")
-                  ) : productType && productType.hasVariants === false ? (
-                    "-"
+                  {maybe(() => productType.hasVariants) ? (
+                    maybe(() => productType.variantAttributes) ? (
+                      productType.variantAttributes
+                        .map(attribute => attribute.name)
+                        .join(", ")
+                    ) : (
+                      <Skeleton />
+                    )
                   ) : (
-                    <Skeleton />
+                    "-"
                   )}
                 </TableCell>
               </TableRow>

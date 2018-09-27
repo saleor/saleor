@@ -6,27 +6,19 @@ import { PageListProps } from "../../..";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
+import {
+  ProductTypeList_productTypes_edges_node_productAttributes,
+  ProductTypeList_productTypes_edges_node_variantAttributes
+} from "../../types/ProductTypeList";
 import ProductTypeList from "../ProductTypeList";
 
-interface AttributeType {
-  id: string;
-  sortNumber?: number;
-  name?: string;
-}
-interface AttributeEdgeType {
-  node: AttributeType;
-}
 interface ProductTypeListPageProps extends PageListProps {
   productTypes?: Array<{
     id: string;
     name?: string;
     hasVariants?: boolean;
-    productAttributes?: {
-      edges: AttributeEdgeType[];
-    };
-    variantAttributes?: {
-      edges: AttributeEdgeType[];
-    };
+    productAttributes?: ProductTypeList_productTypes_edges_node_productAttributes[];
+    variantAttributes?: ProductTypeList_productTypes_edges_node_variantAttributes[];
   }>;
 }
 
