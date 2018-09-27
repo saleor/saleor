@@ -26,7 +26,6 @@ interface ChoiceType {
   value: string;
 }
 export interface ProductTypeForm {
-  chargeTaxes: boolean;
   name: string;
   hasVariants: boolean;
   isShippingRequired: boolean;
@@ -81,7 +80,6 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
     onSubmit
   }) => {
     const formInitialData: ProductTypeForm = {
-      chargeTaxes: maybe(() => productType.taxRate !== null, false),
       hasVariants:
         maybe(() => productType.hasVariants) !== undefined
           ? productType.hasVariants
