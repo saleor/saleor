@@ -31,20 +31,12 @@ export const productTypeListQuery = gql`
           name
           hasVariants
           productAttributes {
-            edges {
-              node {
-                id
-                name
-              }
-            }
+            id
+            name
           }
           variantAttributes {
-            edges {
-              node {
-                id
-                name
-              }
-            }
+            id
+            name
           }
         }
       }
@@ -68,22 +60,14 @@ export const productTypeDetailsQuery = gql`
       name
       hasVariants
       productAttributes {
-        edges {
-          node {
-            id
-            slug
-            name
-          }
-        }
+        id
+        slug
+        name
       }
       variantAttributes {
-        edges {
-          node {
-            id
-            slug
-            name
-          }
-        }
+        id
+        slug
+        name
       }
       isShippingRequired
       taxRate

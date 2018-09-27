@@ -45,22 +45,14 @@ export const productTypeUpdateMutation = gql`
         hasVariants
         taxRate
         productAttributes {
-          edges {
-            node {
-              id
-              slug
-              name
-            }
-          }
+          id
+          slug
+          name
         }
         variantAttributes {
-          edges {
-            node {
-              id
-              slug
-              name
-            }
-          }
+          id
+          slug
+          name
         }
         isShippingRequired
       }
@@ -84,22 +76,14 @@ export const productTypeCreateMutation = gql`
         name
         hasVariants
         productAttributes {
-          edges {
-            node {
-              id
-              slug
-              name
-            }
-          }
+          id
+          slug
+          name
         }
         variantAttributes {
-          edges {
-            node {
-              id
-              slug
-              name
-            }
-          }
+          id
+          slug
+          name
         }
         isShippingRequired
       }
