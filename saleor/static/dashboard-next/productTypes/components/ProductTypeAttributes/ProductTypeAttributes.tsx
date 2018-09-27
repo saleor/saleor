@@ -1,3 +1,4 @@
+import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import { withStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
@@ -16,13 +17,20 @@ import {
   ProductTypeDetails_productType_productAttributes_edges_node,
   ProductTypeDetails_productType_variantAttributes_edges_node
 } from "../../types/ProductTypeDetails";
-import ProductTypeAttributeEditDialog from "../ProductTypeAttributeEditDialog/ProductTypeAttributeEditDialog";
+import ProductTypeAttributeEditDialog, {
+  FormData as ProductTypeAttributeEditDialogFormData
+} from "../ProductTypeAttributeEditDialog/ProductTypeAttributeEditDialog";
 
 interface ProductTypeAttributesProps {
   attributes:
     | ProductTypeDetails_productType_productAttributes_edges_node[]
     | ProductTypeDetails_productType_variantAttributes_edges_node[];
   title: string;
+  onAttributeAdd: (data: ProductTypeAttributeEditDialogFormData) => void;
+  onAttributeUpdate: (
+    id: string,
+    data: ProductTypeAttributeEditDialogFormData
+  ) => void;
 }
 
 const decorate = withStyles({
@@ -34,74 +42,103 @@ const decorate = withStyles({
   }
 });
 const ProductTypeAttributes = decorate<ProductTypeAttributesProps>(
-  ({ attributes, classes, title }) => (
-    <Card>
-      <CardTitle title={title} />
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>{i18n.t("Attribute name")}</TableCell>
-            <TableCell className={classes.textLeft}>
-              {i18n.t("Values")}
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {renderCollection(
-            attributes,
-            attribute => (
-              <Toggle key={maybe(() => attribute.id)}>
-                {(
-                  openedAttributeEditDialog,
-                  { toggle: toggleAttributeEditDialog }
-                ) => (
-                  <>
-                    <TableRow
-                      className={!!attribute ? classes.link : undefined}
-                      hover={!!attribute}
-                      onClick={toggleAttributeEditDialog}
-                      key={maybe(() => attribute.id)}
-                    >
-                      <TableCell>
-                        {maybe(() => attribute.name) ? (
-                          attribute.name
-                        ) : (
-                          <Skeleton />
-                        )}
-                      </TableCell>
-                      <TableCell className={classes.textLeft}>
-                        {maybe(() => attribute.values) !== undefined ? (
-                          attribute.values.map(value => value.name).join(", ")
-                        ) : (
-                          <Skeleton />
-                        )}
+  ({ attributes, classes, title, onAttributeAdd, onAttributeUpdate }) => (
+    <Toggle>
+      {(openedAttributeAddDialog, { toggle: toggleAttributeAddDialog }) => (
+        <>
+          <Card>
+            <CardTitle
+              title={title}
+              toolbar={
+                <Button
+                  color="secondary"
+                  variant="flat"
+                  onClick={toggleAttributeAddDialog}
+                >
+                  {i18n.t("Add attribute", { context: "button" })}
+                </Button>
+              }
+            />
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>{i18n.t("Attribute name")}</TableCell>
+                  <TableCell className={classes.textLeft}>
+                    {i18n.t("Values")}
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {renderCollection(
+                  attributes,
+                  attribute => (
+                    <Toggle key={maybe(() => attribute.id)}>
+                      {(
+                        openedAttributeEditDialog,
+                        { toggle: toggleAttributeEditDialog }
+                      ) => (
+                        <>
+                          <TableRow
+                            className={!!attribute ? classes.link : undefined}
+                            hover={!!attribute}
+                            onClick={toggleAttributeEditDialog}
+                            key={maybe(() => attribute.id)}
+                          >
+                            <TableCell>
+                              {maybe(() => attribute.name) ? (
+                                attribute.name
+                              ) : (
+                                <Skeleton />
+                              )}
+                            </TableCell>
+                            <TableCell className={classes.textLeft}>
+                              {maybe(() => attribute.values) !== undefined ? (
+                                attribute.values
+                                  .map(value => value.name)
+                                  .join(", ")
+                              ) : (
+                                <Skeleton />
+                              )}
+                            </TableCell>
+                          </TableRow>
+                          <ProductTypeAttributeEditDialog
+                            name={maybe(() => attribute.name)}
+                            opened={openedAttributeEditDialog}
+                            title={i18n.t("Edit attribute")}
+                            values={maybe(() =>
+                              attribute.values.map(value => value.name)
+                            )}
+                            onClose={toggleAttributeEditDialog}
+                            onConfirm={data =>
+                              onAttributeUpdate(attribute.id, data)
+                            }
+                          />
+                        </>
+                      )}
+                    </Toggle>
+                  ),
+                  () => (
+                    <TableRow>
+                      <TableCell colSpan={2}>
+                        {i18n.t("No attributes found")}
                       </TableCell>
                     </TableRow>
-                    <ProductTypeAttributeEditDialog
-                      name={maybe(() => attribute.name)}
-                      opened={openedAttributeEditDialog}
-                      title={i18n.t("Edit attribute")}
-                      values={maybe(() =>
-                        attribute.values.map(value => value.name)
-                      )}
-                      onClose={toggleAttributeEditDialog}
-                      onConfirm={undefined}
-                    />
-                  </>
+                  )
                 )}
-              </Toggle>
-            ),
-            () => (
-              <TableRow>
-                <TableCell colSpan={2}>
-                  {i18n.t("No attributes found")}
-                </TableCell>
-              </TableRow>
-            )
-          )}
-        </TableBody>
-      </Table>
-    </Card>
+              </TableBody>
+            </Table>
+          </Card>
+          <ProductTypeAttributeEditDialog
+            opened={openedAttributeAddDialog}
+            title={i18n.t("Add attribute")}
+            name=""
+            values={[]}
+            onClose={toggleAttributeAddDialog}
+            onConfirm={onAttributeAdd}
+          />
+        </>
+      )}
+    </Toggle>
   )
 );
 ProductTypeAttributes.displayName = "ProductTypeAttributes";

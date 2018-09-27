@@ -15,6 +15,7 @@ import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { TaxRateType, WeightUnitsEnum } from "../../../types/globalTypes";
 import { ProductTypeDetails_productType } from "../../types/ProductTypeDetails";
+import { FormData as ProductTypeAttributeEditDialogFormData } from "../ProductTypeAttributeEditDialog/ProductTypeAttributeEditDialog";
 import ProductTypeAttributes from "../ProductTypeAttributes/ProductTypeAttributes";
 import ProductTypeDetails from "../ProductTypeDetails/ProductTypeDetails";
 import ProductTypeShipping from "../ProductTypeShipping/ProductTypeShipping";
@@ -44,12 +45,11 @@ interface ProductTypeDetailsPageProps {
   disabled: boolean;
   pageTitle: string;
   saveButtonBarState: SaveButtonBarState;
-  searchLoading: boolean;
-  searchResults: Array<{
-    id: string;
-    name: string;
-  }>;
-  onAttributeSearch: (name: string) => void;
+  onAttributeAdd: (data: ProductTypeAttributeEditDialogFormData) => void;
+  onAttributeUpdate: (
+    id: string,
+    data: ProductTypeAttributeEditDialogFormData
+  ) => void;
   onBack: () => void;
   onDelete?: () => void;
   onSubmit: (data: ProductTypeForm) => void;
@@ -74,6 +74,8 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
     pageTitle,
     productType,
     saveButtonBarState,
+    onAttributeAdd,
+    onAttributeUpdate,
     onBack,
     onDelete,
     onSubmit
@@ -137,6 +139,8 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
                             )
                           )}
                           title={i18n.t("Product Attributes")}
+                          onAttributeAdd={onAttributeAdd}
+                          onAttributeUpdate={onAttributeUpdate}
                         />
                       </div>
                       <div className={classes.cardContainer}>
@@ -157,6 +161,8 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
                               )
                             )}
                             title={i18n.t("Variant Attributes")}
+                            onAttributeAdd={onAttributeAdd}
+                            onAttributeUpdate={onAttributeUpdate}
                           />
                         </div>
                       )}

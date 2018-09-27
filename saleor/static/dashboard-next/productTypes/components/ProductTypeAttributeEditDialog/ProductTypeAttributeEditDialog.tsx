@@ -12,7 +12,7 @@ import { FormSpacer } from "../../../components/FormSpacer";
 import ListField from "../../../components/ListField/ListField";
 import i18n from "../../../i18n";
 
-interface FormData {
+export interface FormData {
   name: string;
   values: string[];
 }
