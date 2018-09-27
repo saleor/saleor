@@ -5,11 +5,19 @@
 // GraphQL query operation: SearchAttribute
 // ====================================================
 
+export interface SearchAttribute_attributes_edges_node_values {
+  __typename: "AttributeValue";
+  id: string;
+  name: string | null;
+  slug: string | null;
+}
+
 export interface SearchAttribute_attributes_edges_node {
   __typename: "Attribute";
   id: string;
-  slug: string | null;
   name: string | null;
+  slug: string | null;
+  values: (SearchAttribute_attributes_edges_node_values | null)[] | null;
 }
 
 export interface SearchAttribute_attributes_edges {

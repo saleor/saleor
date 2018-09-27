@@ -14,10 +14,24 @@ import {
   SearchAttributeVariables
 } from "./types/SearchAttribute";
 
+export const attributeFragment = gql`
+  fragment AttributeFragment on Attribute {
+    id
+    name
+    slug
+    values {
+      id
+      name
+      slug
+    }
+  }
+`;
+
 export const TypedProductTypeListQuery = Query as React.ComponentType<
   QueryProps<ProductTypeList, ProductTypeListVariables>
 >;
 export const productTypeListQuery = gql`
+  ${attributeFragment}
   query ProductTypeList(
     $after: String
     $before: String
@@ -31,12 +45,10 @@ export const productTypeListQuery = gql`
           name
           hasVariants
           productAttributes {
-            id
-            name
+            ...AttributeFragment
           }
           variantAttributes {
-            id
-            name
+            ...AttributeFragment
           }
         }
       }
@@ -54,20 +66,17 @@ export const TypedProductTypeDetailsQuery = Query as React.ComponentType<
   QueryProps<ProductTypeDetails, ProductTypeDetailsVariables>
 >;
 export const productTypeDetailsQuery = gql`
+  ${attributeFragment}
   query ProductTypeDetails($id: ID!) {
     productType(id: $id) {
       id
       name
       hasVariants
       productAttributes {
-        id
-        slug
-        name
+        ...AttributeFragment
       }
       variantAttributes {
-        id
-        slug
-        name
+        ...AttributeFragment
       }
       isShippingRequired
       taxRate
@@ -79,13 +88,12 @@ export const TypedSearchAttributeQuery = Query as React.ComponentType<
   QueryProps<SearchAttribute, SearchAttributeVariables>
 >;
 export const searchAttributeQuery = gql`
+  ${attributeFragment}
   query SearchAttribute($search: String!) {
     attributes(query: $search, first: 5) {
       edges {
         node {
-          id
-          slug
-          name
+          ...AttributeFragment
         }
       }
     }
