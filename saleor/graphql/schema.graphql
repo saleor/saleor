@@ -1142,8 +1142,8 @@ type ProductType implements Node {
   id: ID!
   name: String!
   hasVariants: Boolean!
-  productAttributes(before: String, after: String, first: Int, last: Int, id: ID, slug: String): AttributeCountableConnection
-  variantAttributes(before: String, after: String, first: Int, last: Int, id: ID, slug: String): AttributeCountableConnection
+  productAttributes: [Attribute]
+  variantAttributes: [Attribute]
   isShippingRequired: Boolean!
   taxRate: TaxRateType
   weight: Weight
