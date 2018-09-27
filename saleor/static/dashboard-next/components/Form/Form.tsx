@@ -43,6 +43,7 @@ class Form<T extends {} = {}> extends React.Component<FormProps<T>, T> {
   handleSubmit = (event?: React.FormEvent<any>) => {
     const { onSubmit } = this.props;
     if (event) {
+      event.stopPropagation();
       event.preventDefault();
     }
     if (onSubmit !== undefined) {
