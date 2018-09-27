@@ -184,11 +184,7 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
                     hasVariants: product.productType.hasVariants,
                     id: product.productType.id,
                     name: product.productType.name,
-                    productAttributes: {
-                      edges: product.attributes.map(a => ({
-                        node: a.attribute
-                      }))
-                    }
+                    productAttributes: product.attributes.map(a => a.attribute)
                   }
                 }
               : undefined,

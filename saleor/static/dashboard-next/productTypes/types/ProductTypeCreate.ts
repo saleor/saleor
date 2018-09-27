@@ -13,38 +13,18 @@ export interface ProductTypeCreate_productTypeCreate_errors {
   message: string | null;
 }
 
-export interface ProductTypeCreate_productTypeCreate_productType_productAttributes_edges_node {
-  __typename: "Attribute";
-  id: string;
-  slug: string | null;
-  name: string | null;
-}
-
-export interface ProductTypeCreate_productTypeCreate_productType_productAttributes_edges {
-  __typename: "AttributeCountableEdge";
-  node: ProductTypeCreate_productTypeCreate_productType_productAttributes_edges_node;
-}
-
 export interface ProductTypeCreate_productTypeCreate_productType_productAttributes {
-  __typename: "AttributeCountableConnection";
-  edges: ProductTypeCreate_productTypeCreate_productType_productAttributes_edges[];
-}
-
-export interface ProductTypeCreate_productTypeCreate_productType_variantAttributes_edges_node {
   __typename: "Attribute";
   id: string;
   slug: string | null;
   name: string | null;
-}
-
-export interface ProductTypeCreate_productTypeCreate_productType_variantAttributes_edges {
-  __typename: "AttributeCountableEdge";
-  node: ProductTypeCreate_productTypeCreate_productType_variantAttributes_edges_node;
 }
 
 export interface ProductTypeCreate_productTypeCreate_productType_variantAttributes {
-  __typename: "AttributeCountableConnection";
-  edges: ProductTypeCreate_productTypeCreate_productType_variantAttributes_edges[];
+  __typename: "Attribute";
+  id: string;
+  slug: string | null;
+  name: string | null;
 }
 
 export interface ProductTypeCreate_productTypeCreate_productType {
@@ -52,8 +32,8 @@ export interface ProductTypeCreate_productTypeCreate_productType {
   id: string;
   name: string;
   hasVariants: boolean;
-  productAttributes: ProductTypeCreate_productTypeCreate_productType_productAttributes | null;
-  variantAttributes: ProductTypeCreate_productTypeCreate_productType_variantAttributes | null;
+  productAttributes: (ProductTypeCreate_productTypeCreate_productType_productAttributes | null)[] | null;
+  variantAttributes: (ProductTypeCreate_productTypeCreate_productType_variantAttributes | null)[] | null;
   isShippingRequired: boolean;
 }
 

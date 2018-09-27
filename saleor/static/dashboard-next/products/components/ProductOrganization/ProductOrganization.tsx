@@ -12,14 +12,13 @@ import SingleAutocompleteSelectField from "../../../components/SingleAutocomplet
 import SingleSelectField from "../../../components/SingleSelectField";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
+import { maybe } from "../../../misc";
 
 interface ProductType {
   hasVariants: boolean;
   id: string;
   name: string;
-  productAttributes: {
-    edges: Array<{ node: AttributeType }>;
-  };
+  productAttributes: AttributeType[];
 }
 interface ProductOrganizationProps {
   categories?: Array<{ value: string; label: string }>;
@@ -37,9 +36,7 @@ interface ProductOrganizationProps {
         hasVariants: boolean;
         id: string;
         name: string;
-        productAttributes: {
-          edges: Array<{ node: AttributeType }>;
-        };
+        productAttributes: AttributeType[];
       };
     };
   };
@@ -84,16 +81,14 @@ const ProductOrganization = decorate<ProductOrganizationProps>(
     productTypes,
     onChange
   }) => {
-    const unrolledAttributes =
-      data.productType &&
-      data.productType.value &&
-      data.productType.value.productAttributes
-        ? data.productType.value.productAttributes.edges.map(edge => edge.node)
-        : [];
+    const unrolledAttributes = maybe(
+      () => data.productType.value.productAttributes,
+      []
+    );
     const getAttributeName = (slug: string) =>
       unrolledAttributes.filter(a => a.slug === slug)[0].name;
     const getAttributeValue = (slug: string) => {
-      if (unrolledAttributes && unrolledAttributes.length > 0) {
+      if (unrolledAttributes.length > 0) {
         const value = data.attributes.filter(a => a.slug === slug)[0];
         const matches = unrolledAttributes
           .filter(a => a.slug === slug)[0]
@@ -126,8 +121,8 @@ const ProductOrganization = decorate<ProductOrganizationProps>(
         target: {
           ...event.target,
           name: "attributes",
-          value: event.target.value.value.productAttributes.edges.map(edge => ({
-            slug: edge.node.slug,
+          value: event.target.value.value.productAttributes.map(attribute => ({
+            slug: attribute.slug,
             value: ""
           }))
         }
