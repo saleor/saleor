@@ -13,6 +13,7 @@ function loadStories() {
   require("./stories/components/Money");
   require("./stories/components/MultiAutocompleteSelectField");
   require("./stories/components/MultiSelectField");
+  require("./stories/components/NotFoundPage");
   require("./stories/components/PageHeader");
   require("./stories/components/Percent");
   require("./stories/components/PhoneField");
