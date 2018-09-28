@@ -192,11 +192,9 @@ class DraftOrderComplete(BaseMutation):
             order.user_email = order.user.email
         elif order.user_email:
             try:
-                user = User.objects.get(email=order.user_email)
+                order.user = User.objects.get(email=order.user_email)
             except User.DoesNotExist:
                 order.user = None
-            else:
-                order.user = user
         else:
             cls.add_error(
                 errors, field=None,
