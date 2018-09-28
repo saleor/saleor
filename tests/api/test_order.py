@@ -397,7 +397,7 @@ def test_draft_order_complete(admin_api_client, admin_user, draft_order):
 
 
 def test_draft_order_complete_existing_user_email_updates_user_field(
-        admin_api_client, admin_user, draft_order, customer_user):
+        admin_api_client, draft_order, customer_user):
     order = draft_order
     order.user_email = customer_user.email
     order.user = None
@@ -422,7 +422,7 @@ def test_draft_order_complete_existing_user_email_updates_user_field(
 
 
 def test_draft_order_complete_anonymous_user_email_sets_user_field_null(
-        admin_api_client, admin_user, draft_order):
+        admin_api_client, draft_order):
     order = draft_order
     order.user_email = 'anonymous@example.com'
     order.user = None
@@ -444,6 +444,35 @@ def test_draft_order_complete_anonymous_user_email_sets_user_field_null(
     assert 'errors' not in content
     order.refresh_from_db()
     assert order.user is None
+
+
+def test_draft_order_complete_anonymous_user_no_email(
+        admin_api_client, draft_order):
+    order = draft_order
+    order.user_email = ''
+    order.user = None
+    order.save()
+    query = """
+        mutation draftComplete($id: ID!) {
+            draftOrderComplete(id: $id) {
+                order {
+                    status
+                }
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+        """
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variables = json.dumps({'id': order_id})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' in content['data']['draftOrderComplete']
+    assert content['data']['draftOrderComplete']['errors'][0] == {
+        'field': None, 'message': 'Both user and user_email fields are null'}
 
 
 DRAFT_ORDER_LINE_CREATE_MUTATION = """
