@@ -136,9 +136,7 @@ class OrderUpdate(DraftOrderUpdate):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
-        if instance.user:
-            instance.user_email = instance.user.email
-        elif instance.user_email:
+        if instance.user_email:
             try:
                 user = User.objects.get(email=instance.user_email)
             except User.DoesNotExist:

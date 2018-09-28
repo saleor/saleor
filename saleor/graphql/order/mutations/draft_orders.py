@@ -206,11 +206,11 @@ class DraftOrderComplete(BaseMutation):
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
         errors = check_for_draft_order_errors(order, errors)
+        cls.update_user_fields(order, errors)
         if errors:
             return cls(errors=errors)
 
         order.status = OrderStatus.UNFULFILLED
-        cls.update_user_fields(order, errors)
         if not order.is_shipping_required():
             order.shipping_method_name = None
             order.shipping_price = ZERO_TAXED_MONEY
