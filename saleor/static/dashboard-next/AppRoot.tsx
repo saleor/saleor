@@ -21,11 +21,12 @@ import SVG from "react-inlinesvg";
 import { appMountPoint } from ".";
 import * as saleorLogo from "../images/logo.svg";
 import { UserContext } from "./auth";
+import { User } from "./auth/types/User";
 import { categoryListUrl } from "./categories";
 import MenuToggle from "./components/MenuToggle";
 import Navigator from "./components/Navigator";
 import Toggle from "./components/Toggle";
-import { configurationMenuUrl } from "./configuration";
+import { configurationMenu, configurationMenuUrl } from "./configuration";
 import i18n from "./i18n";
 import ArrowDropdown from "./icons/ArrowDropdown";
 import Home from "./icons/Home";
@@ -33,7 +34,6 @@ import Shop from "./icons/Shop";
 import Truck from "./icons/Truck";
 import { removeDoubleSlashes } from "./misc";
 import { productListUrl } from "./products";
-import { User } from "./auth/types/User";
 
 const drawerWidth = 256;
 const navigationBarHeight = 64;
@@ -472,23 +472,29 @@ export const AppRoot = decorate(
                           onMenuItemClick={handleMenuItemClick}
                         />
                         <div className={classes.spacer} />
-                        <a
-                          className={classes.menuListItem}
-                          href={removeDoubleSlashes(
-                            appMountPoint + configurationMenuUrl
-                          )}
-                          onClick={event =>
-                            handleMenuItemClick(configurationMenuUrl, event)
-                          }
-                        >
-                          <SettingsIcon />
-                          <Typography
-                            aria-label="configure"
-                            className={classes.menuListItemText}
+                        {configurationMenu.filter(menuItem =>
+                          user.permissions
+                            .map(perm => perm.code)
+                            .includes(menuItem.resource)
+                        ).length > 0 && (
+                          <a
+                            className={classes.menuListItem}
+                            href={removeDoubleSlashes(
+                              appMountPoint + configurationMenuUrl
+                            )}
+                            onClick={event =>
+                              handleMenuItemClick(configurationMenuUrl, event)
+                            }
                           >
-                            {i18n.t("Configure")}
-                          </Typography>
-                        </a>
+                            <SettingsIcon />
+                            <Typography
+                              aria-label="configure"
+                              className={classes.menuListItemText}
+                            >
+                              {i18n.t("Configure")}
+                            </Typography>
+                          </a>
+                        )}
                       </div>
                     </ResponsiveDrawer>
                     <main className={classes.content}>{children}</main>

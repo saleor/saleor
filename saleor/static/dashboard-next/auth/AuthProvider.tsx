@@ -19,6 +19,7 @@ interface AuthProviderOperationsProps {
           isAuthenticated: boolean;
           tokenAuthLoading: boolean;
           tokenVerifyLoading: boolean;
+          user: User;
         }
       ) => React.ReactElement<any>)
     | React.ReactNode;
@@ -50,6 +51,7 @@ interface AuthProviderProps {
           isAuthenticated: boolean;
           tokenAuthLoading: boolean;
           tokenVerifyLoading: boolean;
+          user: User;
         }
       ) => React.ReactElement<any>)
     | React.ReactNode;
@@ -125,7 +127,8 @@ class AuthProvider extends React.Component<
               hasToken: !!getAuthToken(),
               isAuthenticated,
               tokenAuthLoading: tokenAuth.loading,
-              tokenVerifyLoading: tokenVerify.loading
+              tokenVerifyLoading: tokenVerify.loading,
+              user
             })
           : children}
       </UserContext.Provider>

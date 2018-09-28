@@ -3,6 +3,7 @@ import { Route, RouteProps } from "react-router-dom";
 
 import { UserContext } from "..";
 import AppRoot from "../../AppRoot";
+import NotFound from "../../NotFound";
 
 interface SectionRouteProps extends RouteProps {
   resource?: string;
@@ -20,7 +21,7 @@ export const SectionRoute: React.StatelessComponent<SectionRouteProps> = ({
             <Route {...props} />
           </AppRoot>
         ) : (
-          <>404</>
+          <NotFound />
         )
       ) : (
         <AppRoot>
