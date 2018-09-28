@@ -1,6 +1,7 @@
 import * as React from "react";
 import Navigator from "../components/Navigator";
 
+import { UserContext } from "../auth";
 import i18n from "../i18n";
 import AccountCircle from "../icons/AccountCircle";
 import Ballot from "../icons/Ballot";
@@ -12,56 +13,57 @@ import Pages from "../icons/Pages";
 import StoreMall from "../icons/StoreMall";
 import { productTypeListUrl } from "../productTypes";
 import { staffListUrl } from "../staff";
-import ConfigurationPage from "./ConfigurationPage";
+import ConfigurationPage, { MenuItem } from "./ConfigurationPage";
 
-export const configurationMenu = [
+export const configurationMenu: MenuItem[] = [
   {
     description: i18n.t("Define types of products you sell"),
     icon: <Folder fontSize="inherit" />,
+    resource: "product.manage_products",
     title: i18n.t("Product Types"),
     url: productTypeListUrl
   },
   {
     description: i18n.t("Define attributes of products yousell"),
-    disabled: true,
     icon: <Ballot fontSize="inherit" />,
+    resource: "product.manage_products",
     title: i18n.t("Attributes")
   },
   {
     description: i18n.t("Manage your employees and their permissions"),
-    disabled: true,
     icon: <AccountCircle fontSize="inherit" />,
+    resource: "account.manage_staff",
     title: i18n.t("Staff Members"),
     url: staffListUrl
   },
   {
     description: i18n.t("Manage how you ship out orders."),
-    disabled: true,
     icon: <LocalShipping fontSize="inherit" />,
+    resource: "shipping.manage_shipping",
     title: i18n.t("Shipping Methods")
   },
   {
     description: i18n.t("Manage how your store charges tax"),
-    disabled: true,
     icon: <Monetization fontSize="inherit" />,
+    resource: "product.manage_products",
     title: i18n.t("Taxes")
   },
   {
     description: i18n.t("Define how users can navigate through your store"),
-    disabled: true,
     icon: <Navigation fontSize="inherit" />,
+    resource: "menu.manage_menus",
     title: i18n.t("Navigation")
   },
   {
     description: i18n.t("View and update your site settings"),
-    disabled: true,
     icon: <StoreMall fontSize="inherit" />,
+    resource: "site.manage_settings",
     title: i18n.t("Site Settings")
   },
   {
     description: i18n.t("Manage and add additional pages"),
-    disabled: false,
     icon: <Pages fontSize="inherit" />,
+    resource: "page.manage_pages",
     title: i18n.t("Pages")
   }
 ];
@@ -69,10 +71,18 @@ export const configurationMenu = [
 export const configurationMenuUrl = "/configuration/";
 
 export const ConfigurationSection: React.StatelessComponent = () => (
-  <Navigator>
-    {navigate => (
-      <ConfigurationPage menu={configurationMenu} onSectionClick={navigate} />
+  <UserContext.Consumer>
+    {({ user }) => (
+      <Navigator>
+        {navigate => (
+          <ConfigurationPage
+            menu={configurationMenu}
+            user={user}
+            onSectionClick={navigate}
+          />
+        )}
+      </Navigator>
     )}
-  </Navigator>
+  </UserContext.Consumer>
 );
 export default ConfigurationSection;

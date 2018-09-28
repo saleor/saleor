@@ -19,9 +19,10 @@ import CategorySection from "./categories";
 import { DateProvider } from "./components/DateFormatter";
 import { LocaleProvider } from "./components/Locale";
 import { MessageManager } from "./components/messages";
-import ConfigurationSection from "./configuration";
+import ConfigurationSection, { configurationMenu } from "./configuration";
 import HomePage from "./home";
 import "./i18n";
+import { NotFound } from "./NotFound";
 import OrdersSection from "./orders";
 import PageSection from "./pages";
 import ProductSection from "./products";
@@ -83,9 +84,12 @@ render(
                   hasToken,
                   isAuthenticated,
                   tokenAuthLoading,
-                  tokenVerifyLoading
+                  tokenVerifyLoading,
+                  user
                 }) => {
-                  return isAuthenticated ? (
+                  return isAuthenticated &&
+                    !tokenAuthLoading &&
+                    !tokenVerifyLoading ? (
                     <Switch>
                       <SectionRoute exact path="/" component={HomePage} />
                       <SectionRoute
@@ -118,12 +122,18 @@ render(
                         path="/staff"
                         component={StaffSection}
                       />
-                      <SectionRoute
-                        exact
-                        path="/configuration"
-                        component={ConfigurationSection}
-                      />
-                      <Route component={() => <>404</>} />
+                      {configurationMenu.filter(menuItem =>
+                        user.permissions
+                          .map(perm => perm.code)
+                          .includes(menuItem.resource)
+                      ).length > 0 && (
+                        <SectionRoute
+                          exact
+                          path="/configuration"
+                          component={ConfigurationSection}
+                        />
+                      )}
+                      <Route component={NotFound} />
                     </Switch>
                   ) : hasToken && tokenVerifyLoading ? (
                     <LoginLoading />
