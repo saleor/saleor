@@ -38,7 +38,7 @@ pytest-mock==1.10.0
 pytest-vcr==0.3.0
 pytest-xdist==1.23.1
 pytest==3.8.1
-python-dateutil==2.7.3
+python-dateutil==2.7.3; python_version >= '2.7'
 pytz==2018.5
 pyyaml==3.13
 requests==2.19.1
