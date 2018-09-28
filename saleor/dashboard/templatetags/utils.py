@@ -2,7 +2,7 @@ from json import dumps
 from urllib.parse import urlencode
 
 from django import forms
-from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.templatetags.static import static
 from django.template import Library
 from django_filters.fields import RangeField
 from versatileimagefield.widgets import VersatileImagePPOIClickWidget
