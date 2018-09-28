@@ -2,7 +2,7 @@ import graphene
 from graphene.types import InputObjectType
 from graphql_jwt.decorators import permission_required
 
-from ....account.models import Address
+from ....account.models import Address, User
 from ....core.exceptions import InsufficientStock
 from ....core.utils.taxes import ZERO_TAXED_MONEY
 from ....order import OrderEvents, OrderStatus, models
@@ -187,6 +187,22 @@ class DraftOrderComplete(BaseMutation):
         description = 'Completes creating an order.'
 
     @classmethod
+    def update_user_fields(cls, order, errors):
+        if order.user:
+            order.user_email = order.user.email
+        elif order.user_email:
+            try:
+                user = User.objects.get(email=order.user_email)
+            except User.DoesNotExist:
+                order.user = None
+            else:
+                order.user = user
+        else:
+            cls.add_error(
+                errors, field=None,
+                message='Both user and user_email fields are null')
+
+    @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id):
         errors = []
@@ -196,8 +212,7 @@ class DraftOrderComplete(BaseMutation):
             return cls(errors=errors)
 
         order.status = OrderStatus.UNFULFILLED
-        if order.user:
-            order.user_email = order.user.email
+        cls.update_user_fields(order, errors)
         if not order.is_shipping_required():
             order.shipping_method_name = None
             order.shipping_price = ZERO_TAXED_MONEY
