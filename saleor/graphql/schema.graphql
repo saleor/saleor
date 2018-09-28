@@ -279,6 +279,120 @@ type CategoryUpdate {
   category: Category
 }
 
+type Checkout implements Node {
+  created: DateTime!
+  lastChange: DateTime!
+  user: User
+  email: String!
+  token: UUID!
+  quantity: Int!
+  billingAddress: Address
+  shippingAddress: Address
+  shippingMethod: ShippingMethod
+  note: String!
+  discountAmount: Money
+  discountName: String
+  translatedDiscountName: String
+  voucherCode: String
+  lines(before: String, after: String, first: Int, last: Int, id: ID): CheckoutLineCountableConnection
+  paymentMethods(before: String, after: String, first: Int, last: Int, id: ID): PaymentMethodCountableConnection
+  id: ID!
+  totalPrice: TaxedMoney
+  subtotalPrice: TaxedMoney
+  shippingPrice: TaxedMoney
+}
+
+type CheckoutComplete {
+  errors: [Error]
+  order: Order
+}
+
+type CheckoutCountableConnection {
+  pageInfo: PageInfo!
+  edges: [CheckoutCountableEdge!]!
+  totalCount: Int
+}
+
+type CheckoutCountableEdge {
+  node: Checkout!
+  cursor: String!
+}
+
+type CheckoutCreate {
+  errors: [Error]
+  checkout: Checkout
+}
+
+input CheckoutCreateInput {
+  lines: [CheckoutLineInput]
+  email: String
+  shippingAddress: AddressInput
+}
+
+type CheckoutCustomerAttach {
+  errors: [Error]
+  checkout: Checkout
+}
+
+type CheckoutCustomerDetach {
+  errors: [Error]
+  checkout: Checkout
+}
+
+type CheckoutEmailUpdate {
+  errors: [Error]
+  checkout: Checkout
+}
+
+type CheckoutLine implements Node {
+  id: ID!
+  variant: ProductVariant!
+  quantity: Int!
+  totalPrice: TaxedMoney
+  requiresShipping: Boolean
+}
+
+type CheckoutLineCountableConnection {
+  pageInfo: PageInfo!
+  edges: [CheckoutLineCountableEdge!]!
+  totalCount: Int
+}
+
+type CheckoutLineCountableEdge {
+  node: CheckoutLine!
+  cursor: String!
+}
+
+type CheckoutLineDelete {
+  errors: [Error]
+  checkout: Checkout
+}
+
+input CheckoutLineInput {
+  quantity: Int
+  variantId: ID
+}
+
+type CheckoutLinesAdd {
+  errors: [Error]
+  checkout: Checkout
+}
+
+type CheckoutLinesUpdate {
+  errors: [Error]
+  checkout: Checkout
+}
+
+type CheckoutPaymentMethodCreate {
+  errors: [Error]
+  paymentMethod: PaymentMethod
+}
+
+type CheckoutShippingAddressUpdate {
+  errors: [Error]
+  checkout: Checkout
+}
+
 type ChoiceValue {
   raw: String
   verbose: String
@@ -566,6 +680,8 @@ type Image {
   url(size: Int): String!
 }
 
+scalar JSONString
+
 type LanguageDisplay {
   code: String!
   language: String!
@@ -735,6 +851,16 @@ type Mutations {
   addressCreate(input: AddressCreateInput!): AddressCreate
   addressUpdate(id: ID!, input: AddressInput!): AddressUpdate
   addressDelete(id: ID!): AddressDelete
+  checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
+  checkoutLinesAdd(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesAdd
+  checkoutLinesUpdate(checkoutId: ID!, lines: [CheckoutLineInput]!): CheckoutLinesUpdate
+  checkoutLineDelete(checkoutId: ID!, lineId: ID): CheckoutLineDelete
+  checkoutCustomerAttach(checkoutId: ID!, customerId: ID!): CheckoutCustomerAttach
+  checkoutCustomerDetach(checkoutId: ID!): CheckoutCustomerDetach
+  checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput): CheckoutShippingAddressUpdate
+  checkoutEmailUpdate(checkoutId: ID, email: String!): CheckoutEmailUpdate
+  checkoutPaymentMethodCreate(input: PaymentMethodInput!): CheckoutPaymentMethodCreate
+  checkoutComplete(checkoutId: ID): CheckoutComplete
   menuCreate(input: MenuCreateInput!): MenuCreate
   menuDelete(id: ID!): MenuDelete
   menuUpdate(id: ID!, input: MenuInput!): MenuUpdate
@@ -762,6 +888,9 @@ type Mutations {
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
+  paymentMethodCharge(amount: Decimal, paymentMethodId: ID!): PaymentMethodCharge
+  paymentMethodRefund(amount: Decimal, paymentMethodId: ID!): PaymentMethodRefund
+  paymentMethodVoid(paymentMethodId: ID!): PaymentMethodVoid
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleUpdate(id: ID!, input: SaleInput!): SaleUpdate
@@ -818,6 +947,7 @@ type Order implements Node {
   lines: [OrderLine]!
   fulfillments: [Fulfillment]!
   events: [OrderEvent]
+  paymentMethods(before: String, after: String, first: Int, last: Int, id: ID): PaymentMethodCountableConnection
   isPaid: Boolean
   number: String
   paymentStatus: PaymentStatusEnum
@@ -1050,6 +1180,75 @@ type PageUpdate {
 
 type PasswordReset {
   errors: [Error]
+}
+
+type PaymentMethod implements Node {
+  id: ID!
+  variant: String!
+  isActive: Boolean!
+  created: DateTime!
+  modified: DateTime!
+  chargeStatus: PaymentMethodChargeStatus!
+  billingFirstName: String!
+  billingLastName: String!
+  billingAddress1: String!
+  billingAddress2: String!
+  billingCity: String!
+  billingPostcode: String!
+  billingCountryCode: String!
+  billingCountryArea: String!
+  billingEmail: String!
+  customerIpAddress: String
+  extraData: String!
+  token: String!
+  total: Float!
+  currency: String!
+  capturedAmount: Float!
+  tax: Float!
+  checkout: Checkout
+  order: Order
+  transactions(before: String, after: String, first: Int, last: Int, id: ID): TransactionCountableConnection
+}
+
+type PaymentMethodCharge {
+  errors: [Error]
+  paymentMethod: PaymentMethod
+}
+
+enum PaymentMethodChargeStatus {
+  CHARGED
+  NOT_CHARGED
+  FULLY_REFUNDED
+}
+
+type PaymentMethodCountableConnection {
+  pageInfo: PageInfo!
+  edges: [PaymentMethodCountableEdge!]!
+  totalCount: Int
+}
+
+type PaymentMethodCountableEdge {
+  node: PaymentMethod!
+  cursor: String!
+}
+
+input PaymentMethodInput {
+  gateway: ProvidersEnum
+  checkoutId: ID
+  transactionToken: String!
+  amount: Decimal!
+  billingAddress: AddressInput
+  storePaymentMethod: Boolean = false
+}
+
+type PaymentMethodRefund {
+  errors: [Error]
+  paymentMethod: PaymentMethod
+}
+
+type PaymentMethodVoid {
+  errors: [Error]
+  paymentMethod: PaymentMethod
 }
 
 enum PaymentStatusEnum {
@@ -1344,6 +1543,11 @@ type ProductVariantUpdate {
   productVariant: ProductVariant
 }
 
+enum ProvidersEnum {
+  DUMMY
+  BRAINTREE
+}
+
 type Query {
   attributes(query: String, inCategory: ID, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
   categories(query: String, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
@@ -1358,6 +1562,10 @@ type Query {
   productVariants(ids: [ID], before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   reportProductSales(period: ReportingPeriod!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   addressValidator(input: AddressValidationInput!): AddressValidationData
+  checkout(token: UUID): Checkout
+  checkouts(before: String, after: String, first: Int, last: Int, token: UUID): CheckoutCountableConnection
+  checkoutLines(before: String, after: String, first: Int, last: Int, id: ID): CheckoutLineCountableConnection
+  checkoutLine(id: ID): CheckoutLine
   menu(id: ID, name: String): Menu
   menus(query: String, before: String, after: String, first: Int, last: Int): MenuCountableConnection
   menuItem(id: ID!): MenuItem
@@ -1474,6 +1682,7 @@ type ShippingMethod implements Node {
   maximumOrderPrice: Money
   minimumOrderWeight: Weight
   maximumOrderWeight: Weight
+  carts(before: String, after: String, first: Int, last: Int, token: UUID): CheckoutCountableConnection
 }
 
 enum ShippingMethodTypeEnum {
@@ -1668,6 +1877,34 @@ type TaxedMoneyRange {
   stop: TaxedMoney
 }
 
+type Transaction implements Node {
+  id: ID!
+  paymentMethod: PaymentMethod!
+  token: String!
+  transactionType: TransactionTransactionType!
+  isSuccess: Boolean!
+  amount: Float!
+  gatewayResponse: JSONString!
+}
+
+type TransactionCountableConnection {
+  pageInfo: PageInfo!
+  edges: [TransactionCountableEdge!]!
+  totalCount: Int
+}
+
+type TransactionCountableEdge {
+  node: Transaction!
+  cursor: String!
+}
+
+enum TransactionTransactionType {
+  AUTH
+  CHARGE
+  REFUND
+  VOID
+}
+
 scalar UUID
 
 scalar Upload
@@ -1685,6 +1922,7 @@ type User implements Node {
   defaultShippingAddress: Address
   defaultBillingAddress: Address
   orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  carts(before: String, after: String, first: Int, last: Int, token: UUID): CheckoutCountableConnection
   permissions: [PermissionDisplay]
 }
 
