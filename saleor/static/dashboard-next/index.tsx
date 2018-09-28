@@ -11,15 +11,15 @@ import { render } from "react-dom";
 import { BrowserRouter, Route, Switch } from "react-router-dom";
 import * as Cookies from "universal-cookie";
 
-import AppRoot from "./AppRoot";
 import Auth, { getAuthToken, removeAuthToken } from "./auth";
 import AuthProvider from "./auth/AuthProvider";
 import LoginLoading from "./auth/components/LoginLoading/LoginLoading";
+import SectionRoute from "./auth/components/SectionRoute";
 import CategorySection from "./categories";
 import { DateProvider } from "./components/DateFormatter";
 import { LocaleProvider } from "./components/Locale";
 import { MessageManager } from "./components/messages";
-import { ConfigurationSection } from "./configuration";
+import ConfigurationSection from "./configuration";
 import HomePage from "./home";
 import "./i18n";
 import OrdersSection from "./orders";
@@ -86,25 +86,45 @@ render(
                   tokenVerifyLoading
                 }) => {
                   return isAuthenticated ? (
-                    <AppRoot>
-                      <Switch>
-                        <Route exact path="/" component={HomePage} />
-                        <Route path="/categories" component={CategorySection} />
-                        <Route path="/pages" component={PageSection} />
-                        <Route path="/orders" component={OrdersSection} />
-                        <Route path="/products" component={ProductSection} />
-                        <Route
-                          path="/productTypes"
-                          component={ProductTypesSection}
-                        />
-                        <Route path="/staff" component={StaffSection} />
-                        <Route
-                          exact
-                          path="/configuration"
-                          component={ConfigurationSection}
-                        />
-                      </Switch>
-                    </AppRoot>
+                    <Switch>
+                      <SectionRoute exact path="/" component={HomePage} />
+                      <SectionRoute
+                        resource="product.manage_products"
+                        path="/categories"
+                        component={CategorySection}
+                      />
+                      <SectionRoute
+                        resource="page.manage_pages"
+                        path="/pages"
+                        component={PageSection}
+                      />
+                      <SectionRoute
+                        resource="order.manage_orders"
+                        path="/orders"
+                        component={OrdersSection}
+                      />
+                      <SectionRoute
+                        resource="product.manage_products"
+                        path="/products"
+                        component={ProductSection}
+                      />
+                      <SectionRoute
+                        resource="product.manage_products"
+                        path="/productTypes"
+                        component={ProductTypesSection}
+                      />
+                      <SectionRoute
+                        resource="account.manage_staff"
+                        path="/staff"
+                        component={StaffSection}
+                      />
+                      <SectionRoute
+                        exact
+                        path="/configuration"
+                        component={ConfigurationSection}
+                      />
+                      <Route component={() => <>404</>} />
+                    </Switch>
                   ) : hasToken && tokenVerifyLoading ? (
                     <LoginLoading />
                   ) : (
