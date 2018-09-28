@@ -33,11 +33,12 @@ import Shop from "./icons/Shop";
 import Truck from "./icons/Truck";
 import { removeDoubleSlashes } from "./misc";
 import { productListUrl } from "./products";
+import { User } from "./auth/types/User";
 
 const drawerWidth = 256;
 const navigationBarHeight = 64;
 
-const menuStructure = [
+const menuStructure: IMenuItem[] = [
   {
     ariaLabel: "home",
     icon: <Home />,
@@ -61,12 +62,14 @@ const menuStructure = [
       }
     ],
     icon: <Shop />,
-    label: i18n.t("Catalogue", { context: "Menu label" })
+    label: i18n.t("Catalogue", { context: "Menu label" }),
+    resource: "product.manage_products"
   },
   {
     ariaLabel: "orders",
     icon: <Truck />,
     label: i18n.t("Orders", { context: "Menu label" }),
+    resource: "order.manage_orders",
     url: "/orders/"
   }
 ];
@@ -233,16 +236,24 @@ interface IMenuItem {
   children?: IMenuItem[];
   icon: React.ReactNode;
   label: string;
+  resource?: string;
   url?: string;
 }
 interface MenuListProps {
   menuItems: IMenuItem[];
+  user: User;
   onMenuItemClick: (url: string, event: React.MouseEvent<any>) => void;
 }
 const MenuList = decorate<MenuListProps>(
-  ({ classes, menuItems, onMenuItemClick }) => (
+  ({ classes, menuItems, user, onMenuItemClick }) => (
     <div>
       {menuItems.map(menuItem => {
+        if (
+          menuItem.resource &&
+          !user.permissions.map(perm => perm.code).includes(menuItem.resource)
+        ) {
+          return null;
+        }
         if (!menuItem.url) {
           return (
             <Toggle key={menuItem.label}>
@@ -261,6 +272,7 @@ const MenuList = decorate<MenuListProps>(
                     <div className={classes.menuListNested}>
                       <MenuList
                         menuItems={menuItem.children}
+                        user={user}
                         onMenuItemClick={onMenuItemClick}
                       />
                     </div>
@@ -456,6 +468,7 @@ export const AppRoot = decorate(
                       <div className={classes.menuList}>
                         <MenuList
                           menuItems={menuStructure}
+                          user={user}
                           onMenuItemClick={handleMenuItemClick}
                         />
                         <div className={classes.spacer} />
