@@ -16,8 +16,8 @@ const decorate = withStyles(
   }
 );
 const DateFormatter = decorate<DateFormatterProps>(
-  ({ classes, date, typographyProps }) => {
-    return (
+  ({ classes, date, typographyProps }) =>
+    typographyProps ? (
       <Typography
         component="span"
         className={classes.root}
@@ -27,7 +27,10 @@ const DateFormatter = decorate<DateFormatterProps>(
           <span>{date}</span>
         </Tooltip>
       </Typography>
-    );
-  }
+    ) : (
+      <Tooltip title={date}>
+        <span>{date}</span>
+      </Tooltip>
+    )
 );
 export default DateFormatter;

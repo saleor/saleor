@@ -8,39 +8,6 @@ import {
   OrderVariantSearchVariables
 } from "./types/OrderVariantSearch";
 
-export const orderListQuery = gql`
-  query OrderList($first: Int, $after: String, $last: Int, $before: String) {
-    orders(before: $before, after: $after, first: $first, last: $last) {
-      edges {
-        cursor
-        node {
-          id
-          number
-          created
-          paymentStatus
-          status
-          total {
-            gross {
-              amount
-              currency
-            }
-          }
-          userEmail
-        }
-      }
-      pageInfo {
-        hasPreviousPage
-        hasNextPage
-        startCursor
-        endCursor
-      }
-    }
-  }
-`;
-export const TypedOrderListQuery = TypedQuery<OrderList, OrderListVariables>(
-  orderListQuery
-);
-
 export const fragmentOrderEvent = gql`
   fragment OrderEventFragment on OrderEvent {
     id
@@ -58,16 +25,17 @@ export const fragmentOrderEvent = gql`
 `;
 export const fragmentAddress = gql`
   fragment AddressFragment on Address {
-    id
     city
     cityArea
     companyName
     country {
+      __typename
       code
       country
     }
     countryArea
     firstName
+    id
     lastName
     phone
     postalCode
@@ -173,6 +141,45 @@ export const fragmentOrderDetails = gql`
     }
   }
 `;
+
+export const orderListQuery = gql`
+  ${fragmentAddress}
+  query OrderList($first: Int, $after: String, $last: Int, $before: String) {
+    orders(before: $before, after: $after, first: $first, last: $last) {
+      edges {
+        node {
+          __typename
+          billingAddress {
+            ...AddressFragment
+          }
+          created
+          id
+          number
+          paymentStatus
+          status
+          total {
+            __typename
+            gross {
+              __typename
+              amount
+              currency
+            }
+          }
+          userEmail
+        }
+      }
+      pageInfo {
+        hasPreviousPage
+        hasNextPage
+        startCursor
+        endCursor
+      }
+    }
+  }
+`;
+export const TypedOrderListQuery = TypedQuery<OrderList, OrderListVariables>(
+  orderListQuery
+);
 
 export const orderDetailsQuery = gql`
   ${fragmentOrderDetails}

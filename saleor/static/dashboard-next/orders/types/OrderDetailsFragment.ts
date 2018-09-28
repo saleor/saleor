@@ -15,13 +15,13 @@ export interface OrderDetailsFragment_billingAddress_country {
 
 export interface OrderDetailsFragment_billingAddress {
   __typename: "Address";
-  id: string;
   city: string;
   cityArea: string;
   companyName: string;
   country: OrderDetailsFragment_billingAddress_country;
   countryArea: string;
   firstName: string;
+  id: string;
   lastName: string;
   phone: string | null;
   postalCode: string;
@@ -115,13 +115,13 @@ export interface OrderDetailsFragment_shippingAddress_country {
 
 export interface OrderDetailsFragment_shippingAddress {
   __typename: "Address";
-  id: string;
   city: string;
   cityArea: string;
   companyName: string;
   country: OrderDetailsFragment_shippingAddress_country;
   countryArea: string;
   firstName: string;
+  id: string;
   lastName: string;
   phone: string | null;
   postalCode: string;
