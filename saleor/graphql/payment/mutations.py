@@ -29,12 +29,12 @@ class PaymentMethodInput(graphene.InputObjectType):
 
 
 class CheckoutPaymentMethodCreate(BaseMutation):
+    payment_method = graphene.Field(
+        PaymentMethod, description='Updated payment method')
+
     class Arguments:
         input = PaymentMethodInput(
             required=True, description='Payment method details')
-
-    payment_method = graphene.Field(
-        PaymentMethod, description='Updated payment method')
 
     class Meta:
         description = 'Creates credit card transaction.'
@@ -56,12 +56,10 @@ class CheckoutPaymentMethodCreate(BaseMutation):
 
         # create payment method
         payment_method = create_payment_method(
-            variant=input['gateway'],
-            billing_email=checkout.email,
-            extra_data=extra_data,
-            total=input['amount'],
-            checkout=checkout,
+            variant=input['gateway'], billing_email=checkout.email,
+            extra_data=extra_data, total=input['amount'], checkout=checkout,
             **billing_data)
+
         # authorize payment
         try:
             gateway_authorize(payment_method, input['transaction_token'])
@@ -96,17 +94,14 @@ class CheckoutPaymentMethodCreate(BaseMutation):
             'customer_user_agent': user_agent}
 
 
-
 class PaymentMethodCharge(BaseMutation):
+    payment_method = graphene.Field(
+        PaymentMethod, description='Updated payment method')
 
     class Arguments:
         payment_method_id = graphene.ID(
             required=True, description='Payment method ID')
-        amount = graphene.Argument(
-            Decimal, description='Transaction amount')
-
-    payment_method = graphene.Field(
-        PaymentMethod, description='Updated payment method')
+        amount = graphene.Argument(Decimal, description='Transaction amount')
 
     @classmethod
     @permission_required('order.manage_orders')
@@ -124,12 +119,11 @@ class PaymentMethodCharge(BaseMutation):
         except PaymentError as exc:
             msg = str(exc)
             cls.add_error(field=None, message=msg, errors=errors)
-
-        return PaymentMethodCharge(payment_method=payment_method, errors=errors)
+        return PaymentMethodCharge(
+            payment_method=payment_method, errors=errors)
 
 
 class PaymentMethodRefund(PaymentMethodCharge):
-
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, payment_method_id, amount=None):
@@ -146,17 +140,17 @@ class PaymentMethodRefund(PaymentMethodCharge):
         except PaymentError as exc:
             msg = str(exc)
             cls.add_error(field=None, message=msg, errors=errors)
-
-        return PaymentMethodRefund(payment_method=payment_method, errors=errors)
+        return PaymentMethodRefund(
+            payment_method=payment_method, errors=errors)
 
 
 class PaymentMethodVoid(BaseMutation):
+    payment_method = graphene.Field(
+        PaymentMethod, description='Updated payment method')
+
     class Arguments:
         payment_method_id = graphene.ID(
             required=True, description='Payment method ID')
-
-    payment_method = graphene.Field(
-        PaymentMethod, description='Updated payment method')
 
     @classmethod
     @permission_required('order.manage_orders')
@@ -174,5 +168,4 @@ class PaymentMethodVoid(BaseMutation):
         except PaymentError as exc:
             msg = str(exc)
             cls.add_error(field=None, message=msg, errors=errors)
-
         return PaymentMethodVoid(payment_method=payment_method, errors=errors)
