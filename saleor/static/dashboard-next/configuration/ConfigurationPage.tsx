@@ -18,7 +18,7 @@ export interface MenuItem {
   url?: string;
 }
 
-interface ConfigurationPageProps {
+export interface ConfigurationPageProps {
   menu: MenuItem[];
   user: User;
   onSectionClick: (sectionName: string) => void;
