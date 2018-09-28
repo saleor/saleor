@@ -13,13 +13,13 @@ export interface AddressFragment_country {
 
 export interface AddressFragment {
   __typename: "Address";
-  id: string;
   city: string;
   cityArea: string;
   companyName: string;
   country: AddressFragment_country;
   countryArea: string;
   firstName: string;
+  id: string;
   lastName: string;
   phone: string | null;
   postalCode: string;

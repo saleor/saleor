@@ -15,13 +15,13 @@ export interface OrderRelease_orderRelease_order_billingAddress_country {
 
 export interface OrderRelease_orderRelease_order_billingAddress {
   __typename: "Address";
-  id: string;
   city: string;
   cityArea: string;
   companyName: string;
   country: OrderRelease_orderRelease_order_billingAddress_country;
   countryArea: string;
   firstName: string;
+  id: string;
   lastName: string;
   phone: string | null;
   postalCode: string;
@@ -115,13 +115,13 @@ export interface OrderRelease_orderRelease_order_shippingAddress_country {
 
 export interface OrderRelease_orderRelease_order_shippingAddress {
   __typename: "Address";
-  id: string;
   city: string;
   cityArea: string;
   companyName: string;
   country: OrderRelease_orderRelease_order_shippingAddress_country;
   countryArea: string;
   firstName: string;
+  id: string;
   lastName: string;
   phone: string | null;
   postalCode: string;

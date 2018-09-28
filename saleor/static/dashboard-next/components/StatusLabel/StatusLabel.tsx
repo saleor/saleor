@@ -30,7 +30,7 @@ const decorate = withStyles(theme => {
       "&:before": { backgroundColor: yellow[500], ...dot }
     },
     root: {
-      display: "inline",
+      display: "inline-block",
       marginLeft: theme.spacing.unit + 8,
       position: "relative" as "relative"
     },

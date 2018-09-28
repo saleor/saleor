@@ -21,13 +21,13 @@ export interface OrderLineUpdate_draftOrderLineUpdate_order_billingAddress_count
 
 export interface OrderLineUpdate_draftOrderLineUpdate_order_billingAddress {
   __typename: "Address";
-  id: string;
   city: string;
   cityArea: string;
   companyName: string;
   country: OrderLineUpdate_draftOrderLineUpdate_order_billingAddress_country;
   countryArea: string;
   firstName: string;
+  id: string;
   lastName: string;
   phone: string | null;
   postalCode: string;
@@ -121,13 +121,13 @@ export interface OrderLineUpdate_draftOrderLineUpdate_order_shippingAddress_coun
 
 export interface OrderLineUpdate_draftOrderLineUpdate_order_shippingAddress {
   __typename: "Address";
-  id: string;
   city: string;
   cityArea: string;
   companyName: string;
   country: OrderLineUpdate_draftOrderLineUpdate_order_shippingAddress_country;
   countryArea: string;
   firstName: string;
+  id: string;
   lastName: string;
   phone: string | null;
   postalCode: string;
