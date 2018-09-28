@@ -17,7 +17,6 @@ class CheckoutLine(CountableDjangoObjectType):
         model = models.CartLine
         filter_fields = ['id']
 
-
     def resolve_total_price(self, info):
         taxes = get_taxes_for_address(self.cart.shipping_address)
         return self.get_total(taxes=taxes)

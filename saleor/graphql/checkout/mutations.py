@@ -42,8 +42,7 @@ class CheckoutLineInput(graphene.InputObjectType):
 
 
 class CheckoutCreateInput(graphene.InputObjectType):
-    lines = graphene.List(
-        CheckoutLineInput, description='Checkout lines')
+    lines = graphene.List(CheckoutLineInput, description='Checkout lines')
     email = graphene.String(description='Customer email')
     shipping_address = AddressInput(description='Shipping address')
 
@@ -96,21 +95,21 @@ class CheckoutCreate(ModelMutation):
                 add_variant_to_cart(instance, variant, quantity)
 
 
-
 class CheckoutLinesAdd(BaseMutation):
+    checkout = graphene.Field(Checkout, description='An updated checkout')
+
     class Arguments:
         checkout_id = graphene.ID(description='Checkout ID', required=True)
         lines = graphene.List(
             CheckoutLineInput, description='Checkout lines', required=True)
-
-    checkout = graphene.Field(Checkout, description='An updated checkout')
 
     class Meta:
         description = 'Adds a checkout line to existing checkout'
 
     @classmethod
     def mutate(cls, root, info, checkout_id, lines, replace=False):
-        checkout = graphene.Node.get_node_from_global_id(info, checkout_id, Checkout)
+        checkout = graphene.Node.get_node_from_global_id(
+            info, checkout_id, Checkout)
         variants, quantities = None, None
         errors = []
         if lines:
@@ -126,7 +125,8 @@ class CheckoutLinesAdd(BaseMutation):
 
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
-                add_variant_to_cart(checkout, variant, quantity, replace=replace)
+                add_variant_to_cart(
+                    checkout, variant, quantity, replace=replace)
         return CheckoutLinesAdd(checkout=checkout, errors=errors)
 
 
@@ -142,11 +142,11 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
 
 
 class CheckoutLineDelete(BaseMutation):
+    checkout = graphene.Field(Checkout, description='An updated checkout')
+
     class Arguments:
         checkout_id = graphene.ID(description='Checkout ID', required=True)
         line_id = graphene.ID(description='Checkout line ID')
-
-    checkout = graphene.Field(Checkout, description='An updated checkout')
 
     class Meta:
         description = 'Deletes a checkout line'
@@ -163,13 +163,12 @@ class CheckoutLineDelete(BaseMutation):
         return CheckoutLinesAdd(checkout=checkout, errors=errors)
 
 
-
 class CheckoutCustomerAttach(BaseMutation):
+    checkout = graphene.Field(Checkout, description='An updated checkout')
+
     class Arguments:
         checkout_id = graphene.ID(description='Checkout ID', required=True)
         customer_id = graphene.ID(description='Customer ID', required=True)
-
-    checkout = graphene.Field(Checkout, description='An updated checkout')
 
     @classmethod
     def mutate(cls, root, info, checkout_id, customer_id):
@@ -183,12 +182,12 @@ class CheckoutCustomerAttach(BaseMutation):
             checkout.save(update_fields=['user'])
         return CheckoutCustomerAttach(checkout=checkout, errors=errors)
 
+
 class CheckoutCustomerDetach(BaseMutation):
+    checkout = graphene.Field(Checkout, description='An updated checkout')
+
     class Arguments:
         checkout_id = graphene.ID(description='Checkout ID', required=True)
-
-
-    checkout = graphene.Field(Checkout, description='An updated checkout')
 
     @classmethod
     def mutate(cls, root, info, checkout_id):
@@ -199,12 +198,13 @@ class CheckoutCustomerDetach(BaseMutation):
             checkout.save(update_fields=['user'])
         return CheckoutCustomerDetach(checkout=checkout)
 
+
 class CheckoutShippingAddressUpdate(BaseMutation):
+    checkout = graphene.Field(Checkout, description='An updated checkout')
+
     class Arguments:
         checkout_id = graphene.ID(description='Checkout ID')
         shipping_address = AddressInput(description='Shipping address')
-
-    checkout = graphene.Field(Checkout, description='An updated checkout')
 
     class Meta:
         description = 'Update shipping address in existing Checkout object'
@@ -221,12 +221,13 @@ class CheckoutShippingAddressUpdate(BaseMutation):
                 change_shipping_address_in_cart(checkout, shipping_address)
         return CheckoutShippingAddressUpdate(checkout=checkout, errors=errors)
 
+
 class CheckoutEmailUpdate(BaseMutation):
+    checkout = graphene.Field(Checkout, description='An updated checkout')
+
     class Arguments:
         checkout_id = graphene.ID(description='Checkout ID')
         email = graphene.String(required=True, description='email')
-
-    checkout = graphene.Field(Checkout, description='An updated checkout')
 
     class Meta:
         description = 'Update email address in existing Checkout object'
@@ -242,12 +243,14 @@ class CheckoutEmailUpdate(BaseMutation):
 
         return CheckoutEmailUpdate(checkout=checkout, errors=errors)
 
+
 class CheckoutShippingMethodUpdate(BaseMutation):
+    checkout = graphene.Field(Checkout, description='An updated checkout')
+
     class Arguments:
         checkout_id = graphene.ID(description='Checkout ID')
-        shipping_method_id = graphene.ID(required=True, description='Shipping method')
-
-    checkout = graphene.Field(Checkout, description='An updated checkout')
+        shipping_method_id = graphene.ID(
+            required=True, description='Shipping method')
 
     @classmethod
     def mutate(cls, root, info, checkout_id, shipping_method_id):
@@ -262,11 +265,12 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             checkout.save(update_fields=['shipping_method'])
         return CheckoutShippingMethodUpdate(checkout=checkout, errors=errors)
 
+
 class CheckoutComplete(BaseMutation):
+    order = graphene.Field(Order, description='Placed order')
+
     class Arguments:
         checkout_id = graphene.ID(description='Checkout ID')
-
-    order = graphene.Field(Order, description='Placed order')
 
     @classmethod
     def mutate(cls, root, info, checkout_id):
@@ -278,8 +282,7 @@ class CheckoutComplete(BaseMutation):
             return CheckoutComplete(errors=errors)
         ready, checkout_error = ready_to_place_order(checkout)
         if not ready:
-            cls.add_error(
-                field=None, message=checkout_error, errors=errors)
+            cls.add_error(field=None, message=checkout_error, errors=errors)
             return CheckoutComplete(errors=errors)
 
         try:
@@ -293,6 +296,6 @@ class CheckoutComplete(BaseMutation):
         except InsufficientStock:
             order = None
             cls.add_error(
-                field=None, message='Insufficient product stock', errors=errors)
-
+                field=None, message='Insufficient product stock',
+                errors=errors)
         return CheckoutComplete(order=order, errors=errors)
