@@ -1,6 +1,6 @@
 from unittest.mock import Mock, patch
 
-from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.templatetags.static import static
 from django.test import override_settings
 
 from saleor.product.templatetags.product_images import (
