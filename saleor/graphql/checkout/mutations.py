@@ -1,5 +1,6 @@
 import graphene
 from django.db import transaction
+from django.utils.translation import pgettext_lazy
 
 from ...account.models import Address
 from ...checkout import models
@@ -10,12 +11,29 @@ from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ..account.types import AddressInput, User
 from ..core.mutations import BaseMutation, ModelMutation
-from ..order.mutations.draft_orders import check_lines_quantity
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
 from ..utils import get_nodes
 from .types import Checkout, CheckoutLine
+
+
+def check_lines_quantity(variants, quantities):
+    """Check if stock is sufficient for each line in the list of dicts.
+    Return list of errors.
+    """
+    errors = []
+
+    for variant, quantity in zip(variants, quantities):
+        try:
+            variant.check_quantity(quantity)
+        except InsufficientStock as e:
+            message = pgettext_lazy(
+                'Add line mutation error',
+                'Could not add item. Only %(remaining)d remaining in stock.' %
+                {'remaining': e.item.quantity_available})
+            errors.append((variant.name, message))
+    return errors
 
 
 class CheckoutLineInput(graphene.InputObjectType):
