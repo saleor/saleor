@@ -63,13 +63,13 @@ const menuStructure: IMenuItem[] = [
     ],
     icon: <Shop />,
     label: i18n.t("Catalogue", { context: "Menu label" }),
-    resource: "product.manage_products"
+    permission: "product.manage_products"
   },
   {
     ariaLabel: "orders",
     icon: <Truck />,
     label: i18n.t("Orders", { context: "Menu label" }),
-    resource: "order.manage_orders",
+    permission: "order.manage_orders",
     url: "/orders/"
   }
 ];
@@ -236,7 +236,7 @@ interface IMenuItem {
   children?: IMenuItem[];
   icon: React.ReactNode;
   label: string;
-  resource?: string;
+  permission?: string;
   url?: string;
 }
 interface MenuListProps {
@@ -249,8 +249,8 @@ const MenuList = decorate<MenuListProps>(
     <div>
       {menuItems.map(menuItem => {
         if (
-          menuItem.resource &&
-          !user.permissions.map(perm => perm.code).includes(menuItem.resource)
+          menuItem.permission &&
+          !user.permissions.map(perm => perm.code).includes(menuItem.permission)
         ) {
           return null;
         }
