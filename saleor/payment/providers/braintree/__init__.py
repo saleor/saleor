@@ -23,7 +23,8 @@ def get_error_for_client(errors):
         return ''
 
     default_msg = pgettext_lazy(
-        'payment error', 'Unable to process transaction. Please try again in a moment')
+        'payment error',
+        'Unable to process transaction. Please try again in a moment')
     error_codes_whitelist = [] #FIXME: Provide list of visible errors and messages translations
     for error in errors:
         if error['code'] in error_codes_whitelist:
@@ -37,10 +38,10 @@ def extract_gateway_response(braintree_result) -> Dict:
     """
     errors = {}
     if not braintree_result.is_success:
-        errors = [
-            {'code': error.code, 'message': error.message}
-            for error in braintree_result.errors.deep_errors
-        ]
+        errors = [{
+            'code': error.code,
+            'message': error.message}
+                  for error in braintree_result.errors.deep_errors]
 
     transaction = braintree_result.transaction
     gateway_response = {
@@ -56,6 +57,7 @@ def extract_gateway_response(braintree_result) -> Dict:
         'errors': errors}
     return gateway_response
 
+
 def get_gateway(sandbox_mode, merchant_id, public_key, private_key):
     environment = braintree_sdk.Environment.Sandbox
     if not sandbox_mode:
@@ -69,21 +71,24 @@ def get_gateway(sandbox_mode, merchant_id, public_key, private_key):
             private_key=private_key))
     return gateway
 
+
 def get_client_token(**client_kwargs):
     gateway = get_gateway(**client_kwargs)
     client_token = gateway.client_token.generate()
     return client_token
 
-def authorize(payment_method,  transaction_token, **client_kwargs):
+
+def authorize(payment_method, transaction_token, **client_kwargs):
     gateway = get_gateway(**client_kwargs)
     result = gateway.transaction.sale({
-      'amount': payment_method.total,
-      'payment_method_nonce': transaction_token,
-      'options': {
-          'submit_for_settlement': AUTO_CHARGE,
-          'three_d_secure': {
-              'required': THREE_D_SECURE_REQUIRED
-          }}})
+        'amount':
+        payment_method.total,
+        'payment_method_nonce':
+        transaction_token,
+        'options': {
+            'submit_for_settlement': AUTO_CHARGE,
+            'three_d_secure': {
+                'required': THREE_D_SECURE_REQUIRED}}})
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
     txn = create_transaction(
@@ -95,6 +100,7 @@ def authorize(payment_method,  transaction_token, **client_kwargs):
         is_success=result.is_success)
     return txn, error
 
+
 def charge(payment_method, amount=None, **client_kwargs):
     gateway = get_gateway(**client_kwargs)
     auth_transaction = payment_method.transactions.filter(
@@ -102,8 +108,7 @@ def charge(payment_method, amount=None, **client_kwargs):
     if not amount:
         amount = payment_method.total
     result = gateway.transaction.submit_for_settlement(
-        transaction_id=auth_transaction.token,
-        amount=amount)
+        transaction_id=auth_transaction.token, amount=amount)
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
 
@@ -116,12 +121,12 @@ def charge(payment_method, amount=None, **client_kwargs):
         gateway_response=gateway_response)
     return txn, error
 
+
 def void(payment_method, **client_kwargs):
     gateway = get_gateway(**client_kwargs)
     auth_transaction = payment_method.transactions.filter(
         transaction_type=TransactionType.AUTH).first()
-    result = gateway.transaction.void(
-        transaction_id=auth_transaction.token)
+    result = gateway.transaction.void(transaction_id=auth_transaction.token)
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
     txn = create_transaction(
@@ -132,6 +137,7 @@ def void(payment_method, **client_kwargs):
         token=result.transaction.id,
         is_success=result.is_success)
     return txn, error
+
 
 def refund(payment_method, amount=None, **client_kwargs):
     gateway = get_gateway(**client_kwargs)

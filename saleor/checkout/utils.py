@@ -886,10 +886,12 @@ def create_order(cart, tracking_code, discounts, taxes):
     _fill_order_with_cart_data(order, cart, discounts, taxes)
     return order
 
+
 def is_fully_paid(cart: Cart):
     payment_methods = cart.payment_methods.all()
     total_paid = sum([p.total for p in payment_methods])
     return total_paid == cart.get_total().gross.amount
+
 
 def ready_to_place_order(cart: Cart):
     if cart.is_shipping_required:
@@ -902,5 +904,4 @@ def ready_to_place_order(cart: Cart):
     if not is_fully_paid(cart):
         return False, pgettext_lazy(
             'order placement error', 'Checkout is not fully paid')
-
     return True, None

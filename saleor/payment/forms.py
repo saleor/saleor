@@ -1,6 +1,7 @@
 from django import forms
-from .models import PaymentMethod
+
 from ..payment import TransactionType
+from .models import PaymentMethod
 
 
 class PaymentMethodForm(forms.ModelForm):

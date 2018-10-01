@@ -10,6 +10,7 @@ from ...utils import create_transaction
 def dummy_success():
     return True
 
+
 def get_client_token(**client_kwargs):
     return str(uuid.uuid4())
 
