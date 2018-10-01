@@ -1,7 +1,6 @@
 import * as React from "react";
 
 import { orderListUrl } from "..";
-import { UserContext } from "../../auth";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
@@ -39,309 +38,283 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
               if (error) {
                 return <ErrorMessageCard message="Something went wrong" />;
               }
-              const order = data && data.order;
+              const order = maybe(() => data.order);
               return (
-                <UserContext.Consumer>
-                  {({ user }) => (
-                    <OrderVariantSearchProvider>
-                      {({ variants: { search, searchOpts } }) => {
-                        const handlePaymentCapture = (data: OrderCapture) => {
-                          if (!maybe(() => data.orderCapture.errors.length)) {
-                            pushMessage({
-                              text: i18n.t("Payment succesfully captured", {
-                                context: "notification"
+                <OrderVariantSearchProvider>
+                  {({ variants: { search, searchOpts } }) => {
+                    const handlePaymentCapture = (data: OrderCapture) => {
+                      if (!maybe(() => data.orderCapture.errors.length)) {
+                        pushMessage({
+                          text: i18n.t("Payment successfully captured", {
+                            context: "notification"
+                          })
+                        });
+                      }
+                    };
+                    const handlePaymentRefund = (data: OrderRefund) => {
+                      if (!maybe(() => data.orderRefund.errors.length)) {
+                        pushMessage({
+                          text: i18n.t("Payment successfully refunded", {
+                            context: "notification"
+                          })
+                        });
+                      }
+                    };
+                    const handleOrderFulfillmentCreate = (
+                      data: OrderCreateFulfillment
+                    ) => {
+                      if (
+                        !maybe(() => data.orderFulfillmentCreate.errors.length)
+                      ) {
+                        pushMessage({
+                          text: i18n.t("Items successfully fulfilled", {
+                            context: "notification"
+                          })
+                        });
+                      }
+                    };
+                    const handleOrderCancel = () => {
+                      pushMessage({
+                        text: i18n.t("Order successfully cancelled", {
+                          context: "notification"
+                        })
+                      });
+                    };
+                    const handleOrderRelease = () => {
+                      pushMessage({
+                        text: i18n.t("Order payment successfully released", {
+                          context: "notification"
+                        })
+                      });
+                    };
+                    const handleNoteAdd = (data: OrderAddNote) => {
+                      if (!maybe(() => data.orderAddNote.errors.length)) {
+                        pushMessage({
+                          text: i18n.t("Note successfully added", {
+                            context: "notification"
+                          })
+                        });
+                      }
+                    };
+                    const handleUpdate = (data: OrderUpdate) => {
+                      if (!maybe(() => data.orderUpdate.errors.length)) {
+                        pushMessage({
+                          text: i18n.t("Order successfully updated", {
+                            context: "notification"
+                          })
+                        });
+                      }
+                    };
+                    const handleDraftUpdate = (data: OrderDraftUpdate) => {
+                      if (!maybe(() => data.draftOrderUpdate.errors.length)) {
+                        pushMessage({
+                          text: i18n.t("Order successfully updated", {
+                            context: "notification"
+                          })
+                        });
+                      }
+                    };
+                    const handleShippingMethodUpdate = (
+                      data: OrderShippingMethodUpdate
+                    ) => {
+                      if (
+                        !maybe(() => data.orderUpdateShipping.errors.length)
+                      ) {
+                        pushMessage({
+                          text: i18n.t("Shipping method successfully updated", {
+                            context: "notification"
+                          })
+                        });
+                      }
+                    };
+                    const handleLineDelete = (data: OrderLineDelete) => {
+                      if (
+                        !maybe(() => data.draftOrderLineDelete.errors.length)
+                      ) {
+                        pushMessage({
+                          text: i18n.t("Order line deleted", {
+                            context: "notification"
+                          })
+                        });
+                      }
+                    };
+                    const handleLineAdd = (data: OrderLineAdd) => {
+                      if (
+                        !maybe(() => data.draftOrderLineCreate.errors.length)
+                      ) {
+                        pushMessage({
+                          text: i18n.t("Order line added", {
+                            context: "notification"
+                          })
+                        });
+                      }
+                    };
+                    const handleLineUpdate = (data: OrderLineUpdate) => {
+                      if (
+                        !maybe(() => data.draftOrderLineUpdate.errors.length)
+                      ) {
+                        pushMessage({
+                          text: i18n.t("Order line updated", {
+                            context: "notification"
+                          })
+                        });
+                      }
+                    };
+                    return (
+                      <OrderOperations
+                        order={id}
+                        onError={undefined}
+                        onOrderFulfillmentCreate={handleOrderFulfillmentCreate}
+                        onNoteAdd={handleNoteAdd}
+                        onOrderCancel={handleOrderCancel}
+                        onOrderRelease={handleOrderRelease}
+                        onPaymentCapture={handlePaymentCapture}
+                        onPaymentRefund={handlePaymentRefund}
+                        onUpdate={handleUpdate}
+                        onDraftUpdate={handleDraftUpdate}
+                        onShippingMethodUpdate={handleShippingMethodUpdate}
+                        onOrderLineDelete={handleLineDelete}
+                        onOrderLineAdd={handleLineAdd}
+                        onOrderLineUpdate={handleLineUpdate}
+                      >
+                        {({
+                          errors,
+                          orderAddNote,
+                          orderCancel,
+                          orderCreateFulfillment,
+                          orderLineAdd,
+                          orderLineDelete,
+                          orderLineUpdate,
+                          orderPaymentCapture,
+                          orderPaymentRefund,
+                          orderRelease,
+                          orderShippingMethodUpdate,
+                          orderUpdate
+                        }) => (
+                          <OrderDetailsPage
+                            errors={errors}
+                            onNoteAdd={variables =>
+                              orderAddNote.mutate({
+                                input: variables,
+                                order: id
                               })
-                            });
-                          }
-                        };
-                        const handlePaymentRefund = (data: OrderRefund) => {
-                          if (!maybe(() => data.orderRefund.errors.length)) {
-                            pushMessage({
-                              text: i18n.t("Payment succesfully refunded", {
-                                context: "notification"
-                              })
-                            });
-                          }
-                        };
-                        const handleOrderFulfillmentCreate = (
-                          data: OrderCreateFulfillment
-                        ) => {
-                          if (
-                            !maybe(
-                              () => data.orderFulfillmentCreate.errors.length
-                            )
-                          ) {
-                            pushMessage({
-                              text: i18n.t("Items succesfully fulfilled", {
-                                context: "notification"
-                              })
-                            });
-                          }
-                        };
-                        const handleOrderCancel = () => {
-                          pushMessage({
-                            text: i18n.t("Order succesfully cancelled", {
-                              context: "notification"
-                            })
-                          });
-                        };
-                        const handleOrderRelease = () => {
-                          pushMessage({
-                            text: i18n.t("Order payment succesfully released", {
-                              context: "notification"
-                            })
-                          });
-                        };
-                        const handleNoteAdd = (data: OrderAddNote) => {
-                          if (!maybe(() => data.orderAddNote.errors.length)) {
-                            pushMessage({
-                              text: i18n.t("Note succesfully added", {
-                                context: "notification"
-                              })
-                            });
-                          }
-                        };
-                        const handleUpdate = (data: OrderUpdate) => {
-                          if (!maybe(() => data.orderUpdate.errors.length)) {
-                            pushMessage({
-                              text: i18n.t("Order succesfully updated", {
-                                context: "notification"
-                              })
-                            });
-                          }
-                        };
-                        const handleDraftUpdate = (data: OrderDraftUpdate) => {
-                          if (
-                            !maybe(() => data.draftOrderUpdate.errors.length)
-                          ) {
-                            pushMessage({
-                              text: i18n.t("Order succesfully updated", {
-                                context: "notification"
-                              })
-                            });
-                          }
-                        };
-                        const handleShippingMethodUpdate = (
-                          data: OrderShippingMethodUpdate
-                        ) => {
-                          if (
-                            !maybe(() => data.orderUpdateShipping.errors.length)
-                          ) {
-                            pushMessage({
-                              text: i18n.t(
-                                "Shipping method succesfully updated",
-                                {
-                                  context: "notification"
-                                }
-                              )
-                            });
-                          }
-                        };
-                        const handleLineDelete = (data: OrderLineDelete) => {
-                          if (
-                            !maybe(
-                              () => data.draftOrderLineDelete.errors.length
-                            )
-                          ) {
-                            pushMessage({
-                              text: i18n.t("Order line deleted", {
-                                context: "notification"
-                              })
-                            });
-                          }
-                        };
-                        const handleLineAdd = (data: OrderLineAdd) => {
-                          if (
-                            !maybe(
-                              () => data.draftOrderLineCreate.errors.length
-                            )
-                          ) {
-                            pushMessage({
-                              text: i18n.t("Order line added", {
-                                context: "notification"
-                              })
-                            });
-                          }
-                        };
-                        const handleLineUpdate = (data: OrderLineUpdate) => {
-                          if (
-                            !maybe(
-                              () => data.draftOrderLineUpdate.errors.length
-                            )
-                          ) {
-                            pushMessage({
-                              text: i18n.t("Order line updated", {
-                                context: "notification"
-                              })
-                            });
-                          }
-                        };
-                        return (
-                          <OrderOperations
-                            order={id}
-                            onError={undefined}
-                            onOrderFulfillmentCreate={
-                              handleOrderFulfillmentCreate
                             }
-                            onNoteAdd={handleNoteAdd}
-                            onOrderCancel={handleOrderCancel}
-                            onOrderRelease={handleOrderRelease}
-                            onPaymentCapture={handlePaymentCapture}
-                            onPaymentRefund={handlePaymentRefund}
-                            onUpdate={handleUpdate}
-                            onDraftUpdate={handleDraftUpdate}
-                            onShippingMethodUpdate={handleShippingMethodUpdate}
-                            onOrderLineDelete={handleLineDelete}
-                            onOrderLineAdd={handleLineAdd}
-                            onOrderLineUpdate={handleLineUpdate}
-                          >
-                            {({
-                              errors,
-                              orderAddNote,
-                              orderCancel,
-                              orderCreateFulfillment,
-                              orderLineAdd,
-                              orderLineDelete,
-                              orderLineUpdate,
-                              orderPaymentCapture,
-                              orderPaymentRefund,
-                              orderRelease,
-                              orderShippingMethodUpdate,
-                              orderUpdate
-                            }) => (
-                              <OrderDetailsPage
-                                errors={errors}
-                                onNoteAdd={variables =>
-                                  orderAddNote.mutate({
-                                    input: variables,
-                                    order: id
-                                  })
-                                }
-                                fetchVariants={search}
-                                variants={maybe(() =>
-                                  searchOpts.data.products.edges
-                                    .map(edge => edge.node)
-                                    .map(product => ({
-                                      ...product,
-                                      variants: product.variants.edges.map(
-                                        edge => edge.node
-                                      )
-                                    }))
-                                    .map(product =>
-                                      product.variants.map(variant => ({
-                                        ...variant,
-                                        name: `${product.name}(${variant.name})`
-                                      }))
-                                    )
-                                    .reduce(
-                                      (prev, curr) => prev.concat(curr),
-                                      []
-                                    )
-                                )}
-                                onBack={() => navigate(orderListUrl)}
-                                order={order}
-                                countries={maybe(
-                                  () => data.shop.countries,
-                                  []
-                                ).map(country => ({
-                                  code: country.code,
-                                  label: country.country
-                                }))}
-                                shippingMethods={maybe(
-                                  () => data.order.availableShippingMethods,
-                                  []
-                                )}
-                                user={user}
-                                onOrderCancel={variables =>
-                                  orderCancel.mutate({
-                                    id,
-                                    ...variables
-                                  })
-                                }
-                                onOrderFulfill={variables =>
-                                  orderCreateFulfillment.mutate({
-                                    input: {
-                                      ...variables,
-                                      lines: maybe(() => order.lines, [])
-                                        .filter(
-                                          line =>
-                                            line.quantityFulfilled <
-                                            line.quantity
-                                        )
-                                        .map((line, lineIndex) => ({
-                                          orderLineId: line.id,
-                                          quantity: variables.lines[lineIndex]
-                                        }))
-                                    },
-                                    order: order.id
-                                  })
-                                }
-                                onPaymentCapture={variables =>
-                                  orderPaymentCapture.mutate({
-                                    ...variables,
-                                    id
-                                  })
-                                }
-                                onPaymentRelease={() =>
-                                  orderRelease.mutate({ id })
-                                }
-                                onPaymentRefund={variables =>
-                                  orderPaymentRefund.mutate({
-                                    ...variables,
-                                    id
-                                  })
-                                }
-                                onProductAdd={variables =>
-                                  orderLineAdd.mutate({
-                                    id,
-                                    input: {
-                                      quantity: variables.quantity,
-                                      variantId: variables.variant.value
-                                    }
-                                  })
-                                }
-                                onProductClick={id => () =>
-                                  navigate(productUrl(id))}
-                                onBillingAddressEdit={variables =>
-                                  orderUpdate.mutate({
-                                    id,
-                                    input: {
-                                      billingAddress: variables
-                                    }
-                                  })
-                                }
-                                onShippingAddressEdit={variables =>
-                                  orderUpdate.mutate({
-                                    id,
-                                    input: {
-                                      shippingAddress: variables
-                                    }
-                                  })
-                                }
-                                onShippingMethodEdit={variables =>
-                                  orderShippingMethodUpdate.mutate({
-                                    id,
-                                    input: {
-                                      shippingMethod: variables.shippingMethod
-                                    }
-                                  })
-                                }
-                                onOrderLineRemove={id =>
-                                  orderLineDelete.mutate({ id })
-                                }
-                                onOrderLineChange={id => quantity =>
-                                  orderLineUpdate.mutate({
-                                    id,
-                                    input: { quantity: parseInt(quantity, 10) }
-                                  })}
-                              />
+                            fetchVariants={search}
+                            variants={maybe(() =>
+                              searchOpts.data.products.edges
+                                .map(edge => edge.node)
+                                .map(product => ({
+                                  ...product,
+                                  variants: product.variants.edges.map(
+                                    edge => edge.node
+                                  )
+                                }))
+                                .map(product =>
+                                  product.variants.map(variant => ({
+                                    ...variant,
+                                    name: `${product.name}(${variant.name})`
+                                  }))
+                                )
+                                .reduce((prev, curr) => prev.concat(curr), [])
                             )}
-                          </OrderOperations>
-                        );
-                      }}
-                    </OrderVariantSearchProvider>
-                  )}
-                </UserContext.Consumer>
+                            onBack={() => navigate(orderListUrl)}
+                            order={order}
+                            countries={maybe(() => data.shop.countries, []).map(
+                              country => ({
+                                code: country.code,
+                                label: country.country
+                              })
+                            )}
+                            shippingMethods={maybe(
+                              () => data.order.availableShippingMethods,
+                              []
+                            )}
+                            onOrderCancel={variables =>
+                              orderCancel.mutate({
+                                id,
+                                ...variables
+                              })
+                            }
+                            onOrderFulfill={variables =>
+                              orderCreateFulfillment.mutate({
+                                input: {
+                                  ...variables,
+                                  lines: maybe(() => order.lines.edges, [])
+                                    .map(edge => edge.node)
+                                    .filter(
+                                      line =>
+                                        line.quantityFulfilled < line.quantity
+                                    )
+                                    .map((line, lineIndex) => ({
+                                      orderLineId: line.id,
+                                      quantity: variables.lines[lineIndex]
+                                    }))
+                                },
+                                order: order.id
+                              })
+                            }
+                            onPaymentCapture={variables =>
+                              orderPaymentCapture.mutate({
+                                ...variables,
+                                id
+                              })
+                            }
+                            onPaymentRelease={() => orderRelease.mutate({ id })}
+                            onPaymentRefund={variables =>
+                              orderPaymentRefund.mutate({
+                                ...variables,
+                                id
+                              })
+                            }
+                            onProductAdd={variables =>
+                              orderLineAdd.mutate({
+                                id,
+                                input: {
+                                  quantity: variables.quantity,
+                                  variantId: variables.variant.value
+                                }
+                              })
+                            }
+                            onProductClick={id => () =>
+                              navigate(productUrl(id))}
+                            onBillingAddressEdit={variables =>
+                              orderUpdate.mutate({
+                                id,
+                                input: {
+                                  billingAddress: variables
+                                }
+                              })
+                            }
+                            onShippingAddressEdit={variables =>
+                              orderUpdate.mutate({
+                                id,
+                                input: {
+                                  shippingAddress: variables
+                                }
+                              })
+                            }
+                            onShippingMethodEdit={variables =>
+                              orderShippingMethodUpdate.mutate({
+                                id,
+                                input: {
+                                  shippingMethod: variables.shippingMethod
+                                }
+                              })
+                            }
+                            onOrderLineRemove={id =>
+                              orderLineDelete.mutate({ id })
+                            }
+                            onOrderLineChange={id => quantity =>
+                              orderLineUpdate.mutate({
+                                id,
+                                input: { quantity: parseInt(quantity, 10) }
+                              })}
+                          />
+                        )}
+                      </OrderOperations>
+                    );
+                  }}
+                </OrderVariantSearchProvider>
               );
             }}
           </TypedOrderDetailsQuery>
