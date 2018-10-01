@@ -7,16 +7,19 @@ import NotFound from "../../NotFound";
 import { hasPermission } from "../misc";
 
 interface SectionRouteProps extends RouteProps {
-  resource?: string;
+  permissions?: string[];
 }
 
 export const SectionRoute: React.StatelessComponent<SectionRouteProps> = ({
-  resource,
+  permissions,
   ...props
 }) => (
   <UserContext.Consumer>
     {({ user }) =>
-      !resource || hasPermission(resource, user) ? (
+      !permissions ||
+      permissions
+        .map(permission => hasPermission(permission, user))
+        .reduce((prev, curr) => prev && curr) ? (
         <AppRoot>
           <Route {...props} />
         </AppRoot>

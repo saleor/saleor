@@ -13,7 +13,7 @@ import i18n from "../i18n";
 export interface MenuItem {
   description: string;
   icon: React.ReactElement<IconProps>;
-  resource: string;
+  permission: string;
   title: string;
   url?: string;
 }
@@ -73,7 +73,9 @@ export const ConfigurationPage = decorate<ConfigurationPageProps>(
       <div className={classes.root}>
         {menu
           .filter(menuItem =>
-            user.permissions.map(perm => perm.code).includes(menuItem.resource)
+            user.permissions
+              .map(perm => perm.code)
+              .includes(menuItem.permission)
           )
           .map((menuItem, menuItemIndex) => (
             <Card

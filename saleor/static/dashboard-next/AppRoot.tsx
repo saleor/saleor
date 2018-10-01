@@ -475,7 +475,7 @@ export const AppRoot = decorate(
                         {configurationMenu.filter(menuItem =>
                           user.permissions
                             .map(perm => perm.code)
-                            .includes(menuItem.resource)
+                            .includes(menuItem.permission)
                         ).length > 0 && (
                           <a
                             className={classes.menuListItem}

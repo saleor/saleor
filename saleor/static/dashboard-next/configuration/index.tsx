@@ -19,51 +19,51 @@ export const configurationMenu: MenuItem[] = [
   {
     description: i18n.t("Define types of products you sell"),
     icon: <Folder fontSize="inherit" />,
-    resource: "product.manage_products",
+    permission: "product.manage_products",
     title: i18n.t("Product Types"),
     url: productTypeListUrl
   },
   {
     description: i18n.t("Define attributes of products yousell"),
     icon: <Ballot fontSize="inherit" />,
-    resource: "product.manage_products",
+    permission: "product.manage_products",
     title: i18n.t("Attributes")
   },
   {
     description: i18n.t("Manage your employees and their permissions"),
     icon: <AccountCircle fontSize="inherit" />,
-    resource: "account.manage_staff",
+    permission: "account.manage_staff",
     title: i18n.t("Staff Members"),
     url: staffListUrl
   },
   {
     description: i18n.t("Manage how you ship out orders."),
     icon: <LocalShipping fontSize="inherit" />,
-    resource: "shipping.manage_shipping",
+    permission: "shipping.manage_shipping",
     title: i18n.t("Shipping Methods")
   },
   {
     description: i18n.t("Manage how your store charges tax"),
     icon: <Monetization fontSize="inherit" />,
-    resource: "product.manage_products",
+    permission: "product.manage_products",
     title: i18n.t("Taxes")
   },
   {
     description: i18n.t("Define how users can navigate through your store"),
     icon: <Navigation fontSize="inherit" />,
-    resource: "menu.manage_menus",
+    permission: "menu.manage_menus",
     title: i18n.t("Navigation")
   },
   {
     description: i18n.t("View and update your site settings"),
     icon: <StoreMall fontSize="inherit" />,
-    resource: "site.manage_settings",
+    permission: "site.manage_settings",
     title: i18n.t("Site Settings")
   },
   {
     description: i18n.t("Manage and add additional pages"),
     icon: <Pages fontSize="inherit" />,
-    resource: "page.manage_pages",
+    permission: "page.manage_pages",
     title: i18n.t("Pages")
   }
 ];
