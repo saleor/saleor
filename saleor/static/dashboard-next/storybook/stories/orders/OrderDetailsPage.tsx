@@ -2,7 +2,9 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import * as placeholderImage from "../../../../images/placeholder60x60.png";
-import OrderDetailsPage from "../../../orders/components/OrderDetailsPage";
+import OrderDetailsPage, {
+  OrderDetailsPageProps
+} from "../../../orders/components/OrderDetailsPage";
 import {
   clients,
   countries,
@@ -14,14 +16,10 @@ import { OrderStatus, PaymentStatusEnum } from "../../../types/globalTypes";
 import Decorator from "../../Decorator";
 
 const order = orderFixture(placeholderImage);
-const orderDraft = orderFixture(placeholderImage, {
-  status: OrderStatus.DRAFT
-});
-const orderWithoutPayment = orderFixture(placeholderImage, {
-  paymentStatus: PaymentStatusEnum.PREAUTH
-});
 
-const callbacks = {
+const props: OrderDetailsPageProps = {
+  countries,
+  errors: [],
   onBack: () => undefined,
   onBillingAddressEdit: undefined,
   onCreate: undefined,
@@ -34,54 +32,38 @@ const callbacks = {
   onPaymentCapture: undefined,
   onPaymentRefund: undefined,
   onPaymentRelease: undefined,
-  onPrintClick: undefined,
   onProductAdd: undefined,
   onProductClick: undefined,
   onShippingAddressEdit: undefined,
-  onShippingMethodEdit: undefined
+  onShippingMethodEdit: undefined,
+  order,
+  shippingMethods,
+  users: clients,
+  variants,
+  variantsLoading: false
 };
 
 storiesOf("Views / Orders / Order details", module)
   .addDecorator(Decorator)
   .add("when loading data", () => (
-    <OrderDetailsPage errors={[]} {...callbacks} />
+    <OrderDetailsPage {...props} order={undefined} />
   ))
-  .add("when loaded data", () => (
-    <OrderDetailsPage
-      errors={[]}
-      countries={countries}
-      order={order}
-      user={{ email: "admin@example.com" }}
-      {...callbacks}
-    />
-  ))
+  .add("when loaded data", () => <OrderDetailsPage {...props} />)
   .add("as a draft", () => (
     <OrderDetailsPage
-      errors={[]}
-      countries={countries}
-      order={orderDraft}
-      shippingMethods={shippingMethods}
-      user={{ email: "admin@example.com" }}
-      users={clients}
-      variants={variants}
-      variantsLoading={false}
-      fetchUsers={undefined}
-      fetchVariants={undefined}
-      {...callbacks}
+      {...props}
+      order={{
+        ...props.order,
+        status: OrderStatus.DRAFT
+      }}
     />
   ))
   .add("as a unpaid order", () => (
     <OrderDetailsPage
-      errors={[]}
-      countries={countries}
-      order={orderWithoutPayment}
-      shippingMethods={shippingMethods}
-      user={{ email: "admin@example.com" }}
-      users={clients}
-      variants={variants}
-      variantsLoading={false}
-      fetchUsers={undefined}
-      fetchVariants={undefined}
-      {...callbacks}
+      {...props}
+      order={{
+        ...props.order,
+        paymentStatus: PaymentStatusEnum.PREAUTH
+      }}
     />
   ));

@@ -2,13 +2,18 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import * as placeholderImage from "../../../../images/placeholder60x60.png";
-import OrderSummary from "../../../orders/components/OrderSummary";
+import OrderSummary, {
+  OrderSummaryProps
+} from "../../../orders/components/OrderSummary";
 import { order as orderFixture } from "../../../orders/fixtures";
-import { OrderStatus } from "../../../types/globalTypes";
+import { OrderStatus, PaymentStatusEnum } from "../../../types/globalTypes";
 import Decorator from "../../Decorator";
 
 const order = orderFixture(placeholderImage);
-const callbacks = {
+const props: OrderSummaryProps = {
+  authorized: order.totalAuthorized,
+  isDraft: order.status === OrderStatus.DRAFT,
+  lines: order.lines.edges.map(edge => edge.node),
   onCapture: undefined,
   onCreate: undefined,
   onFulfill: undefined,
@@ -17,172 +22,52 @@ const callbacks = {
   onOrderLineRemove: () => undefined,
   onRefund: undefined,
   onRelease: undefined,
-  onRowClick: () => undefined
-};
-
-const shippingPrice = {
-  gross: {
-    amount: 9123.12,
-    currency: "USD"
-  }
+  onRowClick: () => undefined,
+  paid: order.totalCaptured,
+  paymentStatus: order.paymentStatus,
+  shippingMethodName: order.shippingMethodName,
+  shippingPrice: order.shippingPrice,
+  status: order.status,
+  subtotal: order.subtotal.gross,
+  total: order.total.gross
 };
 
 storiesOf("Orders / OrderSummary", module)
   .addDecorator(Decorator)
-  .add("when loading data", () => <OrderSummary {...callbacks} />)
+  .add("when loading data", () => <OrderSummary {...props} />)
   .add("order unfulfilled", () => (
-    <OrderSummary
-      paid={order.payment.paid}
-      paymentStatus={order.paymentStatus}
-      lines={order.products}
-      shippingMethodName="DHL"
-      shippingPrice={shippingPrice}
-      status={OrderStatus.UNFULFILLED}
-      subtotal={order.subtotal}
-      total={order.total}
-      {...callbacks}
-    />
+    <OrderSummary {...props} status={OrderStatus.UNFULFILLED} />
   ))
   .add("order partially fulfilled", () => (
-    <OrderSummary
-      paid={order.payment.paid}
-      paymentStatus={order.paymentStatus}
-      lines={order.products}
-      shippingMethodName="DHL"
-      shippingPrice={shippingPrice}
-      status={OrderStatus.PARTIALLY_FULFILLED}
-      subtotal={order.subtotal}
-      total={order.total}
-      {...callbacks}
-    />
+    <OrderSummary {...props} status={OrderStatus.PARTIALLY_FULFILLED} />
   ))
   .add("order fulfilled", () => (
-    <OrderSummary
-      paid={order.payment.paid}
-      paymentStatus={order.paymentStatus}
-      lines={order.products}
-      shippingMethodName="DHL"
-      shippingPrice={shippingPrice}
-      status={OrderStatus.FULFILLED}
-      subtotal={order.subtotal}
-      total={order.total}
-      {...callbacks}
-    />
+    <OrderSummary {...props} status={OrderStatus.FULFILLED} />
   ))
   .add("order cancelled", () => (
-    <OrderSummary
-      paid={order.payment.paid}
-      paymentStatus={order.paymentStatus}
-      lines={order.products}
-      shippingMethodName="DHL"
-      shippingPrice={shippingPrice}
-      status={OrderStatus.CANCELED}
-      subtotal={order.subtotal}
-      total={order.total}
-      {...callbacks}
-    />
+    <OrderSummary {...props} status={OrderStatus.CANCELED} />
   ))
   .add("order draft", () => (
-    <OrderSummary
-      paid={order.payment.paid}
-      paymentStatus={order.paymentStatus}
-      lines={order.products}
-      shippingMethodName="DHL"
-      shippingPrice={shippingPrice}
-      status={OrderStatus.DRAFT}
-      subtotal={order.subtotal}
-      total={order.total}
-      {...callbacks}
-    />
+    <OrderSummary {...props} status={OrderStatus.DRAFT} />
   ))
   .add("payment confirmed", () => (
-    <OrderSummary
-      paid={order.payment.paid}
-      paymentStatus="confirmed"
-      lines={order.products}
-      shippingMethodName="DHL"
-      shippingPrice={shippingPrice}
-      status={order.status}
-      subtotal={order.subtotal}
-      total={order.total}
-      {...callbacks}
-    />
+    <OrderSummary {...props} paymentStatus={PaymentStatusEnum.CONFIRMED} />
   ))
   .add("payment error", () => (
-    <OrderSummary
-      paid={order.payment.paid}
-      paymentStatus="error"
-      lines={order.products}
-      shippingMethodName="DHL"
-      shippingPrice={shippingPrice}
-      status={order.status}
-      subtotal={order.subtotal}
-      total={order.total}
-      {...callbacks}
-    />
+    <OrderSummary {...props} paymentStatus={PaymentStatusEnum.ERROR} />
   ))
   .add("payment input", () => (
-    <OrderSummary
-      paid={order.payment.paid}
-      paymentStatus="input"
-      lines={order.products}
-      shippingMethodName="DHL"
-      shippingPrice={shippingPrice}
-      status={order.status}
-      subtotal={order.subtotal}
-      total={order.total}
-      {...callbacks}
-    />
+    <OrderSummary {...props} paymentStatus={PaymentStatusEnum.INPUT} />
   ))
   .add("payment preauth", () => (
-    <OrderSummary
-      paid={order.payment.paid}
-      paymentStatus="preauth"
-      lines={order.products}
-      shippingMethodName="DHL"
-      shippingPrice={shippingPrice}
-      status={order.status}
-      subtotal={order.subtotal}
-      total={order.total}
-      {...callbacks}
-    />
+    <OrderSummary {...props} paymentStatus={PaymentStatusEnum.PREAUTH} />
   ))
   .add("payment refunded", () => (
-    <OrderSummary
-      paid={order.payment.paid}
-      paymentStatus="refunded"
-      lines={order.products}
-      shippingMethodName="DHL"
-      shippingPrice={shippingPrice}
-      status={order.status}
-      subtotal={order.subtotal}
-      total={order.total}
-      {...callbacks}
-    />
+    <OrderSummary {...props} paymentStatus={PaymentStatusEnum.REFUNDED} />
   ))
   .add("payment rejected", () => (
-    <OrderSummary
-      paid={order.payment.paid}
-      paymentStatus="rejected"
-      lines={order.products}
-      shippingMethodName="DHL"
-      shippingPrice={shippingPrice}
-      status={order.status}
-      subtotal={order.subtotal}
-      total={order.total}
-      {...callbacks}
-    />
+    <OrderSummary {...props} paymentStatus={PaymentStatusEnum.REJECTED} />
   ))
   .add("payment waiting", () => (
-    <OrderSummary
-      paid={order.payment.paid}
-      paymentStatus="waiting"
-      lines={order.products}
-      shippingMethodName="DHL"
-      shippingPrice={shippingPrice}
-      status={order.status}
-      subtotal={order.subtotal}
-      total={order.total}
-      {...callbacks}
-    />
+    <OrderSummary {...props} paymentStatus={PaymentStatusEnum.WAITING} />
   ));

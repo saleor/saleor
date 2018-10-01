@@ -15,21 +15,15 @@ import Form from "../../../components/Form";
 import TableCellAvatar from "../../../components/TableCellAvatar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
+import { OrderDetails_order_lines_edges_node } from "../../types/OrderDetails";
 
 export interface FormData {
   lines: number[];
 }
 
-interface OrderFulfillmentDialogProps {
+export interface OrderFulfillmentDialogProps {
   open: boolean;
-  lines: Array<{
-    id: string;
-    productName: string;
-    productSku: string;
-    quantity: number;
-    quantityFulfilled: number;
-    thumbnailUrl?: string;
-  }>;
+  lines: OrderDetails_order_lines_edges_node[];
   onClose();
   onSubmit(data: FormData);
 }

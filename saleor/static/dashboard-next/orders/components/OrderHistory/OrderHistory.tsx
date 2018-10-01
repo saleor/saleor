@@ -32,9 +32,6 @@ interface OrderHistoryProps {
       email: string;
     };
   }>;
-  user?: {
-    email: string;
-  };
   onNoteAdd: (data: FormData) => void;
 }
 
@@ -48,25 +45,20 @@ const decorate = withStyles(
   { name: "OrderHistory" }
 );
 const OrderHistory = decorate<OrderHistoryProps>(
-  ({ classes, history, user, onNoteAdd }) => (
+  ({ classes, history, onNoteAdd }) => (
     <div className={classes.root}>
       <PageHeader title={i18n.t("Order history")} />
       {history ? (
         <Timeline>
-          {user ? (
-            <Form initial={{ message: "" }} onSubmit={onNoteAdd}>
-              {({ change, data, submit }) => (
-                <TimelineAddNote
-                  message={data.message}
-                  onChange={change}
-                  onSubmit={submit}
-                  user={user}
-                />
-              )}
-            </Form>
-          ) : (
-            undefined
-          )}
+          <Form initial={{ message: "" }} onSubmit={onNoteAdd}>
+            {({ change, data, submit }) => (
+              <TimelineAddNote
+                message={data.message}
+                onChange={change}
+                onSubmit={submit}
+              />
+            )}
+          </Form>
           {history
             .slice()
             .reverse()

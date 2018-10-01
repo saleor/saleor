@@ -2,19 +2,21 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import * as placeholderImage from "../../../../images/placeholder60x60.png";
-import OrderFulfillmentDialog from "../../../orders/components/OrderFulfillmentDialog";
+import OrderFulfillmentDialog, {
+  OrderFulfillmentDialogProps
+} from "../../../orders/components/OrderFulfillmentDialog";
 import { order as orderFixture } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
 
 const order = orderFixture(placeholderImage);
 
+const props: OrderFulfillmentDialogProps = {
+  lines: order.lines.edges.map(edge => edge.node),
+  onClose: undefined,
+  onSubmit: undefined,
+  open: true
+};
+
 storiesOf("Orders / OrderFulfillmentDialog", module)
   .addDecorator(Decorator)
-  .add("default", () => (
-    <OrderFulfillmentDialog
-      open={true}
-      lines={order.lines}
-      onClose={undefined}
-      onSubmit={undefined}
-    />
-  ));
+  .add("default", () => <OrderFulfillmentDialog {...props} />);
