@@ -411,7 +411,7 @@ msgstr[1] ""
 #: saleor/core/i18n.py:5
 msgctxt "Country choice"
 msgid "Any Country"
-msgstr ""
+msgstr "Beliebiges Land"
 
 #: saleor/core/i18n.py:9
 msgctxt "VAT rate type"
@@ -436,7 +436,7 @@ msgstr ""
 #: saleor/core/i18n.py:17
 msgctxt "VAT rate type"
 msgid "advertising"
-msgstr ""
+msgstr "Werbung"
 
 #: saleor/core/i18n.py:19
 msgctxt "VAT rate type"
@@ -476,7 +476,7 @@ msgstr ""
 #: saleor/core/i18n.py:26
 msgctxt "VAT rate type"
 msgid "e-books"
-msgstr ""
+msgstr "E-Books"
 
 #: saleor/core/i18n.py:27
 msgctxt "VAT rate type"
@@ -486,7 +486,7 @@ msgstr ""
 #: saleor/core/i18n.py:28
 msgctxt "VAT rate type"
 msgid "hotels"
-msgstr ""
+msgstr "Hotels"
 
 #: saleor/core/i18n.py:29
 msgctxt "VAT rate type"
@@ -496,7 +496,7 @@ msgstr ""
 #: saleor/core/i18n.py:30
 msgctxt "VAT rate type"
 msgid "newspapers"
-msgstr ""
+msgstr "Zeitungen"
 
 #: saleor/core/i18n.py:32
 msgctxt "VAT rate type"
