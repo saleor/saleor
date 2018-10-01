@@ -43,14 +43,10 @@ class PaymentMethod(models.Model):
         max_digits=9, decimal_places=2, default=Decimal('0.0'))
 
     checkout = models.ForeignKey(
-        Cart,
-        null=True,
-        related_name='payment_methods',
+        Cart, null=True, related_name='payment_methods',
         on_delete=models.SET_NULL)
     order = models.ForeignKey(
-        Order,
-        null=True,
-        related_name='payment_methods',
+        Order, null=True, related_name='payment_methods',
         on_delete=models.CASCADE)
 
     def _get_money(self, amount):

@@ -35,7 +35,9 @@ class PaymentMethodChargeStatus:
 
 PROVIDERS_ENUM = Enum(
     'ProvidersEnum',
-    {key.upper(): key.lower() for key in settings.PAYMENT_PROVIDERS})
+    {key.upper(): key.lower()
+     for key in settings.PAYMENT_PROVIDERS})
+
 
 def get_provider(provider_name):
     if provider_name not in settings.PAYMENT_PROVIDERS:
@@ -43,5 +45,6 @@ def get_provider(provider_name):
             'Payment provider %s is not configured.' % provider_name)
     provider_module = importlib.import_module(
         settings.PAYMENT_PROVIDERS[provider_name]['module'])
-    provider_params = settings.PAYMENT_PROVIDERS[provider_name]['connection_params']
+    provider_params = settings.PAYMENT_PROVIDERS[provider_name][
+        'connection_params']
     return provider_module, provider_params

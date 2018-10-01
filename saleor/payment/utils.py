@@ -1,32 +1,30 @@
-from typing import Optional, Dict
 from decimal import Decimal
+from typing import Dict, Optional
+
 from django.db import transaction
 
-from .models import PaymentMethod, Transaction
 from . import PaymentError, PaymentMethodChargeStatus, get_provider
+from .models import PaymentMethod, Transaction
+
 
 def create_payment_method(**payment_method_kwargs):
     payment_method, dummy_created = PaymentMethod.objects.get_or_create(
         **payment_method_kwargs)
     return payment_method
 
+
 def create_transaction(
-        payment_method: PaymentMethod,
-        token: str,
-        transaction_type: str,
-        is_success: bool,
-        amount: Decimal,
+        payment_method: PaymentMethod, token: str, transaction_type: str,
+        is_success: bool, amount: Decimal,
         gateway_response: Optional[Dict] = None) -> Transaction:
+
     if not gateway_response:
         gateway_response = {}
 
     txn, dummy_created = Transaction.objects.get_or_create(
-        payment_method=payment_method,
-        token=token,
-        transaction_type=transaction_type,
-        is_success=is_success,
-        amount=amount,
-        gateway_response=gateway_response)
+        payment_method=payment_method, token=token,
+        transaction_type=transaction_type, is_success=is_success,
+        amount=amount, gateway_response=gateway_response)
     return txn
 
 
@@ -66,7 +64,8 @@ def gateway_charge(payment_method, amount) -> Transaction:
         raise PaymentError('Unable to charge more than authozied amount')
     provider, provider_params = get_provider(payment_method.variant)
     with transaction.atomic():
-        txn, error = provider.charge(payment_method, amount=amount, **provider_params)
+        txn, error = provider.charge(
+            payment_method, amount=amount, **provider_params)
         if txn.is_success:
             payment_method.charge_status = PaymentMethodChargeStatus.CHARGED
             payment_method.captured_amount += txn.amount
