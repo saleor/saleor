@@ -12,7 +12,7 @@ import OrderProducts, {
   OrderProductsProps
 } from "../OrderProducts/OrderProducts";
 
-interface OrderSummaryProps extends OrderProductsProps {
+export interface OrderSummaryProps extends OrderProductsProps {
   paymentStatus?: string;
   paymentVariant?: string;
   status?: OrderStatus;

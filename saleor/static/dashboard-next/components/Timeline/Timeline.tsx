@@ -37,9 +37,6 @@ interface TimelineNoteProps {
   };
 }
 interface TimelineAddNoteProps {
-  user: {
-    email: string;
-  };
   message: string;
   onChange(event: React.ChangeEvent<any>);
   onSubmit(event: React.FormEvent<any>);
@@ -205,13 +202,10 @@ export const TimelineNote = decorate<TimelineNoteProps>(
   )
 );
 export const TimelineAddNote = decorate<TimelineAddNoteProps>(
-  ({ classes, user, message, onChange, onSubmit }) => (
+  ({ classes, message, onChange, onSubmit }) => (
     <div className={classes.noteRoot}>
       <CardContent className={classes.noteTitle}>
-        <Avatar
-          style={{ background: palette[CRC.str(user.email) % palette.length] }}
-          className={classes.avatar}
-        >
+        <Avatar style={{ background: palette[0] }} className={classes.avatar}>
           <PersonIcon />
         </Avatar>
         <TextField

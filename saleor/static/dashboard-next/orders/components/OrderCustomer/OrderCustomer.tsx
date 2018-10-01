@@ -27,8 +27,8 @@ interface AddressType {
   streetAddress1: string;
   streetAddress2: string;
 }
-interface OrderCustomerProps {
-  client?: {
+export interface OrderCustomerProps {
+  customer: {
     id: string;
     email: string;
   };
@@ -55,7 +55,7 @@ const decorate = withStyles(
 const OrderCustomer = decorate<OrderCustomerProps>(
   ({
     classes,
-    client,
+    customer,
     billingAddress,
     canEditCustomer,
     shippingAddress,
@@ -80,16 +80,16 @@ const OrderCustomer = decorate<OrderCustomerProps>(
         }
       />
       <CardContent>
-        {client === undefined ? (
+        {customer === undefined ? (
           <>
             <Skeleton />
             <Skeleton />
           </>
-        ) : client === null ? (
+        ) : customer === null ? (
           <Typography>{i18n.t("Anonymous customer")}</Typography>
         ) : (
-          <ExternalLink href={`mailto:${client.email}`}>
-            {client.email}
+          <ExternalLink href={`mailto:${customer.email}`}>
+            {customer.email}
           </ExternalLink>
         )}
       </CardContent>
@@ -102,7 +102,7 @@ const OrderCustomer = decorate<OrderCustomerProps>(
             color="secondary"
             variant="flat"
             onClick={onShippingAddressEdit}
-            disabled={!onShippingAddressEdit && client === undefined}
+            disabled={!onShippingAddressEdit && customer === undefined}
           >
             {i18n.t("Edit")}
           </Button>
@@ -149,7 +149,7 @@ const OrderCustomer = decorate<OrderCustomerProps>(
             color="secondary"
             variant="flat"
             onClick={onBillingAddressEdit}
-            disabled={!onBillingAddressEdit && client === undefined}
+            disabled={!onBillingAddressEdit && customer === undefined}
           >
             {i18n.t("Edit")}
           </Button>

@@ -2,7 +2,7 @@ import { withStyles, WithStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import { AddressType, transformAddressToForm } from "../..";
+import { transformAddressToForm } from "../..";
 import { UserError } from "../../..";
 import { Container } from "../../../components/Container";
 import DateFormatter from "../../../components/DateFormatter";
@@ -13,7 +13,8 @@ import Toggle from "../../../components/Toggle";
 import { AddressTypeInput } from "../../../customers";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { OrderEvents, OrderStatus } from "../../../types/globalTypes";
+import { OrderStatus } from "../../../types/globalTypes";
+import { OrderDetails_order } from "../../types/OrderDetails";
 import OrderAddressEditDialog from "../OrderAddressEditDialog";
 import OrderCancelDialog, {
   FormData as OrderCancelFormData
@@ -39,92 +40,12 @@ import OrderShippingMethodEditDialog, {
 } from "../OrderShippingMethodEditDialog";
 import OrderSummary from "../OrderSummary";
 
-interface TaxedMoneyType {
-  gross: {
-    amount: number;
-    currency: string;
-  };
-}
-interface MoneyType {
-  amount: number;
-  currency: string;
-}
-interface OrderDetailsPageProps {
-  order?: {
-    id: string;
-    billingAddress?: AddressType;
-    created: string;
-    fulfillments: Array<{
-      id: string;
-      lines: {
-        edges: Array<{
-          node: {
-            quantity: number;
-            orderLine: {
-              id: string;
-              productName: string;
-              thumbnailUrl?: string;
-            };
-          };
-        }>;
-      };
-      status: string;
-      trackingNumber: string;
-    }>;
-    events: Array<{
-      amount?: number;
-      date: string;
-      email?: string;
-      emailType?: string;
-      id: string;
-      message?: string;
-      quantity?: number;
-      type: OrderEvents;
-      user: {
-        email: string;
-      };
-    }>;
-    lines: Array<{
-      id: string;
-      productName: string;
-      productSku: string;
-      thumbnailUrl: string;
-      unitPrice: TaxedMoneyType;
-      quantity: number;
-      quantityFulfilled: number;
-    }>;
-    number: string;
-    paymentStatus: string;
-    shippingAddress?: AddressType;
-    shippingMethod?: {
-      id: string;
-    };
-    shippingMethodName?: string;
-    shippingPrice?: {
-      gross: MoneyType;
-    };
-    status: OrderStatus;
-    subtotal: {
-      gross: MoneyType;
-    };
-    total: {
-      gross: MoneyType;
-      tax: MoneyType;
-    };
-    totalAuthorized: MoneyType;
-    totalCaptured: MoneyType;
-    user: {
-      id: string;
-      email: string;
-    };
-  };
+export interface OrderDetailsPageProps {
+  order: OrderDetails_order;
   shippingMethods?: Array<{
     id: string;
     name: string;
   }>;
-  user?: {
-    email: string;
-  };
   users?: Array<{
     id: string;
     email: string;
@@ -249,7 +170,6 @@ class OrderDetailsPageComponent extends React.Component<
       errors,
       order,
       shippingMethods,
-      user,
       users,
       variants,
       variantsLoading,
@@ -445,14 +365,13 @@ class OrderDetailsPageComponent extends React.Component<
             )}
             <OrderHistory
               history={maybe(() => order.events)}
-              user={user}
               onNoteAdd={onNoteAdd}
             />
           </div>
           <div>
             <OrderCustomer
               billingAddress={maybe(() => order.billingAddress)}
-              client={maybe(() => order.user)}
+              customer={maybe(() => order.user)}
               canEditCustomer={isDraft}
               shippingAddress={maybe(() => order.shippingAddress)}
               onBillingAddressEdit={this.toggleBillingAddressEditDialog}
