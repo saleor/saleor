@@ -94,37 +94,37 @@ render(
                     <Switch>
                       <SectionRoute exact path="/" component={HomePage} />
                       <SectionRoute
-                        resource="product.manage_products"
+                        permissions={["product.manage_products"]}
                         path="/categories"
                         component={CategorySection}
                       />
                       <SectionRoute
-                        resource="page.manage_pages"
+                        permissions={["page.manage_pages"]}
                         path="/pages"
                         component={PageSection}
                       />
                       <SectionRoute
-                        resource="order.manage_orders"
+                        permissions={["order.manage_orders"]}
                         path="/orders"
                         component={OrdersSection}
                       />
                       <SectionRoute
-                        resource="product.manage_products"
+                        permissions={["product.manage_products"]}
                         path="/products"
                         component={ProductSection}
                       />
                       <SectionRoute
-                        resource="product.manage_products"
+                        permissions={["product.manage_products"]}
                         path="/productTypes"
                         component={ProductTypesSection}
                       />
                       <SectionRoute
-                        resource="account.manage_staff"
+                        permissions={["account.manage_staff"]}
                         path="/staff"
                         component={StaffSection}
                       />
                       {configurationMenu.filter(menuItem =>
-                        hasPermission(menuItem.resource, user)
+                        hasPermission(menuItem.permission, user)
                       ).length > 0 && (
                         <SectionRoute
                           exact
