@@ -305,7 +305,7 @@ class SetPasswordInput(graphene.InputObjectType):
     password = graphene.String(description='Password', required=True)
 
 
-class SetPassword(ModelMutation):
+class PasswordSet(ModelMutation):
     INVALID_TOKEN = 'Invalid or expired token.'
 
     class Arguments:
@@ -323,7 +323,7 @@ class SetPassword(ModelMutation):
         cleaned_input = super().clean_input(info, instance, input, errors)
         token = cleaned_input.pop('token')
         if not default_token_generator.check_token(instance, token):
-            cls.add_error(errors, 'token', SetPassword.INVALID_TOKEN)
+            cls.add_error(errors, 'token', PasswordSet.INVALID_TOKEN)
         return cleaned_input
 
     @classmethod

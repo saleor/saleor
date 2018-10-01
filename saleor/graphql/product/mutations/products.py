@@ -135,7 +135,7 @@ class CollectionDelete(ModelDeleteMutation):
         return user.has_perm('product.manage_products')
 
 
-class CollectionProductsAdd(BaseMutation):
+class CollectionAddProducts(BaseMutation):
     collection = graphene.Field(
         Collection,
         description='Collection to which products will be added.')
@@ -160,10 +160,10 @@ class CollectionProductsAdd(BaseMutation):
         products = cls.get_nodes_or_error(
             products, errors, 'products', only_type=Product)
         collection.products.add(*products)
-        return CollectionProductsAdd(collection=collection, errors=errors)
+        return CollectionAddProducts(collection=collection, errors=errors)
 
 
-class CollectionProductsRemove(BaseMutation):
+class CollectionRemoveProducts(BaseMutation):
     collection = graphene.Field(
         Collection,
         description='Collection from which products will be removed.')
@@ -186,7 +186,7 @@ class CollectionProductsRemove(BaseMutation):
         products = cls.get_nodes_or_error(
             products, errors, 'products', only_type=Product)
         collection.products.remove(*products)
-        return CollectionProductsRemove(collection=collection, errors=errors)
+        return CollectionRemoveProducts(collection=collection, errors=errors)
 
 
 class AttributeValueInput(InputObjectType):

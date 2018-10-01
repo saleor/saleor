@@ -5,7 +5,7 @@ from graphql_jwt.decorators import login_required, permission_required
 
 from .account.mutations import (
     CustomerCreate, CustomerUpdate, CustomerPasswordReset, CustomerRegister,
-    PasswordReset, SetPassword, StaffCreate, StaffDelete, StaffUpdate,
+    PasswordReset, PasswordSet, StaffCreate, StaffDelete, StaffUpdate,
     AddressCreate, AddressUpdate, AddressDelete)
 from .account.types import AddressValidationData, AddressValidationInput, User
 from .account.resolvers import (
@@ -14,7 +14,7 @@ from .menu.resolvers import resolve_menu, resolve_menus, resolve_menu_items
 from .menu.types import Menu, MenuItem
 # FIXME: sorting import by putting below line at the beginning breaks app
 from .menu.mutations import (
-    AssignNavigation, MenuCreate, MenuDelete, MenuUpdate, MenuItemCreate,
+    NavigationAssign, MenuCreate, MenuDelete, MenuUpdate, MenuItemCreate,
     MenuItemDelete, MenuItemUpdate)
 from .descriptions import DESCRIPTIONS
 from .discount.resolvers import resolve_sales, resolve_vouchers
@@ -33,7 +33,7 @@ from .order.mutations.draft_orders import (
 from .order.mutations.fulfillments import (
     FulfillmentCancel, FulfillmentCreate, FulfillmentTrackingUpdate)
 from .order.mutations.orders import (
-    OrderNoteAdd, OrderCancel, OrderCapture, OrderMarkAsPaid, OrderRefund,
+    OrderAddNote, OrderCancel, OrderCapture, OrderMarkAsPaid, OrderRefund,
     OrderRelease, OrderUpdate, OrderShippingUpdate)
 from .page.resolvers import resolve_pages, resolve_page
 from .page.types import Page
@@ -45,8 +45,8 @@ from .product.mutations.attributes import (
     AttributeUpdate)
 from .product.mutations.products import (
     CategoryCreate, CategoryDelete, CategoryUpdate,
-    CollectionProductsAdd, CollectionCreate, CollectionDelete,
-    CollectionProductsRemove, CollectionUpdate, ProductCreate,
+    CollectionAddProducts, CollectionCreate, CollectionDelete,
+    CollectionRemoveProducts, CollectionUpdate, ProductCreate,
     ProductDelete, ProductUpdate, ProductTypeCreate,
     ProductTypeDelete, ProductImageCreate, ProductImageDelete,
     ProductImageReorder, ProductImageUpdate, ProductTypeUpdate,
@@ -271,14 +271,15 @@ class Query(graphene.ObjectType):
 
 
 class Mutations(graphene.ObjectType):
-    assign_navigation = AssignNavigation.Field()
+    address_create = AddressCreate.Field()
+    address_update = AddressUpdate.Field()
+    address_delete = AddressDelete.Field()
 
-    token_create = CreateToken.Field()
-    token_refresh = graphql_jwt.Refresh.Field()
-    token_verify = VerifyToken.Field()
+    navigation_assign = NavigationAssign.Field()
 
-    set_password = SetPassword.Field()
-    password_reset = PasswordReset.Field()
+    attribute_create = AttributeCreate.Field()
+    attribute_delete = AttributeDelete.Field()
+    attribute_update = AttributeUpdate.Field()
 
     attribute_value_create = AttributeValueCreate.Field()
     attribute_value_delete = AttributeValueDelete.Field()
@@ -288,24 +289,24 @@ class Mutations(graphene.ObjectType):
     category_delete = CategoryDelete.Field()
     category_update = CategoryUpdate.Field()
 
+    collection_create = CollectionCreate.Field()
+    collection_update = CollectionUpdate.Field()
+    collection_delete = CollectionDelete.Field()
+    collection_add_products = CollectionAddProducts.Field()
+    collection_remove_products = CollectionRemoveProducts.Field()
+
     customer_create = CustomerCreate.Field()
     customer_update = CustomerUpdate.Field()
     customer_password_reset = CustomerPasswordReset.Field()
     customer_register = CustomerRegister.Field()
 
-    staff_create = StaffCreate.Field()
-    staff_update = StaffUpdate.Field()
-    staff_delete = StaffDelete.Field()
-
-    address_create = AddressCreate.Field()
-    address_update = AddressUpdate.Field()
-    address_delete = AddressDelete.Field()
-
-    collection_create = CollectionCreate.Field()
-    collection_update = CollectionUpdate.Field()
-    collection_delete = CollectionDelete.Field()
-    collection_add_products = CollectionProductsAdd.Field()
-    collection_remove_products = CollectionProductsRemove.Field()
+    draft_order_create = DraftOrderCreate.Field()
+    draft_order_complete = DraftOrderComplete.Field()
+    draft_order_delete = DraftOrderDelete.Field()
+    draft_order_line_create = DraftOrderLineCreate.Field()
+    draft_order_line_delete = DraftOrderLineDelete.Field()
+    draft_order_line_update = DraftOrderLineUpdate.Field()
+    draft_order_update = DraftOrderUpdate.Field()
 
     menu_create = MenuCreate.Field()
     menu_delete = MenuDelete.Field()
@@ -315,21 +316,14 @@ class Mutations(graphene.ObjectType):
     menu_item_delete = MenuItemDelete.Field()
     menu_item_update = MenuItemUpdate.Field()
 
-    draft_order_create = DraftOrderCreate.Field()
-    draft_order_complete = DraftOrderComplete.Field()
-    draft_order_delete = DraftOrderDelete.Field()
-    draft_order_line_create = DraftOrderLineCreate.Field()
-    draft_order_line_delete = DraftOrderLineDelete.Field()
-    draft_order_line_update = DraftOrderLineUpdate.Field()
-    draft_order_update = DraftOrderUpdate.Field()
     order_fulfillment_cancel = FulfillmentCancel.Field()
     order_fulfillment_create = FulfillmentCreate.Field()
-    order_fulfillment_update_tracking = FulfillmentTrackingUpdate.Field()
-    order_add_note = OrderNoteAdd.Field()
+    order_fulfillment_tracking_update = FulfillmentTrackingUpdate.Field()
+    order_add_note = OrderAddNote.Field()
     order_cancel = OrderCancel.Field()
     order_capture = OrderCapture.Field()
     order_mark_as_paid = OrderMarkAsPaid.Field()
-    order_update_shipping = OrderShippingUpdate.Field()
+    order_shipping_update = OrderShippingUpdate.Field()
     order_refund = OrderRefund.Field()
     order_release = OrderRelease.Field()
     order_update = OrderUpdate.Field()
@@ -337,10 +331,6 @@ class Mutations(graphene.ObjectType):
     page_create = PageCreate.Field()
     page_delete = PageDelete.Field()
     page_update = PageUpdate.Field()
-
-    attribute_create = AttributeCreate.Field()
-    attribute_delete = AttributeDelete.Field()
-    attribute_update = AttributeUpdate.Field()
 
     product_create = ProductCreate.Field()
     product_delete = ProductDelete.Field()
@@ -363,14 +353,6 @@ class Mutations(graphene.ObjectType):
     sale_delete = SaleDelete.Field()
     sale_update = SaleUpdate.Field()
 
-    shop_domain_update = ShopDomainUpdate.Field()
-    shop_settings_update = ShopSettingsUpdate.Field()
-    homepage_collection_update = HomepageCollectionUpdate.Field()
-
-    voucher_create = VoucherCreate.Field()
-    voucher_delete = VoucherDelete.Field()
-    voucher_update = VoucherUpdate.Field()
-
     shipping_zone_create = ShippingZoneCreate.Field()
     shipping_zone_delete = ShippingZoneDelete.Field()
     shipping_zone_update = ShippingZoneUpdate.Field()
@@ -378,6 +360,25 @@ class Mutations(graphene.ObjectType):
     shipping_price_create = ShippingPriceCreate.Field()
     shipping_price_delete = ShippingPriceDelete.Field()
     shipping_price_update = ShippingPriceUpdate.Field()
+
+    shop_domain_update = ShopDomainUpdate.Field()
+    shop_settings_update = ShopSettingsUpdate.Field()
+    homepage_collection_update = HomepageCollectionUpdate.Field()
+
+    staff_create = StaffCreate.Field()
+    staff_update = StaffUpdate.Field()
+    staff_delete = StaffDelete.Field()
+
+    password_set = PasswordSet.Field()
+    password_reset = PasswordReset.Field()
+
+    token_create = CreateToken.Field()
+    token_refresh = graphql_jwt.Refresh.Field()
+    token_verify = VerifyToken.Field()
+
+    voucher_create = VoucherCreate.Field()
+    voucher_delete = VoucherDelete.Field()
+    voucher_update = VoucherUpdate.Field()
 
     variant_image_assign = VariantImageAssign.Field()
     variant_image_unassign = VariantImageUnassign.Field()

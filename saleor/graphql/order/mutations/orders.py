@@ -205,11 +205,11 @@ class OrderShippingUpdate(BaseMutation):
         return OrderShippingUpdate(order=order)
 
 
-class OrderNoteAddInput(graphene.InputObjectType):
+class OrderAddNoteInput(graphene.InputObjectType):
     message = graphene.String(description='Note message.', name='message')
 
 
-class OrderNoteAdd(BaseMutation):
+class OrderAddNote(BaseMutation):
     order = graphene.Field(Order, description='Order with the note added.')
     event = graphene.Field(OrderEvent, description='Order note created.')
 
@@ -217,7 +217,7 @@ class OrderNoteAdd(BaseMutation):
         id = graphene.ID(
             required=True,
             description='ID of the order to add a note for.', name='order')
-        input = OrderNoteAddInput(
+        input = OrderAddNoteInput(
             required=True,
             description='Fields required to create a note for the order.')
 
@@ -230,14 +230,14 @@ class OrderNoteAdd(BaseMutation):
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
         if errors:
-            return OrderNoteAdd(errors=errors)
+            return OrderAddNote(errors=errors)
 
         event = order.events.create(
             type=OrderEvents.NOTE_ADDED.value,
             user=info.context.user,
             parameters={
                 'message': input['message']})
-        return OrderNoteAdd(order=order, event=event)
+        return OrderAddNote(order=order, event=event)
 
 
 class OrderCancel(BaseMutation):

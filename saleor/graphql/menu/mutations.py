@@ -207,7 +207,7 @@ class NavigationType(graphene.Enum):
         return 'Secondary storefront\'s navigation.'
 
 
-class AssignNavigation(BaseMutation):
+class NavigationAssign(BaseMutation):
     menu = graphene.Field(Menu, description='Assigned navigation menu.')
 
     class Arguments:
@@ -238,4 +238,4 @@ class AssignNavigation(BaseMutation):
             else:
                 raise AssertionError(
                     'Unknown navigation type: %s' % navigation_type)
-        return AssignNavigation(menu=menu, errors=errors)
+        return NavigationAssign(menu=menu, errors=errors)

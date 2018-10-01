@@ -175,7 +175,8 @@ class FulfillmentTrackingUpdate(BaseMutation):
                 'fulfillment': fulfillment.composed_id},
             type=OrderEvents.TRACKING_UPDATED.value,
             user=info.context.user)
-        return FulfillmentTrackingUpdateInput(fulfillment=fulfillment, order=order)
+        return FulfillmentTrackingUpdateInput(
+            fulfillment=fulfillment, order=order)
 
 
 class FulfillmentCancel(BaseMutation):
