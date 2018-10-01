@@ -215,6 +215,7 @@ class Query(ProductQueries):
     def resolve_payment_client_token(self, info, gateway=None):
         return resolve_payment_client_token(gateway)
 
+    @permission_required('order.manage_orders')
     def resolve_payments(self, info, query=None, **kwargs):
         return resolve_payment_methods(info, query)
 
