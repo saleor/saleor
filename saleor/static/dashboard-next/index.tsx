@@ -15,6 +15,7 @@ import Auth, { getAuthToken, removeAuthToken } from "./auth";
 import AuthProvider from "./auth/AuthProvider";
 import LoginLoading from "./auth/components/LoginLoading/LoginLoading";
 import SectionRoute from "./auth/components/SectionRoute";
+import { hasPermission } from "./auth/misc";
 import CategorySection from "./categories";
 import { DateProvider } from "./components/DateFormatter";
 import { LocaleProvider } from "./components/Locale";
@@ -123,9 +124,7 @@ render(
                         component={StaffSection}
                       />
                       {configurationMenu.filter(menuItem =>
-                        user.permissions
-                          .map(perm => perm.code)
-                          .includes(menuItem.resource)
+                        hasPermission(menuItem.resource, user)
                       ).length > 0 && (
                         <SectionRoute
                           exact
