@@ -4,6 +4,7 @@ import * as React from "react";
 
 import { transformAddressToForm } from "../..";
 import { UserError } from "../../..";
+import { CardSpacer } from "../../../components/CardSpacer";
 import { Container } from "../../../components/Container";
 import DateFormatter from "../../../components/DateFormatter";
 import Form from "../../../components/Form";
@@ -39,6 +40,7 @@ import OrderShippingMethodEditDialog, {
   FormData as ShippingMethodForm
 } from "../OrderShippingMethodEditDialog";
 import OrderSummary from "../OrderSummary";
+import OrderUnfulfilledItems from "../OrderUnfulfilledItems/OrderUnfulfilledItems";
 
 export interface OrderDetailsPageProps {
   order: OrderDetails_order;
@@ -304,6 +306,12 @@ class OrderDetailsPageComponent extends React.Component<
                 />
               </>
             )}
+
+            <CardSpacer />
+            <OrderUnfulfilledItems
+              lines={unfulfilled}
+              onFulfill={this.toggleFulfillmentDialog}
+            />
 
             {order ? (
               !isDraft &&

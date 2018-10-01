@@ -30,6 +30,11 @@ export default createMuiTheme({
         borderRadius: 8
       }
     },
+    MuiCardActions: {
+      root: {
+        flexDirection: "row-reverse" as "row-reverse"
+      }
+    },
     MuiInput: {
       input: {
         "&:-webkit-autofill": {

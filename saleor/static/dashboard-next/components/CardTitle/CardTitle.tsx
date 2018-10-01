@@ -3,7 +3,7 @@ import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 interface CardTitleProps extends React.StatelessComponent {
-  title: string;
+  title: string | React.ReactNode;
   toolbar?: React.ReactNode;
   onClick?: (event: React.MouseEvent<any>) => void;
 }
