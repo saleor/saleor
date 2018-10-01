@@ -146,13 +146,13 @@ class OrderUpdate(DraftOrderUpdate):
         instance.save()
 
 
-class OrderUpdateShippingInput(graphene.InputObjectType):
+class OrderShippingUpdateInput(graphene.InputObjectType):
     shipping_method = graphene.ID(
         description='ID of the selected shipping method.',
         name='shippingMethod')
 
 
-class OrderUpdateShipping(BaseMutation):
+class OrderShippingUpdate(BaseMutation):
     order = graphene.Field(
         Order, description='Order with updated shipping method.')
 
@@ -160,7 +160,7 @@ class OrderUpdateShipping(BaseMutation):
         id = graphene.ID(
             required=True, name='order',
             description='ID of the order to update a shipping method.')
-        input = OrderUpdateShippingInput(
+        input = OrderShippingUpdateInput(
             description='Fields required to change '
                         'shipping method of the order.')
 
@@ -178,7 +178,7 @@ class OrderUpdateShipping(BaseMutation):
                 cls.add_error(
                     errors, 'shippingMethod',
                     'Shipping method is required for this order.')
-                return OrderUpdateShipping(errors=errors)
+                return OrderShippingUpdate(errors=errors)
             order.shipping_method = None
             order.shipping_price = ZERO_TAXED_MONEY
             order.shipping_method_name = None
@@ -186,14 +186,14 @@ class OrderUpdateShipping(BaseMutation):
                 update_fields=[
                     'shipping_method', 'shipping_price_net',
                     'shipping_price_gross', 'shipping_method_name'])
-            return OrderUpdateShipping(order=order)
+            return OrderShippingUpdate(order=order)
 
         method = cls.get_node_or_error(
             info, input['shipping_method'], errors,
             'shipping_method', ShippingMethod)
         clean_order_update_shipping(order, method, errors)
         if errors:
-            return OrderUpdateShipping(errors=errors)
+            return OrderShippingUpdate(errors=errors)
 
         order.shipping_method = method
         order.shipping_price = method.get_total(info.context.taxes)
@@ -202,14 +202,14 @@ class OrderUpdateShipping(BaseMutation):
             update_fields=[
                 'shipping_method', 'shipping_method_name',
                 'shipping_price_net', 'shipping_price_gross'])
-        return OrderUpdateShipping(order=order)
+        return OrderShippingUpdate(order=order)
 
 
-class OrderAddNoteInput(graphene.InputObjectType):
+class OrderNoteAddInput(graphene.InputObjectType):
     message = graphene.String(description='Note message.', name='message')
 
 
-class OrderAddNote(BaseMutation):
+class OrderNoteAdd(BaseMutation):
     order = graphene.Field(Order, description='Order with the note added.')
     event = graphene.Field(OrderEvent, description='Order note created.')
 
@@ -217,7 +217,7 @@ class OrderAddNote(BaseMutation):
         id = graphene.ID(
             required=True,
             description='ID of the order to add a note for.', name='order')
-        input = OrderAddNoteInput(
+        input = OrderNoteAddInput(
             required=True,
             description='Fields required to create a note for the order.')
 
@@ -230,14 +230,14 @@ class OrderAddNote(BaseMutation):
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
         if errors:
-            return OrderAddNote(errors=errors)
+            return OrderNoteAdd(errors=errors)
 
         event = order.events.create(
             type=OrderEvents.NOTE_ADDED.value,
             user=info.context.user,
             parameters={
                 'message': input['message']})
-        return OrderAddNote(order=order, event=event)
+        return OrderNoteAdd(order=order, event=event)
 
 
 class OrderCancel(BaseMutation):

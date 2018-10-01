@@ -37,7 +37,7 @@ class FulfillmentCreateInput(graphene.InputObjectType):
         description='Item line to be fulfilled.')
 
 
-class FulfillmentUpdateTrackingInput(graphene.InputObjectType):
+class FulfillmentTrackingUpdateInput(graphene.InputObjectType):
     tracking_number = graphene.String(
         description='Fulfillment tracking number')
     notify_customer = graphene.Boolean(
@@ -141,7 +141,7 @@ class FulfillmentCreate(BaseMutation):
             fulfillment=fulfillment, order=fulfillment.order)
 
 
-class FulfillmentUpdateTracking(BaseMutation):
+class FulfillmentTrackingUpdate(BaseMutation):
     fulfillment = graphene.Field(
         Fulfillment, description='A fulfillment with updated tracking.')
     order = graphene.Field(
@@ -150,7 +150,7 @@ class FulfillmentUpdateTracking(BaseMutation):
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of an fulfillment to update.')
-        input = FulfillmentUpdateTrackingInput(
+        input = FulfillmentTrackingUpdateInput(
             required=True,
             description='Fields required to update an fulfillment.')
 
@@ -175,7 +175,7 @@ class FulfillmentUpdateTracking(BaseMutation):
                 'fulfillment': fulfillment.composed_id},
             type=OrderEvents.TRACKING_UPDATED.value,
             user=info.context.user)
-        return FulfillmentUpdateTracking(fulfillment=fulfillment, order=order)
+        return FulfillmentTrackingUpdateInput(fulfillment=fulfillment, order=order)
 
 
 class FulfillmentCancel(BaseMutation):

@@ -31,10 +31,10 @@ from .order.mutations.draft_orders import (
     DraftOrderLineCreate, DraftOrderLineDelete, DraftOrderLineUpdate,
     DraftOrderUpdate)
 from .order.mutations.fulfillments import (
-    FulfillmentCancel, FulfillmentCreate, FulfillmentUpdateTracking)
+    FulfillmentCancel, FulfillmentCreate, FulfillmentTrackingUpdate)
 from .order.mutations.orders import (
-    OrderAddNote, OrderCancel, OrderCapture, OrderMarkAsPaid, OrderRefund,
-    OrderRelease, OrderUpdate, OrderUpdateShipping)
+    OrderNoteAdd, OrderCancel, OrderCapture, OrderMarkAsPaid, OrderRefund,
+    OrderRelease, OrderUpdate, OrderShippingUpdate)
 from .page.resolvers import resolve_pages, resolve_page
 from .page.types import Page
 from .page.mutations import PageCreate, PageDelete, PageUpdate
@@ -45,8 +45,8 @@ from .product.mutations.attributes import (
     AttributeUpdate)
 from .product.mutations.products import (
     CategoryCreate, CategoryDelete, CategoryUpdate,
-    CollectionAddProducts, CollectionCreate, CollectionDelete,
-    CollectionRemoveProducts, CollectionUpdate, ProductCreate,
+    CollectionProductsAdd, CollectionCreate, CollectionDelete,
+    CollectionProductsRemove, CollectionUpdate, ProductCreate,
     ProductDelete, ProductUpdate, ProductTypeCreate,
     ProductTypeDelete, ProductImageCreate, ProductImageDelete,
     ProductImageReorder, ProductImageUpdate, ProductTypeUpdate,
@@ -304,8 +304,8 @@ class Mutations(graphene.ObjectType):
     collection_create = CollectionCreate.Field()
     collection_update = CollectionUpdate.Field()
     collection_delete = CollectionDelete.Field()
-    collection_add_products = CollectionAddProducts.Field()
-    collection_remove_products = CollectionRemoveProducts.Field()
+    collection_add_products = CollectionProductsAdd.Field()
+    collection_remove_products = CollectionProductsRemove.Field()
 
     menu_create = MenuCreate.Field()
     menu_delete = MenuDelete.Field()
@@ -324,12 +324,12 @@ class Mutations(graphene.ObjectType):
     draft_order_update = DraftOrderUpdate.Field()
     order_fulfillment_cancel = FulfillmentCancel.Field()
     order_fulfillment_create = FulfillmentCreate.Field()
-    order_fulfillment_update_tracking = FulfillmentUpdateTracking.Field()
-    order_add_note = OrderAddNote.Field()
+    order_fulfillment_update_tracking = FulfillmentTrackingUpdate.Field()
+    order_add_note = OrderNoteAdd.Field()
     order_cancel = OrderCancel.Field()
     order_capture = OrderCapture.Field()
     order_mark_as_paid = OrderMarkAsPaid.Field()
-    order_update_shipping = OrderUpdateShipping.Field()
+    order_update_shipping = OrderShippingUpdate.Field()
     order_refund = OrderRefund.Field()
     order_release = OrderRelease.Field()
     order_update = OrderUpdate.Field()
