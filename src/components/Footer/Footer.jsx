@@ -39,6 +39,13 @@ const Footer = () => (
                   <li><a href="mailto:hello@mirumee.com">Become a partner</a></li>
                 </ul>
               </div>
+              <div className="col-xs-4 col-sm-4 col-md-3 col-lg-2">
+                <ul>
+                  <li><h4>About</h4></li>
+                  <li><Link to="/privacy-policy">Privacy policy</Link></li>
+                  <li><a href="">Terms of service</a></li>
+                </ul>
+              </div>
             </div>
           </div>
           <div className="col-xs-12 col-sm-3 col-md-2 col-lg-1 icons">
@@ -56,15 +63,8 @@ const Footer = () => (
           </div>
         </div>
       </div>
-      <div className="privacy-links grid">
-        <div className="col-xs-6 col-sm-3 col-md-2">
-          <a href="">Terms of service</a>
-        </div>
-        <div className="col-xs-6 col-sm-3 col-md-2">
-          <Link to="/privacy-policy">Privacy policy</Link>
-        </div>
-      </div>
     </div>
+    <p className="copyright">COPYRIGHT © 2009–2018 MIRUMEE SOFTWARE</p>
   </footer>
 )
 

@@ -19,7 +19,7 @@ body {
   & #root {
     width: 100%;
     height: 100%;
-    padding-bottom: calc(var(--spacer) * 8);
+    padding-bottom: calc(var(--spacer) * 2);
     background-image: linear-gradient(-150deg, rgba(254,62,62, 0.3) 0%, rgba(125,185,232,0) 10%, rgba(125,185,232,0) 100%), url('../../../images/background.svg');
     background-color: var(--background-color);
     background-attachment: scroll, scroll;
@@ -220,27 +220,35 @@ ul {
 
 .btn {
   padding: calc(var(--spacer) / 1.5) calc(var(--spacer) * 3);
-  border-radius: calc(var(--border-radius) * 2);
   transition: background .5s, color .5s;
+  transform: skew(30deg);
+  display: inline-block;
   font-size: calc(var(--font-size-base) * 1.2);
+  & span {
+    display: block;
+    transform: skew(-30deg);
+    text-transform: uppercase;
+    font-weight: 400;
+  }
   &.btn-primary {
     border: solid var(--border-width) var(--primaryColor);
-    background: transparent;
+    background: var(--primaryColor);
+    color: var(--mobile-background);
     &:hover {
-      background: var(--primaryColor);
-      color: var(--mobile-background);
+      background: transparent;
+      color: var(--primaryColor);
       text-decoration: none;
     }
   }
   &.btn-secondary {
-    border: solid var(--border-width) var(--secondaryColor);
-    background-color: var(--secondaryColor);
+    border: solid var(--border-width) var(--body-color);
+    background-color: transparent;
     color: var(--body-color);
     &:hover {
       text-decoration: none;
-      border-color: var(--primaryHoverColor);
-      background-color: var(--primaryHoverColor);
-      color: var(--body-color);
+      border-color: var(--body-color);
+      background-color: var(--body-color);
+      color: var(--mobile-background);
     }
   }
   @media (max-width: 450px) {

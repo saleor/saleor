@@ -1,17 +1,15 @@
 #home {
   border: solid var(--border-width) var(--sectionBorder);
+  border-bottom: none;
   & section {
     &.hero {
       position: relative;
+      height: 100vh;
       margin-bottom: calc(var(--spacer) * 6);
       & .bg-container {
         background-image: url('../../images/parrot-bg.png');
-        background-size: 90%;
-        background-position: 120% 0%;
-        @media (min-width: 1450px) {
-          background-size: 100%;
-          background-position: 0 100%;
-        }
+        background-size: contain;
+        background-position: 100% 100%;
         @media (max-width: 1024px) {
           background-size: 120%;
           background-position: 100% 0%;
@@ -209,7 +207,8 @@
         }
       }
       & .feature-item {
-        padding: calc(var(--spacer) * 5) 0;
+        padding: calc(var(--spacer) * 3) 0;
+        height: 50vh;
         @media (max-width: 1024px) {
           padding: calc(var(--spacer) * 3) 0;
         }
@@ -218,21 +217,15 @@
         }
         position: relative;
         & .text {
+          padding: calc(var(--spacer) * 5) 0;
           @media (max-width: 450px) {
             grid-row: 2;
           }
           & h2 {
             position: relative;
             margin-bottom: var(--spacer);
-            & span {
-              position: absolute;
-              transform: translateY(-50%);
-              top: 0;
-              left: calc(var(--spacer) * -2);
-              color: var(--body-color);
-              font-size: var(--font-size-base);
-              text-align: right;
-            }
+            color: var(--primaryColor);
+            font-size: var(--font-size-base);
             @media (max-width: 768px) {
               margin-bottom: var(--spacer);
               & span {
@@ -259,7 +252,8 @@
             }
             &:first-of-type {
               font-weight: var(--font-weight-normal);
-              font-size: calc(var(--font-size-base) * 1.2);
+              font-size: calc(var(--font-size-base) * 3);
+              line-height: var(--headings-line-height);
               @media (max-width: 768px) {
                 width: 100%;
               }
@@ -293,15 +287,6 @@
               background-size: 80%;
             }
           }
-          & .decoration {
-            width: 35%;
-            right: -15%;
-            left: initial;
-            top: 28%;
-            @media (max-width: 768px) {
-              top: 50%;
-            }
-          }
           @media (max-width: 768px) {
             & h2 {
               & br { display: none; }
@@ -323,12 +308,6 @@
               background-size: 80%;
             }
           }
-          & .decoration {
-            width: 23%;
-            left: -23%;
-            top: 30%;
-            right: initial;
-          }
         }
         &.easy-to-customize {
           & .image {
@@ -345,189 +324,121 @@
         }
         &.user-experience {
           padding: calc(var(--spacer) * 3) 0 calc(var(--spacer) * 2) 0;
+          height: auto;
           @media (max-width: 450px) {
-            padding-top: 0;
-          }
-          & h2 {
-            margin-bottom: 0;
-            font-size: var(--h2-font-size);
-            @media (max-width: 1024px) {
-              font-size: calc(var(--font-size-base) * 2.5);
-            }
-            @media (max-width: 450px) {
-              text-align: left;
-              font-size: calc(var(--spacer) * 1.8);
-            }
-            & span {
-              left: calc(var(--spacer) * 4.5);
-              @media (max-width: 1024px) {
-                left: calc(var(--spacer) * -1);
-              }
-              @media (max-width: 450px) {
-                left: calc(var(--spacer) * -2)
-              }
-            }
-          }
-          & h4 {
-            padding: calc(var(--spacer) * 1.5) calc(var(--spacer) * 5);
-            margin: 0 auto;
-            font-size: var(--font-size-base);
-            font-weight: 300;
-            letter-spacing: 2px;
-            @media (max-width: 450px) {
-              padding: 0;
-              text-align: left;
-              font-size: calc(var(--font-size-base) * 1.2);
-              padding-top: var(--spacer);
-              
-            }
-          }
-          @media (max-width: 450px) {
-            & .image {
-              background-image: url('../../images/great-experience.svg');
-              background-size: 80%;
-              @media (max-width: 768px) {
-                background-size: 110%;
-                background-position: 280%;
-              }
-              @media (max-width: 450px) {
-                background-size: 80%;
-                background-position: -40% 90%;
-              }
-            }
-          }
-        }
-        &.storefront {
-          padding: calc(var(--spacer) * 2) 0;
-          @media (max-width: 768px) {
             padding-top: 0;
           }
           & .text {
-            padding: calc(var(--spacer) * 4) 0;
-          }
-          & .image {
-            background-image: url('../../images/storefront-icon.svg');
-            background-size: 80%;
-            background-position: 20% 0;
-            position: relative;
-            @media (max-width: 1024px) {
-              background-size: 120%;
-              background-position: 50% 30%;
-            }
-          }
-          & .decoration {
-            width: 30%;
-            right: -15%;
-            top: 50%;
-            left: initial;
-            @media (max-width: 768px) {
-              right: -24%;
-            }
-          }
-        }
-        &.dashboard {
-          padding: calc(var(--spacer) * 2) 0;
-          @media (max-width: 768px) {
-            padding-top: 0;
-          }
-          & .image {
-            background-image: url('../../images/dashboard-icon.svg');
-            background-size: 120%;
-          }
-          & .decoration {
-            width: 25%;
-            left: -13%;
-            right: initial;
-            top: -11%;
-          }
-        }
-      }
-      & .feature-tabs {
-        & ul {
-          @media (max-width: 700px) {
-            padding: 0 calc(var(--spacer) * 2) calc(var(--spacer) * 4) calc(var(--spacer) * 2)
-          }
-          @media (max-width: 450px) {
-            padding: 0;
-          }
-          & li {
-            text-transform: uppercase;
-            @media (max-width: 700px) {
-              font-size: calc(var(--font-size-base) * 1.4);
-            }
-            @media (max-width: 570px) {
-              font-size: calc(var(--font-size-base) * 1.2);
-            }
-            @media (max-width: 320px) {
-              font-size: calc(var(--font-size-base) * 1);
-            }
-            &.react-tabs__tab--selected {
+            width: 60%;
+            padding: 0
+            & h2 {
+              margin-bottom: 0;
+              font-size: var(--font-size-base);
+              margin-bottom: var(--spacer);
+              @media (max-width: 1024px) {
+                font-size: calc(var(--font-size-base) * 2.5);
+              }
+              @media (max-width: 450px) {
+                text-align: left;
+                font-size: calc(var(--spacer) * 1.8);
+              }
               & span {
-                &::after {
-                  width: 100%;
+                left: calc(var(--spacer) * 4.5);
+                @media (max-width: 1024px) {
+                  left: calc(var(--spacer) * -1);
+                }
+                @media (max-width: 450px) {
+                  left: calc(var(--spacer) * -2)
                 }
               }
             }
-          }
-        }
-        & .dashboard {
-          & .image {
-            width: 100%;
-            background-image: url('../../images/dashboard-icon.svg');
-            background-size: 80%;
-            background-position: 50%;
-            height: 300px;
-            @media (max-width: 768px) {
-              background-size: 120%;
-              background-position: 80% 100%;
-            }
-            @media (max-width: 450px) {
-              background-size: 140%;
-              background-position: 50% 40%;
+            & h4 {
+              padding: calc(var(--spacer) * 1.5) calc(var(--spacer) * 5);
+              margin: 0 auto;
+              font-size: var(--font-size-base);
+              font-weight: 300;
+              letter-spacing: 2px;
+              @media (max-width: 450px) {
+                padding: 0;
+                text-align: left;
+                font-size: calc(var(--font-size-base) * 1.2);
+                padding-top: var(--spacer);
+                
+              }
             }
           }
-        }
-        & .storefront {
-          & .image {
-            width: 100%;
-            background-size: 60%;
-            background-position: 50% 0%;
-            height: 300px;
-            @media (max-width: 768px) {
-              background-size: 130%;
+          & .storefront {
+            padding: calc(var(--spacer) * 2) 0;
+            & h2 {
+              color: var(--primaryColor);
+              font-size: var(--font-size-base);
             }
-            @media (max-width: 450px) {
-              background-size: 110%;
-              background-position: 70% 70%;
+            & p {
+              width: 80%;
+              font-weight: bold;
+              font-size: calc(var(--spacer) * 1.2);
+              padding-top: var(--spacer);
+              &.text-light {
+                font-weight: 200;
+                font-size: var(--spacer);
+              }
+            }
+            & img {
+              height: 40vh;
+            }
+          }
+          & .dashboard {
+            padding: calc(var(--spacer) * 2) 0;
+            & h2 {
+              color: var(--primaryColor);
+              font-size: var(--font-size-base);
+            }
+            & p {
+              width: 80%;
+              font-weight: bold;
+              font-size: calc(var(--spacer) * 1.2);
+              padding-top: var(--spacer);
+              &.text-light {
+                font-weight: 200;
+                font-size: var(--spacer);
+              }
+            }
+            & img {
+              height: 40vh;
             }
           }
         }
-      }
-      & .decoration {
-        width: 40%;
-        left: 5%;
-        right: initial;
-        bottom: -3%;
+        & .more-btn {
+          margin: calc(var(--spacer) * 4) auto 0 auto;
+          text-align: center;
+        }
       }
     }
     &.open-source {
       position: relative;
-      border-top: solid var(--border-width) var(--sectionBorder);
-      border-bottom: solid var(--border-width) var(--sectionBorder);
       padding-top: calc(var(--spacer) * 3);
+      & .section-container {
+        padding: 0 calc(var(--spacer) * 4) calc(var(--spacer) * 10) calc(var(--spacer) * 4)
+      }
       & .text {
         position: relative;
         z-index: 2;
-        & h2, & p {
+        & h2 {
+          color: var(--primaryColor);
+          font-size: var(--font-size-base);
           margin-bottom: var(--spacer);
         }
         & p {
+          font-size: calc(var(--font-size-base) * 3);
           font-weight: var(--font-weight-medium);
+          line-height: var(--headings-line-height);
         }
         & .text-light {
+          font-size: calc(var(--font-size-base) * 1);
           font-weight: var(--font-weight-light);
+          margin-top: calc(var(--spacer) * 2);
         }
-        width: 40%;
+        width: 60%;
         @media (max-width: 768px) {
           width: 50%;
         }
@@ -546,12 +457,12 @@
         width: 100%;
         height: 100%;
         background-image: url('../../images/open-source-bg.svg');
-        background-size: 150%;
+        background-size: 70%;
         background-position: 50%;
         position: absolute;
-        top: -9%;
-        right: -13%;
-        opacity: 0.5;
+        top: -6%;
+        right: -30%;
+        opacity: 1;
         z-index: 1;
         @media (max-width: 1024px) {
           background-size: 160%;
@@ -592,8 +503,8 @@
         width: 25%;
         padding-top: 25%;
         position: absolute;
-        right: 26.5%;
-        top: 8.5%;
+        right: 9%;
+        top: -1.5%;
         z-index: 2;
         @media (max-width: 1024px) {
           top: 14%;
@@ -629,6 +540,8 @@
             position: relative;
             top: calc(var(--spacer) * -3);
             font-size: calc(var(--font-size-base) * 1.2);
+            color: var(--background-color);
+            font-weight: var(--font-weight-normal);
           }
           & .star-icon {
             position: relative;
@@ -638,12 +551,14 @@
             position: relative;
             top: calc(var(--spacer) * -2);
             font-size: calc(var(--font-size-base) * 3);
+            color: var(--background-color);
+            font-weight: var(--font-weight-normal);
           }
           & svg {
             width: 30px !important;
             height: 30px !important;
-            fill: var(--body-color);
-            color: var(--body-color);
+            fill: var(--background-color);
+            color: var(--background-color);
           }
         }
       }
@@ -651,9 +566,8 @@
         width: 100%;
         position: relative;
         z-index: 2;
-        grid-template-columns: repeat(10, 1fr);
         text-align: center;
-        padding-top: calc(var(--spacer) * 12);
+        padding-top: calc(var(--spacer) * 3);
         @media (max-width: 1024px) {
           padding-top: calc(var(--spacer) * 2);
         }
@@ -661,38 +575,31 @@
           @media (max-width: 450px) {
             padding-top: calc(var(--spacer) * 2)
           }
-          & svg {
-            width: 60px;
-            height: 50px;
-            margin-bottom: calc(var(--spacer) * 1.5);
-            @media (max-width: 768px) {
-              width: 40px;
-              height: 40px;
+          & .logo {
+            & svg {
+              width: 60px;
+              height: 60px;
+              padding-right: 3rem;
+              @media (max-width: 768px) {
+                width: 40px;
+                height: 40px;
+              }
+              fill: var(--primaryColor);
+              color: var(--primaryColor);
             }
-            fill: var(--primaryColor);
-            color: var(--primaryColor);
           }
           & h5 {
+            text-align: left;
             color: var(--primaryColor);
+            line-height: 60px;
           }
         }
-      }
-      & .decoration01 {
-        width: 10%;
-        left: 0;
-        top: 0;
-      }
-      & .decoration02 {
-        width: 15%;
-        right: 5%;
-        top: 35%;
       }
     }
     &.saleor-in-action {
       position: relative;
       background: rgb(16,10,53);
       background: linear-gradient(135deg, rgba(16,10,53,0) 8%, rgba(16,10,53,1) 8%, rgba(16,10,53,1) 92%, rgba(16,10,53,0) 92%, rgba(16,10,53,0) 100%);
-      border-bottom: solid var(--border-width) var(--sectionBorder);
       & .section-container {
         min-height: 700px;
         @media (max-width: 1024px) {
@@ -703,7 +610,9 @@
         }
       }
       & .head {
-        padding: calc(var(--spacer) * 5) 0;
+        padding-top: calc(var(--spacer) * 5);
+        margin-bottom: calc(var(--spacer) * 4);
+        border-bottom: solid 2px #fff;
         @media (max-width: 768px) {
           padding-bottom: calc(var(--spacer) * 2);
         }
@@ -720,7 +629,10 @@
         & ul {
           padding-top: var(--spacer);
           & li {
+            width: 250px;
+            text-align: center;
             font-size: calc(var(--font-size-base) * 1.5);
+            
             @media (max-width: 570px) {
               font-size: calc(var(--font-size-base) * 1.2);
             }
@@ -729,19 +641,47 @@
             }
             text-transform: uppercase;
             cursor: pointer;
-            & span {
-              padding: 0 calc(var(--spacer) * 0.5);
-              &:hover {
-                color: var(--primaryColor);
-                &::after {
-                  width: 0;
-                }
+
+            & .trapezoidButton {
+              position: relative;
+              top: 8px;
+              & .text {
+                width: 100%;
+                position: absolute;
+                display: block;
+                text-transform: initial;
+                z-index: 9;
+                text-align: center;
+                color: var(--body-color);
+                top: var(--spacer);
               }
             }
+              
             &.react-tabs__tab--selected {
-              & span {
-                &::after {
-                  width: 100%;
+              & .trapezoidButton {
+                width: 250px;
+                height: 70px;
+                position: relative;
+                z-index: 999;
+                top: 8px;
+                & .trapezoid {
+                  width: 150px;
+                  height: 70px;
+                  display: block;
+                  border-top: solid 2px var(--body-color);
+                  border-right: solid 2px var(--body-color);
+                  position: absolute;
+                  top: 0;
+                  background: rgba(16,10,53,1);
+                  &.trapezoid-one {
+                    transform: skew(-30deg);       
+                    border-left: solid 2px var(--body-color);
+                    left: 0;
+                  }
+                  &.trapezoid-two {
+                    transform: skew(30deg);
+                    right: 0;
+                  }
                 }
               }
             }
@@ -812,28 +752,20 @@
           }
         }
       }
-      & .decoration01 {
-        width: 18%;
-        left: -2%;
-        top: -10%;
-        @media (max-width: 768px) {
-          top: 1%;
-        }
-      }
-      & .decoration02 {
-        width: 15%;
-        right: -5%;
-        top: -10%;
-      }
     }
     &.enterprice-consulting {
       position: relative;
       z-index: 1;
       padding: calc(var(--spacer) * 4) 0 calc(var(--spacer) * 2) 0;
+      & h2 {
+          color: var(--primaryColor);
+          font-size: var(--font-size-base);
+          margin-bottom: var(--spacer);
+        }
       & h4 {
-        font-weight: var(--font-weight-light);
+        font-weight: var(--font-weight-medium);
         width: 65%;
-        font-size: calc(var(--font-size-base) * 2);
+        font-size: calc(var(--font-size-base) * 3);
         padding-top: calc(var(--spacer) * 2);
         text-transform: unset;
         @media (max-width: 1024px) {
@@ -887,19 +819,6 @@
         }
         @media (max-width: 320px) {
           font-size: calc(var(--font-size-base) * 1.1);
-        }
-      }
-      & .decoration01 {
-        width: 20%;
-        left: -3%;
-        top: -9%;
-      }
-      & .decoration02 {
-        width: 40%;
-        right: -4%;
-        top: 0;
-        @media (max-width: 768px) {
-          top: -12%;
         }
       }
     }
