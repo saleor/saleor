@@ -5,17 +5,22 @@ import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import { IconProps } from "@material-ui/core/Icon";
+import { User } from "../auth/types/User";
 import Container from "../components/Container";
 import PageHeader from "../components/PageHeader";
 import i18n from "../i18n";
 
-interface ConfigurationPageProps {
-  menu: Array<{
-    description: string;
-    icon: React.ReactElement<IconProps>;
-    title: string;
-    url?: string;
-  }>;
+export interface MenuItem {
+  description: string;
+  icon: React.ReactElement<IconProps>;
+  permission: string;
+  title: string;
+  url?: string;
+}
+
+export interface ConfigurationPageProps {
+  menu: MenuItem[];
+  user: User;
   onSectionClick: (sectionName: string) => void;
 }
 
@@ -62,29 +67,35 @@ const decorate = withStyles(theme => ({
   }
 }));
 export const ConfigurationPage = decorate<ConfigurationPageProps>(
-  ({ classes, menu, onSectionClick }) => (
+  ({ classes, menu, user, onSectionClick }) => (
     <Container width="md">
       <PageHeader title={i18n.t("Configure")} />
       <div className={classes.root}>
-        {menu.map((menuItem, menuItemIndex) => (
-          <Card
-            className={menuItem.url ? classes.card : classes.cardDisabled}
-            onClick={() => onSectionClick(menuItem.url)}
-            key={menuItemIndex}
-          >
-            <CardContent className={classes.cardContent}>
-              <div className={classes.icon}>{menuItem.icon}</div>
-              <div>
-                <Typography className={classes.sectionTitle} color="primary">
-                  {menuItem.title}
-                </Typography>
-                <Typography className={classes.sectionDescription}>
-                  {menuItem.description}
-                </Typography>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        {menu
+          .filter(menuItem =>
+            user.permissions
+              .map(perm => perm.code)
+              .includes(menuItem.permission)
+          )
+          .map((menuItem, menuItemIndex) => (
+            <Card
+              className={menuItem.url ? classes.card : classes.cardDisabled}
+              onClick={() => onSectionClick(menuItem.url)}
+              key={menuItemIndex}
+            >
+              <CardContent className={classes.cardContent}>
+                <div className={classes.icon}>{menuItem.icon}</div>
+                <div>
+                  <Typography className={classes.sectionTitle} color="primary">
+                    {menuItem.title}
+                  </Typography>
+                  <Typography className={classes.sectionDescription}>
+                    {menuItem.description}
+                  </Typography>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
       </div>
     </Container>
   )

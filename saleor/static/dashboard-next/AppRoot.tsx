@@ -21,11 +21,12 @@ import SVG from "react-inlinesvg";
 import { appMountPoint } from ".";
 import * as saleorLogo from "../images/logo.svg";
 import { UserContext } from "./auth";
+import { User } from "./auth/types/User";
 import { categoryListUrl } from "./categories";
 import MenuToggle from "./components/MenuToggle";
 import Navigator from "./components/Navigator";
 import Toggle from "./components/Toggle";
-import { configurationMenuUrl } from "./configuration";
+import { configurationMenu, configurationMenuUrl } from "./configuration";
 import i18n from "./i18n";
 import ArrowDropdown from "./icons/ArrowDropdown";
 import Home from "./icons/Home";
@@ -37,7 +38,7 @@ import { productListUrl } from "./products";
 const drawerWidth = 256;
 const navigationBarHeight = 64;
 
-const menuStructure = [
+const menuStructure: IMenuItem[] = [
   {
     ariaLabel: "home",
     icon: <Home />,
@@ -61,12 +62,14 @@ const menuStructure = [
       }
     ],
     icon: <Shop />,
-    label: i18n.t("Catalogue", { context: "Menu label" })
+    label: i18n.t("Catalogue", { context: "Menu label" }),
+    permission: "product.manage_products"
   },
   {
     ariaLabel: "orders",
     icon: <Truck />,
     label: i18n.t("Orders", { context: "Menu label" }),
+    permission: "order.manage_orders",
     url: "/orders/"
   }
 ];
@@ -233,16 +236,24 @@ interface IMenuItem {
   children?: IMenuItem[];
   icon: React.ReactNode;
   label: string;
+  permission?: string;
   url?: string;
 }
 interface MenuListProps {
   menuItems: IMenuItem[];
+  user: User;
   onMenuItemClick: (url: string, event: React.MouseEvent<any>) => void;
 }
 const MenuList = decorate<MenuListProps>(
-  ({ classes, menuItems, onMenuItemClick }) => (
+  ({ classes, menuItems, user, onMenuItemClick }) => (
     <div>
       {menuItems.map(menuItem => {
+        if (
+          menuItem.permission &&
+          !user.permissions.map(perm => perm.code).includes(menuItem.permission)
+        ) {
+          return null;
+        }
         if (!menuItem.url) {
           return (
             <Toggle key={menuItem.label}>
@@ -261,6 +272,7 @@ const MenuList = decorate<MenuListProps>(
                     <div className={classes.menuListNested}>
                       <MenuList
                         menuItems={menuItem.children}
+                        user={user}
                         onMenuItemClick={onMenuItemClick}
                       />
                     </div>
@@ -456,26 +468,33 @@ export const AppRoot = decorate(
                       <div className={classes.menuList}>
                         <MenuList
                           menuItems={menuStructure}
+                          user={user}
                           onMenuItemClick={handleMenuItemClick}
                         />
                         <div className={classes.spacer} />
-                        <a
-                          className={classes.menuListItem}
-                          href={removeDoubleSlashes(
-                            appMountPoint + configurationMenuUrl
-                          )}
-                          onClick={event =>
-                            handleMenuItemClick(configurationMenuUrl, event)
-                          }
-                        >
-                          <SettingsIcon />
-                          <Typography
-                            aria-label="configure"
-                            className={classes.menuListItemText}
+                        {configurationMenu.filter(menuItem =>
+                          user.permissions
+                            .map(perm => perm.code)
+                            .includes(menuItem.permission)
+                        ).length > 0 && (
+                          <a
+                            className={classes.menuListItem}
+                            href={removeDoubleSlashes(
+                              appMountPoint + configurationMenuUrl
+                            )}
+                            onClick={event =>
+                              handleMenuItemClick(configurationMenuUrl, event)
+                            }
                           >
-                            {i18n.t("Configure")}
-                          </Typography>
-                        </a>
+                            <SettingsIcon />
+                            <Typography
+                              aria-label="configure"
+                              className={classes.menuListItemText}
+                            >
+                              {i18n.t("Configure")}
+                            </Typography>
+                          </a>
+                        )}
                       </div>
                     </ResponsiveDrawer>
                     <main className={classes.content}>{children}</main>
