@@ -283,7 +283,6 @@ def test_delete_attribute_value(
     variables = json.dumps({'id': id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
     with pytest.raises(value._meta.model.DoesNotExist):
         value.refresh_from_db()
 

@@ -452,7 +452,7 @@ def test_draft_order_line_create(
         {'query': DRAFT_ORDER_LINE_CREATE_MUTATION, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['draftOrderLineCreate']
-    assert 'errors' in data
+    assert data['errors']
     assert data['errors'][0]['field'] == 'quantity'
 
 
@@ -470,7 +470,7 @@ def test_require_draft_order_when_creating_lines(
         {'query': DRAFT_ORDER_LINE_CREATE_MUTATION, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['draftOrderLineCreate']
-    assert 'errors' in data
+    assert data['errors']
 
 
 DRAFT_ORDER_LINE_UPDATE_MUTATION = """
@@ -526,7 +526,7 @@ def test_draft_order_line_update(
         {'query': DRAFT_ORDER_LINE_UPDATE_MUTATION, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['draftOrderLineUpdate']
-    assert 'errors' in data
+    assert data['errors']
     assert data['errors'][0]['field'] == 'quantity'
 
 
@@ -541,7 +541,7 @@ def test_require_draft_order_when_updating_lines(
         {'query': DRAFT_ORDER_LINE_UPDATE_MUTATION, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['draftOrderLineUpdate']
-    assert 'errors' in data
+    assert data['errors']
 
 
 DRAFT_ORDER_LINE_DELETE_MUTATION = """
@@ -597,7 +597,7 @@ def test_require_draft_order_when_removing_lines(
         {'query': DRAFT_ORDER_LINE_DELETE_MUTATION, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['draftOrderLineDelete']
-    assert 'errors' in data
+    assert data['errors']
 
 
 def test_order_update(admin_api_client, order_with_lines):

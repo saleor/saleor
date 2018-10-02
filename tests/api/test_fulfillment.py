@@ -88,7 +88,7 @@ def test_create_fulfillment_not_sufficient_quantity(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderFulfillmentCreate']
-    assert 'errors' in data
+    assert data['errors']
     assert data['errors'][0]['field'] == str(order_line)
     assert data['errors'][0]['message'] == error_message
 
