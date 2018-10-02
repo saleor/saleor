@@ -10,7 +10,6 @@ from saleor.graphql.product.types import (
 from saleor.graphql.product.utils import attributes_to_hstore
 from saleor.product.models import Attribute, AttributeValue, Category
 from tests.api.utils import get_graphql_content
-from tests.utils import get_graphql_content
 
 
 def test_attributes_to_hstore(product, color_attribute):
@@ -113,21 +112,6 @@ CREATE_ATTRIBUTES_QUERY = """
 """
 
 
-def test_create_attribute(admin_api_client):
-    query = CREATE_ATTRIBUTES_QUERY
-    name = 'test name'
-    slug = 'test-slug'
-    variables = json.dumps({'name': name, 'slug': slug, 'values': []})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert not content['data']['attributeCreate']['errors']
-    data = content['data']['attributeCreate']['attribute']
-    assert data['name'] == name
-    assert data['slug'] == slug
-    assert not data['values']
-
-
 def test_create_attribute_and_attribute_values(admin_api_client):
     query = CREATE_ATTRIBUTES_QUERY
     attribute_name = 'Example name'
@@ -159,7 +143,7 @@ def test_create_attribute_and_attribute_values_errors(
         admin_api_client, name_1, name_2, error_msg):
     query = CREATE_ATTRIBUTES_QUERY
     variables = json.dumps({
-        'name': 'Example name', 'slug': 'example-slug',
+        'name': 'Example name',
         'values': [
             {'name': name_1, 'value': '#1231'},
             {'name': name_2, 'value': '#121'}]})
@@ -252,8 +236,7 @@ def test_update_attribute_and_add_attribute_values_errors(
     attribute = color_attribute
     id = graphene.Node.to_global_id('Attribute', attribute.id)
     variables = json.dumps({
-        'name': 'Example name', 'id': id,
-        'slug': 'example-slug', 'removeValues': [],
+        'name': 'Example name', 'id': id, 'removeValues': [],
         'addValues': [
             {'name': name_1, 'value': '#1'}, {'name': name_2, 'value': '#2'}]})
     response = admin_api_client.post(
