@@ -9,7 +9,7 @@ cache:
     - node_modules
 install:
   - pip install -U pip setuptools wheel
-  - pip install tox-travis codecov
+  - pip install tox-travis
   - nvm install 10
   - npm i
   - npm run build-assets --production
@@ -45,8 +45,6 @@ matrix:
       env: DJANGO="master"
       sudo: required
       dist: xenial
-after_success:
-  - codecov
 services:
   - postgresql
 addons:
