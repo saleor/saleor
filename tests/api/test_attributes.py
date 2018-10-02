@@ -373,6 +373,7 @@ def test_update_attribute_value(admin_api_client, pink_attribute_value):
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['attributeValueUpdate']
+    value.refresh_from_db()
     assert data['attributeValue']['name'] == name == value.name
     assert data['attributeValue']['slug'] == slugify(name)
     assert name in [value['name'] for value in data['attribute']['values']]
@@ -400,7 +401,7 @@ def test_update_same_attribute_value(
     id = graphene.Node.to_global_id('AttributeValue', value.id)
     attr_value = '#BLUE'
     variables = {'name': value.name, 'value': attr_value, 'id': id}
-    response = admin_api_client.post(query, variables)
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['attributeValueUpdate']
     assert not data['errors']

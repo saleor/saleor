@@ -1,3 +1,4 @@
+import json
 import re
 from unittest.mock import Mock, patch
 
@@ -6,6 +7,7 @@ import pytest
 import graphene
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.shortcuts import reverse
 from saleor.account.models import Address, User
 from saleor.graphql.account.mutations import (
     SetPassword, StaffDelete, StaffUpdate)
@@ -14,7 +16,7 @@ from tests.api.utils import get_graphql_content
 from .utils import assert_no_permission, convert_dict_keys_to_camel_case
 
 
-def test_create_token_mutation(admin_api_client, staff_user):
+def test_create_token_mutation(admin_client, staff_user):
     query = """
     mutation TokenCreate($email: String!, $password: String!) {
         tokenCreate(email: $email, password: $password) {
@@ -26,21 +28,27 @@ def test_create_token_mutation(admin_api_client, staff_user):
         }
     }
     """
-    variables = {'email': staff_user.email, 'password': 'password'}
-    response = admin_api_client.post_graphql(query, variables)
+    variables = json.dumps({'email': staff_user.email, 'password': 'password'})
+    response = admin_client.post(
+        reverse('api'), json.dumps({'query': query, 'variables': variables}),
+        content_type='application/json')
     content = get_graphql_content(response)
     token_data = content['data']['tokenCreate']
     assert token_data['token']
     assert not token_data['errors']
 
-    incorrect_variables = {'email': staff_user.email, 'password': 'wat'}
-    response = admin_api_client.post_graphql(query, incorrect_variables)
+    incorrect_variables = json.dumps(
+        {'email': staff_user.email, 'password': 'incorrect'})
+    response = admin_client.post(
+        reverse('api'),
+        json.dumps({'query': query, 'variables': incorrect_variables}),
+        content_type='application/json')
     content = get_graphql_content(response)
     token_data = content['data']['tokenCreate']
-    assert not token_data['token']
     errors = token_data['errors']
     assert errors
     assert not errors[0]['field']
+    assert not token_data['token']
 
 
 def test_token_create_user_data(
