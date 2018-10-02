@@ -7,7 +7,6 @@ import pytest
 import graphene
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
-from django.shortcuts import reverse
 from saleor.account.models import Address, User
 from saleor.graphql.account.mutations import (
     SetPassword, StaffDelete, StaffUpdate)
@@ -16,7 +15,7 @@ from tests.api.utils import get_graphql_content
 from .utils import assert_no_permission, convert_dict_keys_to_camel_case
 
 
-def test_create_token_mutation(admin_client, staff_user):
+def test_create_token_mutation(admin_api_client, staff_user):
     query = """
     mutation {
         tokenCreate(email: "%(email)s", password: "%(password)s") {
@@ -29,14 +28,14 @@ def test_create_token_mutation(admin_client, staff_user):
     }
     """
     success_query = query % {'email': staff_user.email, 'password': 'password'}
-    response = admin_client.post_graphql(success_query)
+    response = admin_api_client.post_graphql(success_query)
     content = get_graphql_content(response)
     token_data = content['data']['tokenCreate']
     assert token_data['token']
     assert not token_data['errors']
 
     error_query = query % {'email': staff_user.email, 'password': 'wat'}
-    response = admin_client.post_graphql(error_query)
+    response = admin_api_client.post_graphql(error_query)
     content = get_graphql_content(response)
     token_data = content['data']['tokenCreate']
     assert not token_data['token']
@@ -46,7 +45,7 @@ def test_create_token_mutation(admin_client, staff_user):
 
 
 def test_token_create_user_data(
-        permission_manage_orders, staff_client, staff_user):
+        permission_manage_orders, staff_api_client, staff_user):
     query = """
     mutation {
         tokenCreate(email: "%(email)s", password: "%(password)s") {
@@ -69,7 +68,7 @@ def test_token_create_user_data(
     user_id = graphene.Node.to_global_id('User', staff_user.id)
 
     query = query % {'email': staff_user.email, 'password': 'password'}
-    response = staff_client.post_graphql(query)
+    response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     token_data = content['data']['tokenCreate']
     assert token_data['user']['id'] == user_id

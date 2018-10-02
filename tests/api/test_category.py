@@ -1,12 +1,11 @@
 import json
 
-import graphene
 import pytest
-from django.shortcuts import reverse
-from django.template.defaultfilters import slugify
-from tests.api.utils import get_graphql_content
 
+import graphene
+from django.template.defaultfilters import slugify
 from saleor.product.models import Category
+from tests.api.utils import get_graphql_content
 
 
 def test_category_query(user_api_client, product):

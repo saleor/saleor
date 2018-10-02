@@ -2,7 +2,6 @@ import json
 
 import graphene
 from django.conf import settings
-from django.shortcuts import reverse
 from django_countries import countries
 from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.site.models import Site

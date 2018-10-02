@@ -1,8 +1,8 @@
 import json
 
-import graphene
 import pytest
-from django.shortcuts import reverse
+
+import graphene
 from tests.api.utils import get_graphql_content
 
 
