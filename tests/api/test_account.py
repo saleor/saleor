@@ -30,7 +30,7 @@ def test_create_token_mutation(admin_client, staff_user):
     '''
     success_query = query % {'email': staff_user.email, 'password': 'password'}
     response = admin_client.post(
-        reverse('api'), json.dumps({'query': success_query}),
+        json.dumps({'query': success_query}),
         content_type='application/json')
     content = get_graphql_content(response)
     token_data = content['data']['tokenCreate']
@@ -39,7 +39,7 @@ def test_create_token_mutation(admin_client, staff_user):
 
     error_query = query % {'email': staff_user.email, 'password': 'wat'}
     response = admin_client.post(
-        reverse('api'), json.dumps({'query': error_query}),
+        json.dumps({'query': error_query}),
         content_type='application/json')
     content = get_graphql_content(response)
     token_data = content['data']['tokenCreate']
@@ -74,7 +74,7 @@ def test_token_create_user_data(
 
     query = query % {'email': staff_user.email, 'password': 'password'}
     response = staff_client.post(
-        reverse('api'), json.dumps({'query': query}),
+        json.dumps({'query': query}),
         content_type='application/json')
     content = get_graphql_content(response)
     token_data = content['data']['tokenCreate']
@@ -119,7 +119,7 @@ def test_query_user(admin_api_client, customer_user):
     ID = graphene.Node.to_global_id('User', customer_user.id)
     variables = json.dumps({'id': ID})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['user']
     assert data['email'] == user.email
@@ -157,7 +157,7 @@ def test_query_customers(admin_api_client, user_api_client):
     """
     variables = json.dumps({})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     users = content['data']['customers']['edges']
     assert users
@@ -165,7 +165,7 @@ def test_query_customers(admin_api_client, user_api_client):
 
     # check permissions
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     assert_no_permission(response)
 
 
@@ -186,7 +186,7 @@ def test_query_staff(
     """
     variables = json.dumps({})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['staffUsers']['edges']
     assert len(data) == 2
@@ -196,7 +196,7 @@ def test_query_staff(
 
     # check permissions
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     assert_no_permission(response)
 
 
@@ -223,21 +223,21 @@ def test_who_can_see_user(
     ID = graphene.Node.to_global_id('User', customer_user.id)
     variables = json.dumps({'id': ID})
     response = staff_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     assert_no_permission(response)
 
     response = staff_api_client.post(
-        reverse('api'), {'query': query_2})
+        {'query': query_2})
     assert_no_permission(response)
 
     # Add permission and ensure staff can see user(s)
     staff_user.user_permissions.add(permission_manage_users)
     response = staff_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert content['data']['user']['email'] == customer_user.email
 
-    response = staff_api_client.post(reverse('api'), {'query': query_2})
+    response = staff_api_client.post({'query': query_2})
     content = get_graphql_content(response)
     assert content['data']['customers']['totalCount'] == 1
 
@@ -259,14 +259,14 @@ def test_customer_register(user_api_client):
     email = 'customer@example.com'
     variables = json.dumps({'email': email, 'password': 'Password'})
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['customerRegister']
     assert not data['errors']
     assert User.objects.filter(email=email).exists()
 
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['customerRegister']
     assert data['errors']
@@ -318,11 +318,11 @@ def test_customer_create(
         'billing': address_data, 'send_mail': True})
 
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     assert_no_permission(response)
 
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
 
     User = get_user_model()
@@ -394,11 +394,11 @@ def test_customer_update(
 
     # check unauthorized access
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     assert_no_permission(response)
 
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
 
     User = get_user_model()
@@ -452,11 +452,11 @@ def test_staff_create(
 
     # check unauthorized access
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     assert_no_permission(response)
 
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['staffCreate']
     assert data['errors'] == []
@@ -499,11 +499,11 @@ def test_staff_update(admin_api_client, staff_user, user_api_client):
 
     # check unauthorized access
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     assert_no_permission(response)
 
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['staffUpdate']
     assert data['errors'] == []
@@ -530,11 +530,11 @@ def test_staff_delete(admin_api_client, staff_user, user_api_client):
 
     # check unauthorized access
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     assert_no_permission(response)
 
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['staffDelete']
     assert data['errors'] == []
@@ -598,14 +598,14 @@ def test_set_password(user_api_client, customer_user):
     # check invalid token
     variables['token'] = 'nope'
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': json.dumps(variables)})
+        {'query': query, 'variables': json.dumps(variables)})
     content = get_graphql_content(response)
     errors = content['data']['setPassword']['errors']
     assert errors[0]['message'] == SetPassword.INVALID_TOKEN
 
     variables['token'] = token
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': json.dumps(variables)})
+        {'query': query, 'variables': json.dumps(variables)})
     content = get_graphql_content(response)
     data = content['data']['setPassword']
     assert data['user']['id']
@@ -630,7 +630,7 @@ def test_password_reset_email(
     email = customer_user.email
     variables = json.dumps({'email': email})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['passwordReset']
     assert data is None
@@ -658,7 +658,7 @@ def test_password_reset_email_non_existing_user(
     email = 'not_exists@example.com'
     variables = json.dumps({'email': email})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['passwordReset']
     assert data['errors'] == [{
@@ -688,7 +688,7 @@ def test_create_address_mutation(admin_api_client, customer_user):
     variables = json.dumps(
         {'user': user_id, 'city': 'Dummy', 'country': 'PL'})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert content['data']['addressCreate']['errors'] == []
     address_response = content['data']['addressCreate']['address']
@@ -714,7 +714,7 @@ def test_address_update_mutation(admin_api_client, customer_user):
         'addressId': graphene.Node.to_global_id('Address', address_obj.id),
         'city': new_city}
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['addressUpdate']
     assert data['address']['city'] == new_city
@@ -736,7 +736,7 @@ def test_address_delete_mutation(admin_api_client, customer_user):
     variables = {
         'id': graphene.Node.to_global_id('Address', address_obj.id)}
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['addressDelete']
     assert data['address']['city'] == address_obj.city
@@ -762,7 +762,7 @@ def test_address_validator(user_api_client):
         'cityArea': None
     }})
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['addressValidator']
     assert data['countryCode'] == 'PL'
@@ -797,7 +797,7 @@ def test_address_validator_uses_geip_when_country_code_missing(
         'saleor.graphql.account.resolvers.get_country_by_ip',
         mock_country_by_ip)
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert mock_country_by_ip.called
     data = content['data']['addressValidator']
@@ -821,13 +821,13 @@ def test_customer_reset_password(
     # we have no user with given email
     variables = json.dumps({'email': 'non-existing-email@email.com'})
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert not send_password_reset_mock.called
 
     variables = json.dumps({'email': customer_user.email})
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert send_password_reset_mock.called
     assert send_password_reset_mock.mock_calls[0][1][1] == customer_user.email

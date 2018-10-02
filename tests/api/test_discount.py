@@ -27,14 +27,14 @@ def test_voucher_permissions(
     }
     """
     # Query to ensure user with no permissions can't see vouchers
-    response = staff_api_client.post(reverse('api'), {'query': query})
+    response = staff_api_client.post({'query': query})
     assert_no_permission(response)
 
     # Give staff user proper permissions
     staff_user.user_permissions.add(permission_manage_discounts)
 
     # Query again
-    response = staff_api_client.post(reverse('api'), {'query': query})
+    response = staff_api_client.post({'query': query})
     get_graphql_content(response)
 
 
@@ -58,7 +58,7 @@ def test_voucher_query(
         }
     }
     """
-    response = admin_api_client.post(reverse('api'), {'query': query})
+    response = admin_api_client.post({'query': query})
     content = get_graphql_content(response)
     data = content['data']['vouchers']['edges'][0]['node']
     assert data['type'] == voucher.type.upper()
@@ -87,7 +87,7 @@ def test_sale_query(
             }
         }
         """
-    response = admin_api_client.post(reverse('api'), {'query': query})
+    response = admin_api_client.post({'query': query})
     content = get_graphql_content(response)
     data = content['data']['sales']['edges'][0]['node']
     assert data['type'] == sale.type.upper()
@@ -130,11 +130,11 @@ def test_create_voucher(user_api_client, admin_api_client):
         'discountValue': 10.12,
         'minAmountSpent': 1.12})
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     assert_no_permission(response)
 
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['voucherCreate']['voucher']
     assert data['type'] == VoucherType.VALUE.upper()
@@ -171,11 +171,11 @@ def test_update_voucher(user_api_client, admin_api_client, voucher):
         'discountValueType': DiscountValueTypeEnum.PERCENTAGE.name})
 
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     assert_no_permission(response)
 
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['voucherUpdate']['voucher']
     assert data['code'] == 'testcode123'
@@ -201,11 +201,11 @@ def test_voucher_delete_mutation(user_api_client, admin_api_client, voucher):
         'id': graphene.Node.to_global_id('Voucher', voucher.id)})
 
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     assert_no_permission(response)
 
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['voucherDelete']
     assert data['voucher']['name'] == voucher.name
@@ -235,11 +235,11 @@ def test_create_sale(user_api_client, admin_api_client):
         'type': DiscountValueTypeEnum.FIXED.name,
         'value': '10.12'})
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     assert_no_permission(response)
 
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['saleCreate']['sale']
     assert data['type'] == DiscountValueType.FIXED.upper()
@@ -269,12 +269,12 @@ def test_update_sale(user_api_client, admin_api_client, sale):
         'type': DiscountValueTypeEnum.PERCENTAGE.name})
 
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
 
     assert_no_permission(response)
 
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['saleUpdate']['sale']
     assert data['type'] == DiscountValueType.PERCENTAGE.upper()
@@ -299,11 +299,11 @@ def test_sale_delete_mutation(user_api_client, admin_api_client, sale):
         'id': graphene.Node.to_global_id('Sale', sale.id)})
 
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     assert_no_permission(response)
 
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['saleDelete']
     assert data['sale']['name'] == sale.name
@@ -335,7 +335,7 @@ def test_validate_voucher(voucher, admin_api_client):
             'type': voucher_type.name,
             'id': graphene.Node.to_global_id('Voucher', voucher.id)})
         response = admin_api_client.post(
-            reverse('api'), {'query': query, 'variables': variables})
+            {'query': query, 'variables': variables})
         content = get_graphql_content(response)
         data = content['data']['voucherUpdate']['errors'][0]
         assert data['field'] == field_name

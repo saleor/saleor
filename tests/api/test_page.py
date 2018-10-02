@@ -21,7 +21,7 @@ def test_page_query(user_api_client, page):
     variables = json.dumps({
         'id': graphene.Node.to_global_id('Page', page.id)})
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     page_data = content['data']['page']
     assert page_data['title'] == page.title
@@ -61,7 +61,7 @@ def test_page_create_mutation(admin_api_client):
         'title': page_title, 'content': page_content,
         'isVisible': page_isVisible, 'slug': page_slug})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['pageCreate']
     assert data['errors'] == []
@@ -89,7 +89,7 @@ def test_page_delete_mutation(admin_api_client, page):
     variables = json.dumps({
         'id': graphene.Node.to_global_id('Page', page.id)})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['pageDelete']
     assert data['page']['title'] == page.title
@@ -125,7 +125,7 @@ def test_paginate_pages(user_api_client, page):
         }
         """
     response = user_api_client.post(
-        reverse('api'), {'query': query})
+        {'query': query})
     content = get_graphql_content(response)
     pages_data = content['data']['pages']
     assert len(pages_data['edges']) == 2

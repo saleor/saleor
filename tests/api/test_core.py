@@ -35,7 +35,7 @@ def test_user_error_field_name_for_related_object(admin_api_client):
         }
     }
     """
-    response = admin_api_client.post(reverse('api'), {'query': query})
+    response = admin_api_client.post({'query': query})
     content = get_graphql_content(response)
     data = content['data']['categoryCreate']['category']
     assert data is None
@@ -79,7 +79,7 @@ def test_mutation_returns_error_field_in_camel_case(admin_api_client, variant):
         'id': graphene.Node.to_global_id('ProductVariant', variant.id),
         'cost': 12.1234})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     error = content['data']['productVariantUpdate']['errors'][0]
     assert error['field'] == 'costPrice'
