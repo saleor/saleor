@@ -3,7 +3,6 @@ import json
 import pytest
 
 import graphene
-from django.shortcuts import reverse
 from saleor.graphql.shipping.types import ShippingMethodTypeEnum
 from tests.api.utils import get_graphql_content
 

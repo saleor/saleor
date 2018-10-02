@@ -2,12 +2,10 @@ import json
 from unittest.mock import Mock
 
 import graphene
-from django.shortcuts import reverse
-from tests.api.utils import get_graphql_content
-
 from saleor.graphql.core.utils import clean_seo_fields, snake_to_camel_case
 from saleor.graphql.product import types as product_types
 from saleor.graphql.utils import get_database_id
+from tests.api.utils import get_graphql_content
 
 
 def test_clean_seo_fields():

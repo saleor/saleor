@@ -1,12 +1,11 @@
 import json
 
-import graphene
 import pytest
-from django.shortcuts import reverse
-from tests.api.utils import get_graphql_content
 
+import graphene
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.models import FulfillmentStatus
+from tests.api.utils import get_graphql_content
 
 CREATE_FULFILLMENT_QUERY = """
     mutation fulfillOrder(

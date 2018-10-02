@@ -1,9 +1,6 @@
-import json
-
 import pytest
 
 import graphene
-from django.shortcuts import reverse
 from django.template.defaultfilters import slugify
 from saleor.graphql.product.types import (
     AttributeValueType, resolve_attribute_value_type)
@@ -471,7 +468,7 @@ def test_query_attribute_values(
         }
     }
     """
-    variables = json.dumps({'id': attribute_id})
+    variables = {'id': attribute_id}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['attributes']['edges'][0]['node']

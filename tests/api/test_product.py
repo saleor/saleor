@@ -4,7 +4,6 @@ from unittest.mock import MagicMock, Mock
 import pytest
 
 import graphene
-from django.shortcuts import reverse
 from django.utils.text import slugify
 from graphql_relay import to_global_id
 from prices import Money

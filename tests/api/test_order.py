@@ -4,7 +4,6 @@ from unittest.mock import MagicMock, Mock
 import pytest
 
 import graphene
-from django.shortcuts import reverse
 from payments import PaymentStatus
 from saleor.account.models import Address
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
