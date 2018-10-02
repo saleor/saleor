@@ -27,7 +27,9 @@ def filter_products_by_attribute(queryset, attribute_id, value):
 
 
 def get_graphql_content(response):
-    return json.loads(response.content.decode('utf8'))
+    content = json.loads(response.content.decode('utf8'))
+    assert 'errors' not in content, content['errors']
+    return content
 
 
 def get_form_errors(response, form_name='form'):
