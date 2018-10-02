@@ -1,4 +1,3 @@
-import json
 import re
 from unittest.mock import Mock, patch
 
@@ -17,8 +16,8 @@ from .utils import assert_no_permission, convert_dict_keys_to_camel_case
 
 def test_create_token_mutation(admin_api_client, staff_user):
     query = """
-    mutation {
-        tokenCreate(email: "%(email)s", password: "%(password)s") {
+    mutation TokenCreate($email: String!, $password: String!) {
+        tokenCreate(email: $email, password: $password) {
             token
             errors {
                 field
@@ -27,15 +26,15 @@ def test_create_token_mutation(admin_api_client, staff_user):
         }
     }
     """
-    success_query = query % {'email': staff_user.email, 'password': 'password'}
-    response = admin_api_client.post_graphql(success_query)
+    variables = {'email': staff_user.email, 'password': 'password'}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     token_data = content['data']['tokenCreate']
     assert token_data['token']
     assert not token_data['errors']
 
-    error_query = query % {'email': staff_user.email, 'password': 'wat'}
-    response = admin_api_client.post_graphql(error_query)
+    incorrect_variables = {'email': staff_user.email, 'password': 'wat'}
+    response = admin_api_client.post_graphql(query, incorrect_variables)
     content = get_graphql_content(response)
     token_data = content['data']['tokenCreate']
     assert not token_data['token']
@@ -47,8 +46,8 @@ def test_create_token_mutation(admin_api_client, staff_user):
 def test_token_create_user_data(
         permission_manage_orders, staff_api_client, staff_user):
     query = """
-    mutation {
-        tokenCreate(email: "%(email)s", password: "%(password)s") {
+    mutation TokenCreate($email: String!, $password: String!) {
+        tokenCreate(email: $email, password: $password) {
             user {
                 id
                 email
@@ -67,8 +66,8 @@ def test_token_create_user_data(
     name = permission.name
     user_id = graphene.Node.to_global_id('User', staff_user.id)
 
-    query = query % {'email': staff_user.email, 'password': 'password'}
-    response = staff_api_client.post_graphql(query)
+    variables = {'email': staff_user.email, 'password': 'password'}
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     token_data = content['data']['tokenCreate']
     assert token_data['user']['id'] == user_id
@@ -110,7 +109,7 @@ def test_query_user(admin_api_client, customer_user):
     }
     """
     ID = graphene.Node.to_global_id('User', customer_user.id)
-    variables = json.dumps({'id': ID})
+    variables = {'id': ID}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['user']
@@ -147,7 +146,7 @@ def test_query_customers(admin_api_client, user_api_client):
         }
     }
     """
-    variables = json.dumps({})
+    variables = {}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     users = content['data']['customers']['edges']
@@ -174,7 +173,7 @@ def test_query_staff(
         }
     }
     """
-    variables = json.dumps({})
+    variables = {}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['staffUsers']['edges']
@@ -209,7 +208,7 @@ def test_who_can_see_user(
 
     # Random person (even staff) can't see users data without permissions
     ID = graphene.Node.to_global_id('User', customer_user.id)
-    variables = json.dumps({'id': ID})
+    variables = {'id': ID}
     response = staff_api_client.post_graphql(query, variables)
     assert_no_permission(response)
 
@@ -242,7 +241,7 @@ def test_customer_register(user_api_client):
         }
     """
     email = 'customer@example.com'
-    variables = json.dumps({'email': email, 'password': 'Password'})
+    variables = {'email': email, 'password': 'Password'}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['customerRegister']
@@ -296,9 +295,12 @@ def test_customer_create(
     note = 'Test user'
     address_data = convert_dict_keys_to_camel_case(address.as_data())
 
-    variables = json.dumps(
-        {'email': email, 'note': note, 'shipping': address_data,
-        'billing': address_data, 'send_mail': True})
+    variables = {
+        'email': email,
+        'note': note,
+        'shipping': address_data,
+        'billing': address_data,
+        'send_mail': True}
 
     response = user_api_client.post_graphql(query, variables)
     assert_no_permission(response)
@@ -369,9 +371,11 @@ def test_customer_update(
     new_street_address = 'Updated street address'
     address_data['streetAddress1'] = new_street_address
 
-    variables = json.dumps({
-        'id': id, 'note': note, 'billing': address_data,
-        'shipping': address_data})
+    variables = {
+        'id': id,
+        'note': note,
+        'billing': address_data,
+        'shipping': address_data}
 
     # check unauthorized access
     response = user_api_client.post_graphql(query, variables)
@@ -425,9 +429,10 @@ def test_staff_create(
 
     email = 'api_user@example.com'
     staff_user.user_permissions.add(permission_manage_users)
-    variables = json.dumps({
-        'email': email, 'permissions': [permission_manage_products_codename],
-        'send_mail': True})
+    variables = {
+        'email': email,
+        'permissions': [permission_manage_products_codename],
+        'send_mail': True}
 
     # check unauthorized access
     response = user_api_client.post_graphql(query, variables)
@@ -472,7 +477,7 @@ def test_staff_update(admin_api_client, staff_user, user_api_client):
     }
     """
     id = graphene.Node.to_global_id('User', staff_user.id)
-    variables = json.dumps({'id': id, 'permissions': [], 'is_active': False})
+    variables = {'id': id, 'permissions': [], 'is_active': False}
 
     # check unauthorized access
     response = user_api_client.post_graphql(query, variables)
@@ -501,7 +506,7 @@ def test_staff_delete(admin_api_client, staff_user, user_api_client):
         }
     """
     user_id = graphene.Node.to_global_id('User', staff_user.id)
-    variables = json.dumps({'id': user_id})
+    variables = {'id': user_id}
 
     # check unauthorized access
     response = user_api_client.post_graphql(query, variables)
@@ -526,8 +531,7 @@ def test_staff_delete_errors(staff_user, customer_user, admin_user):
 
     errors = StaffDelete.clean_user(admin_user, staff_user, [])
     assert errors[0].field == 'id'
-    assert errors[0].message == (
-        'Only superuser can delete his own account.')
+    assert errors[0].message == 'Only superuser can delete his own account.'
     errors = StaffDelete.clean_user(staff_user, admin_user, [])
     assert not errors
 
@@ -567,15 +571,14 @@ def test_set_password(user_api_client, customer_user):
     password = 'spanish-inquisition'
 
     # check invalid token
-    post_data = {'id': id, 'password': password, 'token': 'nope'}
-    variables = json.dumps(post_data)
+    variables = {'id': id, 'password': password, 'token': 'nope'}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     errors = content['data']['setPassword']['errors']
     assert errors[0]['message'] == SetPassword.INVALID_TOKEN
 
-    post_data['token'] = token
-    response = user_api_client.post_graphql(query, json.dumps(post_data))
+    variables['token'] = token
+    response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['setPassword']
     assert data['user']['id']
@@ -598,7 +601,7 @@ def test_password_reset_email(
     }
     """
     email = customer_user.email
-    variables = json.dumps({'email': email})
+    variables = {'email': email}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['passwordReset']
@@ -625,12 +628,13 @@ def test_password_reset_email_non_existing_user(
     }
     """
     email = 'not_exists@example.com'
-    variables = json.dumps({'email': email})
+    variables = {'email': email}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['passwordReset']
     assert data['errors'] == [{
-        'field': 'email', 'message': "User with this email doesn't exist"}]
+        'field': 'email',
+        'message': "User with this email doesn't exist"}]
     send_password_reset_mock.assert_not_called()
 
 
@@ -653,8 +657,7 @@ def test_create_address_mutation(admin_api_client, customer_user):
     }
     """
     user_id = graphene.Node.to_global_id('User', customer_user.id)
-    variables = json.dumps(
-        {'user': user_id, 'city': 'Dummy', 'country': 'PL'})
+    variables = {'user': user_id, 'city': 'Dummy', 'country': 'PL'}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content['data']['addressCreate']['errors'] == []
@@ -699,8 +702,7 @@ def test_address_delete_mutation(admin_api_client, customer_user):
             }
         """
     address_obj = customer_user.addresses.first()
-    variables = {
-        'id': graphene.Node.to_global_id('Address', address_obj.id)}
+    variables = {'id': graphene.Node.to_global_id('Address', address_obj.id)}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['addressDelete']
@@ -721,11 +723,11 @@ def test_address_validator(user_api_client):
         }
     }
     """
-    variables = json.dumps({'input': {
-        'countryCode': 'PL',
-        'countryArea': None,
-        'cityArea': None
-    }})
+    variables = {
+        'input': {
+            'countryCode': 'PL',
+            'countryArea': None,
+            'cityArea': None}}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['addressValidator']
@@ -748,11 +750,11 @@ def test_address_validator_uses_geip_when_country_code_missing(
         }
     }
     """
-    variables = json.dumps({'input': {
-        'countryCode': None,
-        'countryArea': None,
-        'cityArea': None
-    }})
+    variables = {
+        'input': {
+            'countryCode': None,
+            'countryArea': None,
+            'cityArea': None}}
     mock_country_by_ip = Mock(return_value=Mock(code='US'))
     monkeypatch.setattr(
         'saleor.graphql.account.resolvers.get_client_ip',
@@ -782,12 +784,12 @@ def test_customer_reset_password(
         }
     """
     # we have no user with given email
-    variables = json.dumps({'email': 'non-existing-email@email.com'})
+    variables = {'email': 'non-existing-email@email.com'}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert not send_password_reset_mock.called
 
-    variables = json.dumps({'email': customer_user.email})
+    variables = {'email': customer_user.email}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert send_password_reset_mock.called

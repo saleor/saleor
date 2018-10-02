@@ -1,5 +1,3 @@
-import json
-
 import pytest
 
 import graphene
@@ -120,13 +118,13 @@ def test_create_voucher(user_api_client, admin_api_client):
             }
         }
     """
-    variables = json.dumps({
+    variables = {
         'name': 'test voucher',
         'type': VoucherTypeEnum.VALUE.name,
         'code': 'testcode123',
         'discountValueType': DiscountValueTypeEnum.FIXED.name,
         'discountValue': 10.12,
-        'minAmountSpent': 1.12})
+        'minAmountSpent': 1.12}
     response = user_api_client.post_graphql(query, variables)
     assert_no_permission(response)
 
@@ -161,10 +159,10 @@ def test_update_voucher(user_api_client, admin_api_client, voucher):
     voucher.discount_value_type = DiscountValueType.FIXED
     voucher.save()
     assert voucher.code != 'testcode123'
-    variables = json.dumps({
+    variables = {
         'id': graphene.Node.to_global_id('Voucher', voucher.id),
         'code': 'testcode123',
-        'discountValueType': DiscountValueTypeEnum.PERCENTAGE.name})
+        'discountValueType': DiscountValueTypeEnum.PERCENTAGE.name}
 
     response = user_api_client.post_graphql(query, variables)
     assert_no_permission(response)
@@ -191,8 +189,7 @@ def test_voucher_delete_mutation(user_api_client, admin_api_client, voucher):
               }
             }
     """
-    variables = json.dumps({
-        'id': graphene.Node.to_global_id('Voucher', voucher.id)})
+    variables = {'id': graphene.Node.to_global_id('Voucher', voucher.id)}
 
     response = user_api_client.post_graphql(query, variables)
     assert_no_permission(response)
@@ -222,10 +219,10 @@ def test_create_sale(user_api_client, admin_api_client):
             }
         }
     """
-    variables = json.dumps({
+    variables = {
         'name': 'test sale',
         'type': DiscountValueTypeEnum.FIXED.name,
-        'value': '10.12'})
+        'value': '10.12'}
     response = user_api_client.post_graphql(query, variables)
     assert_no_permission(response)
 
@@ -254,9 +251,9 @@ def test_update_sale(user_api_client, admin_api_client, sale):
     # Set discount value type to 'fixed' and change it in mutation
     sale.type = DiscountValueType.FIXED
     sale.save()
-    variables = json.dumps({
+    variables = {
         'id': graphene.Node.to_global_id('Sale', sale.id),
-        'type': DiscountValueTypeEnum.PERCENTAGE.name})
+        'type': DiscountValueTypeEnum.PERCENTAGE.name}
 
     response = user_api_client.post_graphql(query, variables)
 
@@ -283,8 +280,7 @@ def test_sale_delete_mutation(user_api_client, admin_api_client, sale):
               }
             }
     """
-    variables = json.dumps({
-        'id': graphene.Node.to_global_id('Sale', sale.id)})
+    variables = {'id': graphene.Node.to_global_id('Sale', sale.id)}
 
     response = user_api_client.post_graphql(query, variables)
     assert_no_permission(response)
@@ -317,9 +313,9 @@ def test_validate_voucher(voucher, admin_api_client):
         (VoucherTypeEnum.PRODUCT, 'products'),
         (VoucherTypeEnum.COLLECTION, 'collections'))
     for voucher_type, field_name in fields:
-        variables = json.dumps({
+        variables = {
             'type': voucher_type.name,
-            'id': graphene.Node.to_global_id('Voucher', voucher.id)})
+            'id': graphene.Node.to_global_id('Voucher', voucher.id)}
         response = admin_api_client.post_graphql(query, variables)
         content = get_graphql_content(response)
         data = content['data']['voucherUpdate']['errors'][0]

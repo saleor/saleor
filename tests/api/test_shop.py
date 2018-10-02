@@ -1,5 +1,3 @@
-import json
-
 import graphene
 from django.conf import settings
 from django_countries import countries
@@ -175,12 +173,10 @@ def test_shop_settings_mutation(admin_api_client, site_settings):
             }
         }
     """
-    variables = json.dumps({
+    variables = {
         'input': {
             'includeTaxesInPrices': False,
-            'headerText': 'Lorem ipsum'
-        }
-    })
+            'headerText': 'Lorem ipsum'}}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['shopSettingsUpdate']['shop']
@@ -204,10 +200,10 @@ def test_shop_domain_update(admin_api_client):
         }
     """
     new_name = 'saleor test store'
-    variables = json.dumps({
+    variables = {
         'input': {
             'domain': 'lorem-ipsum.com',
-            'name': new_name}})
+            'name': new_name}}
     site = Site.objects.get_current()
     assert site.domain != 'lorem-ipsum.com'
     response = admin_api_client.post_graphql(query, variables)
@@ -234,9 +230,7 @@ def test_homepage_collection_update(admin_api_client, collection):
         }
     """
     collection_id = graphene.Node.to_global_id('Collection', collection.id)
-    variables = json.dumps({
-        'collection': collection_id
-    })
+    variables = {'collection': collection_id}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['homepageCollectionUpdate']['shop']

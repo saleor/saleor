@@ -1,4 +1,3 @@
-import json
 from unittest.mock import Mock
 
 import graphene
@@ -73,9 +72,9 @@ def test_mutation_returns_error_field_in_camel_case(admin_api_client, variant):
         }
     }
     """
-    variables = json.dumps({
+    variables = {
         'id': graphene.Node.to_global_id('ProductVariant', variant.id),
-        'cost': 12.1234})
+        'cost': 12.1234}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     error = content['data']['productVariantUpdate']['errors'][0]

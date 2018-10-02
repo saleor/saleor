@@ -1,5 +1,3 @@
-import json
-
 import pytest
 
 import graphene
@@ -17,8 +15,7 @@ def test_page_query(user_api_client, page):
         }
     }
     """
-    variables = json.dumps({
-        'id': graphene.Node.to_global_id('Page', page.id)})
+    variables = {'id': graphene.Node.to_global_id('Page', page.id)}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     page_data = content['data']['page']
@@ -55,9 +52,9 @@ def test_page_create_mutation(admin_api_client):
     page_isVisible = True
 
     # test creating root page
-    variables = json.dumps({
+    variables = {
         'title': page_title, 'content': page_content,
-        'isVisible': page_isVisible, 'slug': page_slug})
+        'isVisible': page_isVisible, 'slug': page_slug}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['pageCreate']
@@ -83,8 +80,7 @@ def test_page_delete_mutation(admin_api_client, page):
               }
             }
     """
-    variables = json.dumps({
-        'id': graphene.Node.to_global_id('Page', page.id)})
+    variables = {'id': graphene.Node.to_global_id('Page', page.id)}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['pageDelete']
