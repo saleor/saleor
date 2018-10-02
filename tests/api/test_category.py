@@ -35,7 +35,6 @@ def test_category_query(user_api_client, product):
     ''' % {'category_pk': graphene.Node.to_global_id('Category', category.pk)}
     response = user_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     category_data = content['data']['category']
     assert category_data is not None
     assert category_data['name'] == category.name
@@ -87,7 +86,6 @@ def test_category_create_mutation(admin_api_client):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['categoryCreate']
     assert data['errors'] == []
     assert data['category']['name'] == category_name
@@ -102,7 +100,6 @@ def test_category_create_mutation(admin_api_client):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['categoryCreate']
     assert data['errors'] == []
     assert data['category']['parent']['id'] == parent_id
@@ -149,7 +146,6 @@ def test_category_update_mutation(admin_api_client, category):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['categoryUpdate']
     assert data['errors'] == []
     assert data['category']['id'] == category_id
@@ -179,7 +175,6 @@ def test_category_delete_mutation(admin_api_client, category):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['categoryDelete']
     assert data['category']['name'] == category.name
     with pytest.raises(category._meta.model.DoesNotExist):
@@ -207,7 +202,6 @@ def test_category_level(user_api_client, category):
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     category_data = content['data']['categories']['edges'][0]['node']
     assert category_data['name'] == category.name
     assert category_data['parent'] == None
@@ -230,7 +224,6 @@ def test_category_level(user_api_client, category):
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     category_data = content['data']['categories']['edges'][0]['node']
     assert category_data['name'] == child.name
     assert category_data['parent']['name'] == category.name

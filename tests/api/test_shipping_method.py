@@ -1,10 +1,11 @@
 import json
 
-import graphene
 import pytest
+
+import graphene
 from django.shortcuts import reverse
-from tests.utils import get_graphql_content
 from saleor.graphql.shipping.types import ShippingMethodTypeEnum
+from tests.utils import get_graphql_content
 
 
 @pytest.fixture
@@ -93,7 +94,6 @@ def test_shipping_zone_query(user_api_client, shipping_zone):
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
 
     shipping_data = content['data']['shippingZone']
     assert shipping_data['name'] == shipping.name
@@ -118,7 +118,6 @@ def test_shipping_zones_query(user_api_client, shipping_zone):
     response = user_api_client.post(
         reverse('api'), {'query': query})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     assert content['data']['shippingZones']['totalCount'] == num_of_shippings
 
 
@@ -263,7 +262,6 @@ def test_delete_shipping_zone(admin_api_client, shipping_zone):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['shippingZoneDelete']['shippingZone']
     assert data['name'] == shipping_zone.name
     with pytest.raises(shipping_zone._meta.model.DoesNotExist):
@@ -290,7 +288,6 @@ def test_create_shipping_method(
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['shippingPriceCreate']['shippingMethod']
     assert 'errors' not in data
     assert data['name'] == name
@@ -319,7 +316,6 @@ def test_create_weight_based_shipping_method(
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['shippingPriceCreate']['shippingMethod']
     assert data['minimumOrderWeight'] == expected_min_weight
     assert data['maximumOrderWeight'] == expected_max_weight
@@ -349,7 +345,6 @@ def test_create_weight_shipping_method_errors(
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['shippingPriceCreate']
     assert data['errors'][0] == expected_error
 
@@ -378,7 +373,6 @@ def test_create_price_shipping_method_errors(
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['shippingPriceCreate']
     assert data['errors'][0] == expected_error
 
@@ -425,7 +419,6 @@ def test_update_shipping_method(admin_api_client, shipping_zone):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['shippingPriceUpdate']['shippingMethod']
     assert data['price']['amount'] == float(price)
 
@@ -448,7 +441,6 @@ def test_delete_shipping_method(admin_api_client, shipping_method):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['shippingPriceDelete']['shippingMethod']
     assert data['price']['amount'] == float(shipping_method.price.amount)
     with pytest.raises(shipping_method._meta.model.DoesNotExist):

@@ -186,7 +186,6 @@ def test_real_query(user_api_client, product):
                     'first': 1,
                     'attributesFilter': [filter_by]})})
     content = get_graphql_content(response)
-    assert 'errors' not in content
 
 
 def test_get_nodes(product_list):
