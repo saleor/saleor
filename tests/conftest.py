@@ -67,6 +67,17 @@ class ApiClient(Client):
         kwargs['content_type'] = 'application/json'
         return super().post(API_PATH, data, **kwargs)
 
+    def post_graphql(self, query=None, variables=None, **kwargs):
+        data = {}
+        if query is not None:
+            data['query'] = query
+        if variables is not None:
+            data['variables'] = variables
+        if data:
+            data = json.dumps(data)
+        kwargs['content_type'] = 'application/json'
+        return super().post(API_PATH, data, **kwargs)
+
     def post_multipart(self, *args, **kwargs):
         """Send a multipart POST request.
 
