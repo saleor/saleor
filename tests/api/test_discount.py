@@ -28,16 +28,14 @@ def test_voucher_permissions(
     """
     # Query to ensure user with no permissions can't see vouchers
     response = staff_api_client.post(reverse('api'), {'query': query})
-    content = get_graphql_content(response)
-    message = 'You do not have permission to perform this action'
-    assert content['errors'][0]['message'] == message
+    assert_no_permission(response)
 
     # Give staff user proper permissions
     staff_user.user_permissions.add(permission_manage_discounts)
 
     # Query again
     response = staff_api_client.post(reverse('api'), {'query': query})
-    content = get_graphql_content(response)
+    get_graphql_content(response)
 
 
 def test_voucher_query(
