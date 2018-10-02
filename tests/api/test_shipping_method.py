@@ -5,7 +5,7 @@ import pytest
 import graphene
 from django.shortcuts import reverse
 from saleor.graphql.shipping.types import ShippingMethodTypeEnum
-from tests.utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 
 
 @pytest.fixture

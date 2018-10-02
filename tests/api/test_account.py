@@ -11,7 +11,7 @@ from django.shortcuts import reverse
 from saleor.account.models import Address, User
 from saleor.graphql.account.mutations import (
     SetPassword, StaffDelete, StaffUpdate)
-from tests.utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 
 from .utils import assert_no_permission, convert_dict_keys_to_camel_case
 

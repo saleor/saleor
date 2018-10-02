@@ -5,7 +5,7 @@ import pytest
 import graphene
 from django.shortcuts import reverse
 from saleor.page.models import Page
-from tests.utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 
 
 def test_page_query(user_api_client, page):

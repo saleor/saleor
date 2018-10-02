@@ -3,7 +3,7 @@ import json
 import graphene
 import pytest
 from django.shortcuts import reverse
-from tests.utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 from saleor.product.models import (
     Category, Attribute, AttributeValue)
 from saleor.graphql.product.utils import attributes_to_hstore

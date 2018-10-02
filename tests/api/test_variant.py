@@ -3,7 +3,7 @@ import json
 import graphene
 import pytest
 from django.shortcuts import reverse
-from tests.utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 
 
 def test_fetch_variant(admin_api_client, product):

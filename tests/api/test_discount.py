@@ -3,7 +3,7 @@ import json
 import graphene
 import pytest
 from django.shortcuts import reverse
-from tests.utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 
 from saleor.discount import (
     DiscountValueType, VoucherType)
