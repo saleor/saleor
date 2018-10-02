@@ -6,6 +6,11 @@ import graphene
 from django.utils.text import slugify
 from graphql_relay import to_global_id
 from prices import Money
+from tests.utils import (
+    create_image, create_pdf_file_with_image_ext, get_graphql_content)
+
+from saleor.core import TaxRateType
+from saleor.graphql.core.types.money import TaxRateType as TaxRate
 from saleor.graphql.product.utils import update_variants_names
 from saleor.product.models import (
     Category, Collection, Product, ProductImage, ProductType, ProductVariant)
@@ -359,7 +364,7 @@ def test_create_product(
     product_name = 'test name'
     product_isPublished = True
     product_chargeTaxes = True
-    product_taxRate = 'STANDARD'
+    product_taxRate = TaxRate.STANDARD.name
     product_price = 22.33
 
     # Default attribute defined in product_type fixture
@@ -469,7 +474,7 @@ def test_update_product(
     product_name = 'updated name'
     product_isPublished = True
     product_chargeTaxes = True
-    product_taxRate = 'STANDARD'
+    product_taxRate = TaxRate.STANDARD.name
     product_price = "33.12"
 
     variables = {
