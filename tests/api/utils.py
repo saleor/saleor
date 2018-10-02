@@ -1,10 +1,19 @@
 import json
 
-from tests.utils import get_graphql_content
-
 from saleor.graphql.core.utils import snake_to_camel_case
 
-from saleor.graphql.core.utils import snake_to_camel_case
+
+def get_graphql_content(response, check_for_errors=True):
+    """Get's GraphQL content from the response, and optionally checks if it
+    contains any operating-related errors, eg. schema errors or lack of
+    permissions.
+    """
+    content = json.loads(response.content.decode('utf8'))
+    # We should be always checking for errors, unless one want to test lack
+    # of permissions
+    if check_for_errors:
+        assert 'errors' not in content, content['errors']
+    return content
 
 
 def assert_no_permission(response):
