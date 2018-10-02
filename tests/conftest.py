@@ -68,11 +68,16 @@ class ApiClient(Client):
         return super().post(API_PATH, data, **kwargs)
 
     def post_graphql(self, query=None, variables=None, **kwargs):
+        """Dedicated helper for posting GraphQL queries.
+
+        Sets the `application/json` content type and json.dumps the variables
+        if present.
+        """
         data = {}
         if query is not None:
             data['query'] = query
         if variables is not None:
-            data['variables'] = variables
+            data['variables'] = json.dumps(variables)
         if data:
             data = json.dumps(data)
         kwargs['content_type'] = 'application/json'

@@ -1,4 +1,3 @@
-import json
 from unittest.mock import MagicMock, Mock
 
 import pytest
@@ -153,9 +152,9 @@ def test_query_product_image_by_id(user_api_client, product_with_image):
         }
     }
     """
-    variables = json.dumps({
+    variables = {
         'productId': graphene.Node.to_global_id('Product', product_with_image.pk),
-        'imageId': graphene.Node.to_global_id('ProductImage', image.pk)})
+        'imageId': graphene.Node.to_global_id('ProductImage', image.pk)}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
 
@@ -178,7 +177,7 @@ def test_product_with_collections(admin_api_client, product, collection):
     product.save()
     product_id = graphene.Node.to_global_id('Product', product.id)
 
-    variables = json.dumps({'productID': product_id})
+    variables = {'productID': product_id}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['product']
@@ -199,8 +198,8 @@ def test_filter_product_by_category(user_api_client, product):
         }
     }
     """
-    variables = json.dumps({
-        'categoryId': graphene.Node.to_global_id('Category', category.id)})
+    variables = {
+        'categoryId': graphene.Node.to_global_id('Category', category.id)}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     product_data = content['data']['products']['edges'][0]['node']
@@ -217,8 +216,8 @@ def test_fetch_product_by_id(user_api_client, product):
         }
     }
     """
-    variables = json.dumps({
-        'productId': graphene.Node.to_global_id('Product', product.id)})
+    variables = {
+        'productId': graphene.Node.to_global_id('Product', product.id)}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     product_data = content['data']['node']
@@ -370,7 +369,7 @@ def test_create_product(
     non_existent_attr_value = 'The cake is a lie'
 
     # test creating root product
-    variables = json.dumps({
+    variables = {
         'productTypeId': product_type_id,
         'categoryId': category_id,
         'name': product_name,
@@ -381,7 +380,7 @@ def test_create_product(
         'price': product_price,
         'attributes': [
             {'slug': color_attr_slug, 'value': color_value_slug},
-            {'slug': size_attr_slug, 'value': non_existent_attr_value}]})
+            {'slug': size_attr_slug, 'value': non_existent_attr_value}]}
 
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -467,7 +466,7 @@ def test_update_product(
     product_taxRate = 'STANDARD'
     product_price = "33.12"
 
-    variables = json.dumps({
+    variables = {
         'productId': product_id,
         'categoryId': category_id,
         'name': product_name,
@@ -475,7 +474,7 @@ def test_update_product(
         'isPublished': product_isPublished,
         'chargeTaxes': product_chargeTaxes,
         'taxRate': product_taxRate,
-        'price': product_price})
+        'price': product_price}
 
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -505,7 +504,7 @@ def test_delete_product(admin_api_client, product):
             }
     """
     node_id = graphene.Node.to_global_id('Product', product.id)
-    variables = json.dumps({'id': node_id})
+    variables = {'id': node_id}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['productDelete']
@@ -564,8 +563,8 @@ def test_product_type_query(
     no_products = Product.objects.count()
     product.is_published = False
     product.save()
-    variables = json.dumps({
-        'id': graphene.Node.to_global_id('ProductType', product_type.id)})
+    variables = {
+        'id': graphene.Node.to_global_id('ProductType', product_type.id)}
 
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -629,12 +628,12 @@ def test_product_type_create_mutation(admin_api_client, product_type):
         graphene.Node.to_global_id('Attribute', att.id) for att in
         variant_attributes]
 
-    variables = json.dumps({
+    variables = {
         'name': product_type_name, 'hasVariants': has_variants,
         'taxRate': 'STANDARD',
         'isShippingRequired': require_shipping,
         'productAttributes': product_attributes_ids,
-        'variantAttributes': variant_attributes_ids})
+        'variantAttributes': variant_attributes_ids}
     initial_count = ProductType.objects.count()
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -705,11 +704,11 @@ def test_product_type_update_mutation(admin_api_client, product_type):
         product_attributes]
     variant_attributes = product_type.variant_attributes.all()
 
-    variables = json.dumps({
+    variables = {
         'id': product_type_id, 'name': product_type_name,
         'hasVariants': has_variants,
         'isShippingRequired': require_shipping,
-        'productAttributes': product_attributes_ids})
+        'productAttributes': product_attributes_ids}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['productTypeUpdate']['productType']
@@ -731,8 +730,8 @@ def test_product_type_delete_mutation(admin_api_client, product_type):
             }
         }
     """
-    variables = json.dumps({
-        'id': graphene.Node.to_global_id('ProductType', product_type.id)})
+    variables = {
+        'id': graphene.Node.to_global_id('ProductType', product_type.id)}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['productTypeDelete']
@@ -804,9 +803,9 @@ def test_product_image_update_mutation(admin_api_client, product_with_image):
     """
     image_obj = product_with_image.images.first()
     alt = 'damage alt'
-    variables = json.dumps({
+    variables = {
         'alt': alt,
-        'imageId': graphene.Node.to_global_id('ProductImage', image_obj.id)})
+        'imageId': graphene.Node.to_global_id('ProductImage', image_obj.id)}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content['data']['productImageUpdate']['image']['alt'] == alt
@@ -958,8 +957,8 @@ def test_update_collection(admin_api_client, collection):
     collection_id = to_global_id('Collection', collection.id)
     name = 'new-name'
     slug = 'new-slug'
-    variables = json.dumps(
-        {'name': name, 'slug': slug, 'id': collection_id, 'isPublished': True})
+    variables = {
+        'name': name, 'slug': slug, 'id': collection_id, 'isPublished': True}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['collectionUpdate']['collection']
@@ -978,7 +977,7 @@ def test_delete_collection(admin_api_client, collection):
         }
     """
     collection_id = to_global_id('Collection', collection.id)
-    variables = json.dumps({'id': collection_id})
+    variables = {'id': collection_id}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['collectionDelete']['collection']
@@ -1005,8 +1004,7 @@ def test_add_products_to_collection(
     product_ids = [
         to_global_id('Product', product.pk) for product in product_list]
     no_products_before = collection.products.count()
-    variables = json.dumps(
-        {'id': collection_id, 'products': product_ids})
+    variables = {'id': collection_id, 'products': product_ids}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['collectionAddProducts']['collection']
@@ -1033,8 +1031,7 @@ def test_remove_products_from_collection(
     product_ids = [
         to_global_id('Product', product.pk) for product in product_list]
     no_products_before = collection.products.count()
-    variables = json.dumps(
-        {'id': collection_id, 'products': product_ids})
+    variables = {'id': collection_id, 'products': product_ids}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['collectionRemoveProducts']['collection']
@@ -1060,9 +1057,9 @@ def test_assign_variant_image(
     variant = product_with_image.variants.first()
     image = product_with_image.images.first()
 
-    variables = json.dumps({
+    variables = {
         'variantId': to_global_id('ProductVariant', variant.pk),
-        'imageId': to_global_id('ProductImage', image.pk)})
+        'imageId': to_global_id('ProductImage', image.pk)}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     variant.refresh_from_db()
@@ -1073,9 +1070,9 @@ def test_assign_variant_image(
     product_with_image.save()
 
     image_2 = ProductImage.objects.create(product=product_with_image)
-    variables = json.dumps({
+    variables = {
         'variantId': to_global_id('ProductVariant', variant.pk),
-        'imageId': to_global_id('ProductImage', image_2.pk)})
+        'imageId': to_global_id('ProductImage', image_2.pk)}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content['data']['variantImageAssign']['errors'][0]['field'] == 'imageId'
@@ -1105,9 +1102,9 @@ def test_unassign_variant_image(
     }
     """
 
-    variables = json.dumps({
+    variables = {
         'variantId': to_global_id('ProductVariant', variant.pk),
-        'imageId': to_global_id('ProductImage', image.pk)})
+        'imageId': to_global_id('ProductImage', image.pk)}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     variant.refresh_from_db()
@@ -1115,9 +1112,9 @@ def test_unassign_variant_image(
 
     # check that unsassigning a not assigned image throws error
     image_2 = ProductImage.objects.create(product=product_with_image)
-    variables = json.dumps({
+    variables = {
         'variantId': to_global_id('ProductVariant', variant.pk),
-        'imageId': to_global_id('ProductImage', image_2.pk)})
+        'imageId': to_global_id('ProductImage', image_2.pk)}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content['data']['variantImageUnassign']['errors'][0]['field'] == 'imageId'
@@ -1160,11 +1157,11 @@ def test_product_type_update_changes_variant_name(
     variant_attributes_ids = [
         graphene.Node.to_global_id('Attribute', att.id) for att in
         variant_attributes]
-    variables = json.dumps({
+    variables = {
         'id': product_type_id,
         'hasVariants': has_variants,
         'isShippingRequired': require_shipping,
-        'variantAttributes': variant_attributes_ids})
+        'variantAttributes': variant_attributes_ids}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     product.refresh_from_db()
@@ -1195,7 +1192,7 @@ def test_product_variants_by_ids(user_api_client, variant):
         """
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
 
-    variables = json.dumps({'ids': [variant_id]})
+    variables = {'ids': [variant_id]}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['productVariants']
@@ -1236,7 +1233,7 @@ def test_category_image_query(user_api_client, non_default_category):
             }
         }
     """
-    variables = json.dumps({'id': category_id})
+    variables = {'id': category_id}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['category']
@@ -1258,7 +1255,7 @@ def test_collection_image_query(user_api_client, collection):
             }
         }
     """
-    variables = json.dumps({'id': collection_id})
+    variables = {'id': collection_id}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['collection']
@@ -1302,8 +1299,7 @@ def test_product_variant_price(
         }
         """
     product_id = graphene.Node.to_global_id('Product', variant.product.id)
-    variables = json.dumps({'id': product_id})
-
+    variables = {'id': product_id}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['product']

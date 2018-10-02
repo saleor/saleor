@@ -1,4 +1,3 @@
-import json
 from unittest.mock import Mock, patch
 
 import pytest
@@ -176,12 +175,12 @@ def test_real_query(user_api_client, product):
         __typename
     }
     """
-    variables = json.dumps({
+    variables = {
         'categoryId': graphene.Node.to_global_id(
             'Category', category.id),
         'sortBy': 'name',
         'first': 1,
-        'attributesFilter': [filter_by]})
+        'attributesFilter': [filter_by]}
     response = user_api_client.post_graphql(query, variables)
     get_graphql_content(response)
 

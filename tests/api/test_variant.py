@@ -1,5 +1,3 @@
-import json
-
 import pytest
 
 import graphene
@@ -53,7 +51,7 @@ def test_fetch_variant(admin_api_client, product):
 
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
-    variables = json.dumps({'id': variant_id})
+    variables = {'id': variant_id}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['productVariant']
@@ -122,7 +120,7 @@ def test_create_variant(admin_api_client, product, product_type):
     variant_slug = product_type.variant_attributes.first().slug
     variant_value = 'test-value'
 
-    variables = json.dumps({
+    variables = {
         'productId': product_id,
         'sku': sku,
         'quantity': quantity,
@@ -131,7 +129,7 @@ def test_create_variant(admin_api_client, product, product_type):
         'weight': weight,
         'attributes': [
             {'slug': variant_slug, 'value': variant_value}],
-        'trackInventory': True})
+        'trackInventory': True}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['productVariantCreate']['productVariant']
@@ -173,10 +171,10 @@ def test_create_product_variant_not_all_attributes(
     variant_value = 'test-value'
     product_type.variant_attributes.add(color_attribute)
 
-    variables = json.dumps({
+    variables = {
         'productId': product_id,
         'sku': sku,
-        'attributes': [{'slug': variant_slug, 'value': variant_value}]})
+        'attributes': [{'slug': variant_slug, 'value': variant_value}]}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content['data']['productVariantCreate']['errors']
@@ -220,12 +218,12 @@ def test_update_product_variant(admin_api_client, product):
     cost_price = 3.3
     quantity = 123
 
-    variables = json.dumps({
+    variables = {
         'id': variant_id,
         'sku': sku,
         'quantity': quantity,
         'costPrice': cost_price,
-        'trackInventory': True})
+        'trackInventory': True}
 
     response = admin_api_client.post_graphql(query, variables)
     variant.refresh_from_db()
@@ -265,10 +263,10 @@ def test_update_product_variant_not_all_attributes(
     variant_value = 'test-value'
     product_type.variant_attributes.add(color_attribute)
 
-    variables = json.dumps({
+    variables = {
         'id': variant_id,
         'sku': sku,
-        'attributes': [{'slug': variant_slug, 'value': variant_value}]})
+        'attributes': [{'slug': variant_slug, 'value': variant_value}]}
 
     response = admin_api_client.post_graphql(query, variables)
     variant.refresh_from_db()
@@ -291,7 +289,7 @@ def test_delete_variant(admin_api_client, product):
     """
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
-    variables = json.dumps({'id': variant_id})
+    variables = {'id': variant_id}
     response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['productVariantDelete']
