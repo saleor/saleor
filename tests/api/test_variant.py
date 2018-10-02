@@ -182,7 +182,7 @@ def test_create_product_variant_not_all_attributes(
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' in content['data']['productVariantCreate']
+    assert content['data']['productVariantCreate']['errors']
     assert content['data']['productVariantCreate']['errors'][0]['field'] == 'attributes:color'
     assert not product.variants.filter(sku=sku).exists()
 
@@ -278,7 +278,7 @@ def test_update_product_variant_not_all_attributes(
         reverse('api'), {'query': query, 'variables': variables})
     variant.refresh_from_db()
     content = get_graphql_content(response)
-    assert 'errors' in content['data']['productVariantUpdate']
+    assert content['data']['productVariantUpdate']['errors']
     assert content['data']['productVariantUpdate']['errors'][0]['field'] == 'attributes:color'
     assert not product.variants.filter(sku=sku).exists()
 
