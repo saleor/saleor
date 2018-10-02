@@ -53,9 +53,8 @@ def test_fetch_variant(admin_api_client, product):
 
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
-    variables = json.dumps({ 'id': variant_id})
-    response = admin_api_client.post(
-        {'query': query, 'variables': variables})
+    variables = json.dumps({'id': variant_id})
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['productVariant']
     assert data['name'] == variant.name
@@ -133,8 +132,7 @@ def test_create_variant(admin_api_client, product, product_type):
         'attributes': [
             {'slug': variant_slug, 'value': variant_value}],
         'trackInventory': True})
-    response = admin_api_client.post(
-        {'query': query, 'variables': variables})
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['productVariantCreate']['productVariant']
     assert data['name'] == variant_value
@@ -179,8 +177,7 @@ def test_create_product_variant_not_all_attributes(
         'productId': product_id,
         'sku': sku,
         'attributes': [{'slug': variant_slug, 'value': variant_value}]})
-    response = admin_api_client.post(
-        {'query': query, 'variables': variables})
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content['data']['productVariantCreate']['errors']
     assert content['data']['productVariantCreate']['errors'][0]['field'] == 'attributes:color'
@@ -230,8 +227,7 @@ def test_update_product_variant(admin_api_client, product):
         'costPrice': cost_price,
         'trackInventory': True})
 
-    response = admin_api_client.post(
-        {'query': query, 'variables': variables})
+    response = admin_api_client.post_graphql(query, variables)
     variant.refresh_from_db()
     content = get_graphql_content(response)
     data = content['data']['productVariantUpdate']['productVariant']
@@ -274,8 +270,7 @@ def test_update_product_variant_not_all_attributes(
         'sku': sku,
         'attributes': [{'slug': variant_slug, 'value': variant_value}]})
 
-    response = admin_api_client.post(
-        {'query': query, 'variables': variables})
+    response = admin_api_client.post_graphql(query, variables)
     variant.refresh_from_db()
     content = get_graphql_content(response)
     assert content['data']['productVariantUpdate']['errors']
@@ -297,8 +292,7 @@ def test_delete_variant(admin_api_client, product):
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
     variables = json.dumps({'id': variant_id})
-    response = admin_api_client.post(
-        {'query': query, 'variables': variables})
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['productVariantDelete']
     assert data['productVariant']['sku'] == variant.sku

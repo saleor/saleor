@@ -31,7 +31,7 @@ def get_multipart_request_body(query, variables, file, file_name):
     of additional 'operations' and 'map' keys.
     """
     return {
-        'operations': json.dumps({'query': query, 'variables': variables}),
+        'operations': json.dumps(query, variables),
         'map': json.dumps({file_name: ['variables.file']}), file_name: file}
 
 
