@@ -1,11 +1,11 @@
 import json
 
-import graphene
 import pytest
-from django.shortcuts import reverse
-from tests.utils import get_graphql_content
 
+import graphene
+from django.shortcuts import reverse
 from saleor.graphql.menu.mutations import NavigationType
+from tests.api.utils import get_graphql_content
 
 from .utils import assert_no_permission
 
@@ -24,7 +24,6 @@ def test_menu_query(user_api_client, menu):
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     assert content['data']['menu']['name'] == menu.name
 
     # test query by id
@@ -33,7 +32,6 @@ def test_menu_query(user_api_client, menu):
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     assert content['data']['menu']['name'] == menu.name
 
     # test query by invalid name returns null
@@ -41,7 +39,6 @@ def test_menu_query(user_api_client, menu):
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     assert not content['data']['menu']
 
 
@@ -76,7 +73,6 @@ def test_menus_query(user_api_client, menu, menu_item):
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     menu_data = content['data']['menus']['edges'][0]['node']
     assert menu_data['name'] == menu.name
     items = menu_data['items']['edges'][0]['node']
@@ -114,7 +110,6 @@ def test_menu_items_query(user_api_client, menu_item, collection):
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['menuItem']
     assert data['name'] == menu_item.name
     assert data['children']['totalCount'] == menu_item.children.count()
@@ -146,7 +141,6 @@ def test_menu_item_query_static_url(user_api_client, menu_item):
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['menuItem']
     assert data['name'] == menu_item.name
     assert data['url'] == menu_item.url
@@ -186,11 +180,10 @@ def test_create_menu(admin_api_client, collection, category, page):
 
     variables = json.dumps({
         'name': 'test-menu', 'collection': collection_id,
-        'category': category_id, 'page': page_id, 'url': url })
+        'category': category_id, 'page': page_id, 'url': url})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     assert content['data']['menuCreate']['menu']['name'] == 'test-menu'
 
 
@@ -210,8 +203,8 @@ def test_update_menu(admin_api_client, menu):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     assert content['data']['menuUpdate']['menu']['name'] == name
+
 
 def test_delete_menu(admin_api_client, menu):
     query = """
@@ -228,7 +221,6 @@ def test_delete_menu(admin_api_client, menu):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     assert content['data']['menuDelete']['menu']['name'] == menu.name
     with pytest.raises(menu._meta.model.DoesNotExist):
         menu.refresh_from_db()
@@ -255,7 +247,6 @@ def test_create_menu_item(admin_api_client, menu):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['menuItemCreate']['menuItem']
     assert data['name'] == name
     assert data['url'] == url
@@ -283,7 +274,6 @@ def test_update_menu_item(admin_api_client, menu, menu_item, page):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['menuItemUpdate']['menuItem']
     assert data['page']['id'] == page_id
 
@@ -303,7 +293,6 @@ def test_delete_menu_item(admin_api_client, menu_item):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['menuItemDelete']['menuItem']
     assert data['name'] == menu_item.name
     with pytest.raises(menu_item._meta.model.DoesNotExist):
@@ -369,7 +358,6 @@ def test_assign_menu(
     response = staff_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     assert content['data']['assignNavigation']['menu']['name'] == menu.name
     site_settings.refresh_from_db()
     assert site_settings.top_menu.name == menu.name
@@ -380,7 +368,6 @@ def test_assign_menu(
     response = staff_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     assert content['data']['assignNavigation']['menu']['name'] == menu.name
     site_settings.refresh_from_db()
     assert site_settings.bottom_menu.name == menu.name
@@ -391,7 +378,6 @@ def test_assign_menu(
     response = staff_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     assert not content['data']['assignNavigation']['menu']
     site_settings.refresh_from_db()
     assert site_settings.top_menu is None

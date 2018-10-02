@@ -3,7 +3,7 @@ import json
 import graphene
 import pytest
 from django.shortcuts import reverse
-from tests.utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 
 
 def test_fetch_variant(admin_api_client, product):
@@ -57,7 +57,6 @@ def test_fetch_variant(admin_api_client, product):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['productVariant']
     assert data['name'] == variant.name
 
@@ -137,7 +136,6 @@ def test_create_variant(admin_api_client, product, product_type):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['productVariantCreate']['productVariant']
     assert data['name'] == variant_value
     assert data['quantity'] == quantity
@@ -184,8 +182,7 @@ def test_create_product_variant_not_all_attributes(
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
-    assert 'errors' in content['data']['productVariantCreate']
+    assert content['data']['productVariantCreate']['errors']
     assert content['data']['productVariantCreate']['errors'][0]['field'] == 'attributes:color'
     assert not product.variants.filter(sku=sku).exists()
 
@@ -237,7 +234,6 @@ def test_update_product_variant(admin_api_client, product):
         reverse('api'), {'query': query, 'variables': variables})
     variant.refresh_from_db()
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['productVariantUpdate']['productVariant']
     assert data['name'] == variant.name
     assert data['quantity'] == quantity
@@ -282,8 +278,7 @@ def test_update_product_variant_not_all_attributes(
         reverse('api'), {'query': query, 'variables': variables})
     variant.refresh_from_db()
     content = get_graphql_content(response)
-    assert 'errors' not in content
-    assert 'errors' in content['data']['productVariantUpdate']
+    assert content['data']['productVariantUpdate']['errors']
     assert content['data']['productVariantUpdate']['errors'][0]['field'] == 'attributes:color'
     assert not product.variants.filter(sku=sku).exists()
 
@@ -305,7 +300,6 @@ def test_delete_variant(admin_api_client, product):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['productVariantDelete']
     assert data['productVariant']['sku'] == variant.sku
     with pytest.raises(variant._meta.model.DoesNotExist):

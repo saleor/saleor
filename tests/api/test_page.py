@@ -1,11 +1,11 @@
 import json
 
-import graphene
 import pytest
-from django.shortcuts import reverse
-from tests.utils import get_graphql_content
 
+import graphene
+from django.shortcuts import reverse
 from saleor.page.models import Page
+from tests.api.utils import get_graphql_content
 
 
 def test_page_query(user_api_client, page):
@@ -23,7 +23,6 @@ def test_page_query(user_api_client, page):
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     page_data = content['data']['page']
     assert page_data['title'] == page.title
     assert page_data['slug'] == page.slug
@@ -31,8 +30,13 @@ def test_page_query(user_api_client, page):
 
 def test_page_create_mutation(admin_api_client):
     query = """
-        mutation CreatePage($slug: String!, $title: String!, $content: String!, $isVisible: Boolean!) {
-            pageCreate(input: {slug: $slug, title: $title, content: $content, isVisible: $isVisible}) {
+        mutation CreatePage(
+                $slug: String!, $title: String!, $content: String!,
+                $isVisible: Boolean!) {
+            pageCreate(
+                    input: {
+                        slug: $slug, title: $title,
+                        content: $content, isVisible: $isVisible}) {
                 page {
                     id
                     title
@@ -59,7 +63,6 @@ def test_page_create_mutation(admin_api_client):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['pageCreate']
     assert data['errors'] == []
     assert data['page']['title'] == page_title
@@ -88,7 +91,6 @@ def test_page_delete_mutation(admin_api_client, page):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['pageDelete']
     assert data['page']['title'] == page.title
     with pytest.raises(page._meta.model.DoesNotExist):
@@ -125,6 +127,5 @@ def test_paginate_pages(user_api_client, page):
     response = user_api_client.post(
         reverse('api'), {'query': query})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     pages_data = content['data']['pages']
     assert len(pages_data['edges']) == 2

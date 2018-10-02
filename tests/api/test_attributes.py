@@ -3,7 +3,7 @@ import json
 import graphene
 import pytest
 from django.shortcuts import reverse
-from tests.utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 from saleor.product.models import (
     Category, Attribute, AttributeValue)
 from saleor.graphql.product.utils import attributes_to_hstore
@@ -58,7 +58,6 @@ def test_attributes_query(user_api_client, product):
     '''
     response = user_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     attributes_data = content['data']['attributes']['edges']
     assert len(attributes_data) == attributes.count()
 
@@ -85,7 +84,6 @@ def test_attributes_in_category_query(user_api_client, product):
     ''' % {'category_id': graphene.Node.to_global_id('Category', category.id)}
     response = user_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     attributes_data = content['data']['attributes']['edges']
     assert len(attributes_data) == Attribute.objects.count()
 
@@ -121,7 +119,6 @@ def test_create_attribute(admin_api_client):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     assert not content['data']['attributeCreate']['errors']
     data = content['data']['attributeCreate']['attribute']
     assert data['name'] == name
@@ -139,7 +136,6 @@ def test_create_attribute_and_attribute_values(admin_api_client):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     assert not content['data']['attributeCreate']['errors']
     data = content['data']['attributeCreate']['attribute']['values']
     assert len(data) == 1
@@ -186,7 +182,6 @@ def test_update_attribute(admin_api_client, color_attribute):
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     attribute.refresh_from_db()
-    assert 'errors' not in content
     data = content['data']['attributeUpdate']['attribute']
     assert data['name'] == name == attribute.name
 
@@ -207,7 +202,6 @@ def test_delete_attribute(admin_api_client, color_attribute):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     with pytest.raises(attribute._meta.model.DoesNotExist):
         attribute.refresh_from_db()
 
@@ -236,7 +230,6 @@ def test_create_attribute_value(admin_api_client, color_attribute):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content[
         'data']['attributeValueCreate']['attributeValue']
     assert data['name'] == name
@@ -266,7 +259,6 @@ def test_update_attribute_value(admin_api_client, pink_attribute_value):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     value.refresh_from_db()
     data = content[
         'data']['attributeValueUpdate']['attributeValue']
@@ -291,8 +283,6 @@ def test_delete_attribute_value(
     variables = json.dumps({'id': id})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
     with pytest.raises(value._meta.model.DoesNotExist):
         value.refresh_from_db()
 
@@ -341,7 +331,6 @@ def test_query_attribute_values(
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['attributes']['edges'][0]['node']
     values = data['values']
     pink = [v for v in values if v['name'] == pink_attribute_value.name]

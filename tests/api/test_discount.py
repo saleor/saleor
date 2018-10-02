@@ -3,7 +3,7 @@ import json
 import graphene
 import pytest
 from django.shortcuts import reverse
-from tests.utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 
 from saleor.discount import (
     DiscountValueType, VoucherType)
@@ -28,17 +28,14 @@ def test_voucher_permissions(
     """
     # Query to ensure user with no permissions can't see vouchers
     response = staff_api_client.post(reverse('api'), {'query': query})
-    content = get_graphql_content(response)
-    message = 'You do not have permission to perform this action'
-    assert content['errors'][0]['message'] == message
+    assert_no_permission(response)
 
     # Give staff user proper permissions
     staff_user.user_permissions.add(permission_manage_discounts)
 
     # Query again
     response = staff_api_client.post(reverse('api'), {'query': query})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
+    get_graphql_content(response)
 
 
 def test_voucher_query(
@@ -63,7 +60,6 @@ def test_voucher_query(
     """
     response = admin_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['vouchers']['edges'][0]['node']
     assert data['type'] == voucher.type.upper()
     assert data['name'] == voucher.name
@@ -93,7 +89,6 @@ def test_sale_query(
         """
     response = admin_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['sales']['edges'][0]['node']
     assert data['type'] == sale.type.upper()
     assert data['name'] == sale.name
@@ -141,7 +136,6 @@ def test_create_voucher(user_api_client, admin_api_client):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['voucherCreate']['voucher']
     assert data['type'] == VoucherType.VALUE.upper()
     assert data['minAmountSpent']['amount'] == 1.12
@@ -183,7 +177,6 @@ def test_update_voucher(user_api_client, admin_api_client, voucher):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['voucherUpdate']['voucher']
     assert data['code'] == 'testcode123'
     assert data['discountValueType'] == DiscountValueType.PERCENTAGE.upper()
@@ -214,7 +207,6 @@ def test_voucher_delete_mutation(user_api_client, admin_api_client, voucher):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['voucherDelete']
     assert data['voucher']['name'] == voucher.name
     with pytest.raises(voucher._meta.model.DoesNotExist):
@@ -249,7 +241,6 @@ def test_create_sale(user_api_client, admin_api_client):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['saleCreate']['sale']
     assert data['type'] == DiscountValueType.FIXED.upper()
     assert data['name'] == 'test sale'
@@ -285,7 +276,6 @@ def test_update_sale(user_api_client, admin_api_client, sale):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['saleUpdate']['sale']
     assert data['type'] == DiscountValueType.PERCENTAGE.upper()
 
@@ -315,7 +305,6 @@ def test_sale_delete_mutation(user_api_client, admin_api_client, sale):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['saleDelete']
     assert data['sale']['name'] == sale.name
     with pytest.raises(sale._meta.model.DoesNotExist):

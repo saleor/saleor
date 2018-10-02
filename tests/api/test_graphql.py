@@ -10,7 +10,7 @@ from django.shortcuts import reverse
 from django.test import RequestFactory
 from graphql_jwt.shortcuts import get_token
 from graphql_relay import to_global_id
-from tests.utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 
 from saleor.graphql.middleware import jwt_middleware
 from saleor.graphql.product.types import Product
@@ -186,7 +186,6 @@ def test_real_query(user_api_client, product):
                     'first': 1,
                     'attributesFilter': [filter_by]})})
     content = get_graphql_content(response)
-    assert 'errors' not in content
 
 
 def test_get_nodes(product_list):

@@ -3,7 +3,7 @@ import json
 import graphene
 import pytest
 from django.shortcuts import reverse
-from tests.utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.models import FulfillmentStatus
@@ -51,7 +51,6 @@ def test_create_fulfillment(admin_api_client, order_with_lines, admin_user):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['orderFulfillmentCreate']['fulfillment']
     assert data['fulfillmentOrder'] == 1
     assert data['status'] == FulfillmentStatus.FULFILLED.upper()
@@ -89,7 +88,7 @@ def test_create_fulfillment_not_sufficient_quantity(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderFulfillmentCreate']
-    assert 'errors' in data
+    assert data['errors']
     assert data['errors'][0]['field'] == str(order_line)
     assert data['errors'][0]['message'] == error_message
 
@@ -112,7 +111,6 @@ def test_fulfillment_update_tracking(admin_api_client, fulfillment):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['orderFulfillmentUpdateTracking']['fulfillment']
     assert data['trackingNumber'] == tracking
 
@@ -133,7 +131,6 @@ def test_cancel_fulfillment_restock_items(
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['orderFulfillmentCancel']['fulfillment']
     assert data['status'] == FulfillmentStatus.CANCELED.upper()
     event_restocked_items = fulfillment.order.events.get()
@@ -159,7 +156,6 @@ def test_cancel_fulfillment(admin_api_client, fulfillment, admin_user):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['orderFulfillmentCancel']['fulfillment']
     assert data['status'] == FulfillmentStatus.CANCELED.upper()
     event_cancel_fulfillment = fulfillment.order.events.get()

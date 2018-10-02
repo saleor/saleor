@@ -1,18 +1,18 @@
 import json
 from unittest.mock import MagicMock, Mock
 
-import graphene
 import pytest
+
+import graphene
 from django.shortcuts import reverse
 from django.utils.text import slugify
 from graphql_relay import to_global_id
 from prices import Money
-from tests.utils import (
-    create_image, create_pdf_file_with_image_ext, get_graphql_content)
-
 from saleor.graphql.product.utils import update_variants_names
 from saleor.product.models import (
     Category, Collection, Product, ProductImage, ProductType, ProductVariant)
+from tests.api.utils import get_graphql_content
+from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from .utils import assert_no_permission, get_multipart_request_body
 
@@ -32,7 +32,6 @@ def test_fetch_all_products(user_api_client, product):
     '''
     response = user_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     num_products = Product.objects.count()
     assert content['data']['products']['totalCount'] == num_products
     assert len(content['data']['products']['edges']) == num_products
@@ -55,7 +54,6 @@ def test_fetch_unavailable_products(user_api_client, product):
     '''
     response = user_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     assert content['data']['products']['totalCount'] == 0
     assert not content['data']['products']['edges']
 
@@ -126,7 +124,6 @@ def test_product_query(admin_api_client, product):
     ''' % {'category_id': graphene.Node.to_global_id('Category', category.id)}
     response = admin_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     assert content['data']['category'] is not None
     product_edges_data = content['data']['category']['products']['edges']
     assert len(product_edges_data) == category.products.count()
@@ -163,7 +160,6 @@ def test_query_product_image_by_id(user_api_client, product_with_image):
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
 
 
 def test_product_with_collections(admin_api_client, product, collection):
@@ -188,7 +184,6 @@ def test_product_with_collections(admin_api_client, product, collection):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['product']
     assert data['collections']['edges'][0]['node']['name'] == collection.name
     assert len(data['collections']['edges']) == 1
@@ -217,7 +212,6 @@ def test_filter_product_by_category(user_api_client, product):
                         'Category', category.id)}),
             'operationName': 'getProducts'})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     product_data = content['data']['products']['edges'][0]['node']
     assert product_data['name'] == product.name
 
@@ -241,7 +235,6 @@ def test_fetch_product_by_id(user_api_client, product):
                     'productId': graphene.Node.to_global_id(
                         'Product', product.id)})})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     product_data = content['data']['node']
     assert product_data['name'] == product.name
 
@@ -268,7 +261,6 @@ def test_filter_product_by_attributes(user_api_client, product):
         'filter_by': filter_by}
     response = user_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     product_data = content['data']['category']['products']['edges'][0]['node']
     assert product_data['name'] == product.name
 
@@ -300,7 +292,6 @@ def test_sort_products(user_api_client, product):
     asc_price_query = query % {'sort_by': 'price'}
     response = user_api_client.post(reverse('api'), {'query': asc_price_query})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     product_data = content['data']['products']['edges'][0]['node']
     price_0 = content['data']['products']['edges'][0]['node']['price']['amount']
     price_1 = content['data']['products']['edges'][1]['node']['price']['amount']
@@ -309,8 +300,6 @@ def test_sort_products(user_api_client, product):
     desc_price_query = query % {'sort_by': '-price'}
     response = user_api_client.post(reverse('api'), {'query': desc_price_query})
     content = get_graphql_content(response)
-    assert 'errors' not in content
-    product_data = content['data']['products']['edges'][0]['node']
     price_0 = content['data']['products']['edges'][0]['node']['price']['amount']
     price_1 = content['data']['products']['edges'][1]['node']['price']['amount']
     assert price_0 > price_1
@@ -411,7 +400,6 @@ def test_create_product(
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['productCreate']
     assert data['errors'] == []
     assert data['product']['name'] == product_name
@@ -507,7 +495,6 @@ def test_update_product(
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['productUpdate']
     assert data['errors'] == []
     assert data['product']['name'] == product_name
@@ -538,7 +525,6 @@ def test_delete_product(admin_api_client, product):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['productDelete']
     assert data['product']['name'] == product.name
     with pytest.raises(product._meta.model.DoesNotExist):
@@ -570,7 +556,6 @@ def test_product_type(user_api_client, product_type):
     response = user_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
     no_product_types = ProductType.objects.count()
-    assert 'errors' not in content
     assert content['data']['productTypes']['totalCount'] == no_product_types
     assert len(content['data']['productTypes']['edges']) == no_product_types
 
@@ -602,17 +587,16 @@ def test_product_type_query(
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']
     assert data['productType']['products']['totalCount'] == no_products - 1
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']
     assert data['productType']['products']['totalCount'] == no_products
     assert data['productType']['taxRate'] == product_type.tax_rate.upper()
+
 
 def test_product_type_create_mutation(admin_api_client, product_type):
     query = """
@@ -674,7 +658,6 @@ def test_product_type_create_mutation(admin_api_client, product_type):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     assert ProductType.objects.count() == initial_count + 1
     data = content['data']['productTypeCreate']['productType']
     assert data['name'] == product_type_name
@@ -750,7 +733,6 @@ def test_product_type_update_mutation(admin_api_client, product_type):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['productTypeUpdate']['productType']
     assert data['name'] == product_type_name
     assert data['hasVariants'] == has_variants
@@ -775,7 +757,6 @@ def test_product_type_delete_mutation(admin_api_client, product_type):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['productTypeDelete']
     assert data['productType']['name'] == product_type.name
     with pytest.raises(product_type._meta.model.DoesNotExist):
@@ -799,8 +780,6 @@ def test_product_image_create_mutation(admin_api_client, product):
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = admin_api_client.post_multipart(reverse('api'), body)
     content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['productImageCreate']
     product.refresh_from_db()
     assert product.images.first().image.file
 
@@ -828,7 +807,6 @@ def test_invalid_product_image_create_mutation(admin_api_client, product):
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = admin_api_client.post_multipart(reverse('api'), body)
     content = get_graphql_content(response)
-    assert 'errors' not in content
     assert content['data']['productImageCreate']['errors'] == [{
         'field': 'image',
         'message': 'Invalid file type'}]
@@ -854,8 +832,7 @@ def test_product_image_update_mutation(admin_api_client, product_with_image):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
-    data = content['data']['productImageUpdate']['image']['alt'] == alt
+    assert content['data']['productImageUpdate']['image']['alt'] == alt
 
 
 def test_product_image_delete(admin_api_client, product_with_image):
@@ -876,7 +853,6 @@ def test_product_image_delete(admin_api_client, product_with_image):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['productImageDelete']
     assert data['image']['url'] == image_obj.image.url
     with pytest.raises(image_obj._meta.model.DoesNotExist):
@@ -907,7 +883,6 @@ def test_reorder_images(admin_api_client, product_with_images):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
 
     # Check if order has been changed
     product.refresh_from_db()
@@ -941,7 +916,6 @@ def test_collections_query(
     # query public collections only as regular user
     response = user_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     edges = content['data']['collections']['edges']
     assert len(edges) == 1
     collection_data = edges[0]['node']
@@ -954,7 +928,6 @@ def test_collections_query(
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     edges = content['data']['collections']['edges']
     assert len(edges) == 2
 
@@ -986,7 +959,6 @@ def test_create_collection(admin_api_client, product_list):
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = admin_api_client.post_multipart(reverse('api'), body)
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['collectionCreate']['collection']
     assert data['name'] == name
     assert data['slug'] == slug
@@ -1016,7 +988,6 @@ def test_update_collection(admin_api_client, collection):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['collectionUpdate']['collection']
     assert data['name'] == name
     assert data['slug'] == slug
@@ -1037,7 +1008,6 @@ def test_delete_collection(admin_api_client, collection):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['collectionDelete']['collection']
     assert data['name'] == collection.name
     with pytest.raises(collection._meta.model.DoesNotExist):
@@ -1067,7 +1037,6 @@ def test_add_products_to_collection(
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['collectionAddProducts']['collection']
     assert data[
         'products']['totalCount'] == no_products_before + len(product_ids)
@@ -1097,7 +1066,6 @@ def test_remove_products_from_collection(
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['collectionRemoveProducts']['collection']
     assert data[
         'products']['totalCount'] == no_products_before - len(product_ids)
@@ -1127,7 +1095,6 @@ def test_assign_variant_image(
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     variant.refresh_from_db()
     assert variant.images.first() == image
 
@@ -1176,7 +1143,6 @@ def test_unassign_variant_image(
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     variant.refresh_from_db()
     assert variant.images.count() == 0
 
@@ -1237,7 +1203,6 @@ def test_product_type_update_changes_variant_name(
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     product.refresh_from_db()
     variant = product.variants.first()
     attribute = product.product_type.variant_attributes.first()
@@ -1270,7 +1235,6 @@ def test_product_variants_by_ids(user_api_client, variant):
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['productVariants']
     assert data['edges'][0]['node']['id'] == variant_id
     assert len(data['edges']) == 1
@@ -1291,7 +1255,6 @@ def test_product_variants_no_ids_list(user_api_client, variant):
     response = user_api_client.post(
         reverse('api'), {'query': query})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['productVariants']
     assert len(data['edges']) == ProductVariant.objects.count()
 
@@ -1315,7 +1278,6 @@ def test_category_image_query(user_api_client, non_default_category):
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['category']
     thumbnail_url = category.background_image.thumbnail['120x120'].url
     assert data['backgroundImage']['url'] == thumbnail_url
@@ -1339,7 +1301,6 @@ def test_collection_image_query(user_api_client, collection):
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['collection']
     thumbnail_url = collection.background_image.thumbnail['120x120'].url
     assert data['backgroundImage']['url'] == thumbnail_url
@@ -1386,7 +1347,6 @@ def test_product_variant_price(
     response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['product']
     variant_price = data['variants']['edges'][0]['node']['price']
     assert variant_price['amount'] == api_variant_price
