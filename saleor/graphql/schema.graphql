@@ -126,9 +126,13 @@ type AttributeCreate {
 }
 
 input AttributeCreateInput {
-  slug: String!
   name: String!
-  values: [AttributeValueCreateInput]
+  values: [AttributeCreateValueInput]
+}
+
+input AttributeCreateValueInput {
+  name: String!
+  value: String!
 }
 
 type AttributeDelete {
@@ -136,16 +140,17 @@ type AttributeDelete {
   attribute: Attribute
 }
 
-input AttributeInput {
-  slug: String!
-  name: String!
-}
-
 scalar AttributeScalar
 
 type AttributeUpdate {
   errors: [Error]
   attribute: Attribute
+}
+
+input AttributeUpdateInput {
+  name: String
+  removeValues: [ID]!
+  addValues: [AttributeCreateValueInput]!
 }
 
 type AttributeValue implements Node {
@@ -159,12 +164,11 @@ type AttributeValue implements Node {
 
 type AttributeValueCreate {
   errors: [Error]
+  attribute: Attribute
   attributeValue: AttributeValue
 }
 
 input AttributeValueCreateInput {
-  attribute: ID
-  slug: String!
   name: String!
   value: String!
 }
@@ -188,6 +192,7 @@ enum AttributeValueType {
 
 type AttributeValueUpdate {
   errors: [Error]
+  attribute: Attribute
   attributeValue: AttributeValue
 }
 
@@ -641,9 +646,9 @@ type Mutations {
   tokenVerify(token: String): VerifyToken
   setPassword(id: ID!, input: SetPasswordInput!): SetPassword
   passwordReset(email: String!): PasswordReset
-  attributeValueCreate(input: AttributeValueCreateInput!): AttributeValueCreate
+  attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
   attributeValueDelete(id: ID!): AttributeValueDelete
-  attributeValueUpdate(id: ID!, input: AttributeInput!): AttributeValueUpdate
+  attributeValueUpdate(id: ID!, input: AttributeValueCreateInput!): AttributeValueUpdate
   categoryCreate(input: CategoryInput!): CategoryCreate
   categoryDelete(id: ID!): CategoryDelete
   categoryUpdate(id: ID!, input: CategoryInput!): CategoryUpdate
@@ -691,7 +696,7 @@ type Mutations {
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
   attributeCreate(input: AttributeCreateInput!): AttributeCreate
   attributeDelete(id: ID!): AttributeDelete
-  attributeUpdate(id: ID!, input: AttributeInput!): AttributeUpdate
+  attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
   productCreate(input: ProductCreateInput!): ProductCreate
   productDelete(id: ID!): ProductDelete
   productUpdate(id: ID!, input: ProductInput!): ProductUpdate
