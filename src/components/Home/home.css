@@ -5,11 +5,18 @@
     &.hero {
       position: relative;
       height: 100vh;
+      @media (max-width: 1440px) {
+        height: 75vh;
+      }
       margin-bottom: calc(var(--spacer) * 6);
       & .bg-container {
         background-image: url('../../images/parrot-bg.png');
-        background-size: contain;
-        background-position: 100% 100%;
+        background-size: 95%;
+        background-position: 150% 150%;
+        @media (max-width: 1440px) {
+          background-size: 80%;
+          background-position: 100% 0%;
+        }
         @media (max-width: 1024px) {
           background-size: 120%;
           background-position: 100% 0%;
@@ -24,10 +31,15 @@
         }
       }
       & .plane {
-        width: 50%;
-        position: relative;
+        width: 40%;
+        position: absolute;
+        top: 50%;
+        left: 10%;
+        transform: translateY(-50%);
         z-index: 2;
-        padding: calc(var(--spacer) * 12) 0 calc(var(--spacer) * 12) calc(var(--spacer) * 5);
+        @media (max-width: 1440px) {
+          width: 55%;
+        }
         @media (max-width: 768px) {
           width: 100%;
           padding: calc(var(--spacer) * 14) 0 calc(var(--spacer) * 12) calc(var(--spacer) * 2);
@@ -48,26 +60,28 @@
         & .news {
           position: relative;
           top: calc(var(--spacer) * -4);
+          opacity: 0.6;
           @media (max-width: 768px) {
             top: calc(var(--spacer) * -4);
           }
           & .label {
-            width: 20%;
             display: inline-block;
-            background: rgb(54,193,172);
-            background: linear-gradient(135deg, rgba(54,193,172,0) 20%, rgba(54,193,172,1) 20%, rgba(54,193,172,1) 80%, rgba(54,193,172,0) 80%, rgba(54,193,172,0) 100%);
+            border: solid 1px var(--primaryColor);
+            transform: skew(40deg);
             text-align: center;
             color: var(--background-color);
             padding-top: calc(var(--spacer) * 0.1);
+            & span {
+              display: block;
+              transform: skew(-40deg);
+              color: var(--body-color);
+              padding: 0 calc(var(--spacer) * 2);
+            }
           }
           & .content {
             width: 80%;
             display: inline-block;
-            background: rgb(16,10,53);
-            background: linear-gradient(135deg, rgba(16,10,53,0) 5%, rgba(16,10,53,1) 5%, rgba(16,10,53,1) 80%, rgba(16,10,53,0) 80%, rgba(16,10,53,0) 100%);
             padding: calc(var(--spacer) * 0.1) 0 0 0;
-            position: relative;
-            left: -5%;
             & a {
               color: var(--body-color);
               padding-left: calc(var(--spacer) * 2);
@@ -78,7 +92,7 @@
           }
         }
         & h1 {
-          padding-bottom: calc(var(--spacer) * 5);
+          padding-bottom: calc(var(--spacer) * 3);
           @media (max-width: 768px) {
             padding-right: calc(var(--spacer) * 13);
           }
@@ -91,7 +105,7 @@
           }
         }
         & .btn {
-          margin-right: var(--spacer);
+          margin: 0 calc(var(--spacer) * 1.5);
           font-size: calc(var(--font-size-base) * 1.2);
           @media (max-width: 570px) {
             font-size: var(--font-size-base);
@@ -117,9 +131,11 @@
         }
       }
       & .scroll-link {
-        position: relative;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
         z-index: 998;
-        bottom: calc(var(--spacer) * 12);
+        bottom: calc(var(--spacer) * 4);
         @media (max-width: 1024px) {
           bottom: calc(var(--spacer) * 4);
         }
@@ -147,7 +163,7 @@
       position: relative;
       top: calc(var(--spacer) * -6);
       & .grid {
-        padding: 0 calc(var(--spacer) * 3);
+        padding: 0 calc(var(--spacer) * 5);
         width: calc(100% - calc(var(--spacer) * 3));
         @media (max-width: 450px) {
           padding: var(--spacer);
@@ -155,6 +171,10 @@
         }
       }
       & .section-container {
+        padding: calc(var(--spacer) * 4) calc(var(--spacer) * 10);
+        @media (max-width: 1440px) {
+          padding: calc(var(--spacer) * 4) calc(var(--spacer) * 10) calc(var(--spacer) * 0) calc(var(--spacer) * 10);
+        }
         @media (max-width: 450px) {
           padding: 0 calc(var(--spacer) * 1) 0 calc(var(--spacer) * 3);
         }
@@ -170,8 +190,8 @@
         color: var(--primaryColor);
         text-transform: uppercase;
         position: relative;
-        top: calc(var(--spacer) * -2); 
         padding-left: calc(var(--spacer) * 5);
+        font-weight: var(--font-weight-lighter);
         & span {
           position: absolute;
           top: 0;
@@ -209,6 +229,9 @@
       & .feature-item {
         padding: calc(var(--spacer) * 3) 0;
         height: 50vh;
+        @media (max-width: 1440px) {
+          padding: calc(var(--spacer) * 2) 0;
+        }
         @media (max-width: 1024px) {
           padding: calc(var(--spacer) * 3) 0;
         }
@@ -254,7 +277,16 @@
               font-weight: var(--font-weight-normal);
               font-size: calc(var(--font-size-base) * 3);
               line-height: var(--headings-line-height);
+              @media (max-width: 1440px) {
+                font-size: calc(var(--font-size-base) * 2);
+              }
               @media (max-width: 768px) {
+                width: 100%;
+              }
+            }
+            &.text-light {
+              width: 80%;
+              @media (max-width: 1440px) {
                 width: 100%;
               }
             }
@@ -300,6 +332,9 @@
           & .image {
             background-image: url('../../images/build-to-scale.svg');
             background-size: 60%;
+            @media (max-width: 1440px) {
+              background-size: 90%;
+            }
             @media (max-width: 768px) {
               background-size: 100%;
             }
@@ -313,6 +348,9 @@
           & .image {
             background-image: url('../../images/easy-to-customize.svg');
             background-size: 60%;
+            @media (max-width: 1440px) {
+              background-size: 90%;
+            }
             @media (max-width: 768px) {
               background-size: 100%;
             }
@@ -329,7 +367,7 @@
             padding-top: 0;
           }
           & .text {
-            width: 60%;
+            width: 65%;
             padding: 0
             & h2 {
               margin-bottom: 0;
@@ -378,13 +416,14 @@
               font-weight: bold;
               font-size: calc(var(--spacer) * 1.2);
               padding-top: var(--spacer);
+              @media (max-width: 1440px) {
+                width: 90%;
+                font-size: var(--spacer);
+              }
               &.text-light {
                 font-weight: 200;
                 font-size: var(--spacer);
               }
-            }
-            & img {
-              height: 40vh;
             }
           }
           & .dashboard {
@@ -398,19 +437,23 @@
               font-weight: bold;
               font-size: calc(var(--spacer) * 1.2);
               padding-top: var(--spacer);
+              media ( @max-width: 1440px) {
+                width: 90%;
+                font-size: var(--spacer);
+              }
               &.text-light {
                 font-weight: 200;
                 font-size: var(--spacer);
               }
-            }
-            & img {
-              height: 40vh;
             }
           }
         }
         & .more-btn {
           margin: calc(var(--spacer) * 4) auto 0 auto;
           text-align: center;
+          & .btn {
+            padding: calc(var(--spacer) / 1.5) calc(var(--spacer) * 6);
+          }
         }
       }
     }
@@ -418,7 +461,10 @@
       position: relative;
       padding-top: calc(var(--spacer) * 3);
       & .section-container {
-        padding: 0 calc(var(--spacer) * 4) calc(var(--spacer) * 10) calc(var(--spacer) * 4)
+        padding: 0 calc(var(--spacer) * 10) calc(var(--spacer) * 10) calc(var(--spacer) * 10);
+        @media (max-width: 1440px) {
+          padding: 0 calc(var(--spacer) * 10) calc(var(--spacer) * 6) calc(var(--spacer) * 10);
+        }
       }
       & .text {
         position: relative;
@@ -432,11 +478,15 @@
           font-size: calc(var(--font-size-base) * 3);
           font-weight: var(--font-weight-medium);
           line-height: var(--headings-line-height);
+          @media (max-width: 1440px) {
+            font-size: calc(var(--font-size-base) * 2);
+          }
         }
         & .text-light {
           font-size: calc(var(--font-size-base) * 1);
           font-weight: var(--font-weight-light);
           margin-top: calc(var(--spacer) * 2);
+          line-height: calc(var(--headings-line-height) + 0.4);
         }
         width: 60%;
         @media (max-width: 768px) {
@@ -504,8 +554,11 @@
         padding-top: 25%;
         position: absolute;
         right: 9%;
-        top: -1.5%;
+        top: 3.5%;
         z-index: 2;
+        @media (max-width: 1440px) {
+          top: 8.5%;
+        }
         @media (max-width: 1024px) {
           top: 14%;
         }
@@ -572,8 +625,9 @@
           padding-top: calc(var(--spacer) * 2);
         }
         & .icon {
+          padding-bottom: calc(var(--spacer) * 2);
           @media (max-width: 450px) {
-            padding-top: calc(var(--spacer) * 2)
+            padding-top: calc(var(--spacer) * 2);
           }
           & .logo {
             & svg {
@@ -592,6 +646,11 @@
             text-align: left;
             color: var(--primaryColor);
             line-height: 60px;
+            letter-spacing: 0.6px;
+            @media (max-width: 1440px) {
+              line-height: 1.2;
+              padding-top: calc(var(--spacer) * 1.2);
+            }
           }
         }
       }
@@ -601,6 +660,7 @@
       background: rgb(16,10,53);
       background: linear-gradient(135deg, rgba(16,10,53,0) 8%, rgba(16,10,53,1) 8%, rgba(16,10,53,1) 92%, rgba(16,10,53,0) 92%, rgba(16,10,53,0) 100%);
       & .section-container {
+        padding: calc(var(--spacer) * 4) calc(var(--spacer) * 10);
         min-height: 700px;
         @media (max-width: 1024px) {
           padding: calc(var(--spacer) * 4);
@@ -622,6 +682,8 @@
         & h2 {
           &.tab-1 { color: var(--body-color) }
           &.tab-1 { color: var(--body-color) }
+          text-transform: initial;
+          padding-top: calc(var(--spacer) * 1.5);
           @media (max-width: 768px) {
             padding-bottom: calc(var(--spacer) * 2);
           }
@@ -695,7 +757,10 @@
           top: calc(var(--spacer) * 2);
         }
         & .pg-quote {
-          padding: calc(var(--spacer) * 6) 0 0 calc(var(--spacer) * 3);
+          padding: calc(var(--spacer) * 6) 0 0 calc(var(--spacer) * 8);
+          @media (max-width: 1440px) {
+            padding: calc(var(--spacer) * 2) 0 0 calc(var(--spacer) * 3);
+          }
           @media (max-width: 1024px) {
             padding: calc(var(--spacer) * 2) 0 0 calc(var(--spacer) * 3);
           }
@@ -757,6 +822,9 @@
       position: relative;
       z-index: 1;
       padding: calc(var(--spacer) * 4) 0 calc(var(--spacer) * 2) 0;
+      & .section-container {
+        padding: calc(var(--spacer) * 4) calc(var(--spacer) * 10);
+      }
       & h2 {
           color: var(--primaryColor);
           font-size: var(--font-size-base);
@@ -766,7 +834,9 @@
         font-weight: var(--font-weight-medium);
         width: 65%;
         font-size: calc(var(--font-size-base) * 3);
-        padding-top: calc(var(--spacer) * 2);
+        @media (max-width: 1440px) {
+          font-size: calc(var(--font-size-base) * 2);
+        }
         text-transform: unset;
         @media (max-width: 1024px) {
           font-size: calc(var(--font-size-base) * 2);
@@ -779,7 +849,7 @@
         }
       }
       & .list {
-        padding: calc(var(--spacer) * 5) 0;
+        padding: calc(var(--spacer) * 2.5) 0;
         @media (max-width: 1024px) {
           grid-gap: var(--spacer);
         }
@@ -789,16 +859,18 @@
         & ul {
           margin-left: calc(var(--spacer) * 3);
           & li {
-            font-size: calc(var(--font-size-base) * 1.2);
+            font-size: var(--font-size-base);
+            padding-left: var(--spacer);
             padding-bottom: var(--spacer);
             position: relative;
             font-weight: var(--font-weight-light);
+            line-height: 40px;
             &::before {
               content: "";
               position: absolute;
               display: inline-block;
-              height: 30px;
-              width: 30px;
+              height: 40px;
+              width: 40px;
               background-image: url('../../images/done-icon.png');
               background-size: contain;
               left: calc(var(--spacer) * -3);
@@ -813,6 +885,8 @@
         }
       }
       & .btn {
+        margin-left: calc(var(--spacer) * 1.5);
+        padding: calc(var(--spacer) / 2) calc(var(--spacer) * 6);
         @media (max-width: 450px) {
           font-size: var(--font-size-base);
           padding: calc(var(--spacer) / 2) calc(var(--spacer) * 2);

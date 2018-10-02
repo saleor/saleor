@@ -41,7 +41,7 @@
   --font-weight-base:            var(--font-weight-lighter);
   --line-height-base:            1.7;
 
-  --h1-font-size:                calc(var(--font-size-base) * 3.5);
+  --h1-font-size:                calc(var(--font-size-base) * 4);
   --h2-font-size:                calc(var(--font-size-base) * 3);
   --h3-font-size:                calc(var(--font-size-base) * 2);
   --h4-font-size:                calc(var(--font-size-base) * 1.5);

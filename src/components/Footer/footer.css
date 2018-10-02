@@ -9,13 +9,13 @@ footer {
   & .logo {
     width: 120px;
     padding-bottom: var(--spacer);
-    padding-left: 8rem;
+    padding-left: 10rem;
     @media (max-width: 450px) {
       width: 80px;
     }
   }
   & .content {
-    padding: 0 8rem;
+    padding: 0 10rem;
     & .menu {
       padding: calc(var(--spacer) * 2) 0;
       @media (max-width: 768px) {
@@ -39,6 +39,8 @@ footer {
         }
       }
       & ul {
+        @media (min-width: 1920px) {
+        }
         & li {
           & a {
             font-size: var(--font-size);

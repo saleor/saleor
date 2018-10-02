@@ -14,7 +14,7 @@ const Footer = () => (
         <div className="grid">
           <div className="col-xs-12 col-sm-9 col-md-10 col-lg-11 menu">
             <div className="grid">
-              <div className="col-xs-4 col-sm-4 col-md-3 col-lg-2">
+              <div className="col-xs-4 col-sm-4 col-md-3 col-lg-2 col-xlg-1 menu-item">
                 <ul>
                   <li><h4>Company</h4></li>
                   <li><a href="https://medium.com/saleor">Blog</a></li>
@@ -22,7 +22,7 @@ const Footer = () => (
                   <li><a href="https://mirumee.com/hire-us/">Contact</a></li>
                 </ul>
               </div>
-              <div className="col-xs-4 col-sm-4 col-md-3 col-lg-2">
+              <div className="col-xs-4 col-sm-4 col-md-3 col-lg-2 col-xlg-1 menu-item">
                 <ul>
                   <li><h4>Solution</h4></li>
                   <li><NavLink to="/features">Features</NavLink></li>
@@ -31,7 +31,7 @@ const Footer = () => (
                   <li><a href="https://demo.getsaleor.com/en/">Demo</a></li>
                 </ul>
               </div>
-              <div className="col-xs-4 col-sm-4 col-md-3 col-lg-2">
+              <div className="col-xs-4 col-sm-4 col-md-3 col-lg-2 col-xlg-1 menu-item">
                 <ul>
                   <li><h4>Community</h4></li>
                   <li><a href="https://github.com/mirumee/saleor">Contribute</a></li>
@@ -39,7 +39,7 @@ const Footer = () => (
                   <li><a href="mailto:hello@mirumee.com">Become a partner</a></li>
                 </ul>
               </div>
-              <div className="col-xs-4 col-sm-4 col-md-3 col-lg-2">
+              <div className="col-xs-4 col-sm-4 col-md-3 col-lg-2 col-xlg-1 menu-item">
                 <ul>
                   <li><h4>About</h4></li>
                   <li><Link to="/privacy-policy">Privacy policy</Link></li>
