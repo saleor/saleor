@@ -11,7 +11,7 @@ from saleor.product.models import Category
 
 def test_category_query(user_api_client, product):
     category = Category.objects.first()
-    query = '''
+    query = """
     query {
         category(id: "%(category_pk)s") {
             id
@@ -32,7 +32,7 @@ def test_category_query(user_api_client, product):
             }
         }
     }
-    ''' % {'category_pk': graphene.Node.to_global_id('Category', category.pk)}
+    """ % {'category_pk': graphene.Node.to_global_id('Category', category.pk)}
     response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     category_data = content['data']['category']

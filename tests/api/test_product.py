@@ -18,7 +18,7 @@ from .utils import assert_no_permission, get_multipart_request_body
 
 
 def test_fetch_all_products(user_api_client, product):
-    query = '''
+    query = """
     query {
         products {
             totalCount
@@ -29,7 +29,7 @@ def test_fetch_all_products(user_api_client, product):
             }
         }
     }
-    '''
+    """
     response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     num_products = Product.objects.count()
@@ -40,7 +40,7 @@ def test_fetch_all_products(user_api_client, product):
 @pytest.mark.djangodb
 def test_fetch_unavailable_products(user_api_client, product):
     Product.objects.update(is_published=False)
-    query = '''
+    query = """
     query {
         products {
             totalCount
@@ -51,7 +51,7 @@ def test_fetch_unavailable_products(user_api_client, product):
             }
         }
     }
-    '''
+    """
     response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     assert content['data']['products']['totalCount'] == 0
@@ -61,7 +61,7 @@ def test_fetch_unavailable_products(user_api_client, product):
 def test_product_query(admin_api_client, product):
     category = Category.objects.first()
     product = category.products.first()
-    query = '''
+    query = """
     query {
         category(id: "%(category_id)s") {
             products {
@@ -121,7 +121,7 @@ def test_product_query(admin_api_client, product):
             }
         }
     }
-    ''' % {'category_id': graphene.Node.to_global_id('Category', category.id)}
+    """ % {'category_id': graphene.Node.to_global_id('Category', category.id)}
     response = admin_api_client.post_graphql(query)
     content = get_graphql_content(response)
     assert content['data']['category'] is not None
@@ -144,7 +144,7 @@ def test_product_query(admin_api_client, product):
 
 def test_query_product_image_by_id(user_api_client, product_with_image):
     image = product_with_image.images.first()
-    query = '''
+    query = """
     query productImageById($imageId: ID!, $productId: ID!) {
         product(id: $productId) {
             imageById(id: $imageId) {
@@ -153,7 +153,7 @@ def test_query_product_image_by_id(user_api_client, product_with_image):
             }
         }
     }
-    '''
+    """
     variables = json.dumps({
         'productId': graphene.Node.to_global_id('Product', product_with_image.pk),
         'imageId': graphene.Node.to_global_id('ProductImage', image.pk)})
@@ -162,7 +162,7 @@ def test_query_product_image_by_id(user_api_client, product_with_image):
 
 
 def test_product_with_collections(admin_api_client, product, collection):
-    query = '''
+    query = """
         query getProduct($productID: ID!) {
             product(id: $productID) {
                 collections(first: 1) {
@@ -174,7 +174,7 @@ def test_product_with_collections(admin_api_client, product, collection):
                 }
             }
         }
-        '''
+        """
     product.collections.add(collection)
     product.save()
     product_id = graphene.Node.to_global_id('Product', product.id)
@@ -189,7 +189,7 @@ def test_product_with_collections(admin_api_client, product, collection):
 
 def test_filter_product_by_category(user_api_client, product):
     category = product.category
-    query = '''
+    query = """
     query getProducts($categoryId: ID) {
         products(category: $categoryId) {
             edges {
@@ -199,7 +199,7 @@ def test_filter_product_by_category(user_api_client, product):
             }
         }
     }
-    '''
+    """
     variables = json.dumps({
         'categoryId': graphene.Node.to_global_id('Category', category.id)})
     response = user_api_client.post_graphql(query, variables)
@@ -209,7 +209,7 @@ def test_filter_product_by_category(user_api_client, product):
 
 
 def test_fetch_product_by_id(user_api_client, product):
-    query = '''
+    query = """
     query ($productId: ID!) {
         node(id: $productId) {
             ... on Product {
@@ -217,7 +217,7 @@ def test_fetch_product_by_id(user_api_client, product):
             }
         }
     }
-    '''
+    """
     variables = json.dumps({
         'productId': graphene.Node.to_global_id('Product', product.id)})
     response = user_api_client.post_graphql(query, variables)
@@ -231,7 +231,7 @@ def test_filter_product_by_attributes(user_api_client, product):
     category = product.category
     attr_value = product_attr.values.first()
     filter_by = '%s:%s' % (product_attr.slug, attr_value.slug)
-    query = '''
+    query = """
     query {
         category(id: "%(category_id)s") {
             products(attributes: ["%(filter_by)s"]) {
@@ -243,7 +243,7 @@ def test_filter_product_by_attributes(user_api_client, product):
             }
         }
     }
-    ''' % {
+    """ % {
         'category_id': graphene.Node.to_global_id('Category', category.id),
         'filter_by': filter_by}
     response = user_api_client.post_graphql(query)
@@ -262,7 +262,7 @@ def test_sort_products(user_api_client, product):
     product.price = Money('20.00', 'USD')
     product.save()
 
-    query = '''
+    query = """
     query {
         products(sortBy: "%(sort_by)s") {
             edges {
@@ -274,7 +274,7 @@ def test_sort_products(user_api_client, product):
             }
         }
     }
-    '''
+    """
 
     asc_price_query = query % {'sort_by': 'price'}
     response = user_api_client.post_graphql(asc_price_query)
@@ -1183,7 +1183,7 @@ def test_update_variants_changed_does_nothing_with_no_attributes():
 
 
 def test_product_variants_by_ids(user_api_client, variant):
-    query = '''
+    query = """
         query getProduct($ids: [ID!]) {
             productVariants(ids: $ids) {
                 edges {
@@ -1193,7 +1193,7 @@ def test_product_variants_by_ids(user_api_client, variant):
                 }
             }
         }
-        '''
+        """
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
 
     variables = json.dumps({'ids': [variant_id]})
@@ -1205,7 +1205,7 @@ def test_product_variants_by_ids(user_api_client, variant):
 
 
 def test_product_variants_no_ids_list(user_api_client, variant):
-    query = '''
+    query = """
         query getProductVariants {
             productVariants(first: 10) {
                 edges {
@@ -1215,7 +1215,7 @@ def test_product_variants_no_ids_list(user_api_client, variant):
                 }
             }
         }
-        '''
+        """
     response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content['data']['productVariants']
@@ -1287,7 +1287,7 @@ def test_product_variant_price(
     # Drop other variants
     # product.variants.exclude(id=variant.pk).delete()
 
-    query = '''
+    query = """
         query getProductVariants($id: ID!) {
             product(id: $id) {
                 variants {
@@ -1301,7 +1301,7 @@ def test_product_variant_price(
                 }
             }
         }
-        '''
+        """
     product_id = graphene.Node.to_global_id('Product', variant.product.id)
     variables = json.dumps({'id': product_id})
 
