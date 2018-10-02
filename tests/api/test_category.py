@@ -33,7 +33,7 @@ def test_category_query(user_api_client, product):
         }
     }
     ''' % {'category_pk': graphene.Node.to_global_id('Category', category.pk)}
-    response = user_api_client.post(reverse('api'), {'query': query})
+    response = user_api_client.post({'query': query})
     content = get_graphql_content(response)
     category_data = content['data']['category']
     assert category_data is not None
@@ -84,7 +84,7 @@ def test_category_create_mutation(admin_api_client):
         'name': category_name, 'description': category_description,
         'slug': category_slug})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['categoryCreate']
     assert data['errors'] == []
@@ -98,7 +98,7 @@ def test_category_create_mutation(admin_api_client):
         'name': category_name, 'description': category_description,
         'parentId': parent_id, 'slug': category_slug})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['categoryCreate']
     assert data['errors'] == []
@@ -144,7 +144,7 @@ def test_category_update_mutation(admin_api_client, category):
         'name': category_name, 'description': category_description,
         'id': category_id, 'slug': category_slug})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['categoryUpdate']
     assert data['errors'] == []
@@ -173,7 +173,7 @@ def test_category_delete_mutation(admin_api_client, category):
     variables = json.dumps({
         'id': graphene.Node.to_global_id('Category', category.id)})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['categoryDelete']
     assert data['category']['name'] == category.name
@@ -200,7 +200,7 @@ def test_category_level(user_api_client, category):
         name='child', slug='chi-ld', parent=category)
     variables = json.dumps({'level': 0})
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     category_data = content['data']['categories']['edges'][0]['node']
     assert category_data['name'] == category.name
@@ -222,7 +222,7 @@ def test_category_level(user_api_client, category):
     """
     variables = json.dumps({'level': 1})
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     category_data = content['data']['categories']['edges'][0]['node']
     assert category_data['name'] == child.name

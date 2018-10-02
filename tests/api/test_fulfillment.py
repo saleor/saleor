@@ -49,7 +49,7 @@ def test_create_fulfillment(admin_api_client, order_with_lines, admin_user):
          'lines': [{'orderLineId': order_line_id, 'quantity': 1}],
          'tracking': tracking, 'notify': True})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderFulfillmentCreate']['fulfillment']
     assert data['fulfillmentOrder'] == 1
@@ -85,7 +85,7 @@ def test_create_fulfillment_not_sufficient_quantity(
         'order': graphene.Node.to_global_id('Order', order_with_lines.id),
         'lines': [{'orderLineId': order_line_id, 'quantity': quantity}]})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderFulfillmentCreate']
     assert data['errors']
@@ -109,7 +109,7 @@ def test_fulfillment_update_tracking(admin_api_client, fulfillment):
     variables = json.dumps(
         {'id': fulfillment_id, 'tracking': tracking})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderFulfillmentUpdateTracking']['fulfillment']
     assert data['trackingNumber'] == tracking
@@ -129,7 +129,7 @@ def test_cancel_fulfillment_restock_items(
     fulfillment_id = graphene.Node.to_global_id('Fulfillment', fulfillment.id)
     variables = json.dumps({'id': fulfillment_id, 'restock': True})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderFulfillmentCancel']['fulfillment']
     assert data['status'] == FulfillmentStatus.CANCELED.upper()
@@ -154,7 +154,7 @@ def test_cancel_fulfillment(admin_api_client, fulfillment, admin_user):
     fulfillment_id = graphene.Node.to_global_id('Fulfillment', fulfillment.id)
     variables = json.dumps({'id': fulfillment_id, 'restock': False})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderFulfillmentCancel']['fulfillment']
     assert data['status'] == FulfillmentStatus.CANCELED.upper()

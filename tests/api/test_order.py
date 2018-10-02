@@ -47,7 +47,7 @@ def test_orderline_query(admin_api_client, fulfilled_order):
     line.save()
 
     response = admin_api_client.post(
-        reverse('api'), {'query': query})
+        {'query': query})
     content = get_graphql_content(response)
     order_data = content['data']['orders']['edges'][0]['node']
     lines_data = order_data['lines']['edges']
@@ -109,7 +109,7 @@ def test_order_query(admin_api_client, fulfilled_order, shipping_zone):
     }
     """
     response = admin_api_client.post(
-        reverse('api'), {'query': query})
+        {'query': query})
     content = get_graphql_content(response)
     order_data = content['data']['orders']['edges'][0]['node']
     assert order_data['number'] == str(order.pk)
@@ -176,7 +176,7 @@ def test_order_events_query(admin_api_client, fulfilled_order, admin_user):
             'quantity': '10',
             'composed_id': '10-10'})
     response = admin_api_client.post(
-        reverse('api'), {'query': query})
+        {'query': query})
     content = get_graphql_content(response)
     data = content['data']['orders']['edges'][0]['node']['events'][0]
     assert data['message'] == event.parameters['message']
@@ -203,7 +203,7 @@ def test_non_staff_user_can_only_see_his_order(user_api_client, order):
     ID = graphene.Node.to_global_id('Order', order.id)
     variables = json.dumps({'id': ID})
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     order_data = content['data']['order']
     assert order_data['number'] == str(order.pk)
@@ -211,7 +211,7 @@ def test_non_staff_user_can_only_see_his_order(user_api_client, order):
     order.user = None
     order.save()
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     order_data = content['data']['order']
     assert not order_data
@@ -277,7 +277,7 @@ def test_draft_order_create(
             'lines': variant_list, 'shippingAddress': shipping_address,
             'shippingMethod': shipping_id, 'voucher': voucher_id})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['draftOrderCreate']['order']
     assert data['status'] == OrderStatus.DRAFT.upper()
@@ -310,7 +310,7 @@ def test_draft_order_update(admin_api_client, order_with_lines):
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = json.dumps({'id': order_id, 'email': email})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['draftOrderUpdate']['order']
     assert data['userEmail'] == email
@@ -330,7 +330,7 @@ def test_draft_order_delete(admin_api_client, order_with_lines):
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = json.dumps({'id': order_id})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     with pytest.raises(order._meta.model.DoesNotExist):
         order.refresh_from_db()
 
@@ -376,7 +376,7 @@ def test_draft_order_complete(admin_api_client, admin_user, draft_order):
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = json.dumps({'id': order_id})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['draftOrderComplete']['order']
     order.refresh_from_db()
@@ -430,14 +430,12 @@ def test_draft_order_line_create(
 
     # mutation should fail without proper permissions
     response = staff_api_client.post(
-        reverse('api'),
         {'query': DRAFT_ORDER_LINE_CREATE_MUTATION, 'variables': variables})
     assert_no_permission(response)
 
     # assign permissions
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post(
-        reverse('api'),
         {'query': DRAFT_ORDER_LINE_CREATE_MUTATION, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['draftOrderLineCreate']
@@ -448,7 +446,6 @@ def test_draft_order_line_create(
     variables = json.dumps({
         'orderId': order_id, 'variantId': variant_id, 'quantity': 0})
     response = staff_api_client.post(
-        reverse('api'),
         {'query': DRAFT_ORDER_LINE_CREATE_MUTATION, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['draftOrderLineCreate']
@@ -466,7 +463,6 @@ def test_require_draft_order_when_creating_lines(
     variables = json.dumps({
         'orderId': order_id, 'variantId': variant_id, 'quantity': 1})
     response = admin_api_client.post(
-        reverse('api'),
         {'query': DRAFT_ORDER_LINE_CREATE_MUTATION, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['draftOrderLineCreate']
@@ -506,14 +502,12 @@ def test_draft_order_line_update(
 
     # mutation should fail without proper permissions
     response = staff_api_client.post(
-        reverse('api'),
         {'query': DRAFT_ORDER_LINE_UPDATE_MUTATION, 'variables': variables})
     assert_no_permission(response)
 
     # assign permissions
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post(
-        reverse('api'),
         {'query': DRAFT_ORDER_LINE_UPDATE_MUTATION, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['draftOrderLineUpdate']
@@ -522,7 +516,6 @@ def test_draft_order_line_update(
     # mutation should fail when quantity is lower than 1
     variables = json.dumps({'lineId': line_id, 'quantity': 0})
     response = staff_api_client.post(
-        reverse('api'),
         {'query': DRAFT_ORDER_LINE_UPDATE_MUTATION, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['draftOrderLineUpdate']
@@ -537,7 +530,6 @@ def test_require_draft_order_when_updating_lines(
     line_id = graphene.Node.to_global_id('OrderLine', line.id)
     variables = json.dumps({'lineId': line_id, 'quantity': 1})
     response = admin_api_client.post(
-        reverse('api'),
         {'query': DRAFT_ORDER_LINE_UPDATE_MUTATION, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['draftOrderLineUpdate']
@@ -571,14 +563,12 @@ def test_draft_order_line_remove(
 
     # mutation should fail without proper permissions
     response = staff_api_client.post(
-        reverse('api'),
         {'query': DRAFT_ORDER_LINE_DELETE_MUTATION, 'variables': variables})
     assert_no_permission(response)
 
     # assign permissions
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post(
-        reverse('api'),
         {'query': DRAFT_ORDER_LINE_DELETE_MUTATION, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['draftOrderLineDelete']
@@ -593,7 +583,6 @@ def test_require_draft_order_when_removing_lines(
     line_id = graphene.Node.to_global_id('OrderLine', line.id)
     variables = json.dumps({'id': line_id})
     response = admin_api_client.post(
-        reverse('api'),
         {'query': DRAFT_ORDER_LINE_DELETE_MUTATION, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['draftOrderLineDelete']
@@ -633,7 +622,7 @@ def test_order_update(admin_api_client, order_with_lines):
         {'id': order_id, 'email': email, 'first_name': first_name,
          'last_name': last_name, 'country_code': 'PL'})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderUpdate']['order']
     assert data['userEmail'] == email
@@ -669,7 +658,7 @@ def test_order_add_note(admin_api_client, order_with_lines, admin_user):
     message = 'nuclear note'
     variables = json.dumps({'id': order_id, 'message': message})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderAddNote']
 
@@ -702,7 +691,7 @@ def test_order_cancel_and_restock(admin_api_client, order_with_lines):
     quantity = order.get_total_quantity()
     variables = json.dumps({'id': order_id, 'restock': restock})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderCancel']['order']
     order.refresh_from_db()
@@ -719,7 +708,7 @@ def test_order_cancel(admin_api_client, order_with_lines):
     restock = False
     variables = json.dumps({'id': order_id, 'restock': restock})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderCancel']['order']
     order.refresh_from_db()
@@ -747,7 +736,7 @@ def test_order_capture(admin_api_client, payment_preauth, admin_user):
     amount = float(payment_preauth.get_total().gross.amount)
     variables = json.dumps({'id': order_id, 'amount': amount})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderCapture']['order']
     order.refresh_from_db()
@@ -788,7 +777,7 @@ def test_paid_order_mark_as_paid(
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = json.dumps({'id': order_id})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     errors = content['data']['orderMarkAsPaid']['errors']
     msg = 'Orders with payments can not be manually marked as paid.'
@@ -816,7 +805,7 @@ def test_order_mark_as_paid(
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = json.dumps({'id': order_id})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderMarkAsPaid']['order']
     order.refresh_from_db()
@@ -841,7 +830,7 @@ def test_order_release(admin_api_client, payment_preauth, admin_user):
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = json.dumps({'id': order_id})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderRelease']['order']
     assert data['paymentStatus'] == PaymentStatusEnum.REFUNDED.name
@@ -867,7 +856,7 @@ def test_order_refund(admin_api_client, payment_confirmed):
     amount = float(payment_confirmed.get_total().gross.amount)
     variables = json.dumps({'id': order_id, 'amount': amount})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderRefund']['order']
     order.refresh_from_db()
@@ -959,7 +948,7 @@ def test_order_update_shipping(
         'ShippingMethod', shipping_method.id)
     variables = json.dumps({'order': order_id, 'shippingMethod': method_id})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderUpdateShipping']
     assert data['order']['id'] == order_id
@@ -983,7 +972,7 @@ def test_order_update_shipping_clear_shipping_method(
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = json.dumps({'order': order_id, 'shippingMethod': None})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderUpdateShipping']
     assert data['order']['id'] == order_id
@@ -1001,7 +990,7 @@ def test_order_update_shipping_shipping_required(
     order_id = graphene.Node.to_global_id('Order', order.id)
     variables = json.dumps({'order': order_id, 'shippingMethod': None})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderUpdateShipping']
     assert data['errors'][0]['field'] == 'shippingMethod'
@@ -1020,7 +1009,7 @@ def test_order_update_shipping_no_shipping_address(
         'ShippingMethod', shipping_method.id)
     variables = json.dumps({'order': order_id, 'shippingMethod': method_id})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderUpdateShipping']
     assert data['errors'][0]['field'] == 'order'
@@ -1042,7 +1031,7 @@ def test_order_update_shipping_incorrect_shipping_method(
         'ShippingMethod', shipping_method.id)
     variables = json.dumps({'order': order_id, 'shippingMethod': method_id})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['orderUpdateShipping']
     assert data['errors'][0]['field'] == 'shippingMethod'

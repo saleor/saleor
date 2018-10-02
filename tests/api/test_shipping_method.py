@@ -92,7 +92,7 @@ def test_shipping_zone_query(user_api_client, shipping_zone):
     ID = graphene.Node.to_global_id('ShippingZone', shipping.id)
     variables = json.dumps({'id': ID})
     response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
 
     shipping_data = content['data']['shippingZone']
@@ -116,7 +116,7 @@ def test_shipping_zones_query(user_api_client, shipping_zone):
     num_of_shippings = shipping_zone._meta.model.objects.count()
 
     response = user_api_client.post(
-        reverse('api'), {'query': query})
+        {'query': query})
     content = get_graphql_content(response)
     assert content['data']['shippingZones']['totalCount'] == num_of_shippings
 
@@ -148,7 +148,7 @@ def test_create_shipping_zone(admin_api_client):
     variables = json.dumps(
         {'name': 'test shipping', 'countries': ['PL']})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['shippingZoneCreate']
     assert not data['errors']
@@ -163,7 +163,7 @@ def test_create_default_shipping_zone(admin_api_client):
     variables = json.dumps(
         {'default': True, 'name': 'test shipping', 'countries': ['PL']})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['shippingZoneCreate']
     assert not data['errors']
@@ -182,7 +182,7 @@ def test_create_duplicated_default_shipping_zone(
     variables = json.dumps(
         {'default': True, 'name': 'test shipping', 'countries': ['PL']})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['shippingZoneCreate']
     assert data['errors']
@@ -216,7 +216,7 @@ def test_update_shipping_zone(admin_api_client, shipping_zone):
     shipping_id = graphene.Node.to_global_id('ShippingZone', shipping_zone.pk)
     variables = json.dumps({'id': shipping_id, 'name': name, 'countries': []})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['shippingZoneUpdate']
     assert not data['errors']
@@ -237,7 +237,7 @@ def test_update_shipping_zone_default_exists(
     variables = json.dumps(
         {'id': shipping_id, 'name': 'Name', 'countries': [], 'default': True})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['shippingZoneUpdate']
     assert data['errors']
@@ -260,7 +260,7 @@ def test_delete_shipping_zone(admin_api_client, shipping_zone):
         'ShippingZone', shipping_zone.pk)
     variables = json.dumps({'id': shipping_zone_id})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['shippingZoneDelete']['shippingZone']
     assert data['name'] == shipping_zone.name
@@ -286,7 +286,7 @@ def test_create_shipping_method(
         'minimumOrderPrice': min_price, 'maximumOrderPrice': max_price,
         'type': ShippingMethodTypeEnum.PRICE.name})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['shippingPriceCreate']['shippingMethod']
     assert 'errors' not in data
@@ -314,7 +314,7 @@ def test_create_weight_based_shipping_method(
         'minimumOrderWeight': min_weight, 'maximumOrderWeight': max_weight,
         'type': ShippingMethodTypeEnum.WEIGHT.name})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['shippingPriceCreate']['shippingMethod']
     assert data['minimumOrderWeight'] == expected_min_weight
@@ -343,7 +343,7 @@ def test_create_weight_shipping_method_errors(
         'minimumOrderWeight': min_weight, 'maximumOrderWeight': max_weight,
         'type': ShippingMethodTypeEnum.WEIGHT.name})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['shippingPriceCreate']
     assert data['errors'][0] == expected_error
@@ -371,7 +371,7 @@ def test_create_price_shipping_method_errors(
         'minimumOrderPrice': min_price, 'maximumOrderPrice': max_price,
         'type': ShippingMethodTypeEnum.PRICE.name})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['shippingPriceCreate']
     assert data['errors'][0] == expected_error
@@ -417,7 +417,7 @@ def test_update_shipping_method(admin_api_client, shipping_zone):
             'minimumOrderPrice': 12.00,
             'type': ShippingMethodTypeEnum.PRICE.name})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['shippingPriceUpdate']['shippingMethod']
     assert data['price']['amount'] == float(price)
@@ -439,7 +439,7 @@ def test_delete_shipping_method(admin_api_client, shipping_method):
         'ShippingMethod', shipping_method.pk)
     variables = json.dumps({'id': shipping_method_id})
     response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     data = content['data']['shippingPriceDelete']['shippingMethod']
     assert data['price']['amount'] == float(shipping_method.price.amount)

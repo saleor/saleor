@@ -33,7 +33,8 @@ def test_jwt_middleware(admin_user):
 
     # test request with proper JWT token authorizes the request to API
     token = get_token(admin_user)
-    request = rf.get(reverse('api'), **{'HTTP_AUTHORIZATION': 'JWT %s' % token})
+    request = rf.get(
+        reverse('api'), **{'HTTP_AUTHORIZATION': 'JWT %s' % token})
     assert not hasattr(request, 'user')
     middleware(request)
     assert request.user == admin_user
@@ -176,7 +177,7 @@ def test_real_query(user_api_client, product):
     }
     '''
     response = user_api_client.post(
-        reverse('api'), {
+        {
             'query': query,
             'variables': json.dumps(
                 {
