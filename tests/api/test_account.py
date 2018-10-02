@@ -17,7 +17,7 @@ from .utils import assert_no_permission, convert_dict_keys_to_camel_case
 
 
 def test_create_token_mutation(admin_client, staff_user):
-    query = '''
+    query = """
     mutation {
         tokenCreate(email: "%(email)s", password: "%(password)s") {
             token
@@ -27,7 +27,7 @@ def test_create_token_mutation(admin_client, staff_user):
             }
         }
     }
-    '''
+    """
     success_query = query % {'email': staff_user.email, 'password': 'password'}
     response = admin_client.post_graphql(success_query)
     content = get_graphql_content(response)

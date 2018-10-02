@@ -40,7 +40,7 @@ def test_attributes_to_hstore(product, color_attribute):
 
 def test_attributes_query(user_api_client, product):
     attributes = Attribute.objects.prefetch_related('values')
-    query = '''
+    query = """
     query {
         attributes {
             edges {
@@ -57,7 +57,7 @@ def test_attributes_query(user_api_client, product):
             }
         }
     }
-    '''
+    """
     response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     attributes_data = content['data']['attributes']['edges']
@@ -66,7 +66,7 @@ def test_attributes_query(user_api_client, product):
 
 def test_attributes_in_category_query(user_api_client, product):
     category = Category.objects.first()
-    query = '''
+    query = """
     query {
         attributes(inCategory: "%(category_id)s") {
             edges {
@@ -83,7 +83,7 @@ def test_attributes_in_category_query(user_api_client, product):
             }
         }
     }
-    ''' % {'category_id': graphene.Node.to_global_id('Category', category.id)}
+    """ % {'category_id': graphene.Node.to_global_id('Category', category.id)}
     response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     attributes_data = content['data']['attributes']['edges']

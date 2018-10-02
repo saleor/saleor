@@ -45,7 +45,7 @@ def test_real_query(user_api_client, product):
     category = product.category
     attr_value = product_attr.values.first()
     filter_by = '%s:%s' % (product_attr.slug, attr_value.slug)
-    query = '''
+    query = """
     query Root($categoryId: ID!, $sortBy: String, $first: Int, $attributesFilter: [AttributeScalar], $minPrice: Float, $maxPrice: Float) {
         category(id: $categoryId) {
             ...CategoryPageFragmentQuery
@@ -175,7 +175,7 @@ def test_real_query(user_api_client, product):
         }
         __typename
     }
-    '''
+    """
     variables = json.dumps({
         'categoryId': graphene.Node.to_global_id(
             'Category', category.id),
