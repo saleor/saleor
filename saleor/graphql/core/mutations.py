@@ -211,11 +211,13 @@ class ModelMutation(BaseMutation):
         opts = instance._meta
 
         for f in opts.fields:
-            if not f.editable or isinstance(
-                    f, models.AutoField) or f.name not in cleaned_data:
+            if any([not f.editable, isinstance(f, models.AutoField),
+                    f.name not in cleaned_data]):
                 continue
-            else:
-                f.save_form_data(instance, cleaned_data[f.name])
+            data = cleaned_data[f.name]
+            if not f.null and data is None:
+                data = f._get_default()
+            f.save_form_data(instance, data)
         return instance
 
     @classmethod
