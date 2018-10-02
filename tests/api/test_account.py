@@ -224,8 +224,7 @@ def test_who_can_see_user(
     variables = json.dumps({'id': ID})
     response = staff_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
-    content = get_graphql_content(response)
-    assert content['data']['user'] is None
+    assert_no_permission(response)
 
     response = staff_api_client.post(
         reverse('api'), {'query': query_2})
@@ -240,7 +239,6 @@ def test_who_can_see_user(
 
     response = staff_api_client.post(reverse('api'), {'query': query_2})
     content = get_graphql_content(response)
-    model = get_user_model()
     assert content['data']['customers']['totalCount'] == 1
 
 
