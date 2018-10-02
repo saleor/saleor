@@ -16,9 +16,10 @@ from saleor.graphql.order.mutations.orders import (
 from saleor.graphql.order.types import OrderEventsEmailsEnum, PaymentStatusEnum
 from saleor.order import (
     CustomPaymentChoices, OrderEvents, OrderEventsEmails, OrderStatus)
-from saleor.order.models import Order, Payment, OrderEvent
+from saleor.order.models import Order, OrderEvent, Payment
 from saleor.shipping.models import ShippingMethod
 from tests.utils import get_graphql_content
+
 from .utils import assert_no_permission
 
 
@@ -48,7 +49,6 @@ def test_orderline_query(admin_api_client, fulfilled_order):
     response = admin_api_client.post(
         reverse('api'), {'query': query})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     order_data = content['data']['orders']['edges'][0]['node']
     lines_data = order_data['lines']['edges']
     thumbnails = [l['node']['thumbnailUrl'] for l in lines_data]
@@ -111,7 +111,6 @@ def test_order_query(admin_api_client, fulfilled_order, shipping_zone):
     response = admin_api_client.post(
         reverse('api'), {'query': query})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     order_data = content['data']['orders']['edges'][0]['node']
     assert order_data['number'] == str(order.pk)
     assert order_data['status'] == order.status.upper()
@@ -179,7 +178,6 @@ def test_order_events_query(admin_api_client, fulfilled_order, admin_user):
     response = admin_api_client.post(
         reverse('api'), {'query': query})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['orders']['edges'][0]['node']['events'][0]
     assert data['message'] == event.parameters['message']
     assert data['amount'] == float(event.parameters['amount'])
@@ -281,7 +279,6 @@ def test_draft_order_create(
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['draftOrderCreate']['order']
     assert data['status'] == OrderStatus.DRAFT.upper()
     assert data['voucher']['code'] == voucher.code
@@ -381,7 +378,6 @@ def test_draft_order_complete(admin_api_client, admin_user, draft_order):
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['draftOrderComplete']['order']
     order.refresh_from_db()
     assert data['status'] == order.status.upper()
