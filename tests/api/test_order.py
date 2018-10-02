@@ -18,7 +18,7 @@ from saleor.order import (
     CustomPaymentChoices, OrderEvents, OrderEventsEmails, OrderStatus)
 from saleor.order.models import Order, OrderEvent, Payment
 from saleor.shipping.models import ShippingMethod
-from tests.utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 
 from .utils import assert_no_permission
 

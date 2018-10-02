@@ -11,8 +11,8 @@ from prices import Money
 from saleor.graphql.product.utils import update_variants_names
 from saleor.product.models import (
     Category, Collection, Product, ProductImage, ProductType, ProductVariant)
-from tests.utils import (
-    create_image, create_pdf_file_with_image_ext, get_graphql_content)
+from tests.api.utils import get_graphql_content
+from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from .utils import assert_no_permission, get_multipart_request_body
 

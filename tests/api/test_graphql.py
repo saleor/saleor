@@ -10,7 +10,7 @@ from django.shortcuts import reverse
 from django.test import RequestFactory
 from graphql_jwt.shortcuts import get_token
 from graphql_relay import to_global_id
-from tests.utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 
 from saleor.graphql.middleware import jwt_middleware
 from saleor.graphql.product.types import Product
