@@ -4,7 +4,7 @@ import graphene
 from tests.api.utils import get_graphql_content
 
 
-def test_fetch_variant(admin_api_client, product):
+def test_fetch_variant(staff_api_client, product):
     query = """
     query ProductVariantDetails($id: ID!) {
         productVariant(id: $id) {
@@ -52,13 +52,14 @@ def test_fetch_variant(admin_api_client, product):
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
     variables = {'id': variant_id}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['productVariant']
     assert data['name'] == variant.name
 
 
-def test_create_variant(admin_api_client, product, product_type):
+def test_create_variant(
+        staff_api_client, product, product_type, permission_manage_products):
     query = """
         mutation createVariant (
             $productId: ID!,
@@ -130,7 +131,8 @@ def test_create_variant(admin_api_client, product, product_type):
         'attributes': [
             {'slug': variant_slug, 'value': variant_value}],
         'trackInventory': True}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     data = content['data']['productVariantCreate']['productVariant']
     assert data['name'] == variant_value
@@ -145,7 +147,8 @@ def test_create_variant(admin_api_client, product, product_type):
 
 
 def test_create_product_variant_not_all_attributes(
-        admin_api_client, product, product_type, color_attribute):
+        staff_api_client, product, product_type, color_attribute,
+        permission_manage_products):
     query = """
             mutation createVariant (
                 $productId: ID!,
@@ -175,14 +178,17 @@ def test_create_product_variant_not_all_attributes(
         'productId': product_id,
         'sku': sku,
         'attributes': [{'slug': variant_slug, 'value': variant_value}]}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     assert content['data']['productVariantCreate']['errors']
-    assert content['data']['productVariantCreate']['errors'][0]['field'] == 'attributes:color'
+    assert content['data']['productVariantCreate']['errors'][0]['field'] == (
+        'attributes:color')
     assert not product.variants.filter(sku=sku).exists()
 
 
-def test_update_product_variant(admin_api_client, product):
+def test_update_product_variant(
+        staff_api_client, product, permission_manage_products):
     query = """
         mutation updateVariant (
             $id: ID!,
@@ -225,7 +231,8 @@ def test_update_product_variant(admin_api_client, product):
         'costPrice': cost_price,
         'trackInventory': True}
 
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
     variant.refresh_from_db()
     content = get_graphql_content(response)
     data = content['data']['productVariantUpdate']['productVariant']
@@ -236,7 +243,8 @@ def test_update_product_variant(admin_api_client, product):
 
 
 def test_update_product_variant_not_all_attributes(
-        admin_api_client, product, product_type, color_attribute):
+        staff_api_client, product, product_type, color_attribute,
+        permission_manage_products):
     query = """
         mutation updateVariant (
             $id: ID!,
@@ -268,15 +276,17 @@ def test_update_product_variant_not_all_attributes(
         'sku': sku,
         'attributes': [{'slug': variant_slug, 'value': variant_value}]}
 
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
     variant.refresh_from_db()
     content = get_graphql_content(response)
     assert content['data']['productVariantUpdate']['errors']
-    assert content['data']['productVariantUpdate']['errors'][0]['field'] == 'attributes:color'
+    assert content['data']['productVariantUpdate']['errors'][0]['field'] == (
+        'attributes:color')
     assert not product.variants.filter(sku=sku).exists()
 
 
-def test_delete_variant(admin_api_client, product):
+def test_delete_variant(staff_api_client, product, permission_manage_products):
     query = """
         mutation variantDelete($id: ID!) {
             productVariantDelete(id: $id) {
@@ -290,7 +300,8 @@ def test_delete_variant(admin_api_client, product):
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
     variables = {'id': variant_id}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     data = content['data']['productVariantDelete']
     assert data['productVariant']['sku'] == variant.sku
