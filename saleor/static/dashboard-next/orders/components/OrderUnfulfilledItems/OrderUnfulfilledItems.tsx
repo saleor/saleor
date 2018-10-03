@@ -46,7 +46,7 @@ const OrderUnfulfilledItems = decorate<OrderUnfulfilledItemsProps>(
             label={i18n.t("Unfulfilled ({{ quantity }})", {
               quantity: lines
                 .map(line => line.quantity - line.quantityFulfilled)
-                .reduce((prev, curr) => prev + curr)
+                .reduce((prev, curr) => prev + curr, 0)
             })}
             status="error"
           />
