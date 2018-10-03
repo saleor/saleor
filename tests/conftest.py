@@ -1,4 +1,3 @@
-import json
 from io import BytesIO
 from unittest.mock import MagicMock, Mock
 
@@ -9,13 +8,10 @@ from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ModelForm
-from django.shortcuts import reverse
-from django.test.client import MULTIPART_CONTENT, Client
 from django.utils.encoding import smart_text
 from django_countries import countries
 from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
-from graphql_jwt.shortcuts import get_token
 from payments import FraudStatus, PaymentStatus
 from PIL import Image
 from prices import Money
@@ -37,75 +33,6 @@ from saleor.product.models import (
 from saleor.shipping.models import (
     ShippingMethod, ShippingMethodType, ShippingZone)
 from saleor.site.models import AuthorizationKey, SiteSettings
-
-API_PATH = reverse('api')
-
-
-class ApiClient(Client):
-    """GraphQL API client."""
-
-    def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user')
-        self.user = user
-        self.token = get_token(user)
-        super().__init__(*args, **kwargs)
-
-    def _base_environ(self, **request):
-        environ = super()._base_environ(**request)
-        environ.update({'HTTP_AUTHORIZATION': 'JWT %s' % self.token})
-        return environ
-
-    def post(self, data=None, **kwargs):
-        """Send a POST request.
-
-        This wrapper sets the `application/json` content type which is
-        more suitable for standard GraphQL requests and doesn't mismatch with
-        handling multipart requests in Graphene.
-        """
-        if data:
-            data = json.dumps(data)
-        kwargs['content_type'] = 'application/json'
-        return super().post(API_PATH, data, **kwargs)
-
-    def post_graphql(self, query=None, variables=None, **kwargs):
-        """Dedicated helper for posting GraphQL queries.
-
-        Sets the `application/json` content type and json.dumps the variables
-        if present.
-        """
-        data = {}
-        if query is not None:
-            data['query'] = query
-        if variables is not None:
-            data['variables'] = json.dumps(variables)
-        if data:
-            data = json.dumps(data)
-        kwargs['content_type'] = 'application/json'
-        return super().post(API_PATH, data, **kwargs)
-
-    def post_multipart(self, *args, **kwargs):
-        """Send a multipart POST request.
-
-        This is used to send multipart requests to GraphQL API when e.g.
-        uploading files.
-        """
-        kwargs['content_type'] = MULTIPART_CONTENT
-        return super().post(API_PATH, *args, **kwargs)
-
-
-@pytest.fixture
-def admin_api_client(admin_user):
-    return ApiClient(user=admin_user)
-
-
-@pytest.fixture
-def user_api_client(customer_user):
-    return ApiClient(user=customer_user)
-
-
-@pytest.fixture
-def staff_api_client(staff_user):
-    return ApiClient(user=staff_user)
 
 
 @pytest.fixture(autouse=True)
