@@ -78,43 +78,33 @@ export interface OrderCancel_orderCancel_order_fulfillments {
   trackingNumber: string;
 }
 
-export interface OrderCancel_orderCancel_order_lines_edges_node_unitPrice_gross {
+export interface OrderCancel_orderCancel_order_lines_unitPrice_gross {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderCancel_orderCancel_order_lines_edges_node_unitPrice_net {
+export interface OrderCancel_orderCancel_order_lines_unitPrice_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderCancel_orderCancel_order_lines_edges_node_unitPrice {
+export interface OrderCancel_orderCancel_order_lines_unitPrice {
   __typename: "TaxedMoney";
-  gross: OrderCancel_orderCancel_order_lines_edges_node_unitPrice_gross;
-  net: OrderCancel_orderCancel_order_lines_edges_node_unitPrice_net;
+  gross: OrderCancel_orderCancel_order_lines_unitPrice_gross;
+  net: OrderCancel_orderCancel_order_lines_unitPrice_net;
 }
 
-export interface OrderCancel_orderCancel_order_lines_edges_node {
+export interface OrderCancel_orderCancel_order_lines {
   __typename: "OrderLine";
   id: string;
   productName: string;
   productSku: string;
   quantity: number;
   quantityFulfilled: number;
-  unitPrice: OrderCancel_orderCancel_order_lines_edges_node_unitPrice | null;
+  unitPrice: OrderCancel_orderCancel_order_lines_unitPrice | null;
   thumbnailUrl: string | null;
-}
-
-export interface OrderCancel_orderCancel_order_lines_edges {
-  __typename: "OrderLineCountableEdge";
-  node: OrderCancel_orderCancel_order_lines_edges_node;
-}
-
-export interface OrderCancel_orderCancel_order_lines {
-  __typename: "OrderLineCountableConnection";
-  edges: OrderCancel_orderCancel_order_lines_edges[];
 }
 
 export interface OrderCancel_orderCancel_order_shippingAddress_country {
@@ -215,7 +205,7 @@ export interface OrderCancel_orderCancel_order {
   created: any;
   events: (OrderCancel_orderCancel_order_events | null)[] | null;
   fulfillments: (OrderCancel_orderCancel_order_fulfillments | null)[];
-  lines: OrderCancel_orderCancel_order_lines | null;
+  lines: (OrderCancel_orderCancel_order_lines | null)[];
   number: string | null;
   paymentStatus: PaymentStatusEnum | null;
   shippingAddress: OrderCancel_orderCancel_order_shippingAddress | null;

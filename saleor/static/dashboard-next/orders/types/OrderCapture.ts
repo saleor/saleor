@@ -84,43 +84,33 @@ export interface OrderCapture_orderCapture_order_fulfillments {
   trackingNumber: string;
 }
 
-export interface OrderCapture_orderCapture_order_lines_edges_node_unitPrice_gross {
+export interface OrderCapture_orderCapture_order_lines_unitPrice_gross {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderCapture_orderCapture_order_lines_edges_node_unitPrice_net {
+export interface OrderCapture_orderCapture_order_lines_unitPrice_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderCapture_orderCapture_order_lines_edges_node_unitPrice {
+export interface OrderCapture_orderCapture_order_lines_unitPrice {
   __typename: "TaxedMoney";
-  gross: OrderCapture_orderCapture_order_lines_edges_node_unitPrice_gross;
-  net: OrderCapture_orderCapture_order_lines_edges_node_unitPrice_net;
+  gross: OrderCapture_orderCapture_order_lines_unitPrice_gross;
+  net: OrderCapture_orderCapture_order_lines_unitPrice_net;
 }
 
-export interface OrderCapture_orderCapture_order_lines_edges_node {
+export interface OrderCapture_orderCapture_order_lines {
   __typename: "OrderLine";
   id: string;
   productName: string;
   productSku: string;
   quantity: number;
   quantityFulfilled: number;
-  unitPrice: OrderCapture_orderCapture_order_lines_edges_node_unitPrice | null;
+  unitPrice: OrderCapture_orderCapture_order_lines_unitPrice | null;
   thumbnailUrl: string | null;
-}
-
-export interface OrderCapture_orderCapture_order_lines_edges {
-  __typename: "OrderLineCountableEdge";
-  node: OrderCapture_orderCapture_order_lines_edges_node;
-}
-
-export interface OrderCapture_orderCapture_order_lines {
-  __typename: "OrderLineCountableConnection";
-  edges: OrderCapture_orderCapture_order_lines_edges[];
 }
 
 export interface OrderCapture_orderCapture_order_shippingAddress_country {
@@ -221,7 +211,7 @@ export interface OrderCapture_orderCapture_order {
   created: any;
   events: (OrderCapture_orderCapture_order_events | null)[] | null;
   fulfillments: (OrderCapture_orderCapture_order_fulfillments | null)[];
-  lines: OrderCapture_orderCapture_order_lines | null;
+  lines: (OrderCapture_orderCapture_order_lines | null)[];
   number: string | null;
   paymentStatus: PaymentStatusEnum | null;
   shippingAddress: OrderCapture_orderCapture_order_shippingAddress | null;

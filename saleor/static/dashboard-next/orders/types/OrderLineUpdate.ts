@@ -84,43 +84,33 @@ export interface OrderLineUpdate_draftOrderLineUpdate_order_fulfillments {
   trackingNumber: string;
 }
 
-export interface OrderLineUpdate_draftOrderLineUpdate_order_lines_edges_node_unitPrice_gross {
+export interface OrderLineUpdate_draftOrderLineUpdate_order_lines_unitPrice_gross {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderLineUpdate_draftOrderLineUpdate_order_lines_edges_node_unitPrice_net {
+export interface OrderLineUpdate_draftOrderLineUpdate_order_lines_unitPrice_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderLineUpdate_draftOrderLineUpdate_order_lines_edges_node_unitPrice {
+export interface OrderLineUpdate_draftOrderLineUpdate_order_lines_unitPrice {
   __typename: "TaxedMoney";
-  gross: OrderLineUpdate_draftOrderLineUpdate_order_lines_edges_node_unitPrice_gross;
-  net: OrderLineUpdate_draftOrderLineUpdate_order_lines_edges_node_unitPrice_net;
+  gross: OrderLineUpdate_draftOrderLineUpdate_order_lines_unitPrice_gross;
+  net: OrderLineUpdate_draftOrderLineUpdate_order_lines_unitPrice_net;
 }
 
-export interface OrderLineUpdate_draftOrderLineUpdate_order_lines_edges_node {
+export interface OrderLineUpdate_draftOrderLineUpdate_order_lines {
   __typename: "OrderLine";
   id: string;
   productName: string;
   productSku: string;
   quantity: number;
   quantityFulfilled: number;
-  unitPrice: OrderLineUpdate_draftOrderLineUpdate_order_lines_edges_node_unitPrice | null;
+  unitPrice: OrderLineUpdate_draftOrderLineUpdate_order_lines_unitPrice | null;
   thumbnailUrl: string | null;
-}
-
-export interface OrderLineUpdate_draftOrderLineUpdate_order_lines_edges {
-  __typename: "OrderLineCountableEdge";
-  node: OrderLineUpdate_draftOrderLineUpdate_order_lines_edges_node;
-}
-
-export interface OrderLineUpdate_draftOrderLineUpdate_order_lines {
-  __typename: "OrderLineCountableConnection";
-  edges: OrderLineUpdate_draftOrderLineUpdate_order_lines_edges[];
 }
 
 export interface OrderLineUpdate_draftOrderLineUpdate_order_shippingAddress_country {
@@ -221,7 +211,7 @@ export interface OrderLineUpdate_draftOrderLineUpdate_order {
   created: any;
   events: (OrderLineUpdate_draftOrderLineUpdate_order_events | null)[] | null;
   fulfillments: (OrderLineUpdate_draftOrderLineUpdate_order_fulfillments | null)[];
-  lines: OrderLineUpdate_draftOrderLineUpdate_order_lines | null;
+  lines: (OrderLineUpdate_draftOrderLineUpdate_order_lines | null)[];
   number: string | null;
   paymentStatus: PaymentStatusEnum | null;
   shippingAddress: OrderLineUpdate_draftOrderLineUpdate_order_shippingAddress | null;
