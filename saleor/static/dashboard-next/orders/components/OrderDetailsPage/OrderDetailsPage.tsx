@@ -83,19 +83,15 @@ interface OrderDetailsPageProps {
         email: string;
       };
     }>;
-    lines: {
-      edges: Array<{
-        node: {
-          id: string;
-          productName: string;
-          productSku: string;
-          thumbnailUrl: string;
-          unitPrice: TaxedMoneyType;
-          quantity: number;
-          quantityFulfilled: number;
-        };
-      }>;
-    };
+    lines: Array<{
+      id: string;
+      productName: string;
+      productSku: string;
+      thumbnailUrl: string;
+      unitPrice: TaxedMoneyType;
+      quantity: number;
+      quantityFulfilled: number;
+    }>;
     number: string;
     paymentStatus: string;
     shippingAddress?: AddressType;
@@ -288,9 +284,9 @@ class OrderDetailsPageComponent extends React.Component<
       openedShippingMethodEditDialog
     } = this.state;
     const isDraft = order ? order.status === OrderStatus.DRAFT : false;
-    const unfulfilled = maybe(() => order.lines.edges, [])
-      .map(edge => edge.node)
-      .filter(line => line.quantityFulfilled < line.quantity);
+    const unfulfilled = maybe(() => order.lines, []).filter(
+      line => line.quantityFulfilled < line.quantity
+    );
     return (
       <Container width="md">
         <PageHeader
@@ -321,7 +317,7 @@ class OrderDetailsPageComponent extends React.Component<
               authorized={maybe(() => order.totalAuthorized)}
               paid={maybe(() => order.totalCaptured)}
               paymentStatus={maybe(() => order.paymentStatus)}
-              lines={maybe(() => order.lines.edges.map(edge => edge.node))}
+              lines={maybe(() => order.lines)}
               shippingMethodName={maybe(() => order.shippingMethodName)}
               shippingPrice={maybe(() => order.shippingPrice)}
               status={maybe(() => order.status)}
