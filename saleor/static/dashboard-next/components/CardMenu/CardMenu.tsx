@@ -12,6 +12,7 @@ export interface CardMenuItem {
 }
 
 export interface CardMenuProps {
+  className?: string;
   menuItems: CardMenuItem[];
 }
 export interface CardMenuState {
@@ -41,11 +42,12 @@ export class CardMenu extends React.Component<CardMenuProps, CardMenuState> {
     const open = !!anchorEl;
 
     return (
-      <div>
+      <div className={this.props.className}>
         <IconButton
           aria-label="More"
           aria-owns={open ? "long-menu" : null}
           aria-haspopup="true"
+          color="secondary"
           onClick={this.handleClick}
         >
           <MoreVertIcon />

@@ -103,6 +103,7 @@ export interface OrderLineUpdate_draftOrderLineUpdate_order_fulfillments {
   __typename: "Fulfillment";
   id: string;
   lines: OrderLineUpdate_draftOrderLineUpdate_order_fulfillments_lines | null;
+  fulfillmentOrder: number;
   status: FulfillmentStatus;
   trackingNumber: string;
 }

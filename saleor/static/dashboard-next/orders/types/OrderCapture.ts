@@ -103,6 +103,7 @@ export interface OrderCapture_orderCapture_order_fulfillments {
   __typename: "Fulfillment";
   id: string;
   lines: OrderCapture_orderCapture_order_fulfillments_lines | null;
+  fulfillmentOrder: number;
   status: FulfillmentStatus;
   trackingNumber: string;
 }

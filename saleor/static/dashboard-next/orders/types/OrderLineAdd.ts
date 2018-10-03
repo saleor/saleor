@@ -103,6 +103,7 @@ export interface OrderLineAdd_draftOrderLineCreate_order_fulfillments {
   __typename: "Fulfillment";
   id: string;
   lines: OrderLineAdd_draftOrderLineCreate_order_fulfillments_lines | null;
+  fulfillmentOrder: number;
   status: FulfillmentStatus;
   trackingNumber: string;
 }

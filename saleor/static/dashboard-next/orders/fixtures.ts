@@ -789,6 +789,7 @@ export const order = (placeholder: string): OrderDetails_order => ({
   fulfillments: [
     {
       __typename: "Fulfillment",
+      fulfillmentOrder: 2,
       id: "RnVsZmlsbG1lbnQ6MjQ=",
       lines: {
         __typename: "FulfillmentLineCountableConnection",
@@ -830,6 +831,7 @@ export const order = (placeholder: string): OrderDetails_order => ({
     },
     {
       __typename: "Fulfillment",
+      fulfillmentOrder: 1,
       id: "RnVsZmlsbG1lbnQ6OQ==",
       lines: {
         __typename: "FulfillmentLineCountableConnection",
