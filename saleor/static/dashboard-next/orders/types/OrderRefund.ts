@@ -84,43 +84,33 @@ export interface OrderRefund_orderRefund_order_fulfillments {
   trackingNumber: string;
 }
 
-export interface OrderRefund_orderRefund_order_lines_edges_node_unitPrice_gross {
+export interface OrderRefund_orderRefund_order_lines_unitPrice_gross {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderRefund_orderRefund_order_lines_edges_node_unitPrice_net {
+export interface OrderRefund_orderRefund_order_lines_unitPrice_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderRefund_orderRefund_order_lines_edges_node_unitPrice {
+export interface OrderRefund_orderRefund_order_lines_unitPrice {
   __typename: "TaxedMoney";
-  gross: OrderRefund_orderRefund_order_lines_edges_node_unitPrice_gross;
-  net: OrderRefund_orderRefund_order_lines_edges_node_unitPrice_net;
+  gross: OrderRefund_orderRefund_order_lines_unitPrice_gross;
+  net: OrderRefund_orderRefund_order_lines_unitPrice_net;
 }
 
-export interface OrderRefund_orderRefund_order_lines_edges_node {
+export interface OrderRefund_orderRefund_order_lines {
   __typename: "OrderLine";
   id: string;
   productName: string;
   productSku: string;
   quantity: number;
   quantityFulfilled: number;
-  unitPrice: OrderRefund_orderRefund_order_lines_edges_node_unitPrice | null;
+  unitPrice: OrderRefund_orderRefund_order_lines_unitPrice | null;
   thumbnailUrl: string | null;
-}
-
-export interface OrderRefund_orderRefund_order_lines_edges {
-  __typename: "OrderLineCountableEdge";
-  node: OrderRefund_orderRefund_order_lines_edges_node;
-}
-
-export interface OrderRefund_orderRefund_order_lines {
-  __typename: "OrderLineCountableConnection";
-  edges: OrderRefund_orderRefund_order_lines_edges[];
 }
 
 export interface OrderRefund_orderRefund_order_shippingAddress_country {
@@ -221,7 +211,7 @@ export interface OrderRefund_orderRefund_order {
   created: any;
   events: (OrderRefund_orderRefund_order_events | null)[] | null;
   fulfillments: (OrderRefund_orderRefund_order_fulfillments | null)[];
-  lines: OrderRefund_orderRefund_order_lines | null;
+  lines: (OrderRefund_orderRefund_order_lines | null)[];
   number: string | null;
   paymentStatus: PaymentStatusEnum | null;
   shippingAddress: OrderRefund_orderRefund_order_shippingAddress | null;

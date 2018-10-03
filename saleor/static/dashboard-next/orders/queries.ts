@@ -106,26 +106,22 @@ export const fragmentOrderDetails = gql`
       trackingNumber
     }
     lines {
-      edges {
-        node {
-          id
-          productName
-          productSku
-          quantity
-          quantityFulfilled
-          unitPrice {
-            gross {
-              amount
-              currency
-            }
-            net {
-              amount
-              currency
-            }
-          }
-          thumbnailUrl
+      id
+      productName
+      productSku
+      quantity
+      quantityFulfilled
+      unitPrice {
+        gross {
+          amount
+          currency
+        }
+        net {
+          amount
+          currency
         }
       }
+      thumbnailUrl
     }
     number
     paymentStatus

@@ -864,17 +864,6 @@ type OrderLine implements Node {
   thumbnailUrl(size: Int): String
 }
 
-type OrderLineCountableConnection {
-  pageInfo: PageInfo!
-  edges: [OrderLineCountableEdge!]!
-  totalCount: Int
-}
-
-type OrderLineCountableEdge {
-  node: OrderLine!
-  cursor: String!
-}
-
 input OrderLineCreateInput {
   quantity: Int!
   variantId: ID!
