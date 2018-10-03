@@ -28,7 +28,7 @@ const decorate = withStyles(theme => ({
     height: 16,
     left: -33,
     position: "absolute" as "absolute",
-    top: 19,
+    top: 2,
     width: 16
   },
   noExpander: {
@@ -50,16 +50,15 @@ const decorate = withStyles(theme => ({
     "&:last-child:after": {
       background: theme.palette.background.default,
       content: "''",
-      height: `calc(50% - ${theme.spacing.unit}px)`,
+      height: "calc(50% - 4px)",
       left: `${-theme.spacing.unit * 3 - 2}px`,
       position: "absolute" as "absolute",
-      top: `calc(50% + ${theme.spacing.unit}px)`,
+      top: "calc(50% + 4px)",
       width: "2px"
     },
     alignItems: "center",
     display: "flex",
     marginBottom: theme.spacing.unit * 3,
-    minHeight: theme.spacing.unit * 8,
     position: "relative" as "relative",
     width: "100%"
   }
