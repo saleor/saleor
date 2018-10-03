@@ -258,9 +258,11 @@ class Query(graphene.ObjectType):
     def resolve_vouchers(self, info, query=None, **kwargs):
         return resolve_vouchers(info, query)
 
+    @permission_required('shipping.manage_shipping')
     def resolve_shipping_zone(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ShippingZone)
 
+    @permission_required('shipping.manage_shipping')
     def resolve_shipping_zones(self, info, **kwargs):
         return resolve_shipping_zones(info)
 

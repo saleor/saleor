@@ -229,7 +229,7 @@ class StaffCreate(ModelMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        return user.is_staff
+        return user.has_perm('account.manage_staff')
 
     @classmethod
     def clean_input(cls, info, instance, input, errors):

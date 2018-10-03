@@ -84,7 +84,7 @@ def test_token_create_user_data(
     assert token_data['user']['permissions'][0]['code'] == code
 
 
-def test_query_user(admin_api_client, customer_user):
+def test_query_user(staff_api_client, customer_user, permission_manage_users):
     user = customer_user
     query = """
     query User($id: ID!) {
@@ -118,7 +118,8 @@ def test_query_user(admin_api_client, customer_user):
     """
     ID = graphene.Node.to_global_id('User', customer_user.id)
     variables = {'id': ID}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users])
     content = get_graphql_content(response)
     data = content['data']['user']
     assert data['email'] == user.email
@@ -141,7 +142,8 @@ def test_query_user(admin_api_client, customer_user):
     assert address['phone'] == user_address.phone.as_e164
 
 
-def test_query_customers(admin_api_client, user_api_client):
+def test_query_customers(
+        staff_api_client, user_api_client, permission_manage_users):
     query = """
     query Users {
         customers {
@@ -155,7 +157,8 @@ def test_query_customers(admin_api_client, user_api_client):
     }
     """
     variables = {}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users])
     content = get_graphql_content(response)
     users = content['data']['customers']['edges']
     assert users
@@ -167,8 +170,8 @@ def test_query_customers(admin_api_client, user_api_client):
 
 
 def test_query_staff(
-        admin_api_client, user_api_client, staff_user, customer_user,
-        admin_user):
+        staff_api_client, user_api_client, staff_user, customer_user,
+        admin_user, permission_manage_staff):
     query = """
     {
         staffUsers {
@@ -182,7 +185,8 @@ def test_query_staff(
     }
     """
     variables = {}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff])
     content = get_graphql_content(response)
     data = content['data']['staffUsers']['edges']
     assert len(data) == 2
@@ -267,7 +271,8 @@ def test_customer_register(user_api_client):
 
 @patch('saleor.account.emails.send_password_reset_email.delay')
 def test_customer_create(
-        send_password_reset_mock, admin_api_client, user_api_client, address):
+        send_password_reset_mock, staff_api_client, user_api_client, address,
+        permission_manage_users):
     query = """
     mutation CreateCustomer(
         $email: String, $note: String, $billing: AddressInput,
@@ -310,10 +315,8 @@ def test_customer_create(
         'billing': address_data,
         'send_mail': True}
 
-    response = user_api_client.post_graphql(query, variables)
-    assert_no_permission(response)
-
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users])
     content = get_graphql_content(response)
 
     User = get_user_model()
@@ -339,7 +342,8 @@ def test_customer_create(
 
 
 def test_customer_update(
-        admin_api_client, customer_user, user_api_client, address):
+        staff_api_client, customer_user, user_api_client, address,
+        permission_manage_users):
     query = """
     mutation UpdateCustomer($id: ID!, $note: String, $billing: AddressInput, $shipping: AddressInput) {
         customerUpdate(id: $id, input: {
@@ -384,12 +388,8 @@ def test_customer_update(
         'note': note,
         'billing': address_data,
         'shipping': address_data}
-
-    # check unauthorized access
-    response = user_api_client.post_graphql(query, variables)
-    assert_no_permission(response)
-
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users])
     content = get_graphql_content(response)
 
     User = get_user_model()
@@ -409,8 +409,8 @@ def test_customer_update(
 
 @patch('saleor.account.emails.send_password_reset_email.delay')
 def test_staff_create(
-        send_password_reset_mock, admin_api_client, user_api_client,
-        permission_manage_users, permission_manage_products, staff_user):
+        send_password_reset_mock, staff_api_client,
+        permission_manage_staff, permission_manage_products, staff_user):
     query = """
     mutation CreateStaff($email: String, $permissions: [String], $send_mail: Boolean) {
         staffCreate(input: {email: $email, permissions: $permissions, sendPasswordEmail: $send_mail}) {
@@ -436,17 +436,13 @@ def test_staff_create(
         permission_manage_products.codename)
 
     email = 'api_user@example.com'
-    staff_user.user_permissions.add(permission_manage_users)
     variables = {
         'email': email,
         'permissions': [permission_manage_products_codename],
         'send_mail': True}
 
-    # check unauthorized access
-    response = user_api_client.post_graphql(query, variables)
-    assert_no_permission(response)
-
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff])
     content = get_graphql_content(response)
     data = content['data']['staffCreate']
     assert data['errors'] == []
@@ -464,7 +460,7 @@ def test_staff_create(
     assert 'token' in call_context
 
 
-def test_staff_update(admin_api_client, staff_user, user_api_client):
+def test_staff_update(staff_api_client, permission_manage_staff):
     query = """
     mutation UpdateStaff(
             $id: ID!, $permissions: [String], $is_active: Boolean) {
@@ -484,14 +480,13 @@ def test_staff_update(admin_api_client, staff_user, user_api_client):
         }
     }
     """
+    staff_user = User.objects.create(
+        email='staffuser@example.com', is_staff=True)
     id = graphene.Node.to_global_id('User', staff_user.id)
     variables = {'id': id, 'permissions': [], 'is_active': False}
 
-    # check unauthorized access
-    response = user_api_client.post_graphql(query, variables)
-    assert_no_permission(response)
-
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff])
     content = get_graphql_content(response)
     data = content['data']['staffUpdate']
     assert data['errors'] == []
@@ -499,7 +494,7 @@ def test_staff_update(admin_api_client, staff_user, user_api_client):
     assert data['user']['isActive'] == False
 
 
-def test_staff_delete(admin_api_client, staff_user, user_api_client):
+def test_staff_delete(staff_api_client, permission_manage_staff):
     query = """
         mutation DeleteStaff($id: ID!) {
             staffDelete(id: $id) {
@@ -513,14 +508,13 @@ def test_staff_delete(admin_api_client, staff_user, user_api_client):
             }
         }
     """
+    staff_user = User.objects.create(
+        email='staffuser@example.com', is_staff=True)
     user_id = graphene.Node.to_global_id('User', staff_user.id)
     variables = {'id': user_id}
 
-    # check unauthorized access
-    response = user_api_client.post_graphql(query, variables)
-    assert_no_permission(response)
-
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff])
     content = get_graphql_content(response)
     data = content['data']['staffDelete']
     assert data['errors'] == []
@@ -597,7 +591,8 @@ def test_set_password(user_api_client, customer_user):
 
 @patch('saleor.account.emails.send_password_reset_email.delay')
 def test_password_reset_email(
-        send_password_reset_mock, admin_api_client, customer_user):
+        send_password_reset_mock, staff_api_client, customer_user,
+        permission_manage_users):
     query = """
     mutation ResetPassword($email: String!) {
         passwordReset(email: $email) {
@@ -610,7 +605,8 @@ def test_password_reset_email(
     """
     email = customer_user.email
     variables = {'email': email}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users])
     content = get_graphql_content(response)
     data = content['data']['passwordReset']
     assert data is None
@@ -624,7 +620,8 @@ def test_password_reset_email(
 
 @patch('saleor.account.emails.send_password_reset_email.delay')
 def test_password_reset_email_non_existing_user(
-        send_password_reset_mock, admin_api_client, customer_user):
+        send_password_reset_mock, staff_api_client, customer_user,
+        permission_manage_users):
     query = """
     mutation ResetPassword($email: String!) {
         passwordReset(email: $email) {
@@ -637,7 +634,8 @@ def test_password_reset_email_non_existing_user(
     """
     email = 'not_exists@example.com'
     variables = {'email': email}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users])
     content = get_graphql_content(response)
     data = content['data']['passwordReset']
     assert data['errors'] == [{
@@ -646,7 +644,8 @@ def test_password_reset_email_non_existing_user(
     send_password_reset_mock.assert_not_called()
 
 
-def test_create_address_mutation(admin_api_client, customer_user):
+def test_create_address_mutation(
+        staff_api_client, customer_user, permission_manage_users):
     query = """
     mutation CreateUserAddress($user: ID!, $city: String!, $country: String!) {
         addressCreate(input: {userId: $user, city: $city, country: $country}) {
@@ -666,7 +665,8 @@ def test_create_address_mutation(admin_api_client, customer_user):
     """
     user_id = graphene.Node.to_global_id('User', customer_user.id)
     variables = {'user': user_id, 'city': 'Dummy', 'country': 'PL'}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users])
     content = get_graphql_content(response)
     assert content['data']['addressCreate']['errors'] == []
     address_response = content['data']['addressCreate']['address']
@@ -676,7 +676,8 @@ def test_create_address_mutation(admin_api_client, customer_user):
     assert address_obj.user_addresses.first() == customer_user
 
 
-def test_address_update_mutation(admin_api_client, customer_user):
+def test_address_update_mutation(
+        staff_api_client, customer_user, permission_manage_users):
     query = """
     mutation updateUserAddress($addressId: ID!, $city: String!) {
         addressUpdate(id: $addressId, input: {city: $city}) {
@@ -691,7 +692,8 @@ def test_address_update_mutation(admin_api_client, customer_user):
     variables = {
         'addressId': graphene.Node.to_global_id('Address', address_obj.id),
         'city': new_city}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users])
     content = get_graphql_content(response)
     data = content['data']['addressUpdate']
     assert data['address']['city'] == new_city
@@ -699,7 +701,8 @@ def test_address_update_mutation(admin_api_client, customer_user):
     assert address_obj.city == new_city
 
 
-def test_address_delete_mutation(admin_api_client, customer_user):
+def test_address_delete_mutation(
+        staff_api_client, customer_user, permission_manage_users):
     query = """
             mutation deleteUserAddress($id: ID!) {
                 addressDelete(id: $id) {
@@ -711,7 +714,8 @@ def test_address_delete_mutation(admin_api_client, customer_user):
         """
     address_obj = customer_user.addresses.first()
     variables = {'id': graphene.Node.to_global_id('Address', address_obj.id)}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users])
     content = get_graphql_content(response)
     data = content['data']['addressDelete']
     assert data['address']['city'] == address_obj.city
