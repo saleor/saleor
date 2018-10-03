@@ -291,7 +291,7 @@
               margin-bottom: var(--spacer);
             }
             &:first-of-type {
-              font-weight: var(--font-weight-normal);
+              font-weight: var(--font-weight-medium);
               font-size: calc(var(--font-size-base) * 3);
               line-height: var(--headings-line-height);
               @media (max-width: 1440px) {

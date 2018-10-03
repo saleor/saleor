@@ -75,14 +75,14 @@ h3 {
 h4 {
   font-size: var(--h4-font-size);
   line-height: var(--headings-line-height);
-  font-weight: var(--font-weight-normal);
+  font-weight: var(--font-weight-medium);
   text-transform: uppercase;
 }
 
 h5 {
   font-size: var(--h5-font-size);
   line-height: var(--headings-line-height);
-  font-weight: var(--font-weight-normal);
+  font-weight: var(--font-weight-medium);
 }
 
 a {

@@ -99,7 +99,7 @@ header {
     height: 70px;
     & ul {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       align-items: center;
       @media (max-width: 768px) {
         height: 0;
@@ -111,7 +111,7 @@ header {
         position: relative;
         top: 0;
         transition: top 0.5s;
-        padding: calc(var(--spacer) * 1.2) 0 calc(var(--spacer) * 1.2) 0;
+        padding: calc(var(--spacer) * 1.2) calc(var(--spacer) / 2) calc(var(--spacer) * 1.2) calc(var(--spacer) / 2);
         & a {
           color: var(--body-color);
           text-transform: uppercase;
@@ -132,6 +132,7 @@ header {
           }
         }
         &.github-link {
+          padding: calc(var(--spacer) * 1.2) calc(var(--spacer)) calc(var(--spacer) * 1.2) calc(var(--spacer));
           & svg {
             fill: var(--body-color);
             & path {
