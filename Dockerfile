@@ -9,6 +9,7 @@ RUN \
   rm -rf /var/lib/apt/lists/*
 
 ADD requirements.txt /app/
+ADD requirements_dev.txt /app/
 RUN pip install --upgrade pip
 RUN pip install -r /app/requirements.txt
 RUN pip install -r /app/requirements_dev.txt
