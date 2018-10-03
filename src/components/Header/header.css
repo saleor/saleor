@@ -76,7 +76,7 @@ header {
       padding: calc(var(--spacer) * 2.5) 0;
     }
     @media (max-width: 768px) {
-      padding: calc(var(--spacer) * 1.5) 0;
+      padding: calc(var(--spacer) * 2.5) 0 calc(var(--spacer) * 1.5) 0;
     }
     & .logo-svg {
       transition: width 0.5s;
@@ -247,7 +247,7 @@ header {
         grid-row: 1;
         @media (max-width: 768px) {
           display: inline-grid;
-          padding: calc(var(--spacer) * 1.5) 0;
+          padding: calc(var(--spacer) * 3.5) 0;
         }
         & li {
           grid-column: -6 / span 4;
@@ -293,6 +293,9 @@ header {
               &:nth-child(2) { width: 70%; top: 10px; }
               &:nth-child(3) { width: 70%; top: 10px; }
               &:nth-child(4) { width: 50%; top: 20px; }
+            }
+            @media (max-width: 768px) {
+              top: calc(var(--spacer) * 3.5);
             }
             &.open {
               & span {
