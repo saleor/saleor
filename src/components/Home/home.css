@@ -66,13 +66,13 @@
           & .label {
             display: inline-block;
             border: solid 1px var(--primaryColor);
-            transform: skew(40deg);
+            transform: skew(45deg);
             text-align: center;
             color: var(--background-color);
             padding-top: calc(var(--spacer) * 0.1);
             & span {
               display: block;
-              transform: skew(-40deg);
+              transform: skew(-45deg);
               color: var(--body-color);
               padding: 0 calc(var(--spacer) * 2);
             }
