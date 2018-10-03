@@ -9,7 +9,7 @@ export interface FormProps<T extends {}> {
           hasChanged: boolean;
           errors: { [key: string]: string };
           change(event: React.ChangeEvent<any>);
-          submit(event: React.FormEvent<any>);
+          submit(event?: React.FormEvent<any>);
         }
       ) => React.ReactElement<any>)
     | React.ReactNode;

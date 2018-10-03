@@ -7,19 +7,26 @@ import * as React from "react";
 
 import CardTitle from "../../../components/CardTitle";
 import ExternalLink from "../../../components/ExternalLink";
+import Form from "../../../components/Form";
 import Hr from "../../../components/Hr";
 import Link from "../../../components/Link";
+import SingleAutocompleteSelectField from "../../../components/SingleAutocompleteSelectField";
 import Skeleton from "../../../components/Skeleton";
+import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { OrderDetails_order } from "../../types/OrderDetails";
+import { UserSearch_customers_edges_node } from "../../types/UserSearch";
 
 export interface OrderCustomerProps {
   order: OrderDetails_order;
-  canEditCustomer?: boolean;
-  onCustomerEditClick();
-  onBillingAddressEdit();
-  onShippingAddressEdit();
+  users?: UserSearch_customers_edges_node[];
+  loading?: boolean;
+  canEditCustomer: boolean;
+  fetchUsers?: (query: string) => void;
+  onCustomerEdit?: () => void;
+  onBillingAddressEdit?: () => void;
+  onShippingAddressEdit?: () => void;
 }
 
 const decorate = withStyles(
@@ -49,8 +56,11 @@ const OrderCustomer = decorate<OrderCustomerProps>(
   ({
     classes,
     canEditCustomer,
+    fetchUsers,
+    loading,
     order,
-    onCustomerEditClick,
+    users,
+    onCustomerEdit,
     onBillingAddressEdit,
     onShippingAddressEdit
   }) => {
@@ -59,40 +69,77 @@ const OrderCustomer = decorate<OrderCustomerProps>(
     const user = maybe(() => order.user);
     return (
       <Card>
-        <CardTitle
-          title={i18n.t("Customer")}
-          toolbar={
-            !!canEditCustomer && (
-              <Button
-                color="secondary"
-                variant="flat"
-                disabled={!onCustomerEditClick}
-                onClick={onCustomerEditClick}
-              >
-                {i18n.t("Edit")}
-              </Button>
-            )
-          }
-        />
-        <CardContent>
-          {user === undefined ? (
-            <Skeleton />
-          ) : user === null ? (
-            <Typography>{i18n.t("Anonymous user")}</Typography>
-          ) : (
+        <Toggle>
+          {(editMode, { toggle: toggleEditMode }) => (
             <>
-              <Typography className={classes.userEmail}>
-                {user.email}
-              </Typography>
-              <div>
-                <Link underline={false}>{i18n.t("View Profile")}</Link>
-              </div>
-              <div>
-                <Link underline={false}>{i18n.t("View Orders")}</Link>
-              </div>
+              <CardTitle
+                title={i18n.t("Customer")}
+                toolbar={
+                  !!canEditCustomer && (
+                    <Button
+                      color="secondary"
+                      variant="flat"
+                      disabled={!onCustomerEdit}
+                      onClick={toggleEditMode}
+                    >
+                      {i18n.t("Edit")}
+                    </Button>
+                  )
+                }
+              />
+              <CardContent>
+                {user === undefined ? (
+                  <Skeleton />
+                ) : user === null ? (
+                  editMode && canEditCustomer ? (
+                    <Form
+                      initial={{ query: { label: "", value: "" } }}
+                      onSubmit={onCustomerEdit}
+                    >
+                      {({ change, data, submit }) => {
+                        const handleChange = (
+                          event: React.ChangeEvent<any>
+                        ) => {
+                          change(event);
+                          submit();
+                        };
+                        return (
+                          <SingleAutocompleteSelectField
+                            custom={true}
+                            choices={maybe(() => users, []).map(user => ({
+                              label: user.email,
+                              value: user.id
+                            }))}
+                            fetchChoices={fetchUsers}
+                            loading={loading}
+                            placeholder={i18n.t("Search Customers")}
+                            onChange={handleChange}
+                            name="query"
+                            value={data.query}
+                          />
+                        );
+                      }}
+                    </Form>
+                  ) : (
+                    <Typography>{i18n.t("Anonymous user")}</Typography>
+                  )
+                ) : (
+                  <>
+                    <Typography className={classes.userEmail}>
+                      {user.email}
+                    </Typography>
+                    <div>
+                      <Link underline={false}>{i18n.t("View Profile")}</Link>
+                    </div>
+                    <div>
+                      <Link underline={false}>{i18n.t("View Orders")}</Link>
+                    </div>
+                  </>
+                )}
+              </CardContent>
             </>
           )}
-        </CardContent>
+        </Toggle>
         <Hr />
         <CardContent>
           <div className={classes.sectionHeader}>
@@ -110,7 +157,7 @@ const OrderCustomer = decorate<OrderCustomerProps>(
               href={`mailto:${maybe(() => order.userEmail)}`}
               typographyProps={{ color: "primary" }}
             >
-              order.userEmail
+              {maybe(() => order.userEmail)}
             </ExternalLink>
           )}
         </CardContent>

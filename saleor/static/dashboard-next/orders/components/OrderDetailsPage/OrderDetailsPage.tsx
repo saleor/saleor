@@ -22,7 +22,6 @@ import OrderCancelDialog, {
   FormData as OrderCancelFormData
 } from "../OrderCancelDialog";
 import OrderCustomer from "../OrderCustomer";
-import OrderCustomerEditDialog from "../OrderCustomerEditDialog";
 import OrderFulfillment from "../OrderFulfillment";
 import OrderFulfillmentCancelDialog, {
   FormData as OrderFulfillmentCancelDialogFormData
@@ -39,12 +38,6 @@ import OrderPaymentDialog, {
   FormData as OrderPaymentFormData
 } from "../OrderPaymentDialog";
 import OrderPaymentReleaseDialog from "../OrderPaymentReleaseDialog";
-import OrderProductAddDialog, {
-  FormData as ProductAddFormData
-} from "../OrderProductAddDialog";
-import OrderShippingMethodEditDialog, {
-  FormData as ShippingMethodForm
-} from "../OrderShippingMethodEditDialog";
 import OrderUnfulfilledItems from "../OrderUnfulfilledItems/OrderUnfulfilledItems";
 
 export interface OrderDetailsPageProps {
@@ -53,56 +46,35 @@ export interface OrderDetailsPageProps {
     id: string;
     name: string;
   }>;
-  users?: Array<{
-    id: string;
-    email: string;
-  }>;
   countries?: Array<{
     code: string;
     label: string;
   }>;
-  variants?: Array<{
-    id: string;
-    name: string;
-    sku: string;
-    stockQuantity: number;
-  }>;
-  variantsLoading?: boolean;
   errors: UserError[];
-  fetchUsers?(value: string);
-  fetchVariants?(value: string);
   onBack();
   onBillingAddressEdit(data: AddressTypeInput);
-  onCreate?();
   onFulfillmentCancel(id: string, data: OrderFulfillmentCancelDialogFormData);
   onFulfillmentTrackingNumberUpdate(
     id: string,
     data: OrderFulfillmentTrackingDialogFormData
   );
   onOrderFulfill(data: OrderFulfillFormData);
-  onOrderLineChange(id: string): (value: string) => void;
-  onOrderLineRemove(id: string);
-  onProductAdd(data: ProductAddFormData);
   onProductClick?(id: string);
   onPaymentCapture(data: OrderPaymentFormData);
   onPaymentRefund(data: OrderPaymentFormData);
   onPaymentRelease?();
   onShippingAddressEdit(data: AddressTypeInput);
-  onShippingMethodEdit(data: ShippingMethodForm);
   onOrderCancel(data: OrderCancelFormData);
   onNoteAdd(data: HistoryFormData);
 }
 interface OrderDetailsPageState {
   openedBillingAddressEditDialog: boolean;
-  openedCustomerEditDialog: boolean;
   openedFulfillmentDialog: boolean;
   openedOrderCancelDialog: boolean;
-  openedOrderProductAddDialog: boolean;
   openedPaymentCaptureDialog: boolean;
   openedPaymentRefundDialog: boolean;
   openedPaymentReleaseDialog: boolean;
   openedShippingAddressEditDialog: boolean;
-  openedShippingMethodEditDialog: boolean;
 }
 
 const decorate = withStyles(theme => ({
@@ -128,15 +100,12 @@ class OrderDetailsPageComponent extends React.Component<
 > {
   state = {
     openedBillingAddressEditDialog: false,
-    openedCustomerEditDialog: false,
     openedFulfillmentDialog: false,
     openedOrderCancelDialog: false,
-    openedOrderProductAddDialog: false,
     openedPaymentCaptureDialog: false,
     openedPaymentRefundDialog: false,
     openedPaymentReleaseDialog: false,
-    openedShippingAddressEditDialog: false,
-    openedShippingMethodEditDialog: false
+    openedShippingAddressEditDialog: false
   };
 
   toggleFulfillmentDialog = () =>
@@ -159,14 +128,6 @@ class OrderDetailsPageComponent extends React.Component<
     this.setState(prevState => ({
       openedOrderCancelDialog: !prevState.openedOrderCancelDialog
     }));
-  toggleOrderProductAddDialog = () =>
-    this.setState(prevState => ({
-      openedOrderProductAddDialog: !prevState.openedOrderProductAddDialog
-    }));
-  toggleCustomerEditDialog = () =>
-    this.setState(prevState => ({
-      openedCustomerEditDialog: !prevState.openedCustomerEditDialog
-    }));
   toggleShippingAddressEditDialog = () =>
     this.setState(prevState => ({
       openedShippingAddressEditDialog: !prevState.openedShippingAddressEditDialog
@@ -175,10 +136,6 @@ class OrderDetailsPageComponent extends React.Component<
     this.setState(prevState => ({
       openedBillingAddressEditDialog: !prevState.openedBillingAddressEditDialog
     }));
-  toggleShippingMethodEditDialog = () =>
-    this.setState(prevState => ({
-      openedShippingMethodEditDialog: !prevState.openedShippingMethodEditDialog
-    }));
 
   render() {
     const {
@@ -186,12 +143,6 @@ class OrderDetailsPageComponent extends React.Component<
       countries,
       errors,
       order,
-      shippingMethods,
-      users,
-      variants,
-      variantsLoading,
-      fetchUsers,
-      fetchVariants,
       onBack,
       onBillingAddressEdit,
       onFulfillmentCancel,
@@ -202,21 +153,16 @@ class OrderDetailsPageComponent extends React.Component<
       onPaymentCapture,
       onPaymentRefund,
       onPaymentRelease,
-      onProductAdd,
-      onShippingAddressEdit,
-      onShippingMethodEdit
+      onShippingAddressEdit
     } = this.props;
     const {
       openedBillingAddressEditDialog,
-      openedCustomerEditDialog,
       openedFulfillmentDialog,
       openedOrderCancelDialog,
-      openedOrderProductAddDialog,
       openedPaymentCaptureDialog,
       openedPaymentRefundDialog,
       openedPaymentReleaseDialog,
-      openedShippingAddressEditDialog,
-      openedShippingMethodEditDialog
+      openedShippingAddressEditDialog
     } = this.state;
     const canCancel = maybe(() => order.status) !== OrderStatus.CANCELED;
     const unfulfilled = maybe(() => order.lines.edges, [])
@@ -328,29 +274,10 @@ class OrderDetailsPageComponent extends React.Component<
                 canEditCustomer={false}
                 order={order}
                 onBillingAddressEdit={this.toggleBillingAddressEditDialog}
-                onCustomerEditClick={this.toggleCustomerEditDialog}
                 onShippingAddressEdit={this.toggleShippingAddressEditDialog}
               />
               {order && (
                 <>
-                  <Form
-                    initial={{
-                      email: order.user
-                        ? { label: order.user.email, value: order.user.id }
-                        : { label: "", value: "" }
-                    }}
-                  >
-                    {({ change, data }) => (
-                      <OrderCustomerEditDialog
-                        open={openedCustomerEditDialog}
-                        user={data.email}
-                        users={users}
-                        fetchUsers={fetchUsers}
-                        onChange={change}
-                        onClose={this.toggleCustomerEditDialog}
-                      />
-                    )}
-                  </Form>
                   <Form
                     initial={transformAddressToForm(
                       maybe(() => order.shippingAddress)
@@ -411,21 +338,6 @@ class OrderDetailsPageComponent extends React.Component<
           variant="refund"
           onClose={this.togglePaymentRefundDialog}
           onSubmit={onPaymentRefund}
-        />
-        <OrderProductAddDialog
-          loading={variantsLoading}
-          open={openedOrderProductAddDialog}
-          variants={variants}
-          fetchVariants={fetchVariants}
-          onClose={this.toggleOrderProductAddDialog}
-          onSubmit={onProductAdd}
-        />
-        <OrderShippingMethodEditDialog
-          open={openedShippingMethodEditDialog}
-          shippingMethod={maybe(() => order.shippingMethod.id, "")}
-          shippingMethods={shippingMethods}
-          onClose={this.toggleShippingMethodEditDialog}
-          onSubmit={onShippingMethodEdit}
         />
         <OrderCancelDialog
           number={maybe(() => order.number)}
