@@ -10,13 +10,19 @@ footer {
     width: 120px;
     padding-top: calc(var(--spacer) * 2.5);
     padding-bottom: var(--spacer);
-    padding-left: 10rem;
+    padding-left: calc(var(--spacer) * 10);
+    @media (max-width: 1024px) {
+      padding: calc(var(--spacer) * 2.5) calc(var(--spacer) * 4) var(--spacer) calc(var(--spacer) * 4);
+    }
     @media (max-width: 450px) {
       width: 80px;
     }
   }
   & .content {
-    padding: 0 10rem;
+    padding: 0 calc(var(--spacer) * 10);
+    @media (max-width: 1024px) {
+      padding: 0 calc(var(--spacer) * 4);
+    }
     & .menu {
       padding: calc(var(--spacer) * 2) 0;
       @media (max-width: 768px) {

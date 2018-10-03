@@ -11,6 +11,10 @@
       background-image: url('../../images/lock-bg.svg');
       background-size: 40%;
       background-position: 90% 20%;
+      @media (max-width: 1024px) {
+        background-size: 60%;
+        background-position: 120% 20%;
+      }
       @media (max-width: 768px) {
         background-position: 120% 50%;
       }
@@ -76,6 +80,9 @@
 		}
     &.section-container {
       padding: calc(var(--spacer) * 2) calc(var(--spacer) * 10);
+      @media (max-width: 1024px) {
+        padding: calc(var(--spacer) * 2) calc(var(--spacer) * 4);
+      }
       & a {
         color: var(--body-color);
         text-decoration: underline;

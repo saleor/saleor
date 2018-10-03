@@ -10,6 +10,10 @@
           width: 100%;
           height: 100%;
           position: absolute;
+          @media (max-width: 1024px) {
+            background-size: 90%;
+            background-position: 120% 0%;
+          }
           @media (max-width: 768px) {
             opacity: 0.5;
             background-position: 250% -20%;
@@ -86,6 +90,9 @@
           font-weight: var(--font-weight-lighter);
           & .container {
             width: 40%;
+            @media (max-width: 1024px) {
+              width: 80%;
+            }
             & .comment {
               font-size: calc(var(--font-size-base) * 1.5);
               margin-bottom: calc(var(--spacer) * 2);
@@ -106,6 +113,9 @@
         }
         &.features {
           padding: calc(var(--spacer) * 2) calc(var(--spacer) * 10) calc(var(--spacer) * 4);
+          @media (max-width: 1024px) {
+            padding: 0 calc(var(--spacer) * 4) calc(var(--spacer) * 0) calc(var(--spacer) * 4);
+          }
           @media (max-width: 700px) {
             padding: calc(var(--spacer) * 2) calc(var(--spacer) * 2) calc(var(--spacer) * 2);
           }
@@ -161,6 +171,9 @@
         &.management-section {
           border-top: solid var(--border-width) var(--sectionBorder);
           margin: calc(var(--spacer) * 4) calc(var(--spacer) * 10);
+          @media (max-width: 1024px) {
+            margin: calc(var(--spacer) * 4);
+          }
           padding-top: calc(var(--spacer) * 4);
           width: fill-available;
           & .side-header {
@@ -180,6 +193,9 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, 45%);
             grid-gap: calc(var(--spacer) * 2) calc(var(--spacer) * 4);
+            @media (max-width: 1024px) {
+              grid-template-columns: repeat(auto-fit, 100%);
+            }
             @media (max-width: 768px) {
               padding-left: 0;
             }
@@ -211,6 +227,10 @@
         &.documentation {
           border-top: solid var(--border-width) var(--sectionBorder);
           margin: calc(var(--spacer) * 4) calc(var(--spacer) * 10);
+          @media (max-width: 1024px) {
+            margin: 0 calc(var(--spacer) * 4);
+            padding: calc(var(--spacer) * 4) 0;
+          }
           & h2 {
             margin-bottom: var(--spacer);
             color: var(--primaryColor);
@@ -218,6 +238,9 @@
           }
           & .description {
             width: 80%;
+            @media (max-width: 1024px) {
+              width: 100%;
+            }
             font-weight: var(--font-weight-medium);
             margin-bottom: calc(var(--spacer) * 3);
             line-height: var(--headings-line-height);

@@ -15,7 +15,7 @@
           background-position: 100% 0%;
         }
         @media (max-width: 1024px) {
-          background-size: 120%;
+          background-size: 100%;
           background-position: 100% 0%;
         }
         @media (max-width: 768px) {
@@ -36,6 +36,9 @@
         z-index: 2;
         @media (max-width: 1440px) {
           width: 55%;
+        }
+        @media (max-width: 1024px) {
+          width: 60%;
         }
         @media (max-width: 768px) {
           width: 100%;
@@ -172,11 +175,17 @@
         @media (max-width: 1440px) {
           padding: calc(var(--spacer) * 4) calc(var(--spacer) * 10) calc(var(--spacer) * 0) calc(var(--spacer) * 10);
         }
+        @media (max-width: 1024px) {
+          padding: 0 calc(var(--spacer) * 4) calc(var(--spacer) * 0) calc(var(--spacer) * 4);
+        }
         @media (max-width: 450px) {
           padding: 0 calc(var(--spacer) * 1) 0 calc(var(--spacer) * 3);
         }
       }
       & .icons {
+        @media (max-width: 1024px) {
+          padding: 0 0 calc(var(--spacer) * 2) 0;
+        }
         & img {
           width: 60%;
           position: relative;
@@ -232,7 +241,6 @@
       }
       & .feature-item {
         padding: calc(var(--spacer) * 3) 0;
-        height: 50vh;
         @media (max-width: 1440px) {
           padding: calc(var(--spacer) * 2) 0;
         }
@@ -245,6 +253,9 @@
         position: relative;
         & .text {
           padding: calc(var(--spacer) * 5) 0;
+          @media (max-width: 1024px) {
+            padding: 0;
+          }
           @media (max-width: 450px) {
             grid-row: 2;
           }
@@ -373,6 +384,9 @@
           & .text {
             width: 65%;
             padding: 0;
+            @media (max-width: 1024px) {
+              width: 100%;
+            }
             & h2 {
               margin-bottom: 0;
               font-size: var(--font-size-base);
@@ -472,6 +486,9 @@
         @media (max-width: 1440px) {
           padding: 0 calc(var(--spacer) * 10) calc(var(--spacer) * 6) calc(var(--spacer) * 10);
         }
+        @media (max-width: 1024px) {
+          padding: calc(var(--spacer) * 4) calc(var(--spacer) * 4) calc(var(--spacer) * 0) calc(var(--spacer) * 4);
+        }
       }
       & .text {
         position: relative;
@@ -522,8 +539,8 @@
         opacity: 1;
         z-index: 1;
         @media (max-width: 1024px) {
-          background-size: 160%;
-          right: -13%;
+          background-size: 100%;
+          right: -30%;
         }
         @media (max-width: 768px) {
           background-size: 200%;
@@ -571,7 +588,8 @@
           top: 25.5%;
         }
         @media (max-width: 1024px) {
-          top: 14%;
+          top: 26%;
+          left: 32%;
         }
         @media (max-width: 768px) {
           top: 9.5%;
@@ -705,7 +723,9 @@
             width: 250px;
             text-align: center;
             font-size: calc(var(--font-size-base) * 1.5);
-            
+            @media (max-width: 1024px) {
+               width: 200px;
+            }
             @media (max-width: 570px) {
               font-size: calc(var(--font-size-base) * 1.2);
             }
@@ -714,7 +734,6 @@
             }
             text-transform: uppercase;
             cursor: pointer;
-
             & .trapezoidButton {
               position: relative;
               top: 8px;
@@ -733,6 +752,9 @@
             &.react-tabs__tab--selected {
               & .trapezoidButton {
                 width: 250px;
+                @media (max-width: 1024px) {
+                  width: 200px;
+                }
                 height: 70px;
                 position: relative;
                 z-index: 999;
@@ -835,6 +857,9 @@
       padding: calc(var(--spacer) * 4) 0 calc(var(--spacer) * 2) 0;
       & .section-container {
         padding: calc(var(--spacer) * 4) calc(var(--spacer) * 10);
+        @media (max-width: 1024px) {
+          padding: calc(var(--spacer) * 4) calc(var(--spacer) * 4) calc(var(--spacer) * 0) calc(var(--spacer) * 4);
+        }
       }
       & h2 {
           color: var(--primaryColor);

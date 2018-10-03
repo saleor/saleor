@@ -175,10 +175,10 @@ class Home extends Component {
             <div className="section-container">
               <Tabs selectedIndex={this.state.tabIndex} onSelect={tabIndex => this.setState({ tabIndex })}>
                 <div className="grid head">
-                  <div className="col-xs-12 col-sm-12 col-md-6 col-lg-5 col-xlg-7">
+                  <div className="col-xs-12 col-sm-12 col-md-5 col-lg-5 col-xlg-7">
                     <h2 className={`tab-${this.state.tabIndex}`}>Saleor in action</h2>
                   </div>
-                  <div className="col-xs-12 col-sm-12 col-md-6 col-lg-7 col-xlg-5">
+                  <div className="col-xs-12 col-sm-12 col-md-7 col-lg-7 col-xlg-5">
                     <TabList className="tabs grid">
                       <Tab className="col-xs-6 col-sm-6 col-md-6">
                         <div className="trapezoidButton">

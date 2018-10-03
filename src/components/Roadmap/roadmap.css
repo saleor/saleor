@@ -13,6 +13,9 @@
         background-image: url('../../images/roadmap-bg.svg');
         background-size: 60%;
         background-position: 100% 20%;
+        @media (max-width: 1024px) {
+          background-size: 70%;
+        }
         @media (max-width: 578px) {
           background-size: 200%;
           background-position: 50% 50%;

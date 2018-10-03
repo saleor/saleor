@@ -37,6 +37,9 @@ h1 {
   @media (max-width: 1440px) {
     font-size: calc(var(--font-size-base) * 4);
   }
+  @media (max-width: 1024px) {
+    font-size: calc(var(--font-size-base) * 3);
+  }
   @media (max-width: 768px) {
     font-size: calc(var(--h1-font-size) * 0.7);
   }

@@ -1,6 +1,6 @@
 .github-banner {
   background-color: #100A35;
-  background: linear-gradient(135deg, rgba(16,10,53,0) 4%, rgba(16,10,53,1) 8%, rgba(16,10,53,1) 96%, rgba(16,10,53,0) 8%, rgba(16,10,53,0) 100%);
+  background: linear-gradient(135deg, rgba(16,10,53,0) 4%, rgba(16,10,53,1) 4%, rgba(16,10,53,1) 96%, rgba(16,10,53,0) 96%, rgba(16,10,53,0) 100%);
   position: relative;
   padding: calc(var(--spacer) * 4) 0;
   & h1 { 
