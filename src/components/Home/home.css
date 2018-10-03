@@ -233,7 +233,7 @@
           padding: calc(var(--spacer) * 3) 0;
         }
         @media (max-width: 450px) {
-          padding: 0 0 calc(var(--spacer) * 2) 0
+          padding: 0 0 calc(var(--spacer) * 2) 0;
         }
         position: relative;
         & .text {
@@ -365,7 +365,7 @@
           }
           & .text {
             width: 65%;
-            padding: 0
+            padding: 0;
             & h2 {
               margin-bottom: 0;
               font-size: var(--font-size-base);
@@ -383,7 +383,7 @@
                   left: calc(var(--spacer) * -1);
                 }
                 @media (max-width: 450px) {
-                  left: calc(var(--spacer) * -2)
+                  left: calc(var(--spacer) * -2);
                 }
               }
             }
@@ -454,6 +454,7 @@
         }
       }
     }
+    
     &.open-source {
       position: relative;
       padding-top: calc(var(--spacer) * 3);
@@ -681,8 +682,8 @@
           padding-top: var(--spacer);
         }
         & h2 {
-          &.tab-1 { color: var(--body-color) }
-          &.tab-1 { color: var(--body-color) }
+          &.tab-1 { color: var(--body-color); }
+          &.tab-1 { color: var(--body-color); }
           text-transform: initial;
           padding-top: calc(var(--spacer) * 1.5);
           @media (max-width: 768px) {

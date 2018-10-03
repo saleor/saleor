@@ -25,36 +25,44 @@ footer {
       @media (max-width: 450px) {
         padding: calc(var(--spacer) * 2) calc(var(--spacer) / 2);
       }
-      & h4 {
-        font-size: var(--font-size);
-        color: var(--primaryColor);
-        line-height: var(--line-height-lg);
-        @media (max-width: 570px) {
-          font-size: calc(var(--font-size-base) * 0.8);
-        }
-        @media (max-width: 450px) {
-          font-size: calc(var(--font-size-base));
-        }
-        @media (max-width: 320px) {
-          font-size: calc(var(--font-size-base) * 0.8);
+      & .grid {
+        grid-template-columns: repeat(8, 1fr);
+        @media (max-width: 1440px) {
+          grid-template-columns: repeat(12, 1fr);
         }
       }
-      & ul {
-        @media (min-width: 1920px) {
+      & .menu-item {
+        & h4 {
+          font-size: var(--font-size);
+          color: var(--primaryColor);
+          line-height: var(--line-height-lg);
+          @media (max-width: 570px) {
+            font-size: calc(var(--font-size-base) * 0.8);
+          }
+          @media (max-width: 450px) {
+            font-size: calc(var(--font-size-base));
+          }
+          @media (max-width: 320px) {
+            font-size: calc(var(--font-size-base) * 0.8);
+          }
         }
-        & li {
-          & a {
-            font-size: var(--font-size);
-            color: var(--body-color);
-            line-height: var(--line-height-lg);
-            @media (max-width: 570px) {
-              font-size: calc(var(--font-size-base) * 0.8);
-            }
-            @media (max-width: 450px) {
-              font-size: calc(var(--font-size-base));
-            }
-            @media (max-width: 320px) {
-              font-size: calc(var(--font-size-base) * 0.8);
+        & ul {
+          @media (min-width: 1920px) {
+          }
+          & li {
+            & a {
+              font-size: var(--font-size);
+              color: var(--body-color);
+              line-height: var(--line-height-lg);
+              @media (max-width: 570px) {
+                font-size: calc(var(--font-size-base) * 0.8);
+              }
+              @media (max-width: 450px) {
+                font-size: calc(var(--font-size-base));
+              }
+              @media (max-width: 320px) {
+                font-size: calc(var(--font-size-base) * 0.8);
+              }
             }
           }
         }
