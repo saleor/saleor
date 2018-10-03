@@ -1,5 +1,4 @@
 import { withStyles } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import Form from "../../../components/Form";
@@ -137,15 +136,7 @@ const OrderHistory = decorate<OrderHistoryProps>(
                   date={event.date}
                   title={getEventMessage(event)}
                   key={event.id}
-                >
-                  {event.user && (
-                    <Typography variant="caption">
-                      {i18n.t("by {{ user }}", {
-                        user: event.user.email
-                      })}
-                    </Typography>
-                  )}
-                </TimelineEvent>
+                />
               );
             })}
         </Timeline>
