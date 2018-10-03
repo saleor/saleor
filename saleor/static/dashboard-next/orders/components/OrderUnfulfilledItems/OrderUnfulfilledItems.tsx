@@ -38,7 +38,7 @@ const decorate = withStyles({
   }
 });
 const OrderUnfulfilledItems = decorate<OrderUnfulfilledItemsProps>(
-  ({ classes, lines }) => (
+  ({ classes, lines, onFulfill }) => (
     <Card>
       <CardTitle
         title={
@@ -117,7 +117,7 @@ const OrderUnfulfilledItems = decorate<OrderUnfulfilledItemsProps>(
         </TableBody>
       </Table>
       <CardActions>
-        <Button variant="flat" color="secondary">
+        <Button variant="flat" color="secondary" onClick={onFulfill}>
           {i18n.t("Fulfill", {
             context: "button"
           })}

@@ -29,7 +29,13 @@ const OrderPaymentDialog: React.StatelessComponent<OrderPaymentDialogProps> = ({
   onSubmit
 }) => (
   <Dialog open={open}>
-    <Form initial={initialForm} onSubmit={onSubmit}>
+    <Form
+      initial={initialForm}
+      onSubmit={data => {
+        onSubmit(data);
+        onClose();
+      }}
+    >
       {({ data, change, submit }) => (
         <>
           <DialogTitle>

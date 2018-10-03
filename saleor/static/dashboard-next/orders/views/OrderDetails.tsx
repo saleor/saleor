@@ -23,6 +23,8 @@ import { OrderLineUpdate } from "../types/OrderLineUpdate";
 import { OrderRefund } from "../types/OrderRefund";
 import { OrderShippingMethodUpdate } from "../types/OrderShippingMethodUpdate";
 import { OrderUpdate } from "../types/OrderUpdate";
+import { OrderFulfillmentCancel } from "../types/OrderFulfillmentCancel";
+import { OrderFulfillmentUpdateTracking } from "../types/OrderFulfillmentUpdateTracking";
 
 interface OrderDetailsProps {
   id: string;
@@ -51,6 +53,18 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             context: "notification"
                           })
                         });
+                      } else {
+                        pushMessage({
+                          text: i18n.t(
+                            "Payment not captured: {{ errorMessage }}",
+                            {
+                              context: "notification",
+                              errorMessage: data.orderCapture.errors.filter(
+                                error => error.field === "payment"
+                              )[0].message
+                            }
+                          )
+                        });
                       }
                     };
                     const handlePaymentRefund = (data: OrderRefund) => {
@@ -59,6 +73,18 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                           text: i18n.t("Payment successfully refunded", {
                             context: "notification"
                           })
+                        });
+                      } else {
+                        pushMessage({
+                          text: i18n.t(
+                            "Payment not refunded: {{ errorMessage }}",
+                            {
+                              context: "notification",
+                              errorMessage: data.orderRefund.errors.filter(
+                                error => error.field === "payment"
+                              )[0].message
+                            }
+                          )
                         });
                       }
                     };
@@ -70,6 +96,12 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                       ) {
                         pushMessage({
                           text: i18n.t("Items successfully fulfilled", {
+                            context: "notification"
+                          })
+                        });
+                      } else {
+                        pushMessage({
+                          text: i18n.t("Could not fulfill items", {
                             context: "notification"
                           })
                         });
@@ -93,6 +125,12 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                       if (!maybe(() => data.orderAddNote.errors.length)) {
                         pushMessage({
                           text: i18n.t("Note successfully added", {
+                            context: "notification"
+                          })
+                        });
+                      } else {
+                        pushMessage({
+                          text: i18n.t("Could not add note", {
                             context: "notification"
                           })
                         });
@@ -127,6 +165,12 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             context: "notification"
                           })
                         });
+                      } else {
+                        pushMessage({
+                          text: i18n.t("Could not update shipping method", {
+                            context: "notification"
+                          })
+                        });
                       }
                     };
                     const handleLineDelete = (data: OrderLineDelete) => {
@@ -135,6 +179,12 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                       ) {
                         pushMessage({
                           text: i18n.t("Order line deleted", {
+                            context: "notification"
+                          })
+                        });
+                      } else {
+                        pushMessage({
+                          text: i18n.t("Could not delete order line", {
                             context: "notification"
                           })
                         });
@@ -149,6 +199,12 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             context: "notification"
                           })
                         });
+                      } else {
+                        pushMessage({
+                          text: i18n.t("Could not create order line", {
+                            context: "notification"
+                          })
+                        });
                       }
                     };
                     const handleLineUpdate = (data: OrderLineUpdate) => {
@@ -157,6 +213,53 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                       ) {
                         pushMessage({
                           text: i18n.t("Order line updated", {
+                            context: "notification"
+                          })
+                        });
+                      } else {
+                        pushMessage({
+                          text: i18n.t("Could not update order line", {
+                            context: "notification"
+                          })
+                        });
+                      }
+                    };
+                    const handleFulfillmentCancel = (
+                      data: OrderFulfillmentCancel
+                    ) => {
+                      if (
+                        !maybe(() => data.orderFulfillmentCancel.errors.length)
+                      ) {
+                        pushMessage({
+                          text: i18n.t("Fulfillment successfully cancelled", {
+                            context: "notification"
+                          })
+                        });
+                      } else {
+                        pushMessage({
+                          text: i18n.t("Could not cancel fulfillment", {
+                            context: "notification"
+                          })
+                        });
+                      }
+                    };
+                    const handleFulfillmentUpdate = (
+                      data: OrderFulfillmentUpdateTracking
+                    ) => {
+                      if (
+                        !maybe(
+                          () =>
+                            data.orderFulfillmentUpdateTracking.errors.length
+                        )
+                      ) {
+                        pushMessage({
+                          text: i18n.t("Fulfillment successfully updated", {
+                            context: "notification"
+                          })
+                        });
+                      } else {
+                        pushMessage({
+                          text: i18n.t("Could not update fulfillment", {
                             context: "notification"
                           })
                         });
@@ -178,6 +281,8 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                         onOrderLineDelete={handleLineDelete}
                         onOrderLineAdd={handleLineAdd}
                         onOrderLineUpdate={handleLineUpdate}
+                        onOrderFulfillmentCancel={handleFulfillmentCancel}
+                        onOrderFulfillmentUpdate={handleFulfillmentUpdate}
                       >
                         {({
                           errors,
@@ -191,7 +296,9 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                           orderPaymentRefund,
                           orderRelease,
                           orderShippingMethodUpdate,
-                          orderUpdate
+                          orderUpdate,
+                          orderFulfillmentCancel,
+                          orderFulfillmentUpdateTracking
                         }) =>
                           maybe(() => order.status !== OrderStatus.DRAFT) ? (
                             <OrderDetailsPage
@@ -253,8 +360,27 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         orderLineId: line.id,
                                         quantity: variables.lines[lineIndex]
                                       }))
+                                      .filter(line => line.quantity > 0)
                                   },
                                   order: order.id
+                                })
+                              }
+                              onFulfillmentCancel={(id, variables) =>
+                                orderFulfillmentCancel.mutate({
+                                  id,
+                                  input: variables
+                                })
+                              }
+                              onFulfillmentTrackingNumberUpdate={(
+                                id,
+                                variables
+                              ) =>
+                                orderFulfillmentUpdateTracking.mutate({
+                                  id,
+                                  input: {
+                                    ...variables,
+                                    notifyCustomer: true
+                                  }
                                 })
                               }
                               onPaymentCapture={variables =>

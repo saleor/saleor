@@ -9,7 +9,9 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
+import { CardMenu } from "../../../components/CardMenu/CardMenu";
 import CardTitle from "../../../components/CardTitle";
+import Money from "../../../components/Money";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel/StatusLabel";
 import TableCellAvatar from "../../../components/TableCellAvatar";
@@ -20,30 +22,28 @@ import { OrderDetails_order_fulfillments } from "../../types/OrderDetails";
 
 interface OrderFulfillmentProps {
   fulfillment: OrderDetails_order_fulfillments;
-  onOrderFulfillmentCancel();
-  onTrackingCodeAdd();
+  onOrderFulfillmentCancel: () => void;
+  onTrackingCodeAdd: () => void;
 }
 
 const decorate = withStyles(
-  theme => ({
-    avatarCell: {
-      paddingLeft: theme.spacing.unit * 2,
-      paddingRight: theme.spacing.unit * 3,
-      width: theme.spacing.unit * 5
-    },
-    root: {
-      marginTop: theme.spacing.unit * 2,
-      [theme.breakpoints.down("sm")]: {
-        marginTop: theme.spacing.unit
-      }
+  {
+    clickableRow: {
+      cursor: "pointer" as "pointer"
     },
     statusBar: {
       paddingTop: 0
     },
-    textLeft: {
-      textAlign: [["left"], "!important"] as any
+    textCenter: {
+      textAlign: "center" as "center"
+    },
+    textRight: {
+      textAlign: "right" as "right"
+    },
+    wideCell: {
+      width: "50%"
     }
-  }),
+  },
   { name: "OrderFulfillment" }
 );
 const OrderFulfillment = decorate<OrderFulfillmentProps>(
@@ -51,7 +51,7 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
     const lines = maybe(() => fulfillment.lines.edges.map(edge => edge.node));
     const status = maybe(() => fulfillment.status);
     return (
-      <Card className={classes.root}>
+      <Card>
         <CardTitle
           title={
             <StatusLabel
@@ -73,50 +73,97 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
               }
             />
           }
+          toolbar={
+            fulfillment.status === FulfillmentStatus.FULFILLED && (
+              <CardMenu
+                menuItems={[
+                  {
+                    label: i18n.t("Cancel shipment", {
+                      context: "button"
+                    }),
+                    onSelect: onOrderFulfillmentCancel
+                  }
+                ]}
+              />
+            )
+          }
         />
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell />
-              <TableCell className={classes.textLeft}>
+              <TableCell className={classes.wideCell} colSpan={2}>
                 {i18n.t("Product")}
+              </TableCell>
+              <TableCell className={classes.textCenter}>
+                {i18n.t("Quantity")}
+              </TableCell>
+              <TableCell className={classes.textRight}>
+                {i18n.t("Price")}
+              </TableCell>
+              <TableCell className={classes.textRight}>
+                {i18n.t("Total")}
               </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {lines ? (
-              lines.map(productLine => (
-                <TableRow key={productLine.orderLine.id}>
-                  <TableCellAvatar
-                    thumbnail={productLine.orderLine.thumbnailUrl}
-                  />
-                  <TableCell className={classes.textLeft}>
-                    {productLine.orderLine.productName} x {productLine.quantity}
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCellAvatar />
+            {lines.map(line => (
+              <TableRow
+                className={!!line ? classes.clickableRow : undefined}
+                hover={!!line}
+                key={maybe(() => line.id)}
+              >
+                <TableCellAvatar thumbnail={line.orderLine.thumbnailUrl} />
                 <TableCell>
-                  <Skeleton />
+                  {maybe(() => line.orderLine.productName) || <Skeleton />}
+                </TableCell>
+                <TableCell className={classes.textCenter}>
+                  {maybe(() => line.quantity) || <Skeleton />}
+                </TableCell>
+                <TableCell className={classes.textRight}>
+                  {maybe(() => line.orderLine.unitPrice.gross) ? (
+                    <Money
+                      amount={line.orderLine.unitPrice.gross.amount}
+                      currency={line.orderLine.unitPrice.gross.currency}
+                    />
+                  ) : (
+                    <Skeleton />
+                  )}
+                </TableCell>
+                <TableCell className={classes.textRight}>
+                  {maybe(
+                    () => line.quantity * line.orderLine.unitPrice.gross.amount
+                  ) ? (
+                    <Money
+                      amount={
+                        line.quantity * line.orderLine.unitPrice.gross.amount
+                      }
+                      currency={line.orderLine.unitPrice.gross.currency}
+                    />
+                  ) : (
+                    <Skeleton />
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+            {fulfillment.trackingNumber && (
+              <TableRow>
+                <TableCell colSpan={4}>
+                  {i18n.t("Tracking Number: {{ trackingNumber }}", {
+                    trackingNumber: fulfillment.trackingNumber
+                  })}
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
-        {status === FulfillmentStatus.FULFILLED && (
-          <CardActions>
-            <Button onClick={onTrackingCodeAdd}>
-              {fulfillment.trackingNumber
-                ? i18n.t("Add tracking number")
-                : i18n.t("Edit tracking number")}
-            </Button>
-            <Button onClick={onOrderFulfillmentCancel}>
-              {i18n.t("Cancel shipment")}
-            </Button>
-          </CardActions>
-        )}
+        {status === FulfillmentStatus.FULFILLED &&
+          !fulfillment.trackingNumber && (
+            <CardActions>
+              <Button color="secondary" onClick={onTrackingCodeAdd}>
+                {i18n.t("Add tracking")}
+              </Button>
+            </CardActions>
+          )}
       </Card>
     );
   }

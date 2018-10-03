@@ -18,6 +18,14 @@ import {
   OrderDraftUpdate,
   OrderDraftUpdateVariables
 } from "./types/OrderDraftUpdate";
+import {
+  OrderFulfillmentCancel,
+  OrderFulfillmentCancelVariables
+} from "./types/OrderFulfillmentCancel";
+import {
+  OrderFulfillmentUpdateTracking,
+  OrderFulfillmentUpdateTrackingVariables
+} from "./types/OrderFulfillmentUpdateTracking";
 import { OrderLineAdd, OrderLineAddVariables } from "./types/OrderLineAdd";
 import {
   OrderLineDelete,
@@ -104,6 +112,7 @@ export const TypedOrderCaptureMutation = TypedMutation<
 >(orderCaptureMutation);
 
 const orderCreateFulfillmentMutation = gql`
+  ${fragmentOrderDetails}
   mutation OrderCreateFulfillment(
     $order: ID!
     $input: FulfillmentCreateInput!
@@ -113,6 +122,9 @@ const orderCreateFulfillmentMutation = gql`
         field
         message
       }
+      order {
+        ...OrderDetailsFragment
+      }
     }
   }
 `;
@@ -120,6 +132,47 @@ export const TypedOrderCreateFulfillmentMutation = TypedMutation<
   OrderCreateFulfillment,
   OrderCreateFulfillmentVariables
 >(orderCreateFulfillmentMutation);
+
+const orderFulfillmentUpdateTrackingMutation = gql`
+  ${fragmentOrderDetails}
+  mutation OrderFulfillmentUpdateTracking(
+    $id: ID!
+    $input: FulfillmentUpdateTrackingInput!
+  ) {
+    orderFulfillmentUpdateTracking(id: $id, input: $input) {
+      errors {
+        field
+        message
+      }
+      order {
+        ...OrderDetailsFragment
+      }
+    }
+  }
+`;
+export const TypedOrderFulfillmentUpdateTrackingMutation = TypedMutation<
+  OrderFulfillmentUpdateTracking,
+  OrderFulfillmentUpdateTrackingVariables
+>(orderFulfillmentUpdateTrackingMutation);
+
+const orderFulfillmentCancelMutation = gql`
+  ${fragmentOrderDetails}
+  mutation OrderFulfillmentCancel($id: ID!, $input: FulfillmentCancelInput!) {
+    orderFulfillmentCancel(id: $id, input: $input) {
+      errors {
+        field
+        message
+      }
+      order {
+        ...OrderDetailsFragment
+      }
+    }
+  }
+`;
+export const TypedOrderFulfillmentCancelMutation = TypedMutation<
+  OrderFulfillmentCancel,
+  OrderFulfillmentCancelVariables
+>(orderFulfillmentCancelMutation);
 
 const orderAddNoteMutation = gql`
   ${fragmentOrderEvent}
