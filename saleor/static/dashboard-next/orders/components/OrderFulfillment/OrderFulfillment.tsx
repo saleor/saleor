@@ -16,7 +16,7 @@ import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel/StatusLabel";
 import TableCellAvatar from "../../../components/TableCellAvatar";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
+import { maybe, renderCollection } from "../../../misc";
 import { FulfillmentStatus } from "../../../types/globalTypes";
 import { OrderDetails_order_fulfillments } from "../../types/OrderDetails";
 
@@ -54,27 +54,31 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
       <Card>
         <CardTitle
           title={
-            <StatusLabel
-              label={
-                status === FulfillmentStatus.FULFILLED
-                  ? i18n.t("Fulfilled ({{ quantity }})", {
-                      quantity: lines
-                        .map(line => line.quantity)
-                        .reduce((prev, curr) => prev + curr, 0)
-                    })
-                  : i18n.t("Cancelled ({{ quantity }})", {
-                      quantity: lines
-                        .map(line => line.quantity)
-                        .reduce((prev, curr) => prev + curr, 0)
-                    })
-              }
-              status={
-                status === FulfillmentStatus.FULFILLED ? "success" : "error"
-              }
-            />
+            !!lines ? (
+              <StatusLabel
+                label={
+                  status === FulfillmentStatus.FULFILLED
+                    ? i18n.t("Fulfilled ({{ quantity }})", {
+                        quantity: lines
+                          .map(line => line.quantity)
+                          .reduce((prev, curr) => prev + curr, 0)
+                      })
+                    : i18n.t("Cancelled ({{ quantity }})", {
+                        quantity: lines
+                          .map(line => line.quantity)
+                          .reduce((prev, curr) => prev + curr, 0)
+                      })
+                }
+                status={
+                  status === FulfillmentStatus.FULFILLED ? "success" : "error"
+                }
+              />
+            ) : (
+              <Skeleton />
+            )
           }
           toolbar={
-            fulfillment.status === FulfillmentStatus.FULFILLED && (
+            maybe(() => fulfillment.status) === FulfillmentStatus.FULFILLED && (
               <CardMenu
                 menuItems={[
                   {
@@ -106,13 +110,15 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
             </TableRow>
           </TableHead>
           <TableBody>
-            {lines.map(line => (
+            {renderCollection(lines, line => (
               <TableRow
                 className={!!line ? classes.clickableRow : undefined}
                 hover={!!line}
                 key={maybe(() => line.id)}
               >
-                <TableCellAvatar thumbnail={line.orderLine.thumbnailUrl} />
+                <TableCellAvatar
+                  thumbnail={maybe(() => line.orderLine.thumbnailUrl)}
+                />
                 <TableCell>
                   {maybe(() => line.orderLine.productName) || <Skeleton />}
                 </TableCell>
@@ -145,7 +151,7 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
                 </TableCell>
               </TableRow>
             ))}
-            {fulfillment.trackingNumber && (
+            {maybe(() => fulfillment.trackingNumber) && (
               <TableRow>
                 <TableCell colSpan={4}>
                   {i18n.t("Tracking Number: {{ trackingNumber }}", {
