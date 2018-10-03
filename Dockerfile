@@ -9,6 +9,8 @@ RUN \
   rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
+# Pipenv is installed with curl to avoid using pip in "user scheme" mode. See:
+# https://pipenv.readthedocs.io/en/latest/install/#crude-installation-of-pipenv
 RUN curl https://raw.githubusercontent.com/kennethreitz/pipenv/master/get-pipenv.py | python
 ADD Pipfile.lock /app/
 RUN pipenv install --system --deploy
