@@ -18,10 +18,9 @@ const decorate = withStyles(theme => ({
     marginTop: 0
   },
   root: theme.mixins.gutters({
+    alignItems: "center" as "center",
     display: "flex",
-    height: theme.spacing.unit * 6,
-    paddingBottom: theme.spacing.unit * 2,
-    paddingTop: theme.spacing.unit * 2
+    height: theme.spacing.unit * 6
   }),
   title: {
     flex: 1,
@@ -30,8 +29,7 @@ const decorate = withStyles(theme => ({
     lineHeight: 1
   },
   toolbar: {
-    marginRight: -theme.spacing.unit * 2,
-    marginTop: -10
+    marginRight: -theme.spacing.unit * 2
   }
 }));
 const CardTitle = decorate<CardTitleProps>(
