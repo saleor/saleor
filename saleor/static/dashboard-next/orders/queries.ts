@@ -90,6 +90,7 @@ export const fragmentOrderDetails = gql`
           }
         }
       }
+      fulfillmentOrder
       status
       trackingNumber
     }

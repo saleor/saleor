@@ -4,6 +4,7 @@ import * as React from "react";
 
 import { transformAddressToForm } from "../..";
 import { UserError } from "../../..";
+import { CardMenu } from "../../../components/CardMenu/CardMenu";
 import { CardSpacer } from "../../../components/CardSpacer";
 import { Container } from "../../../components/Container";
 import DateFormatter from "../../../components/DateFormatter";
@@ -12,6 +13,7 @@ import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
 import Toggle from "../../../components/Toggle";
 import { AddressTypeInput } from "../../../customers";
+import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { OrderStatus } from "../../../types/globalTypes";
 import { OrderDetails_order } from "../../types/OrderDetails";
@@ -111,6 +113,9 @@ const decorate = withStyles(theme => ({
   header: {
     marginBottom: 0
   },
+  menu: {
+    marginRight: -theme.spacing.unit
+  },
   root: {
     display: "grid",
     gridColumnGap: theme.spacing.unit * 2 + "px",
@@ -118,7 +123,7 @@ const decorate = withStyles(theme => ({
   }
 }));
 class OrderDetailsPageComponent extends React.Component<
-  OrderDetailsPageProps & WithStyles<"date" | "header" | "root">,
+  OrderDetailsPageProps & WithStyles<"date" | "header" | "menu" | "root">,
   OrderDetailsPageState
 > {
   state = {
@@ -213,10 +218,10 @@ class OrderDetailsPageComponent extends React.Component<
       openedShippingAddressEditDialog,
       openedShippingMethodEditDialog
     } = this.state;
-    const isDraft = order ? order.status === OrderStatus.DRAFT : false;
-    const unfulfilled = maybe(() => order.lines, []).filter(
-      line => line.quantityFulfilled < line.quantity
-    );
+    const canCancel = maybe(() => order.status) !== OrderStatus.CANCELED;
+    const unfulfilled = maybe(() => order.lines.edges, [])
+      .map(edge => edge.node)
+      .filter(line => line.quantityFulfilled < line.quantity);
     return (
       <>
         <Container width="md">
@@ -224,7 +229,19 @@ class OrderDetailsPageComponent extends React.Component<
             className={classes.header}
             title={maybe(() => order.number) ? "#" + order.number : undefined}
             onBack={onBack}
-          />
+          >
+            {canCancel && (
+              <CardMenu
+                className={classes.menu}
+                menuItems={[
+                  {
+                    label: i18n.t("Cancel order", { context: "button" }),
+                    onSelect: this.toggleOrderCancelDialog
+                  }
+                ]}
+              />
+            )}
+          </PageHeader>
           <div className={classes.date}>
             {order && order.created ? (
               <Typography variant="caption">
@@ -242,7 +259,6 @@ class OrderDetailsPageComponent extends React.Component<
                   onFulfill={this.toggleFulfillmentDialog}
                 />
               )}
-
               {renderCollection(
                 maybe(() => order.fulfillments),
                 fulfillment => (
@@ -260,6 +276,7 @@ class OrderDetailsPageComponent extends React.Component<
                             <CardSpacer />
                             <OrderFulfillment
                               fulfillment={fulfillment}
+                              orderNumber={maybe(() => order.number)}
                               onOrderFulfillmentCancel={
                                 toggleFulfillmentCancelDialog
                               }
@@ -294,7 +311,6 @@ class OrderDetailsPageComponent extends React.Component<
                   </Toggle>
                 )
               )}
-
               <CardSpacer />
               <OrderPayment
                 order={order}
@@ -302,7 +318,6 @@ class OrderDetailsPageComponent extends React.Component<
                 onRefund={this.togglePaymentRefundDialog}
                 onRelease={this.togglePaymentCaptureDialog}
               />
-
               <OrderHistory
                 history={maybe(() => order.events)}
                 onNoteAdd={onNoteAdd}
@@ -312,7 +327,7 @@ class OrderDetailsPageComponent extends React.Component<
               <OrderCustomer
                 billingAddress={maybe(() => order.billingAddress)}
                 customer={maybe(() => order.user)}
-                canEditCustomer={isDraft}
+                canEditCustomer={false}
                 shippingAddress={maybe(() => order.shippingAddress)}
                 onBillingAddressEdit={this.toggleBillingAddressEditDialog}
                 onCustomerEditClick={this.toggleCustomerEditDialog}

@@ -103,6 +103,7 @@ export interface OrderRefund_orderRefund_order_fulfillments {
   __typename: "Fulfillment";
   id: string;
   lines: OrderRefund_orderRefund_order_fulfillments_lines | null;
+  fulfillmentOrder: number;
   status: FulfillmentStatus;
   trackingNumber: string;
 }

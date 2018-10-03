@@ -1,7 +1,13 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import {
+  OrderEventsEmails,
+  OrderEvents,
+  FulfillmentStatus,
+  PaymentStatusEnum,
+  OrderStatus
+} from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL query operation: OrderDetails
@@ -97,6 +103,7 @@ export interface OrderDetails_order_fulfillments {
   __typename: "Fulfillment";
   id: string;
   lines: OrderDetails_order_fulfillments_lines | null;
+  fulfillmentOrder: number;
   status: FulfillmentStatus;
   trackingNumber: string;
 }
@@ -241,7 +248,9 @@ export interface OrderDetails_order {
   totalAuthorized: OrderDetails_order_totalAuthorized | null;
   totalCaptured: OrderDetails_order_totalCaptured | null;
   user: OrderDetails_order_user | null;
-  availableShippingMethods: (OrderDetails_order_availableShippingMethods | null)[] | null;
+  availableShippingMethods:
+    | (OrderDetails_order_availableShippingMethods | null)[]
+    | null;
 }
 
 export interface OrderDetails_shop_countries {

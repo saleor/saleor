@@ -7,6 +7,7 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
+import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import { CardMenu } from "../../../components/CardMenu/CardMenu";
@@ -22,14 +23,19 @@ import { OrderDetails_order_fulfillments } from "../../types/OrderDetails";
 
 interface OrderFulfillmentProps {
   fulfillment: OrderDetails_order_fulfillments;
+  orderNumber: string;
   onOrderFulfillmentCancel: () => void;
   onTrackingCodeAdd: () => void;
 }
 
 const decorate = withStyles(
-  {
+  theme => ({
     clickableRow: {
       cursor: "pointer" as "pointer"
+    },
+    orderNumber: {
+      display: "inline" as "inline",
+      marginLeft: theme.spacing.unit
     },
     statusBar: {
       paddingTop: 0
@@ -43,11 +49,17 @@ const decorate = withStyles(
     wideCell: {
       width: "50%"
     }
-  },
+  }),
   { name: "OrderFulfillment" }
 );
 const OrderFulfillment = decorate<OrderFulfillmentProps>(
-  ({ classes, fulfillment, onOrderFulfillmentCancel, onTrackingCodeAdd }) => {
+  ({
+    classes,
+    fulfillment,
+    orderNumber,
+    onOrderFulfillmentCancel,
+    onTrackingCodeAdd
+  }) => {
     const lines = maybe(() => fulfillment.lines.edges.map(edge => edge.node));
     const status = maybe(() => fulfillment.status);
     return (
@@ -57,17 +69,24 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
             !!lines ? (
               <StatusLabel
                 label={
-                  status === FulfillmentStatus.FULFILLED
-                    ? i18n.t("Fulfilled ({{ quantity }})", {
-                        quantity: lines
-                          .map(line => line.quantity)
-                          .reduce((prev, curr) => prev + curr, 0)
-                      })
-                    : i18n.t("Cancelled ({{ quantity }})", {
-                        quantity: lines
-                          .map(line => line.quantity)
-                          .reduce((prev, curr) => prev + curr, 0)
-                      })
+                  <>
+                    {status === FulfillmentStatus.FULFILLED
+                      ? i18n.t("Fulfilled ({{ quantity }})", {
+                          quantity: lines
+                            .map(line => line.quantity)
+                            .reduce((prev, curr) => prev + curr, 0)
+                        })
+                      : i18n.t("Cancelled ({{ quantity }})", {
+                          quantity: lines
+                            .map(line => line.quantity)
+                            .reduce((prev, curr) => prev + curr, 0)
+                        })}
+                    <Typography className={classes.orderNumber} variant="body1">
+                      {maybe(
+                        () => `#${orderNumber}-${fulfillment.fulfillmentOrder}`
+                      )}
+                    </Typography>
+                  </>
                 }
                 status={
                   status === FulfillmentStatus.FULFILLED ? "success" : "error"

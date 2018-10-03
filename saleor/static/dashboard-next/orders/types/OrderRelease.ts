@@ -97,6 +97,7 @@ export interface OrderRelease_orderRelease_order_fulfillments {
   __typename: "Fulfillment";
   id: string;
   lines: OrderRelease_orderRelease_order_fulfillments_lines | null;
+  fulfillmentOrder: number;
   status: FulfillmentStatus;
   trackingNumber: string;
 }

@@ -97,6 +97,7 @@ export interface OrderDetailsFragment_fulfillments {
   __typename: "Fulfillment";
   id: string;
   lines: OrderDetailsFragment_fulfillments_lines | null;
+  fulfillmentOrder: number;
   status: FulfillmentStatus;
   trackingNumber: string;
 }

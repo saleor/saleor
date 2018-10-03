@@ -97,6 +97,7 @@ export interface OrderCancel_orderCancel_order_fulfillments {
   __typename: "Fulfillment";
   id: string;
   lines: OrderCancel_orderCancel_order_fulfillments_lines | null;
+  fulfillmentOrder: number;
   status: FulfillmentStatus;
   trackingNumber: string;
 }
