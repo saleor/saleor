@@ -23,7 +23,7 @@ def test_page_query(user_api_client, page):
     assert page_data['slug'] == page.slug
 
 
-def test_page_create_mutation(admin_api_client):
+def test_page_create_mutation(staff_api_client, permission_manage_pages):
     query = """
         mutation CreatePage(
                 $slug: String!, $title: String!, $content: String!,
@@ -55,7 +55,8 @@ def test_page_create_mutation(admin_api_client):
     variables = {
         'title': page_title, 'content': page_content,
         'isVisible': page_isVisible, 'slug': page_slug}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages])
     content = get_graphql_content(response)
     data = content['data']['pageCreate']
     assert data['errors'] == []
@@ -65,7 +66,7 @@ def test_page_create_mutation(admin_api_client):
     assert data['page']['isVisible'] == page_isVisible
 
 
-def test_page_delete_mutation(admin_api_client, page):
+def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):
     query = """
         mutation DeletePage($id: ID!) {
             pageDelete(id: $id) {
@@ -81,7 +82,8 @@ def test_page_delete_mutation(admin_api_client, page):
             }
     """
     variables = {'id': graphene.Node.to_global_id('Page', page.id)}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages])
     content = get_graphql_content(response)
     data = content['data']['pageDelete']
     assert data['page']['title'] == page.title

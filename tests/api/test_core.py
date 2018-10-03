@@ -18,7 +18,8 @@ def test_clean_seo_fields():
     assert data['seo_description'] == description
 
 
-def test_user_error_field_name_for_related_object(admin_api_client):
+def test_user_error_field_name_for_related_object(
+        staff_api_client, permission_manage_products):
     query = """
     mutation {
         categoryCreate(input: {name: "Test", parent: "123456"}) {
@@ -32,7 +33,8 @@ def test_user_error_field_name_for_related_object(admin_api_client):
         }
     }
     """
-    response = admin_api_client.post_graphql(query)
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     data = content['data']['categoryCreate']['category']
     assert data is None
@@ -56,7 +58,8 @@ def test_snake_to_camel_case():
     assert snake_to_camel_case(123) == 123
 
 
-def test_mutation_returns_error_field_in_camel_case(admin_api_client, variant):
+def test_mutation_returns_error_field_in_camel_case(
+        staff_api_client, variant, permission_manage_products):
     # costPrice is snake case variable (cost_price) in the backend
     query = """
     mutation testCamel($id: ID!, $cost: Decimal) {
@@ -75,7 +78,8 @@ def test_mutation_returns_error_field_in_camel_case(admin_api_client, variant):
     variables = {
         'id': graphene.Node.to_global_id('ProductVariant', variant.id),
         'cost': 12.1234}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     error = content['data']['productVariantUpdate']['errors'][0]
     assert error['field'] == 'costPrice'
