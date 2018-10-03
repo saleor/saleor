@@ -543,6 +543,11 @@ def permission_manage_menus():
 
 
 @pytest.fixture
+def permission_manage_pages():
+    return Permission.objects.get(codename='manage_pages')
+
+
+@pytest.fixture
 def collection(db):
     collection = Collection.objects.create(
         name='Collection', slug='collection', is_published=True)
