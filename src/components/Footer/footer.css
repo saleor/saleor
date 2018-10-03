@@ -1,5 +1,5 @@
 footer {
-  padding: 0 calc(var(--spacer) * 2) calc(var(--spacer) * 2) calc(var(--spacer) * 2);
+  padding: 0 calc(var(--spacer) * 2.5) calc(var(--spacer) * 2) calc(var(--spacer) * 2.5);
   position: relative;
   & .container {
     padding: 0;
@@ -8,6 +8,7 @@ footer {
   }
   & .logo {
     width: 120px;
+    padding-top: calc(var(--spacer) * 2.5);
     padding-bottom: var(--spacer);
     padding-left: 10rem;
     @media (max-width: 450px) {

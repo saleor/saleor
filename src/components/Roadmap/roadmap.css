@@ -3,15 +3,15 @@
   position: relative;
   & section {
     &.hero {
-      padding-bottom: calc(var(--spacer) * 10);
+      height: 90vh;
       @media (max-width: 1024px) {
         padding-bottom: 0;
       }
       position: relative;
       & .bg-container {
         background-image: url('../../images/roadmap-bg.svg');
-        background-size: 70%;
-        background-position: 85% 20%;
+        background-size: 60%;
+        background-position: 100% 20%;
         @media (max-width: 578px) {
           background-size: 200%;
           background-position: 50% 50%;
@@ -20,6 +20,11 @@
       & .plane {
         width: 30%;
         padding: calc(var(--spacer) * 15) calc(var(--spacer) * 10);
+        position: relative;
+        z-index: 999;
+        @media (max-width: 1440px) {
+          width: 40%;
+        }
         & p {
           font-size: calc(var(--font-size-base) * 1.3);
           font-weight: var(--font-weight-light);
@@ -39,14 +44,9 @@
       & .scroll-link {
         width: 100%;
         position: absolute;
-        bottom: 15%;
+        bottom: 5%;
         left: 0;
         text-align: center;
-      }
-      & .decoration01 {
-        width: 40%;
-        top: 41%;
-        right: 0;
       }
     }
     &.roadmap-content {
@@ -73,10 +73,10 @@
             &::after {
               content: "";
               position: absolute;
-              top: 45%;
-              bottom: 8%;
+              top: 78px;
+              bottom: -19px;
               left: 70%;
-              border-left: 3px solid var(--primaryColor);
+              border-left: 1px solid var(--primaryColor);
               @media (max-width: 578px) {
                 top: 37%;
               }
@@ -86,7 +86,7 @@
               background-size: 50%;
               background-position: 85% 5%;
               &::after {
-                top: 57%;
+                top: 95px;
                 @media (max-width: 578px) {
                   top: 35%;
                 }
@@ -97,7 +97,7 @@
               background-size: contain;
               background-position: 20% 5%;
               &::after {
-                top: 37%;
+                top: 105px;
               }
               @media (max-width: 578px) {
                 background-position: 20% 0;
@@ -116,12 +116,14 @@
         & .text {
           padding-bottom: calc(var(--spacer) * 3);
           & h2 {
-            padding: var(--spacer) 0;
+            padding: var(--spacer) 0  calc(var(--spacer) * 2) 0;
+            text-transform: initial;
           }
           & h4 {
             padding-top: calc(var(--spacer) / 5);
             padding-right: calc(var(--spacer) * 3);
-            font-size: var(--font-size-base);
+            padding-bottom: var(--spacer);
+            font-size: calc(var(--font-size-base) * 1.2);
             text-transform: initial;
             font-weight: var(--font-weight-medium);
           }
@@ -135,36 +137,6 @@
             }
           }
         }
-      }
-      & .decoration01 {
-        width: 40%;
-        right: -20%;
-        top: 10%;
-        @media (max-width: 1024px) {
-          top: 13%;
-        }
-        @media (max-width: 700px) {
-          top: 16%;
-        }
-        @media (max-width: 450px) { display: none; }
-      }
-      & .decoration02 {
-        width: 17%;
-        top: 39%;
-        left: -5%;
-        @media (max-width: 450px) { display: none; }
-      }
-      & .decoration03 {
-        width: 30%;
-        right: 0;
-        top: 65%;
-        @media (max-width: 768px) {
-          top: 60%;
-        }
-        @media (max-width: 700px) {
-          top: 62%;
-        }
-        @media (max-width: 450px) { display: none; }
       }
     }
   }

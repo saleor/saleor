@@ -8,8 +8,8 @@
     }
     & .bg-container {
       background-image: url('../../images/lock-bg.svg');
-      background-size: auto;
-      background-position: 80% 30%;
+      background-size: 40%;
+      background-position: 90% 20%;
       @media (max-width: 768px) {
         background-position: 120% 50%;
       }
@@ -21,15 +21,16 @@
       }
     }
 		&.hero {
+      height: 100vh;
       padding: 0;
       position: relative;
       margin-bottom: calc(var(--spacer) * 4);
 			& .plane {
 				width: 50%;
-				padding: calc(var(--spacer) * 14) calc(var(--spacer) * 7);
-        @media (max-width: 700px) {
-          padding: calc(var(--spacer) * 10) calc(var(--spacer) * 7);
-        }
+				position: absolute;
+        top: 50%;
+        left: 10%;
+        transform: translateY(-50%);
 				& p {
 					font-size: calc(var(--font-size-base) * 1.2);
 					width: 70%;
@@ -46,6 +47,11 @@
         }
       }
       & .scroll-link {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 998;
+        bottom: calc(var(--spacer) * 4);
         @media (max-width: 768px) {
           position: absolute;
           bottom: 5%;
@@ -56,13 +62,6 @@
           bottom: 10%;
         }
       }
-      & .decoration {
-        top: 40%;
-        right: 0;
-        z-index: -1;
-        width: auto;
-      }
-
       @media (max-width: 768px) {
         height: 80vh;
       }
@@ -74,11 +73,28 @@
       }
 
 		}
+    &.section-container {
+      padding: calc(var(--spacer) * 2) calc(var(--spacer) * 10);
+      & a {
+        color: var(--body-color);
+        text-decoration: underline;
+        &:hover {
+          text-decoration: none;
+        }
+      }
+    }
+    & h3 {
+      text-transform: initial;
+      font-size: calc(var(--font-size-base) * 2);
+    }
 		&.general-information {
 			& .border-left {
 				border-left: calc(var(--border-width) * 4) solid;
 				padding: 0 0 0 var(--spacer);
-			}
+        & h5 {
+          padding: calc(var(--spacer) / 2) 0;
+        }
+      }
 		}
 		&.analytics {
 			& .description {
@@ -90,11 +106,15 @@
 		}
 		&.your-rights {
       & .list {
-        list-style: circle;
+        color: var(--primaryColor);
+        list-style: disc;
         list-style-position: outside;
         margin-left: calc(var(--spacer) * 1.3);
         & li {
           margin-bottom: calc(var(--spacer) * 1.5);
+          & span {
+            color: var(--body-color);
+          }
         }
       }
     }

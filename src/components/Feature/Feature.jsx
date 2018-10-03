@@ -42,11 +42,13 @@ const Feature = () => (
         <ScrollLink to="#testimonial"> Learn more </ScrollLink>
       </section>
       <section id="testimonial" className="testimonial">
-        <img classname="logo" src={patchGardenLogo}  />
-        <p className="comment quote text-light">“After actively using and developing our Saleor store for over a year, if I were to create a new shop today I would go for it again without a doubt.”</p>
-        <div className="testimonial-author">
-          <h5 className="name">Tyler Hildebrandt,</h5>
-          <h5 className="position">Lead developer. Patch Garden</h5>
+        <div class="container">
+          <img classname="logo" src={patchGardenLogo}  />
+          <p className="comment quote text-light">“After actively using and developing our Saleor store for over a year, if I were to create a new shop today I would go for it again without a doubt.”</p>
+          <div className="testimonial-author">
+            <h5 className="name">Tyler Hildebrandt,</h5>
+            <h5 className="position">Lead developer. Patch Garden</h5>
+          </div>
         </div>
       </section>
       <section className="features section-container">
@@ -55,7 +57,6 @@ const Feature = () => (
             <ReactSVG className="icon" path={lovesEnginesIcon} />
             <h3 className="title">
               Loved by search<br/> engines
-              <span className="decorator"></span>
             </h3>
             <p>Saleor is packed with everything you need from sitemaps,
                schema.org structured data, to Open Graph that get you kick-started
@@ -66,7 +67,6 @@ const Feature = () => (
             <ReactSVG className="icon" path={graphQLIcon} />
             <h3 className="title">
               Headless commerce<br/> with GraphQL
-              <span className="decorator"></span>
             </h3>
             <p>Take advantage of the robust API that gives you an access to any
                third-party integrations you want. Build a mobile app, customize your
@@ -78,7 +78,6 @@ const Feature = () => (
             <span className="decorator"></span>
             <h3 className="title">
               Progressive Web<br/> Apps
-              <span className="decorator"></span>
             </h3>
             <p>Earn a place on users home screens and let them comfortably browse even
                on a slow internet connection or no connection at all. Google Page Speed
@@ -87,10 +86,8 @@ const Feature = () => (
           </div>
           <div className="icon-card">
             <ReactSVG className="icon" path={internationalizationIcon} />
-            <span className="decorator"></span>
             <h3 className="title">
               Internationalization & <br/> Localization
-              <span className="decorator"></span>
             </h3>
             <p>Make your shop multilanguage by default. Show prices in local currencies
                using GeoIP, and adjust addresses and formats to the chosen region.
@@ -101,7 +98,7 @@ const Feature = () => (
       </section>
       <section className="product-management management-section grid">
         <div className="side-header col-lg-4 col-md-6 col-sm-12 col-xs-12">
-          <h2>Product Management</h2>
+          <h2>Product <br/> Management</h2>
           <p className="sub-description">Product offer attractiveness is the resultant of many factors - price,
           exposure and variety. Be in charge of that. </p>
         </div>
@@ -144,7 +141,7 @@ const Feature = () => (
       </section>
       <section className="product-management management-section grid">
         <div className="side-header col-lg-4 col-md-6 col-sm-12 col-xs-12">
-          <h2>Order Management</h2>
+          <h2>Order <br/> Management</h2>
           <p className="sub-description">Saleor gives you full control over placed orders
           - from the checkout to customer management and finishing  with product delivery.</p>
         </div>
@@ -256,7 +253,7 @@ const Feature = () => (
           <h2>Documentation</h2>
           <h4 className="description">Check our comprehensive documentation which can guide
           you through the installation process or customizations that you may want to carry out.</h4>
-          <a className="btn btn-primary" href="https://saleor.readthedocs.io/en/latest/" target="_blank">Read the docs</a>
+          <a className="btn btn-secondary" href="https://saleor.readthedocs.io/en/latest/" target="_blank"><span>Read the docs</span></a>
         </div>
       </section>
       <GitHubBanner />

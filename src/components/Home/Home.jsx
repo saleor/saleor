@@ -164,9 +164,10 @@ class Home extends Component {
                   </div>
                 </div>
               </div>
-              <div className="stars-bg"></div>
-              <div className="github-circle">
-                <GitHubLink owner="mirumee" name="saleor" text="Github Stars" />
+              <div className="stars-bg">
+                <div className="github-circle">
+                  <GitHubLink owner="mirumee" name="saleor" text="Github Stars" />
+                </div>
               </div>
             </div>
           </section>

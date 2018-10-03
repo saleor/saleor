@@ -11,9 +11,6 @@ const PrivacyPolicy = () => (
 				<p className="text-large text-light">We respect your privacy and transparency is something we highly value. Below you can learn everything about information we collect.</p>
 			</div>
 			<ScrollLink to="#general-information"> Learn more </ScrollLink>
-			<div className="decoration">
-				<img src="../../images/decoration08.png" />
-			</div>
 		</section>
 		<section id="general-information" className="general-information section-container">
 			<h3 className="title">General Information</h3>
@@ -33,11 +30,11 @@ const PrivacyPolicy = () => (
 			<h3 className="title">Your Rights</h3>
 			<p className="description text-light">GDPR guarantees you a number of rights including but not limited to:</p>
 			<ul className="list text-light">
-				<li>the right to know what data concerning you is held by any particular company and how it is processed;</li>
-				<li>the right to rectify any inaccurate personal data;</li>
-				<li>the right to be forgotten;</li>
-				<li>the right to restriction of processing;</li>
-				<li>the right to object to processing.</li>
+				<li><span>the right to know what data concerning you is held by any particular company and how it is processed: </span></li>
+				<li><span>the right to rectify any inaccurate personal data:</span></li>
+				<li><span>the right to be forgotten:</span></li>
+				<li><span>the right to restriction of processing:</span></li>
+				<li><span>the right to object to processing.</span></li>
 			</ul>
       <p className="description text-light">Please consult the <a href="">GDPR text in your language</a> to better understand your rights.</p>
       <p className="description text-light">We ask that you direct all questions and requests related to your personal data to <a href="">privacy@mirumee.com</a> or that you send them to the postal address of the company listed above </p>

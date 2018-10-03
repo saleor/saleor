@@ -5,9 +5,6 @@
     &.hero {
       position: relative;
       height: 100vh;
-      @media (max-width: 1440px) {
-        height: 75vh;
-      }
       margin-bottom: calc(var(--spacer) * 6);
       & .bg-container {
         background-image: url('../../images/parrot-bg.png');
@@ -31,7 +28,7 @@
         }
       }
       & .plane {
-        width: 40%;
+        width: 50%;
         position: absolute;
         top: 50%;
         left: 10%;
@@ -550,14 +547,18 @@
         }
       }
       & .github-circle {
-        width: 25%;
-        padding-top: 25%;
+        width: 300px;
+        padding-top: 200px;
         position: absolute;
-        right: 9%;
-        top: 3.5%;
+        left: 40.5%;
+        top: 24.5%;
         z-index: 2;
         @media (max-width: 1440px) {
-          top: 8.5%;
+          left: 37.5%;
+        }
+        @media (max-width: 1368px) {
+          left: 37%;
+          top: 25.5%;
         }
         @media (max-width: 1024px) {
           top: 14%;

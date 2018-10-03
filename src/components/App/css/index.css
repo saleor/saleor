@@ -34,6 +34,9 @@ h1 {
   font-weight: var(--h1-font-weight);
   line-height: var(--headings-line-height);
   text-transform: uppercase;
+  @media (max-width: 1440px) {
+    font-size: calc(var(--font-size-base) * 4);
+  }
   @media (max-width: 768px) {
     font-size: calc(var(--h1-font-size) * 0.7);
   }
@@ -133,7 +136,7 @@ img {
   max-width: var(--layout-width);
   overflow: hidden;
   margin: 0 auto;
-  padding: 0 calc(var(--spacer) * 2);
+  padding: 0 calc(var(--spacer) * 2.5);
   @media (max-width: 768px) {
     padding: 0 var(--spacer);
   }

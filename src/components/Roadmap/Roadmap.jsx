@@ -1,10 +1,6 @@
 import React from 'react';
 import { GitHubBanner, ScrollLink } from '..';
 
-import decoration01 from '../../images/decoration01.png';
-import decoration02 from '../../images/decoration02.png';
-import decoration10 from '../../images/decoration10.png';
-
 import css from './roadmap.css';
 
 const Roadmap = (props) => (
@@ -16,9 +12,6 @@ const Roadmap = (props) => (
         <p>To keep you informed about the Implementation of the most important features, You will find our Roadmap for 2018, below.</p>
       </div>
       <ScrollLink to="#roadmap-section"> Learn more </ScrollLink>
-      <div className="decoration decoration01">
-        <img src={decoration10} />
-      </div>
     </section>
     <section id="roadmap-section" className="roadmap-content">
       <div className="grid roadmap-item">
@@ -142,15 +135,6 @@ const Roadmap = (props) => (
           <h4>Selectable country prefixes for phone numbers in checkout</h4>
           <h4>Rendering explanatory “zero” page</h4>
         </div>
-      </div>
-      <div className="decoration decoration01">
-        <img src={decoration01} />
-      </div>
-      <div className="decoration decoration02">
-        <img src={decoration02} />
-      </div>
-      <div className="decoration decoration03">
-        <img src={decoration01} />
       </div>
     </section>
     <GitHubBanner />
