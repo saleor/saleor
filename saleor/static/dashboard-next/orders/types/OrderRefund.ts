@@ -248,6 +248,7 @@ export interface OrderRefund_orderRefund_order {
   totalAuthorized: OrderRefund_orderRefund_order_totalAuthorized | null;
   totalCaptured: OrderRefund_orderRefund_order_totalCaptured | null;
   user: OrderRefund_orderRefund_order_user | null;
+  userEmail: string | null;
   availableShippingMethods: (OrderRefund_orderRefund_order_availableShippingMethods | null)[] | null;
 }
 

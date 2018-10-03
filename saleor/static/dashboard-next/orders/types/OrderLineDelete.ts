@@ -248,6 +248,7 @@ export interface OrderLineDelete_draftOrderLineDelete_order {
   totalAuthorized: OrderLineDelete_draftOrderLineDelete_order_totalAuthorized | null;
   totalCaptured: OrderLineDelete_draftOrderLineDelete_order_totalCaptured | null;
   user: OrderLineDelete_draftOrderLineDelete_order_user | null;
+  userEmail: string | null;
   availableShippingMethods: (OrderLineDelete_draftOrderLineDelete_order_availableShippingMethods | null)[] | null;
 }
 

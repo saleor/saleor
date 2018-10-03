@@ -991,7 +991,8 @@ export const order = (placeholder: string): OrderDetails_order => ({
     amount: 0,
     currency: "USD"
   },
-  user: null
+  user: null,
+  userEmail: "melissa.simon@example.com"
 });
 export const draftOrder = (placeholder: string) => ({
   __typename: "Order" as "Order",
@@ -1093,7 +1094,8 @@ export const draftOrder = (placeholder: string) => ({
   },
   totalAuthorized: null,
   totalCaptured: null,
-  user: null
+  user: null,
+  userEmail: null
 });
 export const flatOrders = orders.map(order => ({
   ...order,

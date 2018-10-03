@@ -258,6 +258,7 @@ export interface OrderFulfillmentCancel_orderFulfillmentCancel_order {
   totalAuthorized: OrderFulfillmentCancel_orderFulfillmentCancel_order_totalAuthorized | null;
   totalCaptured: OrderFulfillmentCancel_orderFulfillmentCancel_order_totalCaptured | null;
   user: OrderFulfillmentCancel_orderFulfillmentCancel_order_user | null;
+  userEmail: string | null;
   availableShippingMethods: (OrderFulfillmentCancel_orderFulfillmentCancel_order_availableShippingMethods | null)[] | null;
 }
 
