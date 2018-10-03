@@ -37,6 +37,7 @@ function loadStories() {
   require("./stories/categories/CategoryDetailsPage");
   require("./stories/categories/CategoryEditPage");
   require("./stories/categories/CategoryProducts");
+  require("./stories/categories/CategoryCreatePage");
 
   // Collections
   require("./stories/collections/CollectionDetailsPage");
@@ -51,8 +52,8 @@ function loadStories() {
   require("./stories/customers/CustomerListPage");
 
   // Staff
-  require("./stories/staff/StaffListPage")
-  require("./stories/staff/StaffDetailsPage")
+  require("./stories/staff/StaffListPage");
+  require("./stories/staff/StaffDetailsPage");
 
   // Pages
   require("./stories/pages/PageContent");
