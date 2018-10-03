@@ -120,9 +120,8 @@ def test_product_query(staff_api_client, product, permission_manage_products):
         }
     }
     """ % {'category_id': graphene.Node.to_global_id('Category', category.id)}
-    response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_products],
-        check_permissions=False)
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     assert content['data']['category'] is not None
     product_edges_data = content['data']['category']['products']['edges']
@@ -181,9 +180,8 @@ def test_product_with_collections(
     product_id = graphene.Node.to_global_id('Product', product.id)
 
     variables = {'productID': product_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products],
-        check_permissions=False)
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['product']
     assert data['collections']['edges'][0]['node']['name'] == collection.name
@@ -582,9 +580,8 @@ def test_product_type_query(
     data = content['data']
     assert data['productType']['products']['totalCount'] == no_products - 1
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products],
-        check_permissions=False)
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']
     assert data['productType']['products']['totalCount'] == no_products
@@ -929,9 +926,7 @@ def test_collections_query(
 
     # query all collections only as a staff user with proper permissions
     staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_products],
-        check_permissions=False)
+    response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     edges = content['data']['collections']['edges']
     assert len(edges) == 2

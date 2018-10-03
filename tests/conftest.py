@@ -8,6 +8,7 @@ from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ModelForm
+from django.test.client import Client
 from django.utils.encoding import smart_text
 from django_countries import countries
 from django_prices_vatlayer.models import VAT

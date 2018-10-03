@@ -37,9 +37,7 @@ class ApiClient(Client):
         kwargs['content_type'] = 'application/json'
         return super().post(API_PATH, data, **kwargs)
 
-    def post_graphql(
-            self, query, variables=None, permissions=None,
-            check_permissions=True, **kwargs):
+    def post_graphql(self, query, variables=None, permissions=None, **kwargs):
         """Dedicated helper for posting GraphQL queries.
 
         Sets the `application/json` content type and json.dumps the variables
@@ -53,14 +51,12 @@ class ApiClient(Client):
         kwargs['content_type'] = 'application/json'
 
         if permissions:
-            if check_permissions:
-                response = super().post(API_PATH, data, **kwargs)
-                assert_no_permission(response)
+            response = super().post(API_PATH, data, **kwargs)
+            assert_no_permission(response)
             self.user.user_permissions.add(*permissions)
         return super().post(API_PATH, data, **kwargs)
 
-    def post_multipart(
-            self, *args, permissions=None, check_permissions=True, **kwargs):
+    def post_multipart(self, *args, permissions=None, **kwargs):
         """Send a multipart POST request.
 
         This is used to send multipart requests to GraphQL API when e.g.
@@ -69,11 +65,9 @@ class ApiClient(Client):
         kwargs['content_type'] = MULTIPART_CONTENT
 
         if permissions:
-            if check_permissions:
-                response = super().post(API_PATH, *args, **kwargs)
-                assert_no_permission(response)
+            response = super().post(API_PATH, *args, **kwargs)
+            assert_no_permission(response)
             self.user.user_permissions.add(*permissions)
-
         return super().post(API_PATH, *args, **kwargs)
 
 
