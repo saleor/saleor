@@ -78,6 +78,7 @@ function loadStories() {
   require("./stories/orders/OrderCustomer");
   require("./stories/orders/OrderCustomerEditDialog");
   require("./stories/orders/OrderDetailsPage");
+  require("./stories/orders/OrderDraftPage");
   require("./stories/orders/OrderFulfillmentCancelDialog");
   require("./stories/orders/OrderFulfillmentDialog");
   require("./stories/orders/OrderFulfillmentTrackingDialog");

@@ -26,7 +26,8 @@ const decorate = withStyles(theme => ({
   title: {
     flex: 1,
     fontSize: "1rem",
-    fontWeight: 600 as 600
+    fontWeight: 600 as 600,
+    lineHeight: 1
   },
   toolbar: {
     marginRight: -theme.spacing.unit * 2,
