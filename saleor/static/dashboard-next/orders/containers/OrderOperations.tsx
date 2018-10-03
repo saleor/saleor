@@ -208,13 +208,14 @@ const OrderOperations: React.StatelessComponent<OrderOperationsProps> = ({
                                                             .orderRefund.errors,
                                                         []
                                                       ),
-                                                      ...maybe(
+                                                      ...(maybe(
                                                         () =>
                                                           addNote.data
-                                                            .orderAddNote
-                                                            .errors,
-                                                        []
-                                                      ),
+                                                            .orderAddNote.errors
+                                                      )
+                                                        ? addNote.data
+                                                            .orderAddNote.errors
+                                                        : []),
                                                       ...maybe(
                                                         () =>
                                                           update.data
