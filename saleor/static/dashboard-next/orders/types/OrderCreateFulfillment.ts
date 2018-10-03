@@ -258,6 +258,7 @@ export interface OrderCreateFulfillment_orderFulfillmentCreate_order {
   totalAuthorized: OrderCreateFulfillment_orderFulfillmentCreate_order_totalAuthorized | null;
   totalCaptured: OrderCreateFulfillment_orderFulfillmentCreate_order_totalCaptured | null;
   user: OrderCreateFulfillment_orderFulfillmentCreate_order_user | null;
+  userEmail: string | null;
   availableShippingMethods: (OrderCreateFulfillment_orderFulfillmentCreate_order_availableShippingMethods | null)[] | null;
 }
 

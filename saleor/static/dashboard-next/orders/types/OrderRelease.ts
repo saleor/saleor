@@ -242,6 +242,7 @@ export interface OrderRelease_orderRelease_order {
   totalAuthorized: OrderRelease_orderRelease_order_totalAuthorized | null;
   totalCaptured: OrderRelease_orderRelease_order_totalCaptured | null;
   user: OrderRelease_orderRelease_order_user | null;
+  userEmail: string | null;
   availableShippingMethods: (OrderRelease_orderRelease_order_availableShippingMethods | null)[] | null;
 }
 

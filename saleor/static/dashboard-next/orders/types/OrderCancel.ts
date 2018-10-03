@@ -242,6 +242,7 @@ export interface OrderCancel_orderCancel_order {
   totalAuthorized: OrderCancel_orderCancel_order_totalAuthorized | null;
   totalCaptured: OrderCancel_orderCancel_order_totalCaptured | null;
   user: OrderCancel_orderCancel_order_user | null;
+  userEmail: string | null;
   availableShippingMethods: (OrderCancel_orderCancel_order_availableShippingMethods | null)[] | null;
 }
 

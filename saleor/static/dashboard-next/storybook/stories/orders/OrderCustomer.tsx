@@ -4,25 +4,30 @@ import * as React from "react";
 import OrderCustomer, {
   OrderCustomerProps
 } from "../../../orders/components/OrderCustomer";
-import { order } from "../../../orders/fixtures";
+import { order as orderFixture } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
 
-const differentAddress = { ...order("").billingAddress, id: "a2" };
+const order = orderFixture("");
 
 const props: OrderCustomerProps = {
-  billingAddress: order("").billingAddress,
-  customer: order("").user,
   onBillingAddressEdit: undefined,
+  onCustomerEditClick: undefined,
   onShippingAddressEdit: undefined,
-  shippingAddress: order("").shippingAddress
+  order
 };
 
 storiesOf("Orders / OrderCustomer", module)
   .addDecorator(Decorator)
   .add("when loading data", () => (
-    <OrderCustomer {...props} customer={undefined} />
+    <OrderCustomer {...props} order={undefined} />
   ))
   .add("when loaded data", () => <OrderCustomer {...props} />)
   .add("with different addresses", () => (
-    <OrderCustomer {...props} billingAddress={differentAddress} />
+    <OrderCustomer
+      {...props}
+      order={{
+        ...order,
+        shippingAddress: { ...order.shippingAddress, id: "a2" }
+      }}
+    />
   ));

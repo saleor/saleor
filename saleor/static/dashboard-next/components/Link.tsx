@@ -5,6 +5,7 @@ import * as React from "react";
 
 interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   color?: "primary" | "secondary";
+  underline?: boolean;
   typographyProps?: TypographyProps;
 }
 
@@ -14,17 +15,31 @@ const decorate = withStyles(theme => ({
   },
   root: {
     cursor: "pointer" as "pointer",
-    textDecoration: "underline" as "underline"
+    display: "inline" as "inline"
   },
   secondary: {
     color: theme.palette.secondary.main
+  },
+  underline: {
+    textDecoration: "underline" as "underline"
   }
 }));
 const Link = decorate<LinkProps>(
-  ({ classes, className, children, color = "primary", ...linkProps }) => (
+  ({
+    classes,
+    className,
+    children,
+    color = "primary",
+    underline = false,
+    ...linkProps
+  }) => (
     <Typography
       component="a"
-      className={classNames(classes.root, classes[color])}
+      className={classNames({
+        [classes.root]: true,
+        [classes[color]]: true,
+        [classes.underline]: underline
+      })}
       {...linkProps}
     >
       {children}
