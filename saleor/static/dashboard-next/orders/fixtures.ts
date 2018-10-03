@@ -801,7 +801,24 @@ export const order = (placeholder: string): OrderDetails_order => ({
               orderLine: {
                 __typename: "OrderLine",
                 id: "T3JkZXJMaW5lOjIz",
-                productName: "Williams, Garcia and Walker (XS)"
+                productName: "Williams, Garcia and Walker (XS)",
+                productSku: "5-1337",
+                quantity: 2,
+                quantityFulfilled: 2,
+                thumbnailUrl: placeholder,
+                unitPrice: {
+                  __typename: "TaxedMoney",
+                  gross: {
+                    __typename: "Money",
+                    amount: 79.71,
+                    currency: "USD"
+                  },
+                  net: {
+                    __typename: "Money",
+                    amount: 79.71,
+                    currency: "USD"
+                  }
+                }
               },
               quantity: 1
             }
@@ -825,7 +842,24 @@ export const order = (placeholder: string): OrderDetails_order => ({
               orderLine: {
                 __typename: "OrderLine",
                 id: "T3JkZXJMaW5lOjIz",
-                productName: "Williams, Garcia and Walker (XS)"
+                productName: "Williams, Garcia and Walker (XS)",
+                productSku: "5-1337",
+                quantity: 2,
+                quantityFulfilled: 2,
+                thumbnailUrl: placeholder,
+                unitPrice: {
+                  __typename: "TaxedMoney",
+                  gross: {
+                    __typename: "Money",
+                    amount: 79.71,
+                    currency: "USD"
+                  },
+                  net: {
+                    __typename: "Money",
+                    amount: 79.71,
+                    currency: "USD"
+                  }
+                }
               },
               quantity: 1
             }
