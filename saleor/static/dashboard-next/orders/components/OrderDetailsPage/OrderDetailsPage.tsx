@@ -13,7 +13,7 @@ import Skeleton from "../../../components/Skeleton";
 import Toggle from "../../../components/Toggle";
 import { AddressTypeInput } from "../../../customers";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
+import { maybe, renderCollection } from "../../../misc";
 import { OrderStatus } from "../../../types/globalTypes";
 import { OrderDetails_order } from "../../types/OrderDetails";
 import OrderAddressEditDialog from "../OrderAddressEditDialog";
@@ -74,7 +74,6 @@ export interface OrderDetailsPageProps {
   onOrderLineRemove(id: string);
   onProductAdd(data: ProductAddFormData);
   onProductClick?(id: string);
-  onPackingSlipClick?(id: string);
   onPaymentCapture(data: OrderPaymentFormData);
   onPaymentRefund(data: OrderPaymentFormData);
   onPaymentRelease?();
@@ -185,7 +184,6 @@ class OrderDetailsPageComponent extends React.Component<
       onOrderFulfill,
       onOrderLineChange,
       onOrderLineRemove,
-      onPackingSlipClick,
       onPaymentCapture,
       onPaymentRefund,
       onPaymentRelease,
@@ -313,64 +311,48 @@ class OrderDetailsPageComponent extends React.Component<
               onFulfill={this.toggleFulfillmentDialog}
             />
 
-            {order ? (
-              !isDraft &&
-              order.fulfillments &&
-              order.fulfillments.map(fulfillment => (
-                <Toggle key={fulfillment.id}>
-                  {(openedCancelDialog, { toggle: toggleCancelDialog }) => (
-                    <Toggle>
-                      {(
-                        openedTrackingDialog,
-                        { toggle: toggleTrackingDialog }
-                      ) => (
-                        <>
-                          <OrderFulfillment
-                            id={fulfillment.id}
-                            lines={maybe(() =>
-                              fulfillment.lines.edges.map(edge => edge.node)
-                            )}
-                            status={fulfillment.status}
-                            trackingCode={fulfillment.trackingNumber}
-                            onOrderFulfillmentCancel={toggleCancelDialog}
-                            onTrackingCodeAdd={toggleTrackingDialog}
-                            onPackingSlipClick={
-                              onPackingSlipClick
-                                ? onPackingSlipClick(fulfillment.id)
-                                : undefined
-                            }
-                          />
-                          <OrderFulfillmentCancelDialog
-                            open={openedCancelDialog}
-                            id={fulfillment.id}
-                            onClose={toggleCancelDialog}
-                          />
-                          <Form
-                            initial={{
-                              trackingCode: fulfillment.trackingNumber
-                            }}
-                          >
-                            {({ change, data }) => (
-                              <OrderFulfillmentTrackingDialog
-                                open={openedTrackingDialog}
-                                trackingCode={data.trackingCode}
-                                variant={
-                                  fulfillment.trackingNumber ? "edit" : "add"
-                                }
-                                onChange={change}
-                                onClose={toggleTrackingDialog}
-                              />
-                            )}
-                          </Form>
-                        </>
-                      )}
-                    </Toggle>
-                  )}
-                </Toggle>
-              ))
-            ) : (
-              <OrderFulfillment />
-            )}
+            {renderCollection(maybe(() => order.fulfillments), fulfillment => (
+              <Toggle key={fulfillment.id}>
+                {(openedCancelDialog, { toggle: toggleCancelDialog }) => (
+                  <Toggle>
+                    {(
+                      openedTrackingDialog,
+                      { toggle: toggleTrackingDialog }
+                    ) => (
+                      <>
+                        <OrderFulfillment
+                          fulfillment={fulfillment}
+                          onOrderFulfillmentCancel={toggleCancelDialog}
+                          onTrackingCodeAdd={toggleTrackingDialog}
+                        />
+                        <OrderFulfillmentCancelDialog
+                          open={openedCancelDialog}
+                          id={fulfillment.id}
+                          onClose={toggleCancelDialog}
+                        />
+                        <Form
+                          initial={{
+                            trackingCode: fulfillment.trackingNumber
+                          }}
+                        >
+                          {({ change, data }) => (
+                            <OrderFulfillmentTrackingDialog
+                              open={openedTrackingDialog}
+                              trackingCode={data.trackingCode}
+                              variant={
+                                fulfillment.trackingNumber ? "edit" : "add"
+                              }
+                              onChange={change}
+                              onClose={toggleTrackingDialog}
+                            />
+                          )}
+                        </Form>
+                      </>
+                    )}
+                  </Toggle>
+                )}
+              </Toggle>
+            ))}
             <OrderHistory
               history={maybe(() => order.events)}
               onNoteAdd={onNoteAdd}
