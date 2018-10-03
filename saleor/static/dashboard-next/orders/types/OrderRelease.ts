@@ -47,17 +47,40 @@ export interface OrderRelease_orderRelease_order_events {
   user: OrderRelease_orderRelease_order_events_user | null;
 }
 
+export interface OrderRelease_orderRelease_order_fulfillments_lines_edges_node_orderLine_unitPrice_gross {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
+export interface OrderRelease_orderRelease_order_fulfillments_lines_edges_node_orderLine_unitPrice_net {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
+export interface OrderRelease_orderRelease_order_fulfillments_lines_edges_node_orderLine_unitPrice {
+  __typename: "TaxedMoney";
+  gross: OrderRelease_orderRelease_order_fulfillments_lines_edges_node_orderLine_unitPrice_gross;
+  net: OrderRelease_orderRelease_order_fulfillments_lines_edges_node_orderLine_unitPrice_net;
+}
+
 export interface OrderRelease_orderRelease_order_fulfillments_lines_edges_node_orderLine {
   __typename: "OrderLine";
   id: string;
   productName: string;
+  productSku: string;
+  quantity: number;
+  quantityFulfilled: number;
+  unitPrice: OrderRelease_orderRelease_order_fulfillments_lines_edges_node_orderLine_unitPrice | null;
+  thumbnailUrl: string | null;
 }
 
 export interface OrderRelease_orderRelease_order_fulfillments_lines_edges_node {
   __typename: "FulfillmentLine";
   id: string;
-  orderLine: OrderRelease_orderRelease_order_fulfillments_lines_edges_node_orderLine;
   quantity: number;
+  orderLine: OrderRelease_orderRelease_order_fulfillments_lines_edges_node_orderLine;
 }
 
 export interface OrderRelease_orderRelease_order_fulfillments_lines_edges {

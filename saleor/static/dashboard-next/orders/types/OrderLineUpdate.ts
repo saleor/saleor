@@ -53,17 +53,40 @@ export interface OrderLineUpdate_draftOrderLineUpdate_order_events {
   user: OrderLineUpdate_draftOrderLineUpdate_order_events_user | null;
 }
 
+export interface OrderLineUpdate_draftOrderLineUpdate_order_fulfillments_lines_edges_node_orderLine_unitPrice_gross {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
+export interface OrderLineUpdate_draftOrderLineUpdate_order_fulfillments_lines_edges_node_orderLine_unitPrice_net {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
+export interface OrderLineUpdate_draftOrderLineUpdate_order_fulfillments_lines_edges_node_orderLine_unitPrice {
+  __typename: "TaxedMoney";
+  gross: OrderLineUpdate_draftOrderLineUpdate_order_fulfillments_lines_edges_node_orderLine_unitPrice_gross;
+  net: OrderLineUpdate_draftOrderLineUpdate_order_fulfillments_lines_edges_node_orderLine_unitPrice_net;
+}
+
 export interface OrderLineUpdate_draftOrderLineUpdate_order_fulfillments_lines_edges_node_orderLine {
   __typename: "OrderLine";
   id: string;
   productName: string;
+  productSku: string;
+  quantity: number;
+  quantityFulfilled: number;
+  unitPrice: OrderLineUpdate_draftOrderLineUpdate_order_fulfillments_lines_edges_node_orderLine_unitPrice | null;
+  thumbnailUrl: string | null;
 }
 
 export interface OrderLineUpdate_draftOrderLineUpdate_order_fulfillments_lines_edges_node {
   __typename: "FulfillmentLine";
   id: string;
-  orderLine: OrderLineUpdate_draftOrderLineUpdate_order_fulfillments_lines_edges_node_orderLine;
   quantity: number;
+  orderLine: OrderLineUpdate_draftOrderLineUpdate_order_fulfillments_lines_edges_node_orderLine;
 }
 
 export interface OrderLineUpdate_draftOrderLineUpdate_order_fulfillments_lines_edges {

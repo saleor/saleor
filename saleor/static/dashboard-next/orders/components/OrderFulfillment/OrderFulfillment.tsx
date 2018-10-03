@@ -9,28 +9,19 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
-import { transformFulfillmentStatus } from "../..";
 import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel/StatusLabel";
 import TableCellAvatar from "../../../components/TableCellAvatar";
 import i18n from "../../../i18n";
+import { maybe } from "../../../misc";
+import { FulfillmentStatus } from "../../../types/globalTypes";
+import { OrderDetails_order_fulfillments } from "../../types/OrderDetails";
 
 interface OrderFulfillmentProps {
-  id?: string;
-  status?: string;
-  lines?: Array<{
-    quantity: number;
-    orderLine: {
-      id: string;
-      productName: string;
-      thumbnailUrl?: string;
-    };
-  }>;
-  trackingCode?: string;
-  onOrderFulfillmentCancel?();
-  onTrackingCodeAdd?();
-  onPackingSlipClick?();
+  fulfillment: OrderDetails_order_fulfillments;
+  onOrderFulfillmentCancel();
+  onTrackingCodeAdd();
 }
 
 const decorate = withStyles(
@@ -56,83 +47,78 @@ const decorate = withStyles(
   { name: "OrderFulfillment" }
 );
 const OrderFulfillment = decorate<OrderFulfillmentProps>(
-  ({
-    classes,
-    id,
-    lines,
-    status,
-    trackingCode,
-    onOrderFulfillmentCancel,
-    onTrackingCodeAdd,
-    onPackingSlipClick
-  }) => (
-    <Card className={classes.root}>
-      <CardTitle
-        title={id ? i18n.t("Fulfillment #{{ id }}", { id }) : undefined}
-        toolbar={
-          status !== "cancelled" && (
-            <Button
-              color="secondary"
-              variant="flat"
-              onClick={onPackingSlipClick}
-            >
-              {i18n.t("Packing slip")}
-            </Button>
-          )
-        }
-      >
-        {status && (
-          <StatusLabel
-            status={transformFulfillmentStatus(status).status}
-            label={transformFulfillmentStatus(status).localized}
-            typographyProps={{ variant: "body1" }}
-          />
-        )}
-      </CardTitle>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell />
-            <TableCell className={classes.textLeft}>
-              {i18n.t("Product")}
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {lines ? (
-            lines.map(productLine => (
-              <TableRow key={productLine.orderLine.id}>
-                <TableCellAvatar
-                  thumbnail={productLine.orderLine.thumbnailUrl}
-                />
-                <TableCell className={classes.textLeft}>
-                  {productLine.orderLine.productName} x {productLine.quantity}
-                </TableCell>
-              </TableRow>
-            ))
-          ) : (
+  ({ classes, fulfillment, onOrderFulfillmentCancel, onTrackingCodeAdd }) => {
+    const lines = maybe(() => fulfillment.lines.edges.map(edge => edge.node));
+    const status = maybe(() => fulfillment.status);
+    return (
+      <Card className={classes.root}>
+        <CardTitle
+          title={
+            <StatusLabel
+              label={
+                status === FulfillmentStatus.FULFILLED
+                  ? i18n.t("Fulfilled ({{ quantity }})", {
+                      quantity: lines
+                        .map(line => line.quantity)
+                        .reduce((prev, curr) => prev + curr, 0)
+                    })
+                  : i18n.t("Cancelled ({{ quantity }})", {
+                      quantity: lines
+                        .map(line => line.quantity)
+                        .reduce((prev, curr) => prev + curr, 0)
+                    })
+              }
+              status={
+                status === FulfillmentStatus.FULFILLED ? "success" : "error"
+              }
+            />
+          }
+        />
+        <Table>
+          <TableHead>
             <TableRow>
-              <TableCellAvatar />
-              <TableCell>
-                <Skeleton />
+              <TableCell />
+              <TableCell className={classes.textLeft}>
+                {i18n.t("Product")}
               </TableCell>
             </TableRow>
-          )}
-        </TableBody>
-      </Table>
-      {status !== "cancelled" && (
-        <CardActions>
-          <Button onClick={onTrackingCodeAdd}>
-            {trackingCode
-              ? i18n.t("Add tracking number")
-              : i18n.t("Edit tracking number")}
-          </Button>
-          <Button onClick={onOrderFulfillmentCancel}>
-            {i18n.t("Cancel shipment")}
-          </Button>
-        </CardActions>
-      )}
-    </Card>
-  )
+          </TableHead>
+          <TableBody>
+            {lines ? (
+              lines.map(productLine => (
+                <TableRow key={productLine.orderLine.id}>
+                  <TableCellAvatar
+                    thumbnail={productLine.orderLine.thumbnailUrl}
+                  />
+                  <TableCell className={classes.textLeft}>
+                    {productLine.orderLine.productName} x {productLine.quantity}
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCellAvatar />
+                <TableCell>
+                  <Skeleton />
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+        {status === FulfillmentStatus.FULFILLED && (
+          <CardActions>
+            <Button onClick={onTrackingCodeAdd}>
+              {fulfillment.trackingNumber
+                ? i18n.t("Add tracking number")
+                : i18n.t("Edit tracking number")}
+            </Button>
+            <Button onClick={onOrderFulfillmentCancel}>
+              {i18n.t("Cancel shipment")}
+            </Button>
+          </CardActions>
+        )}
+      </Card>
+    );
+  }
 );
 export default OrderFulfillment;
