@@ -17332,27 +17332,70 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                 class="MuiTableRow-root-id"
               >
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-avatarCell-id"
                 >
-                  <div
-                    class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
+                  <button
+                    class="MuiButtonBase-root-id MuiIconButton-root-id OrderProducts-deleteIcon-id"
+                    tabindex="0"
+                    type="button"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      viewBox="0 0 24 24"
+                    <span
+                      class="MuiIconButton-label-id"
                     >
-                      <g>
-                        <path
-                          d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
-                        />
-                      </g>
-                    </svg>
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <g>
+                          <path
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                          />
+                        </g>
+                      </svg>
+                    </span>
+                    <span
+                      class="MuiTouchRipple-root-id"
+                    />
+                  </button>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    class="OrderProducts-link-id"
+                  >
+                    Gardner, Graham and King
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  9123021
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-container-id OrderProducts-textRight-id"
+                >
+                  <div>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-caption-id Component-text-id"
+                    >
+                      1
+                    </span>
                   </div>
                 </td>
                 <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
                 >
                   <span
                     class="Skeleton-skeleton-id"
@@ -17360,14 +17403,52 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                     ‌
                   </span>
                 </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-avatarCell-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiIconButton-root-id OrderProducts-deleteIcon-id"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <g>
+                          <path
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                          />
+                        </g>
+                      </svg>
+                    </span>
+                    <span
+                      class="MuiTouchRipple-root-id"
+                    />
+                  </button>
+                </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <span
-                    class="Skeleton-skeleton-id"
+                    class="OrderProducts-link-id"
                   >
-                    ‌
+                    Gardner and Graham
                   </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  9123022
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
@@ -17379,6 +17460,17 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                   </span>
                 </td>
                 <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-container-id OrderProducts-textRight-id"
+                >
+                  <div>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-caption-id Component-text-id"
+                    >
+                      2
+                    </span>
+                  </div>
+                </td>
+                <td
                   class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
                 >
                   <span
@@ -17386,6 +17478,149 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                   >
                     ‌
                   </span>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-avatarCell-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiIconButton-root-id OrderProducts-deleteIcon-id"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <g>
+                          <path
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                          />
+                        </g>
+                      </svg>
+                    </span>
+                    <span
+                      class="MuiTouchRipple-root-id"
+                    />
+                  </button>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    class="OrderProducts-link-id"
+                  >
+                    Gardner and King
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  9123023
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-container-id OrderProducts-textRight-id"
+                >
+                  <div>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-caption-id Component-text-id"
+                    >
+                      7
+                    </span>
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-avatarCell-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiIconButton-root-id OrderProducts-deleteIcon-id"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <g>
+                          <path
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                          />
+                        </g>
+                      </svg>
+                    </span>
+                    <span
+                      class="MuiTouchRipple-root-id"
+                    />
+                  </button>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    class="OrderProducts-link-id"
+                  >
+                    Graham and King
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  9123024
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-container-id OrderProducts-textRight-id"
+                >
+                  <div>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-caption-id Component-text-id"
+                    >
+                      3
+                    </span>
+                  </div>
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
@@ -18072,39 +18307,27 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                   class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
-                    class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
+                    class="MuiAvatar-root-id Component-avatar-id"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      viewBox="0 0 24 24"
-                    >
-                      <g>
-                        <path
-                          d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
-                        />
-                      </g>
-                    </svg>
+                    <img
+                      class="MuiAvatar-img-id"
+                      src="placeholder60x60.png"
+                    />
                   </div>
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <span
-                    class="Skeleton-skeleton-id"
+                    class="OrderProducts-link-id"
                   >
-                    ‌
+                    Gardner, Graham and King
                   </span>
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
-                  <span
-                    class="Skeleton-skeleton-id"
-                  >
-                    ‌
-                  </span>
+                  9123021
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
@@ -18118,11 +18341,166 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
                 >
+                  1
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
                   <span
                     class="Skeleton-skeleton-id"
                   >
                     ‌
                   </span>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+                >
+                  <div
+                    class="MuiAvatar-root-id Component-avatar-id"
+                  >
+                    <img
+                      class="MuiAvatar-img-id"
+                      src="placeholder60x60.png"
+                    />
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    class="OrderProducts-link-id"
+                  >
+                    Gardner and Graham
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  9123022
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
+                  2
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+                >
+                  <div
+                    class="MuiAvatar-root-id Component-avatar-id"
+                  >
+                    <img
+                      class="MuiAvatar-img-id"
+                      src="placeholder60x60.png"
+                    />
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    class="OrderProducts-link-id"
+                  >
+                    Gardner and King
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  9123023
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
+                  7
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+                >
+                  <div
+                    class="MuiAvatar-root-id Component-avatar-id"
+                  >
+                    <img
+                      class="MuiAvatar-img-id"
+                      src="placeholder60x60.png"
+                    />
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    class="OrderProducts-link-id"
+                  >
+                    Graham and King
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  9123024
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
+                  3
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
@@ -19095,39 +19473,27 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                   class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                 >
                   <div
-                    class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
+                    class="MuiAvatar-root-id Component-avatar-id"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      viewBox="0 0 24 24"
-                    >
-                      <g>
-                        <path
-                          d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
-                        />
-                      </g>
-                    </svg>
+                    <img
+                      class="MuiAvatar-img-id"
+                      src="placeholder60x60.png"
+                    />
                   </div>
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <span
-                    class="Skeleton-skeleton-id"
+                    class="OrderProducts-link-id"
                   >
-                    ‌
+                    Gardner, Graham and King
                   </span>
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
-                  <span
-                    class="Skeleton-skeleton-id"
-                  >
-                    ‌
-                  </span>
+                  9123021
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
@@ -19141,11 +19507,166 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
                 >
+                  1
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
                   <span
                     class="Skeleton-skeleton-id"
                   >
                     ‌
                   </span>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+                >
+                  <div
+                    class="MuiAvatar-root-id Component-avatar-id"
+                  >
+                    <img
+                      class="MuiAvatar-img-id"
+                      src="placeholder60x60.png"
+                    />
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    class="OrderProducts-link-id"
+                  >
+                    Gardner and Graham
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  9123022
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
+                  2
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+                >
+                  <div
+                    class="MuiAvatar-root-id Component-avatar-id"
+                  >
+                    <img
+                      class="MuiAvatar-img-id"
+                      src="placeholder60x60.png"
+                    />
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    class="OrderProducts-link-id"
+                  >
+                    Gardner and King
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  9123023
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
+                  7
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+                >
+                  <div
+                    class="MuiAvatar-root-id Component-avatar-id"
+                  >
+                    <img
+                      class="MuiAvatar-img-id"
+                      src="placeholder60x60.png"
+                    />
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    class="OrderProducts-link-id"
+                  >
+                    Graham and King
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  9123024
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"
+                >
+                  3
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id OrderProducts-textRight-id"

@@ -765,7 +765,7 @@ type Order implements Node {
   displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight
-  lines(before: String, after: String, first: Int, last: Int): OrderLineCountableConnection
+  lines: [OrderLine]!
   fulfillments: [Fulfillment]!
   events: [OrderEvent]
   isPaid: Boolean
@@ -862,17 +862,6 @@ type OrderLine implements Node {
   unitPrice: TaxedMoney
   taxRate: Float!
   thumbnailUrl(size: Int): String
-}
-
-type OrderLineCountableConnection {
-  pageInfo: PageInfo!
-  edges: [OrderLineCountableEdge!]!
-  totalCount: Int
-}
-
-type OrderLineCountableEdge {
-  node: OrderLine!
-  cursor: String!
 }
 
 input OrderLineCreateInput {
