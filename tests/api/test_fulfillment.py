@@ -1,12 +1,9 @@
-import json
+import pytest
 
 import graphene
-import pytest
-from django.shortcuts import reverse
-from tests.api.utils import get_graphql_content
-
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.models import FulfillmentStatus
+from tests.api.utils import get_graphql_content
 
 CREATE_FULFILLMENT_QUERY = """
     mutation fulfillOrder(
@@ -44,12 +41,11 @@ def test_create_fulfillment(admin_api_client, order_with_lines, admin_user):
     order_line_id = graphene.Node.to_global_id('OrderLine', order_line.id)
     tracking = 'Flames tracking'
     assert not order.events.all()
-    variables = json.dumps(
-        {'order': order_id,
-         'lines': [{'orderLineId': order_line_id, 'quantity': 1}],
-         'tracking': tracking, 'notify': True})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {
+        'order': order_id,
+        'lines': [{'orderLineId': order_line_id, 'quantity': 1}],
+        'tracking': tracking, 'notify': True}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['orderFulfillmentCreate']['fulfillment']
     assert data['fulfillmentOrder'] == 1
@@ -81,11 +77,10 @@ def test_create_fulfillment_not_sufficient_quantity(
     query = CREATE_FULFILLMENT_QUERY
     order_line = order_with_lines.lines.first()
     order_line_id = graphene.Node.to_global_id('OrderLine', order_line.id)
-    variables = json.dumps({
+    variables = {
         'order': graphene.Node.to_global_id('Order', order_with_lines.id),
-        'lines': [{'orderLineId': order_line_id, 'quantity': quantity}]})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        'lines': [{'orderLineId': order_line_id, 'quantity': quantity}]}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['orderFulfillmentCreate']
     assert data['errors']
@@ -106,10 +101,8 @@ def test_fulfillment_update_tracking(admin_api_client, fulfillment):
     """
     fulfillment_id = graphene.Node.to_global_id('Fulfillment', fulfillment.id)
     tracking = 'stationary tracking'
-    variables = json.dumps(
-        {'id': fulfillment_id, 'tracking': tracking})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'id': fulfillment_id, 'tracking': tracking}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['orderFulfillmentUpdateTracking']['fulfillment']
     assert data['trackingNumber'] == tracking
@@ -127,9 +120,8 @@ def test_cancel_fulfillment_restock_items(
         }
     """
     fulfillment_id = graphene.Node.to_global_id('Fulfillment', fulfillment.id)
-    variables = json.dumps({'id': fulfillment_id, 'restock': True})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'id': fulfillment_id, 'restock': True}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['orderFulfillmentCancel']['fulfillment']
     assert data['status'] == FulfillmentStatus.CANCELED.upper()
@@ -152,9 +144,8 @@ def test_cancel_fulfillment(admin_api_client, fulfillment, admin_user):
         }
     """
     fulfillment_id = graphene.Node.to_global_id('Fulfillment', fulfillment.id)
-    variables = json.dumps({'id': fulfillment_id, 'restock': False})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'id': fulfillment_id, 'restock': False}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['orderFulfillmentCancel']['fulfillment']
     assert data['status'] == FulfillmentStatus.CANCELED.upper()

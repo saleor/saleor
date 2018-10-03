@@ -1,8 +1,5 @@
-import json
-
 import graphene
 from django.conf import settings
-from django.shortcuts import reverse
 from django_countries import countries
 from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.site.models import Site
@@ -23,13 +20,13 @@ def test_query_authorization_keys(
         }
     }
     """
-    response = admin_api_client.post(reverse('api'), {'query': query})
+    response = admin_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content['data']['shop']
     assert data['authorizationKeys'][0]['name'] == authorization_key.name
     assert data['authorizationKeys'][0]['key'] == authorization_key.key
 
-    response = user_api_client.post(reverse('api'), {'query': query})
+    response = user_api_client.post_graphql(query)
     assert_no_permission(response)
 
 
@@ -44,7 +41,7 @@ def test_query_countries(user_api_client):
         }
     }
     """
-    response = user_api_client.post(reverse('api'), {'query': query})
+    response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content['data']['shop']
     assert len(data['countries']) == len(countries)
@@ -59,7 +56,7 @@ def test_query_currencies(user_api_client):
         }
     }
     """
-    response = user_api_client.post(reverse('api'), {'query': query})
+    response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content['data']['shop']
     assert len(data['currencies']) == len(settings.AVAILABLE_CURRENCIES)
@@ -75,7 +72,7 @@ def test_query_name(user_api_client, site_settings):
         }
     }
     """
-    response = user_api_client.post(reverse('api'), {'query': query})
+    response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content['data']['shop']
     assert data['description'] == site_settings.description
@@ -94,7 +91,7 @@ def test_query_domain(user_api_client, site_settings):
         }
     }
     """
-    response = user_api_client.post(reverse('api'), {'query': query})
+    response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content['data']['shop']
     assert data['domain']['host'] == site_settings.site.domain
@@ -113,7 +110,7 @@ def test_query_languages(settings, user_api_client):
         }
     }
     """
-    response = user_api_client.post(reverse('api'), {'query': query})
+    response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content['data']['shop']
     assert len(data['languages']) == len(settings.LANGUAGES)
@@ -130,7 +127,7 @@ def test_query_permissions(admin_api_client, user_api_client):
         }
     }
     """
-    response = admin_api_client.post(reverse('api'), {'query': query})
+    response = admin_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content['data']['shop']
     permissions = data['permissions']
@@ -139,7 +136,7 @@ def test_query_permissions(admin_api_client, user_api_client):
     for code in permissions_codes:
         assert code in MODELS_PERMISSIONS
 
-    response = user_api_client.post(reverse('api'), {'query': query})
+    response = user_api_client.post_graphql(query)
     assert_no_permission(response)
 
 
@@ -158,7 +155,7 @@ def test_query_navigation(user_api_client, site_settings):
         }
     }
     """
-    response = user_api_client.post(reverse('api'), {'query': query})
+    response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     navigation_data = content['data']['shop']['navigation']
     assert navigation_data['main']['name'] == site_settings.top_menu.name
@@ -176,14 +173,11 @@ def test_shop_settings_mutation(admin_api_client, site_settings):
             }
         }
     """
-    variables = json.dumps({
+    variables = {
         'input': {
             'includeTaxesInPrices': False,
-            'headerText': 'Lorem ipsum'
-        }
-    })
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+            'headerText': 'Lorem ipsum'}}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['shopSettingsUpdate']['shop']
     assert data['includeTaxesInPrices'] == False
@@ -206,14 +200,13 @@ def test_shop_domain_update(admin_api_client):
         }
     """
     new_name = 'saleor test store'
-    variables = json.dumps({
+    variables = {
         'input': {
             'domain': 'lorem-ipsum.com',
-            'name': new_name}})
+            'name': new_name}}
     site = Site.objects.get_current()
     assert site.domain != 'lorem-ipsum.com'
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['shopDomainUpdate']['shop']
     assert data['domain']['host'] == 'lorem-ipsum.com'
@@ -237,11 +230,8 @@ def test_homepage_collection_update(admin_api_client, collection):
         }
     """
     collection_id = graphene.Node.to_global_id('Collection', collection.id)
-    variables = json.dumps({
-        'collection': collection_id
-    })
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'collection': collection_id}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['homepageCollectionUpdate']['shop']
     assert data['homepageCollection']['id'] == collection_id
@@ -262,7 +252,7 @@ def test_query_default_country(user_api_client, settings):
         }
     }
     """
-    response = user_api_client.post(reverse('api'), {'query': query})
+    response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content['data']['shop']['defaultCountry']
     assert data['code'] == settings.DEFAULT_COUNTRY
@@ -282,14 +272,13 @@ def test_query_geolocalization(user_api_client):
         }
     """
     GERMAN_IP = '79.222.222.22'
-    response = user_api_client.post(
-        reverse('api'), {'query': query}, HTTP_X_FORWARDED_FOR=GERMAN_IP)
+    response = user_api_client.post_graphql(
+        query, HTTP_X_FORWARDED_FOR=GERMAN_IP)
     content = get_graphql_content(response)
     data = content['data']['shop']['geolocalization']
     assert data['country']['code'] == 'DE'
 
-    response = user_api_client.post(
-        reverse('api'), {'query': query})
+    response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content['data']['shop']['geolocalization']
     assert data['country'] is None

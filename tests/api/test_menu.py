@@ -1,9 +1,6 @@
-import json
-
 import pytest
 
 import graphene
-from django.shortcuts import reverse
 from saleor.graphql.menu.mutations import NavigationType
 from tests.api.utils import get_graphql_content
 
@@ -20,24 +17,21 @@ def test_menu_query(user_api_client, menu):
     """
 
     # test query by name
-    variables = json.dumps({'menu_name': menu.name})
-    response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'menu_name': menu.name}
+    response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content['data']['menu']['name'] == menu.name
 
     # test query by id
     menu_id = graphene.Node.to_global_id('Menu', menu.id)
-    variables = json.dumps({'id': menu_id})
-    response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'id': menu_id}
+    response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content['data']['menu']['name'] == menu.name
 
     # test query by invalid name returns null
-    variables = json.dumps({'menu_name': 'not-a-menu'})
-    response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'menu_name': 'not-a-menu'}
+    response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert not content['data']['menu']
 
@@ -69,9 +63,8 @@ def test_menus_query(user_api_client, menu, menu_item):
     menu.items.add(menu_item)
     menu.save()
     menu_name = menu.name
-    variables = json.dumps({'menu_name': menu_name})
-    response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'menu_name': menu_name}
+    response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     menu_data = content['data']['menus']['edges'][0]['node']
     assert menu_data['name'] == menu.name
@@ -105,10 +98,8 @@ def test_menu_items_query(user_api_client, menu_item, collection):
     menu_item.collection = collection
     menu_item.url = None
     menu_item.save()
-    variables = json.dumps(
-        {'id': graphene.Node.to_global_id('MenuItem', menu_item.pk)})
-    response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'id': graphene.Node.to_global_id('MenuItem', menu_item.pk)}
+    response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['menuItem']
     assert data['name'] == menu_item.name
@@ -136,10 +127,8 @@ def test_menu_item_query_static_url(user_api_client, menu_item):
     """
     menu_item.url = "http://example.com"
     menu_item.save()
-    variables = json.dumps(
-        {'id': graphene.Node.to_global_id('MenuItem', menu_item.pk)})
-    response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'id': graphene.Node.to_global_id('MenuItem', menu_item.pk)}
+    response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['menuItem']
     assert data['name'] == menu_item.name
@@ -178,11 +167,10 @@ def test_create_menu(admin_api_client, collection, category, page):
     page_id = graphene.Node.to_global_id('Page', page.pk)
     url = 'http://www.example.com'
 
-    variables = json.dumps({
+    variables = {
         'name': 'test-menu', 'collection': collection_id,
-        'category': category_id, 'page': page_id, 'url': url})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        'category': category_id, 'page': page_id, 'url': url}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content['data']['menuCreate']['menu']['name'] == 'test-menu'
 
@@ -199,9 +187,8 @@ def test_update_menu(admin_api_client, menu):
     """
     menu_id = graphene.Node.to_global_id('Menu', menu.pk)
     name = 'Blue oyster menu'
-    variables = json.dumps({'id': menu_id, 'name': name})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'id': menu_id, 'name': name}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content['data']['menuUpdate']['menu']['name'] == name
 
@@ -217,9 +204,8 @@ def test_delete_menu(admin_api_client, menu):
         }
         """
     menu_id = graphene.Node.to_global_id('Menu', menu.pk)
-    variables = json.dumps({'id': menu_id})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'id': menu_id}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content['data']['menuDelete']['menu']['name'] == menu.name
     with pytest.raises(menu._meta.model.DoesNotExist):
@@ -243,9 +229,8 @@ def test_create_menu_item(admin_api_client, menu):
     name = 'item menu'
     url = 'http://www.example.com'
     menu_id = graphene.Node.to_global_id('Menu', menu.pk)
-    variables = json.dumps({'name': name, 'url': url, 'menu_id': menu_id})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'name': name, 'url': url, 'menu_id': menu_id}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['menuItemCreate']['menuItem']
     assert data['name'] == name
@@ -270,9 +255,8 @@ def test_update_menu_item(admin_api_client, menu, menu_item, page):
     assert not menu_item.page
     menu_item_id = graphene.Node.to_global_id('MenuItem', menu_item.pk)
     page_id = graphene.Node.to_global_id('Page', page.pk)
-    variables = json.dumps({'id': menu_item_id, 'page': page_id})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'id': menu_item_id, 'page': page_id}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['menuItemUpdate']['menuItem']
     assert data['page']['id'] == page_id
@@ -289,9 +273,8 @@ def test_delete_menu_item(admin_api_client, menu_item):
         }
         """
     menu_item_id = graphene.Node.to_global_id('MenuItem', menu_item.pk)
-    variables = json.dumps({'id': menu_item_id})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'id': menu_item_id}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['menuItemDelete']['menuItem']
     assert data['name'] == menu_item.name
@@ -317,9 +300,8 @@ def test_add_more_than_one_item(admin_api_client, menu, menu_item, page):
     url = 'http://www.example.com'
     menu_item_id = graphene.Node.to_global_id('MenuItem', menu_item.pk)
     page_id = graphene.Node.to_global_id('Page', page.pk)
-    variables = json.dumps({'id': menu_item_id, 'page': page_id, 'url': url})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'id': menu_item_id, 'page': page_id, 'url': url}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['menuItemUpdate']['errors'][0]
     assert data['field'] == 'items'
@@ -345,38 +327,32 @@ def test_assign_menu(
 
     # test mutations fails without proper permissions
     menu_id = graphene.Node.to_global_id('Menu', menu.pk)
-    variables = json.dumps({
-        'menu': menu_id, 'navigationType': NavigationType.MAIN.name})
-    response = staff_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'menu': menu_id, 'navigationType': NavigationType.MAIN.name}
+    response = staff_api_client.post_graphql(query, variables)
     assert_no_permission(response)
 
     staff_api_client.user.user_permissions.add(permission_manage_menus)
     staff_api_client.user.user_permissions.add(permission_manage_settings)
 
     # test assigning main menu
-    response = staff_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content['data']['assignNavigation']['menu']['name'] == menu.name
     site_settings.refresh_from_db()
     assert site_settings.top_menu.name == menu.name
 
     # test assigning secondary menu
-    variables = json.dumps({
-        'menu': menu_id, 'navigationType': NavigationType.SECONDARY.name})
-    response = staff_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {
+        'menu': menu_id, 'navigationType': NavigationType.SECONDARY.name}
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content['data']['assignNavigation']['menu']['name'] == menu.name
     site_settings.refresh_from_db()
     assert site_settings.bottom_menu.name == menu.name
 
     # test unasigning menu
-    variables = json.dumps({
-        'id': None, 'navigationType': NavigationType.MAIN.name})
-    response = staff_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'id': None, 'navigationType': NavigationType.MAIN.name}
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert not content['data']['assignNavigation']['menu']
     site_settings.refresh_from_db()

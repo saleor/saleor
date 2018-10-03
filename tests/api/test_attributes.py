@@ -1,9 +1,6 @@
-import json
-
 import pytest
 
 import graphene
-from django.shortcuts import reverse
 from django.template.defaultfilters import slugify
 from saleor.graphql.product.types import (
     AttributeValueType, resolve_attribute_value_type)
@@ -40,7 +37,7 @@ def test_attributes_to_hstore(product, color_attribute):
 
 def test_attributes_query(user_api_client, product):
     attributes = Attribute.objects.prefetch_related('values')
-    query = '''
+    query = """
     query {
         attributes {
             edges {
@@ -57,8 +54,8 @@ def test_attributes_query(user_api_client, product):
             }
         }
     }
-    '''
-    response = user_api_client.post(reverse('api'), {'query': query})
+    """
+    response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     attributes_data = content['data']['attributes']['edges']
     assert len(attributes_data) == attributes.count()
@@ -66,7 +63,7 @@ def test_attributes_query(user_api_client, product):
 
 def test_attributes_in_category_query(user_api_client, product):
     category = Category.objects.first()
-    query = '''
+    query = """
     query {
         attributes(inCategory: "%(category_id)s") {
             edges {
@@ -83,8 +80,8 @@ def test_attributes_in_category_query(user_api_client, product):
             }
         }
     }
-    ''' % {'category_id': graphene.Node.to_global_id('Category', category.id)}
-    response = user_api_client.post(reverse('api'), {'query': query})
+    """ % {'category_id': graphene.Node.to_global_id('Category', category.id)}
+    response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     attributes_data = content['data']['attributes']['edges']
     assert len(attributes_data) == Attribute.objects.count()
@@ -116,10 +113,9 @@ def test_create_attribute_and_attribute_values(admin_api_client):
     query = CREATE_ATTRIBUTES_QUERY
     attribute_name = 'Example name'
     name = 'Value name'
-    variables = json.dumps({
-        'name': attribute_name, 'values': [{'name': name, 'value': '#1231'}]})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {
+        'name': 'Example name', 'values': [{'name': name, 'value': '#1231'}]}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert not content['data']['attributeCreate']['errors']
     data = content['data']['attributeCreate']['attribute']
@@ -142,13 +138,12 @@ def test_create_attribute_and_attribute_values(admin_api_client):
 def test_create_attribute_and_attribute_values_errors(
         admin_api_client, name_1, name_2, error_msg):
     query = CREATE_ATTRIBUTES_QUERY
-    variables = json.dumps({
+    variables = {
         'name': 'Example name',
         'values': [
             {'name': name_1, 'value': '#1231'},
-            {'name': name_2, 'value': '#121'}]})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+            {'name': name_2, 'value': '#121'}]}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     errors = content['data']['attributeCreate']['errors']
     assert errors
@@ -187,10 +182,8 @@ def test_update_attribute_name(admin_api_client, color_attribute):
     attribute = color_attribute
     name = 'Wings name'
     id = graphene.Node.to_global_id('Attribute', attribute.id)
-    variables = json.dumps({
-        'name': name, 'id': id, 'addValues': [], 'removeValues': []})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'name': name, 'id': id, 'addValues': [], 'removeValues': []}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     attribute.refresh_from_db()
     data = content['data']['attributeUpdate']
@@ -207,12 +200,11 @@ def test_update_attribute_remove_and_add_values(
     attribute_value_id = attribute.values.first().id
     value_id = graphene.Node.to_global_id(
         'AttributeValue', attribute_value_id)
-    variables = json.dumps({
+    variables = {
         'name': name, 'id': id,
         'addValues': [{'name': attribute_value_name, 'value': '#1231'}],
-        'removeValues': [value_id]})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        'removeValues': [value_id]}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     attribute.refresh_from_db()
     data = content['data']['attributeUpdate']
@@ -235,12 +227,11 @@ def test_update_attribute_and_add_attribute_values_errors(
     query = UPDATE_ATTRIBUTE_QUERY
     attribute = color_attribute
     id = graphene.Node.to_global_id('Attribute', attribute.id)
-    variables = json.dumps({
+    variables = {
         'name': 'Example name', 'id': id, 'removeValues': [],
         'addValues': [
-            {'name': name_1, 'value': '#1'}, {'name': name_2, 'value': '#2'}]})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+            {'name': name_1, 'value': '#1'}, {'name': name_2, 'value': '#2'}]}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     errors = content['data']['attributeUpdate']['errors']
     assert errors
@@ -256,11 +247,10 @@ def test_update_attribute_and_remove_others_attribute_value(
     size_attribute = size_attribute.values.first()
     attr_id = graphene.Node.to_global_id(
         'AttributeValue', size_attribute.pk)
-    variables = json.dumps({
+    variables = {
         'name': 'Example name', 'id': id, 'slug': 'example-slug',
-        'addValues': [], 'removeValues': [attr_id]})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        'addValues': [], 'removeValues': [attr_id]}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     errors = content['data']['attributeUpdate']['errors']
     assert errors
@@ -282,9 +272,8 @@ def test_delete_attribute(admin_api_client, color_attribute):
     }
     """
     id = graphene.Node.to_global_id('Attribute', attribute.id)
-    variables = json.dumps({'id': id})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'id': id}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     with pytest.raises(attribute._meta.model.DoesNotExist):
         attribute.refresh_from_db()
@@ -321,10 +310,8 @@ def test_create_attribute_value(admin_api_client, color_attribute):
     attribute_id = graphene.Node.to_global_id('Attribute', attribute.id)
     name = 'test name'
     value = 'test-string'
-    variables = json.dumps(
-        {'name': name, 'value': value, 'id': attribute_id})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'name': name, 'value': value, 'id': attribute_id}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['attributeValueCreate']
     assert not data['errors']
@@ -343,10 +330,9 @@ def test_create_attribute_value_not_unique_name(
     query = CREATE_ATTRIBUTE_VALUE_QUERY
     attribute_id = graphene.Node.to_global_id('Attribute', attribute.id)
     value_name = attribute.values.first().name
-    variables = json.dumps(
-        {'name': value_name, 'value': 'test-string', 'id': attribute_id})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {
+        'name': value_name, 'value': 'test-string', 'id': attribute_id}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['attributeValueCreate']
     assert data['errors']
@@ -383,13 +369,11 @@ def test_update_attribute_value(admin_api_client, pink_attribute_value):
     value = pink_attribute_value
     id = graphene.Node.to_global_id('AttributeValue', value.id)
     name = 'Crimson name'
-    variables = json.dumps(
-        {'name': name, 'value': '#RED', 'id': id})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'name': name, 'value': '#RED', 'id': id}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    value.refresh_from_db()
     data = content['data']['attributeValueUpdate']
+    value.refresh_from_db()
     assert data['attributeValue']['name'] == name == value.name
     assert data['attributeValue']['slug'] == slugify(name)
     assert name in [value['name'] for value in data['attribute']['values']]
@@ -401,12 +385,9 @@ def test_update_attribute_value_name_not_unique(
     value = pink_attribute_value.attribute.values.create(
         name='Example Name', slug='example-name', value='#RED')
     id = graphene.Node.to_global_id('AttributeValue', value.id)
-    variables = json.dumps(
-        {'name': pink_attribute_value.name, 'value': '#RED', 'id': id})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'name': pink_attribute_value.name, 'value': '#RED', 'id': id}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['attributeValueUpdate']
     assert data['errors']
     assert data['errors'][0]['field'] == 'name'
@@ -419,12 +400,9 @@ def test_update_same_attribute_value(
     value = pink_attribute_value
     id = graphene.Node.to_global_id('AttributeValue', value.id)
     attr_value = '#BLUE'
-    variables = json.dumps(
-        {'name': value.name, 'value': attr_value, 'id': id})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'name': value.name, 'value': attr_value, 'id': id}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['attributeValueUpdate']
     assert not data['errors']
     assert data['attributeValue']['value'] == attr_value
@@ -445,9 +423,8 @@ def test_delete_attribute_value(
     }
     """
     id = graphene.Node.to_global_id('AttributeValue', value.id)
-    variables = json.dumps({'id': id})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'id': id}
+    response = admin_api_client.post_graphql(query, variables)
     with pytest.raises(value._meta.model.DoesNotExist):
         value.refresh_from_db()
 
@@ -492,9 +469,8 @@ def test_query_attribute_values(
         }
     }
     """
-    variables = json.dumps({'id': attribute_id})
-    response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'id': attribute_id}
+    response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['attributes']['edges'][0]['node']
     values = data['values']
