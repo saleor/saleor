@@ -28,6 +28,7 @@ const decorate = withStyles(theme => ({
     display: "block" as "block",
     maxHeight: 0,
     overflow: "hidden" as "hidden",
+    padding: "0 20px",
     transitionDuration: "200ms"
   },
   cardActionsExpanded: {
