@@ -137,7 +137,8 @@ def test_menu_item_query_static_url(user_api_client, menu_item):
     assert not data['page']
 
 
-def test_create_menu(admin_api_client, collection, category, page):
+def test_create_menu(
+        staff_api_client, collection, category, page, permission_manage_menus):
     query = """
     mutation mc($name: String!, $collection: ID, $category: ID, $page: ID, $url: String) {
         menuCreate(input: {
@@ -170,12 +171,14 @@ def test_create_menu(admin_api_client, collection, category, page):
     variables = {
         'name': 'test-menu', 'collection': collection_id,
         'category': category_id, 'page': page_id, 'url': url}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_menus])
     content = get_graphql_content(response)
     assert content['data']['menuCreate']['menu']['name'] == 'test-menu'
 
 
-def test_update_menu(admin_api_client, menu):
+def test_update_menu(
+        staff_api_client, menu, permission_manage_menus):
     query = """
     mutation updatemenu($id: ID!, $name: String!) {
         menuUpdate(id: $id, input: {name: $name}) {
@@ -188,12 +191,14 @@ def test_update_menu(admin_api_client, menu):
     menu_id = graphene.Node.to_global_id('Menu', menu.pk)
     name = 'Blue oyster menu'
     variables = {'id': menu_id, 'name': name}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_menus])
     content = get_graphql_content(response)
     assert content['data']['menuUpdate']['menu']['name'] == name
 
 
-def test_delete_menu(admin_api_client, menu):
+def test_delete_menu(
+        staff_api_client, menu, permission_manage_menus):
     query = """
         mutation deletemenu($id: ID!) {
             menuDelete(id: $id) {
@@ -205,14 +210,16 @@ def test_delete_menu(admin_api_client, menu):
         """
     menu_id = graphene.Node.to_global_id('Menu', menu.pk)
     variables = {'id': menu_id}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_menus])
     content = get_graphql_content(response)
     assert content['data']['menuDelete']['menu']['name'] == menu.name
     with pytest.raises(menu._meta.model.DoesNotExist):
         menu.refresh_from_db()
 
 
-def test_create_menu_item(admin_api_client, menu):
+def test_create_menu_item(
+        staff_api_client, menu, permission_manage_menus):
     query = """
     mutation createMenuItem($menu_id: ID!, $name: String!, $url: String){
         menuItemCreate(input: {name: $name, menu: $menu_id, url: $url}) {
@@ -230,7 +237,8 @@ def test_create_menu_item(admin_api_client, menu):
     url = 'http://www.example.com'
     menu_id = graphene.Node.to_global_id('Menu', menu.pk)
     variables = {'name': name, 'url': url, 'menu_id': menu_id}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_menus])
     content = get_graphql_content(response)
     data = content['data']['menuItemCreate']['menuItem']
     assert data['name'] == name
@@ -238,7 +246,8 @@ def test_create_menu_item(admin_api_client, menu):
     assert data['menu']['name'] == menu.name
 
 
-def test_update_menu_item(admin_api_client, menu, menu_item, page):
+def test_update_menu_item(
+        staff_api_client, menu, menu_item, page, permission_manage_menus):
     query = """
     mutation updateMenuItem($id: ID!, $page: ID) {
         menuItemUpdate(id: $id, input: {page: $page}) {
@@ -256,13 +265,15 @@ def test_update_menu_item(admin_api_client, menu, menu_item, page):
     menu_item_id = graphene.Node.to_global_id('MenuItem', menu_item.pk)
     page_id = graphene.Node.to_global_id('Page', page.pk)
     variables = {'id': menu_item_id, 'page': page_id}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_menus])
     content = get_graphql_content(response)
     data = content['data']['menuItemUpdate']['menuItem']
     assert data['page']['id'] == page_id
 
 
-def test_delete_menu_item(admin_api_client, menu_item):
+def test_delete_menu_item(
+        staff_api_client, menu_item, permission_manage_menus):
     query = """
         mutation deleteMenuItem($id: ID!) {
             menuItemDelete(id: $id) {
@@ -274,7 +285,8 @@ def test_delete_menu_item(admin_api_client, menu_item):
         """
     menu_item_id = graphene.Node.to_global_id('MenuItem', menu_item.pk)
     variables = {'id': menu_item_id}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_menus])
     content = get_graphql_content(response)
     data = content['data']['menuItemDelete']['menuItem']
     assert data['name'] == menu_item.name
@@ -282,7 +294,8 @@ def test_delete_menu_item(admin_api_client, menu_item):
         menu_item.refresh_from_db()
 
 
-def test_add_more_than_one_item(admin_api_client, menu, menu_item, page):
+def test_add_more_than_one_item(
+        staff_api_client, menu, menu_item, page, permission_manage_menus):
     query = """
     mutation updateMenuItem($id: ID!, $page: ID, $url: String) {
         menuItemUpdate(id: $id,
@@ -301,7 +314,8 @@ def test_add_more_than_one_item(admin_api_client, menu, menu_item, page):
     menu_item_id = graphene.Node.to_global_id('MenuItem', menu_item.pk)
     page_id = graphene.Node.to_global_id('Page', page.pk)
     variables = {'id': menu_item_id, 'page': page_id, 'url': url}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_menus])
     content = get_graphql_content(response)
     data = content['data']['menuItemUpdate']['errors'][0]
     assert data['field'] == 'items'
