@@ -1,5 +1,6 @@
 #privacy-policy {
   border: solid var(--border-width) var(--sectionBorder);
+  border-bottom: 0;
 	& section {
     padding-top: var(--spacer);
     padding-bottom: calc(var(--spacer) * 3);

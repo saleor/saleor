@@ -1,5 +1,6 @@
 #roadmap {
   border: solid var(--border-width) var(--sectionBorder);
+  border-bottom: 0;
   position: relative;
   & section {
     &.hero {
