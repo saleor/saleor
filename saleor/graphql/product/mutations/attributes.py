@@ -37,6 +37,10 @@ class AttributeCreate(ModelMutation):
         model = models.Attribute
 
     @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.manage_products')
+
+    @classmethod
     def clean_attribute_value_uniqueness(cls, values, errors, error_msg):
         """Checks if all provided values are unique."""
         if len(set(values)) != len(values):
