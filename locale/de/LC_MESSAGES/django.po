@@ -927,7 +927,7 @@ msgstr "%(variant_label)s - %(price)s"
 #: saleor/product/models.py:115
 msgctxt "Permission description"
 msgid "Manage products."
-msgstr ""
+msgstr "Produkte Verwalten"
 
 #: saleor/search/forms.py:9
 msgctxt "Search form label"
@@ -936,7 +936,7 @@ msgstr "Suche"
 
 #: saleor/settings.py:61
 msgid "Bulgarian"
-msgstr ""
+msgstr "Bulgarisch"
 
 #: saleor/settings.py:62
 msgid "Czech"
@@ -944,51 +944,51 @@ msgstr ""
 
 #: saleor/settings.py:63
 msgid "German"
-msgstr ""
+msgstr "Deutsch"
 
 #: saleor/settings.py:64
 msgid "English"
-msgstr ""
+msgstr "Englisch"
 
 #: saleor/settings.py:65
 msgid "Spanish"
-msgstr ""
+msgstr "Spanisch"
 
 #: saleor/settings.py:66
 msgid "Persian (Iran)"
-msgstr ""
+msgstr "Persisch (Iran)"
 
 #: saleor/settings.py:67
 msgid "French"
-msgstr ""
+msgstr "Französisch"
 
 #: saleor/settings.py:68
 msgid "Hungarian"
-msgstr ""
+msgstr "Ungarisch"
 
 #: saleor/settings.py:69
 msgid "Italian"
-msgstr ""
+msgstr "Italienisch"
 
 #: saleor/settings.py:70
 msgid "Japanese"
-msgstr ""
+msgstr "Japanisch"
 
 #: saleor/settings.py:71
 msgid "Korean"
-msgstr ""
+msgstr "Koreanisch"
 
 #: saleor/settings.py:72
 msgid "Norwegian"
-msgstr ""
+msgstr "Norwegisch"
 
 #: saleor/settings.py:73
 msgid "Dutch"
-msgstr ""
+msgstr "Niederländisch"
 
 #: saleor/settings.py:74
 msgid "Polish"
-msgstr ""
+msgstr "Polnisch"
 
 #: saleor/settings.py:75
 msgid "Portuguese (Brazil)"
@@ -996,11 +996,11 @@ msgstr ""
 
 #: saleor/settings.py:76
 msgid "Romanian"
-msgstr ""
+msgstr "Rumänisch"
 
 #: saleor/settings.py:77
 msgid "Russian"
-msgstr ""
+msgstr "Rusisch"
 
 #: saleor/settings.py:78
 msgid "Slovak"
@@ -1008,11 +1008,11 @@ msgstr ""
 
 #: saleor/settings.py:79
 msgid "Turkish"
-msgstr ""
+msgstr "Türkisch"
 
 #: saleor/settings.py:80
 msgid "Ukrainian"
-msgstr ""
+msgstr "Ukrainisch"
 
 #: saleor/settings.py:81
 msgid "Vietnamese"
@@ -1020,7 +1020,7 @@ msgstr ""
 
 #: saleor/settings.py:82
 msgid "Chinese"
-msgstr ""
+msgstr "Chinesisch"
 
 #: saleor/settings.py:83
 msgid "Chinese (Taiwan)"
@@ -1029,27 +1029,27 @@ msgstr ""
 #: saleor/settings.py:317
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
-msgstr ""
+msgstr "Europäische Union"
 
 #: saleor/shipping/models.py:25
 msgctxt "Permission description"
 msgid "Manage shipping."
-msgstr ""
+msgstr "Versand verwalten"
 
 #: saleor/site/models.py:30
 msgctxt "Permission description"
 msgid "Manage settings."
-msgstr ""
+msgstr "Einstellungen"
 
 #: templates/404.html:6
 msgctxt "Eror page not found"
 msgid "Page not found"
-msgstr ""
+msgstr "Die Seite wurde nicht gefunden"
 
 #: templates/_language_picker_modal.html:8
 msgctxt "Change language modal title"
 msgid "Select language"
-msgstr ""
+msgstr "Sprache auswählen"
 
 #: templates/_language_picker_modal.html:24
 msgctxt "Close modal action button"
