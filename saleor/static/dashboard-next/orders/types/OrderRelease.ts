@@ -78,43 +78,33 @@ export interface OrderRelease_orderRelease_order_fulfillments {
   trackingNumber: string;
 }
 
-export interface OrderRelease_orderRelease_order_lines_edges_node_unitPrice_gross {
+export interface OrderRelease_orderRelease_order_lines_unitPrice_gross {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderRelease_orderRelease_order_lines_edges_node_unitPrice_net {
+export interface OrderRelease_orderRelease_order_lines_unitPrice_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderRelease_orderRelease_order_lines_edges_node_unitPrice {
+export interface OrderRelease_orderRelease_order_lines_unitPrice {
   __typename: "TaxedMoney";
-  gross: OrderRelease_orderRelease_order_lines_edges_node_unitPrice_gross;
-  net: OrderRelease_orderRelease_order_lines_edges_node_unitPrice_net;
+  gross: OrderRelease_orderRelease_order_lines_unitPrice_gross;
+  net: OrderRelease_orderRelease_order_lines_unitPrice_net;
 }
 
-export interface OrderRelease_orderRelease_order_lines_edges_node {
+export interface OrderRelease_orderRelease_order_lines {
   __typename: "OrderLine";
   id: string;
   productName: string;
   productSku: string;
   quantity: number;
   quantityFulfilled: number;
-  unitPrice: OrderRelease_orderRelease_order_lines_edges_node_unitPrice | null;
+  unitPrice: OrderRelease_orderRelease_order_lines_unitPrice | null;
   thumbnailUrl: string | null;
-}
-
-export interface OrderRelease_orderRelease_order_lines_edges {
-  __typename: "OrderLineCountableEdge";
-  node: OrderRelease_orderRelease_order_lines_edges_node;
-}
-
-export interface OrderRelease_orderRelease_order_lines {
-  __typename: "OrderLineCountableConnection";
-  edges: OrderRelease_orderRelease_order_lines_edges[];
 }
 
 export interface OrderRelease_orderRelease_order_shippingAddress_country {
@@ -215,7 +205,7 @@ export interface OrderRelease_orderRelease_order {
   created: any;
   events: (OrderRelease_orderRelease_order_events | null)[] | null;
   fulfillments: (OrderRelease_orderRelease_order_fulfillments | null)[];
-  lines: OrderRelease_orderRelease_order_lines | null;
+  lines: (OrderRelease_orderRelease_order_lines | null)[];
   number: string | null;
   paymentStatus: PaymentStatusEnum | null;
   shippingAddress: OrderRelease_orderRelease_order_shippingAddress | null;

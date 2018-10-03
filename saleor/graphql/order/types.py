@@ -87,6 +87,27 @@ class FulfillmentLine(CountableDjangoObjectType):
         exclude_fields = ['fulfillment']
 
 
+class OrderLine(CountableDjangoObjectType):
+    thumbnail_url = graphene.String(
+        description='The URL of a main thumbnail for the ordered product.',
+        size=graphene.Int(description='Size of the image'))
+
+    class Meta:
+        description = 'Represents order line of particular order.'
+        model = models.OrderLine
+        interfaces = [relay.Node]
+        exclude_fields = [
+            'order', 'unit_price_gross', 'unit_price_net', 'variant']
+
+    def resolve_thumbnail_url(self, info, size=None):
+        if not self.variant_id:
+            return None
+        if not size:
+            size = 255
+        return get_thumbnail(
+            self.variant.get_first_image(), size, method='thumbnail')
+
+
 class Order(CountableDjangoObjectType):
     fulfillments = graphene.List(
         Fulfillment,
@@ -114,6 +135,9 @@ class Order(CountableDjangoObjectType):
     available_shipping_methods = graphene.List(
         ShippingMethod, required=False,
         description='Shipping methods that can be used with this order.')
+    lines = graphene.List(
+        OrderLine, required=True,
+        description='List of order lines for the order')
 
     class Meta:
         description = 'Represents an order in the shop.'
@@ -180,23 +204,6 @@ class Order(CountableDjangoObjectType):
         from .resolvers import resolve_shipping_methods
         return resolve_shipping_methods(obj, info)
 
-
-class OrderLine(CountableDjangoObjectType):
-    thumbnail_url = graphene.String(
-        description='The URL of a main thumbnail for the ordered product.',
-        size=graphene.Int(description='Size of the image'))
-
-    class Meta:
-        description = 'Represents order line of particular order.'
-        model = models.OrderLine
-        interfaces = [relay.Node]
-        exclude_fields = [
-            'order', 'unit_price_gross', 'unit_price_net', 'variant']
-
-    def resolve_thumbnail_url(self, info, size=None):
-        if not self.variant_id:
-            return None
-        if not size:
-            size = 255
-        return get_thumbnail(
-            self.variant.get_first_image(), size, method='thumbnail')
+    @staticmethod
+    def resolve_lines(obj, info):
+        return obj.lines.all()
