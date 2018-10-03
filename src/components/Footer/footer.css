@@ -1,6 +1,9 @@
 footer {
   padding: 0 calc(var(--spacer) * 2.5) calc(var(--spacer) * 2) calc(var(--spacer) * 2.5);
   position: relative;
+  @media (max-width: 768px) {
+    padding: 0 var(--spacer);
+  }
   & .container {
     padding: 0;
     border: solid var(--border-width) var(--sectionBorder);

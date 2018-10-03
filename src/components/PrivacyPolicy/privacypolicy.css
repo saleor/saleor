@@ -60,15 +60,10 @@
         @media (max-width: 768px) {
           position: absolute;
           bottom: 5%;
-          left: 0;
-          right: 0;
         }
         @media (max-width: 450px) {
           bottom: 10%;
         }
-      }
-      @media (max-width: 768px) {
-        height: 80vh;
       }
       @media (max-width: 700px) {
         height: 180vh;

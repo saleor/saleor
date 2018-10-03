@@ -132,34 +132,34 @@ class Home extends Component {
                 <p>While built and maintained by Mirumee Software, Saleor’s community is among the fastest growing open source ecommerce platforms.</p>
                 <p className="text-light">What started in 2010 as a humble solution to a local problem has over the years become a platform that many of you rely on in your day to day job. We wouldn’t be here if it wasn’t for all of our great contributors and supporters.</p>
                 <div className="grid icons">
-                  <div className="icon col-xs-5 col-sm-6 col-md-6">
+                  <div className="icon col-xs-5 col-sm-12 col-md-6">
                     <a className="grid" href="https://github.com/mirumee/saleor">
-                    <ReactSVG className="github-icon logo col-xs-3 col-sm-3 col-md-3" path="images/github-icon.svg" />
-                    <h5 className="col-xs-9 col-sm-9 col-md-9">Suggest features and propose changes</h5>
+                    <ReactSVG className="github-icon logo col-xs-3 col-sm-2 col-md-3" path="images/github-icon.svg" />
+                    <h5 className="col-xs-9 col-sm-10 col-md-9">Suggest features and propose changes</h5>
                     </a>
                   </div>
-                  <div className="icon col-xs-12 col-sm-6 col-md-6">
+                  <div className="icon col-xs-12 col-sm-12 col-md-6">
                     <a className="grid" href="https://www.transifex.com/mirumee/saleor-1/">
-                      <ReactSVG className="transifex-icon logo col-xs-3 col-sm-3 col-md-3" path="images/transifex-icon.svg" />
-                      <h5 className="col-xs-9 col-sm-9 col-md-9">Translate Saleor to your language</h5>
+                      <ReactSVG className="transifex-icon logo col-xs-3 col-sm-2 col-md-3" path="images/transifex-icon.svg" />
+                      <h5 className="col-xs-9 col-sm-10 col-md-9">Translate Saleor to your language</h5>
                     </a>
                   </div>
-                  <div className="icon col-xs-12 col-sm-6 col-md-6">
+                  <div className="icon col-xs-12 col-sm-12 col-md-6">
                     <a className="grid" href="https://gitter.im/mirumee/saleor">
-                      <ReactSVG className="gitter-icon logo col-xs-3 col-sm-3 col-md-3" path="images/gitter-icon.svg" />
-                      <h5 className="col-xs-9 col-sm-9 col-md-9">Discuss the future of Saleor</h5>
+                      <ReactSVG className="gitter-icon logo col-xs-3 col-sm-2 col-md-3" path="images/gitter-icon.svg" />
+                      <h5 className="col-xs-9 col-sm-10 col-md-9">Discuss the future of Saleor</h5>
                     </a>
                   </div>
-                  <div className="icon col-xs-12 col-sm-6 col-md-6">
+                  <div className="icon col-xs-12 col-sm-12 col-md-6">
                     <a className="grid" href="https://stackoverflow.com/questions/tagged/saleor">
-                      <ReactSVG className="stackoverflow-icon logo col-xs-3 col-sm-3 col-md-3" path="images/stackoverflow-icon.svg" />
-                      <h5 className="col-xs-9 col-sm-9 col-md-9">Ask for help</h5>
+                      <ReactSVG className="stackoverflow-icon logo col-xs-2 col-sm-2 col-md-3" path="images/stackoverflow-icon.svg" />
+                      <h5 className="col-xs-9 col-sm-10 col-md-9">Ask for help</h5>
                     </a>
                   </div>
-                  <div className="icon col-xs-12 col-sm-6 col-md-6">
+                  <div className="icon col-xs-12 col-sm-12 col-md-6">
                     <a className="grid" href="https://medium.com/saleor">
-                      <ReactSVG className="medium-icon logo col-xs-3 col-sm-3 col-md-3" path="images/medium-icon.svg" />
-                      <h5 className="col-xs-9 col-sm-9 col-md-9">Follow Saleor's development</h5>
+                      <ReactSVG className="medium-icon logo col-xs-3 col-sm-2 col-md-3" path="images/medium-icon.svg" />
+                      <h5 className="col-xs-9 col-sm-10 col-md-9">Follow Saleor's development</h5>
                     </a>
                   </div>
                 </div>

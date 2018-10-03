@@ -16,8 +16,8 @@
           }
           @media (max-width: 768px) {
             opacity: 0.5;
-            background-position: 250% -20%;
-            background-size: 95%;
+            background-position: 50% -20%;
+            background-size: 120%;
           }
           @media (max-width: 450px) {
             background-position: 60% 0%;
@@ -36,6 +36,9 @@
             transform: translateY(-50%);
             @media (max-width: 1368px) {
               width: 60%;
+            }
+            @media (max-width: 768px) {
+              width: 80%;
             }
             @media (max-width: 450px) {
               padding: calc(var(--spacer) * 2) var(--spacer);
@@ -58,22 +61,7 @@
               bottom: calc(var(--spacer) * 4);
             }
             @media (max-width: 768px) {
-              position: absolute;
               bottom: calc(var(--spacer) * 4);
-              left: 0;
-              right: 0;
-            }
-            @media (max-width: 768px) {
-              bottom: 0;
-            }
-          }
-          @media (max-width: 768px) {
-            height: 60vh;
-            & .scroll-link {
-              position: absolute;
-              bottom: 7%;
-              left: 0;
-              right: 0;
             }
           }
           @media (max-width: 700px) {
