@@ -12,7 +12,6 @@ import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
 import Toggle from "../../../components/Toggle";
 import { AddressTypeInput } from "../../../customers";
-import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { OrderStatus } from "../../../types/globalTypes";
 import { OrderDetails_order } from "../../types/OrderDetails";
@@ -33,6 +32,7 @@ import OrderFulfillmentTrackingDialog, {
   FormData as OrderFulfillmentTrackingDialogFormData
 } from "../OrderFulfillmentTrackingDialog";
 import OrderHistory, { FormData as HistoryFormData } from "../OrderHistory";
+import OrderPayment from "../OrderPayment/OrderPayment";
 import OrderPaymentDialog, {
   FormData as OrderPaymentFormData
 } from "../OrderPaymentDialog";
@@ -43,7 +43,6 @@ import OrderProductAddDialog, {
 import OrderShippingMethodEditDialog, {
   FormData as ShippingMethodForm
 } from "../OrderShippingMethodEditDialog";
-import OrderSummary from "../OrderSummary";
 import OrderUnfulfilledItems from "../OrderUnfulfilledItems/OrderUnfulfilledItems";
 
 export interface OrderDetailsPageProps {
@@ -105,9 +104,12 @@ interface OrderDetailsPageState {
 }
 
 const decorate = withStyles(theme => ({
-  orderDate: {
-    marginBottom: theme.spacing.unit * 2,
-    marginLeft: theme.spacing.unit * 10
+  date: {
+    marginBottom: theme.spacing.unit * 3,
+    marginLeft: theme.spacing.unit * 7
+  },
+  header: {
+    marginBottom: 0
   },
   root: {
     display: "grid",
@@ -116,7 +118,7 @@ const decorate = withStyles(theme => ({
   }
 }));
 class OrderDetailsPageComponent extends React.Component<
-  OrderDetailsPageProps & WithStyles<"orderDate" | "root">,
+  OrderDetailsPageProps & WithStyles<"date" | "header" | "root">,
   OrderDetailsPageState
 > {
   state = {
@@ -187,19 +189,15 @@ class OrderDetailsPageComponent extends React.Component<
       fetchVariants,
       onBack,
       onBillingAddressEdit,
-      onCreate,
       onFulfillmentCancel,
       onFulfillmentTrackingNumberUpdate,
       onNoteAdd,
       onOrderCancel,
       onOrderFulfill,
-      onOrderLineChange,
-      onOrderLineRemove,
       onPaymentCapture,
       onPaymentRefund,
       onPaymentRelease,
       onProductAdd,
-      onProductClick,
       onShippingAddressEdit,
       onShippingMethodEdit
     } = this.props;
@@ -223,62 +221,32 @@ class OrderDetailsPageComponent extends React.Component<
       <>
         <Container width="md">
           <PageHeader
-            title={
-              order
-                ? i18n.t("Order #{{ orderId }}", { orderId: order.number })
-                : undefined
-            }
+            className={classes.header}
+            title={maybe(() => order.number) ? "#" + order.number : undefined}
             onBack={onBack}
           />
-          {order ? (
-            <div className={classes.orderDate}>
-              {order && order.created ? (
-                <Typography variant="caption">
-                  <DateFormatter date={order.created} />
-                </Typography>
-              ) : (
-                <Skeleton />
-              )}
-            </div>
-          ) : (
-            <Skeleton />
-          )}
+          <div className={classes.date}>
+            {order && order.created ? (
+              <Typography variant="caption">
+                <DateFormatter date={order.created} />
+              </Typography>
+            ) : (
+              <Skeleton style={{ width: "10em" }} />
+            )}
+          </div>
           <div className={classes.root}>
             <div>
-              <OrderSummary
-                authorized={maybe(() => order.totalAuthorized)}
-                paid={maybe(() => order.totalCaptured)}
-                paymentStatus={maybe(() => order.paymentStatus)}
-                lines={maybe(() => order.lines.edges.map(edge => edge.node))}
-                shippingMethodName={maybe(() => order.shippingMethodName)}
-                shippingPrice={maybe(() => order.shippingPrice)}
-                status={maybe(() => order.status)}
-                subtotal={maybe(() => order.subtotal.gross)}
-                tax={maybe(() => order.total.tax)}
-                total={maybe(() => order.total.gross)}
-                onCapture={this.togglePaymentCaptureDialog}
-                onCreate={onCreate}
-                onFulfill={this.toggleFulfillmentDialog}
-                onOrderCancel={this.toggleOrderCancelDialog}
-                onOrderLineChange={isDraft ? onOrderLineChange : undefined}
-                onOrderLineRemove={onOrderLineRemove}
-                onProductAdd={this.toggleOrderProductAddDialog}
-                onRefund={this.togglePaymentRefundDialog}
-                onRelease={this.togglePaymentReleaseDialog}
-                onRowClick={onProductClick}
-                onShippingMethodClick={this.toggleShippingMethodEditDialog}
-              />
-
-              <CardSpacer />
-              <OrderUnfulfilledItems
-                lines={unfulfilled}
-                onFulfill={this.toggleFulfillmentDialog}
-              />
+              {!!maybe(() => order.lines.edges.length > 0) && (
+                <OrderUnfulfilledItems
+                  lines={unfulfilled}
+                  onFulfill={this.toggleFulfillmentDialog}
+                />
+              )}
 
               {renderCollection(
                 maybe(() => order.fulfillments),
                 fulfillment => (
-                  <Toggle key={fulfillment.id}>
+                  <Toggle key={maybe(() => fulfillment.id)}>
                     {(
                       openedFulfillmentCancelDialog,
                       { toggle: toggleFulfillmentCancelDialog }
@@ -297,24 +265,28 @@ class OrderDetailsPageComponent extends React.Component<
                               }
                               onTrackingCodeAdd={toggleTrackingDialog}
                             />
-                            <OrderFulfillmentCancelDialog
-                              open={openedFulfillmentCancelDialog}
-                              onConfirm={data =>
-                                onFulfillmentCancel(fulfillment.id, data)
-                              }
-                              onClose={toggleFulfillmentCancelDialog}
-                            />
-                            <OrderFulfillmentTrackingDialog
-                              open={openedTrackingDialog}
-                              trackingNumber={fulfillment.trackingNumber}
-                              onConfirm={data =>
-                                onFulfillmentTrackingNumberUpdate(
-                                  fulfillment.id,
-                                  data
-                                )
-                              }
-                              onClose={toggleTrackingDialog}
-                            />
+                            {fulfillment && (
+                              <>
+                                <OrderFulfillmentCancelDialog
+                                  open={openedFulfillmentCancelDialog}
+                                  onConfirm={data =>
+                                    onFulfillmentCancel(fulfillment.id, data)
+                                  }
+                                  onClose={toggleFulfillmentCancelDialog}
+                                />
+                                <OrderFulfillmentTrackingDialog
+                                  open={openedTrackingDialog}
+                                  trackingNumber={fulfillment.trackingNumber}
+                                  onConfirm={data =>
+                                    onFulfillmentTrackingNumberUpdate(
+                                      fulfillment.id,
+                                      data
+                                    )
+                                  }
+                                  onClose={toggleTrackingDialog}
+                                />
+                              </>
+                            )}
                           </>
                         )}
                       </Toggle>
@@ -322,6 +294,15 @@ class OrderDetailsPageComponent extends React.Component<
                   </Toggle>
                 )
               )}
+
+              <CardSpacer />
+              <OrderPayment
+                order={order}
+                onCapture={this.togglePaymentCaptureDialog}
+                onRefund={this.togglePaymentRefundDialog}
+                onRelease={this.togglePaymentCaptureDialog}
+              />
+
               <OrderHistory
                 history={maybe(() => order.events)}
                 onNoteAdd={onNoteAdd}
