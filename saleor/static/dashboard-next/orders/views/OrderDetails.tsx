@@ -7,7 +7,9 @@ import Navigator from "../../components/Navigator";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
 import { productUrl } from "../../products";
+import { OrderStatus } from "../../types/globalTypes";
 import OrderDetailsPage from "../components/OrderDetailsPage";
+import OrderDraftPage from "../components/OrderDraftPage";
 import OrderOperations from "../containers/OrderOperations";
 import { OrderVariantSearchProvider } from "../containers/OrderVariantSearch";
 import { TypedOrderDetailsQuery } from "../queries";
@@ -190,127 +192,223 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                           orderRelease,
                           orderShippingMethodUpdate,
                           orderUpdate
-                        }) => (
-                          <OrderDetailsPage
-                            errors={errors}
-                            onNoteAdd={variables =>
-                              orderAddNote.mutate({
-                                input: variables,
-                                order: id
-                              })
-                            }
-                            fetchVariants={search}
-                            variants={maybe(() =>
-                              searchOpts.data.products.edges
-                                .map(edge => edge.node)
-                                .map(product => ({
-                                  ...product,
-                                  variants: product.variants.edges.map(
-                                    edge => edge.node
-                                  )
-                                }))
-                                .map(product =>
-                                  product.variants.map(variant => ({
-                                    ...variant,
-                                    name: `${product.name}(${variant.name})`
+                        }) =>
+                          maybe(() => order.status !== OrderStatus.DRAFT) ? (
+                            <OrderDetailsPage
+                              errors={errors}
+                              onNoteAdd={variables =>
+                                orderAddNote.mutate({
+                                  input: variables,
+                                  order: id
+                                })
+                              }
+                              fetchVariants={search}
+                              variants={maybe(() =>
+                                searchOpts.data.products.edges
+                                  .map(edge => edge.node)
+                                  .map(product => ({
+                                    ...product,
+                                    variants: product.variants.edges.map(
+                                      edge => edge.node
+                                    )
                                   }))
-                                )
-                                .reduce((prev, curr) => prev.concat(curr), [])
-                            )}
-                            onBack={() => navigate(orderListUrl)}
-                            order={order}
-                            countries={maybe(() => data.shop.countries, []).map(
-                              country => ({
+                                  .map(product =>
+                                    product.variants.map(variant => ({
+                                      ...variant,
+                                      name: `${product.name}(${variant.name})`
+                                    }))
+                                  )
+                                  .reduce((prev, curr) => prev.concat(curr), [])
+                              )}
+                              onBack={() => navigate(orderListUrl)}
+                              order={order}
+                              countries={maybe(
+                                () => data.shop.countries,
+                                []
+                              ).map(country => ({
                                 code: country.code,
                                 label: country.country
-                              })
-                            )}
-                            shippingMethods={maybe(
-                              () => data.order.availableShippingMethods,
-                              []
-                            )}
-                            onOrderCancel={variables =>
-                              orderCancel.mutate({
-                                id,
-                                ...variables
-                              })
-                            }
-                            onOrderFulfill={variables =>
-                              orderCreateFulfillment.mutate({
-                                input: {
+                              }))}
+                              shippingMethods={maybe(
+                                () => data.order.availableShippingMethods,
+                                []
+                              )}
+                              onOrderCancel={variables =>
+                                orderCancel.mutate({
+                                  id,
+                                  ...variables
+                                })
+                              }
+                              onOrderFulfill={variables =>
+                                orderCreateFulfillment.mutate({
+                                  input: {
+                                    ...variables,
+                                    lines: maybe(() => order.lines.edges, [])
+                                      .map(edge => edge.node)
+                                      .filter(
+                                        line =>
+                                          line.quantityFulfilled < line.quantity
+                                      )
+                                      .map((line, lineIndex) => ({
+                                        orderLineId: line.id,
+                                        quantity: variables.lines[lineIndex]
+                                      }))
+                                  },
+                                  order: order.id
+                                })
+                              }
+                              onPaymentCapture={variables =>
+                                orderPaymentCapture.mutate({
                                   ...variables,
-                                  lines: maybe(() => order.lines.edges, [])
-                                    .map(edge => edge.node)
-                                    .filter(
-                                      line =>
-                                        line.quantityFulfilled < line.quantity
+                                  id
+                                })
+                              }
+                              onPaymentRelease={() =>
+                                orderRelease.mutate({ id })
+                              }
+                              onPaymentRefund={variables =>
+                                orderPaymentRefund.mutate({
+                                  ...variables,
+                                  id
+                                })
+                              }
+                              onProductAdd={variables =>
+                                orderLineAdd.mutate({
+                                  id,
+                                  input: {
+                                    quantity: variables.quantity,
+                                    variantId: variables.variant.value
+                                  }
+                                })
+                              }
+                              onProductClick={id => () =>
+                                navigate(productUrl(id))}
+                              onBillingAddressEdit={variables =>
+                                orderUpdate.mutate({
+                                  id,
+                                  input: {
+                                    billingAddress: variables
+                                  }
+                                })
+                              }
+                              onShippingAddressEdit={variables =>
+                                orderUpdate.mutate({
+                                  id,
+                                  input: {
+                                    shippingAddress: variables
+                                  }
+                                })
+                              }
+                              onShippingMethodEdit={variables =>
+                                orderShippingMethodUpdate.mutate({
+                                  id,
+                                  input: {
+                                    shippingMethod: variables.shippingMethod
+                                  }
+                                })
+                              }
+                              onOrderLineRemove={id =>
+                                orderLineDelete.mutate({ id })
+                              }
+                              onOrderLineChange={id => quantity =>
+                                orderLineUpdate.mutate({
+                                  id,
+                                  input: { quantity: parseInt(quantity, 10) }
+                                })}
+                            />
+                          ) : (
+                            <OrderDraftPage
+                              errors={errors}
+                              onNoteAdd={variables =>
+                                orderAddNote.mutate({
+                                  input: variables,
+                                  order: id
+                                })
+                              }
+                              fetchVariants={search}
+                              variants={maybe(() =>
+                                searchOpts.data.products.edges
+                                  .map(edge => edge.node)
+                                  .map(product => ({
+                                    ...product,
+                                    variants: product.variants.edges.map(
+                                      edge => edge.node
                                     )
-                                    .map((line, lineIndex) => ({
-                                      orderLineId: line.id,
-                                      quantity: variables.lines[lineIndex]
+                                  }))
+                                  .map(product =>
+                                    product.variants.map(variant => ({
+                                      ...variant,
+                                      name: `${product.name}(${variant.name})`
                                     }))
-                                },
-                                order: order.id
-                              })
-                            }
-                            onPaymentCapture={variables =>
-                              orderPaymentCapture.mutate({
-                                ...variables,
-                                id
-                              })
-                            }
-                            onPaymentRelease={() => orderRelease.mutate({ id })}
-                            onPaymentRefund={variables =>
-                              orderPaymentRefund.mutate({
-                                ...variables,
-                                id
-                              })
-                            }
-                            onProductAdd={variables =>
-                              orderLineAdd.mutate({
-                                id,
-                                input: {
-                                  quantity: variables.quantity,
-                                  variantId: variables.variant.value
-                                }
-                              })
-                            }
-                            onProductClick={id => () =>
-                              navigate(productUrl(id))}
-                            onBillingAddressEdit={variables =>
-                              orderUpdate.mutate({
-                                id,
-                                input: {
-                                  billingAddress: variables
-                                }
-                              })
-                            }
-                            onShippingAddressEdit={variables =>
-                              orderUpdate.mutate({
-                                id,
-                                input: {
-                                  shippingAddress: variables
-                                }
-                              })
-                            }
-                            onShippingMethodEdit={variables =>
-                              orderShippingMethodUpdate.mutate({
-                                id,
-                                input: {
-                                  shippingMethod: variables.shippingMethod
-                                }
-                              })
-                            }
-                            onOrderLineRemove={id =>
-                              orderLineDelete.mutate({ id })
-                            }
-                            onOrderLineChange={id => quantity =>
-                              orderLineUpdate.mutate({
-                                id,
-                                input: { quantity: parseInt(quantity, 10) }
-                              })}
-                          />
-                        )}
+                                  )
+                                  .reduce((prev, curr) => prev.concat(curr), [])
+                              )}
+                              variantsLoading={searchOpts.loading}
+                              fetchUsers={() => undefined}
+                              onCustomerEdit={() => undefined}
+                              onDraftFinalize={() => undefined}
+                              onDraftRemove={() => undefined}
+                              onOrderLineAdd={variables =>
+                                orderLineAdd.mutate({
+                                  id,
+                                  input: {
+                                    quantity: variables.quantity,
+                                    variantId: variables.variant.value
+                                  }
+                                })
+                              }
+                              onBack={() => navigate(orderListUrl)}
+                              order={order}
+                              countries={maybe(
+                                () => data.shop.countries,
+                                []
+                              ).map(country => ({
+                                code: country.code,
+                                label: country.country
+                              }))}
+                              shippingMethods={maybe(
+                                () => data.order.availableShippingMethods,
+                                []
+                              )}
+                              onProductClick={id => () =>
+                                navigate(productUrl(id))}
+                              onBillingAddressEdit={variables =>
+                                orderUpdate.mutate({
+                                  id,
+                                  input: {
+                                    billingAddress: variables
+                                  }
+                                })
+                              }
+                              onShippingAddressEdit={variables =>
+                                orderUpdate.mutate({
+                                  id,
+                                  input: {
+                                    shippingAddress: variables
+                                  }
+                                })
+                              }
+                              onShippingMethodEdit={variables =>
+                                orderShippingMethodUpdate.mutate({
+                                  id,
+                                  input: {
+                                    shippingMethod: variables.shippingMethod
+                                  }
+                                })
+                              }
+                              onOrderLineRemove={id =>
+                                orderLineDelete.mutate({ id })
+                              }
+                              onOrderLineChange={(id, data) =>
+                                orderLineUpdate.mutate({
+                                  id,
+                                  input: data
+                                })
+                              }
+                              users={[]}
+                            />
+                          )
+                        }
                       </OrderOperations>
                     );
                   }}
