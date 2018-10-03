@@ -45,12 +45,14 @@ const OrderDraftDetails: React.StatelessComponent<OrderDraftDetailsProps> = ({
       lines={maybe(() => order.lines.edges.map(edge => edge.node))}
       onOrderLineChange={onOrderLineChange}
     />
-    <CardContent>
-      <OrderDraftDetailsSummary
-        order={order}
-        onShippingMethodEdit={onShippingMethodEdit}
-      />
-    </CardContent>
+    {maybe(() => order.lines.edges.length) !== 0 && (
+      <CardContent>
+        <OrderDraftDetailsSummary
+          order={order}
+          onShippingMethodEdit={onShippingMethodEdit}
+        />
+      </CardContent>
+    )}
   </Card>
 );
 OrderDraftDetails.displayName = "OrderDraftDetails";
