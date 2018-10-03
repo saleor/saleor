@@ -95,9 +95,6 @@
         }
         & h1 {
           padding-bottom: calc(var(--spacer) * 3);
-          @media (max-width: 1024px) {
-            padding-right: calc(var(--spacer) * 15);
-          }
           @media (max-width: 768px) {
             font-size: calc(var(--font-size-base) * 2.5);
           }
@@ -536,6 +533,9 @@
         right: -30%;
         opacity: 1;
         z-index: 1;
+        @media (max-width: 1440px) {
+          background-size: 90%;
+        }
         @media (max-width: 1024px) {
           background-size: 100%;
           right: -30%;
@@ -579,11 +579,11 @@
         top: 24.5%;
         z-index: 2;
         @media (max-width: 1440px) {
-          left: 37.5%;
+          left: 37%;
+          top: 22.5%
         }
         @media (max-width: 1368px) {
-          left: 37%;
-          top: 25.5%;
+          left: 36.5%;
         }
         @media (max-width: 1024px) {
           top: 26%;
@@ -714,7 +714,7 @@
       & .head {
         padding-top: calc(var(--spacer) * 5);
         margin-bottom: calc(var(--spacer) * 4);
-        border-bottom: solid 2px #fff;
+        border-bottom: solid 2px var(--primaryColor);
         @media (max-width: 450px) {
           padding-top: var(--spacer);
         }
@@ -780,14 +780,14 @@
                   width: 150px;
                   height: 70px;
                   display: block;
-                  border-top: solid 2px var(--body-color);
-                  border-right: solid 2px var(--body-color);
+                  border-top: solid 2px var(--primaryColor);
+                  border-right: solid 2px var(--primaryColor);
                   position: absolute;
                   top: 0;
                   background: rgba(16,10,53,1);
                   &.trapezoid-one {
                     transform: skew(-30deg);       
-                    border-left: solid 2px var(--body-color);
+                    border-left: solid 2px var(--primaryColor);
                     left: 0;
                   }
                   &.trapezoid-two {

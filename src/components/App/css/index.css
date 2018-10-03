@@ -234,7 +234,7 @@ ul {
     display: block;
     transform: skew(-40deg);
     text-transform: uppercase;
-    font-weight: 400;
+    font-weight: 500;
   }
   &.btn-primary {
     border: solid var(--border-width) var(--primaryColor);

@@ -85,7 +85,7 @@
             &::after {
               content: "";
               position: absolute;
-              top: 78px;
+              top: 84px;
               bottom: -19px;
               left: 70%;
               border-left: 1px solid var(--primaryColor);
