@@ -188,26 +188,32 @@ const OrderOperations: React.StatelessComponent<OrderOperationsProps> = ({
                                                 {updateOrderLine =>
                                                   children({
                                                     errors: [
-                                                      ...maybe(
+                                                      ...(maybe(
                                                         () =>
                                                           createFulfillment.data
                                                             .orderFulfillmentCreate
-                                                            .errors,
-                                                        []
-                                                      ),
-                                                      ...maybe(
+                                                            .errors
+                                                      )
+                                                        ? createFulfillment.data
+                                                            .orderFulfillmentCreate
+                                                            .errors
+                                                        : []),
+                                                      ...(maybe(
                                                         () =>
                                                           paymentCapture.data
-                                                            .orderCapture
-                                                            .errors,
-                                                        []
-                                                      ),
-                                                      ...maybe(
+                                                            .orderCapture.errors
+                                                      )
+                                                        ? paymentCapture.data
+                                                            .orderCapture.errors
+                                                        : []),
+                                                      ...(maybe(
                                                         () =>
                                                           paymentRefund.data
-                                                            .orderRefund.errors,
-                                                        []
-                                                      ),
+                                                            .orderRefund.errors
+                                                      )
+                                                        ? paymentRefund.data
+                                                            .orderRefund.errors
+                                                        : []),
                                                       ...(maybe(
                                                         () =>
                                                           addNote.data
@@ -216,20 +222,25 @@ const OrderOperations: React.StatelessComponent<OrderOperationsProps> = ({
                                                         ? addNote.data
                                                             .orderAddNote.errors
                                                         : []),
-                                                      ...maybe(
+                                                      ...(maybe(
                                                         () =>
                                                           update.data
-                                                            .orderUpdate.errors,
-                                                        []
-                                                      ),
+                                                            .orderUpdate.errors
+                                                      )
+                                                        ? update.data
+                                                            .orderUpdate.errors
+                                                        : []),
 
-                                                      ...maybe(
+                                                      ...(maybe(
                                                         () =>
                                                           updateDraft.data
                                                             .draftOrderUpdate
-                                                            .errors,
-                                                        []
+                                                            .errors
                                                       )
+                                                        ? updateDraft.data
+                                                            .draftOrderUpdate
+                                                            .errors
+                                                        : [])
                                                     ],
                                                     orderAddNote: {
                                                       data: addNote.data,
