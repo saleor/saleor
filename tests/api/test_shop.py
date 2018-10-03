@@ -9,7 +9,7 @@ from .utils import assert_no_permission
 
 
 def test_query_authorization_keys(
-        authorization_key, admin_api_client, user_api_client):
+        authorization_key, staff_api_client, permission_manage_settings):
     query = """
     query {
         shop {
@@ -20,14 +20,12 @@ def test_query_authorization_keys(
         }
     }
     """
-    response = admin_api_client.post_graphql(query)
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_settings])
     content = get_graphql_content(response)
     data = content['data']['shop']
     assert data['authorizationKeys'][0]['name'] == authorization_key.name
     assert data['authorizationKeys'][0]['key'] == authorization_key.key
-
-    response = user_api_client.post_graphql(query)
-    assert_no_permission(response)
 
 
 def test_query_countries(user_api_client):
@@ -116,7 +114,7 @@ def test_query_languages(settings, user_api_client):
     assert len(data['languages']) == len(settings.LANGUAGES)
 
 
-def test_query_permissions(admin_api_client, user_api_client):
+def test_query_permissions(staff_api_client, permission_manage_settings):
     query = """
     query {
         shop {
@@ -127,7 +125,8 @@ def test_query_permissions(admin_api_client, user_api_client):
         }
     }
     """
-    response = admin_api_client.post_graphql(query)
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_settings])
     content = get_graphql_content(response)
     data = content['data']['shop']
     permissions = data['permissions']
@@ -135,9 +134,6 @@ def test_query_permissions(admin_api_client, user_api_client):
     assert len(permissions_codes) == len(MODELS_PERMISSIONS)
     for code in permissions_codes:
         assert code in MODELS_PERMISSIONS
-
-    response = user_api_client.post_graphql(query)
-    assert_no_permission(response)
 
 
 def test_query_navigation(user_api_client, site_settings):
@@ -162,7 +158,8 @@ def test_query_navigation(user_api_client, site_settings):
     assert navigation_data['secondary']['name'] == site_settings.bottom_menu.name
 
 
-def test_shop_settings_mutation(admin_api_client, site_settings):
+def test_shop_settings_mutation(
+        staff_api_client, site_settings, permission_manage_settings):
     query = """
         mutation updateSettings($input: ShopSettingsInput!) {
             shopSettingsUpdate(input: $input) {
@@ -177,7 +174,8 @@ def test_shop_settings_mutation(admin_api_client, site_settings):
         'input': {
             'includeTaxesInPrices': False,
             'headerText': 'Lorem ipsum'}}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings])
     content = get_graphql_content(response)
     data = content['data']['shopSettingsUpdate']['shop']
     assert data['includeTaxesInPrices'] == False
@@ -186,7 +184,7 @@ def test_shop_settings_mutation(admin_api_client, site_settings):
     assert not site_settings.include_taxes_in_prices
 
 
-def test_shop_domain_update(admin_api_client):
+def test_shop_domain_update(staff_api_client, permission_manage_settings):
     query = """
         mutation updateSettings($input: SiteDomainInput!) {
             shopDomainUpdate(input: $input) {
@@ -206,7 +204,8 @@ def test_shop_domain_update(admin_api_client):
             'name': new_name}}
     site = Site.objects.get_current()
     assert site.domain != 'lorem-ipsum.com'
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings])
     content = get_graphql_content(response)
     data = content['data']['shopDomainUpdate']['shop']
     assert data['domain']['host'] == 'lorem-ipsum.com'
@@ -216,7 +215,8 @@ def test_shop_domain_update(admin_api_client):
     assert site.name == new_name
 
 
-def test_homepage_collection_update(admin_api_client, collection):
+def test_homepage_collection_update(
+        staff_api_client, collection, permission_manage_settings):
     query = """
         mutation homepageCollectionUpdate($collection: ID!) {
             homepageCollectionUpdate(collection: $collection) {
@@ -231,7 +231,8 @@ def test_homepage_collection_update(admin_api_client, collection):
     """
     collection_id = graphene.Node.to_global_id('Collection', collection.id)
     variables = {'collection': collection_id}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings])
     content = get_graphql_content(response)
     data = content['data']['homepageCollectionUpdate']['shop']
     assert data['homepageCollection']['id'] == collection_id
