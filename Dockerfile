@@ -11,6 +11,7 @@ RUN \
 ADD requirements.txt /app/
 RUN pip install --upgrade pip
 RUN pip install -r /app/requirements.txt
+RUN pip install -r /app/requirements_dev.txt
 
 
 ### Build static assets
