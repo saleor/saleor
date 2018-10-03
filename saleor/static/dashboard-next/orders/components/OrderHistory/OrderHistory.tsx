@@ -8,30 +8,89 @@ import Skeleton from "../../../components/Skeleton";
 import {
   Timeline,
   TimelineAddNote,
-  TimelineNode,
+  TimelineEvent,
   TimelineNote
-} from "../../../components/Timeline/Timeline";
+} from "../../../components/Timeline";
 import i18n from "../../../i18n";
 import { OrderEvents } from "../../../types/globalTypes";
+import { OrderDetails_order_events } from "../../types/OrderDetails";
 
 export interface FormData {
   message: string;
 }
 
+const getEventMessage = (event: OrderDetails_order_events) => {
+  switch (event.type) {
+    case OrderEvents.CANCELED:
+      return i18n.t("Order has been cancelled", {
+        context: "order history message"
+      });
+    case OrderEvents.EMAIL_SENT:
+      return i18n.t("An e-mail has been sent to customer", {
+        context: "order history message"
+      });
+    case OrderEvents.FULFILLMENT_CANCELED:
+      return i18n.t("Fulfillment had been cancelled", {
+        context: "order history message"
+      });
+    case OrderEvents.FULFILLMENT_FULFILLED_ITEMS:
+      return i18n.t("Filfilled {{ quantity }} items", {
+        context: "order history message",
+        quantity: event.quantity
+      });
+    case OrderEvents.FULFILLMENT_RESTOCKED_ITEMS:
+      return i18n.t("Restocked {{ quantity }} items", {
+        context: "order history message",
+        quantity: event.quantity
+      });
+    case OrderEvents.ORDER_FULLY_PAID:
+      return i18n.t("Order has been fully paid", {
+        context: "order history message"
+      });
+    case OrderEvents.ORDER_MARKED_AS_PAID:
+      return i18n.t("Marked order as paid", {
+        context: "order history message"
+      });
+    case OrderEvents.OTHER:
+      return event.message;
+    case OrderEvents.OVERSOLD_ITEMS:
+      return i18n.t("Oversold {{ quantity }} items", {
+        context: "order history message",
+        quantity: event.quantity
+      });
+    case OrderEvents.PAYMENT_CAPTURED:
+      return i18n.t("Payment has been captured", {
+        context: "order history message"
+      });
+    case OrderEvents.PAYMENT_REFUNDED:
+      return i18n.t("Payment has been refunded", {
+        context: "order history message"
+      });
+    case OrderEvents.PAYMENT_RELEASED:
+      return i18n.t("Payment has been released", {
+        context: "order history message"
+      });
+    case OrderEvents.PLACED:
+      return i18n.t("Order has been placed", {
+        context: "order history message"
+      });
+    case OrderEvents.PLACED_FROM_DRAFT:
+      return i18n.t("Order has been created from draft", {
+        context: "order history message"
+      });
+    case OrderEvents.TRACKING_UPDATED:
+      return i18n.t("Updated fulfillment group's tracking number", {
+        context: "order history message"
+      });
+    case OrderEvents.UPDATED:
+      return i18n.t("Order has been updated", {
+        context: "order history message"
+      });
+  }
+};
+
 interface OrderHistoryProps {
-  history?: Array<{
-    amount?: number;
-    date: string;
-    email?: string;
-    emailType?: string;
-    id: string;
-    message?: string;
-    quantity?: number;
-    type: OrderEvents;
-    user: {
-      email: string;
-    };
-  }>;
+  history: OrderDetails_order_events[];
   onNoteAdd: (data: FormData) => void;
 }
 
@@ -74,20 +133,19 @@ const OrderHistory = decorate<OrderHistoryProps>(
                 );
               }
               return (
-                <TimelineNode
-                  amount={event.amount}
-                  email={event.email}
-                  emailType={event.emailType}
-                  quantity={event.quantity}
-                  type={event.type}
+                <TimelineEvent
                   date={event.date}
-                  title={event.message}
+                  title={getEventMessage(event)}
                   key={event.id}
                 >
-                  <Typography variant="caption">
-                    {i18n.t("by {{ user }}", { user: event.user.email })}
-                  </Typography>
-                </TimelineNode>
+                  {event.user && (
+                    <Typography variant="caption">
+                      {i18n.t("by {{ user }}", {
+                        user: event.user.email
+                      })}
+                    </Typography>
+                  )}
+                </TimelineEvent>
               );
             })}
         </Timeline>

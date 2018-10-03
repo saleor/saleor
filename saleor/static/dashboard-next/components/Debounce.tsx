@@ -8,6 +8,7 @@ export interface DebounceProps {
       ) => React.ReactElement<any>)
     | React.ReactNode;
   submit: (event: React.FormEvent<any>) => void;
+  time?: number;
 }
 export interface DebounceState {
   timer: any | null;
@@ -24,7 +25,7 @@ export class Debounce extends React.Component<DebounceProps, DebounceState> {
       clearTimeout(timer);
     }
     this.setState({
-      timer: setTimeout(this.props.submit, 200)
+      timer: setTimeout(this.props.submit, this.props.time || 200)
     });
     this.props.change(event);
   };
