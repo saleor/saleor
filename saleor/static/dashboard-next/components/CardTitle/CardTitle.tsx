@@ -31,7 +31,7 @@ const decorate = withStyles(theme => ({
   },
   toolbar: {
     marginRight: -theme.spacing.unit * 2,
-    marginTop: -theme.spacing.unit * 0.75 + "px"
+    marginTop: -10
   }
 }));
 const CardTitle = decorate<CardTitleProps>(

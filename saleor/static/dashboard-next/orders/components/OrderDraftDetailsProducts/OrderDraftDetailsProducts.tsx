@@ -28,11 +28,12 @@ interface OrderDraftDetailsProductsProps {
   onOrderLineChange: (id: string, data: FormData) => void;
 }
 
-const decorate = withStyles({
+const decorate = withStyles(theme => ({
   iconCell: {
     "&:last-child": {
       paddingRight: 0
-    }
+    },
+    width: 48 + theme.spacing.unit / 2
   },
   quantityField: {
     "& input": {
@@ -43,31 +44,38 @@ const decorate = withStyles({
   textRight: {
     textAlign: "right" as "right"
   }
-});
+}));
 const OrderDraftDetailsProducts = decorate<OrderDraftDetailsProductsProps>(
   ({ classes, lines, onOrderLineChange }) => (
     <Table>
-      <TableHead>
-        <TableRow>
-          <TableCell colSpan={2}>
-            {i18n.t("Product", { context: "table header" })}
-          </TableCell>
-          <TableCell className={classes.textRight}>
-            {i18n.t("Quantity", { context: "table header" })}
-          </TableCell>
-          <TableCell className={classes.textRight}>
-            {i18n.t("Price", { context: "table header" })}
-          </TableCell>
-          <TableCell className={classes.textRight}>
-            {i18n.t("Total", { context: "table header" })}
-          </TableCell>
-          <TableCell />
-        </TableRow>
-      </TableHead>
+      {maybe(() => !!lines.length) && (
+        <TableHead>
+          <TableRow>
+            <TableCell colSpan={2}>
+              {i18n.t("Product", { context: "table header" })}
+            </TableCell>
+            <TableCell className={classes.textRight}>
+              {i18n.t("Quantity", { context: "table header" })}
+            </TableCell>
+            <TableCell className={classes.textRight}>
+              {i18n.t("Price", { context: "table header" })}
+            </TableCell>
+            <TableCell className={classes.textRight}>
+              {i18n.t("Total", { context: "table header" })}
+            </TableCell>
+            <TableCell />
+          </TableRow>
+        </TableHead>
+      )}
       <TableBody>
-        {renderCollection(
-          lines,
-          line => (
+        {maybe(() => lines.length) === 0 ? (
+          <TableRow>
+            <TableCell colSpan={5}>
+              {i18n.t("No Products added to Order")}
+            </TableCell>
+          </TableRow>
+        ) : (
+          renderCollection(lines, line => (
             <TableRow key={line ? line.id : "skeleton"}>
               <TableCellAvatar thumbnail={maybe(() => line.thumbnailUrl)} />
               <TableCell>
@@ -90,6 +98,7 @@ const OrderDraftDetailsProducts = decorate<OrderDraftDetailsProductsProps>(
                       <Debounce
                         change={change}
                         submit={hasChanged ? submit : undefined}
+                        time={200}
                       >
                         {debounce => (
                           <TextField
@@ -134,12 +143,7 @@ const OrderDraftDetailsProducts = decorate<OrderDraftDetailsProductsProps>(
                 </IconButton>
               </TableCell>
             </TableRow>
-          ),
-          () => (
-            <TableRow>
-              <TableCell colSpan={5}>{i18n.t("No products found")}</TableCell>
-            </TableRow>
-          )
+          ))
         )}
       </TableBody>
     </Table>
