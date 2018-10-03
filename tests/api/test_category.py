@@ -43,7 +43,8 @@ def test_category_query(user_api_client, product):
         category.get_children().count())
 
 
-def test_category_create_mutation(admin_api_client):
+def test_category_create_mutation(
+        staff_api_client, permission_manage_products):
     query = """
         mutation($name: String, $slug: String, $description: String, $parentId: ID) {
             categoryCreate(
@@ -80,7 +81,8 @@ def test_category_create_mutation(admin_api_client):
     variables = {
         'name': category_name, 'description': category_description,
         'slug': category_slug}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     data = content['data']['categoryCreate']
     assert data['errors'] == []
@@ -93,14 +95,15 @@ def test_category_create_mutation(admin_api_client):
     variables = {
         'name': category_name, 'description': category_description,
         'parentId': parent_id, 'slug': category_slug}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['categoryCreate']
     assert data['errors'] == []
     assert data['category']['parent']['id'] == parent_id
 
 
-def test_category_update_mutation(admin_api_client, category):
+def test_category_update_mutation(
+        staff_api_client, category, permission_manage_products):
     query = """
         mutation($id: ID!, $name: String, $slug: String, $description: String) {
             categoryUpdate(
@@ -138,7 +141,8 @@ def test_category_update_mutation(admin_api_client, category):
     variables = {
         'name': category_name, 'description': category_description,
         'id': category_id, 'slug': category_slug}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     data = content['data']['categoryUpdate']
     assert data['errors'] == []
@@ -150,7 +154,8 @@ def test_category_update_mutation(admin_api_client, category):
     assert data['category']['parent']['id'] == parent_id
 
 
-def test_category_delete_mutation(admin_api_client, category):
+def test_category_delete_mutation(
+        staff_api_client, category, permission_manage_products):
     query = """
         mutation($id: ID!) {
             categoryDelete(id: $id) {
@@ -165,7 +170,8 @@ def test_category_delete_mutation(admin_api_client, category):
         }
     """
     variables = {'id': graphene.Node.to_global_id('Category', category.id)}
-    response = admin_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     data = content['data']['categoryDelete']
     assert data['category']['name'] == category.name
