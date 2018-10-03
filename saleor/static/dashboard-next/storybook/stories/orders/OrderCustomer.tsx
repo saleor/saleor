@@ -4,16 +4,19 @@ import * as React from "react";
 import OrderCustomer, {
   OrderCustomerProps
 } from "../../../orders/components/OrderCustomer";
-import { order as orderFixture } from "../../../orders/fixtures";
+import { clients, order as orderFixture } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
 
 const order = orderFixture("");
 
 const props: OrderCustomerProps = {
+  canEditCustomer: true,
+  fetchUsers: () => undefined,
   onBillingAddressEdit: undefined,
-  onCustomerEditClick: undefined,
+  onCustomerEdit: undefined,
   onShippingAddressEdit: undefined,
-  order
+  order,
+  users: clients
 };
 
 storiesOf("Orders / OrderCustomer", module)

@@ -7,21 +7,26 @@ import {
 import { transformOrderStatus, transformPaymentStatus } from "./";
 import { OrderDetails_order } from "./types/OrderDetails";
 import { OrderList_orders_edges_node } from "./types/OrderList";
+import { UserSearch_customers_edges_node } from "./types/UserSearch";
 
-export const clients = [
+export const clients: UserSearch_customers_edges_node[] = [
   {
+    __typename: "User" as "User",
     email: "test.client1@example.com",
     id: "c1"
   },
   {
+    __typename: "User" as "User",
     email: "test.client2@example.com",
     id: "c2"
   },
   {
+    __typename: "User" as "User",
     email: "test.client3@example.com",
     id: "c3"
   },
   {
+    __typename: "User" as "User",
     email: "test.client4@example.com",
     id: "c4"
   }

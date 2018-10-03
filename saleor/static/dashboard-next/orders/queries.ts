@@ -7,6 +7,7 @@ import {
   OrderVariantSearch,
   OrderVariantSearchVariables
 } from "./types/OrderVariantSearch";
+import { UserSearch, UserSearchVariables } from "./types/UserSearch";
 
 export const fragmentOrderEvent = gql`
   fragment OrderEventFragment on OrderEvent {
@@ -238,3 +239,19 @@ export const TypedOrderVariantSearch = TypedQuery<
   OrderVariantSearch,
   OrderVariantSearchVariables
 >(orderVariantSearchQuery);
+
+export const userSearchQuery = gql`
+  query UserSearch($search: String!) {
+    customers(query: $search, first: 20) {
+      edges {
+        node {
+          id
+          email
+        }
+      }
+    }
+  }
+`;
+export const TypedUserSearch = TypedQuery<UserSearch, UserSearchVariables>(
+  userSearchQuery
+);
