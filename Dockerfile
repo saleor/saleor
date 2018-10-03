@@ -8,11 +8,12 @@ RUN \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
-ADD requirements.txt /app/
-RUN pip install --upgrade pip
-RUN pip install -r /app/requirements.txt
-RUN pip install -r /app/requirements_dev.txt
-
+# Install Python dependencies
+# Pipenv is installed with curl to avoid using pip in "user scheme" mode. See:
+# https://pipenv.readthedocs.io/en/latest/install/#crude-installation-of-pipenv
+RUN curl https://raw.githubusercontent.com/kennethreitz/pipenv/master/get-pipenv.py | python
+ADD Pipfile.lock /app/
+RUN pipenv install --system --deploy
 
 ### Build static assets
 FROM node:10 as build-nodejs
