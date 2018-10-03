@@ -957,6 +957,108 @@ export const order = (placeholder: string): OrderDetails_order => ({
   },
   user: null
 });
+export const draftOrder = (placeholder: string) => ({
+  __typename: "Order" as "Order",
+  availableShippingMethods: null,
+  billingAddress: null,
+  created: "2018-09-20T23:23:39.811428+00:00",
+  events: [],
+  fulfillments: [],
+  id: "T3JkZXI6MjQ=",
+  lines: {
+    __typename: "OrderLineCountableConnection" as "OrderLineCountableConnection",
+    edges: [
+      {
+        __typename: "OrderLineCountableEdge" as "OrderLineCountableEdge",
+        node: {
+          __typename: "OrderLine" as "OrderLine",
+          id: "T3JkZXJMaW5lOjQ1",
+          productName: "Davis Group (Hard)",
+          productSku: "58-1338",
+          quantity: 2,
+          quantityFulfilled: 0,
+          thumbnailUrl: placeholder,
+          unitPrice: {
+            __typename: "TaxedMoney" as "TaxedMoney",
+            gross: {
+              __typename: "Money" as "Money",
+              amount: 65.95,
+              currency: "USD"
+            },
+            net: {
+              __typename: "Money" as "Money",
+              amount: 65.95,
+              currency: "USD"
+            }
+          }
+        }
+      },
+      {
+        __typename: "OrderLineCountableEdge" as "OrderLineCountableEdge",
+        node: {
+          __typename: "OrderLine" as "OrderLine",
+          id: "T3JkZXJMaW5lOjQ2",
+          productName: "Anderson PLC (15-1337)",
+          productSku: "15-1337",
+          quantity: 2,
+          quantityFulfilled: 0,
+          thumbnailUrl: placeholder,
+          unitPrice: {
+            __typename: "TaxedMoney" as "TaxedMoney",
+            gross: {
+              __typename: "Money" as "Money",
+              amount: 68.2,
+              currency: "USD"
+            },
+            net: {
+              __typename: "Money" as "Money",
+              amount: 68.2,
+              currency: "USD"
+            }
+          }
+        }
+      }
+    ]
+  },
+  number: "24",
+  paymentStatus: null,
+  shippingAddress: null,
+  shippingMethod: null,
+  shippingMethodName: null,
+  shippingPrice: {
+    __typename: "TaxedMoney" as "TaxedMoney",
+    gross: {
+      __typename: "Money" as "Money",
+      amount: 0,
+      currency: "USD"
+    }
+  },
+  status: "DRAFT" as OrderStatus.DRAFT,
+  subtotal: {
+    __typename: "TaxedMoney" as "TaxedMoney",
+    gross: {
+      __typename: "Money" as "Money",
+      amount: 168.3,
+      currency: "USD"
+    }
+  },
+  total: {
+    __typename: "TaxedMoney" as "TaxedMoney",
+    gross: {
+      __typename: "Money" as "Money",
+      amount: 168.3,
+      currency: "USD"
+    },
+    tax: {
+      __typename: "Money" as "Money",
+      amount: 68.3,
+      currency: "USD"
+    }
+  },
+  totalAuthorized: null,
+  totalCaptured: null,
+  user: null
+});
 export const flatOrders = orders.map(order => ({
   ...order,
   orderStatus: transformOrderStatus(order.status),

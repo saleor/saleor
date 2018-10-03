@@ -108,7 +108,7 @@ export default createMuiTheme({
           paddingLeft: 24 + "px",
           textAlign: "left" as "left"
         },
-        paddingLeft: 0
+        padding: "4px 24px 4px 0"
       }
     },
     MuiTableRow: {
