@@ -1,13 +1,10 @@
-import json
 from unittest.mock import Mock
 
 import graphene
-from django.shortcuts import reverse
-from tests.api.utils import get_graphql_content
-
 from saleor.graphql.core.utils import clean_seo_fields, snake_to_camel_case
 from saleor.graphql.product import types as product_types
 from saleor.graphql.utils import get_database_id
+from tests.api.utils import get_graphql_content
 
 
 def test_clean_seo_fields():
@@ -35,7 +32,7 @@ def test_user_error_field_name_for_related_object(admin_api_client):
         }
     }
     """
-    response = admin_api_client.post(reverse('api'), {'query': query})
+    response = admin_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content['data']['categoryCreate']['category']
     assert data is None
@@ -75,11 +72,10 @@ def test_mutation_returns_error_field_in_camel_case(admin_api_client, variant):
         }
     }
     """
-    variables = json.dumps({
+    variables = {
         'id': graphene.Node.to_global_id('ProductVariant', variant.id),
-        'cost': 12.1234})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        'cost': 12.1234}
+    response = admin_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     error = content['data']['productVariantUpdate']['errors'][0]
     assert error['field'] == 'costPrice'

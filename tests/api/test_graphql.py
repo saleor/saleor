@@ -1,8 +1,8 @@
-import json
 from unittest.mock import Mock, patch
 
-import graphene
 import pytest
+
+import graphene
 from django.contrib.auth.models import AnonymousUser
 from django.db.models import Q
 from django.http import HttpResponse
@@ -10,12 +10,11 @@ from django.shortcuts import reverse
 from django.test import RequestFactory
 from graphql_jwt.shortcuts import get_token
 from graphql_relay import to_global_id
-from tests.api.utils import get_graphql_content
-
 from saleor.graphql.middleware import jwt_middleware
 from saleor.graphql.product.types import Product
 from saleor.graphql.utils import (
     filter_by_query_param, generate_query_argument_description, get_nodes)
+from tests.api.utils import get_graphql_content
 
 
 def test_jwt_middleware(admin_user):
@@ -33,7 +32,8 @@ def test_jwt_middleware(admin_user):
 
     # test request with proper JWT token authorizes the request to API
     token = get_token(admin_user)
-    request = rf.get(reverse('api'), **{'HTTP_AUTHORIZATION': 'JWT %s' % token})
+    request = rf.get(
+        reverse('api'), **{'HTTP_AUTHORIZATION': 'JWT %s' % token})
     assert not hasattr(request, 'user')
     middleware(request)
     assert request.user == admin_user
@@ -44,7 +44,7 @@ def test_real_query(user_api_client, product):
     category = product.category
     attr_value = product_attr.values.first()
     filter_by = '%s:%s' % (product_attr.slug, attr_value.slug)
-    query = '''
+    query = """
     query Root($categoryId: ID!, $sortBy: String, $first: Int, $attributesFilter: [AttributeScalar], $minPrice: Float, $maxPrice: Float) {
         category(id: $categoryId) {
             ...CategoryPageFragmentQuery
@@ -174,18 +174,15 @@ def test_real_query(user_api_client, product):
         }
         __typename
     }
-    '''
-    response = user_api_client.post(
-        reverse('api'), {
-            'query': query,
-            'variables': json.dumps(
-                {
-                    'categoryId': graphene.Node.to_global_id(
-                        'Category', category.id),
-                    'sortBy': 'name',
-                    'first': 1,
-                    'attributesFilter': [filter_by]})})
-    content = get_graphql_content(response)
+    """
+    variables = {
+        'categoryId': graphene.Node.to_global_id(
+            'Category', category.id),
+        'sortBy': 'name',
+        'first': 1,
+        'attributesFilter': [filter_by]}
+    response = user_api_client.post_graphql(query, variables)
+    get_graphql_content(response)
 
 
 def test_get_nodes(product_list):

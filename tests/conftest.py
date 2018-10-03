@@ -9,6 +9,7 @@ from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ModelForm
+from django.shortcuts import reverse
 from django.test.client import MULTIPART_CONTENT, Client
 from django.utils.encoding import smart_text
 from django_countries import countries
@@ -31,12 +32,13 @@ from saleor.order.models import Order
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.product.models import (
-    AttributeValue, Category, Collection, Product, Attribute,
-    AttributeTranslation, ProductImage, ProductTranslation, ProductType,
-    ProductVariant)
+    Attribute, AttributeTranslation, AttributeValue, Category, Collection,
+    Product, ProductImage, ProductTranslation, ProductType, ProductVariant)
 from saleor.shipping.models import (
     ShippingMethod, ShippingMethodType, ShippingZone)
 from saleor.site.models import AuthorizationKey, SiteSettings
+
+API_PATH = reverse('api')
 
 
 class ApiClient(Client):
@@ -53,7 +55,7 @@ class ApiClient(Client):
         environ.update({'HTTP_AUTHORIZATION': 'JWT %s' % self.token})
         return environ
 
-    def post(self, path, data=None, **kwargs):
+    def post(self, data=None, **kwargs):
         """Send a POST request.
 
         This wrapper sets the `application/json` content type which is
@@ -63,7 +65,23 @@ class ApiClient(Client):
         if data:
             data = json.dumps(data)
         kwargs['content_type'] = 'application/json'
-        return super().post(path, data, **kwargs)
+        return super().post(API_PATH, data, **kwargs)
+
+    def post_graphql(self, query=None, variables=None, **kwargs):
+        """Dedicated helper for posting GraphQL queries.
+
+        Sets the `application/json` content type and json.dumps the variables
+        if present.
+        """
+        data = {}
+        if query is not None:
+            data['query'] = query
+        if variables is not None:
+            data['variables'] = json.dumps(variables)
+        if data:
+            data = json.dumps(data)
+        kwargs['content_type'] = 'application/json'
+        return super().post(API_PATH, data, **kwargs)
 
     def post_multipart(self, *args, **kwargs):
         """Send a multipart POST request.
@@ -72,7 +90,7 @@ class ApiClient(Client):
         uploading files.
         """
         kwargs['content_type'] = MULTIPART_CONTENT
-        return super().post(*args, **kwargs)
+        return super().post(API_PATH, *args, **kwargs)
 
 
 @pytest.fixture
