@@ -20,7 +20,7 @@ header {
     z-index: 9999;
     transition: top 0.5s ease;
     &.top {
-      top: -20px;
+      top: 0;
     }
     &.bottom {
       top: -120px;
@@ -71,23 +71,11 @@ header {
   }
   & .logo {
     width: 100%;
-    padding: calc(var(--spacer) * 3) 0 calc(var(--spacer) * 1.5) 0;
-    @media (max-width: 1024px) {
-      padding: calc(var(--spacer) * 2.5) 0;
-    }
-    @media (max-width: 768px) {
-      padding: calc(var(--spacer) * 2.5) 0 calc(var(--spacer) * 1.5) 0;
-    }
+    height: 70px;
     & .logo-svg {
       transition: width 0.5s;
-      width: 120px;
-      padding-left: calc(var(--spacer));
-      @media (max-width: 1024px) {
-        width: 130px;
-      }
-      @media (max-width: 450px) {
-        width: 80px;
-      }
+      width: 95px;
+      padding: calc(var(--spacer) * 1.2) calc(var(--spacer));
     }
     &.open {
       display: block;
@@ -108,6 +96,7 @@ header {
   }
 
   & .menu {
+    height: 70px;
     & ul {
       display: flex;
       justify-content: space-between;
@@ -122,19 +111,18 @@ header {
         position: relative;
         top: 0;
         transition: top 0.5s;
-        padding: calc(var(--spacer) * 3.5) 0 calc(var(--spacer) * 2) 0;
+        padding: calc(var(--spacer) * 1.2) 0 calc(var(--spacer) * 1.2) 0;
         & a {
           color: var(--body-color);
           text-transform: uppercase;
           font-size: var(--font-size-base);
           font-weight: var(--font-weight-lighter);
           text-decoration: none;
-          @media (max-width: 1024px) {
-            font-size: calc(var(--font-size-base) * 1.2);
-          }
           &.contactBtn {
             color: var(--primaryColor);
             text-decoration: underline;
+            font-weight: var(--font-weight-medium);
+            padding-right: var(--spacer);
           }
         }
         &.home {
@@ -150,8 +138,9 @@ header {
               fill: var(--body-color);
             }
           }
-          @media (max-width: 1024px) {
-            top: calc(var(--spacer) * -0.3)
+          & .star-value {
+            position: relative;
+            top: -0.1rem;
           }
         }
         @media (max-width: 768px) {
@@ -247,7 +236,7 @@ header {
         grid-row: 1;
         @media (max-width: 768px) {
           display: inline-grid;
-          padding: calc(var(--spacer) * 3.5) 0;
+          padding: calc(var(--spacer) * 1.2) 0;
         }
         & li {
           grid-column: -6 / span 4;
@@ -293,9 +282,6 @@ header {
               &:nth-child(2) { width: 70%; top: 10px; }
               &:nth-child(3) { width: 70%; top: 10px; }
               &:nth-child(4) { width: 50%; top: 20px; }
-            }
-            @media (max-width: 768px) {
-              top: calc(var(--spacer) * 3.5);
             }
             &.open {
               & span {
