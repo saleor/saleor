@@ -9,7 +9,7 @@
       & .bg-container {
         background-image: url('../../images/parrot-bg.png');
         background-size: 95%;
-        background-position: 150% 150%;
+        background-position: 150% 30%;
         @media (max-width: 1440px) {
           background-size: 80%;
           background-position: 100% 0%;
