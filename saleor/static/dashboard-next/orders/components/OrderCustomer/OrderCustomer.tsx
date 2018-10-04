@@ -9,7 +9,6 @@ import CardTitle from "../../../components/CardTitle";
 import ExternalLink from "../../../components/ExternalLink";
 import Form from "../../../components/Form";
 import Hr from "../../../components/Hr";
-import Link from "../../../components/Link";
 import SingleAutocompleteSelectField from "../../../components/SingleAutocompleteSelectField";
 import Skeleton from "../../../components/Skeleton";
 import Toggle from "../../../components/Toggle";
@@ -133,12 +132,13 @@ const OrderCustomer = decorate<OrderCustomerProps>(
                     <Typography className={classes.userEmail}>
                       {user.email}
                     </Typography>
-                    <div>
+                    {/* TODO: uncomment after adding customer section */}
+                    {/* <div>
                       <Link underline={false}>{i18n.t("View Profile")}</Link>
                     </div>
                     <div>
                       <Link underline={false}>{i18n.t("View Orders")}</Link>
-                    </div>
+                    </div> */}
                   </>
                 )}
               </CardContent>
@@ -215,6 +215,7 @@ const OrderCustomer = decorate<OrderCustomerProps>(
                     shippingAddress.country.country
                   : shippingAddress.country.country}
               </Typography>
+              <Typography>{shippingAddress.phone}</Typography>
             </>
           )}
         </CardContent>
@@ -267,6 +268,7 @@ const OrderCustomer = decorate<OrderCustomerProps>(
                     billingAddress.country.country
                   : billingAddress.country.country}
               </Typography>
+              <Typography>{billingAddress.phone}</Typography>
             </>
           )}
         </CardContent>
