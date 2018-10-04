@@ -11,7 +11,7 @@ import {
   TimelineNote
 } from "../../../components/Timeline";
 import i18n from "../../../i18n";
-import { OrderEvents } from "../../../types/globalTypes";
+import { OrderEvents, OrderEventsEmails } from "../../../types/globalTypes";
 import { OrderDetails_order_events } from "../../types/OrderDetails";
 
 export interface FormData {
@@ -25,11 +25,26 @@ const getEventMessage = (event: OrderDetails_order_events) => {
         context: "order history message"
       });
     case OrderEvents.EMAIL_SENT:
-      return i18n.t("An e-mail has been sent to customer", {
-        context: "order history message"
-      });
+      switch (event.emailType) {
+        case OrderEventsEmails.FULFILLMENT:
+          return i18n.t("Fulfillment confirmation has been sent to customer", {
+            context: "order history message"
+          });
+        case OrderEventsEmails.ORDER:
+          return i18n.t("Order confirmation has been sent to customer", {
+            context: "order history message"
+          });
+        case OrderEventsEmails.PAYMENT:
+          return i18n.t("Payment confirmation has been sent to customer", {
+            context: "order history message"
+          });
+        case OrderEventsEmails.SHIPPING:
+          return i18n.t("Shipping details has been sent to customer", {
+            context: "order history message"
+          });
+      }
     case OrderEvents.FULFILLMENT_CANCELED:
-      return i18n.t("Fulfillment had been cancelled", {
+      return i18n.t("Fulfillment has been cancelled", {
         context: "order history message"
       });
     case OrderEvents.FULFILLMENT_FULFILLED_ITEMS:
