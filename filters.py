@@ -83,12 +83,12 @@ class ProductFilter(SortedFilterSet):
 
 
 class ProductCategoryFilter(ProductFilter):
+    categories = self.category.get_descendants(include_self=True)
     def __init__(self, *args, **kwargs):
         self.category = kwargs.pop('category')
         super().__init__(*args, **kwargs)
 
     def _get_product_attributes_lookup(self):
-        categories = self.category.get_descendants(include_self=True)
         return Q(product_types__products__category__in=categories)
 
     def _get_variant_attributes_lookup(self):
