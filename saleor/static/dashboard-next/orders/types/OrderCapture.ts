@@ -21,13 +21,13 @@ export interface OrderCapture_orderCapture_order_billingAddress_country {
 
 export interface OrderCapture_orderCapture_order_billingAddress {
   __typename: "Address";
-  id: string;
   city: string;
   cityArea: string;
   companyName: string;
   country: OrderCapture_orderCapture_order_billingAddress_country;
   countryArea: string;
   firstName: string;
+  id: string;
   lastName: string;
   phone: string | null;
   postalCode: string;
@@ -121,13 +121,13 @@ export interface OrderCapture_orderCapture_order_shippingAddress_country {
 
 export interface OrderCapture_orderCapture_order_shippingAddress {
   __typename: "Address";
-  id: string;
   city: string;
   cityArea: string;
   companyName: string;
   country: OrderCapture_orderCapture_order_shippingAddress_country;
   countryArea: string;
   firstName: string;
+  id: string;
   lastName: string;
   phone: string | null;
   postalCode: string;

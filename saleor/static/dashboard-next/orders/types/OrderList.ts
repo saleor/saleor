@@ -7,6 +7,28 @@ import { PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
 // GraphQL query operation: OrderList
 // ====================================================
 
+export interface OrderList_orders_edges_node_billingAddress_country {
+  __typename: "CountryDisplay";
+  code: string;
+  country: string;
+}
+
+export interface OrderList_orders_edges_node_billingAddress {
+  __typename: "Address";
+  city: string;
+  cityArea: string;
+  companyName: string;
+  country: OrderList_orders_edges_node_billingAddress_country;
+  countryArea: string;
+  firstName: string;
+  id: string;
+  lastName: string;
+  phone: string | null;
+  postalCode: string;
+  streetAddress1: string;
+  streetAddress2: string;
+}
+
 export interface OrderList_orders_edges_node_total_gross {
   __typename: "Money";
   amount: number;
@@ -20,9 +42,10 @@ export interface OrderList_orders_edges_node_total {
 
 export interface OrderList_orders_edges_node {
   __typename: "Order";
+  billingAddress: OrderList_orders_edges_node_billingAddress | null;
+  created: any;
   id: string;
   number: string | null;
-  created: any;
   paymentStatus: PaymentStatusEnum | null;
   status: OrderStatus;
   total: OrderList_orders_edges_node_total | null;
@@ -31,7 +54,6 @@ export interface OrderList_orders_edges_node {
 
 export interface OrderList_orders_edges {
   __typename: "OrderCountableEdge";
-  cursor: string;
   node: OrderList_orders_edges_node;
 }
 
