@@ -334,12 +334,14 @@ class OrderDetailsPageComponent extends React.Component<
           onSubmit={onOrderFulfill}
         />
         <OrderPaymentDialog
+          initial={maybe(() => order.total.gross.amount)}
           open={openedPaymentCaptureDialog && !!order}
           variant="capture"
           onClose={this.togglePaymentCaptureDialog}
           onSubmit={onPaymentCapture}
         />
         <OrderPaymentDialog
+          initial={maybe(() => order.total.gross.amount)}
           open={openedPaymentRefundDialog && !!order}
           variant="refund"
           onClose={this.togglePaymentRefundDialog}
