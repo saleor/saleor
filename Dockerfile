@@ -12,6 +12,7 @@ RUN \
 RUN pip install pipenv
 ADD Pipfile /app/
 ADD Pipfile.lock /app/
+WORKDIR /app
 RUN pipenv install --system --deploy
 
 ### Build static assets
