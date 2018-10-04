@@ -24,7 +24,12 @@ export interface OrderCustomerProps {
   loading?: boolean;
   canEditCustomer: boolean;
   fetchUsers?: (query: string) => void;
-  onCustomerEdit?: () => void;
+  onCustomerEdit?: (
+    data: {
+      user?: string;
+      userEmail?: string;
+    }
+  ) => void;
   onBillingAddressEdit?: () => void;
   onShippingAddressEdit?: () => void;
 }
@@ -90,39 +95,37 @@ const OrderCustomer = decorate<OrderCustomerProps>(
               <CardContent>
                 {user === undefined ? (
                   <Skeleton />
+                ) : editMode && canEditCustomer ? (
+                  <Form initial={{ query: { label: "", value: "" } }}>
+                    {({ change, data }) => {
+                      const handleChange = (event: React.ChangeEvent<any>) => {
+                        change(event);
+                        onCustomerEdit({
+                          [event.target.value.value.includes("@")
+                            ? "userEmail"
+                            : "user"]: event.target.value.value
+                        });
+                        toggleEditMode();
+                      };
+                      return (
+                        <SingleAutocompleteSelectField
+                          custom={true}
+                          choices={maybe(() => users, []).map(user => ({
+                            label: user.email,
+                            value: user.id
+                          }))}
+                          fetchChoices={fetchUsers}
+                          loading={loading}
+                          placeholder={i18n.t("Search Customers")}
+                          onChange={handleChange}
+                          name="query"
+                          value={data.query}
+                        />
+                      );
+                    }}
+                  </Form>
                 ) : user === null ? (
-                  editMode && canEditCustomer ? (
-                    <Form
-                      initial={{ query: { label: "", value: "" } }}
-                      onSubmit={onCustomerEdit}
-                    >
-                      {({ change, data, submit }) => {
-                        const handleChange = (
-                          event: React.ChangeEvent<any>
-                        ) => {
-                          change(event);
-                          submit();
-                        };
-                        return (
-                          <SingleAutocompleteSelectField
-                            custom={true}
-                            choices={maybe(() => users, []).map(user => ({
-                              label: user.email,
-                              value: user.id
-                            }))}
-                            fetchChoices={fetchUsers}
-                            loading={loading}
-                            placeholder={i18n.t("Search Customers")}
-                            onChange={handleChange}
-                            name="query"
-                            value={data.query}
-                          />
-                        );
-                      }}
-                    </Form>
-                  ) : (
-                    <Typography>{i18n.t("Anonymous user")}</Typography>
-                  )
+                  <Typography>{i18n.t("Anonymous user")}</Typography>
                 ) : (
                   <>
                     <Typography className={classes.userEmail}>
