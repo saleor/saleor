@@ -80,7 +80,9 @@ export const TimelineNote = decorate<TimelineNoteProps>(
         <CardContent className={classes.cardContent}>
           <div className={classes.title}>
             <Typography>{user.email}</Typography>
-            <DateFormatter date={date} />
+            <Typography>
+              <DateFormatter date={date} />
+            </Typography>
           </div>
           <Hr />
           <Typography
