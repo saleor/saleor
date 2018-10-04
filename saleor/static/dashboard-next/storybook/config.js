@@ -89,7 +89,6 @@ function loadStories() {
   require("./stories/orders/OrderPaymentReleaseDialog");
   require("./stories/orders/OrderProductAddDialog");
   require("./stories/orders/OrderShippingMethodEditDialog");
-  require("./stories/orders/OrderSummary");
 
   // Vouchers
   require("./stories/vouchers/VoucherDetailsPage");

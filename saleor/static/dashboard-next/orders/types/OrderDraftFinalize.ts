@@ -108,43 +108,33 @@ export interface OrderDraftFinalize_draftOrderComplete_order_fulfillments {
   trackingNumber: string;
 }
 
-export interface OrderDraftFinalize_draftOrderComplete_order_lines_edges_node_unitPrice_gross {
+export interface OrderDraftFinalize_draftOrderComplete_order_lines_unitPrice_gross {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderDraftFinalize_draftOrderComplete_order_lines_edges_node_unitPrice_net {
+export interface OrderDraftFinalize_draftOrderComplete_order_lines_unitPrice_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderDraftFinalize_draftOrderComplete_order_lines_edges_node_unitPrice {
+export interface OrderDraftFinalize_draftOrderComplete_order_lines_unitPrice {
   __typename: "TaxedMoney";
-  gross: OrderDraftFinalize_draftOrderComplete_order_lines_edges_node_unitPrice_gross;
-  net: OrderDraftFinalize_draftOrderComplete_order_lines_edges_node_unitPrice_net;
+  gross: OrderDraftFinalize_draftOrderComplete_order_lines_unitPrice_gross;
+  net: OrderDraftFinalize_draftOrderComplete_order_lines_unitPrice_net;
 }
 
-export interface OrderDraftFinalize_draftOrderComplete_order_lines_edges_node {
+export interface OrderDraftFinalize_draftOrderComplete_order_lines {
   __typename: "OrderLine";
   id: string;
   productName: string;
   productSku: string;
   quantity: number;
   quantityFulfilled: number;
-  unitPrice: OrderDraftFinalize_draftOrderComplete_order_lines_edges_node_unitPrice | null;
+  unitPrice: OrderDraftFinalize_draftOrderComplete_order_lines_unitPrice | null;
   thumbnailUrl: string | null;
-}
-
-export interface OrderDraftFinalize_draftOrderComplete_order_lines_edges {
-  __typename: "OrderLineCountableEdge";
-  node: OrderDraftFinalize_draftOrderComplete_order_lines_edges_node;
-}
-
-export interface OrderDraftFinalize_draftOrderComplete_order_lines {
-  __typename: "OrderLineCountableConnection";
-  edges: OrderDraftFinalize_draftOrderComplete_order_lines_edges[];
 }
 
 export interface OrderDraftFinalize_draftOrderComplete_order_shippingAddress_country {
@@ -245,7 +235,7 @@ export interface OrderDraftFinalize_draftOrderComplete_order {
   created: any;
   events: (OrderDraftFinalize_draftOrderComplete_order_events | null)[] | null;
   fulfillments: (OrderDraftFinalize_draftOrderComplete_order_fulfillments | null)[];
-  lines: OrderDraftFinalize_draftOrderComplete_order_lines | null;
+  lines: (OrderDraftFinalize_draftOrderComplete_order_lines | null)[];
   number: string | null;
   paymentStatus: PaymentStatusEnum | null;
   shippingAddress: OrderDraftFinalize_draftOrderComplete_order_shippingAddress | null;

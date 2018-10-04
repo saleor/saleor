@@ -5,13 +5,7 @@ import * as placeholderImage from "../../../../images/placeholder60x60.png";
 import OrderDetailsPage, {
   OrderDetailsPageProps
 } from "../../../orders/components/OrderDetailsPage";
-import {
-  clients,
-  countries,
-  order as orderFixture,
-  shippingMethods,
-  variants
-} from "../../../orders/fixtures";
+import { countries, order as orderFixture } from "../../../orders/fixtures";
 import { OrderStatus, PaymentStatusEnum } from "../../../types/globalTypes";
 import Decorator from "../../Decorator";
 
@@ -22,26 +16,17 @@ const props: OrderDetailsPageProps = {
   errors: [],
   onBack: () => undefined,
   onBillingAddressEdit: undefined,
-  onCreate: undefined,
   onFulfillmentCancel: () => undefined,
   onFulfillmentTrackingNumberUpdate: () => undefined,
   onNoteAdd: undefined,
   onOrderCancel: undefined,
   onOrderFulfill: undefined,
-  onOrderLineChange: () => () => () => undefined,
-  onOrderLineRemove: () => () => undefined,
   onPaymentCapture: undefined,
   onPaymentRefund: undefined,
   onPaymentRelease: undefined,
-  onProductAdd: undefined,
   onProductClick: undefined,
   onShippingAddressEdit: undefined,
-  onShippingMethodEdit: undefined,
-  order,
-  shippingMethods,
-  users: clients,
-  variants,
-  variantsLoading: false
+  order
 };
 
 storiesOf("Views / Orders / Order details", module)

@@ -11,7 +11,7 @@ import Decorator from "../../Decorator";
 const order = orderFixture(placeholderImage);
 
 const props: OrderFulfillmentDialogProps = {
-  lines: order.lines.edges.map(edge => edge.node),
+  lines: order.lines,
   onClose: undefined,
   onSubmit: undefined,
   open: true

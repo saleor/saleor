@@ -108,43 +108,33 @@ export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_o
   trackingNumber: string;
 }
 
-export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_lines_edges_node_unitPrice_gross {
+export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_lines_unitPrice_gross {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_lines_edges_node_unitPrice_net {
+export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_lines_unitPrice_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_lines_edges_node_unitPrice {
+export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_lines_unitPrice {
   __typename: "TaxedMoney";
-  gross: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_lines_edges_node_unitPrice_gross;
-  net: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_lines_edges_node_unitPrice_net;
+  gross: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_lines_unitPrice_gross;
+  net: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_lines_unitPrice_net;
 }
 
-export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_lines_edges_node {
+export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_lines {
   __typename: "OrderLine";
   id: string;
   productName: string;
   productSku: string;
   quantity: number;
   quantityFulfilled: number;
-  unitPrice: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_lines_edges_node_unitPrice | null;
+  unitPrice: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_lines_unitPrice | null;
   thumbnailUrl: string | null;
-}
-
-export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_lines_edges {
-  __typename: "OrderLineCountableEdge";
-  node: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_lines_edges_node;
-}
-
-export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_lines {
-  __typename: "OrderLineCountableConnection";
-  edges: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_lines_edges[];
 }
 
 export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_shippingAddress_country {
@@ -245,7 +235,7 @@ export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_o
   created: any;
   events: (OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_events | null)[] | null;
   fulfillments: (OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_fulfillments | null)[];
-  lines: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_lines | null;
+  lines: (OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_lines | null)[];
   number: string | null;
   paymentStatus: PaymentStatusEnum | null;
   shippingAddress: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_shippingAddress | null;

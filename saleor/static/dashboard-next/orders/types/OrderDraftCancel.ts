@@ -102,43 +102,33 @@ export interface OrderDraftCancel_draftOrderDelete_order_fulfillments {
   trackingNumber: string;
 }
 
-export interface OrderDraftCancel_draftOrderDelete_order_lines_edges_node_unitPrice_gross {
+export interface OrderDraftCancel_draftOrderDelete_order_lines_unitPrice_gross {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderDraftCancel_draftOrderDelete_order_lines_edges_node_unitPrice_net {
+export interface OrderDraftCancel_draftOrderDelete_order_lines_unitPrice_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderDraftCancel_draftOrderDelete_order_lines_edges_node_unitPrice {
+export interface OrderDraftCancel_draftOrderDelete_order_lines_unitPrice {
   __typename: "TaxedMoney";
-  gross: OrderDraftCancel_draftOrderDelete_order_lines_edges_node_unitPrice_gross;
-  net: OrderDraftCancel_draftOrderDelete_order_lines_edges_node_unitPrice_net;
+  gross: OrderDraftCancel_draftOrderDelete_order_lines_unitPrice_gross;
+  net: OrderDraftCancel_draftOrderDelete_order_lines_unitPrice_net;
 }
 
-export interface OrderDraftCancel_draftOrderDelete_order_lines_edges_node {
+export interface OrderDraftCancel_draftOrderDelete_order_lines {
   __typename: "OrderLine";
   id: string;
   productName: string;
   productSku: string;
   quantity: number;
   quantityFulfilled: number;
-  unitPrice: OrderDraftCancel_draftOrderDelete_order_lines_edges_node_unitPrice | null;
+  unitPrice: OrderDraftCancel_draftOrderDelete_order_lines_unitPrice | null;
   thumbnailUrl: string | null;
-}
-
-export interface OrderDraftCancel_draftOrderDelete_order_lines_edges {
-  __typename: "OrderLineCountableEdge";
-  node: OrderDraftCancel_draftOrderDelete_order_lines_edges_node;
-}
-
-export interface OrderDraftCancel_draftOrderDelete_order_lines {
-  __typename: "OrderLineCountableConnection";
-  edges: OrderDraftCancel_draftOrderDelete_order_lines_edges[];
 }
 
 export interface OrderDraftCancel_draftOrderDelete_order_shippingAddress_country {
@@ -239,7 +229,7 @@ export interface OrderDraftCancel_draftOrderDelete_order {
   created: any;
   events: (OrderDraftCancel_draftOrderDelete_order_events | null)[] | null;
   fulfillments: (OrderDraftCancel_draftOrderDelete_order_fulfillments | null)[];
-  lines: OrderDraftCancel_draftOrderDelete_order_lines | null;
+  lines: (OrderDraftCancel_draftOrderDelete_order_lines | null)[];
   number: string | null;
   paymentStatus: PaymentStatusEnum | null;
   shippingAddress: OrderDraftCancel_draftOrderDelete_order_shippingAddress | null;

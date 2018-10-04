@@ -167,9 +167,9 @@ class OrderDetailsPageComponent extends React.Component<
     const canCancel = maybe(() => order.status) !== OrderStatus.CANCELED;
     const canEditAddresses = maybe(() => order.status) !== OrderStatus.CANCELED;
     const canFulfill = maybe(() => order.status) !== OrderStatus.CANCELED;
-    const unfulfilled = maybe(() => order.lines.edges, [])
-      .map(edge => edge.node)
-      .filter(line => line.quantityFulfilled < line.quantity);
+    const unfulfilled = maybe(() => order.lines, []).filter(
+      line => line.quantityFulfilled < line.quantity
+    );
     return (
       <>
         <Container width="md">
@@ -201,7 +201,7 @@ class OrderDetailsPageComponent extends React.Component<
           </div>
           <div className={classes.root}>
             <div>
-              {!!maybe(() => order.lines.edges.length > 0) && (
+              {!!maybe(() => order.lines.length > 0) && (
                 <OrderUnfulfilledItems
                   canFulfill={canFulfill}
                   lines={unfulfilled}

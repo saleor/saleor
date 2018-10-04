@@ -36,6 +36,7 @@ const props: OrderDraftPageProps = {
   order,
   shippingMethods,
   users: clients,
+  usersLoading: false,
   variants,
   variantsLoading: false
 };
@@ -45,8 +46,5 @@ storiesOf("Views / Orders / Order draft", module)
   .add("default", () => <OrderDraftPage {...props} />)
   .add("loading", () => <OrderDraftPage {...props} order={undefined} />)
   .add("without lines", () => (
-    <OrderDraftPage
-      {...props}
-      order={{ ...order, lines: { ...order.lines, edges: [] } }}
-    />
+    <OrderDraftPage {...props} order={{ ...order, lines: [] }} />
   ));

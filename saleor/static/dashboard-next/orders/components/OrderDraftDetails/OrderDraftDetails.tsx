@@ -42,10 +42,10 @@ const OrderDraftDetails: React.StatelessComponent<OrderDraftDetailsProps> = ({
       }
     />
     <OrderDraftDetailsProducts
-      lines={maybe(() => order.lines.edges.map(edge => edge.node))}
+      lines={maybe(() => order.lines)}
       onOrderLineChange={onOrderLineChange}
     />
-    {maybe(() => order.lines.edges.length) !== 0 && (
+    {maybe(() => order.lines.length) !== 0 && (
       <CardContent>
         <OrderDraftDetailsSummary
           order={order}

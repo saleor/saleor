@@ -66,12 +66,11 @@ const OrderPayment = decorate<OrderPaymentProps>(
               <tr>
                 <td>{i18n.t("Subtotal")}</td>
                 <td>
-                  {maybe(() => order.lines.edges) === undefined ? (
+                  {maybe(() => order.lines) === undefined ? (
                     <Skeleton />
                   ) : (
                     i18n.t("{{ quantity }} items", {
-                      quantity: order.lines.edges
-                        .map(edge => edge.node)
+                      quantity: order.lines
                         .map(line => line.quantity)
                         .reduce((curr, prev) => prev + curr, 0)
                     })
