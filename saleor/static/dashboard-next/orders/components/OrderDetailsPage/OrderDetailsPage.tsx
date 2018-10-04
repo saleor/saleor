@@ -210,7 +210,7 @@ class OrderDetailsPageComponent extends React.Component<
               )}
               {renderCollection(
                 maybe(() => order.fulfillments),
-                fulfillment => (
+                (fulfillment, fulfillmentIndex) => (
                   <Toggle key={maybe(() => fulfillment.id)}>
                     {(
                       openedFulfillmentCancelDialog,
@@ -222,7 +222,9 @@ class OrderDetailsPageComponent extends React.Component<
                           { toggle: toggleTrackingDialog }
                         ) => (
                           <>
-                            <CardSpacer />
+                            {!(
+                              unfulfilled.length === 0 && fulfillmentIndex === 0
+                            ) && <CardSpacer />}
                             <OrderFulfillment
                               fulfillment={fulfillment}
                               orderNumber={maybe(() => order.number)}
