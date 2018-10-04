@@ -167,7 +167,11 @@ const OrderOperations: React.StatelessComponent<OrderOperationsProps> = ({
   onPaymentCapture,
   onPaymentRefund,
   onShippingMethodUpdate,
-  onUpdate
+  onUpdate,
+  onDraftCancel,
+  onDraftFinalize,
+  onOrderFulfillmentCancel,
+  onOrderFulfillmentUpdate
 }) => (
   <OrderReleaseMutationProvider onError={onError} onSuccess={onOrderRelease}>
     {orderRelease => (
@@ -227,15 +231,33 @@ const OrderOperations: React.StatelessComponent<OrderOperationsProps> = ({
                                               >
                                                 {updateOrderLine => (
                                                   <OrderFulfillmentCancelProvider
+                                                    onError={onError}
+                                                    onSuccess={
+                                                      onOrderFulfillmentCancel
+                                                    }
                                                   >
                                                     {cancelFulfillment => (
                                                       <OrderFulfillmentUpdateTrackingProvider
+                                                        onError={onError}
+                                                        onSuccess={
+                                                          onOrderFulfillmentUpdate
+                                                        }
                                                       >
                                                         {updateTrackingNumber => (
                                                           <OrderDraftFinalizeMutationProvider
+                                                            onError={onError}
+                                                            onSuccess={
+                                                              onDraftFinalize
+                                                            }
                                                           >
                                                             {finalizeDraft => (
                                                               <OrderDraftCancelMutationProvider
+                                                                onError={
+                                                                  onError
+                                                                }
+                                                                onSuccess={
+                                                                  onDraftCancel
+                                                                }
                                                               >
                                                                 {cancelDraft =>
                                                                   children({

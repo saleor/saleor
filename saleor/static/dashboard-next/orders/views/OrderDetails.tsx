@@ -120,6 +120,14 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             })
                           });
                         };
+                        const handleOrderDraftCancel = () => {
+                          pushMessage({
+                            text: i18n.t("Order successfully cancelled", {
+                              context: "notification"
+                            })
+                          });
+                          navigate(orderListUrl);
+                        };
                         const handleOrderRelease = () => {
                           pushMessage({
                             text: i18n.t(
@@ -334,7 +342,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             onOrderFulfillmentCancel={handleFulfillmentCancel}
                             onOrderFulfillmentUpdate={handleFulfillmentUpdate}
                             onDraftFinalize={handleDraftFinalize}
-                            onDraftCancel={handleOrderCancel}
+                            onDraftCancel={handleOrderDraftCancel}
                           >
                             {({
                               errors,
