@@ -72,9 +72,7 @@ export const TimelineEvent = decorate<TimelineEventProps>(
         <ExpansionPanel className={classes.panel} elevation={0}>
           <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
             <Typography>{title}</Typography>
-            <div className={classes.date}>
-              <DateFormatter date={date} />
-            </div>
+            <Typography className={classes.date}>{title}</Typography>
           </ExpansionPanelSummary>
           <ExpansionPanelDetails>
             <Typography>{children}</Typography>
@@ -83,7 +81,9 @@ export const TimelineEvent = decorate<TimelineEventProps>(
       ) : (
         <div className={classes.noExpander}>
           <Typography>{title}</Typography>
-          <DateFormatter date={date} />
+          <Typography>
+            <DateFormatter date={date} />
+          </Typography>
         </div>
       )}
     </div>
