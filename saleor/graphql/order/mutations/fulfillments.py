@@ -130,7 +130,8 @@ class FulfillmentCreate(BaseMutation):
         if errors:
             return cls(errors=errors)
         fulfillment = models.Fulfillment(
-            tracking_number=input.pop('tracking_number') or '', order=order)
+            tracking_number=input.pop('tracking_number', None) or '',
+            order=order)
         cleaned_input = cls.clean_input(input, errors)
         if errors:
             return cls(errors=errors)
