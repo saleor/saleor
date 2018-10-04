@@ -4,11 +4,17 @@ import * as React from "react";
 import Form from "../../../components/Form";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
-import SeoForm from "../../../components/SeoForm";
 import { UserError } from "../../../";
 import i18n from "../../../i18n";
-
 import CategoryDetailsForm from "../../components/CategoryDetailsForm";
+import SeoForm from "../../../components/SeoForm";
+import CategoryBackground from "../CategoryBackground";
+import CategoryCreateSubcategories from "../CategoryCreateSubcategories";
+
+// import SaveButtonBar from "../../../components/SaveButtonBar/SaveButtonBar";
+// ,{
+//   SaveButtonBarState
+// }
 
 interface FormData {
   //CategoryDetailsForm
@@ -27,6 +33,7 @@ interface CategoryCreatePageProps {
   disabled: boolean;
 
   onSubmit?(data: FormData);
+  onImageUpload?(event: React.ChangeEvent<any>);
 }
 
 const decorate = withStyles(theme => ({
@@ -38,12 +45,20 @@ const decorate = withStyles(theme => ({
 }));
 
 export const CategoryCreatePage = decorate<CategoryCreatePageProps>(
-  ({ classes, header, disabled, onSubmit, errors: userErrors }) => {
+  ({
+    classes,
+    header,
+    disabled,
+    onSubmit,
+    errors: userErrors,
+    onImageUpload
+  }) => {
     const initialData: FormData = {
       name: "",
       description: "",
       seoTitle: "",
       seoDescription: ""
+      // backgroundImage: ""
     };
     return (
       <Form onSubmit={onSubmit} initial={initialData} errors={userErrors}>
@@ -57,6 +72,11 @@ export const CategoryCreatePage = decorate<CategoryCreatePageProps>(
                 onChange={change}
                 errors={errors}
               />
+              <CategoryBackground
+                onImageUpload={onImageUpload}
+                disabled={disabled}
+              />
+              <CategoryCreateSubcategories />
               <SeoForm
                 helperText={i18n.t(
                   "Add search engine title and description to make this product easier to find"
