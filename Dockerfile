@@ -8,12 +8,18 @@ RUN \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
+ARG DEBUG
+
 # Install Python dependencies
 RUN pip install pipenv
 ADD Pipfile /app/
 ADD Pipfile.lock /app/
 WORKDIR /app
-RUN pipenv install --system --deploy --dev
+RUN \
+  if [ "$DEBUG" = "True" ] ; \
+  then pipenv install --system --deploy --dev ; \
+  else pipenv install --system --deploy ; \
+  fi
 
 ### Build static assets
 FROM node:10 as build-nodejs
