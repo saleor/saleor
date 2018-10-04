@@ -10,27 +10,29 @@ import Form from "../../../components/Form";
 import i18n from "../../../i18n";
 
 export interface FormData {
-  amount: string;
+  amount: number;
 }
 
 interface OrderPaymentDialogProps {
   open: boolean;
+  initial: number;
   variant: string;
   onClose: () => void;
   onSubmit: (data: FormData) => void;
 }
 
-const initialForm: FormData = { amount: "0" };
-
 const OrderPaymentDialog: React.StatelessComponent<OrderPaymentDialogProps> = ({
   open,
+  initial,
   variant,
   onClose,
   onSubmit
 }) => (
   <Dialog open={open}>
     <Form
-      initial={initialForm}
+      initial={{
+        amount: initial
+      }}
       onSubmit={data => {
         onSubmit(data);
         onClose();
