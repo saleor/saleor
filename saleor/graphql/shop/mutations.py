@@ -31,6 +31,9 @@ class ShopSettingsUpdate(BaseMutation):
             description='Fields required to update shop settings.',
             required=True)
 
+    class Meta:
+        description = 'Updates shop settings'
+
     shop = graphene.Field(
         Shop, description='Updated Shop')
 
@@ -56,6 +59,9 @@ class ShopDomainUpdate(BaseMutation):
     class Arguments:
         input = SiteDomainInput(description='Fields required to update site')
 
+    class Meta:
+        description = 'Updates site domain of the shop'
+
     shop = graphene.Field(Shop, description='Updated Shop')
 
     @classmethod
@@ -80,6 +86,9 @@ class HomepageCollectionUpdate(BaseMutation):
     class Arguments:
         collection = graphene.ID(
             description='Collection displayed on homepage')
+
+    class Meta:
+        description = 'Updates homepage collection of the shop'
 
     shop = graphene.Field(
         Shop, description='Updated Shop')
