@@ -18,6 +18,7 @@ const order = draftOrder(placeholderImage);
 
 const props: OrderDraftPageProps = {
   countries,
+  disabled: false,
   errors: [],
   fetchUsers: () => undefined,
   fetchVariants: () => undefined,
@@ -44,7 +45,9 @@ const props: OrderDraftPageProps = {
 storiesOf("Views / Orders / Order draft", module)
   .addDecorator(Decorator)
   .add("default", () => <OrderDraftPage {...props} />)
-  .add("loading", () => <OrderDraftPage {...props} order={undefined} />)
+  .add("loading", () => (
+    <OrderDraftPage {...props} disabled={true} order={undefined} />
+  ))
   .add("without lines", () => (
     <OrderDraftPage {...props} order={{ ...order, lines: [] }} />
   ));
