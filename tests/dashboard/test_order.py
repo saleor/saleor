@@ -98,20 +98,20 @@ def test_view_capture_order_invalid_payment_confirmed_status(
     assert order.payment_methods.last().charge_status == PaymentMethodChargeStatus.CHARGED
 
 
-# @pytest.mark.integration
-# def test_view_capture_order_invalid_payment_rejected_status(
-#         admin_client, order_with_lines, payment_rejected):
-#     order = order_with_lines
-#     url = reverse(
-#         'dashboard:capture-payment', kwargs={
-#             'order_pk': order.pk, 'payment_pk': payment_rejected.pk})
-#     response = admin_client.get(url)
-#     assert response.status_code == 200
+@pytest.mark.integration
+def test_view_capture_order_invalid_payment_rejected_status(
+        admin_client, order_with_lines, payment_rejected):
+    order = order_with_lines
+    url = reverse(
+        'dashboard:capture-payment', kwargs={
+            'order_pk': order.pk, 'payment_pk': payment_rejected.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
 
-#     response = admin_client.post(
-#         url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
-#     assert response.status_code == 400
-#     assert order.payments.last().status == PaymentStatus.REJECTED
+    response = admin_client.post(
+        url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
+    assert response.status_code == 400
+    assert order.payments.last().status == PaymentStatus.REJECTED
 
 
 @pytest.mark.integration

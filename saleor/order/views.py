@@ -10,7 +10,7 @@ from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 from django.views.decorators.csrf import csrf_exempt
-from payments import PaymentStatus, RedirectNeeded
+from payments import PaymentStatus
 
 from . import FulfillmentStatus
 from ..account.forms import LoginForm
@@ -30,7 +30,7 @@ def details(request, token):
     note_form = None
     orders = Order.objects.confirmed().prefetch_related(
         'lines__variant__images', 'lines__variant__product__images',
-        'fulfillments__lines', 'fulfillments__lines__order_line')
+        'fulfillments__lines__order_line')
     orders = orders.select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)
@@ -109,7 +109,7 @@ def start_payment(request, order, variant):
         raise Http404('%r is not a valid payment variant' % (variant,))
     with transaction.atomic():
         # FIXME: temporary solution, should be adapted to new API
-        payment_method, dummy_created = PaymentMethod.objects.get_or_create(
+        payment_method, _ = PaymentMethod.objects.get_or_create(
             variant=variant, is_active=True, order=order, defaults=defaults)
         form = PaymentMethodForm(
             data=request.POST or None, instance=payment_method)

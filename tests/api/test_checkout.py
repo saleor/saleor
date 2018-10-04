@@ -78,13 +78,9 @@ def test_checkout_lines_add(user_api_client, cart_with_item, variant):
                 checkout {
                     token
                     lines {
-                        edges {
-                            node {
-                                quantity
-                                variant {
-                                    id
-                                }
-                            }
+                        quantity
+                        variant {
+                            id
                         }
                     }
                 }
@@ -125,13 +121,9 @@ def test_checkout_lines_update(user_api_client, cart_with_item):
                 checkout {
                     token
                     lines {
-                        edges {
-                            node {
-                                quantity
-                                variant {
-                                    id
-                                }
-                            }
+                        quantity
+                        variant {
+                            id
                         }
                     }
                 }
@@ -173,13 +165,9 @@ def test_checkout_line_delete(user_api_client, cart_with_item):
                 checkout {
                     token
                     lines {
-                        edges {
-                            node {
-                                quantity
-                                variant {
-                                    id
-                                }
-                            }
+                        quantity
+                        variant {
+                            id
                         }
                     }
                 }
@@ -407,15 +395,11 @@ def test_fetch_checkout_by_token(user_api_client, cart_with_item):
         checkout(token: $token) {
            token,
            lines {
-               edges {
-                   node {
-                       variant {
-                           product {
-                               name
-                           }
-                       }
-                   }
-               }
+                variant {
+                    product {
+                        name
+                    }
+                }
            }
         }
     }
@@ -432,18 +416,7 @@ def test_fetch_checkout_invalid_token(user_api_client):
     query = """
         query getCheckout($token: UUID!) {
             checkout(token: $token) {
-            token,
-            lines {
-                edges {
-                    node {
-                        variant {
-                            product {
-                                name
-                            }
-                        }
-                    }
-                }
-            }
+                token
             }
         }
     """
@@ -472,16 +445,12 @@ def test_checkout_prices(user_api_client, cart_with_item):
                 }
             }
            lines {
-               edges {
-                   node {
-                       totalPrice {
-                           currency
-                           gross {
-                               amount
-                           }
-                       }
-                   }
-               }
+                totalPrice {
+                    currency
+                    gross {
+                        amount
+                    }
+                }
            }
         }
     }

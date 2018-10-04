@@ -55,13 +55,13 @@ def gateway_authorize(payment_method, transaction_token) -> Transaction:
 def gateway_charge(payment_method, amount) -> Transaction:
     if not payment_method.is_active:
         raise PaymentError('This payment method is no longer active')
-    if not payment_method.charge_status in {
+    if payment_method.charge_status not in {
             PaymentMethodChargeStatus.CHARGED,
             PaymentMethodChargeStatus.NOT_CHARGED}:
         raise PaymentError('This payment method cannot be charged')
     if amount > payment_method.total or amount > (
             payment_method.total - payment_method.captured_amount):
-        raise PaymentError('Unable to charge more than authozied amount')
+        raise PaymentError('Unable to charge more than authorized amount')
     provider, provider_params = get_provider(payment_method.variant)
     with transaction.atomic():
         txn, error = provider.charge(

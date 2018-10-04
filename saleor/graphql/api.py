@@ -72,13 +72,15 @@ class Query(ProductQueries):
         AddressValidationData,
         input=graphene.Argument(AddressValidationInput, required=True))
     checkout = graphene.Field(
-        Checkout, description='Single checkout',
+        Checkout, description='Single checkout.',
         token=graphene.Argument(graphene.UUID))
     checkouts = DjangoFilterConnectionField(
-        Checkout, description='List of checkouts')
+        Checkout, description='List of checkouts.')
     checkout_lines = DjangoFilterConnectionField(
         CheckoutLine, description='List of checkout lines')
-    checkout_line = graphene.Field(CheckoutLine, id=graphene.Argument(graphene.ID))
+    checkout_line = graphene.Field(
+        CheckoutLine, id=graphene.Argument(graphene.ID),
+        description='Single checkout line.')
     menu = graphene.Field(
         Menu, id=graphene.Argument(graphene.ID),
         name=graphene.Argument(graphene.String, description="Menu name."),

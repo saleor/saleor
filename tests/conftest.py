@@ -111,6 +111,7 @@ def graphql_address_data():
         'city': 'New York',
         'countryArea': ''}
 
+
 @pytest.fixture
 def customer_user(address):  # pylint: disable=W0613
     default_address = address.get_copy()
@@ -481,6 +482,7 @@ def payment_preauth(order_with_lines):
         total=order_with_lines.total.gross.amount,
         tax=order_with_lines.total.tax.amount)
 
+
 @pytest.fixture()
 def payment_method_txn_preauth(order_with_lines, payment_method_dummy):
     order = order_with_lines
@@ -495,6 +497,7 @@ def payment_method_txn_preauth(order_with_lines, payment_method_dummy):
         gateway_response={},
         is_success=True)
     return payment
+
 
 @pytest.fixture()
 def payment_method_txn_charged(order_with_lines, payment_method_dummy):
@@ -513,6 +516,7 @@ def payment_method_txn_charged(order_with_lines, payment_method_dummy):
         is_success=True)
     return payment
 
+
 @pytest.fixture()
 def payment_method_txn_refunded(order_with_lines, payment_method_dummy):
     order = order_with_lines
@@ -530,6 +534,7 @@ def payment_method_txn_refunded(order_with_lines, payment_method_dummy):
         gateway_response={},
         is_success=True)
     return payment
+
 
 @pytest.fixture()
 def payment_confirmed(order_with_lines):
@@ -775,6 +780,7 @@ def product_translation_fr(product):
     return ProductTranslation.objects.create(
         language_code='fr', product=product, name='French name',
         description='French description')
+
 
 @pytest.fixture
 def payment_method_dummy(db):
