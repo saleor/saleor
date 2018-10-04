@@ -1,16 +1,27 @@
 import json
 
-from tests.utils import get_graphql_content
-
 from saleor.graphql.core.utils import snake_to_camel_case
 
-from saleor.graphql.core.utils import snake_to_camel_case
+
+def _get_graphql_content_from_response(response):
+    return json.loads(response.content.decode('utf8'))
+
+
+def get_graphql_content(response):
+    """Get's GraphQL content from the response, and optionally checks if it
+    contains any operating-related errors, eg. schema errors or lack of
+    permissions.
+    """
+    content = _get_graphql_content_from_response(response)
+    assert 'errors' not in content, content['errors']
+    return content
 
 
 def assert_no_permission(response):
-    content = get_graphql_content(response)
+    content = _get_graphql_content_from_response(response)
     assert 'errors' in content
-    assert content['errors'][0]['message'] == 'You do not have permission to perform this action'
+    assert content['errors'][0]['message'] == (
+        'You do not have permission to perform this action')
 
 
 def get_multipart_request_body(query, variables, file, file_name):

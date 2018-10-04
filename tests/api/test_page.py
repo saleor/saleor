@@ -1,11 +1,8 @@
-import json
+import pytest
 
 import graphene
-import pytest
-from django.shortcuts import reverse
-from tests.utils import get_graphql_content
-
 from saleor.page.models import Page
+from tests.api.utils import get_graphql_content
 
 
 def test_page_query(user_api_client, page):
@@ -18,21 +15,23 @@ def test_page_query(user_api_client, page):
         }
     }
     """
-    variables = json.dumps({
-        'id': graphene.Node.to_global_id('Page', page.id)})
-    response = user_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'id': graphene.Node.to_global_id('Page', page.id)}
+    response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    assert 'errors' not in content
     page_data = content['data']['page']
     assert page_data['title'] == page.title
     assert page_data['slug'] == page.slug
 
 
-def test_page_create_mutation(admin_api_client):
+def test_page_create_mutation(staff_api_client, permission_manage_pages):
     query = """
-        mutation CreatePage($slug: String!, $title: String!, $content: String!, $isVisible: Boolean!) {
-            pageCreate(input: {slug: $slug, title: $title, content: $content, isVisible: $isVisible}) {
+        mutation CreatePage(
+                $slug: String!, $title: String!, $content: String!,
+                $isVisible: Boolean!) {
+            pageCreate(
+                    input: {
+                        slug: $slug, title: $title,
+                        content: $content, isVisible: $isVisible}) {
                 page {
                     id
                     title
@@ -53,13 +52,12 @@ def test_page_create_mutation(admin_api_client):
     page_isVisible = True
 
     # test creating root page
-    variables = json.dumps({
+    variables = {
         'title': page_title, 'content': page_content,
-        'isVisible': page_isVisible, 'slug': page_slug})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        'isVisible': page_isVisible, 'slug': page_slug}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages])
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['pageCreate']
     assert data['errors'] == []
     assert data['page']['title'] == page_title
@@ -68,7 +66,7 @@ def test_page_create_mutation(admin_api_client):
     assert data['page']['isVisible'] == page_isVisible
 
 
-def test_page_delete_mutation(admin_api_client, page):
+def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):
     query = """
         mutation DeletePage($id: ID!) {
             pageDelete(id: $id) {
@@ -83,12 +81,10 @@ def test_page_delete_mutation(admin_api_client, page):
               }
             }
     """
-    variables = json.dumps({
-        'id': graphene.Node.to_global_id('Page', page.id)})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'id': graphene.Node.to_global_id('Page', page.id)}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages])
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['pageDelete']
     assert data['page']['title'] == page.title
     with pytest.raises(page._meta.model.DoesNotExist):
@@ -122,9 +118,7 @@ def test_paginate_pages(user_api_client, page):
             }
         }
         """
-    response = user_api_client.post(
-        reverse('api'), {'query': query})
+    response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
-    assert 'errors' not in content
     pages_data = content['data']['pages']
     assert len(pages_data['edges']) == 2

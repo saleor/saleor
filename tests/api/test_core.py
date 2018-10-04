@@ -1,13 +1,10 @@
-import json
 from unittest.mock import Mock
 
 import graphene
-from django.shortcuts import reverse
-from tests.utils import get_graphql_content
-
 from saleor.graphql.core.utils import clean_seo_fields, snake_to_camel_case
 from saleor.graphql.product import types as product_types
 from saleor.graphql.utils import get_database_id
+from tests.api.utils import get_graphql_content
 
 
 def test_clean_seo_fields():
@@ -21,7 +18,8 @@ def test_clean_seo_fields():
     assert data['seo_description'] == description
 
 
-def test_user_error_field_name_for_related_object(admin_api_client):
+def test_user_error_field_name_for_related_object(
+        staff_api_client, permission_manage_products):
     query = """
     mutation {
         categoryCreate(input: {name: "Test", parent: "123456"}) {
@@ -35,7 +33,8 @@ def test_user_error_field_name_for_related_object(admin_api_client):
         }
     }
     """
-    response = admin_api_client.post(reverse('api'), {'query': query})
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     data = content['data']['categoryCreate']['category']
     assert data is None
@@ -59,7 +58,8 @@ def test_snake_to_camel_case():
     assert snake_to_camel_case(123) == 123
 
 
-def test_mutation_returns_error_field_in_camel_case(admin_api_client, variant):
+def test_mutation_returns_error_field_in_camel_case(
+        staff_api_client, variant, permission_manage_products):
     # costPrice is snake case variable (cost_price) in the backend
     query = """
     mutation testCamel($id: ID!, $cost: Decimal) {
@@ -75,11 +75,11 @@ def test_mutation_returns_error_field_in_camel_case(admin_api_client, variant):
         }
     }
     """
-    variables = json.dumps({
+    variables = {
         'id': graphene.Node.to_global_id('ProductVariant', variant.id),
-        'cost': 12.1234})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        'cost': 12.1234}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     error = content['data']['productVariantUpdate']['errors'][0]
     assert error['field'] == 'costPrice'

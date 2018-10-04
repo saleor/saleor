@@ -78,43 +78,33 @@ export interface OrderDetails_order_fulfillments {
   trackingNumber: string;
 }
 
-export interface OrderDetails_order_lines_edges_node_unitPrice_gross {
+export interface OrderDetails_order_lines_unitPrice_gross {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderDetails_order_lines_edges_node_unitPrice_net {
+export interface OrderDetails_order_lines_unitPrice_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderDetails_order_lines_edges_node_unitPrice {
+export interface OrderDetails_order_lines_unitPrice {
   __typename: "TaxedMoney";
-  gross: OrderDetails_order_lines_edges_node_unitPrice_gross;
-  net: OrderDetails_order_lines_edges_node_unitPrice_net;
+  gross: OrderDetails_order_lines_unitPrice_gross;
+  net: OrderDetails_order_lines_unitPrice_net;
 }
 
-export interface OrderDetails_order_lines_edges_node {
+export interface OrderDetails_order_lines {
   __typename: "OrderLine";
   id: string;
   productName: string;
   productSku: string;
   quantity: number;
   quantityFulfilled: number;
-  unitPrice: OrderDetails_order_lines_edges_node_unitPrice | null;
+  unitPrice: OrderDetails_order_lines_unitPrice | null;
   thumbnailUrl: string | null;
-}
-
-export interface OrderDetails_order_lines_edges {
-  __typename: "OrderLineCountableEdge";
-  node: OrderDetails_order_lines_edges_node;
-}
-
-export interface OrderDetails_order_lines {
-  __typename: "OrderLineCountableConnection";
-  edges: OrderDetails_order_lines_edges[];
 }
 
 export interface OrderDetails_order_shippingAddress_country {
@@ -215,7 +205,7 @@ export interface OrderDetails_order {
   created: any;
   events: (OrderDetails_order_events | null)[] | null;
   fulfillments: (OrderDetails_order_fulfillments | null)[];
-  lines: OrderDetails_order_lines | null;
+  lines: (OrderDetails_order_lines | null)[];
   number: string | null;
   paymentStatus: PaymentStatusEnum | null;
   shippingAddress: OrderDetails_order_shippingAddress | null;

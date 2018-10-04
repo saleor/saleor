@@ -1,4 +1,3 @@
-import json
 from io import BytesIO
 from unittest.mock import MagicMock, Mock
 
@@ -9,12 +8,11 @@ from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ModelForm
-from django.test.client import MULTIPART_CONTENT, Client
+from django.test.client import Client
 from django.utils.encoding import smart_text
 from django_countries import countries
 from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
-from graphql_jwt.shortcuts import get_token
 from payments import FraudStatus, PaymentStatus
 from PIL import Image
 from prices import Money
@@ -31,63 +29,11 @@ from saleor.order.models import Order
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.product.models import (
-    AttributeValue, Category, Collection, Product, Attribute,
-    AttributeTranslation, ProductImage, ProductTranslation, ProductType,
-    ProductVariant)
+    Attribute, AttributeTranslation, AttributeValue, Category, Collection,
+    Product, ProductImage, ProductTranslation, ProductType, ProductVariant)
 from saleor.shipping.models import (
     ShippingMethod, ShippingMethodType, ShippingZone)
 from saleor.site.models import AuthorizationKey, SiteSettings
-
-
-class ApiClient(Client):
-    """GraphQL API client."""
-
-    def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user')
-        self.user = user
-        self.token = get_token(user)
-        super().__init__(*args, **kwargs)
-
-    def _base_environ(self, **request):
-        environ = super()._base_environ(**request)
-        environ.update({'HTTP_AUTHORIZATION': 'JWT %s' % self.token})
-        return environ
-
-    def post(self, path, data=None, **kwargs):
-        """Send a POST request.
-
-        This wrapper sets the `application/json` content type which is
-        more suitable for standard GraphQL requests and doesn't mismatch with
-        handling multipart requests in Graphene.
-        """
-        if data:
-            data = json.dumps(data)
-        kwargs['content_type'] = 'application/json'
-        return super().post(path, data, **kwargs)
-
-    def post_multipart(self, *args, **kwargs):
-        """Send a multipart POST request.
-
-        This is used to send multipart requests to GraphQL API when e.g.
-        uploading files.
-        """
-        kwargs['content_type'] = MULTIPART_CONTENT
-        return super().post(*args, **kwargs)
-
-
-@pytest.fixture
-def admin_api_client(admin_user):
-    return ApiClient(user=admin_user)
-
-
-@pytest.fixture
-def user_api_client(customer_user):
-    return ApiClient(user=customer_user)
-
-
-@pytest.fixture
-def staff_api_client(staff_user):
-    return ApiClient(user=staff_user)
 
 
 @pytest.fixture(autouse=True)
@@ -595,6 +541,11 @@ def permission_impersonate_users():
 @pytest.fixture
 def permission_manage_menus():
     return Permission.objects.get(codename='manage_menus')
+
+
+@pytest.fixture
+def permission_manage_pages():
+    return Permission.objects.get(codename='manage_pages')
 
 
 @pytest.fixture

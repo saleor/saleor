@@ -78,43 +78,33 @@ export interface OrderDetailsFragment_fulfillments {
   trackingNumber: string;
 }
 
-export interface OrderDetailsFragment_lines_edges_node_unitPrice_gross {
+export interface OrderDetailsFragment_lines_unitPrice_gross {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderDetailsFragment_lines_edges_node_unitPrice_net {
+export interface OrderDetailsFragment_lines_unitPrice_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderDetailsFragment_lines_edges_node_unitPrice {
+export interface OrderDetailsFragment_lines_unitPrice {
   __typename: "TaxedMoney";
-  gross: OrderDetailsFragment_lines_edges_node_unitPrice_gross;
-  net: OrderDetailsFragment_lines_edges_node_unitPrice_net;
+  gross: OrderDetailsFragment_lines_unitPrice_gross;
+  net: OrderDetailsFragment_lines_unitPrice_net;
 }
 
-export interface OrderDetailsFragment_lines_edges_node {
+export interface OrderDetailsFragment_lines {
   __typename: "OrderLine";
   id: string;
   productName: string;
   productSku: string;
   quantity: number;
   quantityFulfilled: number;
-  unitPrice: OrderDetailsFragment_lines_edges_node_unitPrice | null;
+  unitPrice: OrderDetailsFragment_lines_unitPrice | null;
   thumbnailUrl: string | null;
-}
-
-export interface OrderDetailsFragment_lines_edges {
-  __typename: "OrderLineCountableEdge";
-  node: OrderDetailsFragment_lines_edges_node;
-}
-
-export interface OrderDetailsFragment_lines {
-  __typename: "OrderLineCountableConnection";
-  edges: OrderDetailsFragment_lines_edges[];
 }
 
 export interface OrderDetailsFragment_shippingAddress_country {
@@ -215,7 +205,7 @@ export interface OrderDetailsFragment {
   created: any;
   events: (OrderDetailsFragment_events | null)[] | null;
   fulfillments: (OrderDetailsFragment_fulfillments | null)[];
-  lines: OrderDetailsFragment_lines | null;
+  lines: (OrderDetailsFragment_lines | null)[];
   number: string | null;
   paymentStatus: PaymentStatusEnum | null;
   shippingAddress: OrderDetailsFragment_shippingAddress | null;

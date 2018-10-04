@@ -262,8 +262,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                   orderCreateFulfillment.mutate({
                                     input: {
                                       ...variables,
-                                      lines: maybe(() => order.lines.edges, [])
-                                        .map(edge => edge.node)
+                                      lines: maybe(() => order.lines, [])
                                         .filter(
                                           line =>
                                             line.quantityFulfilled <

@@ -84,43 +84,33 @@ export interface OrderLineAdd_draftOrderLineCreate_order_fulfillments {
   trackingNumber: string;
 }
 
-export interface OrderLineAdd_draftOrderLineCreate_order_lines_edges_node_unitPrice_gross {
+export interface OrderLineAdd_draftOrderLineCreate_order_lines_unitPrice_gross {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderLineAdd_draftOrderLineCreate_order_lines_edges_node_unitPrice_net {
+export interface OrderLineAdd_draftOrderLineCreate_order_lines_unitPrice_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderLineAdd_draftOrderLineCreate_order_lines_edges_node_unitPrice {
+export interface OrderLineAdd_draftOrderLineCreate_order_lines_unitPrice {
   __typename: "TaxedMoney";
-  gross: OrderLineAdd_draftOrderLineCreate_order_lines_edges_node_unitPrice_gross;
-  net: OrderLineAdd_draftOrderLineCreate_order_lines_edges_node_unitPrice_net;
+  gross: OrderLineAdd_draftOrderLineCreate_order_lines_unitPrice_gross;
+  net: OrderLineAdd_draftOrderLineCreate_order_lines_unitPrice_net;
 }
 
-export interface OrderLineAdd_draftOrderLineCreate_order_lines_edges_node {
+export interface OrderLineAdd_draftOrderLineCreate_order_lines {
   __typename: "OrderLine";
   id: string;
   productName: string;
   productSku: string;
   quantity: number;
   quantityFulfilled: number;
-  unitPrice: OrderLineAdd_draftOrderLineCreate_order_lines_edges_node_unitPrice | null;
+  unitPrice: OrderLineAdd_draftOrderLineCreate_order_lines_unitPrice | null;
   thumbnailUrl: string | null;
-}
-
-export interface OrderLineAdd_draftOrderLineCreate_order_lines_edges {
-  __typename: "OrderLineCountableEdge";
-  node: OrderLineAdd_draftOrderLineCreate_order_lines_edges_node;
-}
-
-export interface OrderLineAdd_draftOrderLineCreate_order_lines {
-  __typename: "OrderLineCountableConnection";
-  edges: OrderLineAdd_draftOrderLineCreate_order_lines_edges[];
 }
 
 export interface OrderLineAdd_draftOrderLineCreate_order_shippingAddress_country {
@@ -221,7 +211,7 @@ export interface OrderLineAdd_draftOrderLineCreate_order {
   created: any;
   events: (OrderLineAdd_draftOrderLineCreate_order_events | null)[] | null;
   fulfillments: (OrderLineAdd_draftOrderLineCreate_order_fulfillments | null)[];
-  lines: OrderLineAdd_draftOrderLineCreate_order_lines | null;
+  lines: (OrderLineAdd_draftOrderLineCreate_order_lines | null)[];
   number: string | null;
   paymentStatus: PaymentStatusEnum | null;
   shippingAddress: OrderLineAdd_draftOrderLineCreate_order_shippingAddress | null;
