@@ -123,7 +123,11 @@ const OrderHistory = decorate<OrderHistoryProps>(
       <PageHeader title={i18n.t("Order history")} />
       {history ? (
         <Timeline>
-          <Form initial={{ message: "" }} onSubmit={onNoteAdd}>
+          <Form
+            initial={{ message: "" }}
+            onSubmit={onNoteAdd}
+            key={JSON.stringify(history)}
+          >
             {({ change, data, submit }) => (
               <TimelineAddNote
                 message={data.message}
