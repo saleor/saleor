@@ -1203,13 +1203,9 @@ exports[`Storyshots Generics / AddressFormatter when loading 1`] = `
 exports[`Storyshots Generics / DateFormatter default 1`] = `
 <div>
   <span
-    class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+    title="2018-04-07T10:44:44"
   >
-    <span
-      title="2018-04-07T10:44:44"
-    >
-      2018-04-07T10:44:44
-    </span>
+    2018-04-07T10:44:44
   </span>
 </div>
 `;
@@ -3989,13 +3985,9 @@ exports[`Storyshots Generics / Timeline default 1`] = `
         class="Component-noExpanderNodeDate-id"
       >
         <span
-          class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+          title="2018-05-07T16:58:02+00:00"
         >
-          <span
-            title="2018-05-07T16:58:02+00:00"
-          >
-            2018-05-07T16:58:02+00:00
-          </span>
+          2018-05-07T16:58:02+00:00
         </span>
       </div>
     </div>
@@ -4014,13 +4006,9 @@ exports[`Storyshots Generics / Timeline default 1`] = `
         class="Component-noExpanderNodeDate-id"
       >
         <span
-          class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+          title="2018-05-07T16:48:02+00:00"
         >
-          <span
-            title="2018-05-07T16:48:02+00:00"
-          >
-            2018-05-07T16:48:02+00:00
-          </span>
+          2018-05-07T16:48:02+00:00
         </span>
       </div>
     </div>
@@ -4039,13 +4027,9 @@ exports[`Storyshots Generics / Timeline default 1`] = `
         class="Component-noExpanderNodeDate-id"
       >
         <span
-          class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+          title="2018-05-06T16:58:02+00:00"
         >
-          <span
-            title="2018-05-06T16:58:02+00:00"
-          >
-            2018-05-06T16:58:02+00:00
-          </span>
+          2018-05-06T16:58:02+00:00
         </span>
       </div>
     </div>
@@ -4085,13 +4069,9 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
               class="Component-nodeDate-id"
             >
               <span
-                class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+                title="2018-05-07T16:58:02+00:00"
               >
-                <span
-                  title="2018-05-07T16:58:02+00:00"
-                >
-                  2018-05-07T16:58:02+00:00
-                </span>
+                2018-05-07T16:58:02+00:00
               </span>
             </div>
           </div>
@@ -4174,13 +4154,9 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
               class="Component-nodeDate-id"
             >
               <span
-                class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+                title="2018-05-07T16:48:02+00:00"
               >
-                <span
-                  title="2018-05-07T16:48:02+00:00"
-                >
-                  2018-05-07T16:48:02+00:00
-                </span>
+                2018-05-07T16:48:02+00:00
               </span>
             </div>
           </div>
@@ -4263,13 +4239,9 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
               class="Component-nodeDate-id"
             >
               <span
-                class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+                title="2018-05-06T16:58:02+00:00"
               >
-                <span
-                  title="2018-05-06T16:58:02+00:00"
-                >
-                  2018-05-06T16:58:02+00:00
-                </span>
+                2018-05-06T16:58:02+00:00
               </span>
             </div>
           </div>
@@ -4361,13 +4333,9 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
               class="Component-nodeDate-id"
             >
               <span
-                class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+                title="2018-05-07T16:58:02+00:00"
               >
-                <span
-                  title="2018-05-07T16:58:02+00:00"
-                >
-                  2018-05-07T16:58:02+00:00
-                </span>
+                2018-05-07T16:58:02+00:00
               </span>
             </div>
           </div>
@@ -4455,13 +4423,9 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
           class="Component-noteDate-id"
         >
           <span
-            class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+            title="2018-05-07T16:58:02+00:00"
           >
-            <span
-              title="2018-05-07T16:58:02+00:00"
-            >
-              2018-05-07T16:58:02+00:00
-            </span>
+            2018-05-07T16:58:02+00:00
           </span>
         </div>
       </div>
@@ -4508,13 +4472,9 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
           class="Component-noteDate-id"
         >
           <span
-            class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+            title="2018-05-07T16:58:02+00:00"
           >
-            <span
-              title="2018-05-07T16:58:02+00:00"
-            >
-              2018-05-07T16:58:02+00:00
-            </span>
+            2018-05-07T16:58:02+00:00
           </span>
         </div>
       </div>
@@ -4556,13 +4516,9 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
               class="Component-nodeDate-id"
             >
               <span
-                class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+                title="2018-05-06T16:58:02+00:00"
               >
-                <span
-                  title="2018-05-06T16:58:02+00:00"
-                >
-                  2018-05-06T16:58:02+00:00
-                </span>
+                2018-05-06T16:58:02+00:00
               </span>
             </div>
           </div>
@@ -5191,13 +5147,9 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
                 class="Component-nodeDate-id"
               >
                 <span
-                  class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+                  title="2018-09-13T16:39:54.172431+00:00"
                 >
-                  <span
-                    title="2018-09-13T16:39:54.172431+00:00"
-                  >
-                    2018-09-13T16:39:54.172431+00:00
-                  </span>
+                  2018-09-13T16:39:54.172431+00:00
                 </span>
               </div>
             </div>
@@ -5282,13 +5234,9 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
                 class="Component-nodeDate-id"
               >
                 <span
-                  class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+                  title="2018-09-13T16:22:46.997106+00:00"
                 >
-                  <span
-                    title="2018-09-13T16:22:46.997106+00:00"
-                  >
-                    2018-09-13T16:22:46.997106+00:00
-                  </span>
+                  2018-09-13T16:22:46.997106+00:00
                 </span>
               </div>
             </div>
@@ -15322,19 +15270,15 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
                 >
-                  11
+                  20
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <span
-                    class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+                    title="2018-09-11T09:37:30.376876+00:00"
                   >
-                    <span
-                      title="2018-04-07T11:18:19+00:00"
-                    >
-                      2018-04-07T11:18:19+00:00
-                    </span>
+                    2018-09-11T09:37:30.376876+00:00
                   </span>
                 </td>
                 <td
@@ -15343,13 +15287,301 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   <div
                     class="Component-root-id undefined Component-errorDot-id"
                   >
-                    fulfilled
+                    Cancelled
                   </div>
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
                 >
-                  $19.20
+                  $305.17
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                >
+                  19
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    title="2018-09-11T09:37:30.124154+00:00"
+                  >
+                    2018-09-11T09:37:30.124154+00:00
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <div
+                    class="Component-root-id undefined Component-errorDot-id"
+                  >
+                    Cancelled
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+                >
+                  $1,215.89
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                >
+                  18
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    title="2018-09-11T09:37:30.019749+00:00"
+                  >
+                    2018-09-11T09:37:30.019749+00:00
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <div
+                    class="Component-root-id undefined Component-errorDot-id"
+                  >
+                    Draft
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+                >
+                  $321.71
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                >
+                  17
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    title="2018-09-11T09:37:29.864391+00:00"
+                  >
+                    2018-09-11T09:37:29.864391+00:00
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <div
+                    class="Component-root-id undefined Component-errorDot-id"
+                  >
+                    Cancelled
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+                >
+                  $271.95
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                >
+                  16
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    title="2018-09-11T09:37:29.610339+00:00"
+                  >
+                    2018-09-11T09:37:29.610339+00:00
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <div
+                    class="Component-root-id undefined Component-errorDot-id"
+                  >
+                    Cancelled
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+                >
+                  $335.84
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                >
+                  15
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    title="2018-09-11T09:37:29.336209+00:00"
+                  >
+                    2018-09-11T09:37:29.336209+00:00
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <div
+                    class="Component-root-id undefined Component-errorDot-id"
+                  >
+                    Cancelled
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+                >
+                  $1,042.15
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                >
+                  14
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    title="2018-09-11T09:37:29.103651+00:00"
+                  >
+                    2018-09-11T09:37:29.103651+00:00
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <div
+                    class="Component-root-id undefined Component-errorDot-id"
+                  >
+                    Cancelled
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+                >
+                  $213.69
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                >
+                  13
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    title="2018-09-11T09:37:28.921956+00:00"
+                  >
+                    2018-09-11T09:37:28.921956+00:00
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <div
+                    class="Component-root-id undefined Component-errorDot-id"
+                  >
+                    Cancelled
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+                >
+                  $367.03
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                >
+                  12
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    title="2018-09-11T09:37:28.750718+00:00"
+                  >
+                    2018-09-11T09:37:28.750718+00:00
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <div
+                    class="Component-root-id undefined Component-errorDot-id"
+                  >
+                    Cancelled
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+                >
+                  $298.76
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                >
+                  11
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    title="2018-09-11T09:37:28.598246+00:00"
+                  >
+                    2018-09-11T09:37:28.598246+00:00
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <div
+                    class="Component-root-id undefined Component-errorDot-id"
+                  >
+                    Unfulfilled
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+                >
+                  $663.69
                 </td>
               </tr>
               <tr
@@ -15364,13 +15596,9 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <span
-                    class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+                    title="2018-09-11T09:37:28.409836+00:00"
                   >
-                    <span
-                      title="2018-04-07T11:11:19+00:00"
-                    >
-                      2018-04-07T11:11:19+00:00
-                    </span>
+                    2018-09-11T09:37:28.409836+00:00
                   </span>
                 </td>
                 <td
@@ -15379,13 +15607,13 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   <div
                     class="Component-root-id undefined Component-errorDot-id"
                   >
-                    unfulfilled
+                    Cancelled
                   </div>
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
                 >
-                  $28.90
+                  $280.41
                 </td>
               </tr>
               <tr
@@ -15400,100 +15628,24 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <span
-                    class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+                    title="2018-09-11T09:37:28.185874+00:00"
                   >
-                    <span
-                      title="2018-04-07T10:44:44+00:00"
-                    >
-                      2018-04-07T10:44:44+00:00
-                    </span>
+                    2018-09-11T09:37:28.185874+00:00
                   </span>
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <div
-                    class="Component-root-id undefined Component-errorDot-id"
+                    class="Component-root-id undefined Component-neutralDot-id"
                   >
-                    fulfilled
+                    Partially fulfilled
                   </div>
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
                 >
-                  $289.00
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  9
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <span
-                    class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
-                  >
-                    <span
-                      title="2018-04-07T10:33:19+00:00"
-                    >
-                      2018-04-07T10:33:19+00:00
-                    </span>
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-errorDot-id"
-                  >
-                    fulfilled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $100.05
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                >
-                  9
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <span
-                    class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
-                  >
-                    <span
-                      title="2018-04-07T07:39:19+00:00"
-                    >
-                      2018-04-07T07:39:19+00:00
-                    </span>
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <div
-                    class="Component-root-id undefined Component-errorDot-id"
-                  >
-                    fulfilled
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-                >
-                  $14.87
+                  $234.93
                 </td>
               </tr>
               <tr
@@ -15508,28 +15660,248 @@ exports[`Storyshots Views / Customers / Customer details default 1`] = `
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <span
-                    class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+                    title="2018-09-11T09:37:27.953588+00:00"
                   >
-                    <span
-                      title="2018-04-06T19:18:19+00:00"
-                    >
-                      2018-04-06T19:18:19+00:00
-                    </span>
+                    2018-09-11T09:37:27.953588+00:00
                   </span>
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
                   <div
-                    class="Component-root-id undefined Component-errorDot-id"
+                    class="Component-root-id undefined Component-neutralDot-id"
                   >
-                    unfulfilled
+                    Partially fulfilled
                   </div>
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
                 >
-                  $14.87
+                  $485.19
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                >
+                  7
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    title="2018-09-11T09:37:27.828033+00:00"
+                  >
+                    2018-09-11T09:37:27.828033+00:00
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <div
+                    class="Component-root-id undefined Component-neutralDot-id"
+                  >
+                    Partially fulfilled
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+                >
+                  $223.54
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                >
+                  6
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    title="2018-09-11T09:37:27.636741+00:00"
+                  >
+                    2018-09-11T09:37:27.636741+00:00
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <div
+                    class="Component-root-id undefined Component-successDot-id"
+                  >
+                    Fulfilled
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+                >
+                  $237.55
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                >
+                  5
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    title="2018-09-11T09:37:27.420590+00:00"
+                  >
+                    2018-09-11T09:37:27.420590+00:00
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <div
+                    class="Component-root-id undefined Component-neutralDot-id"
+                  >
+                    Partially fulfilled
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+                >
+                  $453.55
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                >
+                  4
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    title="2018-09-11T09:37:27.230990+00:00"
+                  >
+                    2018-09-11T09:37:27.230990+00:00
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <div
+                    class="Component-root-id undefined Component-neutralDot-id"
+                  >
+                    Partially fulfilled
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+                >
+                  $812.67
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                >
+                  3
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    title="2018-09-11T09:37:26.972507+00:00"
+                  >
+                    2018-09-11T09:37:26.972507+00:00
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <div
+                    class="Component-root-id undefined Component-neutralDot-id"
+                  >
+                    Partially fulfilled
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+                >
+                  $481.41
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                >
+                  2
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    title="2018-09-11T09:37:26.751359+00:00"
+                  >
+                    2018-09-11T09:37:26.751359+00:00
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <div
+                    class="Component-root-id undefined Component-neutralDot-id"
+                  >
+                    Partially fulfilled
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+                >
+                  $569.19
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                >
+                  1
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <span
+                    title="2018-09-11T09:37:26.314968+00:00"
+                  >
+                    2018-09-11T09:37:26.314968+00:00
+                  </span>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  <div
+                    class="Component-root-id undefined Component-neutralDot-id"
+                  >
+                    Partially fulfilled
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+                >
+                  $557.00
                 </td>
               </tr>
             </tbody>
@@ -17837,13 +18209,9 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                       class="Component-nodeDate-id"
                     >
                       <span
-                        class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+                        title="2018-09-13T16:39:54.172431+00:00"
                       >
-                        <span
-                          title="2018-09-13T16:39:54.172431+00:00"
-                        >
-                          2018-09-13T16:39:54.172431+00:00
-                        </span>
+                        2018-09-13T16:39:54.172431+00:00
                       </span>
                     </div>
                   </div>
@@ -17928,13 +18296,9 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                       class="Component-nodeDate-id"
                     >
                       <span
-                        class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+                        title="2018-09-13T16:22:46.997106+00:00"
                       >
-                        <span
-                          title="2018-09-13T16:22:46.997106+00:00"
-                        >
-                          2018-09-13T16:22:46.997106+00:00
-                        </span>
+                        2018-09-13T16:22:46.997106+00:00
                       </span>
                     </div>
                   </div>
@@ -19018,13 +19382,9 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                       class="Component-nodeDate-id"
                     >
                       <span
-                        class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+                        title="2018-09-13T16:39:54.172431+00:00"
                       >
-                        <span
-                          title="2018-09-13T16:39:54.172431+00:00"
-                        >
-                          2018-09-13T16:39:54.172431+00:00
-                        </span>
+                        2018-09-13T16:39:54.172431+00:00
                       </span>
                     </div>
                   </div>
@@ -19109,13 +19469,9 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                       class="Component-nodeDate-id"
                     >
                       <span
-                        class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+                        title="2018-09-13T16:22:46.997106+00:00"
                       >
-                        <span
-                          title="2018-09-13T16:22:46.997106+00:00"
-                        >
-                          2018-09-13T16:22:46.997106+00:00
-                        </span>
+                        2018-09-13T16:22:46.997106+00:00
                       </span>
                     </div>
                   </div>
@@ -20156,13 +20512,9 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                       class="Component-nodeDate-id"
                     >
                       <span
-                        class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+                        title="2018-09-13T16:39:54.172431+00:00"
                       >
-                        <span
-                          title="2018-09-13T16:39:54.172431+00:00"
-                        >
-                          2018-09-13T16:39:54.172431+00:00
-                        </span>
+                        2018-09-13T16:39:54.172431+00:00
                       </span>
                     </div>
                   </div>
@@ -20247,13 +20599,9 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                       class="Component-nodeDate-id"
                     >
                       <span
-                        class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+                        title="2018-09-13T16:22:46.997106+00:00"
                       >
-                        <span
-                          title="2018-09-13T16:22:46.997106+00:00"
-                        >
-                          2018-09-13T16:22:46.997106+00:00
-                        </span>
+                        2018-09-13T16:22:46.997106+00:00
                       </span>
                     </div>
                   </div>
@@ -21074,7 +21422,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Add order 
+            Create order 
             <svg
               aria-hidden="true"
               class="MuiSvgIcon-root-id"
@@ -21108,40 +21456,40 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
               scope="col"
             >
-              #
+              No. of Order
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
               scope="col"
             >
-              Fulfillment
+              Date
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
               scope="col"
             >
-              Client
+              Customer
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
               scope="col"
             >
-              Created at
+              Payment
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
               scope="col"
             >
-              Payment status
+              Fulfillment status
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id OrderList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id OrderList-textRight-id"
               scope="col"
             >
-              Price
+              Total
             </th>
           </tr>
         </thead>
@@ -21217,303 +21565,923 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
           class="MuiTableBody-root-id"
         >
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id OrderList-link-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
-              11
+              #20
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                title="2018-09-11T09:37:30.376876+00:00"
+              >
+                2018-09-11T09:37:30.376876+00:00
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Laura Stone 1 2
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Confirmed
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
                 class="Component-root-id undefined Component-errorDot-id"
               >
-                fulfilled
+                Cancelled
               </div>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
             >
-              user@example.com
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
-              >
-                <span
-                  title="2018-04-07T11:18:19+00:00"
-                >
-                  2018-04-07T11:18:19+00:00
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id undefined"
-              >
-                confirmed
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
-            >
-              $19.20
+              $305.17
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id OrderList-link-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
-              10
+              #19
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                title="2018-09-11T09:37:30.124154+00:00"
+              >
+                2018-09-11T09:37:30.124154+00:00
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Elizabeth Vaughn
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Confirmed
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
                 class="Component-root-id undefined Component-errorDot-id"
               >
-                unfulfilled
+                Cancelled
               </div>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
             >
-              user@example.com
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
-              >
-                <span
-                  title="2018-04-07T11:11:19+00:00"
-                >
-                  2018-04-07T11:11:19+00:00
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id undefined"
-              >
-                confirmed
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
-            >
-              $28.90
+              $1,215.89
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id OrderList-link-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
-              9
+              #18
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                title="2018-09-11T09:37:30.019749+00:00"
+              >
+                2018-09-11T09:37:30.019749+00:00
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              david.lawson@example.com
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Preauthorized
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
                 class="Component-root-id undefined Component-errorDot-id"
               >
-                fulfilled
+                Draft
               </div>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
             >
-              user@example.com
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
-              >
-                <span
-                  title="2018-04-07T10:44:44+00:00"
-                >
-                  2018-04-07T10:44:44+00:00
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id undefined"
-              >
-                rejected
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
-            >
-              $289.00
+              $321.71
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id OrderList-link-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
-              9
+              #17
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                title="2018-09-11T09:37:29.864391+00:00"
+              >
+                2018-09-11T09:37:29.864391+00:00
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Aaron Randall
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Preauthorized
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
                 class="Component-root-id undefined Component-errorDot-id"
               >
-                fulfilled
+                Cancelled
               </div>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
             >
-              user@example.com
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
-              >
-                <span
-                  title="2018-04-07T10:33:19+00:00"
-                >
-                  2018-04-07T10:33:19+00:00
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id undefined"
-              >
-                unknown
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
-            >
-              $100.05
+              $271.95
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id OrderList-link-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
-              9
+              #16
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                title="2018-09-11T09:37:29.610339+00:00"
+              >
+                2018-09-11T09:37:29.610339+00:00
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Laura Jensen
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Preauthorized
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
                 class="Component-root-id undefined Component-errorDot-id"
               >
-                fulfilled
+                Cancelled
               </div>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
             >
-              user@example.com
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
-              >
-                <span
-                  title="2018-04-07T07:39:19+00:00"
-                >
-                  2018-04-07T07:39:19+00:00
-                </span>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id undefined"
-              >
-                waiting
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
-            >
-              $14.87
+              $335.84
             </td>
           </tr>
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id OrderList-link-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
-              8
+              #15
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                title="2018-09-11T09:37:29.336209+00:00"
+              >
+                2018-09-11T09:37:29.336209+00:00
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Jenna Villa
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
                 class="Component-root-id undefined Component-errorDot-id"
               >
-                unfulfilled
+                Rejected
               </div>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
-              user@example.com
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Cancelled
+              </div>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $1,042.15
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #14
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <span
-                class="MuiTypography-root-id MuiTypography-body1-id DateFormatter-root-id"
+                title="2018-09-11T09:37:29.103651+00:00"
               >
-                <span
-                  title="2018-04-06T19:18:19+00:00"
-                >
-                  2018-04-06T19:18:19+00:00
-                </span>
+                2018-09-11T09:37:29.103651+00:00
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Wesley Davis
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
-                class="Component-root-id undefined"
+                class="Component-root-id undefined Component-neutralDot-id"
               >
-                rejected
+                Waiting
               </div>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
-              $14.87
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Cancelled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $213.69
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #13
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                title="2018-09-11T09:37:28.921956+00:00"
+              >
+                2018-09-11T09:37:28.921956+00:00
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Anthony Gonzalez
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Waiting
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Cancelled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $367.03
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #12
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                title="2018-09-11T09:37:28.750718+00:00"
+              >
+                2018-09-11T09:37:28.750718+00:00
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Denise Freeman
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Preauthorized
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Cancelled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $298.76
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #11
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                title="2018-09-11T09:37:28.598246+00:00"
+              >
+                2018-09-11T09:37:28.598246+00:00
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              James Ball
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Confirmed
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Unfulfilled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $663.69
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #10
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                title="2018-09-11T09:37:28.409836+00:00"
+              >
+                2018-09-11T09:37:28.409836+00:00
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Michael Martinez
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Preauthorized
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-errorDot-id"
+              >
+                Cancelled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $280.41
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #9
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                title="2018-09-11T09:37:28.185874+00:00"
+              >
+                2018-09-11T09:37:28.185874+00:00
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Melissa Simon
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Preauthorized
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Partially fulfilled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $234.93
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #8
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                title="2018-09-11T09:37:27.953588+00:00"
+              >
+                2018-09-11T09:37:27.953588+00:00
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Justin Mccoy
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Waiting
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Partially fulfilled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $485.19
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #7
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                title="2018-09-11T09:37:27.828033+00:00"
+              >
+                2018-09-11T09:37:27.828033+00:00
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Anthony Gonzalez
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Confirmed
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Partially fulfilled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $223.54
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #6
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                title="2018-09-11T09:37:27.636741+00:00"
+              >
+                2018-09-11T09:37:27.636741+00:00
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Bradley Ford
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Waiting
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Fulfilled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $237.55
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #5
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                title="2018-09-11T09:37:27.420590+00:00"
+              >
+                2018-09-11T09:37:27.420590+00:00
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              David Lawson
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Waiting
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Partially fulfilled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $453.55
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #4
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                title="2018-09-11T09:37:27.230990+00:00"
+              >
+                2018-09-11T09:37:27.230990+00:00
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Lauren Watson
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Waiting
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Partially fulfilled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $812.67
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #3
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                title="2018-09-11T09:37:26.972507+00:00"
+              >
+                2018-09-11T09:37:26.972507+00:00
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Mark Lee
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Waiting
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Partially fulfilled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $481.41
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #2
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                title="2018-09-11T09:37:26.751359+00:00"
+              >
+                2018-09-11T09:37:26.751359+00:00
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Kara Murphy
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Confirmed
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Partially fulfilled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $569.19
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id OrderList-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              #1
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <span
+                title="2018-09-11T09:37:26.314968+00:00"
+              >
+                2018-09-11T09:37:26.314968+00:00
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              Curtis Bailey
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Waiting
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
+            >
+              <div
+                class="Component-root-id undefined Component-neutralDot-id"
+              >
+                Partially fulfilled
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
+            >
+              $557.00
             </td>
           </tr>
         </tbody>
@@ -21548,7 +22516,7 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Add order 
+            Create order 
             <svg
               aria-hidden="true"
               class="MuiSvgIcon-root-id"
@@ -21579,40 +22547,40 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
               scope="col"
             >
-              #
+              No. of Order
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
               scope="col"
             >
-              Fulfillment
+              Date
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
               scope="col"
             >
-              Client
+              Customer
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
               scope="col"
             >
-              Created at
+              Payment
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
               scope="col"
             >
-              Payment status
+              Fulfillment status
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id OrderList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id OrderList-textRight-id"
               scope="col"
             >
-              Price
+              Total
             </th>
           </tr>
         </thead>
@@ -21689,7 +22657,7 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
             class="MuiTableRow-root-id"
           >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id OrderList-link-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -21698,7 +22666,7 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -21707,7 +22675,7 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -21716,7 +22684,7 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -21725,7 +22693,7 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -21734,7 +22702,7 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id OrderList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id OrderList-textRight-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -21774,7 +22742,7 @@ exports[`Storyshots Views / Orders / Order list when no data 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Add order 
+            Create order 
             <svg
               aria-hidden="true"
               class="MuiSvgIcon-root-id"
@@ -21808,40 +22776,40 @@ exports[`Storyshots Views / Orders / Order list when no data 1`] = `
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
               scope="col"
             >
-              #
+              No. of Order
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
               scope="col"
             >
-              Fulfillment
+              Date
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
               scope="col"
             >
-              Client
+              Customer
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
               scope="col"
             >
-              Created at
+              Payment
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id"
               scope="col"
             >
-              Payment status
+              Fulfillment status
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id OrderList-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id MuiTableCell-paddingDense-id OrderList-textRight-id"
               scope="col"
             >
-              Price
+              Total
             </th>
           </tr>
         </thead>

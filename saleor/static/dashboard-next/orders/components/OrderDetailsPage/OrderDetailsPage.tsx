@@ -1,4 +1,5 @@
 import { withStyles, WithStyles } from "@material-ui/core/styles";
+import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import { AddressType, transformAddressToForm } from "../..";
@@ -300,10 +301,9 @@ class OrderDetailsPageComponent extends React.Component<
         {order ? (
           <div className={classes.orderDate}>
             {order && order.created ? (
-              <DateFormatter
-                date={order.created}
-                typographyProps={{ variant: "caption" }}
-              />
+              <Typography variant="caption">
+                <DateFormatter date={order.created} />
+              </Typography>
             ) : (
               <Skeleton />
             )}
