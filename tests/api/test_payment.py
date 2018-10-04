@@ -1,41 +1,10 @@
-import json
-
 import graphene
-from django.shortcuts import reverse
-from tests.utils import get_graphql_content
 from saleor.payment.models import (
-    Transaction, PaymentMethodChargeStatus, TransactionType)
-from .utils import assert_no_permission
+    PaymentMethodChargeStatus, Transaction, TransactionType)
+from tests.api.utils import get_graphql_content
 
-CHARGE_QUERY = """
-    mutation PaymentMethodCharge($paymentMethodId: ID!, $amount: Decimal!) {
-        paymentMethodCharge(paymentMethodId: $paymentMethodId, amount: $amount) {
-            paymentMethod {
-                id,
-                chargeStatus
-            }
-            errors {
-                field
-                message
-            }
-        }
-    }
-"""
 
-REFUND_QUERY = """
-    mutation PaymentMethodRefund($paymentMethodId: ID!, $amount: Decimal!) {
-        paymentMethodRefund(paymentMethodId: $paymentMethodId, amount: $amount) {
-            paymentMethod {
-                id,
-                chargeStatus
-            }
-            errors {
-                field
-                message
-            }
-        }
-    }
-"""
+# FIXME Test void query
 
 VOID_QUERY = """
     mutation PaymentMethodRefund($paymentMethodId: ID!, $amount: Decimal!) {
@@ -82,18 +51,16 @@ def test_checkout_add_payment_method(
 
     checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
 
-    variables = json.dumps({
+    variables = {
         'input': {
             'checkoutId': checkout_id,
             'gateway': 'DUMMY',
             'transactionToken': 'sample-token',
             'amount': str(cart.get_total().gross.amount),
             'billingAddress': graphql_address_data,
-            'storePaymentMethod': False}})
-    response = user_api_client.post(
-        reverse('api'), {'query': CREATE_QUERY, 'variables': variables})
+            'storePaymentMethod': False}}
+    response = user_api_client.post_graphql(CREATE_QUERY, variables)
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['checkoutPaymentMethodCreate']
     assert not data['errors']
     transaction_id = data['paymentMethod']['transactions']['edges'][0]['node'][
@@ -108,19 +75,35 @@ def test_checkout_add_payment_method(
     assert payment_method.charge_status == PaymentMethodChargeStatus.NOT_CHARGED
 
 
-def test_payment_method_charge_success(admin_api_client, payment_method_dummy):
+CHARGE_QUERY = """
+    mutation PaymentMethodCharge($paymentMethodId: ID!, $amount: Decimal!) {
+        paymentMethodCharge(paymentMethodId: $paymentMethodId, amount: $amount) {
+            paymentMethod {
+                id,
+                chargeStatus
+            }
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+def test_payment_method_charge_success(
+        staff_api_client, permission_manage_orders, payment_method_dummy):
     payment_method = payment_method_dummy
     assert payment_method.charge_status == PaymentMethodChargeStatus.NOT_CHARGED
     payment_method_id = graphene.Node.to_global_id(
         'PaymentMethod', payment_method_dummy.pk)
 
-    variables = json.dumps({
+    variables = {
         'paymentMethodId': payment_method_id,
-        'amount': payment_method_dummy.total})
-    response = admin_api_client.post(
-        reverse('api'), {'query': CHARGE_QUERY, 'variables': variables})
+        'amount': payment_method_dummy.total}
+    response = staff_api_client.post_graphql(
+        CHARGE_QUERY, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['paymentMethodCharge']
     assert not data['errors']
     payment_method_dummy.refresh_from_db()
@@ -131,24 +114,25 @@ def test_payment_method_charge_success(admin_api_client, payment_method_dummy):
 
 
 def test_payment_method_charge_gateway_error(
-        admin_api_client, payment_method_dummy, monkeypatch):
+        staff_api_client, permission_manage_orders, payment_method_dummy,
+        monkeypatch):
     payment_method = payment_method_dummy
     assert payment_method.charge_status == PaymentMethodChargeStatus.NOT_CHARGED
     payment_method_id = graphene.Node.to_global_id(
         'PaymentMethod', payment_method_dummy.pk)
-    variables = json.dumps({
+    variables = {
         'paymentMethodId': payment_method_id,
-        'amount': payment_method_dummy.total})
+        'amount': payment_method_dummy.total}
     monkeypatch.setattr(
         'saleor.payment.providers.dummy.dummy_success', lambda: False)
-    response = admin_api_client.post(
-        reverse('api'), {'query': CHARGE_QUERY, 'variables': variables})
+    response = staff_api_client.post_graphql(
+        CHARGE_QUERY, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     data = content['data']['paymentMethodCharge']
-    assert 'errors' in data
-    errors = data['errors']
-    assert errors[0]['field'] == None
-    assert errors[0]['message'] is not None
+    assert data['errors']
+    assert data['errors'][0]['field'] is None
+    assert data['errors'][0]['message']
+
     payment_method_dummy.refresh_from_db()
     assert payment_method.charge_status == PaymentMethodChargeStatus.NOT_CHARGED
     assert payment_method.transactions.count() == 1
@@ -157,7 +141,24 @@ def test_payment_method_charge_gateway_error(
     assert not txn.is_success
 
 
-def test_payment_method_refund_success(admin_api_client, payment_method_dummy):
+REFUND_QUERY = """
+    mutation PaymentMethodRefund($paymentMethodId: ID!, $amount: Decimal!) {
+        paymentMethodRefund(paymentMethodId: $paymentMethodId, amount: $amount) {
+            paymentMethod {
+                id,
+                chargeStatus
+            }
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+def test_payment_method_refund_success(
+        staff_api_client, permission_manage_orders, payment_method_dummy):
     payment_method = payment_method_dummy
     payment_method.charge_status = PaymentMethodChargeStatus.CHARGED
     payment_method.captured_amount = payment_method.total
@@ -165,13 +166,12 @@ def test_payment_method_refund_success(admin_api_client, payment_method_dummy):
     payment_method_id = graphene.Node.to_global_id(
         'PaymentMethod', payment_method.pk)
 
-    variables = json.dumps({
+    variables = {
         'paymentMethodId': payment_method_id,
-        'amount': payment_method_dummy.total})
-    response = admin_api_client.post(
-        reverse('api'), {'query': REFUND_QUERY, 'variables': variables})
+        'amount': payment_method_dummy.total}
+    response = staff_api_client.post_graphql(
+        REFUND_QUERY, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
-    assert 'errors' not in content
     data = content['data']['paymentMethodRefund']
     assert not data['errors']
     payment_method_dummy.refresh_from_db()
@@ -182,25 +182,27 @@ def test_payment_method_refund_success(admin_api_client, payment_method_dummy):
 
 
 def test_payment_method_refund_error(
-        admin_api_client, payment_method_dummy, monkeypatch):
+        staff_api_client, permission_manage_orders, payment_method_dummy,
+        monkeypatch):
     payment_method = payment_method_dummy
     payment_method.charge_status = PaymentMethodChargeStatus.CHARGED
     payment_method.captured_amount = payment_method.total
     payment_method.save()
     payment_method_id = graphene.Node.to_global_id(
         'PaymentMethod', payment_method_dummy.pk)
-    variables = json.dumps({
-        'paymentMethodId': payment_method_id, 'amount': payment_method.total})
+    variables = {
+        'paymentMethodId': payment_method_id,
+        'amount': payment_method.total}
     monkeypatch.setattr(
         'saleor.payment.providers.dummy.dummy_success', lambda: False)
-    response = admin_api_client.post(
-        reverse('api'), {'query': REFUND_QUERY, 'variables': variables})
+    response = staff_api_client.post_graphql(
+        REFUND_QUERY, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     data = content['data']['paymentMethodRefund']
-    assert 'errors' in data
-    errors = data['errors']
-    assert errors[0]['field'] == None
-    assert errors[0]['message'] is not None
+
+    assert data['errors']
+    assert data['errors'][0]['field'] is None
+    assert data['errors'][0]['message']
     payment_method_dummy.refresh_from_db()
     assert payment_method.charge_status == PaymentMethodChargeStatus.CHARGED
     assert payment_method.transactions.count() == 1
@@ -222,11 +224,8 @@ def test_payments_query(
         }
     }
     """
-    response = staff_api_client.post(reverse('api'), {'query': query})
-    assert_no_permission(response)
-
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
-    response = staff_api_client.post(reverse('api'), {'query': query})
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     data = content['data']['payments']
     assert data['edges'][0]['node']['variant'] == payment_method_dummy.variant
