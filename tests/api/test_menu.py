@@ -2,6 +2,7 @@ import pytest
 
 import graphene
 from saleor.graphql.menu.mutations import NavigationType
+from saleor.menu.models import MenuItem
 from tests.api.utils import get_graphql_content
 
 from .utils import assert_no_permission
@@ -78,7 +79,7 @@ def test_menu_items_query(user_api_client, menu_item, collection):
         menuItem(id: $id) {
             name
             children {
-                totalCount
+                name
             }
             collection {
                 name
@@ -96,12 +97,16 @@ def test_menu_items_query(user_api_client, menu_item, collection):
     menu_item.collection = collection
     menu_item.url = None
     menu_item.save()
+    child_menu = MenuItem.objects.create(
+        menu=menu_item.menu, name='Link 2', url='http://example2.com/',
+        parent=menu_item)
     variables = {'id': graphene.Node.to_global_id('MenuItem', menu_item.pk)}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['menuItem']
     assert data['name'] == menu_item.name
-    assert data['children']['totalCount'] == menu_item.children.count()
+    assert len(data['children']) == 1
+    assert data['children'][0]['name'] == child_menu.name
     assert data['collection']['name'] == collection.name
     assert not data['category']
     assert not data['page']

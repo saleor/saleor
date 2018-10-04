@@ -7,6 +7,9 @@ from ..core.types.common import CountableDjangoObjectType
 
 class MenuItem(CountableDjangoObjectType):
     url = graphene.String(description='URL to the menu item.')
+    children = graphene.List(
+        lambda: MenuItem, required=True,
+        description='List of menu item children items')
 
     class Meta:
         description = """Represents a single item of the related menu.
@@ -15,6 +18,9 @@ class MenuItem(CountableDjangoObjectType):
         exclude_fields = ['sort_order', 'lft', 'rght', 'tree_id']
         filter_fields = {}
         model = models.MenuItem
+
+    def resolve_children(self, info, **kwargs):
+        return self.children.all()
 
 
 class Menu(CountableDjangoObjectType):
