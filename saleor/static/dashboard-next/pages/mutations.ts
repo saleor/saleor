@@ -2,14 +2,9 @@ import gql from "graphql-tag";
 
 import { TypedMutation } from "../mutations";
 
-import {
-  PageCreateMutation,
-  PageCreateMutationVariables,
-  PageDeleteMutation,
-  PageDeleteMutationVariables,
-  PageUpdateMutation,
-  PageUpdateMutationVariables
-} from "../gql-types";
+import { PageCreate, PageCreateVariables } from "./types/PageCreate";
+import { PageDelete, PageDeleteVariables } from "./types/PageDelete";
+import { PageUpdate, PageUpdateVariables } from "./types/PageUpdate";
 
 export const pageDeleteMutation = gql`
   mutation PageDelete($id: ID!) {
@@ -22,8 +17,8 @@ export const pageDeleteMutation = gql`
   }
 `;
 export const TypedPageDeleteMutation = TypedMutation<
-  PageDeleteMutation,
-  PageDeleteMutationVariables
+  PageDelete,
+  PageDeleteVariables
 >(pageDeleteMutation);
 
 export const pageUpdateMutation = gql`
@@ -61,8 +56,8 @@ export const pageUpdateMutation = gql`
   }
 `;
 export const TypedPageUpdateMutation = TypedMutation<
-  PageUpdateMutation,
-  PageUpdateMutationVariables
+  PageUpdate,
+  PageUpdateVariables
 >(pageUpdateMutation);
 
 export const pageCreateMutation = gql`
@@ -99,6 +94,6 @@ export const pageCreateMutation = gql`
   }
 `;
 export const TypedPageCreateMutation = TypedMutation<
-  PageCreateMutation,
-  PageCreateMutationVariables
+  PageCreate,
+  PageCreateVariables
 >(pageCreateMutation);

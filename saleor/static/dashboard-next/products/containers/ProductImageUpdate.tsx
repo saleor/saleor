@@ -1,10 +1,10 @@
 import * as React from "react";
 
-import {
-  ProductImageUpdateMutation,
-  ProductImageUpdateMutationVariables
-} from "../../gql-types";
 import { TypedProductImageUpdateMutation } from "../mutations";
+import {
+  ProductImageUpdate,
+  ProductImageUpdateVariables
+} from "../types/ProductImageUpdate";
 
 import {
   PartialMutationProviderProps,
@@ -12,12 +12,12 @@ import {
 } from "../..";
 
 interface ProductImagesUpdateProviderProps
-  extends PartialMutationProviderProps<ProductImageUpdateMutation> {
+  extends PartialMutationProviderProps<ProductImageUpdate> {
   productId: string;
   imageId: string;
   children: PartialMutationProviderRenderProps<
-    ProductImageUpdateMutation,
-    ProductImageUpdateMutationVariables
+    ProductImageUpdate,
+    ProductImageUpdateVariables
   >;
 }
 

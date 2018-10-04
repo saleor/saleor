@@ -114,8 +114,11 @@ def get_product_list_context(request, filter_set):
     """
     # Avoiding circular dependency
     from ..filters import SORT_BY_FIELDS
+    qs = filter_set.qs
+    if not filter_set.form.is_valid():
+        qs = qs.none()
     products_paginated = get_paginator_items(
-        filter_set.qs, settings.PAGINATE_BY, request.GET.get('page'))
+        qs, settings.PAGINATE_BY, request.GET.get('page'))
     products_and_availability = list(products_with_availability(
         products_paginated, request.discounts, request.taxes,
         request.currency))

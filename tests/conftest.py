@@ -1,4 +1,3 @@
-import json
 from io import BytesIO
 from unittest.mock import MagicMock, Mock
 
@@ -9,12 +8,11 @@ from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ModelForm
-from django.test.client import MULTIPART_CONTENT, Client
+from django.test.client import Client
 from django.utils.encoding import smart_text
 from django_countries import countries
 from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
-from graphql_jwt.shortcuts import get_token
 from payments import FraudStatus, PaymentStatus
 from PIL import Image
 from prices import Money
@@ -31,63 +29,11 @@ from saleor.order.models import Order
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.product.models import (
-    AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
-    ProductAttributeTranslation, ProductImage, ProductTranslation, ProductType,
-    ProductVariant)
+    Attribute, AttributeTranslation, AttributeValue, Category, Collection,
+    Product, ProductImage, ProductTranslation, ProductType, ProductVariant)
 from saleor.shipping.models import (
     ShippingMethod, ShippingMethodType, ShippingZone)
 from saleor.site.models import AuthorizationKey, SiteSettings
-
-
-class ApiClient(Client):
-    """GraphQL API client."""
-
-    def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user')
-        self.user = user
-        self.token = get_token(user)
-        super().__init__(*args, **kwargs)
-
-    def _base_environ(self, **request):
-        environ = super()._base_environ(**request)
-        environ.update({'HTTP_AUTHORIZATION': 'JWT %s' % self.token})
-        return environ
-
-    def post(self, path, data=None, **kwargs):
-        """Send a POST request.
-
-        This wrapper sets the `application/json` content type which is
-        more suitable for standard GraphQL requests and doesn't mismatch with
-        handling multipart requests in Graphene.
-        """
-        if data:
-            data = json.dumps(data)
-        kwargs['content_type'] = 'application/json'
-        return super().post(path, data, **kwargs)
-
-    def post_multipart(self, *args, **kwargs):
-        """Send a multipart POST request.
-
-        This is used to send multipart requests to GraphQL API when e.g.
-        uploading files.
-        """
-        kwargs['content_type'] = MULTIPART_CONTENT
-        return super().post(*args, **kwargs)
-
-
-@pytest.fixture
-def admin_api_client(admin_user):
-    return ApiClient(user=admin_user)
-
-
-@pytest.fixture
-def user_api_client(customer_user):
-    return ApiClient(user=customer_user)
-
-
-@pytest.fixture
-def staff_api_client(staff_user):
-    return ApiClient(user=staff_user)
 
 
 @pytest.fixture(autouse=True)
@@ -227,42 +173,44 @@ def shipping_zone(db):  # pylint: disable=W0613
     shipping_zone = ShippingZone.objects.create(
         name='Europe', countries=[code for code, name in countries])
     shipping_zone.shipping_methods.create(
-        name='DHL', minimum_order_price=0, type=ShippingMethodType.PRICE_BASED,
-        price=10, shipping_zone=shipping_zone)
+        name='DHL', minimum_order_price=Money(0, 'USD'),
+        type=ShippingMethodType.PRICE_BASED, price=Money(10, 'USD'),
+        shipping_zone=shipping_zone)
     return shipping_zone
 
 
 @pytest.fixture
 def shipping_method(shipping_zone):
     return ShippingMethod.objects.create(
-        name='DHL', minimum_order_price=0, type=ShippingMethodType.PRICE_BASED,
-        price=10, shipping_zone=shipping_zone)
+        name='DHL', minimum_order_price=Money(0, 'USD'),
+        type=ShippingMethodType.PRICE_BASED,
+        price=Money(10, 'USD'), shipping_zone=shipping_zone)
 
 
 @pytest.fixture
 def color_attribute(db):  # pylint: disable=W0613
-    attribute = ProductAttribute.objects.create(
+    attribute = Attribute.objects.create(
         slug='color', name='Color')
-    AttributeChoiceValue.objects.create(
+    AttributeValue.objects.create(
         attribute=attribute, name='Red', slug='red')
-    AttributeChoiceValue.objects.create(
+    AttributeValue.objects.create(
         attribute=attribute, name='Blue', slug='blue')
     return attribute
 
 
 @pytest.fixture
-def pink_choice_value(color_attribute):  # pylint: disable=W0613
-    value = AttributeChoiceValue.objects.create(
-        slug='pink', name='Color', attribute=color_attribute)
+def pink_attribute_value(color_attribute):  # pylint: disable=W0613
+    value = AttributeValue.objects.create(
+        slug='pink', name='Pink', attribute=color_attribute, value='#FF69B4')
     return value
 
 
 @pytest.fixture
 def size_attribute(db):  # pylint: disable=W0613
-    attribute = ProductAttribute.objects.create(slug='size', name='Size')
-    AttributeChoiceValue.objects.create(
+    attribute = Attribute.objects.create(slug='size', name='Size')
+    AttributeValue.objects.create(
         attribute=attribute, name='Small', slug='small')
-    AttributeChoiceValue.objects.create(
+    AttributeValue.objects.create(
         attribute=attribute, name='Big', slug='big')
     return attribute
 
@@ -450,7 +398,7 @@ def order_with_lines(
     method = shipping_zone.shipping_methods.get()
     order.shipping_method_name = method.name
     order.shipping_method = method
-    order.shipping_price = method.get_total_price(taxes)
+    order.shipping_price = method.get_total(taxes)
     order.save()
 
     recalculate_order(order)
@@ -596,6 +544,11 @@ def permission_manage_menus():
 
 
 @pytest.fixture
+def permission_manage_pages():
+    return Permission.objects.get(codename='manage_pages')
+
+
+@pytest.fixture
 def collection(db):
     collection = Collection.objects.create(
         name='Collection', slug='collection', is_published=True)
@@ -706,16 +659,16 @@ def vatlayer(db, settings, tax_rates, taxes):
 @pytest.fixture
 def translated_variant_fr(product):
     attribute = product.product_type.variant_attributes.first()
-    return ProductAttributeTranslation.objects.create(
-        language_code='fr', product_attribute=attribute,
+    return AttributeTranslation.objects.create(
+        language_code='fr', attribute=attribute,
         name='Name tranlsated to french')
 
 
 @pytest.fixture
-def translated_product_attribute(product):
+def translated_attribute(product):
     attribute = product.product_type.product_attributes.first()
-    return ProductAttributeTranslation.objects.create(
-        language_code='fr', product_attribute=attribute,
+    return AttributeTranslation.objects.create(
+        language_code='fr', attribute=attribute,
         name='Name tranlsated to french')
 
 

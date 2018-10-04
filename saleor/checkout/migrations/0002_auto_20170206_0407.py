@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from django.db import migrations, models
 import django.db.models.deletion
 import django_prices.models
-import jsonfield.fields
+from django.contrib.postgres import fields
 
 
 class Migration(migrations.Migration):
@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='cart',
             name='checkout_data',
-            field=jsonfield.fields.JSONField(editable=False, null=True, verbose_name='checkout data'),
+            field=fields.JSONField(editable=False, null=True, verbose_name='checkout data'),
         ),
         migrations.AlterField(
             model_name='cart',
@@ -60,6 +60,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='cartline',
             name='data',
-            field=jsonfield.fields.JSONField(blank=True, default={}, verbose_name='data'),
+            field=fields.JSONField(blank=True, default=dict, verbose_name='data'),
         ),
     ]

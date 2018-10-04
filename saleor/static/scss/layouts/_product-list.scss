@@ -11,6 +11,12 @@
   }
 }
 
+.product-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .product-list {
   text-align: center;
   margin-bottom: $global-margin * 2;

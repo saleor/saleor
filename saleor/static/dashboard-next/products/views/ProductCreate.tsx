@@ -3,13 +3,13 @@ import * as React from "react";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
-import { ProductCreateMutation } from "../../gql-types";
 import i18n from "../../i18n";
 import { decimal } from "../../misc";
 import ProductCreatePage from "../components/ProductCreatePage";
 import { productListUrl, productUrl } from "../index";
 import { TypedProductCreateMutation } from "../mutations";
 import { productCreateQuery, TypedProductCreateQuery } from "../queries";
+import { ProductCreate } from "../types/ProductCreate";
 
 interface ProductUpdateProps {
   id: string;
@@ -29,7 +29,7 @@ export const ProductUpdate: React.StatelessComponent<
             return (
               <TypedProductCreateQuery query={productCreateQuery}>
                 {({ data, error, loading }) => {
-                  const handleSuccess = (data: ProductCreateMutation) => {
+                  const handleSuccess = (data: ProductCreate) => {
                     if (data.productCreate.errors.length === 0) {
                       pushMessage({ text: i18n.t("Product created") });
                       navigate(productUrl(data.productCreate.product.id));
@@ -45,9 +45,7 @@ export const ProductUpdate: React.StatelessComponent<
                   }
 
                   return (
-                    <TypedProductCreateMutation
-                      onCompleted={handleSuccess}
-                    >
+                    <TypedProductCreateMutation onCompleted={handleSuccess}>
                       {(
                         productCreate,
                         {

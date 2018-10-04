@@ -4,7 +4,6 @@ import { Redirect } from "react-router-dom";
 import CategoryDetailsPage from "../../categories/components/CategoryDetailsPage";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
-import { CategoryPropertiesQuery } from "../../gql-types";
 import i18n from "../../i18n";
 import {
   createPaginationData,
@@ -13,18 +12,20 @@ import {
 } from "../../misc";
 import { productAddUrl, productUrl } from "../../products";
 import { categoryAddUrl, categoryEditUrl, categoryShowUrl } from "../index";
-import {
-  TypedCategoryDeleteMutation
-} from "../mutations";
+import { TypedCategoryDeleteMutation } from "../mutations";
 import {
   categoryPropertiesQuery,
   rootCategoryChildrenQuery,
   TypedCategoryPropertiesQuery,
   TypedRootCategoryChildrenQuery
 } from "../queries";
+import {
+  CategoryProperties,
+  CategoryProperties_category
+} from "../types/CategoryProperties";
 
 interface CategoryDeleteProviderProps {
-  category?: CategoryPropertiesQuery["category"];
+  category?: CategoryProperties_category;
   children:
     | ((deleteCategory: () => void) => React.ReactElement<any>)
     | React.ReactNode;
@@ -73,7 +74,7 @@ interface CategoryPaginationProviderProps {
   children:
     | ((
         props: {
-          data: CategoryPropertiesQuery;
+          data: CategoryProperties;
           loading: boolean;
           pageInfo: PageInfo;
           loadNextPage: () => void;

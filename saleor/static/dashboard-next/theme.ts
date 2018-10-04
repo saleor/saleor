@@ -103,8 +103,7 @@ export default createMuiTheme({
           paddingLeft: 24 + "px",
           textAlign: "left" as "left"
         },
-        paddingLeft: 0,
-        textAlign: "center" as "center"
+        paddingLeft: 0
       }
     },
     MuiTableRow: {
@@ -167,5 +166,11 @@ export default createMuiTheme({
     createShadow(10, 41, 7, 10, 18, -5, 20, 31, 2),
     createShadow(9, 44, 7, 11, 16, -6, 22, 35, 2),
     createShadow(9, 46, 8, 11, 15, -7, 24, 38, 3)
-  ]
+  ],
+  typography: {
+    body2: {
+      fontSize: "0.75rem",
+      fontWeight: 600 as 600
+    }
+  }
 });

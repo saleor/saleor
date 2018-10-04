@@ -1,16 +1,18 @@
 from collections import OrderedDict
 
 from django.db.models import Q
-from django.forms import CheckboxSelectMultiple, ValidationError
+from django.forms import CheckboxSelectMultiple
 from django.utils.translation import pgettext_lazy
 from django_filters import MultipleChoiceFilter, OrderingFilter, RangeFilter
 
 from ..core.filters import SortedFilterSet
-from .models import Product, ProductAttribute
+from .models import Attribute, Product
 
 SORT_BY_FIELDS = OrderedDict([
     ('name', pgettext_lazy('Product list sorting option', 'name')),
-    ('price', pgettext_lazy('Product list sorting option', 'price'))])
+    ('price', pgettext_lazy('Product list sorting option', 'price')),
+    ('updated_at', pgettext_lazy(
+        'Product list sorting option', 'last updated'))])
 
 
 class ProductFilter(SortedFilterSet):
@@ -37,12 +39,12 @@ class ProductFilter(SortedFilterSet):
         q_product_attributes = self._get_product_attributes_lookup()
         q_variant_attributes = self._get_variant_attributes_lookup()
         product_attributes = (
-            ProductAttribute.objects.all()
+            Attribute.objects.all()
             .prefetch_related('translations', 'values__translations')
             .filter(q_product_attributes)
             .distinct())
         variant_attributes = (
-            ProductAttribute.objects.all()
+            Attribute.objects.all()
             .prefetch_related('translations', 'values__translations')
             .filter(q_variant_attributes)
             .distinct())
@@ -58,7 +60,7 @@ class ProductFilter(SortedFilterSet):
         filters = {}
         for attribute in self.product_attributes:
             filters[attribute.slug] = MultipleChoiceFilter(
-                name='attributes__%s' % attribute.pk,
+                field_name='attributes__%s' % attribute.pk,
                 label=attribute.translated.name,
                 widget=CheckboxSelectMultiple,
                 choices=self._get_attribute_choices(attribute))
@@ -68,7 +70,7 @@ class ProductFilter(SortedFilterSet):
         filters = {}
         for attribute in self.variant_attributes:
             filters[attribute.slug] = MultipleChoiceFilter(
-                name='variants__attributes__%s' % attribute.pk,
+                field_name='variants__attributes__%s' % attribute.pk,
                 label=attribute.translated.name,
                 widget=CheckboxSelectMultiple,
                 choices=self._get_attribute_choices(attribute))
@@ -78,14 +80,6 @@ class ProductFilter(SortedFilterSet):
         return [
             (choice.pk, choice.translated.name)
             for choice in attribute.values.all()]
-
-    def validate_sort_by(self, value):
-        if value.strip('-') not in SORT_BY_FIELDS:
-            raise ValidationError(
-                pgettext_lazy(
-                    'Validation error for sort_by filter',
-                    '%(value)s is not a valid sorting option'),
-                params={'value': value})
 
 
 class ProductCategoryFilter(ProductFilter):

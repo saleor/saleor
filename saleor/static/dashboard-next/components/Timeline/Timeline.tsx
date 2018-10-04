@@ -23,15 +23,24 @@ import DateFormatter from "../DateFormatter";
 interface TimelineNodeProps {
   date: string;
   title: string;
+  amount: number | null;
+  email: string | null;
+  emailType: string | null;
+  type: string;
+  quantity: number | null;
 }
 interface TimelineNoteProps {
   date: string;
-  user: string;
-  content: string;
+  message: string | null;
+  user: {
+    email: string;
+  };
 }
 interface TimelineAddNoteProps {
-  user: string;
-  content: string;
+  user: {
+    email: string;
+  };
+  message: string;
   onChange(event: React.ChangeEvent<any>);
   onSubmit(event: React.FormEvent<any>);
 }
@@ -156,9 +165,9 @@ export const TimelineNode = decorate<TimelineNodeProps>(
         <ExpansionPanel className={classes.panel} elevation={0}>
           <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
             <Typography>{title}</Typography>
-            <div className={classes.nodeDate}>
+            <Typography className={classes.nodeDate}>
               <DateFormatter date={date} />
-            </div>
+            </Typography>
           </ExpansionPanelSummary>
           <ExpansionPanelDetails>
             <Typography>{children}</Typography>
@@ -167,49 +176,49 @@ export const TimelineNode = decorate<TimelineNodeProps>(
       ) : (
         <>
           <Typography className={classes.noExpander}>{title}</Typography>
-          <div className={classes.noExpanderNodeDate}>
+          <Typography className={classes.noExpanderNodeDate}>
             <DateFormatter date={date} />
-          </div>
+          </Typography>
         </>
       )}
     </div>
   )
 );
 export const TimelineNote = decorate<TimelineNoteProps>(
-  ({ classes, date, user, content }) => (
+  ({ classes, date, user, message }) => (
     <Card className={classes.noteRoot}>
       <CardContent className={classes.noteTitle}>
-        <Avatar style={{ background: palette[CRC.str(user) % palette.length] }}>
+        <Avatar
+          style={{ background: palette[CRC.str(user.email) % palette.length] }}
+        >
           <PersonIcon />
         </Avatar>
-        <Typography className={classes.noteUser}>{user}</Typography>
-        <div className={classes.noteDate}>
+        <Typography className={classes.noteUser}>{user.email}</Typography>
+        <Typography className={classes.noteDate}>
           <DateFormatter date={date} />
-        </div>
+        </Typography>
       </CardContent>
       <CardContent>
-        <Typography className={classes.noteContent}>{content}</Typography>
+        <Typography className={classes.noteContent}>{message}</Typography>
       </CardContent>
     </Card>
   )
 );
 export const TimelineAddNote = decorate<TimelineAddNoteProps>(
-  ({ classes, user, content, onChange, onSubmit }) => (
+  ({ classes, user, message, onChange, onSubmit }) => (
     <div className={classes.noteRoot}>
       <CardContent className={classes.noteTitle}>
         <Avatar
-          style={{ background: palette[CRC.str(user) % palette.length] }}
+          style={{ background: palette[CRC.str(user.email) % palette.length] }}
           className={classes.avatar}
         >
           <PersonIcon />
         </Avatar>
         <TextField
-          label={i18n.t("Note")}
           placeholder={i18n.t("Leave your note here...")}
           onChange={onChange}
-          value={content}
-          name="content"
-          InputLabelProps={{ shrink: true }}
+          value={message}
+          name="message"
           fullWidth
           multiline
         />
@@ -217,7 +226,7 @@ export const TimelineAddNote = decorate<TimelineAddNoteProps>(
       <CardActions
         className={classNames([
           classes.cardActions,
-          { [classes.cardActionsExpanded]: content }
+          { [classes.cardActionsExpanded]: message }
         ])}
       >
         <Button onClick={onSubmit}>{i18n.t("Add note")}</Button>

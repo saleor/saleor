@@ -6,7 +6,6 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import Typography from "@material-ui/core/Typography";
 import CloseIcon from "@material-ui/icons/Close";
 import * as classNames from "classnames";
 import * as React from "react";
@@ -29,26 +28,26 @@ interface MoneyType {
   currency: string;
 }
 export interface OrderProductsProps {
+  authorized?: MoneyType;
   isDraft?: boolean;
-  net?: MoneyType;
-  paid?: MoneyType;
-  products?: Array<{
+  lines?: Array<{
     id: string;
-    name: string;
-    price: TaxedMoneyType;
+    productName: string;
+    unitPrice: TaxedMoneyType;
     quantity: number;
-    sku: string;
+    productSku: string;
     thumbnailUrl: string;
   }>;
-  shippingMethod?: {
-    name: string;
-    price: MoneyType;
+  paid?: MoneyType;
+  shippingMethodName?: string;
+  shippingPrice?: {
+    gross: MoneyType;
   };
-  refunded?: MoneyType;
   subtotal?: MoneyType;
+  tax?: MoneyType;
   total?: MoneyType;
-  onOrderLineChange?(id: string): (value: string) => () => void;
-  onOrderLineRemove?(id: string): () => any;
+  onOrderLineChange?(id: string): (value: string) => void;
+  onOrderLineRemove(id: string);
   onRowClick?(id: string): () => any;
   onShippingMethodClick?();
 }
@@ -82,22 +81,29 @@ const decorate = withStyles(
       color: blue[500],
       cursor: "pointer"
     },
+    noBorder: {
+      border: "none"
+    },
     textRight: {
       textAlign: "right" as "right"
+    },
+    thinRow: {
+      height: 24
     }
   }),
   { name: "OrderProducts" }
 );
 const OrderProducts = decorate<OrderProductsProps>(
   ({
+    authorized,
     classes,
     isDraft,
-    net,
+    lines,
     paid,
-    products,
-    refunded,
-    shippingMethod,
+    shippingMethodName,
+    shippingPrice,
     subtotal,
+    tax,
     total,
     onOrderLineChange,
     onOrderLineRemove,
@@ -123,21 +129,23 @@ const OrderProducts = decorate<OrderProductsProps>(
       </TableHead>
       <TableBody>
         {renderCollection(
-          products,
+          lines,
           product => (
             <TableRow key={product ? product.id : "skeleton"}>
               {product && isDraft ? (
                 <TableCell className={classes.avatarCell}>
                   <IconButton
-                    onClick={onOrderLineRemove && onOrderLineRemove(product.id)}
+                    onClick={() => onOrderLineRemove(product.id)}
                     disabled={!onOrderLineRemove}
                     className={classes.deleteIcon}
                   >
                     <CloseIcon />
                   </IconButton>
                 </TableCell>
+              ) : product ? (
+                <TableCellAvatar thumbnail={product.thumbnailUrl} />
               ) : (
-                <TableCellAvatar thumbnail={product && product.thumbnailUrl} />
+                <TableCellAvatar />
               )}
               <TableCell>
                 {product ? (
@@ -145,18 +153,20 @@ const OrderProducts = decorate<OrderProductsProps>(
                     onClick={onRowClick && onRowClick(product.id)}
                     className={classes.link}
                   >
-                    {product.name}
+                    {product.productName}
                   </span>
                 ) : (
                   <Skeleton />
                 )}
               </TableCell>
-              <TableCell>{product ? product.sku : <Skeleton />}</TableCell>
+              <TableCell>
+                {product ? product.productSku : <Skeleton />}
+              </TableCell>
               <TableCell className={classes.textRight}>
-                {product && product.price && product.price.gross ? (
+                {product && product.unitPrice && product.unitPrice.gross ? (
                   <Money
-                    amount={product.price.gross.amount}
-                    currency={product.price.gross.currency}
+                    amount={product.unitPrice.gross.amount}
+                    currency={product.unitPrice.gross.currency}
                   />
                 ) : (
                   <Skeleton />
@@ -178,10 +188,10 @@ const OrderProducts = decorate<OrderProductsProps>(
                 </TableCell>
               )}
               <TableCell className={classes.textRight}>
-                {product && product.price && product.price.gross ? (
+                {product && product.unitPrice && product.unitPrice.gross ? (
                   <Money
-                    amount={product.price.gross.amount * product.quantity}
-                    currency={product.price.gross.currency}
+                    amount={product.unitPrice.gross.amount * product.quantity}
+                    currency={product.unitPrice.gross.currency}
                   />
                 ) : (
                   <Skeleton />
@@ -191,102 +201,116 @@ const OrderProducts = decorate<OrderProductsProps>(
           ),
           () => (
             <TableRow>
-              <TableCell className={classes.avatarCell} />
-              <TableCell colSpan={2}>{i18n.t("No products found")}</TableCell>
+              <TableCell colSpan={6}>{i18n.t("No products found")}</TableCell>
             </TableRow>
           )
         )}
-        <TableRow>
-          <TableCell colSpan={5} className={classes.textRight}>
-            <div className={classes.flexBox}>
-              <Typography>{i18n.t("Subtotal")}</Typography>
-              <Typography
-                className={classNames({ [classes.link]: isDraft })}
-                onClick={onShippingMethodClick}
-              >
-                {shippingMethod ? shippingMethod.name : i18n.t("Shipping")}
-              </Typography>
-              <Typography>
-                <b>{i18n.t("Total")}</b>
-              </Typography>
-            </div>
+        <TableRow className={classes.thinRow} />
+        <TableRow className={classes.thinRow}>
+          <TableCell className={classes.noBorder} colSpan={5}>
+            {i18n.t("Subtotal")}
           </TableCell>
-          <TableCell className={classes.textRight}>
-            <div className={classes.flexBox}>
-              {subtotal ? (
-                <Money
-                  amount={subtotal.amount}
-                  currency={subtotal.currency}
-                  typographyProps={{ component: "p" }}
-                />
-              ) : (
-                <Skeleton />
-              )}
-              {shippingMethod && shippingMethod.price ? (
-                <Money
-                  amount={shippingMethod.price.amount}
-                  currency={shippingMethod.price.currency}
-                  typographyProps={{ component: "p" }}
-                />
-              ) : (
-                <Skeleton />
-              )}
-              {total ? (
-                <Money
-                  amount={total.amount}
-                  currency={total.currency}
-                  typographyProps={{ component: "p" }}
-                />
-              ) : (
-                <Skeleton />
-              )}
-            </div>
+          <TableCell
+            className={classNames([classes.noBorder, classes.textRight])}
+          >
+            {subtotal ? (
+              <Money
+                amount={subtotal.amount}
+                currency={subtotal.currency}
+                typographyProps={{ component: "p" }}
+              />
+            ) : (
+              <Skeleton />
+            )}
+          </TableCell>
+        </TableRow>
+        <TableRow className={classes.thinRow}>
+          <TableCell
+            colSpan={5}
+            className={classNames({
+              [classes.link]: isDraft,
+              [classes.noBorder]: true
+            })}
+            onClick={isDraft ? onShippingMethodClick : undefined}
+          >
+            {shippingMethodName ? shippingMethodName : i18n.t("Shipping")}
+          </TableCell>
+          <TableCell
+            className={classNames([classes.noBorder, classes.textRight])}
+          >
+            {shippingPrice && shippingPrice.gross ? (
+              <Money
+                amount={shippingPrice.gross.amount}
+                currency={shippingPrice.gross.currency}
+              />
+            ) : (
+              <Skeleton />
+            )}
+          </TableCell>
+        </TableRow>
+        {tax &&
+          tax.amount > 0 && (
+            <TableRow className={classes.thinRow}>
+              <TableCell className={classes.noBorder} colSpan={5}>
+                {i18n.t("Tax (included)")}
+              </TableCell>
+              <TableCell
+                className={classNames([classes.noBorder, classes.textRight])}
+              >
+                <Money amount={tax.amount} currency={tax.currency} />
+              </TableCell>
+            </TableRow>
+          )}
+        <TableRow className={classes.thinRow}>
+          <TableCell className={classes.noBorder} colSpan={5}>
+            <b>{i18n.t("Total")}</b>
+          </TableCell>
+          <TableCell
+            className={classNames([classes.noBorder, classes.textRight])}
+          >
+            {total ? (
+              <Money amount={total.amount} currency={total.currency} />
+            ) : (
+              <Skeleton />
+            )}
           </TableCell>
         </TableRow>
         {!isDraft && (
-          <TableRow>
-            <TableCell colSpan={5} className={classes.textRight}>
-              <div className={classes.flexBox}>
-                <Typography>{i18n.t("Paid by customer")}</Typography>
-                <Typography>{i18n.t("Refunded")}</Typography>
-                <Typography>
-                  <b>{i18n.t("Net payment")}</b>
-                </Typography>
-              </div>
-            </TableCell>
-            <TableCell className={classes.textRight}>
-              <div className={classes.flexBox}>
+          <>
+            <TableRow className={classes.thinRow}>
+              <TableCell colSpan={5} className={classes.noBorder}>
+                {i18n.t("Authorized")}
+              </TableCell>
+              <TableCell
+                className={classNames([classes.noBorder, classes.textRight])}
+              >
+                {authorized ? (
+                  <Money
+                    amount={authorized.amount}
+                    currency={authorized.currency}
+                  />
+                ) : (
+                  <Skeleton />
+                )}
+              </TableCell>
+            </TableRow>
+            <TableRow className={classes.thinRow}>
+              <TableCell colSpan={5} className={classes.noBorder}>
+                <b>{i18n.t("Net payment")}</b>
+              </TableCell>
+              <TableCell
+                className={classNames([classes.noBorder, classes.textRight])}
+              >
                 {paid ? (
-                  <Money
-                    amount={paid.amount}
-                    currency={paid.currency}
-                    typographyProps={{ component: "p" }}
-                  />
+                  <Money amount={paid.amount} currency={paid.currency} />
                 ) : (
                   <Skeleton />
                 )}
-                {refunded ? (
-                  <Money
-                    amount={-refunded.amount}
-                    currency={refunded.currency}
-                    typographyProps={{ component: "p" }}
-                  />
-                ) : (
-                  <Skeleton />
-                )}
-                {net ? (
-                  <Money
-                    amount={net.amount}
-                    currency={net.currency}
-                    typographyProps={{ component: "p" }}
-                  />
-                ) : (
-                  <Skeleton />
-                )}
-              </div>
-            </TableCell>
-          </TableRow>
+              </TableCell>
+            </TableRow>
+          </>
         )}
+        <TableRow className={classes.thinRow} />
       </TableBody>
     </Table>
   )

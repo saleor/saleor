@@ -3,11 +3,11 @@ from decimal import Decimal
 from uuid import uuid4
 
 from django.conf import settings
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.contrib.postgres.fields import JSONField
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.encoding import smart_str
 from django_prices.models import MoneyField
-from jsonfield import JSONField
 from measurement.measures import Weight
 
 from ..account.models import Address
@@ -82,7 +82,7 @@ class Cart(models.Model):
 
     def get_shipping_price(self, taxes):
         return (
-            self.shipping_method.get_total_price(taxes)
+            self.shipping_method.get_total(taxes)
             if self.shipping_method and self.is_shipping_required()
             else ZERO_TAXED_MONEY)
 
@@ -121,9 +121,8 @@ class CartLine(models.Model):
         Cart, related_name='lines', on_delete=models.CASCADE)
     variant = models.ForeignKey(
         'product.ProductVariant', related_name='+', on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(999)])
-    data = JSONField(blank=True, default={})
+    quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    data = JSONField(blank=True, default=dict)
 
     class Meta:
         unique_together = ('cart', 'variant', 'data')

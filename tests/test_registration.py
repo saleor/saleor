@@ -29,7 +29,7 @@ def test_login_form_not_valid(customer_user):
     data = {'user': 'test@example.com', 'password': 'wrongpassword'}
     form = LoginForm(data=data)
     assert not form.is_valid()
-    assert form.get_user_id() is None
+    assert form.get_user() is None
 
 
 def test_login_view_valid(client, customer_user):

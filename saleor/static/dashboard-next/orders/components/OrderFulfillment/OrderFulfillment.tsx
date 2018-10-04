@@ -19,16 +19,16 @@ import i18n from "../../../i18n";
 interface OrderFulfillmentProps {
   id?: string;
   status?: string;
-  products?: Array<{
+  lines?: Array<{
     quantity: number;
-    product: {
+    orderLine: {
       id: string;
-      name: string;
-      thumbnailUrl: string;
+      productName: string;
+      thumbnailUrl?: string;
     };
   }>;
   trackingCode?: string;
-  onFulfillmentCancel?();
+  onOrderFulfillmentCancel?();
   onTrackingCodeAdd?();
   onPackingSlipClick?();
 }
@@ -59,10 +59,10 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
   ({
     classes,
     id,
+    lines,
     status,
-    products,
     trackingCode,
-    onFulfillmentCancel,
+    onOrderFulfillmentCancel,
     onTrackingCodeAdd,
     onPackingSlipClick
   }) => (
@@ -99,12 +99,14 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
           </TableRow>
         </TableHead>
         <TableBody>
-          {products ? (
-            products.map(productLine => (
-              <TableRow key={productLine.product.id}>
-                <TableCellAvatar thumbnail={productLine.product.thumbnailUrl} />
+          {lines ? (
+            lines.map(productLine => (
+              <TableRow key={productLine.orderLine.id}>
+                <TableCellAvatar
+                  thumbnail={productLine.orderLine.thumbnailUrl}
+                />
                 <TableCell className={classes.textLeft}>
-                  {productLine.product.name} x {productLine.quantity}
+                  {productLine.orderLine.productName} x {productLine.quantity}
                 </TableCell>
               </TableRow>
             ))
@@ -125,7 +127,7 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
               ? i18n.t("Add tracking number")
               : i18n.t("Edit tracking number")}
           </Button>
-          <Button onClick={onFulfillmentCancel}>
+          <Button onClick={onOrderFulfillmentCancel}>
             {i18n.t("Cancel shipment")}
           </Button>
         </CardActions>

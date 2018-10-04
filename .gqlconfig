@@ -1,0 +1,13 @@
+{
+  schema: {
+    files: "saleor/graphql/schema.graphql"
+  },
+  query: {
+    files: [
+      {
+        match: { include: 'saleor/static/dashboard-next/**/*.ts*'},
+        parser: [ 'EmbeddedQueryParser', { startTag: 'gql`', endTag: '`' } ],
+      }
+    ]
+  }
+}

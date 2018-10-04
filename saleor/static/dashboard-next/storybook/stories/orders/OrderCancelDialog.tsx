@@ -9,8 +9,8 @@ storiesOf("Orders / OrderCancelDialog", module)
   .add("default", () => (
     <OrderCancelDialog
       open={true}
-      id="123"
-      onConfirm={undefined}
+      number="123"
+      onSubmit={undefined}
       onClose={undefined}
     />
   ));

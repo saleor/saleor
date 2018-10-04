@@ -114,10 +114,7 @@ const VoucherList = decorate<VoucherListProps>(
                 <TableCell>
                   {voucher ? (
                     voucher.startDate !== null ? (
-                      <DateFormatter
-                        typographyProps={{ className: classes.tableCellFont }}
-                        date={voucher.startDate}
-                      />
+                      <DateFormatter date={voucher.startDate} />
                     ) : (
                       "-"
                     )
@@ -128,10 +125,7 @@ const VoucherList = decorate<VoucherListProps>(
                 <TableCell>
                   {voucher ? (
                     voucher.endDate !== null ? (
-                      <DateFormatter
-                        typographyProps={{ className: classes.tableCellFont }}
-                        date={voucher.endDate}
-                      />
+                      <DateFormatter date={voucher.endDate} />
                     ) : (
                       "-"
                     )

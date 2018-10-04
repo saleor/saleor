@@ -544,7 +544,7 @@
               {% for note in notes %}
               <li class="list-item list-item--spaced">
                 <small class="list-item-author">{{ note.user }} - {{ note.date }}</small>
-                <p>{{ note.content }}</p>
+                <p>{{ note.parameters.message }}</p>
               </li>
               {% endfor %}
             </ul>
@@ -626,7 +626,7 @@
         {% for event in events %}
           <li class="event" data-date="{{ event.date }}">
             <div class="content">
-              {{ event.content|default:"" }}{% if event.user %} by {{ event.user }}{% endif %}
+              {{ event.get_event_display|default:"" }}{% if event.user %} by {{ event.user }}{% endif %}
             </div>
           </li>
         {% endfor %}

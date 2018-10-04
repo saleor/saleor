@@ -15,7 +15,7 @@ from ...product.models import Category, Collection
 from ..views import staff_member_required
 from .filters import MenuFilter, MenuItemFilter
 from .forms import AssignMenuForm, MenuForm, MenuItemForm, ReorderMenuItemsForm
-from .utils import update_menu
+from .utils import get_menu_obj_text, update_menu
 
 
 @staff_member_required
@@ -227,7 +227,9 @@ def ajax_menu_links(request):
     """
     def get_obj_repr(obj):
         obj_id = str(obj.pk) + '_' + obj.__class__.__name__
-        return {'id': obj_id, 'text': str(obj)}
+        return {
+            'id': obj_id,
+            'text': get_menu_obj_text(obj)}
 
     def get_group_repr(model, label, filter_fields, query):
         queryset = model.objects.all()

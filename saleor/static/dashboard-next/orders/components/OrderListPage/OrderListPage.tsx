@@ -2,29 +2,15 @@ import Button from "@material-ui/core/Button";
 import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
-import { transformOrderStatus, transformPaymentStatus } from "../../";
 import { PageListProps } from "../../..";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
+import { OrderList_orders_edges_node } from "../../types/OrderList";
 import OrderList from "../OrderList";
 
 interface OrderListPageProps extends PageListProps {
-  orders?: Array<{
-    id: string;
-    number: number;
-    status: string;
-    client: {
-      id: string;
-      email: string;
-    };
-    created: string;
-    paymentStatus: string;
-    price: {
-      amount: number;
-      currency: string;
-    };
-  }>;
+  orders: OrderList_orders_edges_node[];
 }
 
 const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
@@ -35,35 +21,26 @@ const OrderListPage: React.StatelessComponent<OrderListPageProps> = ({
   onNextPage,
   onPreviousPage,
   onRowClick
-}) => {
-  const orderList = orders
-    ? orders.map(order => ({
-        ...order,
-        orderStatus: transformOrderStatus(order.status),
-        paymentStatus: transformPaymentStatus(order.paymentStatus)
-      }))
-    : undefined;
-  return (
-    <Container width="md">
-      <PageHeader title={i18n.t("Orders")}>
-        <Button
-          color="secondary"
-          variant="contained"
-          disabled={disabled}
-          onClick={onAdd}
-        >
-          {i18n.t("Add order")} <AddIcon />
-        </Button>
-      </PageHeader>
-      <OrderList
+}) => (
+  <Container width="md">
+    <PageHeader title={i18n.t("Orders")}>
+      <Button
+        color="secondary"
+        variant="contained"
         disabled={disabled}
-        onRowClick={onRowClick}
-        orders={orderList}
-        pageInfo={pageInfo}
-        onNextPage={onNextPage}
-        onPreviousPage={onPreviousPage}
-      />
-    </Container>
-  );
-};
+        onClick={onAdd}
+      >
+        {i18n.t("Create order", { context: "button" })} <AddIcon />
+      </Button>
+    </PageHeader>
+    <OrderList
+      disabled={disabled}
+      onRowClick={onRowClick}
+      orders={orders}
+      pageInfo={pageInfo}
+      onNextPage={onNextPage}
+      onPreviousPage={onPreviousPage}
+    />
+  </Container>
+);
 export default OrderListPage;

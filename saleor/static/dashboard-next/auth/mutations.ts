@@ -1,13 +1,8 @@
 import gql from "graphql-tag";
 
 import { TypedMutation } from "../mutations";
-
-import {
-  TokenAuthMutation,
-  TokenAuthMutationVariables,
-  VerifyTokenMutation,
-  VerifyTokenMutationVariables
-} from "../gql-types";
+import { TokenAuth, TokenAuthVariables } from "./types/TokenAuth";
+import { VerifyToken, VerifyTokenVariables } from "./types/VerifyToken";
 
 export const fragmentUser = gql`
   fragment User on User {
@@ -39,8 +34,8 @@ export const tokenAuthMutation = gql`
 `;
 
 export const TypedTokenAuthMutation = TypedMutation<
-  TokenAuthMutation,
-  TokenAuthMutationVariables
+  TokenAuth,
+  TokenAuthVariables
 >(tokenAuthMutation);
 
 export const tokenVerifyMutation = gql`
@@ -56,6 +51,6 @@ export const tokenVerifyMutation = gql`
 `;
 
 export const TypedVerifyTokenMutation = TypedMutation<
-  VerifyTokenMutation,
-  VerifyTokenMutationVariables
+  VerifyToken,
+  VerifyTokenVariables
 >(tokenVerifyMutation);

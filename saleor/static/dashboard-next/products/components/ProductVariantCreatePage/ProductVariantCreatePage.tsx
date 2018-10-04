@@ -10,6 +10,7 @@ import SaveButtonBar, {
   SaveButtonBarState
 } from "../../../components/SaveButtonBar";
 import i18n from "../../../i18n";
+import { maybe } from "../../../misc";
 import ProductVariantAttributes from "../ProductVariantAttributes";
 import ProductVariantNavigation from "../ProductVariantNavigation";
 import ProductVariantPrice from "../ProductVariantPrice";
@@ -23,7 +24,7 @@ interface FormData {
   costPrice?: string;
   images?: string[];
   priceOverride?: string;
-  stock?: number;
+  quantity?: number;
   sku?: string;
 }
 interface ProductVariantCreatePageProps {
@@ -38,11 +39,7 @@ interface ProductVariantCreatePageProps {
     };
     productType?: {
       name?: string;
-      variantAttributes?: {
-        edges?: Array<{
-          node: AttributeType;
-        }>;
-      };
+      variantAttributes?: AttributeType[];
     };
     variants?: {
       edges?: Array<{
@@ -92,24 +89,17 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
     onVariantClick
   }) => {
     const initialForm = {
-      attributes:
-        product &&
-        product.productType &&
-        product.productType.variantAttributes &&
-        product.productType.variantAttributes.edges
-          ? product.productType.variantAttributes.edges.map(a => ({
-              slug: a.node.slug,
-              value: ""
-            }))
-          : undefined,
+      attributes: maybe(() =>
+        product.productType.variantAttributes.map(attribute => ({
+          slug: attribute.slug,
+          value: ""
+        }))
+      ),
       costPrice: "",
-      images:
-        product && product.images && product.images.edges
-          ? product.images.edges.map(edge => edge.node.id)
-          : undefined,
+      images: maybe(() => product.images.edges.map(edge => edge.node.id)),
       priceOverride: "",
-      sku: "",
-      stock: 0
+      quantity: 0,
+      sku: ""
     };
     return (
       <Container width="md">
@@ -140,16 +130,9 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
                   </div>
                   <div>
                     <ProductVariantAttributes
-                      attributes={
-                        product &&
-                        product.productType &&
-                        product.productType.variantAttributes &&
-                        product.productType.variantAttributes.edges
-                          ? product.productType.variantAttributes.edges.map(
-                              edge => edge.node
-                            )
-                          : undefined
-                      }
+                      attributes={maybe(
+                        () => product.productType.variantAttributes
+                      )}
                       data={data}
                       disabled={loading}
                       onChange={change}
@@ -166,7 +149,7 @@ const ProductVariantCreatePage = decorate<ProductVariantCreatePageProps>(
                     <ProductVariantStock
                       errors={errors}
                       sku={data.sku}
-                      stock={data.stock}
+                      quantity={data.quantity}
                       loading={loading}
                       onChange={change}
                     />

@@ -36,10 +36,10 @@
               <td>{% price shipping.price %}</td>
               <td class="right-align">
                 <a href="{% url 'dashboard:shipping-method-edit' shipping_zone_pk=shipping_zone.pk shipping_method_pk=shipping.pk %}" class="btn-flat waves-effect">
-                  {% trans 'Edit' context 'Attribute choice value edit action' %}
+                  {% trans 'Edit' context 'Attribute value edit action' %}
                 </a>
                 <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:shipping-method-delete' shipping_zone_pk=shipping_zone.pk shipping_method_pk=shipping.pk %}">
-                  {% trans 'Remove' context 'Attribute choice value remove action' %}
+                  {% trans 'Remove' context 'Attribute value remove action' %}
                 </a>
               </td>
             </tr>

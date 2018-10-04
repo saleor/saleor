@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-08-16 04:42-0500\n"
+"POT-Creation-Date: 2018-09-10 05:21-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -352,12 +352,12 @@ msgstr ""
 msgid "Your input fits between the recommended lengths"
 msgstr ""
 
-#: saleor/static/js/components/variantPicker/QuantityInput.js:21
+#: saleor/static/js/components/variantPicker/QuantityInput.js:22
 msgctxt "Add to cart form field label"
 msgid "Quantity"
 msgstr ""
 
-#: saleor/static/js/components/variantPicker/VariantPicker.js:166
+#: saleor/static/js/components/variantPicker/VariantPicker.js:167
 msgctxt "Product details primary action"
 msgid "Add to cart"
 msgstr ""

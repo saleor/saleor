@@ -1,6 +1,6 @@
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.translation import pgettext_lazy
-from jsonfield import JSONField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 
@@ -12,7 +12,7 @@ from ..product.models import Category, Collection
 
 class Menu(models.Model):
     name = models.CharField(max_length=128)
-    json_content = JSONField(blank=True, default={})
+    json_content = JSONField(blank=True, default=dict)
 
     class Meta:
         permissions = ((
@@ -83,6 +83,10 @@ class MenuItem(MPTTModel, SortableModel):
     def get_url(self):
         linked_object = self.linked_object
         return linked_object.get_absolute_url() if linked_object else self.url
+
+    def is_public(self):
+        return not self.linked_object or getattr(
+            self.linked_object, 'is_published', True)
 
 
 class MenuItemTranslation(models.Model):
