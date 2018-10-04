@@ -576,7 +576,7 @@ type MenuItem implements Node {
   collection: Collection
   page: Page
   level: Int!
-  children(before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
+  children: [MenuItem]!
 }
 
 type MenuItemCountableConnection {
