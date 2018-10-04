@@ -165,6 +165,8 @@ class OrderDetailsPageComponent extends React.Component<
       openedShippingAddressEditDialog
     } = this.state;
     const canCancel = maybe(() => order.status) !== OrderStatus.CANCELED;
+    const canEditAddresses = maybe(() => order.status) !== OrderStatus.CANCELED;
+    const canFulfill = maybe(() => order.status) !== OrderStatus.CANCELED;
     const unfulfilled = maybe(() => order.lines.edges, [])
       .map(edge => edge.node)
       .filter(line => line.quantityFulfilled < line.quantity);
@@ -201,6 +203,7 @@ class OrderDetailsPageComponent extends React.Component<
             <div>
               {!!maybe(() => order.lines.edges.length > 0) && (
                 <OrderUnfulfilledItems
+                  canFulfill={canFulfill}
                   lines={unfulfilled}
                   onFulfill={this.toggleFulfillmentDialog}
                 />
@@ -271,6 +274,7 @@ class OrderDetailsPageComponent extends React.Component<
             </div>
             <div>
               <OrderCustomer
+                canEditAddresses={canEditAddresses}
                 canEditCustomer={false}
                 order={order}
                 onBillingAddressEdit={this.toggleBillingAddressEditDialog}

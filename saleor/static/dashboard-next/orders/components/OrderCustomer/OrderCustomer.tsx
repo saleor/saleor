@@ -22,6 +22,7 @@ export interface OrderCustomerProps {
   order: OrderDetails_order;
   users?: UserSearch_customers_edges_node[];
   loading?: boolean;
+  canEditAddresses: boolean;
   canEditCustomer: boolean;
   fetchUsers?: (query: string) => void;
   onCustomerEdit?: (
@@ -60,6 +61,7 @@ const decorate = withStyles(
 const OrderCustomer = decorate<OrderCustomerProps>(
   ({
     classes,
+    canEditAddresses,
     canEditCustomer,
     fetchUsers,
     loading,
@@ -170,16 +172,18 @@ const OrderCustomer = decorate<OrderCustomerProps>(
             <Typography className={classes.sectionHeaderTitle}>
               {i18n.t("Shipping Address")}
             </Typography>
-            <div className={classes.sectionHeaderToolbar}>
-              <Button
-                color="secondary"
-                variant="flat"
-                onClick={onShippingAddressEdit}
-                disabled={!onShippingAddressEdit && user === undefined}
-              >
-                {i18n.t("Edit")}
-              </Button>
-            </div>
+            {canEditAddresses && (
+              <div className={classes.sectionHeaderToolbar}>
+                <Button
+                  color="secondary"
+                  variant="flat"
+                  onClick={onShippingAddressEdit}
+                  disabled={!onShippingAddressEdit && user === undefined}
+                >
+                  {i18n.t("Edit")}
+                </Button>
+              </div>
+            )}
           </div>
           {shippingAddress === undefined ? (
             <Skeleton />
@@ -220,16 +224,18 @@ const OrderCustomer = decorate<OrderCustomerProps>(
             <Typography className={classes.sectionHeaderTitle}>
               {i18n.t("Billing Address")}
             </Typography>
-            <div className={classes.sectionHeaderToolbar}>
-              <Button
-                color="secondary"
-                variant="flat"
-                onClick={onBillingAddressEdit}
-                disabled={!onBillingAddressEdit && user === undefined}
-              >
-                {i18n.t("Edit")}
-              </Button>
-            </div>
+            {canEditAddresses && (
+              <div className={classes.sectionHeaderToolbar}>
+                <Button
+                  color="secondary"
+                  variant="flat"
+                  onClick={onBillingAddressEdit}
+                  disabled={!onBillingAddressEdit && user === undefined}
+                >
+                  {i18n.t("Edit")}
+                </Button>
+              </div>
+            )}
           </div>
           {billingAddress === undefined ? (
             <Skeleton />
