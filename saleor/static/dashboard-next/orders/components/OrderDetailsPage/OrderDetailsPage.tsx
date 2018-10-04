@@ -201,7 +201,7 @@ class OrderDetailsPageComponent extends React.Component<
           </div>
           <div className={classes.root}>
             <div>
-              {!!maybe(() => order.lines.length > 0) && (
+              {unfulfilled.length > 0 && (
                 <OrderUnfulfilledItems
                   canFulfill={canFulfill}
                   lines={unfulfilled}
