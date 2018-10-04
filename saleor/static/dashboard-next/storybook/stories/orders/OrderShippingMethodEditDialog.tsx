@@ -17,7 +17,7 @@ storiesOf("Orders / OrderShippingMethodEditDialog", module)
       onClose={undefined}
       onSubmit={undefined}
       open={true}
-      shippingMethod={order.shippingMethod.id}
+      shippingMethod={null}
       shippingMethods={shippingMethods}
     />
   ));
