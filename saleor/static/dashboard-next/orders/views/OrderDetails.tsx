@@ -40,7 +40,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
       <Messages>
         {pushMessage => (
           <TypedOrderDetailsQuery variables={{ id }}>
-            {({ data, error }) => {
+            {({ data, error, loading }) => {
               if (error) {
                 return <ErrorMessageCard message="Something went wrong" />;
               }
@@ -466,6 +466,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                 />
                               ) : (
                                 <OrderDraftPage
+                                  disabled={loading}
                                   errors={errors}
                                   onNoteAdd={variables =>
                                     orderAddNote.mutate({
