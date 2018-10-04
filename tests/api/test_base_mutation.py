@@ -1,4 +1,6 @@
 import graphene
+import pytest
+from django.core.exceptions import ImproperlyConfigured
 from saleor.graphql.core.mutations import BaseMutation
 from saleor.graphql.product import types as product_types
 
@@ -8,6 +10,9 @@ class Mutation(BaseMutation):
 
     class Arguments:
         product_id = graphene.ID(required=True)
+
+    class Meta:
+        description = 'Base mutation'
 
     @classmethod
     def mutate(cls, root, info, product_id):
@@ -26,6 +31,15 @@ class Mutations(graphene.ObjectType):
 schema = graphene.Schema(
     mutation=Mutations,
     types=[product_types.Product, product_types.ProductVariant])
+
+
+def test_mutation_without_description_raises_error():
+    with pytest.raises(ImproperlyConfigured) as exc_info:
+        class MutationNoDescription(BaseMutation):
+            name = graphene.Field(graphene.String)
+
+            class Arguments:
+                product_id = graphene.ID(required=True)
 
 
 def test_resolve_id(product):
