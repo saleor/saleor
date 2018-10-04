@@ -165,9 +165,9 @@ export const TimelineNode = decorate<TimelineNodeProps>(
         <ExpansionPanel className={classes.panel} elevation={0}>
           <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
             <Typography>{title}</Typography>
-            <div className={classes.nodeDate}>
+            <Typography className={classes.nodeDate}>
               <DateFormatter date={date} />
-            </div>
+            </Typography>
           </ExpansionPanelSummary>
           <ExpansionPanelDetails>
             <Typography>{children}</Typography>
@@ -176,9 +176,9 @@ export const TimelineNode = decorate<TimelineNodeProps>(
       ) : (
         <>
           <Typography className={classes.noExpander}>{title}</Typography>
-          <div className={classes.noExpanderNodeDate}>
+          <Typography className={classes.noExpanderNodeDate}>
             <DateFormatter date={date} />
-          </div>
+          </Typography>
         </>
       )}
     </div>
@@ -194,9 +194,9 @@ export const TimelineNote = decorate<TimelineNoteProps>(
           <PersonIcon />
         </Avatar>
         <Typography className={classes.noteUser}>{user.email}</Typography>
-        <div className={classes.noteDate}>
+        <Typography className={classes.noteDate}>
           <DateFormatter date={date} />
-        </div>
+        </Typography>
       </CardContent>
       <CardContent>
         <Typography className={classes.noteContent}>{message}</Typography>

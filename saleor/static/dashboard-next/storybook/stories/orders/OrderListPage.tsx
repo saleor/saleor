@@ -11,7 +11,9 @@ storiesOf("Views / Orders / Order list", module)
   .add("default", () => (
     <OrderListPage orders={orders} {...pageListProps.default} />
   ))
-  .add("loading", () => <OrderListPage {...pageListProps.loading} />)
+  .add("loading", () => (
+    <OrderListPage orders={undefined} {...pageListProps.loading} />
+  ))
   .add("when no data", () => (
     <OrderListPage orders={[]} {...pageListProps.default} />
   ));
