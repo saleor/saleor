@@ -1,9 +1,10 @@
 import Tooltip from "@material-ui/core/Tooltip";
-import * as moment from "moment";
+import * as moment from "moment-timezone";
 import * as React from "react";
 import ReactMoment from "react-moment";
 
 import { LocaleConsumer } from "../Locale";
+import { TimezoneConsumer } from "../Timezone";
 import { Consumer } from "./DateContext";
 
 interface DateFormatterProps {
@@ -16,19 +17,24 @@ const DateFormatter: React.StatelessComponent<DateFormatterProps> = ({
   return (
     <LocaleConsumer>
       {locale => (
-        <Consumer>
-          {currentDate => (
-            <Tooltip
-              title={moment(date)
-                .locale(locale)
-                .toLocaleString()}
-            >
-              <ReactMoment from={currentDate} locale={locale}>
-                {date}
-              </ReactMoment>
-            </Tooltip>
+        <TimezoneConsumer>
+          {tz => (
+            <Consumer>
+              {currentDate => (
+                <Tooltip
+                  title={moment(date)
+                    .locale(locale)
+                    .tz(tz)
+                    .toLocaleString()}
+                >
+                  <ReactMoment from={currentDate} locale={locale} tz={tz}>
+                    {date}
+                  </ReactMoment>
+                </Tooltip>
+              )}
+            </Consumer>
           )}
-        </Consumer>
+        </TimezoneConsumer>
       )}
     </LocaleConsumer>
   );
