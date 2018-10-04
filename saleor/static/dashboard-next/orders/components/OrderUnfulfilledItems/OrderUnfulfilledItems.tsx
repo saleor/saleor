@@ -19,6 +19,7 @@ import { maybe } from "../../../misc";
 import { OrderDetails_order_lines_edges_node } from "../../types/OrderDetails";
 
 interface OrderUnfulfilledItemsProps {
+  canFulfill: boolean;
   lines: OrderDetails_order_lines_edges_node[];
   onFulfill: () => void;
 }
@@ -38,7 +39,7 @@ const decorate = withStyles({
   }
 });
 const OrderUnfulfilledItems = decorate<OrderUnfulfilledItemsProps>(
-  ({ classes, lines, onFulfill }) => (
+  ({ canFulfill, classes, lines, onFulfill }) => (
     <Card>
       <CardTitle
         title={
@@ -116,13 +117,15 @@ const OrderUnfulfilledItems = decorate<OrderUnfulfilledItemsProps>(
           ))}
         </TableBody>
       </Table>
-      <CardActions>
-        <Button variant="flat" color="secondary" onClick={onFulfill}>
-          {i18n.t("Fulfill", {
-            context: "button"
-          })}
-        </Button>
-      </CardActions>
+      {canFulfill && (
+        <CardActions>
+          <Button variant="flat" color="secondary" onClick={onFulfill}>
+            {i18n.t("Fulfill", {
+              context: "button"
+            })}
+          </Button>
+        </CardActions>
+      )}
     </Card>
   )
 );

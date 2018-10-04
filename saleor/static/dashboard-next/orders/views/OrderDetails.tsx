@@ -26,6 +26,7 @@ import { OrderLineUpdate } from "../types/OrderLineUpdate";
 import { OrderRefund } from "../types/OrderRefund";
 import { OrderShippingMethodUpdate } from "../types/OrderShippingMethodUpdate";
 import { OrderUpdate } from "../types/OrderUpdate";
+import { OrderDraftFinalize } from "../types/OrderDraftFinalize";
 
 interface OrderDetailsProps {
   id: string;
@@ -290,6 +291,28 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             });
                           }
                         };
+                        const handleDraftFinalize = (
+                          data: OrderDraftFinalize
+                        ) => {
+                          if (
+                            !maybe(() => data.draftOrderComplete.errors.length)
+                          ) {
+                            pushMessage({
+                              text: i18n.t(
+                                "Draft order successfully finalized",
+                                {
+                                  context: "notification"
+                                }
+                              )
+                            });
+                          } else {
+                            pushMessage({
+                              text: i18n.t("Could not finalize draft", {
+                                context: "notification"
+                              })
+                            });
+                          }
+                        };
                         return (
                           <OrderOperations
                             order={id}
@@ -310,6 +333,8 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             onOrderLineUpdate={handleLineUpdate}
                             onOrderFulfillmentCancel={handleFulfillmentCancel}
                             onOrderFulfillmentUpdate={handleFulfillmentUpdate}
+                            onDraftFinalize={handleDraftFinalize}
+                            onDraftCancel={handleOrderCancel}
                           >
                             {({
                               errors,
@@ -326,7 +351,9 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                               orderShippingMethodUpdate,
                               orderUpdate,
                               orderFulfillmentCancel,
-                              orderFulfillmentUpdateTracking
+                              orderFulfillmentUpdateTracking,
+                              orderDraftCancel,
+                              orderDraftFinalize
                             }) =>
                               maybe(
                                 () => order.status !== OrderStatus.DRAFT
@@ -478,8 +505,12 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                   onCustomerEdit={data =>
                                     orderDraftUpdate.mutate({ id, input: data })
                                   }
-                                  onDraftFinalize={() => undefined}
-                                  onDraftRemove={() => undefined}
+                                  onDraftFinalize={() =>
+                                    orderDraftFinalize.mutate({ id })
+                                  }
+                                  onDraftRemove={() =>
+                                    orderDraftCancel.mutate({ id })
+                                  }
                                   onOrderLineAdd={variables =>
                                     orderLineAdd.mutate({
                                       id,

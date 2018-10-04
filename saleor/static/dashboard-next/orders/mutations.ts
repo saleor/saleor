@@ -13,7 +13,15 @@ import {
   OrderCreateFulfillment,
   OrderCreateFulfillmentVariables
 } from "./types/OrderCreateFulfillment";
+import {
+  OrderDraftCancel,
+  OrderDraftCancelVariables
+} from "./types/OrderDraftCancel";
 import { OrderDraftCreate } from "./types/OrderDraftCreate";
+import {
+  OrderDraftFinalize,
+  OrderDraftFinalizeVariables
+} from "./types/OrderDraftFinalize";
 import {
   OrderDraftUpdate,
   OrderDraftUpdateVariables
@@ -57,6 +65,40 @@ export const TypedOrderCancelMutation = TypedMutation<
   OrderCancel,
   OrderCancelVariables
 >(orderCancelMutation);
+
+const orderDraftCancelMutation = gql`
+  ${fragmentOrderDetails}
+  mutation OrderDraftCancel($id: ID!) {
+    draftOrderDelete(id: $id) {
+      order {
+        ...OrderDetailsFragment
+      }
+    }
+  }
+`;
+export const TypedOrderDraftCancelMutation = TypedMutation<
+  OrderDraftCancel,
+  OrderDraftCancelVariables
+>(orderDraftCancelMutation);
+
+const orderDraftFinalizeMutation = gql`
+  ${fragmentOrderDetails}
+  mutation OrderDraftFinalize($id: ID!) {
+    draftOrderComplete(id: $id) {
+      errors {
+        field
+        message
+      }
+      order {
+        ...OrderDetailsFragment
+      }
+    }
+  }
+`;
+export const TypedOrderDraftFinalizeMutation = TypedMutation<
+  OrderDraftFinalize,
+  OrderDraftFinalizeVariables
+>(orderDraftFinalizeMutation);
 
 const orderRefundMutation = gql`
   ${fragmentOrderDetails}
