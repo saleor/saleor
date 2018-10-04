@@ -46,7 +46,8 @@ const OrderPayment = decorate<OrderPaymentProps>(
       ? order.paymentStatus === PaymentStatusEnum.PREAUTH
       : false;
     const canRefund = maybe(() => order.paymentStatus)
-      ? order.paymentStatus === PaymentStatusEnum.CONFIRMED
+      ? order.paymentStatus === PaymentStatusEnum.CONFIRMED &&
+        order.status !== OrderStatus.CANCELED
       : false;
     const payment = transformPaymentStatus(maybe(() => order.paymentStatus));
     return (
