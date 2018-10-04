@@ -3,6 +3,7 @@ from django.utils.translation import pgettext_lazy
 from graphql_jwt.decorators import permission_required
 from payments import PaymentError, PaymentStatus
 
+from ....account.models import User
 from ....core.utils.taxes import ZERO_TAXED_MONEY
 from ....order import CustomPaymentChoices, OrderEvents, models
 from ....order.utils import cancel_order
@@ -121,6 +122,28 @@ class OrderUpdate(DraftOrderUpdate):
     class Meta:
         description = 'Updates an order.'
         model = models.Order
+
+    @classmethod
+    def clean_input(cls, info, instance, input, errors):
+        cleaned_input = super().clean_input(info, instance, input, errors)
+        if not instance.user and not cleaned_input.get('user_email'):
+            cls.add_error(
+                errors, field='user_email',
+                message='User_email field is null while order was created by '
+                        'anonymous user')
+        return cleaned_input
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        super().save(info, instance, cleaned_input)
+        if instance.user_email:
+            try:
+                user = User.objects.get(email=instance.user_email)
+            except User.DoesNotExist:
+                instance.user = None
+            else:
+                instance.user = user
+        instance.save()
 
 
 class OrderUpdateShippingInput(graphene.InputObjectType):

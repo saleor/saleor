@@ -387,6 +387,85 @@ def test_draft_order_complete(
     assert draft_placed_event.parameters == {}
 
 
+def test_draft_order_complete_existing_user_email_updates_user_field(
+        admin_api_client, draft_order, customer_user):
+    order = draft_order
+    order.user_email = customer_user.email
+    order.user = None
+    order.save()
+    query = """
+        mutation draftComplete($id: ID!) {
+            draftOrderComplete(id: $id) {
+                order {
+                    status
+                }
+            }
+        }
+        """
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variables = json.dumps({'id': order_id})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    order.refresh_from_db()
+    assert order.user == customer_user
+
+
+def test_draft_order_complete_anonymous_user_email_sets_user_field_null(
+        admin_api_client, draft_order):
+    order = draft_order
+    order.user_email = 'anonymous@example.com'
+    order.user = None
+    order.save()
+    query = """
+        mutation draftComplete($id: ID!) {
+            draftOrderComplete(id: $id) {
+                order {
+                    status
+                }
+            }
+        }
+        """
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variables = json.dumps({'id': order_id})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    order.refresh_from_db()
+    assert order.user is None
+
+
+def test_draft_order_complete_anonymous_user_no_email(
+        admin_api_client, draft_order):
+    order = draft_order
+    order.user_email = ''
+    order.user = None
+    order.save()
+    query = """
+        mutation draftComplete($id: ID!) {
+            draftOrderComplete(id: $id) {
+                order {
+                    status
+                }
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+        """
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variables = json.dumps({'id': order_id})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' in content['data']['draftOrderComplete']
+    assert content['data']['draftOrderComplete']['errors'][0] == {
+        'field': None, 'message': 'Both user and user_email fields are null'}
+
+
 DRAFT_ORDER_LINE_CREATE_MUTATION = """
     mutation DraftOrderLineCreate($orderId: ID!, $variantId: ID!, $quantity: Int!) {
         draftOrderLineCreate(id: $orderId, input: {variantId: $variantId, quantity: $quantity}) {
@@ -578,6 +657,8 @@ def test_require_draft_order_when_removing_lines(
 def test_order_update(
         staff_api_client, permission_manage_orders, order_with_lines):
     order = order_with_lines
+    order.user = None
+    order.save()
     query = """
         mutation orderUpdate(
         $id: ID!, $email: String, $first_name: String, $last_name: String,
@@ -620,6 +701,98 @@ def test_order_update(
     order.refresh_from_db()
     assert order.shipping_address.first_name == first_name
     assert order.billing_address.last_name == last_name
+    assert order.user_email == email
+    assert order.user is None
+
+
+def test_order_update_anonymous_user_no_user_email(
+        admin_api_client, order_with_lines):
+    order = order_with_lines
+    order.user = None
+    order.save()
+    query = """
+            mutation orderUpdate(
+            $id: ID!, $first_name: String, $last_name: String, 
+            $country_code: String) {
+                orderUpdate(
+                    id: $id, input: {
+                        shippingAddress:
+                        {firstName: $first_name, country: $country_code},
+                        billingAddress:
+                        {lastName: $last_name, country: $country_code}}) {
+                    errors {
+                        field
+                        message
+                    }
+                    order {
+                        id
+                    }
+                }
+            }
+            """
+    first_name = 'Test fname'
+    last_name = 'Test lname'
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variables = json.dumps({
+        'id': order_id, 'first_name': first_name, 'last_name': last_name,
+        'country_code': 'PL'})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' in content['data']['orderUpdate']
+    assert content['data']['orderUpdate']['errors'][0] == {
+        'field': 'userEmail',
+        'message': 'User_email field is null while order was created by '
+                   'anonymous user'}
+
+    order.refresh_from_db()
+    assert order.shipping_address.first_name != first_name
+    assert order.billing_address.last_name != last_name
+
+
+def test_order_update_user_email_existing_user(
+        admin_api_client, order_with_lines, customer_user):
+    order = order_with_lines
+    order.user = None
+    order.save()
+    query = """
+        mutation orderUpdate(
+        $id: ID!, $email: String, $first_name: String, $last_name: String,
+        $country_code: String) {
+            orderUpdate(
+                id: $id, input: {
+                    userEmail: $email, shippingAddress:
+                    {firstName: $first_name, country: $country_code},
+                    billingAddress:
+                    {lastName: $last_name, country: $country_code}}) {
+                errors {
+                    field
+                    message
+                }
+                order {
+                    userEmail
+                }
+            }
+        }
+        """
+    email = customer_user.email
+    first_name = 'Test fname'
+    last_name = 'Test lname'
+    order_id = graphene.Node.to_global_id('Order', order.id)
+    variables = json.dumps(
+        {'id': order_id, 'email': email, 'first_name': first_name,
+         'last_name': last_name, 'country_code': 'PL'})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    data = content['data']['orderUpdate']['order']
+    assert data['userEmail'] == email
+
+    order.refresh_from_db()
+    assert order.shipping_address.first_name == first_name
+    assert order.billing_address.last_name == last_name
+    assert order.user_email == email
+    assert order.user == customer_user
 
 
 def test_order_add_note(
