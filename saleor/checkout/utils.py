@@ -846,9 +846,7 @@ def _fill_order_with_cart_data(order, cart, discounts, taxes):
         add_variant_to_order(
             order, line.variant, line.quantity, discounts, taxes)
 
-    for payment_method in cart.payment_methods.all():
-        payment_method.order = order
-        payment_method.save(update_fields=['order'])
+    cart.payment_methods.update(order=order)
 
     if cart.note:
         order.customer_note = cart.note
@@ -897,10 +895,11 @@ def ready_to_place_order(cart: Cart):
     if cart.is_shipping_required:
         if not cart.shipping_method:
             return False, pgettext_lazy(
-                'order placement_error','Shipping method is not set')
+                'order placement_error', 'Shipping method is not set')
         if not cart.shipping_address:
             return False, pgettext_lazy(
                 'order placement error', 'Shipping address is not set')
+        # FIXME Check if shipping method is valid for the shipping address
     if not is_fully_paid(cart):
         return False, pgettext_lazy(
             'order placement error', 'Checkout is not fully paid')

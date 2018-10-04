@@ -33,7 +33,7 @@ class PaymentMethod(models.Model):
     extra_data = models.TextField(blank=True, default='')
     token = models.CharField(max_length=36, blank=True, default='')
 
-    # refactor to MoneyField
+    # FIXME refactor to MoneyField
     total = models.DecimalField(
         max_digits=9, decimal_places=2, default=Decimal('0.0'))
     currency = models.CharField(max_length=10)
@@ -47,7 +47,7 @@ class PaymentMethod(models.Model):
         on_delete=models.SET_NULL)
     order = models.ForeignKey(
         Order, null=True, related_name='payment_methods',
-        on_delete=models.CASCADE)
+        on_delete=models.PROTECT)
 
     def _get_money(self, amount):
         return Money(amount=amount, currency=self.currency)
@@ -67,33 +67,34 @@ class PaymentMethod(models.Model):
         return txn
 
     def authorize(self, client_token):
-        # FIXME
+        # FIXME Used for backwards compatibility, remove after moving to
+        # dashboard 2.0
         from . import utils
         return utils.gateway_authorize(
             payment_method=self, transaction_token=client_token)
 
     def void(self):
-        # FIXME
+        # FIXME Used for backwards compatibility, remove after moving to
+        # dashboard 2.0
         from . import utils
-
         return utils.gateway_void(payment_method=self)
 
     def charge(self, amount=None):
-        # FIXME
+        # FIXME Used for backwards compatibility, remove after moving to
+        # dashboard 2.0
         from . import utils
-
         return utils.gateway_charge(payment_method=self, amount=amount)
 
     def refund(self, amount=None):
-        # FIXME
+        # FIXME Used for backwards compatibility, remove after moving to
+        # dashboard 2.0
         from . import utils
-
         return utils.gateway_refund(payment_method=self, amount=amount)
 
 
 class Transaction(models.Model):
     payment_method = models.ForeignKey(
-        PaymentMethod, related_name='transactions', on_delete=models.CASCADE)
+        PaymentMethod, related_name='transactions', on_delete=models.PROTECT)
     token = models.CharField(max_length=64, blank=True, default='')
     transaction_type = models.CharField(
         max_length=10, choices=TransactionType.CHOICES)

@@ -1,23 +1,20 @@
-import uuid
 from typing import Dict
 
 import braintree as braintree_sdk
-from django.db import transaction
 from django.utils.translation import pgettext_lazy
 
-from ... import PaymentMethodChargeStatus, TransactionType
-from ...models import Transaction
+from ... import TransactionType
 from ...utils import create_transaction
 
-#FIXME: Move to SiteSettings
+# FIXME: Move to SiteSettings
 
 AUTO_CHARGE = False
 THREE_D_SECURE_REQUIRED = False
 
+
 def get_error_for_client(errors):
-    """
-    Filters all error messages and decides which one is visible for the
-    client side
+    """Filters all error messages and decides which one is visible for the
+    client side.
     """
     if not errors:
         return ''
@@ -25,7 +22,8 @@ def get_error_for_client(errors):
     default_msg = pgettext_lazy(
         'payment error',
         'Unable to process transaction. Please try again in a moment')
-    error_codes_whitelist = [] #FIXME: Provide list of visible errors and messages translations
+    # FIXME: Provide list of visible errors and messages translations
+    error_codes_whitelist = []
     for error in errors:
         if error['code'] in error_codes_whitelist:
             return error['message']
@@ -33,27 +31,24 @@ def get_error_for_client(errors):
 
 
 def extract_gateway_response(braintree_result) -> Dict:
-    """
-    Extract data from Braintree response that will be stored locally
-    """
-    errors = {}
+    """Extract data from Braintree response that will be stored locally."""
+    errors = []
     if not braintree_result.is_success:
-        errors = [{
-            'code': error.code,
-            'message': error.message}
-                  for error in braintree_result.errors.deep_errors]
+        errors = [
+            {'code': error.code, 'message': error.message}
+            for error in braintree_result.errors.deep_errors]
 
-    transaction = braintree_result.transaction
+    bt_transaction = braintree_result.transaction
     gateway_response = {
-        'credit_card': braintree_result.transaction.credit_card,
-        'additional_processor_response': transaction.additional_processor_response,
-        'gateway_rejection_reason': transaction.gateway_rejection_reason,
-        'processor_response_code': transaction.processor_response_code,
-        'processor_response_text': transaction.processor_response_text,
-        'processor_settlement_response_code': transaction.processor_settlement_response_code,
-        'processor_settlement_response_text': transaction.processor_settlement_response_text,
-        'risk_data': transaction.risk_data,
-        'status': transaction.status,
+        'credit_card': bt_transaction.credit_card,
+        'additional_processor_response': bt_transaction.additional_processor_response,  # noqa
+        'gateway_rejection_reason': bt_transaction.gateway_rejection_reason,
+        'processor_response_code': bt_transaction.processor_response_code,
+        'processor_response_text': bt_transaction.processor_response_text,
+        'processor_settlement_response_code': bt_transaction.processor_settlement_response_code,  # noqa
+        'processor_settlement_response_text': bt_transaction.processor_settlement_response_text,  # noqa
+        'risk_data': bt_transaction.risk_data,
+        'status': bt_transaction.status,
         'errors': errors}
     return gateway_response
 
@@ -87,8 +82,7 @@ def authorize(payment_method, transaction_token, **client_kwargs):
         transaction_token,
         'options': {
             'submit_for_settlement': AUTO_CHARGE,
-            'three_d_secure': {
-                'required': THREE_D_SECURE_REQUIRED}}})
+            'three_d_secure': {'required': THREE_D_SECURE_REQUIRED}}})
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
     txn = create_transaction(

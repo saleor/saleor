@@ -1,9 +1,6 @@
 import uuid
 
-from django.db import transaction
-from django.utils.translation import pgettext_lazy
-
-from ... import PaymentMethodChargeStatus, TransactionType
+from ... import TransactionType
 from ...utils import create_transaction
 
 
