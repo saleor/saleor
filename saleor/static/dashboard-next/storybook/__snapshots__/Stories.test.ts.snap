@@ -4019,12 +4019,16 @@ exports[`Storyshots Generics / Timeline default 1`] = `
         >
           Expansion panel 1
         </p>
-        <time
-          datetime="1525712282000"
-          title="Mon May 07 2018 12:58:02 GMT-0400"
+        <p
+          class="MuiTypography-root-id MuiTypography-body1-id"
         >
-          3 months ago
-        </time>
+          <time
+            datetime="1525712282000"
+            title="Mon May 07 2018 12:58:02 GMT-0400"
+          >
+            3 months ago
+          </time>
+        </p>
       </div>
     </div>
     <div
@@ -4041,12 +4045,16 @@ exports[`Storyshots Generics / Timeline default 1`] = `
         >
           Expansion panel 2
         </p>
-        <time
-          datetime="1525711682000"
-          title="Mon May 07 2018 12:48:02 GMT-0400"
+        <p
+          class="MuiTypography-root-id MuiTypography-body1-id"
         >
-          3 months ago
-        </time>
+          <time
+            datetime="1525711682000"
+            title="Mon May 07 2018 12:48:02 GMT-0400"
+          >
+            3 months ago
+          </time>
+        </p>
       </div>
     </div>
     <div
@@ -4063,12 +4071,16 @@ exports[`Storyshots Generics / Timeline default 1`] = `
         >
           Expansion panel 3
         </p>
-        <time
-          datetime="1525625882000"
-          title="Sun May 06 2018 12:58:02 GMT-0400"
+        <p
+          class="MuiTypography-root-id MuiTypography-body1-id"
         >
-          3 months ago
-        </time>
+          <time
+            datetime="1525625882000"
+            title="Sun May 06 2018 12:58:02 GMT-0400"
+          >
+            3 months ago
+          </time>
+        </p>
       </div>
     </div>
   </div>
@@ -4103,16 +4115,11 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
             >
               Expansion panel 1
             </p>
-            <div
-              class="Component-date-id"
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
             >
-              <time
-                datetime="1525712282000"
-                title="Mon May 07 2018 12:58:02 GMT-0400"
-              >
-                3 months ago
-              </time>
-            </div>
+              Expansion panel 1
+            </p>
           </div>
           <div
             aria-hidden="true"
@@ -4189,16 +4196,11 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
             >
               Expansion panel 2
             </p>
-            <div
-              class="Component-date-id"
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
             >
-              <time
-                datetime="1525711682000"
-                title="Mon May 07 2018 12:48:02 GMT-0400"
-              >
-                3 months ago
-              </time>
-            </div>
+              Expansion panel 2
+            </p>
           </div>
           <div
             aria-hidden="true"
@@ -4275,16 +4277,11 @@ exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
             >
               Expansion panel 3
             </p>
-            <div
-              class="Component-date-id"
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
             >
-              <time
-                datetime="1525625882000"
-                title="Sun May 06 2018 12:58:02 GMT-0400"
-              >
-                3 months ago
-              </time>
-            </div>
+              Expansion panel 3
+            </p>
           </div>
           <div
             aria-hidden="true"
@@ -4370,16 +4367,11 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
             >
               Expansion panel 1
             </p>
-            <div
-              class="Component-date-id"
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
             >
-              <time
-                datetime="1525712282000"
-                title="Mon May 07 2018 12:58:02 GMT-0400"
-              >
-                3 months ago
-              </time>
-            </div>
+              Expansion panel 1
+            </p>
           </div>
           <div
             aria-hidden="true"
@@ -4467,12 +4459,16 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
             >
               admin@example.com
             </p>
-            <time
-              datetime="1525712282000"
-              title="Mon May 07 2018 12:58:02 GMT-0400"
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id"
             >
-              3 months ago
-            </time>
+              <time
+                datetime="1525712282000"
+                title="Mon May 07 2018 12:58:02 GMT-0400"
+              >
+                3 months ago
+              </time>
+            </p>
           </div>
           <hr
             class="Component-root-id"
@@ -4521,12 +4517,16 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
             >
               ceo@example.com
             </p>
-            <time
-              datetime="1525712282000"
-              title="Mon May 07 2018 12:58:02 GMT-0400"
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id"
             >
-              3 months ago
-            </time>
+              <time
+                datetime="1525712282000"
+                title="Mon May 07 2018 12:58:02 GMT-0400"
+              >
+                3 months ago
+              </time>
+            </p>
           </div>
           <hr
             class="Component-root-id"
@@ -4564,16 +4564,11 @@ exports[`Storyshots Generics / Timeline with order notes 1`] = `
             >
               Expansion panel 3
             </p>
-            <div
-              class="Component-date-id"
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id Component-date-id"
             >
-              <time
-                datetime="1525625882000"
-                title="Sun May 06 2018 12:58:02 GMT-0400"
-              >
-                3 months ago
-              </time>
-            </div>
+              Expansion panel 3
+            </p>
           </div>
           <div
             aria-hidden="true"
@@ -5322,12 +5317,16 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
           >
             Filfilled 1 items
           </p>
-          <time
-            datetime="1537190544376"
-            title="Mon Sep 17 2018 09:22:24 GMT-0400"
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id"
           >
-            in a month
-          </time>
+            <time
+              datetime="1537190544376"
+              title="Mon Sep 17 2018 09:22:24 GMT-0400"
+            >
+              in a month
+            </time>
+          </p>
         </div>
       </div>
     </div>
@@ -14916,12 +14915,16 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
                 >
                   Filfilled 1 items
                 </p>
-                <time
-                  datetime="1537190544376"
-                  title="Mon Sep 17 2018 09:22:24 GMT-0400"
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  in a month
-                </time>
+                  <time
+                    datetime="1537190544376"
+                    title="Mon Sep 17 2018 09:22:24 GMT-0400"
+                  >
+                    in a month
+                  </time>
+                </p>
               </div>
             </div>
           </div>
@@ -15859,12 +15862,16 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
                 >
                   Filfilled 1 items
                 </p>
-                <time
-                  datetime="1537190544376"
-                  title="Mon Sep 17 2018 09:22:24 GMT-0400"
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  in a month
-                </time>
+                  <time
+                    datetime="1537190544376"
+                    title="Mon Sep 17 2018 09:22:24 GMT-0400"
+                  >
+                    in a month
+                  </time>
+                </p>
               </div>
             </div>
           </div>
@@ -16802,12 +16809,16 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
                 >
                   Filfilled 1 items
                 </p>
-                <time
-                  datetime="1537190544376"
-                  title="Mon Sep 17 2018 09:22:24 GMT-0400"
+                <p
+                  class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  in a month
-                </time>
+                  <time
+                    datetime="1537190544376"
+                    title="Mon Sep 17 2018 09:22:24 GMT-0400"
+                  >
+                    in a month
+                  </time>
+                </p>
               </div>
             </div>
           </div>
