@@ -294,6 +294,10 @@ const orderShippingMethodUpdateMutation = gql`
         message
       }
       order {
+        availableShippingMethods {
+          id
+          name
+        }
         id
         shippingMethod {
           id
