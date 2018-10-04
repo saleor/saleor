@@ -62,7 +62,7 @@ export interface OrderDetailsPageProps {
   onProductClick?(id: string);
   onPaymentCapture(data: OrderPaymentFormData);
   onPaymentRefund(data: OrderPaymentFormData);
-  onPaymentRelease?();
+  onPaymentRelease();
   onShippingAddressEdit(data: AddressTypeInput);
   onOrderCancel(data: OrderCancelFormData);
   onNoteAdd(data: HistoryFormData);
@@ -265,7 +265,7 @@ class OrderDetailsPageComponent extends React.Component<
                 order={order}
                 onCapture={this.togglePaymentCaptureDialog}
                 onRefund={this.togglePaymentRefundDialog}
-                onRelease={this.togglePaymentCaptureDialog}
+                onRelease={this.togglePaymentReleaseDialog}
               />
               <OrderHistory
                 history={maybe(() => order.events)}
