@@ -32,6 +32,7 @@ import OrderShippingMethodEditDialog, {
 } from "../OrderShippingMethodEditDialog";
 
 export interface OrderDraftPageProps {
+  disabled: boolean;
   order: OrderDetails_order;
   shippingMethods: Array<{
     id: string;
@@ -137,6 +138,7 @@ class OrderDraftPageComponent extends React.Component<
     const {
       classes,
       countries,
+      disabled,
       errors,
       order,
       shippingMethods,
@@ -317,6 +319,7 @@ class OrderDraftPageComponent extends React.Component<
           </div>
         </div>
         <SaveButtonBar
+          disabled={disabled || maybe(() => order.lines.length === 0)}
           onCancel={onBack}
           onSave={this.toggleDraftFinalizeDialog}
           labels={{ save: i18n.t("Finalize", { context: "button" }) }}
