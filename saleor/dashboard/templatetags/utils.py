@@ -2,8 +2,8 @@ from json import dumps
 from urllib.parse import urlencode
 
 from django import forms
-from django.templatetags.static import static
 from django.template import Library
+from django.templatetags.static import static
 from django_filters.fields import RangeField
 from versatileimagefield.widgets import VersatileImagePPOIClickWidget
 
