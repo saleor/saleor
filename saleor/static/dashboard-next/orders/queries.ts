@@ -96,12 +96,7 @@ export const fragmentOrderDetails = gql`
       trackingNumber
     }
     lines {
-      edges {
-        node {
-          ...OrderLineFragment
-        }
-      }
-      thumbnailUrl
+      ...OrderLineFragment
     }
     number
     paymentStatus

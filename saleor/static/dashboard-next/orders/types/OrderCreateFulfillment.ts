@@ -108,43 +108,33 @@ export interface OrderCreateFulfillment_orderFulfillmentCreate_order_fulfillment
   trackingNumber: string;
 }
 
-export interface OrderCreateFulfillment_orderFulfillmentCreate_order_lines_edges_node_unitPrice_gross {
+export interface OrderCreateFulfillment_orderFulfillmentCreate_order_lines_unitPrice_gross {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderCreateFulfillment_orderFulfillmentCreate_order_lines_edges_node_unitPrice_net {
+export interface OrderCreateFulfillment_orderFulfillmentCreate_order_lines_unitPrice_net {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderCreateFulfillment_orderFulfillmentCreate_order_lines_edges_node_unitPrice {
+export interface OrderCreateFulfillment_orderFulfillmentCreate_order_lines_unitPrice {
   __typename: "TaxedMoney";
-  gross: OrderCreateFulfillment_orderFulfillmentCreate_order_lines_edges_node_unitPrice_gross;
-  net: OrderCreateFulfillment_orderFulfillmentCreate_order_lines_edges_node_unitPrice_net;
+  gross: OrderCreateFulfillment_orderFulfillmentCreate_order_lines_unitPrice_gross;
+  net: OrderCreateFulfillment_orderFulfillmentCreate_order_lines_unitPrice_net;
 }
 
-export interface OrderCreateFulfillment_orderFulfillmentCreate_order_lines_edges_node {
+export interface OrderCreateFulfillment_orderFulfillmentCreate_order_lines {
   __typename: "OrderLine";
   id: string;
   productName: string;
   productSku: string;
   quantity: number;
   quantityFulfilled: number;
-  unitPrice: OrderCreateFulfillment_orderFulfillmentCreate_order_lines_edges_node_unitPrice | null;
+  unitPrice: OrderCreateFulfillment_orderFulfillmentCreate_order_lines_unitPrice | null;
   thumbnailUrl: string | null;
-}
-
-export interface OrderCreateFulfillment_orderFulfillmentCreate_order_lines_edges {
-  __typename: "OrderLineCountableEdge";
-  node: OrderCreateFulfillment_orderFulfillmentCreate_order_lines_edges_node;
-}
-
-export interface OrderCreateFulfillment_orderFulfillmentCreate_order_lines {
-  __typename: "OrderLineCountableConnection";
-  edges: OrderCreateFulfillment_orderFulfillmentCreate_order_lines_edges[];
 }
 
 export interface OrderCreateFulfillment_orderFulfillmentCreate_order_shippingAddress_country {
@@ -245,7 +235,7 @@ export interface OrderCreateFulfillment_orderFulfillmentCreate_order {
   created: any;
   events: (OrderCreateFulfillment_orderFulfillmentCreate_order_events | null)[] | null;
   fulfillments: (OrderCreateFulfillment_orderFulfillmentCreate_order_fulfillments | null)[];
-  lines: OrderCreateFulfillment_orderFulfillmentCreate_order_lines | null;
+  lines: (OrderCreateFulfillment_orderFulfillmentCreate_order_lines | null)[];
   number: string | null;
   paymentStatus: PaymentStatusEnum | null;
   shippingAddress: OrderCreateFulfillment_orderFulfillmentCreate_order_shippingAddress | null;

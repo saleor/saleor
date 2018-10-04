@@ -878,61 +878,52 @@ export const order = (placeholder: string): OrderDetails_order => ({
     }
   ],
   id: "T3JkZXI6OQ==",
-  lines: {
-    __typename: "OrderLineCountableConnection",
-    edges: [
-      {
-        __typename: "OrderLineCountableEdge",
-        node: {
-          __typename: "OrderLine",
-          id: "T3JkZXJMaW5lOjIy",
-          productName: "Watkins-Gonzalez (Soft)",
-          productSku: "59-1337",
-          quantity: 3,
-          quantityFulfilled: 0,
-          thumbnailUrl: placeholder,
-          unitPrice: {
-            __typename: "TaxedMoney",
-            gross: {
-              __typename: "Money",
-              amount: 18.51,
-              currency: "USD"
-            },
-            net: {
-              __typename: "Money",
-              amount: 18.51,
-              currency: "USD"
-            }
-          }
-        }
-      },
-      {
-        __typename: "OrderLineCountableEdge",
-        node: {
-          __typename: "OrderLine",
-          id: "T3JkZXJMaW5lOjIz",
-          productName: "Williams, Garcia and Walker (XS)",
-          productSku: "5-1337",
-          quantity: 2,
-          quantityFulfilled: 2,
-          thumbnailUrl: placeholder,
-          unitPrice: {
-            __typename: "TaxedMoney",
-            gross: {
-              __typename: "Money",
-              amount: 79.71,
-              currency: "USD"
-            },
-            net: {
-              __typename: "Money",
-              amount: 79.71,
-              currency: "USD"
-            }
-          }
+  lines: [
+    {
+      __typename: "OrderLine",
+      id: "T3JkZXJMaW5lOjIy",
+      productName: "Watkins-Gonzalez (Soft)",
+      productSku: "59-1337",
+      quantity: 3,
+      quantityFulfilled: 0,
+      thumbnailUrl: placeholder,
+      unitPrice: {
+        __typename: "TaxedMoney",
+        gross: {
+          __typename: "Money",
+          amount: 18.51,
+          currency: "USD"
+        },
+        net: {
+          __typename: "Money",
+          amount: 18.51,
+          currency: "USD"
         }
       }
-    ]
-  },
+    },
+    {
+      __typename: "OrderLine",
+      id: "T3JkZXJMaW5lOjIz",
+      productName: "Williams, Garcia and Walker (XS)",
+      productSku: "5-1337",
+      quantity: 2,
+      quantityFulfilled: 2,
+      thumbnailUrl: placeholder,
+      unitPrice: {
+        __typename: "TaxedMoney",
+        gross: {
+          __typename: "Money",
+          amount: 79.71,
+          currency: "USD"
+        },
+        net: {
+          __typename: "Money",
+          amount: 79.71,
+          currency: "USD"
+        }
+      }
+    }
+  ],
   number: "9",
   paymentStatus: PaymentStatusEnum.PREAUTH,
   shippingAddress: {
@@ -1007,61 +998,52 @@ export const draftOrder = (placeholder: string) => ({
   events: [],
   fulfillments: [],
   id: "T3JkZXI6MjQ=",
-  lines: {
-    __typename: "OrderLineCountableConnection" as "OrderLineCountableConnection",
-    edges: [
-      {
-        __typename: "OrderLineCountableEdge" as "OrderLineCountableEdge",
-        node: {
-          __typename: "OrderLine" as "OrderLine",
-          id: "T3JkZXJMaW5lOjQ1",
-          productName: "Davis Group (Hard)",
-          productSku: "58-1338",
-          quantity: 2,
-          quantityFulfilled: 0,
-          thumbnailUrl: placeholder,
-          unitPrice: {
-            __typename: "TaxedMoney" as "TaxedMoney",
-            gross: {
-              __typename: "Money" as "Money",
-              amount: 65.95,
-              currency: "USD"
-            },
-            net: {
-              __typename: "Money" as "Money",
-              amount: 65.95,
-              currency: "USD"
-            }
-          }
-        }
-      },
-      {
-        __typename: "OrderLineCountableEdge" as "OrderLineCountableEdge",
-        node: {
-          __typename: "OrderLine" as "OrderLine",
-          id: "T3JkZXJMaW5lOjQ2",
-          productName: "Anderson PLC (15-1337)",
-          productSku: "15-1337",
-          quantity: 2,
-          quantityFulfilled: 0,
-          thumbnailUrl: placeholder,
-          unitPrice: {
-            __typename: "TaxedMoney" as "TaxedMoney",
-            gross: {
-              __typename: "Money" as "Money",
-              amount: 68.2,
-              currency: "USD"
-            },
-            net: {
-              __typename: "Money" as "Money",
-              amount: 68.2,
-              currency: "USD"
-            }
-          }
+  lines: [
+    {
+      __typename: "OrderLine" as "OrderLine",
+      id: "T3JkZXJMaW5lOjQ1",
+      productName: "Davis Group (Hard)",
+      productSku: "58-1338",
+      quantity: 2,
+      quantityFulfilled: 0,
+      thumbnailUrl: placeholder,
+      unitPrice: {
+        __typename: "TaxedMoney" as "TaxedMoney",
+        gross: {
+          __typename: "Money" as "Money",
+          amount: 65.95,
+          currency: "USD"
+        },
+        net: {
+          __typename: "Money" as "Money",
+          amount: 65.95,
+          currency: "USD"
         }
       }
-    ]
-  },
+    },
+    {
+      __typename: "OrderLine" as "OrderLine",
+      id: "T3JkZXJMaW5lOjQ2",
+      productName: "Anderson PLC (15-1337)",
+      productSku: "15-1337",
+      quantity: 2,
+      quantityFulfilled: 0,
+      thumbnailUrl: placeholder,
+      unitPrice: {
+        __typename: "TaxedMoney" as "TaxedMoney",
+        gross: {
+          __typename: "Money" as "Money",
+          amount: 68.2,
+          currency: "USD"
+        },
+        net: {
+          __typename: "Money" as "Money",
+          amount: 68.2,
+          currency: "USD"
+        }
+      }
+    }
+  ],
   number: "24",
   paymentStatus: null,
   shippingAddress: null,

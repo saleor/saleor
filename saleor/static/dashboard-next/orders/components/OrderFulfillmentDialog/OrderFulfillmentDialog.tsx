@@ -17,7 +17,7 @@ import { FormSpacer } from "../../../components/FormSpacer";
 import TableCellAvatar from "../../../components/TableCellAvatar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { OrderDetails_order_lines_edges_node } from "../../types/OrderDetails";
+import { OrderDetails_order_lines } from "../../types/OrderDetails";
 
 export interface FormData {
   lines: number[];
@@ -26,7 +26,7 @@ export interface FormData {
 
 export interface OrderFulfillmentDialogProps {
   open: boolean;
-  lines: OrderDetails_order_lines_edges_node[];
+  lines: OrderDetails_order_lines[];
   onClose();
   onSubmit(data: FormData);
 }

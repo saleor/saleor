@@ -16,11 +16,11 @@ import StatusLabel from "../../../components/StatusLabel";
 import TableCellAvatar from "../../../components/TableCellAvatar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { OrderDetails_order_lines_edges_node } from "../../types/OrderDetails";
+import { OrderDetails_order_lines } from "../../types/OrderDetails";
 
 interface OrderUnfulfilledItemsProps {
   canFulfill: boolean;
-  lines: OrderDetails_order_lines_edges_node[];
+  lines: OrderDetails_order_lines[];
   onFulfill: () => void;
 }
 

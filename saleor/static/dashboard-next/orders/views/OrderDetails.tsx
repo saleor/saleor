@@ -17,6 +17,7 @@ import { TypedOrderDetailsQuery } from "../queries";
 import { OrderAddNote } from "../types/OrderAddNote";
 import { OrderCapture } from "../types/OrderCapture";
 import { OrderCreateFulfillment } from "../types/OrderCreateFulfillment";
+import { OrderDraftFinalize } from "../types/OrderDraftFinalize";
 import { OrderDraftUpdate } from "../types/OrderDraftUpdate";
 import { OrderFulfillmentCancel } from "../types/OrderFulfillmentCancel";
 import { OrderFulfillmentUpdateTracking } from "../types/OrderFulfillmentUpdateTracking";
@@ -26,7 +27,6 @@ import { OrderLineUpdate } from "../types/OrderLineUpdate";
 import { OrderRefund } from "../types/OrderRefund";
 import { OrderShippingMethodUpdate } from "../types/OrderShippingMethodUpdate";
 import { OrderUpdate } from "../types/OrderUpdate";
-import { OrderDraftFinalize } from "../types/OrderDraftFinalize";
 
 interface OrderDetailsProps {
   id: string;
@@ -389,11 +389,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                     orderCreateFulfillment.mutate({
                                       input: {
                                         ...variables,
-                                        lines: maybe(
-                                          () => order.lines.edges,
-                                          []
-                                        )
-                                          .map(edge => edge.node)
+                                        lines: maybe(() => order.lines, [])
                                           .filter(
                                             line =>
                                               line.quantityFulfilled <

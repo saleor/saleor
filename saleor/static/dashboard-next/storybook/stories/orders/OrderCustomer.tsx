@@ -10,6 +10,7 @@ import Decorator from "../../Decorator";
 const order = orderFixture("");
 
 const props: OrderCustomerProps = {
+  canEditAddresses: false,
   canEditCustomer: true,
   fetchUsers: () => undefined,
   onBillingAddressEdit: undefined,
@@ -21,10 +22,8 @@ const props: OrderCustomerProps = {
 
 storiesOf("Orders / OrderCustomer", module)
   .addDecorator(Decorator)
-  .add("when loading data", () => (
-    <OrderCustomer {...props} order={undefined} />
-  ))
-  .add("when loaded data", () => <OrderCustomer {...props} />)
+  .add("default", () => <OrderCustomer {...props} />)
+  .add("loading", () => <OrderCustomer {...props} order={undefined} />)
   .add("with different addresses", () => (
     <OrderCustomer
       {...props}
@@ -33,4 +32,7 @@ storiesOf("Orders / OrderCustomer", module)
         shippingAddress: { ...order.shippingAddress, id: "a2" }
       }}
     />
+  ))
+  .add("editable", () => (
+    <OrderCustomer {...props} canEditAddresses={true} canEditCustomer={true} />
   ));
