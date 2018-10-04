@@ -316,6 +316,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                               orderAddNote,
                               orderCancel,
                               orderCreateFulfillment,
+                              orderDraftUpdate,
                               orderLineAdd,
                               orderLineDelete,
                               orderLineUpdate,
@@ -474,7 +475,9 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                   variantsLoading={searchOpts.loading}
                                   fetchUsers={users.search}
                                   usersLoading={users.searchOpts.loading}
-                                  onCustomerEdit={() => undefined}
+                                  onCustomerEdit={data =>
+                                    orderDraftUpdate.mutate({ id, input: data })
+                                  }
                                   onDraftFinalize={() => undefined}
                                   onDraftRemove={() => undefined}
                                   onOrderLineAdd={variables =>
