@@ -388,7 +388,8 @@ def test_draft_order_complete(
 
 
 def test_draft_order_complete_existing_user_email_updates_user_field(
-        admin_api_client, draft_order, customer_user):
+        staff_api_client, draft_order, customer_user,
+        permission_manage_orders):
     order = draft_order
     order.user_email = customer_user.email
     order.user = None
@@ -403,9 +404,9 @@ def test_draft_order_complete_existing_user_email_updates_user_field(
         }
         """
     order_id = graphene.Node.to_global_id('Order', order.id)
-    variables = json.dumps({'id': order_id})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'id': order_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     assert 'errors' not in content
     order.refresh_from_db()
@@ -413,7 +414,7 @@ def test_draft_order_complete_existing_user_email_updates_user_field(
 
 
 def test_draft_order_complete_anonymous_user_email_sets_user_field_null(
-        admin_api_client, draft_order):
+        staff_api_client, draft_order, permission_manage_orders):
     order = draft_order
     order.user_email = 'anonymous@example.com'
     order.user = None
@@ -428,9 +429,9 @@ def test_draft_order_complete_anonymous_user_email_sets_user_field_null(
         }
         """
     order_id = graphene.Node.to_global_id('Order', order.id)
-    variables = json.dumps({'id': order_id})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'id': order_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     assert 'errors' not in content
     order.refresh_from_db()
@@ -438,7 +439,7 @@ def test_draft_order_complete_anonymous_user_email_sets_user_field_null(
 
 
 def test_draft_order_complete_anonymous_user_no_email(
-        admin_api_client, draft_order):
+        staff_api_client, draft_order, permission_manage_orders):
     order = draft_order
     order.user_email = ''
     order.user = None
@@ -457,9 +458,9 @@ def test_draft_order_complete_anonymous_user_no_email(
         }
         """
     order_id = graphene.Node.to_global_id('Order', order.id)
-    variables = json.dumps({'id': order_id})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {'id': order_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     assert 'errors' in content['data']['draftOrderComplete']
     assert content['data']['draftOrderComplete']['errors'][0] == {
@@ -706,7 +707,7 @@ def test_order_update(
 
 
 def test_order_update_anonymous_user_no_user_email(
-        admin_api_client, order_with_lines):
+        staff_api_client, order_with_lines, permission_manage_orders):
     order = order_with_lines
     order.user = None
     order.save()
@@ -733,11 +734,11 @@ def test_order_update_anonymous_user_no_user_email(
     first_name = 'Test fname'
     last_name = 'Test lname'
     order_id = graphene.Node.to_global_id('Order', order.id)
-    variables = json.dumps({
+    variables = {
         'id': order_id, 'first_name': first_name, 'last_name': last_name,
-        'country_code': 'PL'})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+        'country_code': 'PL'}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     assert 'errors' in content['data']['orderUpdate']
     assert content['data']['orderUpdate']['errors'][0] == {
@@ -751,7 +752,8 @@ def test_order_update_anonymous_user_no_user_email(
 
 
 def test_order_update_user_email_existing_user(
-        admin_api_client, order_with_lines, customer_user):
+        staff_api_client, order_with_lines, customer_user,
+        permission_manage_orders):
     order = order_with_lines
     order.user = None
     order.save()
@@ -779,11 +781,11 @@ def test_order_update_user_email_existing_user(
     first_name = 'Test fname'
     last_name = 'Test lname'
     order_id = graphene.Node.to_global_id('Order', order.id)
-    variables = json.dumps(
-        {'id': order_id, 'email': email, 'first_name': first_name,
-         'last_name': last_name, 'country_code': 'PL'})
-    response = admin_api_client.post(
-        reverse('api'), {'query': query, 'variables': variables})
+    variables = {
+        'id': order_id, 'email': email, 'first_name': first_name,
+        'last_name': last_name, 'country_code': 'PL'}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     data = content['data']['orderUpdate']['order']
     assert data['userEmail'] == email
