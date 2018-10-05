@@ -5,6 +5,8 @@ Before you make any permanent changes in the code you should make sure they do n
 
 The project currently contains very little front-end code so the test suite only covers backend code.
 
+Before running tests, development packages should be installed by :code:`pip install -r requirements_dev.txt`. For Pipenv users, :code:`pipenv install --dev` should do the same.
+
 To run backend tests use `pytest <http://docs.pytest.org/en/latest/>`_:
 
 .. code-block:: bash
