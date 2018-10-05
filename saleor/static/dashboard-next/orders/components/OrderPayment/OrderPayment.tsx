@@ -19,6 +19,7 @@ import { OrderDetails_order } from "../../types/OrderDetails";
 interface OrderPaymentProps {
   order: OrderDetails_order;
   onCapture: () => void;
+  onMarkAsPaid: () => void;
   onRefund: () => void;
   onRelease: () => void;
 }
@@ -37,7 +38,7 @@ const decorate = withStyles(theme => ({
   }
 }));
 const OrderPayment = decorate<OrderPaymentProps>(
-  ({ classes, order, onCapture, onRefund, onRelease }) => {
+  ({ classes, order, onCapture, onMarkAsPaid, onRefund, onRelease }) => {
     const canCapture = maybe(() => order.paymentStatus)
       ? order.paymentStatus === PaymentStatusEnum.PREAUTH &&
         order.status !== OrderStatus.CANCELED
@@ -49,6 +50,12 @@ const OrderPayment = decorate<OrderPaymentProps>(
       ? order.paymentStatus === PaymentStatusEnum.CONFIRMED &&
         order.status !== OrderStatus.CANCELED
       : false;
+    const canMarkAsPaid =
+      maybe(() => order.paymentStatus) !== undefined
+        ? [null, PaymentStatusEnum.ERROR, PaymentStatusEnum.REJECTED].includes(
+            order.paymentStatus
+          )
+        : false;
     const payment = transformPaymentStatus(maybe(() => order.paymentStatus));
     return (
       <Card>
@@ -138,7 +145,7 @@ const OrderPayment = decorate<OrderPaymentProps>(
             </tbody>
           </table>
         </CardContent>
-        {(canCapture || canRefund || canRelease) && (
+        {(canCapture || canRefund || canRelease || canMarkAsPaid) && (
           <>
             <Hr />
             <CardActions>
@@ -155,6 +162,11 @@ const OrderPayment = decorate<OrderPaymentProps>(
               {canRelease && (
                 <Button color="secondary" variant="flat" onClick={onRelease}>
                   {i18n.t("Release", { context: "button" })}
+                </Button>
+              )}
+              {canMarkAsPaid && (
+                <Button color="secondary" variant="flat" onClick={onMarkAsPaid}>
+                  {i18n.t("Mark as paid", { context: "button" })}
                 </Button>
               )}
             </CardActions>

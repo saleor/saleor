@@ -1,9 +1,11 @@
+import DialogContentText from "@material-ui/core/DialogContentText";
 import { withStyles, WithStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import { transformAddressToForm } from "../..";
 import { UserError } from "../../..";
+import ActionDialog from "../../../components/ActionDialog";
 import { CardMenu } from "../../../components/CardMenu/CardMenu";
 import { CardSpacer } from "../../../components/CardSpacer";
 import { Container } from "../../../components/Container";
@@ -61,6 +63,7 @@ export interface OrderDetailsPageProps {
   onOrderFulfill(data: OrderFulfillFormData);
   onProductClick?(id: string);
   onPaymentCapture(data: OrderPaymentFormData);
+  onPaymentPaid();
   onPaymentRefund(data: OrderPaymentFormData);
   onPaymentRelease();
   onShippingAddressEdit(data: AddressTypeInput);
@@ -72,6 +75,7 @@ interface OrderDetailsPageState {
   openedFulfillmentDialog: boolean;
   openedOrderCancelDialog: boolean;
   openedPaymentCaptureDialog: boolean;
+  openedPaymentPaidDialog: boolean;
   openedPaymentRefundDialog: boolean;
   openedPaymentReleaseDialog: boolean;
   openedShippingAddressEditDialog: boolean;
@@ -103,6 +107,7 @@ class OrderDetailsPageComponent extends React.Component<
     openedFulfillmentDialog: false,
     openedOrderCancelDialog: false,
     openedPaymentCaptureDialog: false,
+    openedPaymentPaidDialog: false,
     openedPaymentRefundDialog: false,
     openedPaymentReleaseDialog: false,
     openedShippingAddressEditDialog: false
@@ -136,6 +141,10 @@ class OrderDetailsPageComponent extends React.Component<
     this.setState(prevState => ({
       openedBillingAddressEditDialog: !prevState.openedBillingAddressEditDialog
     }));
+  togglePaymentPaidDialog = () =>
+    this.setState(prevState => ({
+      openedPaymentPaidDialog: !prevState.openedPaymentPaidDialog
+    }));
 
   render() {
     const {
@@ -151,6 +160,7 @@ class OrderDetailsPageComponent extends React.Component<
       onOrderCancel,
       onOrderFulfill,
       onPaymentCapture,
+      onPaymentPaid,
       onPaymentRefund,
       onPaymentRelease,
       onShippingAddressEdit
@@ -160,6 +170,7 @@ class OrderDetailsPageComponent extends React.Component<
       openedFulfillmentDialog,
       openedOrderCancelDialog,
       openedPaymentCaptureDialog,
+      openedPaymentPaidDialog,
       openedPaymentRefundDialog,
       openedPaymentReleaseDialog,
       openedShippingAddressEditDialog
@@ -266,6 +277,7 @@ class OrderDetailsPageComponent extends React.Component<
               <OrderPayment
                 order={order}
                 onCapture={this.togglePaymentCaptureDialog}
+                onMarkAsPaid={this.togglePaymentPaidDialog}
                 onRefund={this.togglePaymentRefundDialog}
                 onRelease={this.togglePaymentReleaseDialog}
               />
@@ -358,6 +370,18 @@ class OrderDetailsPageComponent extends React.Component<
           onClose={this.togglePaymentReleaseDialog}
           onConfirm={onPaymentRelease}
         />
+        <ActionDialog
+          open={openedPaymentPaidDialog}
+          title={i18n.t("Mark order as paid")}
+          onClose={this.togglePaymentPaidDialog}
+          onConfirm={onPaymentPaid}
+        >
+          <DialogContentText>
+            {i18n.t("Are you sure you want to mark this order as paid?", {
+              context: "modal content"
+            })}
+          </DialogContentText>
+        </ActionDialog>
       </>
     );
   }

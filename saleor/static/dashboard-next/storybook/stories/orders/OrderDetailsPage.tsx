@@ -22,6 +22,7 @@ const props: OrderDetailsPageProps = {
   onOrderCancel: undefined,
   onOrderFulfill: undefined,
   onPaymentCapture: undefined,
+  onPaymentPaid: undefined,
   onPaymentRefund: undefined,
   onPaymentRelease: undefined,
   onProductClick: undefined,

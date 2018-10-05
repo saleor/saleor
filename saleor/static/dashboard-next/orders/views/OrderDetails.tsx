@@ -24,6 +24,7 @@ import { OrderFulfillmentUpdateTracking } from "../types/OrderFulfillmentUpdateT
 import { OrderLineAdd } from "../types/OrderLineAdd";
 import { OrderLineDelete } from "../types/OrderLineDelete";
 import { OrderLineUpdate } from "../types/OrderLineUpdate";
+import { OrderMarkAsPaid } from "../types/OrderMarkAsPaid";
 import { OrderRefund } from "../types/OrderRefund";
 import { OrderShippingMethodUpdate } from "../types/OrderShippingMethodUpdate";
 import { OrderUpdate } from "../types/OrderUpdate";
@@ -108,6 +109,23 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                           } else {
                             pushMessage({
                               text: i18n.t("Could not fulfill items", {
+                                context: "notification"
+                              })
+                            });
+                          }
+                        };
+                        const handleMarkAsPaid = (data: OrderMarkAsPaid) => {
+                          if (
+                            !maybe(() => data.orderMarkAsPaid.errors.length)
+                          ) {
+                            pushMessage({
+                              text: i18n.t("Order marked as paid", {
+                                context: "notification"
+                              })
+                            });
+                          } else {
+                            pushMessage({
+                              text: i18n.t("Could not mark order as paid", {
                                 context: "notification"
                               })
                             });
@@ -343,6 +361,7 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                             onOrderFulfillmentUpdate={handleFulfillmentUpdate}
                             onDraftFinalize={handleDraftFinalize}
                             onDraftCancel={handleOrderDraftCancel}
+                            onOrderMarkAsPaid={handleMarkAsPaid}
                           >
                             {({
                               errors,
@@ -361,7 +380,8 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                               orderFulfillmentCancel,
                               orderFulfillmentUpdateTracking,
                               orderDraftCancel,
-                              orderDraftFinalize
+                              orderDraftFinalize,
+                              orderPaymentMarkAsPaid
                             }) =>
                               maybe(
                                 () => order.status !== OrderStatus.DRAFT
@@ -462,6 +482,9 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                         shippingAddress: variables
                                       }
                                     })
+                                  }
+                                  onPaymentPaid={() =>
+                                    orderPaymentMarkAsPaid.mutate({ id })
                                   }
                                 />
                               ) : (
