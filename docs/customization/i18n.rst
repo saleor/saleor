@@ -8,7 +8,7 @@ First make sure you have the Transifex command-line client installed:
 
 .. code-block:: console
 
- $ pip install transifex-client
+ $ python -m pip install transifex-client
 
 Then use the ``pull`` command to pull translations:
 
