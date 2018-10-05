@@ -36,7 +36,12 @@ const CardTitle = decorate<CardTitleProps>(
   ({ classes, children, title, toolbar, onClick, ...props }) => (
     <>
       <div className={classes.root} {...props}>
-        <Typography className={classes.title} variant="body1" onClick={onClick}>
+        <Typography
+          className={classes.title}
+          variant="body1"
+          onClick={onClick}
+          component="span"
+        >
           {title}
         </Typography>
         <div className={classes.toolbar}>{toolbar}</div>
