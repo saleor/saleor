@@ -6,7 +6,11 @@ import OrderDetailsPage, {
   OrderDetailsPageProps
 } from "../../../orders/components/OrderDetailsPage";
 import { countries, order as orderFixture } from "../../../orders/fixtures";
-import { OrderStatus, PaymentStatusEnum } from "../../../types/globalTypes";
+import {
+  FulfillmentStatus,
+  OrderStatus,
+  PaymentStatusEnum
+} from "../../../types/globalTypes";
 import Decorator from "../../Decorator";
 
 const order = orderFixture(placeholderImage);
@@ -93,6 +97,10 @@ storiesOf("Views / Orders / Order details", module)
       {...props}
       order={{
         ...props.order,
+        fulfillments: props.order.fulfillments.map(fulfillment => ({
+          ...fulfillment,
+          status: FulfillmentStatus.CANCELED
+        })),
         status: OrderStatus.CANCELED
       }}
     />
