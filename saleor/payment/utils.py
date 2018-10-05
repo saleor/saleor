@@ -1,4 +1,5 @@
 from decimal import Decimal
+from functools import wraps
 from typing import Dict, Optional
 
 from django.db import transaction
@@ -7,9 +8,20 @@ from . import PaymentError, PaymentMethodChargeStatus, get_provider
 from .models import PaymentMethod, Transaction
 
 
-def create_payment_method(**payment_method_kwargs):
-    payment_method, dummy_created = PaymentMethod.objects.get_or_create(
-        **payment_method_kwargs)
+def validate_payment_method(view):
+    """Decorate a view to check if payment method is active, so any actions
+    can be performed on it.
+    """
+    @wraps(view)
+    def func(payment_method, *args, **kwargs):
+        if not payment_method.is_active:
+            raise PaymentError('This payment method is no longer active.')
+        return view(payment_method, *args, **kwargs)
+    return func
+
+
+def create_payment_method(**payment_data):
+    payment_method, _ = PaymentMethod.objects.get_or_create(**payment_data)
     return payment_method
 
 
@@ -17,11 +29,10 @@ def create_transaction(
         payment_method: PaymentMethod, token: str, transaction_type: str,
         is_success: bool, amount: Decimal,
         gateway_response: Optional[Dict] = None) -> Transaction:
-
     if not gateway_response:
         gateway_response = {}
 
-    txn, dummy_created = Transaction.objects.get_or_create(
+    txn, _ = Transaction.objects.get_or_create(
         payment_method=payment_method, token=token,
         transaction_type=transaction_type, is_success=is_success,
         amount=amount, gateway_response=gateway_response)
@@ -33,11 +44,10 @@ def gateway_get_client_token(provider_name):
     return provider.get_client_token(**provider_params)
 
 
+@validate_payment_method
 def gateway_authorize(payment_method, transaction_token) -> Transaction:
-    if not payment_method.is_active:
-        raise PaymentError('This payment method is no longer active')
     if not payment_method.charge_status == PaymentMethodChargeStatus.NOT_CHARGED:
-        raise PaymentError('Charged transactions cannot be authorized again')
+        raise PaymentError('Charged transactions cannot be authorized again.')
 
     provider, provider_params = get_provider(payment_method.variant)
     with transaction.atomic():
@@ -52,16 +62,18 @@ def gateway_authorize(payment_method, transaction_token) -> Transaction:
     return txn
 
 
+@validate_payment_method
 def gateway_charge(payment_method, amount) -> Transaction:
-    if not payment_method.is_active:
-        raise PaymentError('This payment method is no longer active')
     if payment_method.charge_status not in {
             PaymentMethodChargeStatus.CHARGED,
             PaymentMethodChargeStatus.NOT_CHARGED}:
-        raise PaymentError('This payment method cannot be charged')
+        raise PaymentError('This payment method cannot be charged.')
     if amount > payment_method.total or amount > (
             payment_method.total - payment_method.captured_amount):
-        raise PaymentError('Unable to charge more than authorized amount')
+        raise PaymentError('Unable to charge more than authorized amount.')
+    if amount <= 0:
+        raise PaymentError('Amount should be a positive number.')
+
     provider, provider_params = get_provider(payment_method.variant)
     with transaction.atomic():
         txn, error = provider.charge(
@@ -78,11 +90,10 @@ def gateway_charge(payment_method, amount) -> Transaction:
     return txn
 
 
+@validate_payment_method
 def gateway_void(payment_method) -> Transaction:
-    if not payment_method.is_active:
-        raise PaymentError('This payment method is no longer active')
     if not payment_method.charge_status == PaymentMethodChargeStatus.NOT_CHARGED:
-        raise PaymentError('Only pre-authorized transactions can be void')
+        raise PaymentError('Only pre-authorized transactions can be void.')
     provider, provider_params = get_provider(payment_method.variant)
     with transaction.atomic():
         txn, error = provider.void(payment_method, **provider_params)
@@ -94,14 +105,15 @@ def gateway_void(payment_method) -> Transaction:
     return txn
 
 
+@validate_payment_method
 def gateway_refund(payment_method, amount) -> Transaction:
-    if not payment_method.is_active:
-        raise PaymentError('This payment method is no longer active')
     if amount > payment_method.captured_amount:
         raise PaymentError('Cannot refund more than captured')
+    if amount <= 0:
+        raise PaymentError('Amount should be a positive number.')
     if not payment_method.charge_status == PaymentMethodChargeStatus.CHARGED:
         raise PaymentError(
-            'Refund is possible only when transaction is charged')
+            'Refund is possible only when transaction is charged.')
 
     provider, provider_params = get_provider(payment_method.variant)
     with transaction.atomic():

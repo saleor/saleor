@@ -10,6 +10,17 @@ from ..order.models import Order
 
 
 class PaymentMethod(models.Model):
+    """Represents transactable payment information
+    such as credit card details, gift card information or a customer's
+    authorization to charge their PayPal account.
+
+    All payment process related pieces of information are stored
+    at the gateway level, we are operating on the reusable token
+    which is a unique identifier of the customer for given gateway.
+
+    Payment methods belong to a customer, one can use several payments method
+    within a single order.
+    """
     variant = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     #: Creation date and time
@@ -93,6 +104,10 @@ class PaymentMethod(models.Model):
 
 
 class Transaction(models.Model):
+    """Transactions represent attempts to transfer money between your store
+    and your customers, with a choosen payment method.
+    """
+    created = models.DateTimeField(auto_now_add=True, editable=False)
     payment_method = models.ForeignKey(
         PaymentMethod, related_name='transactions', on_delete=models.PROTECT)
     token = models.CharField(max_length=64, blank=True, default='')
@@ -101,7 +116,9 @@ class Transaction(models.Model):
     is_success = models.BooleanField(default=False)
     amount = models.DecimalField(
         max_digits=9, decimal_places=2, default=Decimal('0.0'))
+    currency = models.CharField(max_length=10, editable=False)
+
     gateway_response = JSONField()
 
     def get_amount(self):
-        return Money(amount=self.amount, currency=self.payment_method.currency)
+        return Money(amount=self.amount, currency=self.currency)
