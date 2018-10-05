@@ -2,10 +2,10 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import OrderShippingMethodEditDialog from "../../../orders/components/OrderShippingMethodEditDialog";
-import {
-  shippingMethods
-} from "../../../orders/fixtures";
+import { order as orderFixture } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
+
+const order = orderFixture("");
 
 storiesOf("Orders / OrderShippingMethodEditDialog", module)
   .addDecorator(Decorator)
@@ -15,6 +15,6 @@ storiesOf("Orders / OrderShippingMethodEditDialog", module)
       onSubmit={undefined}
       open={true}
       shippingMethod={null}
-      shippingMethods={shippingMethods}
+      shippingMethods={order.availableShippingMethods}
     />
   ));
