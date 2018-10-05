@@ -43,6 +43,10 @@ import {
   OrderLineUpdate,
   OrderLineUpdateVariables
 } from "./types/OrderLineUpdate";
+import {
+  OrderMarkAsPaid,
+  OrderMarkAsPaidVariables
+} from "./types/OrderMarkAsPaid";
 import { OrderRefund, OrderRefundVariables } from "./types/OrderRefund";
 import { OrderRelease, OrderReleaseVariables } from "./types/OrderRelease";
 import {
@@ -133,6 +137,25 @@ export const TypedOrderReleaseMutation = TypedMutation<
   OrderRelease,
   OrderReleaseVariables
 >(orderReleaseMutation);
+
+const orderMarkAsPaidMutation = gql`
+  ${fragmentOrderDetails}
+  mutation OrderMarkAsPaid($id: ID!) {
+    orderMarkAsPaid(id: $id) {
+      errors {
+        field
+        message
+      }
+      order {
+        ...OrderDetailsFragment
+      }
+    }
+  }
+`;
+export const TypedOrderMarkAsPaidMutation = TypedMutation<
+  OrderMarkAsPaid,
+  OrderMarkAsPaidVariables
+>(orderMarkAsPaidMutation);
 
 const orderCaptureMutation = gql`
   ${fragmentOrderDetails}
