@@ -14,8 +14,8 @@ import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import {
-  ProductTypeDetails_productType_productAttributes_edges_node,
-  ProductTypeDetails_productType_variantAttributes_edges_node
+  ProductTypeDetails_productType_productAttributes,
+  ProductTypeDetails_productType_variantAttributes
 } from "../../types/ProductTypeDetails";
 import ProductTypeAttributeEditDialog, {
   FormData as ProductTypeAttributeEditDialogFormData
@@ -23,8 +23,8 @@ import ProductTypeAttributeEditDialog, {
 
 interface ProductTypeAttributesProps {
   attributes:
-    | ProductTypeDetails_productType_productAttributes_edges_node[]
-    | ProductTypeDetails_productType_variantAttributes_edges_node[];
+    | ProductTypeDetails_productType_productAttributes[]
+    | ProductTypeDetails_productType_variantAttributes[];
   title: string;
   onAttributeAdd: (data: ProductTypeAttributeEditDialogFormData) => void;
   onAttributeUpdate: (

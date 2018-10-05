@@ -90,10 +90,10 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
           : false,
       name: maybe(() => productType.name) !== undefined ? productType.name : "",
       productAttributes:
-        maybe(() => productType.productAttributes.edges) !== undefined
-          ? productType.productAttributes.edges.map(edge => ({
-              label: edge.node.name,
-              value: edge.node.id
+        maybe(() => productType.productAttributes) !== undefined
+          ? productType.productAttributes.map(attribute => ({
+              label: attribute.name,
+              value: attribute.id
             }))
           : [],
       taxRate:
@@ -101,10 +101,10 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
           ? productType.taxRate
           : null,
       variantAttributes:
-        maybe(() => productType.variantAttributes.edges) !== undefined
-          ? productType.variantAttributes.edges.map(edge => ({
-              label: edge.node.name,
-              value: edge.node.id
+        maybe(() => productType.variantAttributes) !== undefined
+          ? productType.variantAttributes.map(attribute => ({
+              label: attribute.name,
+              value: attribute.id
             }))
           : [],
       weight: maybe(() => productType.weight.value)
@@ -131,10 +131,8 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
                       />
                       <div className={classes.cardContainer}>
                         <ProductTypeAttributes
-                          attributes={maybe(() =>
-                            productType.productAttributes.edges.map(
-                              edge => edge.node
-                            )
+                          attributes={maybe(
+                            () => productType.productAttributes
                           )}
                           title={i18n.t("Product Attributes")}
                           onAttributeAdd={onAttributeAdd}
@@ -153,10 +151,8 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
                       {data.hasVariants && (
                         <div className={classes.cardContainer}>
                           <ProductTypeAttributes
-                            attributes={maybe(() =>
-                              productType.variantAttributes.edges.map(
-                                edge => edge.node
-                              )
+                            attributes={maybe(
+                              () => productType.variantAttributes
                             )}
                             title={i18n.t("Variant Attributes")}
                             onAttributeAdd={onAttributeAdd}
