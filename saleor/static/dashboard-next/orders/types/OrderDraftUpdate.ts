@@ -222,10 +222,17 @@ export interface OrderDraftUpdate_draftOrderUpdate_order_user {
   email: string;
 }
 
+export interface OrderDraftUpdate_draftOrderUpdate_order_availableShippingMethods_price {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
 export interface OrderDraftUpdate_draftOrderUpdate_order_availableShippingMethods {
   __typename: "ShippingMethod";
   id: string;
   name: string;
+  price: OrderDraftUpdate_draftOrderUpdate_order_availableShippingMethods_price | null;
 }
 
 export interface OrderDraftUpdate_draftOrderUpdate_order {

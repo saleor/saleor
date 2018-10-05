@@ -146,6 +146,10 @@ export const fragmentOrderDetails = gql`
     availableShippingMethods {
       id
       name
+      price {
+        amount
+        currency
+      }
     }
   }
 `;

@@ -222,10 +222,17 @@ export interface OrderLineAdd_draftOrderLineCreate_order_user {
   email: string;
 }
 
+export interface OrderLineAdd_draftOrderLineCreate_order_availableShippingMethods_price {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
 export interface OrderLineAdd_draftOrderLineCreate_order_availableShippingMethods {
   __typename: "ShippingMethod";
   id: string;
   name: string;
+  price: OrderLineAdd_draftOrderLineCreate_order_availableShippingMethods_price | null;
 }
 
 export interface OrderLineAdd_draftOrderLineCreate_order {

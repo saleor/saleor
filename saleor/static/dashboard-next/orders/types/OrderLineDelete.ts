@@ -222,10 +222,17 @@ export interface OrderLineDelete_draftOrderLineDelete_order_user {
   email: string;
 }
 
+export interface OrderLineDelete_draftOrderLineDelete_order_availableShippingMethods_price {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
 export interface OrderLineDelete_draftOrderLineDelete_order_availableShippingMethods {
   __typename: "ShippingMethod";
   id: string;
   name: string;
+  price: OrderLineDelete_draftOrderLineDelete_order_availableShippingMethods_price | null;
 }
 
 export interface OrderLineDelete_draftOrderLineDelete_order {
