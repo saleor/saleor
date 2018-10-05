@@ -42,14 +42,14 @@ def void(payment_method, **client_kwargs):
     return txn, error
 
 
-def charge(payment_method, amount=None):
+def capture(payment_method, amount=None):
     error = None
     success = dummy_success()
     if not success:
-        error = 'Unable to process charge'
+        error = 'Unable to process capture'
     txn = create_transaction(
         payment_method=payment_method,
-        transaction_type=TransactionType.CHARGE,
+        transaction_type=TransactionType.CAPTURE,
         amount=amount,
         token=str(uuid.uuid4()),
         is_success=success)

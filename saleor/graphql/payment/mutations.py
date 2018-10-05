@@ -3,7 +3,7 @@ from graphql_jwt.decorators import permission_required
 
 from ...payment import PaymentError
 from ...payment.utils import (
-    create_payment_method, gateway_authorize, gateway_charge, gateway_refund,
+    create_payment_method, gateway_authorize, gateway_capture, gateway_refund,
     gateway_void)
 from ..account.types import AddressInput
 from ..checkout.types import Checkout
@@ -94,7 +94,7 @@ class CheckoutPaymentMethodCreate(BaseMutation):
             'customer_user_agent': user_agent}
 
 
-class PaymentMethodCharge(BaseMutation):
+class PaymentMethodCapture(BaseMutation):
     payment_method = graphene.Field(
         PaymentMethod, description='Updated payment method')
 
@@ -112,18 +112,18 @@ class PaymentMethodCharge(BaseMutation):
             only_type=PaymentMethod)
 
         if not payment_method:
-            return PaymentMethodCharge(errors=errors)
+            return PaymentMethodCapture(errors=errors)
 
         try:
-            gateway_charge(payment_method, amount=amount)
+            gateway_capture(payment_method, amount=amount)
         except PaymentError as exc:
             msg = str(exc)
             cls.add_error(field=None, message=msg, errors=errors)
-        return PaymentMethodCharge(
+        return PaymentMethodCapture(
             payment_method=payment_method, errors=errors)
 
 
-class PaymentMethodRefund(PaymentMethodCharge):
+class PaymentMethodRefund(PaymentMethodCapture):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, payment_method_id, amount=None):

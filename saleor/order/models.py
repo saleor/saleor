@@ -13,8 +13,9 @@ from django.utils.translation import pgettext_lazy
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
 from measurement.measures import Weight
-from payments import PaymentStatus, PurchasedItem
+from payments import PurchasedItem
 from payments.models import BasePayment
+from payment import PaymentMethodChargeStatus
 from prices import Money, TaxedMoney
 
 from . import FulfillmentStatus, OrderEvents, OrderStatus, display_order_event
@@ -129,12 +130,10 @@ class Order(models.Model):
         return super().save(*args, **kwargs)
 
     def is_fully_paid(self):
-        confirmed_payments = [
-            payment for payment in self.payments.all()
-            if payment.status == PaymentStatus.CONFIRMED]
-        total_paid = sum(
-            [payment.get_total()
-             for payment in confirmed_payments], ZERO_TAXED_MONEY)
+        payments = self.payment_methods.filter(
+            charge_status=PaymentMethodChargeStatus.CHARGED)
+        total_paid = sum([
+            payment.get_total() for payment in payments], ZERO_TAXED_MONEY)
         return total_paid.gross >= self.total.gross
 
     def get_user_current_email(self):
@@ -175,9 +174,10 @@ class Order(models.Model):
         return None
 
     def is_pre_authorized(self):
-        # FIXME Adapt to new API
-        # FIXME: Check for really pre-authorized transactions
-        return self.payment_methods.filter(is_active=True).exists()
+        # FIXME for Braintree, payment is preauthorized if it was added
+        # properly and set to active. This might need to be adjusted for other
+        # payment gateways in the future.
+        return not self.payment_methods.filter(is_active=True).exists()
 
     @property
     def quantity_fulfilled(self):

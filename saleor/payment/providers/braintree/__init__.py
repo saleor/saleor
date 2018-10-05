@@ -95,7 +95,7 @@ def authorize(payment_method, transaction_token, **client_kwargs):
     return txn, error
 
 
-def charge(payment_method, amount=None, **client_kwargs):
+def capture(payment_method, amount=None, **client_kwargs):
     gateway = get_gateway(**client_kwargs)
     auth_transaction = payment_method.transactions.filter(
         transaction_type=TransactionType.AUTH).first()
@@ -108,7 +108,7 @@ def charge(payment_method, amount=None, **client_kwargs):
 
     txn = create_transaction(
         payment_method=payment_method,
-        transaction_type=TransactionType.CHARGE,
+        transaction_type=TransactionType.CAPTURE,
         amount=amount,
         token=result.transaction.id,
         is_success=result.is_success,
@@ -136,7 +136,7 @@ def void(payment_method, **client_kwargs):
 def refund(payment_method, amount=None, **client_kwargs):
     gateway = get_gateway(**client_kwargs)
     auth_transaction = payment_method.transactions.filter(
-        transaction_type=TransactionType.CHARGE).first()
+        transaction_type=TransactionType.CAPTURE).first()
     result = gateway.transaction.refund(
         transaction_id=auth_transaction.token, amount=amount)
     gateway_response = extract_gateway_response(result)

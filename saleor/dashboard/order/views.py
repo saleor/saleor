@@ -11,7 +11,6 @@ from django.template.response import TemplateResponse
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django.views.decorators.http import require_POST
 from django_prices.templatetags import prices_i18n
-from payments import PaymentStatus
 
 from ...core.exceptions import InsufficientStock
 from ...core.utils import get_paginator_items

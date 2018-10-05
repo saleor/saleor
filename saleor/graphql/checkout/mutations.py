@@ -8,6 +8,7 @@ from ...checkout.utils import (
     get_taxes_for_cart, ready_to_place_order)
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
+from ...core.utils.taxes import get_taxes_for_address
 from ...shipping.models import ShippingMethod as ShippingMethodModel
 from ..account.types import AddressInput, User
 from ..core.mutations import BaseMutation, ModelMutation
@@ -279,9 +280,18 @@ class CheckoutShippingAddressUpdate(BaseMutation):
         errors = []
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
+
         shipping_address = Address(**shipping_address)
-        # FIXME validate if shipping method is still valid after changing
-        # shipping address
+        cls.clean_instance(shipping_address, errors)
+        if errors:
+            CheckoutShippingAddressUpdate(errors=errors)
+
+        clean_shipping_method(
+            checkout, checkout.shipping_method, errors,
+            info.context.discounts, get_taxes_for_address(shipping_address))
+        if errors:
+            CheckoutShippingAddressUpdate(errors=errors)
+
         if checkout and shipping_address:
             with transaction.atomic():
                 shipping_address.save()
