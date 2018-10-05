@@ -18,7 +18,9 @@ import Toggle from "../../../components/Toggle";
 
 import i18n from "../../../i18n";
 
-interface CategoryCreateSubcategoriesProps {}
+interface CategoryCreateSubcategoriesProps {
+  disabled: boolean;
+}
 
 const decorate = withStyles(theme => ({
   root: {
@@ -47,7 +49,7 @@ const decorate = withStyles(theme => ({
 
 export const CategoryCreateSubcategories = decorate<
   CategoryCreateSubcategoriesProps
->(({ classes }) => {
+>(({ classes, disabled }) => {
   return (
     <Toggle>
       {(toggled, { toggle }) => (
@@ -59,6 +61,7 @@ export const CategoryCreateSubcategories = decorate<
                 color={toggled ? "default" : "secondary"}
                 variant="flat"
                 onClick={toggle}
+                disabled={disabled}
               >
                 {toggled ? i18n.t("Cancel") : i18n.t("Add subcategory")}
               </Button>
