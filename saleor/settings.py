@@ -257,7 +257,7 @@ if DEBUG:
         'debug_toolbar.panels.profiling.ProfilingPanel',
     ]
     DEBUG_TOOLBAR_CONFIG = {
-        'RESULTS_STORE_SIZE': 100}
+        'RESULTS_CACHE_SIZE': 100}
 
 ENABLE_SILK = get_bool_from_env('ENABLE_SILK', False)
 if ENABLE_SILK:
