@@ -5226,7 +5226,7 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
       <h2
         class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
       >
-        Order history
+        Order timeline
       </h2>
       <div
         class="Component-action-id"
@@ -14704,7 +14704,7 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
             <div
               class="Component-root-id undefined Component-neutralDot-id"
             >
-              Preauthorized
+              Pending
             </div>
             <p />
             <div
@@ -14824,7 +14824,7 @@ exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
             <h2
               class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
             >
-              Order history
+              Order timeline
             </h2>
             <div
               class="Component-action-id"
@@ -15654,7 +15654,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
             <div
               class="Component-root-id undefined Component-neutralDot-id"
             >
-              Preauthorized
+              Pending
             </div>
             <p />
             <div
@@ -15774,7 +15774,7 @@ exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
             <h2
               class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
             >
-              Order history
+              Order timeline
             </h2>
             <div
               class="Component-action-id"
@@ -16604,7 +16604,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
             <div
               class="Component-root-id undefined Component-neutralDot-id"
             >
-              Preauthorized
+              Pending
             </div>
             <p />
             <div
@@ -16724,7 +16724,7 @@ exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
             <h2
               class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
             >
-              Order history
+              Order timeline
             </h2>
             <div
               class="Component-action-id"
@@ -17357,7 +17357,7 @@ exports[`Storyshots Views / Orders / Order details when loading data 1`] = `
             <h2
               class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
             >
-              Order history
+              Order timeline
             </h2>
             <div
               class="Component-action-id"
@@ -17925,7 +17925,7 @@ exports[`Storyshots Views / Orders / Order draft default 1`] = `
             <h2
               class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
             >
-              Order history
+              Order timeline
             </h2>
             <div
               class="Component-action-id"
@@ -18497,7 +18497,7 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
             <h2
               class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
             >
-              Order history
+              Order timeline
             </h2>
             <div
               class="Component-action-id"
@@ -18679,8 +18679,9 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
         />
       </button>
       <button
-        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id"
-        tabindex="0"
+        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+        disabled=""
+        tabindex="-1"
         type="button"
       >
         <span
@@ -18688,9 +18689,6 @@ exports[`Storyshots Views / Orders / Order draft loading 1`] = `
         >
           Finalize
         </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
       </button>
     </div>
   </div>
@@ -18854,7 +18852,7 @@ exports[`Storyshots Views / Orders / Order draft without lines 1`] = `
             <h2
               class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
             >
-              Order history
+              Order timeline
             </h2>
             <div
               class="Component-action-id"
@@ -19328,7 +19326,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="Component-root-id undefined Component-successDot-id"
               >
-                Confirmed
+                Paid
               </div>
             </td>
             <td
@@ -19375,7 +19373,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="Component-root-id undefined Component-successDot-id"
               >
-                Confirmed
+                Paid
               </div>
             </td>
             <td
@@ -19422,7 +19420,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="Component-root-id undefined Component-neutralDot-id"
               >
-                Preauthorized
+                Pending
               </div>
             </td>
             <td
@@ -19469,7 +19467,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="Component-root-id undefined Component-neutralDot-id"
               >
-                Preauthorized
+                Pending
               </div>
             </td>
             <td
@@ -19516,7 +19514,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="Component-root-id undefined Component-neutralDot-id"
               >
-                Preauthorized
+                Pending
               </div>
             </td>
             <td
@@ -19563,7 +19561,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="Component-root-id undefined Component-errorDot-id"
               >
-                Rejected
+                Unpaid
               </div>
             </td>
             <td
@@ -19610,7 +19608,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="Component-root-id undefined Component-neutralDot-id"
               >
-                Waiting
+                Pending
               </div>
             </td>
             <td
@@ -19657,7 +19655,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="Component-root-id undefined Component-neutralDot-id"
               >
-                Waiting
+                Pending
               </div>
             </td>
             <td
@@ -19704,7 +19702,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="Component-root-id undefined Component-neutralDot-id"
               >
-                Preauthorized
+                Pending
               </div>
             </td>
             <td
@@ -19751,7 +19749,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="Component-root-id undefined Component-successDot-id"
               >
-                Confirmed
+                Paid
               </div>
             </td>
             <td
@@ -19798,7 +19796,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="Component-root-id undefined Component-neutralDot-id"
               >
-                Preauthorized
+                Pending
               </div>
             </td>
             <td
@@ -19845,7 +19843,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="Component-root-id undefined Component-neutralDot-id"
               >
-                Preauthorized
+                Pending
               </div>
             </td>
             <td
@@ -19892,7 +19890,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="Component-root-id undefined Component-neutralDot-id"
               >
-                Waiting
+                Pending
               </div>
             </td>
             <td
@@ -19939,7 +19937,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="Component-root-id undefined Component-successDot-id"
               >
-                Confirmed
+                Paid
               </div>
             </td>
             <td
@@ -19986,7 +19984,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="Component-root-id undefined Component-neutralDot-id"
               >
-                Waiting
+                Pending
               </div>
             </td>
             <td
@@ -20033,7 +20031,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="Component-root-id undefined Component-neutralDot-id"
               >
-                Waiting
+                Pending
               </div>
             </td>
             <td
@@ -20080,7 +20078,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="Component-root-id undefined Component-neutralDot-id"
               >
-                Waiting
+                Pending
               </div>
             </td>
             <td
@@ -20127,7 +20125,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="Component-root-id undefined Component-neutralDot-id"
               >
-                Waiting
+                Pending
               </div>
             </td>
             <td
@@ -20174,7 +20172,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="Component-root-id undefined Component-successDot-id"
               >
-                Confirmed
+                Paid
               </div>
             </td>
             <td
@@ -20221,7 +20219,7 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               <div
                 class="Component-root-id undefined Component-neutralDot-id"
               >
-                Waiting
+                Pending
               </div>
             </td>
             <td
