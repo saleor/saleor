@@ -26,13 +26,21 @@ def add_voucher_form(view):
         if voucher_form.is_bound:
             if voucher_form.is_valid():
                 voucher_form.save()
-                next_url = request.GET.get(
-                    'next', request.META['HTTP_REFERER'])
-                return redirect(next_url)
+                if request.is_ajax():
+                    response = JsonResponse(
+                        {'is_valid': True}, status=200)
+                else:
+                    next_url = request.GET.get(
+                        'next', request.META['HTTP_REFERER'])
+                    response = redirect(next_url)
+                return response
             else:
                 remove_voucher_from_cart(cart)
                 # if only discount form was used we clear post for other forms
                 request.POST = {}
+                if request.is_ajax():
+                    return JsonResponse(
+                        {'error': form.errors}, status=400)
         else:
             taxes = get_taxes_for_cart(cart, request.taxes)
             recalculate_cart_discount(cart, request.discounts, taxes)

@@ -5,7 +5,6 @@ export const onUseVoucherError = (response) => {
   $useVoucherError.html(getAjaxError(response));
 };
 
-
 export default $(document).ready((e) => {
   $('.discount-form .btn').click((e) => {
     e.preventDefault();
@@ -14,13 +13,13 @@ export default $(document).ready((e) => {
       url: $('.discount-form').attr('action'),
       type: 'POST',
       data: {
-        voucher: voucher,
+        'discount': voucher,
       },
       success: (data) => {
-        //onAddToCartSuccess();
+        console.log("THE SUCCESS DATA:" + data)
       },
       error: (response) => {
-        onAddToCartError(response);
+        onUseVoucherError(response);
       }
     });
   });
