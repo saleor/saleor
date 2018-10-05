@@ -19,6 +19,7 @@ interface OrderDraftDetailsProps {
     id: string,
     data: OrderDraftDetailsProductsFormData
   ) => void;
+  onOrderLineRemove: (id: string) => void;
   onShippingMethodEdit: () => void;
 }
 
@@ -26,6 +27,7 @@ const OrderDraftDetails: React.StatelessComponent<OrderDraftDetailsProps> = ({
   order,
   onOrderLineAdd,
   onOrderLineChange,
+  onOrderLineRemove,
   onShippingMethodEdit
 }) => (
   <Card>
@@ -44,6 +46,7 @@ const OrderDraftDetails: React.StatelessComponent<OrderDraftDetailsProps> = ({
     <OrderDraftDetailsProducts
       lines={maybe(() => order.lines)}
       onOrderLineChange={onOrderLineChange}
+      onOrderLineRemove={onOrderLineRemove}
     />
     {maybe(() => order.lines.length) !== 0 && (
       <CardContent>

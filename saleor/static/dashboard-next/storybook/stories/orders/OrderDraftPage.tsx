@@ -9,7 +9,6 @@ import {
   clients,
   countries,
   draftOrder,
-  shippingMethods,
   variants
 } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
@@ -35,7 +34,6 @@ const props: OrderDraftPageProps = {
   onShippingAddressEdit: undefined,
   onShippingMethodEdit: undefined,
   order,
-  shippingMethods,
   users: clients,
   usersLoading: false,
   variants,

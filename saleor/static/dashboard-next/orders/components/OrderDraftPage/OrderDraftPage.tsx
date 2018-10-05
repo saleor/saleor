@@ -151,6 +151,7 @@ class OrderDraftPageComponent extends React.Component<
       onNoteAdd,
       onOrderLineAdd,
       onOrderLineChange,
+      onOrderLineRemove,
       onShippingAddressEdit,
       onShippingMethodEdit
     } = this.props;
@@ -194,6 +195,7 @@ class OrderDraftPageComponent extends React.Component<
               order={order}
               onOrderLineAdd={this.toggleOrderLineAddDialog}
               onOrderLineChange={onOrderLineChange}
+              onOrderLineRemove={onOrderLineRemove}
               onShippingMethodEdit={this.toggleShippingMethodEditDialog}
             />
             <OrderProductAddDialog

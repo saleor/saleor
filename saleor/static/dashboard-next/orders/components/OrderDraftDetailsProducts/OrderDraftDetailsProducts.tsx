@@ -26,6 +26,7 @@ export interface FormData {
 interface OrderDraftDetailsProductsProps {
   lines: OrderDetails_order_lines[];
   onOrderLineChange: (id: string, data: FormData) => void;
+  onOrderLineRemove: (id: string) => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -46,7 +47,7 @@ const decorate = withStyles(theme => ({
   }
 }));
 const OrderDraftDetailsProducts = decorate<OrderDraftDetailsProductsProps>(
-  ({ classes, lines, onOrderLineChange }) => (
+  ({ classes, lines, onOrderLineChange, onOrderLineRemove }) => (
     <Table>
       {maybe(() => !!lines.length) && (
         <TableHead>
@@ -138,7 +139,7 @@ const OrderDraftDetailsProducts = decorate<OrderDraftDetailsProductsProps>(
                 )}
               </TableCell>
               <TableCell className={classes.iconCell}>
-                <IconButton>
+                <IconButton onClick={() => onOrderLineRemove(line.id)}>
                   <DeleteIcon color="secondary" />
                 </IconButton>
               </TableCell>
