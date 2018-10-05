@@ -4,11 +4,7 @@ import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
 import i18n from "../i18n";
 import { maybe } from "../misc";
-import {
-  FulfillmentStatus,
-  OrderStatus,
-  PaymentStatusEnum
-} from "../types/globalTypes";
+import { OrderStatus, PaymentStatusEnum } from "../types/globalTypes";
 import OrderDetailsComponent from "./views/OrderDetails";
 import OrderListComponent from "./views/OrderList";
 
@@ -42,7 +38,7 @@ export interface AddressType {
   companyName: string;
   country: {
     code: string;
-  country: string;
+    country: string;
   };
   countryArea: string;
   firstName: string;
@@ -57,22 +53,24 @@ export interface AddressType {
 export const transformPaymentStatus = (status: string) => {
   switch (status) {
     case PaymentStatusEnum.CONFIRMED:
-      return { localized: i18n.t("Confirmed"), status: "success" };
+      return { localized: i18n.t("Paid"), status: "success" };
     case PaymentStatusEnum.REFUNDED:
       return { localized: i18n.t("Refunded"), status: "success" };
     case PaymentStatusEnum.WAITING:
       return {
-        localized: i18n.t("Waiting"),
+        localized: i18n.t("Pending"),
         status: "neutral"
       };
     case PaymentStatusEnum.PREAUTH:
-      return { localized: i18n.t("Preauthorized"), status: "neutral" };
+      return { localized: i18n.t("Pending"), status: "neutral" };
     case PaymentStatusEnum.INPUT:
-      return { localized: i18n.t("Input"), status: "neutral" };
+      return { localized: i18n.t("Pending"), status: "neutral" };
     case PaymentStatusEnum.REJECTED:
-      return { localized: i18n.t("Rejected"), status: "error" };
+      return { localized: i18n.t("Unpaid"), status: "error" };
     case PaymentStatusEnum.ERROR:
-      return { localized: i18n.t("Error"), status: "error" };
+      return { localized: i18n.t("Unpaid"), status: "error" };
+    default:
+      return { localized: i18n.t("Unpaid"), status: "error" };
   }
   return {
     localized: status,
@@ -92,19 +90,6 @@ export const transformOrderStatus = (status: string) => {
       return { localized: i18n.t("Cancelled"), status: "error" };
     case OrderStatus.DRAFT:
       return { localized: i18n.t("Draft"), status: "error" };
-  }
-  return {
-    localized: status,
-    status: "error"
-  };
-};
-
-export const transformFulfillmentStatus = (status: string) => {
-  switch (status) {
-    case FulfillmentStatus.FULFILLED:
-      return { localized: i18n.t("Fulfilled"), status: "success" };
-    case FulfillmentStatus.CANCELED:
-      return { localized: i18n.t("Cancelled"), status: "neutral" };
   }
   return {
     localized: status,

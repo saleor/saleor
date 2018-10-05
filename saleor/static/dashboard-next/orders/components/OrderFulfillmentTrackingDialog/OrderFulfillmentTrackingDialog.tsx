@@ -6,43 +6,50 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
+import Form from "../../../components/Form";
 import i18n from "../../../i18n";
+
+export interface FormData {
+  trackingNumber: string;
+}
 
 interface OrderFulfillmentTrackingDialogProps {
   open: boolean;
-  trackingCode: string;
-  variant: string;
-  onChange(event: React.ChangeEvent<any>);
-  onClose?();
-  onConfirm?();
+  trackingNumber: string;
+  onClose();
+  onConfirm(data: FormData);
 }
 
 const OrderFulfillmentTrackingDialog: React.StatelessComponent<
   OrderFulfillmentTrackingDialogProps
-> = ({ open, variant, trackingCode, onConfirm, onClose, onChange }) => (
+> = ({ open, trackingNumber, onConfirm, onClose }) => (
   <Dialog open={open}>
-    <DialogTitle>
-      {variant === "edit"
-        ? i18n.t("Edit tracking code", { context: "title" })
-        : i18n.t("Add tracking code", { context: "title" })}
-    </DialogTitle>
-    <DialogContent>
-      <TextField
-        label={i18n.t("Tracking code")}
-        name="trackingCode"
-        onChange={onChange}
-        value={trackingCode}
-        fullWidth
-      />
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={onClose}>
-        {i18n.t("Cancel", { context: "button" })}
-      </Button>
-      <Button color="primary" variant="raised" onClick={onConfirm}>
-        {i18n.t("Confirm", { context: "button" })}
-      </Button>
-    </DialogActions>
+    <Form initial={{ trackingNumber }} onSubmit={onConfirm}>
+      {({ change, data, submit }) => (
+        <>
+          <DialogTitle>
+            {i18n.t("Add tracking code", { context: "title" })}
+          </DialogTitle>
+          <DialogContent>
+            <TextField
+              label={i18n.t("Tracking number")}
+              name="trackingNumber"
+              onChange={change}
+              value={data.trackingNumber}
+              fullWidth
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={onClose}>
+              {i18n.t("Cancel", { context: "button" })}
+            </Button>
+            <Button color="primary" variant="raised" onClick={submit}>
+              {i18n.t("Confirm", { context: "button" })}
+            </Button>
+          </DialogActions>
+        </>
+      )}
+    </Form>
   </Dialog>
 );
 export default OrderFulfillmentTrackingDialog;

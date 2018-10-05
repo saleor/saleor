@@ -23,7 +23,7 @@ const decorate = withStyles(theme => ({
   root: {
     paddingLeft: theme.spacing.unit * 3,
     paddingRight: theme.spacing.unit * 3,
-    width: 5 * theme.spacing.unit
+    width: "1%"
   }
 }));
 const TableCellAvatar = decorate<TableCellAvatarProps>(

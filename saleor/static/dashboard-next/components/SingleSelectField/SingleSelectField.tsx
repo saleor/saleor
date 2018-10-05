@@ -17,7 +17,7 @@ const decorate = withStyles({
 interface SingleSelectFieldProps {
   choices: Array<{
     value: string;
-    label: string;
+    label: string | React.ReactNode;
   }>;
   disabled?: boolean;
   error?: boolean;

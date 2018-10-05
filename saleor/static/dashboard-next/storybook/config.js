@@ -6,6 +6,7 @@ function loadStories() {
   require("./stories/components/ActionDialog");
   require("./stories/components/AddressEdit");
   require("./stories/components/AddressFormatter");
+  require("./stories/components/CardMenu");
   require("./stories/components/DateFormatter");
   require("./stories/components/EditableTableCell");
   require("./stories/components/ErrorMessageCard");
@@ -78,6 +79,7 @@ function loadStories() {
   require("./stories/orders/OrderCustomer");
   require("./stories/orders/OrderCustomerEditDialog");
   require("./stories/orders/OrderDetailsPage");
+  require("./stories/orders/OrderDraftPage");
   require("./stories/orders/OrderFulfillmentCancelDialog");
   require("./stories/orders/OrderFulfillmentDialog");
   require("./stories/orders/OrderFulfillmentTrackingDialog");
@@ -87,7 +89,6 @@ function loadStories() {
   require("./stories/orders/OrderPaymentReleaseDialog");
   require("./stories/orders/OrderProductAddDialog");
   require("./stories/orders/OrderShippingMethodEditDialog");
-  require("./stories/orders/OrderSummary");
 
   // Vouchers
   require("./stories/vouchers/VoucherDetailsPage");
