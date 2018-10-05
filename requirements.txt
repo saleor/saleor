@@ -24,6 +24,8 @@ django-bootstrap4==0.0.7
 django-cache-url==3.0.0
 django-celery-results==1.0.1
 django-countries==5.3.2
+django-debug-toolbar-request-history==0.0.9
+django-debug-toolbar==1.10.1
 django-elasticsearch-dsl==0.5.0
 django-filter==2.0.0
 django-fsm==2.6.0
