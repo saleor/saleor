@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, Mock
 
 import pytest
 
-import django
 from django.contrib.auth.models import Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
@@ -35,33 +34,6 @@ from saleor.product.models import (
 from saleor.shipping.models import (
     ShippingMethod, ShippingMethodType, ShippingZone)
 from saleor.site.models import AuthorizationKey, SiteSettings
-
-
-def pytest_collection_modifyitems(items):
-    for item in items:
-        # Enable deprecation warning which is disabled by Python automatically
-        # This is to make sure having same behaviour with pytest
-        item.add_marker(
-            pytest.mark.filterwarnings('default::DeprecationWarning'))
-        item.add_marker(
-            pytest.mark.filterwarnings('default::PendingDeprecationWarning'))
-
-        # Ignore from_db_value deprecation warning in Django 2.X 
-        # since it is not used in saleor, but may used in third-party packages
-        if django.VERSION[0] == 2:
-            item.add_marker(pytest.mark.filterwarnings(
-                'ignore:'
-                '.*from_db_value.*:'
-                'django.utils.deprecation.RemovedInDjango30Warning'))
-        
-        # Ignore is_authenticated() deprecation warning in Django 1.X 
-        # in django-impersonate package
-        if django.VERSION[0] == 1:
-            item.add_marker(pytest.mark.filterwarnings(
-                'ignore:'
-                '.*is_authenticated.*:'
-                'django.utils.deprecation.RemovedInDjango20Warning:'
-                'impersonate.helpers'))
 
 
 @pytest.fixture(autouse=True)
