@@ -741,17 +741,32 @@ export const order = (placeholder: string): OrderDetails_order => ({
     {
       __typename: "ShippingMethod",
       id: "U2hpcHBpbmdNZXRob2Q6NQ==",
-      name: "FBA"
+      name: "FBA",
+      price: {
+        __typename: "Money",
+        amount: 12.41,
+        currency: "USD"
+      }
     },
     {
       __typename: "ShippingMethod",
       id: "U2hpcHBpbmdNZXRob2Q6Nw==",
-      name: "Oceania Air Mail"
+      name: "Oceania Air Mail",
+      price: {
+        __typename: "Money",
+        amount: 9.12,
+        currency: "USD"
+      }
     },
     {
       __typename: "ShippingMethod",
       id: "U2hpcHBpbmdNZXRob2Q6Ng==",
-      name: "FedEx Express"
+      name: "FedEx Express",
+      price: {
+        __typename: "Money",
+        amount: 7.6,
+        currency: "USD"
+      }
     }
   ],
   billingAddress: {
