@@ -216,10 +216,17 @@ export interface OrderDetailsFragment_user {
   email: string;
 }
 
+export interface OrderDetailsFragment_availableShippingMethods_price {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
 export interface OrderDetailsFragment_availableShippingMethods {
   __typename: "ShippingMethod";
   id: string;
   name: string;
+  price: OrderDetailsFragment_availableShippingMethods_price | null;
 }
 
 export interface OrderDetailsFragment {

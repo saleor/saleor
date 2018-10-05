@@ -34,10 +34,6 @@ import OrderShippingMethodEditDialog, {
 export interface OrderDraftPageProps {
   disabled: boolean;
   order: OrderDetails_order;
-  shippingMethods: Array<{
-    id: string;
-    name: string;
-  }>;
   users: UserSearch_customers_edges_node[];
   usersLoading: boolean;
   countries: Array<{
@@ -141,7 +137,6 @@ class OrderDraftPageComponent extends React.Component<
       disabled,
       errors,
       order,
-      shippingMethods,
       users,
       usersLoading,
       variants,
@@ -212,7 +207,7 @@ class OrderDraftPageComponent extends React.Component<
             <OrderShippingMethodEditDialog
               open={openedShippingMethodEditDialog}
               shippingMethod={maybe(() => order.shippingMethod.id, "")}
-              shippingMethods={shippingMethods}
+              shippingMethods={maybe(() => order.availableShippingMethods)}
               onClose={this.toggleShippingMethodEditDialog}
               onSubmit={onShippingMethodEdit}
             />

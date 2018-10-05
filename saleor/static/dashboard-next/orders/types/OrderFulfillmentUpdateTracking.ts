@@ -222,10 +222,17 @@ export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_o
   email: string;
 }
 
+export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_availableShippingMethods_price {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
 export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_availableShippingMethods {
   __typename: "ShippingMethod";
   id: string;
   name: string;
+  price: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_availableShippingMethods_price | null;
 }
 
 export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order {

@@ -534,10 +534,6 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                     code: country.code,
                                     label: country.country
                                   }))}
-                                  shippingMethods={maybe(
-                                    () => data.order.availableShippingMethods,
-                                    []
-                                  )}
                                   onProductClick={id => () =>
                                     navigate(productUrl(id))}
                                   onBillingAddressEdit={variables =>
