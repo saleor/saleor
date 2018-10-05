@@ -1,5 +1,5 @@
 <mj-raw>
-  {% load staticfiles %}
+  {% load static %}
 </mj-raw>
 <mj-section>
   <mj-column>
