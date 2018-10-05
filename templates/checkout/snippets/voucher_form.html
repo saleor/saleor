@@ -19,7 +19,7 @@
       {% discount_as_negative cart.discount_amount %}
     </div>
   {% else %}
-    <form action="{{ request.path }}?next={{ request.path }}" method="post">
+    <form class="discount-form" action="{{ request.path }}?next={{ request.path }}" method="post">
       {% csrf_token %}
       <div class="form-group input-btn">
         {% trans "Use" context "Checkout voucher form action" as use_voucher %}
@@ -31,4 +31,7 @@
       </div>
     </form>
   {% endif %}
+  <div class="product__info__form-error">
+    <small class="text-danger"></small>
+  </div>
 {% endif %}
