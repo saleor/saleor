@@ -9,9 +9,9 @@ codecov==2.0.15
 coverage==4.5.1
 django-debug-toolbar-request-history==0.0.9
 django-debug-toolbar==1.10.1
-django-extensions==2.1.2
+django-extensions==2.1.3
 django-silk==2.0.0
-django==2.1.1
+django==2.1.2
 execnet==1.5.0
 gprof2dot==2016.10.13
 idna==2.7
@@ -36,8 +36,8 @@ pytest-django==3.4.3
 pytest-forked==0.2
 pytest-mock==1.10.0
 pytest-vcr==0.3.0
-pytest-xdist==1.23.1
-pytest==3.8.1
+pytest-xdist==1.23.2
+pytest==3.8.2
 python-dateutil==2.7.3; python_version >= '2.7'
 pytz==2018.5
 pyyaml==3.13
@@ -45,7 +45,7 @@ requests==2.19.1
 six==1.11.0
 snowballstemmer==1.2.1
 sqlparse==0.2.4
-toml==0.9.6
+toml==0.10.0
 tox==3.4.0
 typed-ast==1.1.0; python_version < '3.7' and implementation_name == 'cpython'
 urllib3==1.23
