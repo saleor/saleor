@@ -120,7 +120,11 @@ const decorate = withStyles(
 const OrderHistory = decorate<OrderHistoryProps>(
   ({ classes, history, onNoteAdd }) => (
     <div className={classes.root}>
-      <PageHeader title={i18n.t("Order history")} />
+      <PageHeader
+        title={i18n.t("Order timeline", {
+          context: "section name"
+        })}
+      />
       {history ? (
         <Timeline>
           <Form
