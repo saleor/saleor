@@ -261,12 +261,10 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_available_shipping_methods(obj, info):
-        if not obj.is_shipping_required():
-            return None
-        if not obj.shipping_address:
-            return None
-        qs = shipping_models.ShippingMethod.objects
-        qs = qs.applicable_shipping_methods(
-            price=obj.get_subtotal().gross.amount, weight=obj.get_total_weight(),
-            country_code=obj.shipping_address.country.code)
-        return qs
+        from .resolvers import resolve_shipping_methods
+        return resolve_shipping_methods(
+            obj, info, obj.get_subtotal().gross.amount)
+
+    @staticmethod
+    def resolve_lines(obj, info):
+        return obj.lines.all()

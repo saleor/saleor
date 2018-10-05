@@ -48,6 +48,18 @@ def resolve_order(info, id):
     return None
 
 
+def resolve_shipping_methods(obj, info, price):
+    if not obj.is_shipping_required():
+        return None
+    if not obj.shipping_address:
+        return None
+
+    qs = shipping_models.ShippingMethod.objects
+    return qs.applicable_shipping_methods(
+        price=price, weight=obj.get_total_weight(),
+        country_code=obj.shipping_address.country.code)
+
+
 def resolve_homepage_events(info):
     # Filter only selected events to be displayed on homepage.
     types = [
