@@ -294,12 +294,13 @@ type Checkout implements Node {
   discountName: String
   translatedDiscountName: String
   voucherCode: String
-  lines(before: String, after: String, first: Int, last: Int, id: ID): CheckoutLineCountableConnection
+  lines: [CheckoutLine]
   paymentMethods(before: String, after: String, first: Int, last: Int, id: ID): PaymentMethodCountableConnection
   id: ID!
   totalPrice: TaxedMoney
   subtotalPrice: TaxedMoney
   shippingPrice: TaxedMoney
+  availableShippingMethods: [ShippingMethod]
 }
 
 type CheckoutComplete {
@@ -888,7 +889,7 @@ type Mutations {
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
-  paymentMethodCharge(amount: Decimal, paymentMethodId: ID!): PaymentMethodCharge
+  paymentMethodCharge(amount: Decimal, paymentMethodId: ID!): PaymentMethodCapture
   paymentMethodRefund(amount: Decimal, paymentMethodId: ID!): PaymentMethodRefund
   paymentMethodVoid(paymentMethodId: ID!): PaymentMethodVoid
   saleCreate(input: SaleInput!): SaleCreate
@@ -1188,7 +1189,7 @@ type PaymentMethod implements Node {
   isActive: Boolean!
   created: DateTime!
   modified: DateTime!
-  chargeStatus: PaymentMethodChargeStatus!
+  chargeStatus: PaymentMethodCaptureStatus!
   billingFirstName: String!
   billingLastName: String!
   billingAddress1: String!
@@ -1210,12 +1211,12 @@ type PaymentMethod implements Node {
   transactions(before: String, after: String, first: Int, last: Int, id: ID): TransactionCountableConnection
 }
 
-type PaymentMethodCharge {
+type PaymentMethodCapture {
   errors: [Error]
   paymentMethod: PaymentMethod
 }
 
-enum PaymentMethodChargeStatus {
+enum PaymentMethodCaptureStatus {
   CHARGED
   NOT_CHARGED
   FULLY_REFUNDED
@@ -1879,11 +1880,13 @@ type TaxedMoneyRange {
 
 type Transaction implements Node {
   id: ID!
+  created: DateTime!
   paymentMethod: PaymentMethod!
   token: String!
   transactionType: TransactionTransactionType!
   isSuccess: Boolean!
   amount: Float!
+  currency: String!
   gatewayResponse: JSONString!
 }
 

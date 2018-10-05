@@ -4,7 +4,7 @@ from django.contrib.postgres.fields import JSONField
 from django.db import models
 from prices import Money
 
-from . import PaymentMethodChargeStatus, TransactionType
+from . import PaymentMethodCaptureStatus, TransactionType
 from ..checkout.models import Cart
 from ..order.models import Order
 
@@ -29,8 +29,8 @@ class PaymentMethod(models.Model):
     modified = models.DateTimeField(auto_now=True)
     charge_status = models.CharField(
         max_length=15,
-        choices=PaymentMethodChargeStatus.CHOICES,
-        default=PaymentMethodChargeStatus.NOT_CHARGED)
+        choices=PaymentMethodCaptureStatus.CHOICES,
+        default=PaymentMethodCaptureStatus.NOT_CHARGED)
     billing_first_name = models.CharField(max_length=256, blank=True)
     billing_last_name = models.CharField(max_length=256, blank=True)
     billing_address_1 = models.CharField(max_length=256, blank=True)
@@ -90,11 +90,11 @@ class PaymentMethod(models.Model):
         from . import utils
         return utils.gateway_void(payment_method=self)
 
-    def charge(self, amount=None):
+    def capture(self, amount=None):
         # FIXME Used for backwards compatibility, remove after moving to
         # dashboard 2.0
         from . import utils
-        return utils.gateway_charge(payment_method=self, amount=amount)
+        return utils.gateway_capture(payment_method=self, amount=amount)
 
     def refund(self, amount=None):
         # FIXME Used for backwards compatibility, remove after moving to
