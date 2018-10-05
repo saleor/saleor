@@ -57,3 +57,5 @@ Use `pylint <https://www.pylint.org/>`_ with the ``pylint-django`` plugin to cat
 Use `pycodestyle <http://pycodestyle.pycqa.org/en/latest/>`_ to make sure your code adheres to PEP 8.
 
 Use `pydocstyle <http://pydocstyle.pycqa.org/en/latest/>`_ to check that your docstrings are properly formatted.
+
+``pip install -r requirements_dev.txt`` can install these tools. For Pipenv users, they can also be installed by ``pipenv install --dev``.
