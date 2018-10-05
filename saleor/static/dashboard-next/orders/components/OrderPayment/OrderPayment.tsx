@@ -145,33 +145,38 @@ const OrderPayment = decorate<OrderPaymentProps>(
             </tbody>
           </table>
         </CardContent>
-        {(canCapture || canRefund || canRelease || canMarkAsPaid) && (
-          <>
-            <Hr />
-            <CardActions>
-              {canCapture && (
-                <Button color="secondary" variant="flat" onClick={onCapture}>
-                  {i18n.t("Capture", { context: "button" })}
-                </Button>
-              )}
-              {canRefund && (
-                <Button color="secondary" variant="flat" onClick={onRefund}>
-                  {i18n.t("Refund", { context: "button" })}
-                </Button>
-              )}
-              {canRelease && (
-                <Button color="secondary" variant="flat" onClick={onRelease}>
-                  {i18n.t("Release", { context: "button" })}
-                </Button>
-              )}
-              {canMarkAsPaid && (
-                <Button color="secondary" variant="flat" onClick={onMarkAsPaid}>
-                  {i18n.t("Mark as paid", { context: "button" })}
-                </Button>
-              )}
-            </CardActions>
-          </>
-        )}
+        {maybe(() => order.status) !== OrderStatus.CANCELED &&
+          (canCapture || canRefund || canRelease || canMarkAsPaid) && (
+            <>
+              <Hr />
+              <CardActions>
+                {canCapture && (
+                  <Button color="secondary" variant="flat" onClick={onCapture}>
+                    {i18n.t("Capture", { context: "button" })}
+                  </Button>
+                )}
+                {canRefund && (
+                  <Button color="secondary" variant="flat" onClick={onRefund}>
+                    {i18n.t("Refund", { context: "button" })}
+                  </Button>
+                )}
+                {canRelease && (
+                  <Button color="secondary" variant="flat" onClick={onRelease}>
+                    {i18n.t("Release", { context: "button" })}
+                  </Button>
+                )}
+                {canMarkAsPaid && (
+                  <Button
+                    color="secondary"
+                    variant="flat"
+                    onClick={onMarkAsPaid}
+                  >
+                    {i18n.t("Mark as paid", { context: "button" })}
+                  </Button>
+                )}
+              </CardActions>
+            </>
+          )}
       </Card>
     );
   }
