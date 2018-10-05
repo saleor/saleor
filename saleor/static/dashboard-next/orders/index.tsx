@@ -53,22 +53,24 @@ export interface AddressType {
 export const transformPaymentStatus = (status: string) => {
   switch (status) {
     case PaymentStatusEnum.CONFIRMED:
-      return { localized: i18n.t("Confirmed"), status: "success" };
+      return { localized: i18n.t("Paid"), status: "success" };
     case PaymentStatusEnum.REFUNDED:
       return { localized: i18n.t("Refunded"), status: "success" };
     case PaymentStatusEnum.WAITING:
       return {
-        localized: i18n.t("Waiting"),
+        localized: i18n.t("Pending"),
         status: "neutral"
       };
     case PaymentStatusEnum.PREAUTH:
-      return { localized: i18n.t("Preauthorized"), status: "neutral" };
+      return { localized: i18n.t("Pending"), status: "neutral" };
     case PaymentStatusEnum.INPUT:
-      return { localized: i18n.t("Input"), status: "neutral" };
+      return { localized: i18n.t("Pending"), status: "neutral" };
     case PaymentStatusEnum.REJECTED:
-      return { localized: i18n.t("Rejected"), status: "error" };
+      return { localized: i18n.t("Unpaid"), status: "error" };
     case PaymentStatusEnum.ERROR:
-      return { localized: i18n.t("Error"), status: "error" };
+      return { localized: i18n.t("Unpaid"), status: "error" };
+    default:
+      return { localized: i18n.t("Unpaid"), status: "error" };
   }
   return {
     localized: status,
