@@ -111,6 +111,10 @@ export interface DraftOrderInput {
   voucher?: string | null;
 }
 
+export interface FulfillmentCancelInput {
+  restock?: boolean | null;
+}
+
 export interface FulfillmentCreateInput {
   trackingNumber?: string | null;
   notifyCustomer?: boolean | null;
@@ -120,6 +124,11 @@ export interface FulfillmentCreateInput {
 export interface FulfillmentLineInput {
   orderLineId?: string | null;
   quantity?: number | null;
+}
+
+export interface FulfillmentUpdateTrackingInput {
+  trackingNumber?: string | null;
+  notifyCustomer?: boolean | null;
 }
 
 export interface OrderAddNoteInput {

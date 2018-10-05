@@ -8,6 +8,7 @@ storiesOf("Orders / OrderPaymentDialog", module)
   .addDecorator(Decorator)
   .add("capture payment", () => (
     <OrderPaymentDialog
+      initial={0}
       variant="capture"
       open={true}
       onClose={undefined}
@@ -16,6 +17,7 @@ storiesOf("Orders / OrderPaymentDialog", module)
   ))
   .add("refund payment", () => (
     <OrderPaymentDialog
+      initial={0}
       variant="refund"
       open={true}
       onClose={undefined}
