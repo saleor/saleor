@@ -38,6 +38,7 @@ function loadStories() {
   require("./stories/categories/CategoryEditPage");
   require("./stories/categories/CategoryProducts");
   require("./stories/categories/CategoryCreatePage");
+  require("./stories/categories/CategoryUpdatePage");
 
   // Collections
   require("./stories/collections/CollectionDetailsPage");
