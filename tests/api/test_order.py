@@ -1097,8 +1097,8 @@ def test_clean_order_cancel(order):
 
 
 ORDER_UPDATE_SHIPPING_QUERY = """
-    mutation orderUpdateShipping($order: ID!, $shippingMethod: ID) {
-        orderUpdateShipping(
+    mutation orderShippingUpdate($order: ID!, $shippingMethod: ID) {
+        orderShippingUpdate(
                 order: $order, input: {shippingMethod: $shippingMethod}) {
             errors {
                 field
@@ -1124,7 +1124,7 @@ def test_order_update_shipping(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
-    data = content['data']['orderUpdateShipping']
+    data = content['data']['orderShippingUpdate']
     assert data['order']['id'] == order_id
 
     order.refresh_from_db()
@@ -1149,7 +1149,7 @@ def test_order_update_shipping_clear_shipping_method(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
-    data = content['data']['orderUpdateShipping']
+    data = content['data']['orderShippingUpdate']
     assert data['order']['id'] == order_id
 
     order.refresh_from_db()
@@ -1168,7 +1168,7 @@ def test_order_update_shipping_shipping_required(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
-    data = content['data']['orderUpdateShipping']
+    data = content['data']['orderShippingUpdate']
     assert data['errors'][0]['field'] == 'shippingMethod'
     assert data['errors'][0]['message'] == (
         'Shipping method is required for this order.')
@@ -1188,7 +1188,7 @@ def test_order_update_shipping_no_shipping_address(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
-    data = content['data']['orderUpdateShipping']
+    data = content['data']['orderShippingUpdate']
     assert data['errors'][0]['field'] == 'order'
     assert data['errors'][0]['message'] == (
         'Cannot choose a shipping method for an order without'
@@ -1211,7 +1211,7 @@ def test_order_update_shipping_incorrect_shipping_method(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
-    data = content['data']['orderUpdateShipping']
+    data = content['data']['orderShippingUpdate']
     assert data['errors'][0]['field'] == 'shippingMethod'
     assert data['errors'][0]['message'] == (
         'Shipping method cannot be used with this order.')

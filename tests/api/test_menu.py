@@ -327,7 +327,7 @@ def test_assign_menu(
         permission_manage_settings, site_settings):
     query = """
     mutation AssignMenu($menu: ID, $navigationType: NavigationType!) {
-        assignNavigation(menu: $menu, navigationType: $navigationType) {
+        navigationAssign(menu: $menu, navigationType: $navigationType) {
             errors {
                 field
                 message
@@ -351,7 +351,7 @@ def test_assign_menu(
     # test assigning main menu
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    assert content['data']['assignNavigation']['menu']['name'] == menu.name
+    assert content['data']['navigationAssign']['menu']['name'] == menu.name
     site_settings.refresh_from_db()
     assert site_settings.top_menu.name == menu.name
 
@@ -360,7 +360,7 @@ def test_assign_menu(
         'menu': menu_id, 'navigationType': NavigationType.SECONDARY.name}
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    assert content['data']['assignNavigation']['menu']['name'] == menu.name
+    assert content['data']['navigationAssign']['menu']['name'] == menu.name
     site_settings.refresh_from_db()
     assert site_settings.bottom_menu.name == menu.name
 
@@ -368,6 +368,6 @@ def test_assign_menu(
     variables = {'id': None, 'navigationType': NavigationType.MAIN.name}
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    assert not content['data']['assignNavigation']['menu']
+    assert not content['data']['navigationAssign']['menu']
     site_settings.refresh_from_db()
     assert site_settings.top_menu is None

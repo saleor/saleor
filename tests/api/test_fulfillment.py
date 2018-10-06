@@ -96,7 +96,7 @@ def test_fulfillment_update_tracking(
         staff_api_client, fulfillment, permission_manage_orders):
     query = """
     mutation updateFulfillment($id: ID!, $tracking: String) {
-            orderFulfillmentUpdateTracking(
+            orderFulfillmentTrackingUpdate(
                 id: $id, input: {trackingNumber: $tracking}) {
                     fulfillment {
                         trackingNumber
@@ -110,7 +110,7 @@ def test_fulfillment_update_tracking(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
-    data = content['data']['orderFulfillmentUpdateTracking']['fulfillment']
+    data = content['data']['orderFulfillmentTrackingUpdate']['fulfillment']
     assert data['trackingNumber'] == tracking
 
 

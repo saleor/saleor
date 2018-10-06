@@ -10,7 +10,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import reverse
 from saleor.account.models import Address, User
 from saleor.graphql.account.mutations import (
-    SetPassword, StaffDelete, StaffUpdate)
+    PasswordSet, StaffDelete, StaffUpdate)
 from tests.api.utils import get_graphql_content
 
 from .utils import assert_no_permission, convert_dict_keys_to_camel_case
@@ -556,8 +556,8 @@ def test_staff_update_errors(staff_user, customer_user, admin_user):
 
 def test_set_password(user_api_client, customer_user):
     query = """
-    mutation SetPassword($id: ID!, $token: String!, $password: String!) {
-        setPassword(id: $id, input: {token: $token, password: $password}) {
+    mutation PasswordSet($id: ID!, $token: String!, $password: String!) {
+        passwordSet(id: $id, input: {token: $token, password: $password}) {
             errors {
                     field
                     message
@@ -576,13 +576,13 @@ def test_set_password(user_api_client, customer_user):
     variables = {'id': id, 'password': password, 'token': 'nope'}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    errors = content['data']['setPassword']['errors']
-    assert errors[0]['message'] == SetPassword.INVALID_TOKEN
+    errors = content['data']['passwordSet']['errors']
+    assert errors[0]['message'] == PasswordSet.INVALID_TOKEN
 
     variables['token'] = token
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content['data']['setPassword']
+    data = content['data']['passwordSet']
     assert data['user']['id']
 
     customer_user.refresh_from_db()
