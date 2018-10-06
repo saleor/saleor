@@ -41,7 +41,8 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
-INTERNAL_IPS = get_list(os.environ.get('INTERNAL_IPS', '127.0.0.1'))
+INTERNAL_IPS = get_list(
+    os.environ.get('INTERNAL_IPS', '127.0.0.1'))
 
 # Some cloud providers like Heroku export REDIS_URL variable instead of CACHE_URL
 REDIS_URL = os.environ.get('REDIS_URL')
@@ -54,9 +55,8 @@ DATABASES = {
         default='postgres://saleor:saleor@localhost:5432/saleor',
         conn_max_age=600)}
 
-
-TIME_ZONE = 'America/Chicago'
-LANGUAGE_CODE = 'en'
+TIME_ZONE = os.environ.get('TIME_ZONE', 'UTC')
+LANGUAGE_CODE = os.environ.get('LANGUAGE_CODE', 'en')
 LANGUAGES = [
     ('bg', _('Bulgarian')),
     ('cs', _('Czech')),
@@ -83,9 +83,9 @@ LANGUAGES = [
     ('zh-hans', _('Chinese')),
     ('zh-tw', _('Chinese (Taiwan)'))]
 LOCALE_PATHS = [os.path.join(PROJECT_ROOT, 'locale')]
-USE_I18N = True
-USE_L10N = True
-USE_TZ = True
+USE_I18N = get_bool_from_env('USE_I18N', True)
+USE_L10N = get_bool_from_env('USE_L10N', True)
+USE_TZ = get_bool_from_env('USE_TZ', True)
 
 FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 
@@ -270,7 +270,7 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'root': {
-        'level': 'INFO',
+        'level': os.environ.get('ROOT_LOG_LEVEL', 'INFO'),
         'handlers': ['console']},
     'formatters': {
         'verbose': {
@@ -284,25 +284,25 @@ LOGGING = {
             '()': 'django.utils.log.RequireDebugFalse'}},
     'handlers': {
         'mail_admins': {
-            'level': 'ERROR',
+            'level': os.environ.get('MAIL_ADMINS_HANDLER_LEVEL', 'ERROR'),
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'},
         'console': {
-            'level': 'DEBUG',
+            'level': os.environ.get('CONSOLE_HANDLER_LEVEL', 'DEBUG'),
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'}},
     'loggers': {
         'django': {
             'handlers': ['console', 'mail_admins'],
-            'level': 'INFO',
+            'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
             'propagate': True},
         'django.server': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': os.environ.get('DJANGO_SERVER_LOG_LEVEL', 'INFO'),
             'propagate': True},
         'saleor': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': os.environ.get('SALEOR_LOG_LEVEL', 'DEBUG'),
             'propagate': True}}}
 
 AUTH_USER_MODEL = 'account.User'
@@ -312,7 +312,11 @@ LOGIN_URL = '/account/login/'
 DEFAULT_COUNTRY = os.environ.get('DEFAULT_COUNTRY', 'US')
 DEFAULT_CURRENCY = os.environ.get('DEFAULT_CURRENCY', 'USD')
 DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
-AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
+if "AVAILABLE_CURRENCIES" in os.environ:
+    AVAILABLE_CURRENCIES = get_list(os.environ.get('AVAILABLE_CURRENCIES'))
+else:
+    AVAILABLE_CURRENCIES = [os.environ.get('DEFAULT_CURRENCY', 'USD')]
+
 COUNTRIES_OVERRIDE = {
     'EU': pgettext_lazy(
         'Name of political and economical union of european countries',
@@ -326,9 +330,9 @@ OPENEXCHANGERATES_API_KEY = os.environ.get('OPENEXCHANGERATES_API_KEY')
 VATLAYER_ACCESS_KEY = os.environ.get('VATLAYER_ACCESS_KEY')
 VATLAYER_USE_HTTPS = get_bool_from_env('VATLAYER_USE_HTTPS', False)
 
-ACCOUNT_ACTIVATION_DAYS = 3
+ACCOUNT_ACTIVATION_DAYS = int(os.environ.get('ACCOUNT_ACTIVATION_DAYS', 3))
 
-LOGIN_REDIRECT_URL = 'home'
+LOGIN_REDIRECT_URL = os.environ.get('LOGIN_REDIRECT_URL', 'home')
 
 GOOGLE_ANALYTICS_TRACKING_ID = os.environ.get('GOOGLE_ANALYTICS_TRACKING_ID')
 
@@ -358,12 +362,12 @@ CHECKOUT_PAYMENT_CHOICES = [
 MESSAGE_TAGS = {
     messages.ERROR: 'danger'}
 
-LOW_STOCK_THRESHOLD = 10
+LOW_STOCK_THRESHOLD = int(os.environ.get('LOW_STOCK_THRESHOLD', 10))
 MAX_CART_LINE_QUANTITY = int(os.environ.get('MAX_CART_LINE_QUANTITY', 50))
 
-PAGINATE_BY = 16
-DASHBOARD_PAGINATE_BY = 30
-DASHBOARD_SEARCH_LIMIT = 5
+PAGINATE_BY = int(os.environ.get('PAGINATE_BY', 16))
+DASHBOARD_PAGINATE_BY = int(os.environ.get('DASHBOARD_PAGINATE_BY', 30))
+DASHBOARD_SEARCH_LIMIT = int(os.environ.get('DASHBOARD_SEARCH_LIMIT', 5))
 
 bootstrap4 = {
     'set_placeholder': False,
@@ -414,13 +418,19 @@ VERSATILEIMAGEFIELD_SETTINGS = {
 }
 
 PLACEHOLDER_IMAGES = {
-    60: 'images/placeholder60x60.png',
-    120: 'images/placeholder120x120.png',
-    255: 'images/placeholder255x255.png',
-    540: 'images/placeholder540x540.png',
-    1080: 'images/placeholder1080x1080.png'}
+    60: os.environ.get(
+        'PLACEHOLDER_IMAGE_60', 'images/placeholder60x60.png'),
+    120: os.environ.get(
+        'PLACEHOLDER_IMAGE_120', 'images/placeholder120x120.png'),
+    255: os.environ.get(
+        'PLACEHOLDER_IMAGE_255', 'images/placeholder255x255.png'),
+    540: os.environ.get(
+        'PLACEHOLDER_IMAGE_540', 'images/placeholder540x540.png'),
+    1080: os.environ.get(
+        'PLACEHOLDER_IMAGE_1080', 'images/placeholder1080x1080.png')}
 
-DEFAULT_PLACEHOLDER = 'images/placeholder255x255.png'
+DEFAULT_PLACEHOLDER = os.environ.get(
+    'DEFAULT_PLACEHOLDER_IMAGE', os.environ.get('PLACEHOLDER_IMAGE_255'))
 
 WEBPACK_LOADER = {
     'DEFAULT': {
@@ -432,11 +442,11 @@ WEBPACK_LOADER = {
             r'.+\.hot-update\.js',
             r'.+\.map']}}
 
-
-LOGOUT_ON_PASSWORD_CHANGE = False
+LOGOUT_ON_PASSWORD_CHANGE = get_bool_from_env(
+    'LOGOUT_ON_PASSWORD_CHANGE', False)
 
 # SEARCH CONFIGURATION
-DB_SEARCH_ENABLED = True
+DB_SEARCH_ENABLED = get_bool_from_env('DB_SEARCH_ENABLED', True)
 
 # support deployment-dependant elastic enviroment variable
 ES_URL = (os.environ.get('ELASTICSEARCH_URL') or
@@ -494,7 +504,6 @@ IMPERSONATE = {
     'USE_HTTP_REFERER': True,
     'CUSTOM_ALLOW': 'saleor.account.impersonate.can_impersonate'}
 
-
 # Rich-text editor
 ALLOWED_TAGS = [
     'a',
@@ -517,21 +526,20 @@ ALLOWED_ATTRIBUTES = {
     'img': ['src']}
 ALLOWED_STYLES = ['text-align']
 
-
 # Slugs for menus precreated in Django migrations
 DEFAULT_MENUS = {
     'top_menu_name': 'navbar',
     'bottom_menu_name': 'footer'}
 
 # This enable the new 'No Captcha reCaptcha' version (the simple checkbox)
-# instead of the old (deprecated) one. For more information see:
+# instead of the old (retired) one. For more information see:
 #   https://github.com/praekelt/django-recaptcha/blob/34af16ba1e/README.rst
+#   https://developers.google.com/recaptcha/docs/faq
 NOCAPTCHA = True
 
 # Set Google's reCaptcha keys
 RECAPTCHA_PUBLIC_KEY = os.environ.get('RECAPTCHA_PUBLIC_KEY')
 RECAPTCHA_PRIVATE_KEY = os.environ.get('RECAPTCHA_PRIVATE_KEY')
-
 
 #  Sentry
 SENTRY_DSN = os.environ.get('SENTRY_DSN')
@@ -540,7 +548,6 @@ if SENTRY_DSN:
     RAVEN_CONFIG = {
         'dsn': SENTRY_DSN,
         'release': __version__}
-
 
 SERIALIZATION_MODULES = {
     'json': 'saleor.core.utils.json_serializer'}
