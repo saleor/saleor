@@ -149,7 +149,7 @@
                   {% trans "Your Cart" context "Main navigation item" %}
                 </span>
                 <div class="navbar__brand__cart__icon">
-                  <svg data-src="{% static "images/cart.svg" %}" width="35" height="30"/>
+                  <svg data-src="{% static "images/cart.svg" %}" width="35" height="30" alt="Items"/>
                 </div>
                 <span class="badge {% if not cart_counter %}empty{% endif %}">
                   {% if cart_counter %}
