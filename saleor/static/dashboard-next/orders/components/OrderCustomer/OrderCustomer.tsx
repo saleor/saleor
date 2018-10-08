@@ -242,7 +242,7 @@ const OrderCustomer = decorate<OrderCustomerProps>(
             <Skeleton />
           ) : billingAddress === null ? (
             <Typography>{i18n.t("Not set")}</Typography>
-          ) : shippingAddress.id === billingAddress.id ? (
+          ) : maybe(() => shippingAddress.id) === billingAddress.id ? (
             <Typography>{i18n.t("Same as shipping address")}</Typography>
           ) : (
             <>
