@@ -28,10 +28,10 @@ import OrdersSection from "./orders";
 import PageSection from "./pages";
 import ProductSection from "./products";
 import ProductTypesSection from "./productTypes";
+import SiteSettingsSection from "./siteSettings";
 import StaffSection from "./staff";
 import theme from "./theme";
-import { PermissionEnum } from './types/globalTypes';
-
+import { PermissionEnum } from "./types/globalTypes";
 
 const cookies = new Cookies();
 
@@ -124,6 +124,11 @@ render(
                         permissions={[PermissionEnum.MANAGE_STAFF]}
                         path="/staff"
                         component={StaffSection}
+                      />
+                      <SectionRoute
+                        permissions={[PermissionEnum.MANAGE_SETTINGS]}
+                        path="/siteSettings"
+                        component={SiteSettingsSection}
                       />
                       {configurationMenu.filter(menuItem =>
                         hasPermission(menuItem.permission, user)

@@ -9,6 +9,9 @@ import Decorator from "../../Decorator";
 
 const props: SiteSettingsPageProps = {
   disabled: false,
+  onKeyAdd: () => undefined,
+  onKeyClick: () => undefined,
+  onKeyRemove: () => undefined,
   onSubmit: () => undefined,
   shop
 };
@@ -16,4 +19,6 @@ const props: SiteSettingsPageProps = {
 storiesOf("Views / Site settings / Page", module)
   .addDecorator(Decorator)
   .add("default", () => <SiteSettingsPage {...props} />)
-  .add("loading", () => <SiteSettingsPage {...props} disabled={true} />);
+  .add("loading", () => (
+    <SiteSettingsPage {...props} disabled={true} shop={undefined} />
+  ));
