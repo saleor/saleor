@@ -121,8 +121,7 @@ class AttributeCreate(AttributeMixin, ModelMutation):
     @classmethod
     def clean_product_type_variant_attributes(
             cls, product_type, type, errors):
-        if (
-            type == AttributeTypeEnum.VARIANT.name
+        if (type == AttributeTypeEnum.VARIANT.name
                 and not product_type.has_variants):
             cls.add_error(
                 errors, 'product_type',
