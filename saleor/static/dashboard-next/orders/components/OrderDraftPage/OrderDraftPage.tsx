@@ -32,11 +32,8 @@ import OrderShippingMethodEditDialog, {
 } from "../OrderShippingMethodEditDialog";
 
 export interface OrderDraftPageProps {
+  disabled: boolean;
   order: OrderDetails_order;
-  shippingMethods: Array<{
-    id: string;
-    name: string;
-  }>;
   users: UserSearch_customers_edges_node[];
   usersLoading: boolean;
   countries: Array<{
@@ -137,9 +134,9 @@ class OrderDraftPageComponent extends React.Component<
     const {
       classes,
       countries,
+      disabled,
       errors,
       order,
-      shippingMethods,
       users,
       usersLoading,
       variants,
@@ -154,6 +151,7 @@ class OrderDraftPageComponent extends React.Component<
       onNoteAdd,
       onOrderLineAdd,
       onOrderLineChange,
+      onOrderLineRemove,
       onShippingAddressEdit,
       onShippingMethodEdit
     } = this.props;
@@ -197,6 +195,7 @@ class OrderDraftPageComponent extends React.Component<
               order={order}
               onOrderLineAdd={this.toggleOrderLineAddDialog}
               onOrderLineChange={onOrderLineChange}
+              onOrderLineRemove={onOrderLineRemove}
               onShippingMethodEdit={this.toggleShippingMethodEditDialog}
             />
             <OrderProductAddDialog
@@ -210,7 +209,7 @@ class OrderDraftPageComponent extends React.Component<
             <OrderShippingMethodEditDialog
               open={openedShippingMethodEditDialog}
               shippingMethod={maybe(() => order.shippingMethod.id, "")}
-              shippingMethods={shippingMethods}
+              shippingMethods={maybe(() => order.availableShippingMethods)}
               onClose={this.toggleShippingMethodEditDialog}
               onSubmit={onShippingMethodEdit}
             />
@@ -317,6 +316,7 @@ class OrderDraftPageComponent extends React.Component<
           </div>
         </div>
         <SaveButtonBar
+          disabled={disabled || maybe(() => order.lines.length === 0)}
           onCancel={onBack}
           onSave={this.toggleDraftFinalizeDialog}
           labels={{ save: i18n.t("Finalize", { context: "button" }) }}

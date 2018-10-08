@@ -47,17 +47,40 @@ export interface OrderDetailsFragment_events {
   user: OrderDetailsFragment_events_user | null;
 }
 
+export interface OrderDetailsFragment_fulfillments_lines_edges_node_orderLine_unitPrice_gross {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
+export interface OrderDetailsFragment_fulfillments_lines_edges_node_orderLine_unitPrice_net {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
+export interface OrderDetailsFragment_fulfillments_lines_edges_node_orderLine_unitPrice {
+  __typename: "TaxedMoney";
+  gross: OrderDetailsFragment_fulfillments_lines_edges_node_orderLine_unitPrice_gross;
+  net: OrderDetailsFragment_fulfillments_lines_edges_node_orderLine_unitPrice_net;
+}
+
 export interface OrderDetailsFragment_fulfillments_lines_edges_node_orderLine {
   __typename: "OrderLine";
   id: string;
   productName: string;
+  productSku: string;
+  quantity: number;
+  quantityFulfilled: number;
+  unitPrice: OrderDetailsFragment_fulfillments_lines_edges_node_orderLine_unitPrice | null;
+  thumbnailUrl: string | null;
 }
 
 export interface OrderDetailsFragment_fulfillments_lines_edges_node {
   __typename: "FulfillmentLine";
   id: string;
-  orderLine: OrderDetailsFragment_fulfillments_lines_edges_node_orderLine;
   quantity: number;
+  orderLine: OrderDetailsFragment_fulfillments_lines_edges_node_orderLine;
 }
 
 export interface OrderDetailsFragment_fulfillments_lines_edges {
@@ -74,6 +97,7 @@ export interface OrderDetailsFragment_fulfillments {
   __typename: "Fulfillment";
   id: string;
   lines: OrderDetailsFragment_fulfillments_lines | null;
+  fulfillmentOrder: number;
   status: FulfillmentStatus;
   trackingNumber: string;
 }
@@ -192,10 +216,17 @@ export interface OrderDetailsFragment_user {
   email: string;
 }
 
+export interface OrderDetailsFragment_availableShippingMethods_price {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
 export interface OrderDetailsFragment_availableShippingMethods {
   __typename: "ShippingMethod";
   id: string;
   name: string;
+  price: OrderDetailsFragment_availableShippingMethods_price | null;
 }
 
 export interface OrderDetailsFragment {
@@ -218,5 +249,6 @@ export interface OrderDetailsFragment {
   totalAuthorized: OrderDetailsFragment_totalAuthorized | null;
   totalCaptured: OrderDetailsFragment_totalCaptured | null;
   user: OrderDetailsFragment_user | null;
+  userEmail: string | null;
   availableShippingMethods: (OrderDetailsFragment_availableShippingMethods | null)[] | null;
 }

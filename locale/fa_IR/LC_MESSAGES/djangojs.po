@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-04 04:15-0500\n"
+"POT-Creation-Date: 2018-09-10 05:21-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Farid Shahy <fkonigy@gmail.com>, 2017\n"
+"Last-Translator: hossein akhlaghi <hossein0440@gmail.com>, 2018\n"
 "Language-Team: Persian (Iran) (https://www.transifex.com/mirumee/teams/34782/fa_IR/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -21,8 +21,8 @@ msgstr ""
 #: saleor/static/dashboard/js/components/bulk-actions.js:89
 msgid "item selected"
 msgid_plural "items selected"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "ب"
+msgstr[1] "مورد انتخاب شده"
 
 #: saleor/static/dashboard/js/components/datepicker.js:4
 msgctxt "Datepicker option"
@@ -287,17 +287,17 @@ msgstr "ببند"
 #: saleor/static/dashboard/js/components/editor.js:24
 msgctxt "Rich text editor option"
 msgid "Bold text"
-msgstr ""
+msgstr "متن برجسته"
 
 #: saleor/static/dashboard/js/components/editor.js:28
 msgctxt "Rich text editor option"
 msgid "Italic text"
-msgstr ""
+msgstr "متن ایتالیک"
 
 #: saleor/static/dashboard/js/components/editor.js:32
 msgctxt "Rich text editor option"
 msgid "Header"
-msgstr ""
+msgstr "سر صفحه"
 
 #: saleor/static/dashboard/js/components/editor.js:39
 msgctxt "Rich text editor option"
@@ -312,27 +312,27 @@ msgstr ""
 #: saleor/static/dashboard/js/components/editor.js:51
 msgctxt "Rich text editor option"
 msgid "Link"
-msgstr ""
+msgstr "پیوند"
 
 #: saleor/static/dashboard/js/components/editor.js:58
 msgctxt "Rich text editor option"
 msgid "Image (converts selected text to an image tag)"
-msgstr ""
+msgstr "تصویر (تبدیل متن انتخاب شده به یک برچسب عکس تصویر)"
 
 #: saleor/static/dashboard/js/components/editor.js:63
 msgctxt "Rich text editor option"
 msgid "Left align"
-msgstr ""
+msgstr "تراز از چپ"
 
 #: saleor/static/dashboard/js/components/editor.js:68
 msgctxt "Rich text editor option"
 msgid "Center align"
-msgstr ""
+msgstr "تراز وسط"
 
 #: saleor/static/dashboard/js/components/editor.js:73
 msgctxt "Rich text editor option"
 msgid "Right align"
-msgstr ""
+msgstr "تراز از راست"
 
 #: saleor/static/dashboard/js/components/editor.js:78
 msgctxt "Rich text editor option"
@@ -353,12 +353,12 @@ msgstr ""
 msgid "Your input fits between the recommended lengths"
 msgstr ""
 
-#: saleor/static/js/components/variantPicker/QuantityInput.js:21
+#: saleor/static/js/components/variantPicker/QuantityInput.js:22
 msgctxt "Add to cart form field label"
 msgid "Quantity"
-msgstr ""
+msgstr "تعداد"
 
-#: saleor/static/js/components/variantPicker/VariantPicker.js:166
+#: saleor/static/js/components/variantPicker/VariantPicker.js:167
 msgctxt "Product details primary action"
 msgid "Add to cart"
-msgstr ""
+msgstr "به سبد خرید اضافه کن"

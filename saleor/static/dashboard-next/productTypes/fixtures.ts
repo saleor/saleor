@@ -886,7 +886,7 @@ export const productType = {
     ...attribute,
     __typename: "Attribute" as "Attribute"
   })),
-  taxRate: TaxRateType.ACCOMODATION,
+  taxRate: TaxRateType.ACCOMMODATION,
   variantAttributes: [
     {
       id: "pta24175",

@@ -764,6 +764,13 @@ def test_view_ajax_upload_image(monkeypatch, admin_client, product_with_image):
     mock_create_thumbnails.assert_called_once_with(images[1].pk)
 
 
+def test_view_attribute_list_no_results(admin_client):
+    url = reverse('dashboard:attributes')
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    assert response.context['attributes'].object_list == []
+
+
 def test_view_attribute_list(db, admin_client, color_attribute):
     url = reverse('dashboard:attributes')
 

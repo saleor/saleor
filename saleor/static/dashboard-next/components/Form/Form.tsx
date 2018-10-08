@@ -9,7 +9,7 @@ export interface FormProps<T extends {}> {
           hasChanged: boolean;
           errors: { [key: string]: string };
           change(event: React.ChangeEvent<any>);
-          submit(event: React.FormEvent<any>);
+          submit(event?: React.FormEvent<any>);
         }
       ) => React.ReactElement<any>)
     | React.ReactNode;
@@ -42,7 +42,9 @@ class Form<T extends {} = {}> extends React.Component<FormProps<T>, T> {
 
   handleSubmit = (event?: React.FormEvent<any>) => {
     const { onSubmit } = this.props;
-    event.preventDefault();
+    if (event) {
+      event.preventDefault();
+    }
     if (onSubmit !== undefined) {
       onSubmit(this.state);
     }

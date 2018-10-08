@@ -146,7 +146,7 @@ class Shop(graphene.ObjectType):
         return Navigation(
             main=site_settings.top_menu, secondary=site_settings.bottom_menu)
 
-    @permission_required('site.manage_settings')
+    @permission_required('account.manage_users')
     def resolve_permissions(self, info):
         permissions = get_permissions()
         return format_permissions_for_display(permissions)

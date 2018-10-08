@@ -9,7 +9,6 @@ storiesOf("Orders / OrderFulfillmentCancelDialog", module)
   .add("default", () => (
     <OrderFulfillmentCancelDialog
       open={true}
-      id="123"
       onConfirm={undefined}
       onClose={undefined}
     />

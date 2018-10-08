@@ -6,7 +6,7 @@ import * as React from "react";
 
 interface StatusLabelProps {
   className?: string;
-  label: string;
+  label: string | React.ReactNode;
   status: "success" | "neutral" | "error" | string;
   typographyProps?: TypographyProps;
 }

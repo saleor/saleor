@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-08-16 04:42-0500\n"
+"POT-Creation-Date: 2018-09-10 05:20-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: ali fazeli <lmntrix.afx@gmail.com>, 2018\n"
 "Language-Team: Persian (Iran) (https://www.transifex.com/mirumee/teams/34782/fa_IR/)\n"
@@ -38,157 +38,167 @@ msgctxt "Password"
 msgid "Password"
 msgstr "رمزعبور"
 
-#: saleor/account/i18n.py:19
+#: saleor/account/i18n.py:18
 msgctxt "Address field"
 msgid "Area"
 msgstr "محدوده"
 
-#: saleor/account/i18n.py:20
+#: saleor/account/i18n.py:19
 msgctxt "Address field"
 msgid "County"
 msgstr "کشور"
 
-#: saleor/account/i18n.py:21
+#: saleor/account/i18n.py:20
 msgctxt "Address field"
 msgid "Department"
 msgstr "سازمان"
 
-#: saleor/account/i18n.py:22
+#: saleor/account/i18n.py:21
 msgctxt "Address field"
 msgid "District"
 msgstr "منطقه"
 
-#: saleor/account/i18n.py:23
+#: saleor/account/i18n.py:22
 msgctxt "Address field"
 msgid "Do/si"
 msgstr "Do/si"
 
-#: saleor/account/i18n.py:24
+#: saleor/account/i18n.py:23
 msgctxt "Address field"
 msgid "Eircode"
 msgstr "کد هوایی"
 
-#: saleor/account/i18n.py:25
+#: saleor/account/i18n.py:24
 msgctxt "Address field"
 msgid "Emirate"
 msgstr "Emirate"
 
-#: saleor/account/i18n.py:26
+#: saleor/account/i18n.py:25
 msgctxt "Address field"
 msgid "Island"
 msgstr "جزیره"
 
-#: saleor/account/i18n.py:27
+#: saleor/account/i18n.py:26
 msgctxt "Address field"
 msgid "Neighborhood"
 msgstr "محله"
 
-#: saleor/account/i18n.py:28
+#: saleor/account/i18n.py:27
 msgctxt "Address field"
 msgid "Oblast"
 msgstr "Oblast"
 
-#: saleor/account/i18n.py:29
+#: saleor/account/i18n.py:28
 msgctxt "Address field"
 msgid "Parish"
 msgstr "Parish"
 
-#: saleor/account/i18n.py:30
+#: saleor/account/i18n.py:29
 msgctxt "Address field"
 msgid "PIN"
 msgstr "پین"
 
-#: saleor/account/i18n.py:31
+#: saleor/account/i18n.py:30
 msgctxt "Address field"
 msgid "Postal code"
 msgstr "کد پستی"
 
-#: saleor/account/i18n.py:32
+#: saleor/account/i18n.py:31
 msgctxt "Address field"
 msgid "Prefecture"
 msgstr "Prefecture"
 
-#: saleor/account/i18n.py:33
+#: saleor/account/i18n.py:32
 msgctxt "Address field"
 msgid "Province"
 msgstr "استان"
 
-#: saleor/account/i18n.py:34
+#: saleor/account/i18n.py:33
 msgctxt "Address field"
 msgid "State"
 msgstr "منطقه"
 
-#: saleor/account/i18n.py:35
+#: saleor/account/i18n.py:34
 msgctxt "Address field"
 msgid "Suburb"
 msgstr "حومه"
 
-#: saleor/account/i18n.py:36
+#: saleor/account/i18n.py:35
 msgctxt "Address field"
 msgid "Townland"
 msgstr "Townland"
 
-#: saleor/account/i18n.py:37
+#: saleor/account/i18n.py:36
 msgctxt "Address field"
 msgid "Village/township"
 msgstr "شهر"
 
-#: saleor/account/i18n.py:38
+#: saleor/account/i18n.py:37
 msgctxt "Address field"
 msgid "ZIP code"
 msgstr "کد پستی"
 
-#: saleor/account/i18n.py:66 saleor/account/i18n.py:113
+#: saleor/account/i18n.py:63 saleor/account/i18n.py:110
 msgctxt "Country"
 msgid "Country"
 msgstr "کشور"
 
-#: saleor/account/i18n.py:97
+#: saleor/account/i18n.py:94
 msgctxt "Personal name"
 msgid "Given name"
 msgstr "نام"
 
-#: saleor/account/i18n.py:99
+#: saleor/account/i18n.py:96
 msgctxt "Personal name"
 msgid "Family name"
 msgstr "نام خانوادگی"
 
-#: saleor/account/i18n.py:101
+#: saleor/account/i18n.py:98
 msgctxt "Company or organization"
 msgid "Company or organization"
 msgstr "شرکت یا سازمان"
 
-#: saleor/account/i18n.py:103 saleor/account/i18n.py:105
+#: saleor/account/i18n.py:100 saleor/account/i18n.py:102
 msgctxt "Address"
 msgid "Address"
 msgstr "آدرس"
 
-#: saleor/account/i18n.py:107
+#: saleor/account/i18n.py:104
 msgctxt "City"
 msgid "City"
 msgstr "شهر"
 
-#: saleor/account/i18n.py:109
+#: saleor/account/i18n.py:106
 msgctxt "City area"
 msgid "District"
 msgstr "منطقه"
 
-#: saleor/account/i18n.py:111
+#: saleor/account/i18n.py:108
 msgctxt "Postal code"
 msgid "Postal code"
 msgstr "کد پستی"
 
-#: saleor/account/i18n.py:115
+#: saleor/account/i18n.py:112
 msgctxt "Country area"
 msgid "State or province"
 msgstr "استان"
 
-#: saleor/account/i18n.py:117
+#: saleor/account/i18n.py:114
 msgctxt "Phone number"
 msgid "Phone number"
 msgstr "شماره تلفن"
 
-#: saleor/account/i18n.py:167
+#: saleor/account/i18n.py:117
+msgctxt "Address"
+msgid "Street address, P.O. box, company name"
+msgstr "آدرس خیابان ، صندوق پستی ، نام شرکت"
+
+#: saleor/account/i18n.py:119
+msgctxt "Address"
+msgid "Apartment, suite, unit, building, floor, etc"
+msgstr "آپارتمان، سوئیت، واحد، ساختمان، طبقه، و غیره"
+
+#: saleor/account/i18n.py:171
 msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr "این مقدار برای کشور انتخاب شده نامعتبر است"
@@ -290,12 +300,12 @@ msgctxt "Add to cart form error"
 msgid "Sorry. This product is currently out of stock."
 msgstr "پوزش. موجودی این محصول در انبار تمام شده."
 
-#: saleor/checkout/forms.py:49
+#: saleor/checkout/forms.py:48
 msgctxt "Add to cart form error"
 msgid "Oops. We could not find that product."
 msgstr "محصول پیدا نشد."
 
-#: saleor/checkout/forms.py:52
+#: saleor/checkout/forms.py:51
 #, python-format
 msgctxt "Add to cart form error"
 msgid "Only %d remaining in stock."
@@ -303,52 +313,52 @@ msgid_plural "Only %d remaining in stock."
 msgstr[0] "تنها %dای در انبار مانده."
 msgstr[1] "تنها %d تا در انبار مانده."
 
-#: saleor/checkout/forms.py:165
+#: saleor/checkout/forms.py:162
 msgctxt "Country form field label"
 msgid "Country"
 msgstr "کشور"
 
-#: saleor/checkout/forms.py:183 saleor/checkout/forms.py:195
+#: saleor/checkout/forms.py:188 saleor/checkout/forms.py:200
 msgctxt "Address form field label"
 msgid "Email"
 msgstr "ایمیل"
 
-#: saleor/checkout/forms.py:208
+#: saleor/checkout/forms.py:213
 msgctxt "Shipping addresses form choice"
 msgid "Enter a new address"
 msgstr "آدرس جدید را وارد کنید"
 
-#: saleor/checkout/forms.py:211
+#: saleor/checkout/forms.py:216
 msgctxt "Shipping addresses form field label"
 msgid "Address"
 msgstr "آدرس"
 
-#: saleor/checkout/forms.py:228
+#: saleor/checkout/forms.py:233
 msgctxt "Billing addresses form choice"
 msgid "Enter a new address"
 msgstr "آدرس جدید را وارد کنید"
 
-#: saleor/checkout/forms.py:230
+#: saleor/checkout/forms.py:235
 msgctxt "Billing addresses form choice"
 msgid "Same as shipping"
 msgstr "همان آدرس ارسال"
 
-#: saleor/checkout/forms.py:233
+#: saleor/checkout/forms.py:238
 msgctxt "Billing addresses form field label"
 msgid "Address"
 msgstr "آدرس"
 
-#: saleor/checkout/forms.py:266
+#: saleor/checkout/forms.py:268
 msgctxt "Shipping method form field label"
 msgid "Shipping method"
 msgstr "روش ارسال"
 
-#: saleor/checkout/forms.py:307
+#: saleor/checkout/forms.py:308
 msgctxt "Voucher form error"
 msgid "Discount code incorrect or expired"
 msgstr "کد تخفیف نامعتبر است یا منقضی شده است."
 
-#: saleor/checkout/forms.py:318
+#: saleor/checkout/forms.py:319
 msgctxt "Checkout discount form label for voucher field"
 msgid "Gift card or discount code"
 msgstr "گیفت کارت یا کد تخیف"
@@ -359,8 +369,8 @@ msgid ""
 "Sorry. We don't have that many items in stock. Quantity was set to maximum "
 "available for now."
 msgstr ""
-"معذرت. به تعداد وارد شده در انبار موجودی نداریمتعداد سفارش به بیشترین مقدار "
-"موجودی تغییر پیدا کرد."
+"معذرت. به تعداد وارد شده در انبار موجودی نداریم تعداد سفارش به بیشترین مقدار"
+" موجودی تغییر پیدا کرد."
 
 #: saleor/checkout/utils.py:647
 msgctxt "Voucher not applicable"
@@ -382,7 +392,7 @@ msgctxt "Voucher not applicable"
 msgid "This offer is only valid for selected items."
 msgstr "این پیشنهاد تنها برای آیتم های انتخاب شده معتبر است."
 
-#: saleor/checkout/utils.py:784
+#: saleor/checkout/utils.py:818
 msgctxt "Voucher not applicable"
 msgid "Voucher expired in meantime. Order placement aborted."
 msgstr "در حال حاضر کد تخفیف منقضی شده است. سفارش شما لغو شد. "
@@ -402,6 +412,126 @@ msgctxt "Order status history entry"
 msgid "Order was placed"
 msgstr "سفارش داده شد."
 
+#: saleor/core/__init__.py:54
+msgctxt "VAT rate type"
+msgid "accommodation"
+msgstr "محل زندگی"
+
+#: saleor/core/__init__.py:56
+msgctxt "VAT rate type"
+msgid "admission to cultural events"
+msgstr "دعوت به رویدادهای فرهنگی"
+
+#: saleor/core/__init__.py:58
+msgctxt "VAT rate type"
+msgid "admission to entertainment events"
+msgstr "دعوت به رویدادهای تفریحی"
+
+#: saleor/core/__init__.py:60
+msgctxt "VAT rate type"
+msgid "admission to sporting events"
+msgstr "دعوت به رویدادهای ورزشی"
+
+#: saleor/core/__init__.py:61
+msgctxt "VAT rate type"
+msgid "advertising"
+msgstr "تبلیغات"
+
+#: saleor/core/__init__.py:63
+msgctxt "VAT rate type"
+msgid "agricultural supplies"
+msgstr "ابزار و لوازم کشاورزی"
+
+#: saleor/core/__init__.py:64
+msgctxt "VAT rate type"
+msgid "baby foodstuffs"
+msgstr "خوراک بچه"
+
+#: saleor/core/__init__.py:65
+msgctxt "VAT rate type"
+msgid "bikes"
+msgstr "دوچرخه"
+
+#: saleor/core/__init__.py:66
+msgctxt "VAT rate type"
+msgid "books"
+msgstr "کتاب"
+
+#: saleor/core/__init__.py:68
+msgctxt "VAT rate type"
+msgid "childrens clothing"
+msgstr "لباس پچه ها"
+
+#: saleor/core/__init__.py:69
+msgctxt "VAT rate type"
+msgid "domestic fuel"
+msgstr ""
+
+#: saleor/core/__init__.py:71
+msgctxt "VAT rate type"
+msgid "domestic services"
+msgstr "سرویس‌های محلی"
+
+#: saleor/core/__init__.py:72
+msgctxt "VAT rate type"
+msgid "e-books"
+msgstr "کتابـخوان ها"
+
+#: saleor/core/__init__.py:73
+msgctxt "VAT rate type"
+msgid "foodstuffs"
+msgstr "خوراکی‌ها"
+
+#: saleor/core/__init__.py:74
+msgctxt "VAT rate type"
+msgid "hotels"
+msgstr "هتل ها"
+
+#: saleor/core/__init__.py:75
+msgctxt "VAT rate type"
+msgid "medical"
+msgstr "پزشکی"
+
+#: saleor/core/__init__.py:76
+msgctxt "VAT rate type"
+msgid "newspapers"
+msgstr "روزنامه ها"
+
+#: saleor/core/__init__.py:78
+msgctxt "VAT rate type"
+msgid "passenger transport"
+msgstr "حمل و نقل مسافران"
+
+#: saleor/core/__init__.py:80
+msgctxt "VAT rate type"
+msgid "pharmaceuticals"
+msgstr "دارویی"
+
+#: saleor/core/__init__.py:82
+msgctxt "VAT rate type"
+msgid "property renovations"
+msgstr "بازسازی ملک"
+
+#: saleor/core/__init__.py:83
+msgctxt "VAT rate type"
+msgid "restaurants"
+msgstr "رستوران ها"
+
+#: saleor/core/__init__.py:84
+msgctxt "VAT rate type"
+msgid "social housing"
+msgstr "مسکن سازمانی"
+
+#: saleor/core/__init__.py:85
+msgctxt "VAT rate type"
+msgid "standard"
+msgstr "معمولی"
+
+#: saleor/core/__init__.py:86
+msgctxt "VAT rate type"
+msgid "water"
+msgstr "آب"
+
 #: saleor/core/filters.py:27
 #, python-format
 msgctxt "Number of matching records in the dashboard list"
@@ -415,135 +545,30 @@ msgctxt "Country choice"
 msgid "Any Country"
 msgstr "هر کشوری"
 
-#: saleor/core/i18n.py:9
-msgctxt "VAT rate type"
-msgid "accommodation"
-msgstr "محل زندگی"
-
-#: saleor/core/i18n.py:11
-msgctxt "VAT rate type"
-msgid "admission to cultural events"
-msgstr "دعوت به رویدادهای فرهنگی"
-
-#: saleor/core/i18n.py:13
-msgctxt "VAT rate type"
-msgid "admission to entertainment events"
-msgstr "دعوت به رویدادهای تفریحی"
-
-#: saleor/core/i18n.py:15
-msgctxt "VAT rate type"
-msgid "admission to sporting events"
-msgstr "دعوت به رویدادهای ورزشی"
-
-#: saleor/core/i18n.py:17
-msgctxt "VAT rate type"
-msgid "advertising"
-msgstr "تبلیغات"
-
-#: saleor/core/i18n.py:19
-msgctxt "VAT rate type"
-msgid "agricultural supplies"
-msgstr "ابزار و لوازم کشاورزی"
-
-#: saleor/core/i18n.py:20
-msgctxt "VAT rate type"
-msgid "baby foodstuffs"
-msgstr "خوراک بچه"
-
-#: saleor/core/i18n.py:21
-msgctxt "VAT rate type"
-msgid "bikes"
-msgstr "دوچرخه"
-
-#: saleor/core/i18n.py:22
-msgctxt "VAT rate type"
-msgid "books"
-msgstr "کتاب"
-
-#: saleor/core/i18n.py:23
-msgctxt "VAT rate type"
-msgid "childrens clothing"
-msgstr "لباس پچه ها"
-
-#: saleor/core/i18n.py:24
-msgctxt "VAT rate type"
-msgid "domestic fuel"
-msgstr ""
-
-#: saleor/core/i18n.py:25
-msgctxt "VAT rate type"
-msgid "domestic services"
-msgstr "سرویس‌های محلی"
-
-#: saleor/core/i18n.py:26
-msgctxt "VAT rate type"
-msgid "e-books"
-msgstr "کتابـخوان ها"
-
-#: saleor/core/i18n.py:27
-msgctxt "VAT rate type"
-msgid "foodstuffs"
-msgstr "خوراکی‌ها"
-
-#: saleor/core/i18n.py:28
-msgctxt "VAT rate type"
-msgid "hotels"
-msgstr "هتل ها"
-
-#: saleor/core/i18n.py:29
-msgctxt "VAT rate type"
-msgid "medical"
-msgstr "پزشکی"
-
-#: saleor/core/i18n.py:30
-msgctxt "VAT rate type"
-msgid "newspapers"
-msgstr "روزنامه ها"
-
-#: saleor/core/i18n.py:32
-msgctxt "VAT rate type"
-msgid "passenger transport"
-msgstr "حمل و نقل مسافران"
-
-#: saleor/core/i18n.py:33
-msgctxt "VAT rate type"
-msgid "pharmaceuticals"
-msgstr "دارویی"
-
-#: saleor/core/i18n.py:35
-msgctxt "VAT rate type"
-msgid "property renovations"
-msgstr "بازسازی ملک"
-
-#: saleor/core/i18n.py:36
-msgctxt "VAT rate type"
-msgid "restaurants"
-msgstr "رستوران ها"
-
-#: saleor/core/i18n.py:37
-msgctxt "VAT rate type"
-msgid "social housing"
-msgstr "مسکن سازمانی"
-
-#: saleor/core/i18n.py:38
-msgctxt "VAT rate type"
-msgid "standard"
-msgstr "معمولی"
-
-#: saleor/core/i18n.py:39
-msgctxt "VAT rate type"
-msgid "water"
-msgstr "آب"
-
-#: saleor/core/i18n.py:40
-msgctxt "VAT rate type"
-msgid "wine"
-msgstr "شراب"
-
 #: saleor/core/views.py:39
 msgctxt "Impersonation message"
 msgid "You are now logged as {}"
 msgstr "حالا شما به جای {} در سیستم هستید."
+
+#: saleor/core/weight.py:33
+msgctxt "Kilogram weight unit symbol"
+msgid "kg"
+msgstr "کیلو گرم"
+
+#: saleor/core/weight.py:34
+msgctxt "Pound weight unit symbol"
+msgid "lb"
+msgstr "پوند"
+
+#: saleor/core/weight.py:35
+msgctxt "Ounce weight unit symbol"
+msgid "oz"
+msgstr "اونس"
+
+#: saleor/core/weight.py:36
+msgctxt "Gram weight unit symbol"
+msgid "g"
+msgstr "گرم"
 
 #: saleor/discount/__init__.py:12
 msgctxt "Discount type"
@@ -626,7 +651,7 @@ msgctxt "Voucher not applicable"
 msgid "Discount not applicable for this product"
 msgstr "تخفیف برای این کالا ممکن نیست"
 
-#: saleor/graphql/order/mutations/draft_orders.py:59
+#: saleor/graphql/order/mutations/draft_orders.py:58
 #, python-format
 msgctxt "Add line mutation error"
 msgid "Could not add item. Only %(remaining)d remaining in stock."
@@ -634,10 +659,10 @@ msgstr ""
 "امکان اضافه کردن وجود ندارد. تنها %(remaining)d تا از این جنس در انبار موجود"
 " است."
 
-#: saleor/graphql/order/mutations/draft_orders.py:228
+#: saleor/graphql/order/mutations/draft_orders.py:227
 msgctxt "Dashboard message related to an order"
 msgid "Order created from draft order"
-msgstr ""
+msgstr "سفارش ایجاد شده در قسمت پیش نویس سفارشات"
 
 #: saleor/graphql/order/mutations/fulfillments.py:21
 #, python-format
@@ -661,12 +686,12 @@ msgctxt "Dashboard message related to an order"
 msgid "Shipping confirmation email was sent to user(%(email)s)"
 msgstr ""
 
-#: saleor/graphql/order/mutations/fulfillments.py:175
+#: saleor/graphql/order/mutations/fulfillments.py:177
 msgctxt "Cancel fulfillment mutation error"
 msgid "This fulfillment can't be canceled"
 msgstr ""
 
-#: saleor/graphql/order/mutations/fulfillments.py:183
+#: saleor/graphql/order/mutations/fulfillments.py:187
 #, python-format
 msgctxt "Dashboard message"
 msgid "Restocked %(quantity)d item"
@@ -674,18 +699,18 @@ msgid_plural "Restocked %(quantity)d items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/graphql/order/mutations/fulfillments.py:189
+#: saleor/graphql/order/mutations/fulfillments.py:193
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s canceled"
 msgstr ""
 
-#: saleor/graphql/order/mutations/orders.py:93
+#: saleor/graphql/order/mutations/orders.py:90
 msgctxt "Dashboard message related to an order"
 msgid "Added note"
 msgstr "افزودن یادداشت"
 
-#: saleor/graphql/order/mutations/orders.py:119
+#: saleor/graphql/order/mutations/orders.py:120
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Restocked %(quantity)d item"
@@ -693,34 +718,34 @@ msgid_plural "Restocked %(quantity)d items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/graphql/order/mutations/orders.py:125
+#: saleor/graphql/order/mutations/orders.py:127
 msgctxt "Dashboard message related to an order"
 msgid "Order canceled"
 msgstr "سفارش لغو شد."
 
-#: saleor/graphql/order/mutations/orders.py:155
+#: saleor/graphql/order/mutations/orders.py:163
 #, python-format
 msgctxt "Payment description"
 msgid "Order %(order)s"
 msgstr "سفارش %(order)s"
 
-#: saleor/graphql/order/mutations/orders.py:163
+#: saleor/graphql/order/mutations/orders.py:171
 msgctxt "Dashboard message related to an order"
 msgid "Order manually marked as paid."
 msgstr ""
 
-#: saleor/graphql/order/mutations/orders.py:193
+#: saleor/graphql/order/mutations/orders.py:203
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Captured %(amount)s"
 msgstr ""
 
-#: saleor/graphql/order/mutations/orders.py:220
+#: saleor/graphql/order/mutations/orders.py:233
 msgctxt "Dashboard message related to an order"
 msgid "Released payment"
 msgstr ""
 
-#: saleor/graphql/order/mutations/orders.py:249
+#: saleor/graphql/order/mutations/orders.py:265
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Refunded %(amount)s"
@@ -803,12 +828,12 @@ msgctxt "Payment delete form error"
 msgid "Payment does not exist"
 msgstr "پرداخت وجود ندارد"
 
-#: saleor/order/models.py:102
+#: saleor/order/models.py:107
 msgctxt "Permission description"
 msgid "Manage orders."
 msgstr "مدیریت سفارشات."
 
-#: saleor/order/models.py:232
+#: saleor/order/models.py:237
 #, python-format
 msgctxt "Fulfillment str"
 msgid "Fulfillment #%s"
@@ -910,19 +935,13 @@ msgctxt "Currency amount"
 msgid "Price"
 msgstr "قیمت"
 
-#: saleor/product/filters.py:87
-#, python-format
-msgctxt "Validation error for sort_by filter"
-msgid "%(value)s is not a valid sorting option"
-msgstr "گزینه ی مرتب سازی %(value)s نامعتبر است"
-
 #: saleor/product/forms.py:23
 #, python-format
 msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr "%(variant_label)s - %(price)s"
 
-#: saleor/product/models.py:128
+#: saleor/product/models.py:139
 msgctxt "Permission description"
 msgid "Manage products."
 msgstr "مدیریت محصولات"
@@ -934,15 +953,15 @@ msgstr "متن جستجو"
 
 #: saleor/settings.py:61
 msgid "Bulgarian"
-msgstr ""
+msgstr "بلغارستان"
 
 #: saleor/settings.py:62
 msgid "Czech"
-msgstr ""
+msgstr "جمهوری چک"
 
 #: saleor/settings.py:63
 msgid "German"
-msgstr ""
+msgstr "آلمان"
 
 #: saleor/settings.py:64
 msgid "English"
@@ -950,7 +969,7 @@ msgstr "انگلیسی"
 
 #: saleor/settings.py:65
 msgid "Spanish"
-msgstr ""
+msgstr "اسپانیا"
 
 #: saleor/settings.py:66
 msgid "Persian (Iran)"
@@ -958,83 +977,123 @@ msgstr "فارسی"
 
 #: saleor/settings.py:67
 msgid "French"
-msgstr ""
+msgstr "فرانسه"
 
 #: saleor/settings.py:68
 msgid "Hungarian"
-msgstr ""
+msgstr "مجارستان"
 
 #: saleor/settings.py:69
 msgid "Italian"
-msgstr ""
+msgstr "ایتالیا"
 
 #: saleor/settings.py:70
 msgid "Japanese"
-msgstr ""
+msgstr "ژاپن"
 
 #: saleor/settings.py:71
 msgid "Korean"
-msgstr ""
+msgstr "کره جنوبی"
 
 #: saleor/settings.py:72
 msgid "Norwegian"
-msgstr ""
+msgstr "نروج"
 
 #: saleor/settings.py:73
 msgid "Dutch"
-msgstr ""
+msgstr "هلند"
 
 #: saleor/settings.py:74
 msgid "Polish"
-msgstr ""
+msgstr "لهستانی"
 
 #: saleor/settings.py:75
 msgid "Portuguese (Brazil)"
-msgstr ""
+msgstr "پرتغال(برزیل)"
 
 #: saleor/settings.py:76
 msgid "Romanian"
-msgstr ""
+msgstr "رومانی"
 
 #: saleor/settings.py:77
 msgid "Russian"
-msgstr ""
+msgstr "روسیه"
 
 #: saleor/settings.py:78
 msgid "Slovak"
-msgstr ""
+msgstr "اسلواکی"
 
 #: saleor/settings.py:79
 msgid "Turkish"
-msgstr ""
+msgstr "ترکیه"
 
 #: saleor/settings.py:80
 msgid "Ukrainian"
-msgstr ""
+msgstr "اکراین"
 
 #: saleor/settings.py:81
 msgid "Vietnamese"
-msgstr ""
+msgstr "ویتنام"
 
 #: saleor/settings.py:82
 msgid "Chinese"
-msgstr ""
+msgstr "چین"
 
 #: saleor/settings.py:83
 msgid "Chinese (Taiwan)"
-msgstr ""
+msgstr "چین (تایوان)"
 
-#: saleor/settings.py:316
+#: saleor/settings.py:317
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr "اتحادیه اروپا"
 
-#: saleor/shipping/models.py:25
-msgctxt "Permission description"
-msgid "Manage shipping."
+#: saleor/shipping/__init__.py:10
+msgctxt "Type of shipping"
+msgid "Price based shipping"
+msgstr "قیمت با حمل و نقل"
+
+#: saleor/shipping/__init__.py:12
+msgctxt "Type of shipping"
+msgid "Weight based shipping"
 msgstr ""
 
-#: saleor/site/models.py:36
+#: saleor/shipping/models.py:33
+#, python-format
+msgctxt "Number of countries shipping zone apply to"
+msgid "%(num_of_countries)d countries"
+msgstr ""
+
+#: saleor/shipping/models.py:48
+msgctxt "Permission description"
+msgid "Manage shipping."
+msgstr "مدیریت حمل و نقل"
+
+#: saleor/shipping/utils.py:53
+#, python-format
+msgctxt "Applies to orders more expensive than the min value"
+msgid "%(min_price)s and up"
+msgstr ""
+
+#: saleor/shipping/utils.py:56
+#, python-format
+msgctxt "Applies to order valued within this price range"
+msgid "%(min_price)s to %(max_price)s"
+msgstr ""
+
+#: saleor/shipping/utils.py:72
+#, python-format
+msgctxt "Applies to orders heavier than the threshold"
+msgid "%(min_weight)s and up"
+msgstr ""
+
+#: saleor/shipping/utils.py:75
+#, python-format
+msgctxt "Applies to orders of total weight within this range"
+msgid "%(min_weight)s to %(max_weight)s"
+msgstr ""
+
+#: saleor/site/models.py:40
 msgctxt "Permission description"
 msgid "Manage settings."
 msgstr "مدیریت تنظیمات"
@@ -1512,17 +1571,17 @@ msgctxt "Category breadcrumbs home"
 msgid "Home"
 msgstr "خانه"
 
-#: templates/checkout/_subtotal_table.html:31
+#: templates/checkout/_subtotal_table.html:32
 msgctxt "Cart shipping cost form"
 msgid "Shipping cost for:"
 msgstr "هزینه ی ارسال:"
 
-#: templates/checkout/_subtotal_table.html:55
+#: templates/checkout/_subtotal_table.html:57
 msgctxt "Order subtotal"
 msgid "Total"
 msgstr "مجموع کل"
 
-#: templates/checkout/_subtotal_table.html:56
+#: templates/checkout/_subtotal_table.html:58
 msgctxt "Cart summary text"
 msgid "Shipment and taxes calculated at checkout"
 msgstr "هزینه ی پست و مالیات در قسمت نهایی اعمال می شود."
@@ -1667,15 +1726,26 @@ msgstr "ادامه"
 msgid "Select other address"
 msgstr "انتخاب آدرس دیگر"
 
-#: templates/checkout/shipping_method.html:13
+#: templates/checkout/shipping_method.html:14
 msgctxt "Checkout shipping method form title"
 msgid "Shipping method"
 msgstr "روش ارسال"
 
-#: templates/checkout/shipping_method.html:17
+#: templates/checkout/shipping_method.html:18
 msgctxt "Checkout shipping method primary action"
 msgid "Continue"
 msgstr "ادامه"
+
+#: templates/checkout/shipping_method.html:23
+msgctxt ""
+"Message displayed to the user if there's no shipping methods for his country"
+msgid ""
+"\n"
+"      Unfortunately we do not ship to your selected country.\n"
+"      <br>\n"
+"      Please enter an alternative shipping address or contact us, if you think that's a mistake.\n"
+"    "
+msgstr ""
 
 #: templates/checkout/snippets/addresses_form.html:4
 msgctxt "Checkout addresses form label"
@@ -1714,7 +1784,7 @@ msgstr "آدرس فاکتور"
 #: templates/checkout/summary.html:10
 msgctxt "Checkout shipping method"
 msgid "Change shipping method"
-msgstr ""
+msgstr "تغییر روش حمل و نقل"
 
 #: templates/checkout/summary.html:11
 msgctxt "Checkout summary note title"
@@ -1898,11 +1968,10 @@ msgctxt "Dashboard attributes list"
 msgid "Attributes"
 msgstr "ویژگی ها"
 
-#: templates/dashboard/base.html:200 templates/dashboard/shipping/list.html:9
-#: templates/dashboard/shipping/list.html:19
-msgctxt "Dashboard shipping methods list"
-msgid "Shipping methods"
-msgstr "روشهای ارسال"
+#: templates/dashboard/base.html:200
+msgctxt "Dashboard shipping zones list"
+msgid "Shipping"
+msgstr "ارسال"
 
 #: templates/dashboard/base.html:207 templates/dashboard/menu/detail.html:21
 #: templates/dashboard/menu/form.html:12 templates/dashboard/menu/form.html:29
@@ -1946,20 +2015,20 @@ msgstr "نسخه ی:"
 #: templates/dashboard/menu/item/form.html:80
 #: templates/dashboard/order/address_form.html:61
 #: templates/dashboard/order/fulfillment.html:133
-#: templates/dashboard/product/form.html:129
-#: templates/dashboard/product/form.html:136
+#: templates/dashboard/product/form.html:134
+#: templates/dashboard/product/form.html:141
 #: templates/dashboard/product/product_attribute/form.html:77
 #: templates/dashboard/product/product_attribute/form.html:84
 #: templates/dashboard/product/product_attribute/values/form.html:78
 #: templates/dashboard/product/product_image/form.html:79
-#: templates/dashboard/product/product_type/form.html:105
-#: templates/dashboard/product/product_variant/form.html:107
-#: templates/dashboard/product/product_variant/form.html:114
-#: templates/dashboard/shipping/country/form.html:80
-#: templates/dashboard/shipping/form.html:78
-#: templates/dashboard/shipping/form.html:85
+#: templates/dashboard/product/product_type/form.html:113
+#: templates/dashboard/product/product_variant/form.html:111
+#: templates/dashboard/product/product_variant/form.html:118
+#: templates/dashboard/shipping/form.html:77
+#: templates/dashboard/shipping/form.html:84
+#: templates/dashboard/shipping/methods/form.html:80
 #: templates/dashboard/sites/authorization_keys/form.html:71
-#: templates/dashboard/sites/form.html:58
+#: templates/dashboard/sites/form.html:61
 #: templates/dashboard/staff/detail.html:73
 #: templates/dashboard/taxes/form.html:100
 msgctxt "Dashboard cancel action"
@@ -1996,7 +2065,7 @@ msgstr "زیردسته ها"
 #: templates/dashboard/includes/_menu_items.html:13
 #: templates/dashboard/product/detail.html:91
 #: templates/dashboard/product/product_attribute/detail.html:63
-#: templates/dashboard/shipping/detail.html:76
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:13
 #: templates/dashboard/sites/detail.html:77
 msgid "Add"
 msgstr "اضافه کردن"
@@ -2062,8 +2131,8 @@ msgstr "افزودن دسته بندی"
 #: templates/dashboard/menu/item/form.html:84
 #: templates/dashboard/order/address_form.html:64
 #: templates/dashboard/order/modal/change_quantity.html:19
-#: templates/dashboard/product/product_type/form.html:109
-#: templates/dashboard/sites/form.html:61
+#: templates/dashboard/product/product_type/form.html:117
+#: templates/dashboard/sites/form.html:64
 #: templates/dashboard/staff/detail.html:77
 #: templates/dashboard/taxes/form.html:103
 msgctxt "Dashboard update action"
@@ -2075,14 +2144,14 @@ msgstr "به روزرسانی"
 #: templates/dashboard/discount/voucher/form.html:133
 #: templates/dashboard/menu/form.html:66
 #: templates/dashboard/menu/item/form.html:88
-#: templates/dashboard/product/form.html:139
+#: templates/dashboard/product/form.html:144
 #: templates/dashboard/product/product_attribute/form.html:87
 #: templates/dashboard/product/product_attribute/values/form.html:86
 #: templates/dashboard/product/product_image/form.html:87
-#: templates/dashboard/product/product_type/form.html:113
-#: templates/dashboard/product/product_variant/form.html:117
-#: templates/dashboard/shipping/country/form.html:88
-#: templates/dashboard/shipping/form.html:88
+#: templates/dashboard/product/product_type/form.html:121
+#: templates/dashboard/product/product_variant/form.html:121
+#: templates/dashboard/shipping/form.html:87
+#: templates/dashboard/shipping/methods/form.html:88
 #: templates/dashboard/sites/authorization_keys/form.html:79
 msgctxt "Dashboard create action"
 msgid "Create"
@@ -2141,7 +2210,7 @@ msgstr[1] "%(counter)s محصول در این دسته وجود دارند که 
 #: templates/dashboard/product/product_type/modal/confirm_delete.html:40
 #: templates/dashboard/product/product_variant/modal/confirm_delete.html:34
 #: templates/dashboard/shipping/modal/confirm_delete.html:27
-#: templates/dashboard/shipping/modal/country_confirm_delete.html:26
+#: templates/dashboard/shipping/modal/method_confirm_delete.html:26
 #: templates/dashboard/sites/modal/confirm_delete.html:26
 #: templates/dashboard/staff/modal/confirm_delete.html:24
 msgctxt "Dashboard delete action"
@@ -2307,7 +2376,7 @@ msgstr "ویرایش مشتری"
 #: templates/dashboard/customer/detail.html:77
 msgctxt "Customer action"
 msgid "Remove customer"
-msgstr ""
+msgstr "حذف مشتری"
 
 #: templates/dashboard/customer/detail.html:81
 msgctxt "Customer impersonate action"
@@ -2447,7 +2516,7 @@ msgstr "ذخیره یادداشت"
 #, python-format
 msgctxt "Header of modal used for removing customer's account "
 msgid "Remove customer %(customer)s"
-msgstr ""
+msgstr "حذف مشتری%(customer)s"
 
 #: templates/dashboard/customer/modal/confirm_delete.html:19
 #, python-format
@@ -2950,13 +3019,14 @@ msgid "Storefront Menus"
 msgstr "منوهای فروشگاه"
 
 #: templates/dashboard/menu/list.html:95
-#: templates/dashboard/product/form.html:132
+#: templates/dashboard/product/form.html:137
 #: templates/dashboard/product/product_attribute/form.html:80
 #: templates/dashboard/product/product_attribute/values/form.html:82
 #: templates/dashboard/product/product_image/form.html:83
-#: templates/dashboard/product/product_variant/form.html:110
-#: templates/dashboard/shipping/country/form.html:84
-#: templates/dashboard/shipping/form.html:81
+#: templates/dashboard/product/product_variant/form.html:114
+#: templates/dashboard/shipping/form.html:80
+#: templates/dashboard/shipping/list.html:104
+#: templates/dashboard/shipping/methods/form.html:84
 #: templates/dashboard/sites/authorization_keys/form.html:75
 msgctxt "Dashboard update action"
 msgid "Save"
@@ -2986,6 +3056,11 @@ msgid ""
 "    You can create menus by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
+
+#: templates/dashboard/next.html:11
+msgctxt "Dashboard default page title"
+msgid "Dashboard - Saleor"
+msgstr "صفحه مدیریت"
 
 #: templates/dashboard/order/address_form.html:7
 msgctxt ""
@@ -3074,7 +3149,7 @@ msgstr "ضبط"
 #: templates/dashboard/order/detail.html:167
 msgctxt "Order summary card action"
 msgid "Refund"
-msgstr ""
+msgstr "بازپرداخت"
 
 #: templates/dashboard/order/detail.html:172
 msgctxt "Order summary card action"
@@ -3336,7 +3411,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:531
 msgctxt "No customer order note card message"
 msgid "There is no note from the customer associated with this order."
-msgstr ""
+msgstr "هیچ یادداشتی از مشتری برای این سفارش وجود ندارد."
 
 #: templates/dashboard/order/detail.html:540
 msgctxt "Order notes card title"
@@ -3702,17 +3777,17 @@ msgstr "مقدار ضبط شده:"
 #: templates/dashboard/order/modal/refund.html:36
 msgctxt "Modal refund payment primary action"
 msgid "Refund"
-msgstr ""
+msgstr "بازپرداخت"
 
 #: templates/dashboard/order/modal/release.html:11
 msgctxt "Modal release payment text"
 msgid "Release payment"
-msgstr ""
+msgstr "پرداخت هزینه"
 
 #: templates/dashboard/order/modal/release.html:17
 msgctxt "Modal release payment text"
 msgid "Do you want to release the payment?"
-msgstr ""
+msgstr "آیا میخواهید هزینه را پرداخت کنید؟"
 
 #: templates/dashboard/order/modal/release.html:22
 msgctxt "Modal release payment primary action"
@@ -4188,12 +4263,18 @@ msgctxt "Product form breadcrumbs"
 msgid "Edit"
 msgstr "تغییر"
 
-#: templates/dashboard/product/form.html:110
+#: templates/dashboard/product/form.html:111
+#: templates/dashboard/product/product_type/form.html:103
+#: templates/dashboard/product/product_variant/form.html:85
+msgid "Shipping"
+msgstr "ارسال"
+
+#: templates/dashboard/product/form.html:115
 #: templates/dashboard/product/product_variant/form.html:76
 msgid "Attributes"
 msgstr "مشخصات"
 
-#: templates/dashboard/product/form.html:113
+#: templates/dashboard/product/form.html:118
 #, python-format
 msgid ""
 "\n"
@@ -4270,7 +4351,7 @@ msgid "Display name"
 msgstr "نمایش اسم"
 
 #: templates/dashboard/product/product_attribute/detail.html:87
-#: templates/dashboard/shipping/detail.html:98
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:39
 msgctxt "Attribute choice value edit action"
 msgid "Edit"
 msgstr "ویرایش"
@@ -4299,7 +4380,6 @@ msgstr "افزودن ویژگی جدید"
 
 #: templates/dashboard/product/product_attribute/form.html:45
 #: templates/dashboard/product/product_attribute/values/form.html:47
-#: templates/dashboard/shipping/country/form.html:49
 msgctxt "Attribute detail breadcrumbs"
 msgid "Edit"
 msgstr "ویرایش"
@@ -4473,7 +4553,7 @@ msgstr "حذف نوع محصول"
 msgid "Taxes"
 msgstr "مالیات"
 
-#: templates/dashboard/product/product_type/form.html:124
+#: templates/dashboard/product/product_type/form.html:132
 msgctxt "Product type help text"
 msgid ""
 "Product Type is a template used for creating new products. It also controls "
@@ -4715,173 +4795,203 @@ msgctxt "No Search result message"
 msgid "No results for query \"%(query)s\"."
 msgstr "بدون نتایج برای \"%(query)s\"."
 
-#: templates/dashboard/shipping/country/form.html:8
-msgctxt "Dashboard price per country edit page"
+#: templates/dashboard/shipping/detail.html:19
+msgctxt "Shipping zone form breadcrumbs"
+msgid "Shipping zones"
+msgstr "مناطق حمل ونقل"
+
+#: templates/dashboard/shipping/detail.html:39
+#, python-format
+msgid ""
+"\n"
+"              %(shipping_name)s  <small>(ships to %(list_of_countries)s)</small>\n"
+"            "
+msgstr ""
+
+#: templates/dashboard/shipping/detail.html:46
+msgctxt "Shipping zone action"
+msgid "Edit shipping zone"
+msgstr "ویرایش منطقه حمل و نقل"
+
+#: templates/dashboard/shipping/detail.html:49
+msgctxt "Shipping zone action"
+msgid "Remove shipping zone"
+msgstr "حذف منطقه حمل و نقل"
+
+#: templates/dashboard/shipping/detail.html:54
+msgctxt "Title of the shipping methods list"
+msgid "Price based shipping"
+msgstr "قیمت با حمل و نقل"
+
+#: templates/dashboard/shipping/detail.html:55
+msgctxt "Title of the shipping methods list"
+msgid "Weight based shipping"
+msgstr ""
+
+#: templates/dashboard/shipping/form.html:9
+msgctxt "Dashboard shipping zones"
 msgid "Edit"
 msgstr "ویرایش"
 
-#: templates/dashboard/shipping/country/form.html:10
-msgctxt "Shipping price per country edit page title"
-msgid "Add new shipping price per country"
-msgstr "افزودن قیمت ارسال جدید برای هر کشور"
+#: templates/dashboard/shipping/form.html:11
+#: templates/dashboard/shipping/form.html:24
+msgctxt "Shipping zone form page title"
+msgid "Add new shipping zone"
+msgstr "افزودن منطقه حمل و نقل جدید"
 
-#: templates/dashboard/shipping/country/form.html:31
-msgctxt "Dashboard attributes list"
-msgid "Shipping methods"
-msgstr "روشهای ارسال"
+#: templates/dashboard/shipping/form.html:32
+msgctxt "Dashboard shipping zone"
+msgid "Shipping zones"
+msgstr "مناطق حمل ونقل"
 
-#: templates/dashboard/shipping/country/form.html:55
-msgctxt "Attribute detail breadcrumbs"
-msgid "Add new price for country"
-msgstr "افزودن قیمت جدید برای هر کشور"
+#: templates/dashboard/shipping/form.html:48
+msgctxt "Shipping zone form page title"
+msgid "Edit"
+msgstr "ویرایش"
 
-#: templates/dashboard/shipping/country/form.html:72
-msgctxt "Shipping method price for country form title"
-msgid "Shipping method price for country "
-msgstr "هزینه روش ارسال برای کشور"
+#: templates/dashboard/shipping/form.html:54
+msgctxt "Shipping zone form breadcrumbs"
+msgid "Add new shipping zone"
+msgstr "افزودن منطقه حمل و نقل جدید"
 
-#: templates/dashboard/shipping/detail.html:21
-msgctxt "Shipping method form breadcrumbs"
-msgid "Shipping methods"
-msgstr "روشهای ارسال"
+#: templates/dashboard/shipping/list.html:10
+#: templates/dashboard/shipping/list.html:20
+msgctxt "Dashboard shipping zones list"
+msgid "Shipping zones"
+msgstr "مناطق حمل ونقل"
 
-#: templates/dashboard/shipping/detail.html:47
-msgctxt "Shipping method field"
-msgid "Description"
-msgstr "توضیحات"
+#: templates/dashboard/shipping/list.html:27
+msgctxt "Shipping zone list add button text"
+msgid "Add shipping zone"
+msgstr "افزودن منطقه حمل و نقل"
 
-#: templates/dashboard/shipping/detail.html:58
-msgctxt "Shipping method action"
-msgid "Edit shipping method"
-msgstr "ویرایش روش ارسال"
+#: templates/dashboard/shipping/list.html:42
+msgctxt "Shipping zones table header, name of the shipping zone"
+msgid "Shipping zone"
+msgstr "منطقه حمل و نقل"
 
-#: templates/dashboard/shipping/detail.html:61
-msgctxt "Shipping method action"
-msgid "Remove shipping method"
-msgstr "حذف روش ارسال"
+#: templates/dashboard/shipping/list.html:46
+msgctxt ""
+"Shipping zones table header, price range of shipping methods within shipping"
+" zone"
+msgid "Price range"
+msgstr "محدوده قیمت"
 
-#: templates/dashboard/shipping/detail.html:71
-msgctxt "Title of the per-country shipping price list"
-msgid "Price per country"
-msgstr "قیمت برای کشور"
+#: templates/dashboard/shipping/list.html:49
+msgctxt ""
+"Shipping zones table header, list of countries within of shipping zone"
+msgid "Countries"
+msgstr "کشورها"
 
-#: templates/dashboard/shipping/detail.html:84
-msgctxt "Header of the per-country shipping price list"
-msgid "Country"
-msgstr "کشور"
+#: templates/dashboard/shipping/list.html:83
+msgctxt "Empty shipping list message"
+msgid "No shipping zones found."
+msgstr "هیچ منطقه حمل و نقل یافت نشد"
 
-#: templates/dashboard/shipping/detail.html:87
-msgctxt "Header of the per-country shipping price list"
+#: templates/dashboard/shipping/list.html:95
+msgid "Default Weight Unit"
+msgstr "واحد وزن پیش فرض"
+
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:21
+msgctxt "Header of the shipping methods list"
+msgid "Name"
+msgstr "نام"
+
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:24
+msgctxt "Header of the shipping methods list"
+msgid "Range"
+msgstr ""
+
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:27
+msgctxt "Header of the shipping methods list"
 msgid "Price"
 msgstr "قیمت"
 
-#: templates/dashboard/shipping/detail.html:101
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:42
 msgctxt "Attribute choice value remove action"
 msgid "Remove"
 msgstr "حذف"
 
-#: templates/dashboard/shipping/detail.html:107
-msgctxt "Empty list of per-country shipping prices"
-msgid "No shipping prices"
-msgstr "بدون قیمت ارسال"
+#: templates/dashboard/shipping/methods/_shipping_methods_table.html:48
+msgctxt "Empty list of shipping methods prices"
+msgid "No shipping methods"
+msgstr "روش حمل و نقل وجود ندارد"
 
-#: templates/dashboard/shipping/form.html:9
-msgctxt "Dashboard shipping methods"
+#: templates/dashboard/shipping/methods/form.html:8
+msgctxt "Dashboard shipping method edit page"
 msgid "Edit"
 msgstr "ویرایش"
 
-#: templates/dashboard/shipping/form.html:12
-#: templates/dashboard/shipping/form.html:25
-msgctxt "Shipping method form page title"
-msgid "Add new method"
-msgstr "افزودن روش جدید"
+#: templates/dashboard/shipping/methods/form.html:10
+msgctxt "Shipping method edit page title"
+msgid "Add new shipping method"
+msgstr "افزودن روش حمل و نقل جدید"
 
-#: templates/dashboard/shipping/form.html:33
-msgctxt "Dashboard shipping method"
-msgid "Shipping methods"
-msgstr "روشهای ارسال"
+#: templates/dashboard/shipping/methods/form.html:31
+msgctxt "Dashboard attributes list"
+msgid "Shipping zones"
+msgstr "مناطق حمل ونقل"
 
-#: templates/dashboard/shipping/form.html:49
-msgctxt "Shipping method form page title"
-msgid "Edit"
-msgstr "ویرایش"
+#: templates/dashboard/shipping/methods/form.html:49
+msgctxt "Shipping method breadcrumbs"
+msgid "Edit shipping method"
+msgstr "ویرایش روش ارسال"
 
-#: templates/dashboard/shipping/form.html:55
-msgctxt "Shipping method form breadcrumbs"
-msgid "Add new method"
-msgstr "افزودن روش ارسال جدید"
+#: templates/dashboard/shipping/methods/form.html:55
+msgctxt "Shipping method breadcrumbs"
+msgid "Add shipping method"
+msgstr "افزودن روش خرید"
 
-#: templates/dashboard/shipping/list.html:26
-msgctxt "Shipping method list add button text"
-msgid "Add method"
-msgstr "افزودن روش ارسال"
-
-#: templates/dashboard/shipping/list.html:41
-msgctxt "Shipping methods table header"
-msgid "Name"
-msgstr "نام"
-
-#: templates/dashboard/shipping/list.html:45
-msgctxt "Shipping methods table header"
-msgid "Price range"
-msgstr "محدوده قیمت"
-
-#: templates/dashboard/shipping/list.html:48
-msgctxt "Shipping methods table header"
-msgid "Countries"
-msgstr "کشورها"
-
-#: templates/dashboard/shipping/list.html:82
-msgctxt "Empty shipping list message"
-msgid "No shipping methods found."
-msgstr "روش ارسال یافت نشد."
+#: templates/dashboard/shipping/methods/form.html:72
+msgctxt "Shipping method form title"
+msgid "Shipping method"
+msgstr "روش ارسال"
 
 #: templates/dashboard/shipping/modal/confirm_delete.html:13
 #, python-format
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"Remove shipping method %(shipping_method)s\n"
+"Remove shipping zone %(shipping_zone)s\n"
 msgstr ""
 "\n"
-"حذف روش ارسال %(shipping_method)s\n"
+"حذف منطقه حمل و نقل %(shipping_zone)s\n"
 
 #: templates/dashboard/shipping/modal/confirm_delete.html:20
 #, python-format
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"      Are you sure you want to remove shipping method <strong>%(shipping_method)s</strong>?\n"
+"      Are you sure you want to remove shipping zone <strong>%(shipping_zone)s</strong>?\n"
 "    "
 msgstr ""
 
-#: templates/dashboard/shipping/modal/country_confirm_delete.html:12
+#: templates/dashboard/shipping/modal/method_confirm_delete.html:12
 #, python-format
-msgctxt "Modal remove shipping method country title"
-msgid "Remove shipping %(country)s"
-msgstr "حذف ارسال برای %(country)s"
+msgctxt "Modal remove shipping method title"
+msgid "Remove shipping method %(shipping_method)s"
+msgstr ""
 
-#: templates/dashboard/shipping/modal/country_confirm_delete.html:19
+#: templates/dashboard/shipping/modal/method_confirm_delete.html:19
 #, python-format
-msgctxt "Modal remove shipping method country text"
-msgid "Are you sure you want to remove shipping <strong>%(country)s</strong>?"
-msgstr "آیا از حذف ارسال برای <strong>%(country)s</strong> مطمئنید؟"
+msgctxt "Modal remove shipping method shipping method text"
+msgid ""
+"Are you sure you want to remove shipping method "
+"<strong>%(shipping_method)s</strong>?"
+msgstr ""
 
 #: templates/dashboard/shipping/zero_page.html:5
-msgid "No shipping methods found."
-msgstr "روش ارسال یافت نشد."
+msgid "No shipping zones found."
+msgstr "هیچ منطقه حمل و نقل یافت نشد"
 
 #: templates/dashboard/shipping/zero_page.html:8
 #, python-format
 msgid ""
 "\n"
-"    Shipping methods allows defining shipping methods that are available in the shop.<br>\n"
-"    You can add shipping methods by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"    Shipping zones allows defining shipping zones that are available in the shop.<br>\n"
+"    You can add shipping zones by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
 "  "
 msgstr ""
-"\n"
-"قسمت روشهای ارسال اجازه میدهد روش های ارسال در دسترس در فروشگاه را تعریف کنید.<br>\n"
-"شما میتوانید با استفاده از دکمه ی <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> روش ارسال اضافه کنید."
 
 #: templates/dashboard/sites/authorization_keys/form.html:8
 msgctxt "Dashboard authorization key list"
@@ -5207,7 +5317,7 @@ msgstr "نام کشور"
 #: templates/dashboard/taxes/list.html:61
 msgctxt "Empty taxes message"
 msgid "No taxes found."
-msgstr ""
+msgstr "بدون مالیات"
 
 #: templates/dashboard/taxes/list.html:75
 msgctxt "Taxes site settings title"
@@ -5267,11 +5377,11 @@ msgstr "پیکربندی مالیات"
 #: templates/dashboard/taxes/list.html:125
 msgctxt "Site settings fetch tax rates action"
 msgid "Fetch tax rates"
-msgstr ""
+msgstr "مالیات بر ارزش افزوده"
 
 #: templates/dashboard/taxes/zero_page.html:4
 msgid "No taxes found."
-msgstr ""
+msgstr "بدون مالیات"
 
 #: templates/dashboard/taxes/zero_page.html:6
 msgid ""
@@ -5493,7 +5603,7 @@ msgstr "پرداخت برای سفارش"
 #: templates/order/details.html:67
 msgctxt "Customer order note"
 msgid "Your note"
-msgstr ""
+msgstr "یاداشت شما"
 
 #: templates/order/details.html:73
 msgctxt "Order note title"
@@ -5503,7 +5613,7 @@ msgstr "به سفارشم یادداشت اضافه کن"
 #: templates/order/details.html:75
 msgctxt "Customer panel - order details: add note submit button"
 msgid "Submit note"
-msgstr ""
+msgstr "ارسال یاداشت"
 
 #: templates/order/payment.html:8
 #, python-format
@@ -5570,7 +5680,7 @@ msgctxt "Payment form (Stripe) secondary action"
 msgid "Change payment method"
 msgstr "تغییر روش پرداخت"
 
-#: templates/order/payment/default.html:19
+#: templates/order/payment/default.html:20
 msgctxt "Payment form primary action"
 msgid "Make payment"
 msgstr "پرداخت کن"
@@ -5763,7 +5873,7 @@ msgstr ""
 #: templates/templated_email/account/password_reset.email:4
 msgctxt "Password reset e-mail subject"
 msgid "Password reset e-mail"
-msgstr ""
+msgstr "بازنشانی رمز عبور ایمیل"
 
 #: templates/templated_email/account/password_reset.email:8
 #, python-format

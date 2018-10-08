@@ -94,13 +94,13 @@ export function renderCollection<T>(
     index: number | undefined,
     collection: T[]
   ) => any,
-  renderEmpty: (collection: T[]) => any
+  renderEmpty?: (collection: T[]) => any
 ) {
   if (collection === undefined) {
     return renderItem(undefined, undefined, collection);
   }
   if (collection.length === 0) {
-    return renderEmpty(collection);
+    return !!renderEmpty ? renderEmpty(collection) : null;
   }
   return collection.map(renderItem);
 }
@@ -113,7 +113,7 @@ export const removeDoubleSlashes = (url: string) =>
   url.replace(/([^:]\/)\/+/g, "$1");
 
 export const translatedTaxRates = () => ({
-  [TaxRateType.ACCOMODATION]: i18n.t("Accomodation"),
+  [TaxRateType.ACCOMMODATION]: i18n.t("Accommodation"),
   [TaxRateType.ADMISSION_TO_CULTURAL_EVENTS]: i18n.t(
     "Admission to cultural events"
   ),

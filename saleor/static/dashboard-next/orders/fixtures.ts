@@ -1,20 +1,32 @@
-import { OrderStatus, PaymentStatusEnum } from "../types/globalTypes";
+import {
+  FulfillmentStatus,
+  OrderEvents,
+  OrderStatus,
+  PaymentStatusEnum
+} from "../types/globalTypes";
 import { transformOrderStatus, transformPaymentStatus } from "./";
+import { OrderDetails_order } from "./types/OrderDetails";
 import { OrderList_orders_edges_node } from "./types/OrderList";
-export const clients = [
+import { UserSearch_customers_edges_node } from "./types/UserSearch";
+
+export const clients: UserSearch_customers_edges_node[] = [
   {
+    __typename: "User" as "User",
     email: "test.client1@example.com",
     id: "c1"
   },
   {
+    __typename: "User" as "User",
     email: "test.client2@example.com",
     id: "c2"
   },
   {
+    __typename: "User" as "User",
     email: "test.client3@example.com",
     id: "c3"
   },
   {
+    __typename: "User" as "User",
     email: "test.client4@example.com",
     id: "c4"
   }
@@ -723,208 +735,369 @@ export const orders: OrderList_orders_edges_node[] = [
     userEmail: "curtis.bailey@example.com"
   }
 ];
-export const order = (placeholder, args?) => ({
-  billingAddress: {
-    city: "Keithport",
-    cityArea: "",
-    companyName: "",
-    country: "Cyprus",
-    countryArea: "",
-    firstName: "Test",
-    id: "a1",
-    lastName: "Client",
-    phone: "",
-    postalCode: "95393-6818",
-    streetAddress_1: "9297 Barker Extension",
-    streetAddress_2: ""
-  },
-  client: {
-    email: "test.client@example.com",
-    id: "c1",
-    name: "Test Client"
-  },
-  created: "2018-04-07T11:18:19+00:00",
-  events: [
+export const order = (placeholder: string): OrderDetails_order => ({
+  __typename: "Order",
+  availableShippingMethods: [
     {
-      amount: null,
-      date: "2018-09-13T16:22:46.997106+00:00",
-      email: null,
-      emailType: null,
-      id: "T3JkZXJFdmVudDoxMw==",
-      message: null,
-      quantity: 3,
-      type: "FULFILLMENT_FULFILLED_ITEMS",
-      user: {
-        email: "admin@example.com"
+      __typename: "ShippingMethod",
+      id: "U2hpcHBpbmdNZXRob2Q6NQ==",
+      name: "FBA",
+      price: {
+        __typename: "Money",
+        amount: 12.41,
+        currency: "USD"
       }
     },
     {
+      __typename: "ShippingMethod",
+      id: "U2hpcHBpbmdNZXRob2Q6Nw==",
+      name: "Oceania Air Mail",
+      price: {
+        __typename: "Money",
+        amount: 9.12,
+        currency: "USD"
+      }
+    },
+    {
+      __typename: "ShippingMethod",
+      id: "U2hpcHBpbmdNZXRob2Q6Ng==",
+      name: "FedEx Express",
+      price: {
+        __typename: "Money",
+        amount: 7.6,
+        currency: "USD"
+      }
+    }
+  ],
+  billingAddress: {
+    __typename: "Address",
+    city: "West Patriciastad",
+    cityArea: "",
+    companyName: "",
+    country: {
+      __typename: "CountryDisplay",
+      code: "SB",
+      country: "Wyspy Salomona"
+    },
+    countryArea: "",
+    firstName: "Melissa",
+    id: "QWRkcmVzczoyNQ==",
+    lastName: "Simon",
+    phone: "",
+    postalCode: "66272",
+    streetAddress1: "487 Roberto Shores",
+    streetAddress2: ""
+  },
+  created: "2018-09-11T09:37:28.185874+00:00",
+  events: [
+    {
+      __typename: "OrderEvent",
       amount: null,
-      date: "2018-09-13T16:39:54.172431+00:00",
+      date: "2018-09-17T13:22:24.376193+00:00",
       email: null,
       emailType: null,
-      id: "T3JkZXJFdmVudDoxNA==",
+      id: "T3JkZXJFdmVudDoyMQ==",
       message: null,
-      quantity: null,
-      type: "FULFILLMENT_FULFILLED_ITEMS",
+      quantity: 1,
+      type: OrderEvents.FULFILLMENT_FULFILLED_ITEMS,
       user: {
+        __typename: "User",
         email: "admin@example.com"
       }
     }
   ],
   fulfillments: [
     {
-      id: "f1",
-      lines: [
-        {
-          product: {
-            id: "UHJvZHVjdDoy",
-            name: "Gardner and Graham",
-            thumbnailUrl: placeholder
-          },
-          quantity: 1
-        },
-        {
-          product: {
-            id: "UHJvZHVjdDox",
-            name: "Gardner, Graham and King",
-            thumbnailUrl: placeholder
-          },
-          quantity: 1
-        }
-      ],
-      status: "fulfilled",
-      trackingCode: "012391230412131239052"
+      __typename: "Fulfillment",
+      fulfillmentOrder: 2,
+      id: "RnVsZmlsbG1lbnQ6MjQ=",
+      lines: {
+        __typename: "FulfillmentLineCountableConnection",
+        edges: [
+          {
+            __typename: "FulfillmentLineCountableEdge",
+            node: {
+              __typename: "FulfillmentLine",
+              id: "RnVsZmlsbG1lbnRMaW5lOjM5",
+              orderLine: {
+                __typename: "OrderLine",
+                id: "T3JkZXJMaW5lOjIz",
+                productName: "Williams, Garcia and Walker (XS)",
+                productSku: "5-1337",
+                quantity: 2,
+                quantityFulfilled: 2,
+                thumbnailUrl: placeholder,
+                unitPrice: {
+                  __typename: "TaxedMoney",
+                  gross: {
+                    __typename: "Money",
+                    amount: 79.71,
+                    currency: "USD"
+                  },
+                  net: {
+                    __typename: "Money",
+                    amount: 79.71,
+                    currency: "USD"
+                  }
+                }
+              },
+              quantity: 1
+            }
+          }
+        ]
+      },
+      status: FulfillmentStatus.FULFILLED,
+      trackingNumber: ""
     },
     {
-      id: "f2",
-      lines: [
-        {
-          product: {
-            id: "UHJvZHVjdDoy",
-            name: "Gardner and Graham",
-            thumbnailUrl: placeholder
-          },
-          quantity: 1
-        }
-      ],
-      status: "cancelled",
-      trackingCode: "012391230412131239052"
+      __typename: "Fulfillment",
+      fulfillmentOrder: 1,
+      id: "RnVsZmlsbG1lbnQ6OQ==",
+      lines: {
+        __typename: "FulfillmentLineCountableConnection",
+        edges: [
+          {
+            __typename: "FulfillmentLineCountableEdge",
+            node: {
+              __typename: "FulfillmentLine",
+              id: "RnVsZmlsbG1lbnRMaW5lOjE1",
+              orderLine: {
+                __typename: "OrderLine",
+                id: "T3JkZXJMaW5lOjIz",
+                productName: "Williams, Garcia and Walker (XS)",
+                productSku: "5-1337",
+                quantity: 2,
+                quantityFulfilled: 2,
+                thumbnailUrl: placeholder,
+                unitPrice: {
+                  __typename: "TaxedMoney",
+                  gross: {
+                    __typename: "Money",
+                    amount: 79.71,
+                    currency: "USD"
+                  },
+                  net: {
+                    __typename: "Money",
+                    amount: 79.71,
+                    currency: "USD"
+                  }
+                }
+              },
+              quantity: 1
+            }
+          }
+        ]
+      },
+      status: FulfillmentStatus.FULFILLED,
+      trackingNumber: ""
     }
   ],
-  id: "o1",
+  id: "T3JkZXI6OQ==",
   lines: [
     {
-      id: "UHJvZHVjdDox",
-      price: {
-        gross: {
-          amount: 12.4,
-          currency: "USD"
-        }
-      },
-      productName: "Gardner, Graham and King",
-      productSku: "9123021",
-      quantity: 1,
-      quantityFulfilled: 0,
-      thumbnailUrl: placeholder
-    },
-    {
-      id: "UHJvZHVjdDoy",
-      price: {
-        gross: {
-          amount: 11.6,
-          currency: "USD"
-        }
-      },
-      productName: "Gardner and Graham",
-      productSku: "9123022",
-      quantity: 2,
-      quantityFulfilled: 1,
-      thumbnailUrl: placeholder
-    },
-    {
-      id: "UHJvZHVjdDoz",
-      price: {
-        gross: {
-          amount: 22.4,
-          currency: "USD"
-        }
-      },
-      productName: "Gardner and King",
-      productSku: "9123023",
-      quantity: 7,
-      quantityFulfilled: 5,
-      thumbnailUrl: placeholder
-    },
-    {
-      id: "UHJvZHVjdDoa",
-      price: {
-        gross: {
-          amount: 9.9,
-          currency: "USD"
-        }
-      },
-      productName: "Graham and King",
-      productSku: "9123024",
+      __typename: "OrderLine",
+      id: "T3JkZXJMaW5lOjIy",
+      productName: "Watkins-Gonzalez (Soft)",
+      productSku: "59-1337",
       quantity: 3,
       quantityFulfilled: 0,
-      thumbnailUrl: placeholder
+      thumbnailUrl: placeholder,
+      unitPrice: {
+        __typename: "TaxedMoney",
+        gross: {
+          __typename: "Money",
+          amount: 18.51,
+          currency: "USD"
+        },
+        net: {
+          __typename: "Money",
+          amount: 18.51,
+          currency: "USD"
+        }
+      }
+    },
+    {
+      __typename: "OrderLine",
+      id: "T3JkZXJMaW5lOjIz",
+      productName: "Williams, Garcia and Walker (XS)",
+      productSku: "5-1337",
+      quantity: 2,
+      quantityFulfilled: 2,
+      thumbnailUrl: placeholder,
+      unitPrice: {
+        __typename: "TaxedMoney",
+        gross: {
+          __typename: "Money",
+          amount: 79.71,
+          currency: "USD"
+        },
+        net: {
+          __typename: "Money",
+          amount: 79.71,
+          currency: "USD"
+        }
+      }
     }
   ],
-  number: "11",
-  payment: {
-    net: {
-      amount: 6,
-      currency: "USD"
-    },
-    paid: {
-      amount: 19.2,
-      currency: "USD"
-    },
-    refunded: {
-      amount: 13.2,
-      currency: "USD"
-    }
-  },
-  paymentStatus: "confirmed",
-  price: {
-    amount: 19.2,
-    currency: "USD"
-  },
+  number: "9",
+  paymentStatus: PaymentStatusEnum.PREAUTH,
   shippingAddress: {
-    city: "Keithport",
+    __typename: "Address",
+    city: "West Patriciastad",
     cityArea: "",
     companyName: "",
-    country: "Cyprus",
+    country: {
+      __typename: "CountryDisplay",
+      code: "SB",
+      country: "Wyspy Salomona"
+    },
     countryArea: "",
-    firstName: "Test",
-    id: "a1",
-    lastName: "Client",
+    firstName: "Melissa",
+    id: "QWRkcmVzczoyNQ==",
+    lastName: "Simon",
     phone: "",
-    postalCode: "95393-6818",
-    streetAddress_1: "9297 Barker Extension",
-    streetAddress_2: ""
+    postalCode: "66272",
+    streetAddress1: "487 Roberto Shores",
+    streetAddress2: ""
   },
-  shippingMethod: {
-    id: "s1"
-  },
-  shippingMethodName: "DHL",
+  shippingMethod: null,
+  shippingMethodName: "Registred priority",
   shippingPrice: {
+    __typename: "TaxedMoney",
     gross: {
-      amount: 5.5,
+      __typename: "Money",
+      amount: 19.98,
       currency: "USD"
     }
   },
-  status: "partially fulfilled",
+  status: OrderStatus.PARTIALLY_FULFILLED,
   subtotal: {
-    amount: 160.2,
-    currency: "USD"
+    __typename: "TaxedMoney",
+    gross: {
+      __typename: "Money",
+      amount: 214.95,
+      currency: "USD"
+    }
   },
   total: {
-    amount: 165.7,
+    __typename: "TaxedMoney",
+    gross: {
+      __typename: "Money",
+      amount: 234.93,
+      currency: "USD"
+    },
+    tax: {
+      __typename: "Money",
+      amount: 0,
+      currency: "USD"
+    }
+  },
+  totalAuthorized: {
+    __typename: "Money",
+    amount: 234.93,
     currency: "USD"
   },
-  ...args
+  totalCaptured: {
+    __typename: "Money",
+    amount: 0,
+    currency: "USD"
+  },
+  user: null,
+  userEmail: "melissa.simon@example.com"
+});
+export const draftOrder = (placeholder: string) => ({
+  __typename: "Order" as "Order",
+  availableShippingMethods: null,
+  billingAddress: null,
+  created: "2018-09-20T23:23:39.811428+00:00",
+  events: [],
+  fulfillments: [],
+  id: "T3JkZXI6MjQ=",
+  lines: [
+    {
+      __typename: "OrderLine" as "OrderLine",
+      id: "T3JkZXJMaW5lOjQ1",
+      productName: "Davis Group (Hard)",
+      productSku: "58-1338",
+      quantity: 2,
+      quantityFulfilled: 0,
+      thumbnailUrl: placeholder,
+      unitPrice: {
+        __typename: "TaxedMoney" as "TaxedMoney",
+        gross: {
+          __typename: "Money" as "Money",
+          amount: 65.95,
+          currency: "USD"
+        },
+        net: {
+          __typename: "Money" as "Money",
+          amount: 65.95,
+          currency: "USD"
+        }
+      }
+    },
+    {
+      __typename: "OrderLine" as "OrderLine",
+      id: "T3JkZXJMaW5lOjQ2",
+      productName: "Anderson PLC (15-1337)",
+      productSku: "15-1337",
+      quantity: 2,
+      quantityFulfilled: 0,
+      thumbnailUrl: placeholder,
+      unitPrice: {
+        __typename: "TaxedMoney" as "TaxedMoney",
+        gross: {
+          __typename: "Money" as "Money",
+          amount: 68.2,
+          currency: "USD"
+        },
+        net: {
+          __typename: "Money" as "Money",
+          amount: 68.2,
+          currency: "USD"
+        }
+      }
+    }
+  ],
+  number: "24",
+  paymentStatus: null,
+  shippingAddress: null,
+  shippingMethod: null,
+  shippingMethodName: null,
+  shippingPrice: {
+    __typename: "TaxedMoney" as "TaxedMoney",
+    gross: {
+      __typename: "Money" as "Money",
+      amount: 0,
+      currency: "USD"
+    }
+  },
+  status: "DRAFT" as OrderStatus.DRAFT,
+  subtotal: {
+    __typename: "TaxedMoney" as "TaxedMoney",
+    gross: {
+      __typename: "Money" as "Money",
+      amount: 168.3,
+      currency: "USD"
+    }
+  },
+  total: {
+    __typename: "TaxedMoney" as "TaxedMoney",
+    gross: {
+      __typename: "Money" as "Money",
+      amount: 168.3,
+      currency: "USD"
+    },
+    tax: {
+      __typename: "Money" as "Money",
+      amount: 68.3,
+      currency: "USD"
+    }
+  },
+  totalAuthorized: null,
+  totalCaptured: null,
+  user: null,
+  userEmail: null
 });
 export const flatOrders = orders.map(order => ({
   ...order,

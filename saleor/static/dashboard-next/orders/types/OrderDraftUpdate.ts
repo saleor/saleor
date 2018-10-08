@@ -53,17 +53,40 @@ export interface OrderDraftUpdate_draftOrderUpdate_order_events {
   user: OrderDraftUpdate_draftOrderUpdate_order_events_user | null;
 }
 
+export interface OrderDraftUpdate_draftOrderUpdate_order_fulfillments_lines_edges_node_orderLine_unitPrice_gross {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
+export interface OrderDraftUpdate_draftOrderUpdate_order_fulfillments_lines_edges_node_orderLine_unitPrice_net {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
+export interface OrderDraftUpdate_draftOrderUpdate_order_fulfillments_lines_edges_node_orderLine_unitPrice {
+  __typename: "TaxedMoney";
+  gross: OrderDraftUpdate_draftOrderUpdate_order_fulfillments_lines_edges_node_orderLine_unitPrice_gross;
+  net: OrderDraftUpdate_draftOrderUpdate_order_fulfillments_lines_edges_node_orderLine_unitPrice_net;
+}
+
 export interface OrderDraftUpdate_draftOrderUpdate_order_fulfillments_lines_edges_node_orderLine {
   __typename: "OrderLine";
   id: string;
   productName: string;
+  productSku: string;
+  quantity: number;
+  quantityFulfilled: number;
+  unitPrice: OrderDraftUpdate_draftOrderUpdate_order_fulfillments_lines_edges_node_orderLine_unitPrice | null;
+  thumbnailUrl: string | null;
 }
 
 export interface OrderDraftUpdate_draftOrderUpdate_order_fulfillments_lines_edges_node {
   __typename: "FulfillmentLine";
   id: string;
-  orderLine: OrderDraftUpdate_draftOrderUpdate_order_fulfillments_lines_edges_node_orderLine;
   quantity: number;
+  orderLine: OrderDraftUpdate_draftOrderUpdate_order_fulfillments_lines_edges_node_orderLine;
 }
 
 export interface OrderDraftUpdate_draftOrderUpdate_order_fulfillments_lines_edges {
@@ -80,6 +103,7 @@ export interface OrderDraftUpdate_draftOrderUpdate_order_fulfillments {
   __typename: "Fulfillment";
   id: string;
   lines: OrderDraftUpdate_draftOrderUpdate_order_fulfillments_lines | null;
+  fulfillmentOrder: number;
   status: FulfillmentStatus;
   trackingNumber: string;
 }
@@ -198,10 +222,17 @@ export interface OrderDraftUpdate_draftOrderUpdate_order_user {
   email: string;
 }
 
+export interface OrderDraftUpdate_draftOrderUpdate_order_availableShippingMethods_price {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
 export interface OrderDraftUpdate_draftOrderUpdate_order_availableShippingMethods {
   __typename: "ShippingMethod";
   id: string;
   name: string;
+  price: OrderDraftUpdate_draftOrderUpdate_order_availableShippingMethods_price | null;
 }
 
 export interface OrderDraftUpdate_draftOrderUpdate_order {
@@ -224,6 +255,7 @@ export interface OrderDraftUpdate_draftOrderUpdate_order {
   totalAuthorized: OrderDraftUpdate_draftOrderUpdate_order_totalAuthorized | null;
   totalCaptured: OrderDraftUpdate_draftOrderUpdate_order_totalCaptured | null;
   user: OrderDraftUpdate_draftOrderUpdate_order_user | null;
+  userEmail: string | null;
   availableShippingMethods: (OrderDraftUpdate_draftOrderUpdate_order_availableShippingMethods | null)[] | null;
 }
 

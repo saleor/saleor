@@ -1,35 +1,32 @@
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import Input from "@material-ui/core/Input";
 import { withStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
+import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
 import Form from "../../../components/Form";
+import { FormSpacer } from "../../../components/FormSpacer";
 import TableCellAvatar from "../../../components/TableCellAvatar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
+import { OrderDetails_order_lines } from "../../types/OrderDetails";
 
 export interface FormData {
   lines: number[];
+  trackingNumber: string;
 }
 
-interface OrderFulfillmentDialogProps {
+export interface OrderFulfillmentDialogProps {
   open: boolean;
-  lines: Array<{
-    id: string;
-    productName: string;
-    productSku: string;
-    quantity: number;
-    quantityFulfilled: number;
-    thumbnailUrl?: string;
-  }>;
+  lines: OrderDetails_order_lines[];
   onClose();
   onSubmit(data: FormData);
 }
@@ -61,7 +58,8 @@ const OrderFulfillmentDialog = decorate<OrderFulfillmentDialogProps>(
                 product => product.quantity - product.quantityFulfilled
               ),
             []
-          )
+          ),
+          trackingNumber: ""
         }}
         onSubmit={onSubmit}
       >
@@ -103,7 +101,7 @@ const OrderFulfillmentDialog = decorate<OrderFulfillmentDialogProps>(
                         <TableCell>{product.productName}</TableCell>
                         <TableCell>{product.productSku}</TableCell>
                         <TableCell className={classes.textRight}>
-                          <Input
+                          <TextField
                             type="number"
                             inputProps={{
                               max: remainingQuantity,
@@ -123,6 +121,16 @@ const OrderFulfillmentDialog = decorate<OrderFulfillmentDialogProps>(
                   })}
                 </TableBody>
               </Table>
+              <DialogContent>
+                <FormSpacer />
+                <TextField
+                  fullWidth
+                  label={i18n.t("Tracking number")}
+                  name="trackingNumber"
+                  value={data.trackingNumber}
+                  onChange={change}
+                />
+              </DialogContent>
               <DialogActions>
                 <Button onClick={onClose}>
                   {i18n.t("Cancel", { context: "button" })}
