@@ -5,7 +5,6 @@ import Card from "@material-ui/core/Card";
 import Button from "@material-ui/core/Button";
 import CardContent from "@material-ui/core/CardContent";
 import AddPhotoIcon from "@material-ui/icons/AddAPhoto";
-import Typography from "@material-ui/core/Typography";
 
 import CardTitle from "../../../components/CardTitle";
 
@@ -25,11 +24,6 @@ const decorate = withStyles(theme => ({
   noPhotosIconContainer: {
     margin: `${theme.spacing.unit * 5}px 0`,
     textAlign: "center" as "center"
-  },
-  noPhotosIconText: {
-    fontSize: "1rem",
-    fontWeight: 600 as 600,
-    marginTop: theme.spacing.unit
   },
   fileField: {
     display: "none"
@@ -65,9 +59,6 @@ export const CategoryBackground = decorate<CategoryBackgroundProps>(
         <CardContent>
           <div className={classes.noPhotosIconContainer}>
             <AddPhotoIcon className={classes.noPhotosIcon} />
-            <Typography className={classes.noPhotosIconText}>
-              {i18n.t("Drop images to upload")}
-            </Typography>
           </div>
         </CardContent>
       </Card>

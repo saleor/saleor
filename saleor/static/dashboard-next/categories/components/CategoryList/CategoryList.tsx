@@ -24,7 +24,7 @@ interface CategoryListProps {
       totalCount: number;
     };
   }>;
-  isRoot: boolean;
+  isRoot?: boolean;
   onAdd?();
   onRowClick?(id: string): () => void;
 }
@@ -46,7 +46,7 @@ const CategoryList = decorate<CategoryListProps>(
     <Card>
       {!isRoot && (
         <CardTitle
-          title={i18n.t("Subcategories")}
+          title={i18n.t("All Subcategories")}
           toolbar={
             <Button color="secondary" variant="flat" onClick={onAdd}>
               {i18n.t("Add subcategory")}
@@ -58,7 +58,7 @@ const CategoryList = decorate<CategoryListProps>(
         <TableHead>
           <TableRow>
             <TableCell className={classes.wideColumn}>
-              {i18n.t("Name", { context: "object" })}
+              {i18n.t("Category Name", { context: "object" })}
             </TableCell>
             <TableCell>
               {i18n.t("Subcategories", { context: "object" })}
