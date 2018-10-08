@@ -297,10 +297,9 @@ def test_customer_create(staff_api_client, address, permission_manage_users):
     note = 'Test user'
     address_data = convert_dict_keys_to_camel_case(address.as_data())
 
-    variables = json.dumps(
-        {'email': email, 'note': note, 'shipping': address_data,
-        'billing': address_data, 'send_mail': True})
-
+    variables = {
+        'email': email, 'note': note, 'shipping': address_data,
+        'billing': address_data, 'send_mail': True}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_users])
     assert_read_only_mode(response)
@@ -348,9 +347,9 @@ def test_customer_update(
     new_street_address = 'Updated street address'
     address_data['streetAddress1'] = new_street_address
 
-    variables = json.dumps({
+    variables = {
         'id': id, 'note': note, 'billing': address_data,
-        'shipping': address_data})
+        'shipping': address_data}
 
     # check unauthorized access
     response = staff_api_client.post_graphql(
@@ -359,7 +358,7 @@ def test_customer_update(
 
 
 def test_staff_create(
-        staff_api_client, permission_manage_users, permission_manage_products):
+        staff_api_client, permission_manage_staff, permission_manage_products):
     query = """
     mutation CreateStaff($email: String, $permissions: [String], $send_mail: Boolean) {
         staffCreate(input: {email: $email, permissions: $permissions, sendPasswordEmail: $send_mail}) {
@@ -385,9 +384,9 @@ def test_staff_create(
         permission_manage_products.codename)
 
     email = 'api_user@example.com'
-    variables = json.dumps({
+    variables = {
         'email': email, 'permissions': [permission_manage_products_codename],
-        'send_mail': True})
+        'send_mail': True}
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff])
@@ -417,7 +416,7 @@ def test_staff_update(staff_api_client, permission_manage_staff):
     staff_user = User.objects.create(
         email='staffuser@example.com', is_staff=True)
     id = graphene.Node.to_global_id('User', staff_user.id)
-    variables = json.dumps({'id': id, 'permissions': []})
+    variables = {'id': id, 'permissions': []}
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff])
@@ -443,5 +442,6 @@ def test_set_password(user_api_client, customer_user):
     password = 'spanish-inquisition'
 
     # check invalid token
-    variables['token'] = 'nope'
+    variables = {'id': id, 'password': password, 'token': 'nope'}
     response = user_api_client.post_graphql(query, variables)
+    assert_read_only_mode(response)

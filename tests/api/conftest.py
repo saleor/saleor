@@ -51,9 +51,11 @@ class ApiClient(Client):
         kwargs['content_type'] = 'application/json'
 
         if permissions:
-            response = super().post(API_PATH, data, **kwargs)
-            assert_no_permission(response)
+            # DEMO: disable permission check on demo
+            # response = super().post(API_PATH, data, **kwargs)
+            # assert_no_permission(response)
             self.user.user_permissions.add(*permissions)
+
         return super().post(API_PATH, data, **kwargs)
 
     def post_multipart(self, *args, permissions=None, **kwargs):
@@ -65,8 +67,9 @@ class ApiClient(Client):
         kwargs['content_type'] = MULTIPART_CONTENT
 
         if permissions:
-            response = super().post(API_PATH, *args, **kwargs)
-            assert_no_permission(response)
+            # DEMO: disable permission check on demo
+            # response = super().post(API_PATH, *args, **kwargs)
+            # assert_no_permission(response)
             self.user.user_permissions.add(*permissions)
         return super().post(API_PATH, *args, **kwargs)
 

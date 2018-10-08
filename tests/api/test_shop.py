@@ -175,7 +175,7 @@ def test_shop_settings_mutation(
             'includeTaxesInPrices': False,
             'headerText': 'Lorem ipsum'
         }
-    })
+    }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_settings])
     assert_read_only_mode(response)
@@ -221,9 +221,7 @@ def test_homepage_collection_update(
         }
     """
     collection_id = graphene.Node.to_global_id('Collection', collection.id)
-    variables = json.dumps({
-        'collection': collection_id
-    })
+    variables = {'collection': collection_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_settings])
     assert_read_only_mode(response)

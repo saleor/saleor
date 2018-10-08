@@ -181,6 +181,9 @@ class StaffDelete(ModelMutation):
 
     @classmethod
     def mutate(cls, root, info, **data):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         if not cls.user_is_allowed(info.context.user, data):
             raise PermissionDenied()
 
@@ -374,6 +377,9 @@ class CustomerPasswordReset(BaseMutation):
 
     @classmethod
     def mutate(cls, root, info, input):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         email = input['email']
         try:
             user = models.User.objects.get(email=email)

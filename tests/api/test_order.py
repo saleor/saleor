@@ -380,10 +380,7 @@ def test_draft_order_complete_existing_user_email_updates_user_field(
     variables = {'id': order_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    order.refresh_from_db()
-    assert order.user == customer_user
+    assert_read_only_mode(response)
 
 
 def test_draft_order_complete_anonymous_user_email_sets_user_field_null(
@@ -405,10 +402,7 @@ def test_draft_order_complete_anonymous_user_email_sets_user_field_null(
     variables = {'id': order_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    order.refresh_from_db()
-    assert order.user is None
+    assert_read_only_mode(response)
 
 
 def test_draft_order_complete_anonymous_user_no_email(
@@ -434,10 +428,7 @@ def test_draft_order_complete_anonymous_user_no_email(
     variables = {'id': order_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
-    content = get_graphql_content(response)
-    assert 'errors' in content['data']['draftOrderComplete']
-    assert content['data']['draftOrderComplete']['errors'][0] == {
-        'field': None, 'message': 'Both user and user_email fields are null'}
+    assert_read_only_mode(response)
 
 
 DRAFT_ORDER_LINE_CREATE_MUTATION = """
@@ -495,8 +486,7 @@ def test_require_draft_order_when_creating_lines(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
-    data = content['data']['draftOrderLineCreate']
-    assert data['errors']
+    assert_read_only_mode(response)
 
 
 DRAFT_ORDER_LINE_UPDATE_MUTATION = """
@@ -546,9 +536,7 @@ def test_require_draft_order_when_updating_lines(
     variables = {'lineId': line_id, 'quantity': 1}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
-    content = get_graphql_content(response)
-    data = content['data']['draftOrderLineUpdate']
-    assert data['errors']
+    assert_read_only_mode(response)
 
 
 DRAFT_ORDER_LINE_DELETE_MUTATION = """
@@ -579,10 +567,7 @@ def test_draft_order_line_remove(
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
-    content = get_graphql_content(response)
-    data = content['data']['draftOrderLineDelete']
-    assert data['orderLine']['id'] == line_id
-    assert line not in order.lines.all()
+    assert_read_only_mode(response)
 
 
 def test_require_draft_order_when_removing_lines(
@@ -594,9 +579,7 @@ def test_require_draft_order_when_removing_lines(
     variables = {'id': line_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
-    content = get_graphql_content(response)
-    data = content['data']['draftOrderLineDelete']
-    assert data['errors']
+    assert_read_only_mode(response)
 
 
 def test_order_update(
@@ -676,15 +659,7 @@ def test_order_update_anonymous_user_no_user_email(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
-    assert 'errors' in content['data']['orderUpdate']
-    assert content['data']['orderUpdate']['errors'][0] == {
-        'field': 'userEmail',
-        'message': 'User_email field is null while order was created by '
-                   'anonymous user'}
-
-    order.refresh_from_db()
-    assert order.shipping_address.first_name != first_name
-    assert order.billing_address.last_name != last_name
+    assert_read_only_mode(response)
 
 
 def test_order_update_user_email_existing_user(

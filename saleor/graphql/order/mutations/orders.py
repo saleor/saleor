@@ -171,6 +171,9 @@ class OrderUpdateShipping(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, input):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
 
@@ -228,6 +231,9 @@ class OrderAddNote(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, input):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
         if errors:

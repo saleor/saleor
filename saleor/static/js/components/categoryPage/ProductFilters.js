@@ -50,7 +50,7 @@ class ProductFilters extends Component {
 
   static fragments = {
     attributes: gql`
-      fragment ProductFiltersFragmentQuery on ProductAttribute {
+      fragment ProductFiltersFragmentQuery on Attribute {
         id
         name
         slug

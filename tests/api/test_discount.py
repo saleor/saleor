@@ -1,39 +1,12 @@
 import pytest
 
 import graphene
+from django.shortcuts import reverse
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.graphql.discount.types import (
     DiscountValueTypeEnum, VoucherTypeEnum)
 
 from tests.api.utils import assert_read_only_mode, get_graphql_content
-
-
-def test_voucher_permissions(
-        staff_api_client, staff_user, permission_manage_discounts):
-    query = """
-    query vouchers{
-        vouchers(first: 1) {
-            edges {
-                node {
-                    name
-                }
-            }
-        }
-    }
-    """
-    # Query to ensure user with no permissions can't see vouchers
-    response = staff_api_client.post(reverse('api'), {'query': query})
-    content = get_graphql_content(response)
-    message = 'You do not have permission to perform this action'
-    assert content['errors'][0]['message'] == message
-
-    # Give staff user proper permissions
-    staff_user.user_permissions.add(permission_manage_discounts)
-
-    # Query again
-    response = staff_api_client.post(reverse('api'), {'query': query})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
 
 
 def test_voucher_query(staff_api_client, voucher, permission_manage_discounts):

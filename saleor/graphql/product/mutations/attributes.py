@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.template.defaultfilters import slugify
 from graphql_jwt.decorators import permission_required
+from graphql_jwt.exceptions import PermissionDenied
 
 from ....product import models
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -237,6 +238,9 @@ class AttributeValueCreate(BaseMutation):
     @classmethod
     @permission_required('product.manage_products')
     def mutate(cls, root, info, id, input):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         attribute = cls.get_node_or_error(info, id, errors, 'id', Attribute)
         if not attribute:
@@ -269,6 +273,9 @@ class AttributeValueUpdate(AttributeValueCreate):
     @classmethod
     @permission_required('product.manage_products')
     def mutate(cls, root, info, id, input):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         attribute_value = cls.get_node_or_error(
             info, id, errors, 'id', AttributeValue)

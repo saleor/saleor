@@ -125,6 +125,9 @@ class FulfillmentCreate(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, order, input):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         order = cls.get_node_or_error(
             info, order, errors, 'order', Order)
@@ -161,6 +164,9 @@ class FulfillmentUpdateTracking(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, input):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         fulfillment = cls.get_node_or_error(
             info, id, errors, 'id', Fulfillment)

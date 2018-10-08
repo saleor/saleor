@@ -261,6 +261,9 @@ class DraftOrderLineCreate(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, input):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
         variant_id = input['variant_id']
@@ -304,6 +307,9 @@ class DraftOrderLineDelete(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id):
+        # DEMO: disable mutations
+        raise PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+
         errors = []
         line = cls.get_node_or_error(info, id, errors, 'id', OrderLine)
         if not line:

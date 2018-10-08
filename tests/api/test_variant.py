@@ -259,12 +259,7 @@ def test_update_product_variant_not_all_attributes(
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
-    variant.refresh_from_db()
-    content = get_graphql_content(response)
-    assert content['data']['productVariantUpdate']['errors']
-    assert content['data']['productVariantUpdate']['errors'][0]['field'] == (
-        'attributes:color')
-    assert not product.variants.filter(sku=sku).exists()
+    assert_read_only_mode(response)
 
 
 def test_delete_variant(staff_api_client, product, permission_manage_products):
@@ -280,7 +275,7 @@ def test_delete_variant(staff_api_client, product, permission_manage_products):
     """
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
-    variables = json.dumps({'id': variant_id})
+    variables = {'id': variant_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     assert_read_only_mode(response)
