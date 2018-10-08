@@ -48,7 +48,7 @@ const getEventMessage = (event: OrderDetails_order_events) => {
         context: "order history message"
       });
     case OrderEvents.FULFILLMENT_FULFILLED_ITEMS:
-      return i18n.t("Filfilled {{ quantity }} items", {
+      return i18n.t("Fulfilled {{ quantity }} items", {
         context: "order history message",
         quantity: event.quantity
       });
