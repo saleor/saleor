@@ -1,15 +1,11 @@
 import gql from "graphql-tag";
 import { Query, QueryProps } from "react-apollo";
 
-import {
-  PageDetailsQuery,
-  PageDetailsQueryVariables,
-  PageListQuery,
-  PageListQueryVariables
-} from "../gql-types";
+import { PageDetails, PageDetailsVariables } from "./types/PageDetails";
+import { PageList, PageListVariables } from "./types/PageList";
 
 export const TypedPageListQuery = Query as React.ComponentType<
-  QueryProps<PageListQuery, PageListQueryVariables>
+  QueryProps<PageList, PageListVariables>
 >;
 export const pageListQuery = gql`
   query PageList($first: Int, $after: String, $last: Int, $before: String) {
@@ -34,7 +30,7 @@ export const pageListQuery = gql`
 `;
 
 export const TypedPageDetailsQuery = Query as React.ComponentType<
-  QueryProps<PageDetailsQuery, PageDetailsQueryVariables>
+  QueryProps<PageDetails, PageDetailsVariables>
 >;
 export const pageDetailsQuery = gql`
   query PageDetails($id: ID!) {

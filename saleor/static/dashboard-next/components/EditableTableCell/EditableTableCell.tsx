@@ -41,7 +41,8 @@ const decorate = withStyles(theme => ({
     zIndex: 2
   },
   text: {
-    cursor: "pointer"
+    cursor: "pointer",
+    fontSize: "0.8125rem"
   }
 }));
 export const EditableTableCell = decorate<EditableTableCellProps>(

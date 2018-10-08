@@ -14,7 +14,7 @@
         </mj-text>
         <mj-text>
           {% blocktrans trimmed context "Note confirmation e-mail text" %}
-            A new note has been added to your order. To see details please visit: <a href="{{ url }}">{{ url }}</a>
+            A new note has been added to your order. To see details please visit: <a href="{{ order_details_url }}">{{ order_details_url }}</a>
           {% endblocktrans %}
         </mj-text>
       </mj-column>

@@ -6,23 +6,11 @@ import Decorator from "../../Decorator";
 
 storiesOf("Orders / OrderFulfillmentTrackingDialog", module)
   .addDecorator(Decorator)
-  .add("add code", () => (
+  .add("default", () => (
     <OrderFulfillmentTrackingDialog
       open={true}
-      variant="add"
-      onChange={undefined}
+      trackingNumber="21kn7526v1"
       onConfirm={undefined}
       onClose={undefined}
-      trackingCode="123"
-    />
-  ))
-  .add("edit code", () => (
-    <OrderFulfillmentTrackingDialog
-      open={true}
-      variant="edit"
-      onChange={undefined}
-      onConfirm={undefined}
-      onClose={undefined}
-      trackingCode="123"
     />
   ));

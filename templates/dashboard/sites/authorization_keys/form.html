@@ -1,7 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load materializecss %}
-{% load staticfiles %}
+{% load static %}
 
 {% block title %}
   {% if site.pk %}
@@ -30,7 +30,7 @@
       </a>
     </li>
     <li class="back-mobile">
-      <a href="{% url 'dashboard:product-attributes' %}">
+      <a href="{% url 'dashboard:attributes' %}">
         <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>

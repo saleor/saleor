@@ -4,10 +4,12 @@ from graphene_django.filter import DjangoFilterConnectionField
 from graphql_jwt.decorators import login_required, permission_required
 
 from .account.mutations import (
-    CustomerCreate, CustomerUpdate, PasswordReset, SetPassword, StaffCreate,
-    StaffUpdate, AddressCreate, AddressUpdate, AddressDelete)
-from .account.resolvers import resolve_users
-from .account.types import User
+    CustomerCreate, CustomerUpdate, CustomerPasswordReset, CustomerRegister,
+    PasswordReset, SetPassword, StaffCreate, StaffDelete, StaffUpdate,
+    AddressCreate, AddressUpdate, AddressDelete)
+from .account.types import AddressValidationData, AddressValidationInput, User
+from .account.resolvers import (
+    resolve_address_validator, resolve_customers, resolve_staff_users)
 from .menu.resolvers import resolve_menu, resolve_menus, resolve_menu_items
 from .menu.types import Menu, MenuItem
 # FIXME: sorting import by putting below line at the beginning breaks app
@@ -20,26 +22,27 @@ from .discount.types import Sale, Voucher
 from .discount.mutations import (
     SaleCreate, SaleDelete, SaleUpdate, VoucherCreate, VoucherDelete,
     VoucherUpdate)
-from .core.filters import DistinctFilterSet
 from .core.mutations import CreateToken, VerifyToken
 from .order.filters import OrderFilter
 from .order.resolvers import resolve_order, resolve_orders
 from .order.types import Order
 from .order.mutations.draft_orders import (
-    DraftOrderComplete, DraftOrderCreate, DraftOrderDelete, DraftOrderUpdate)
+    DraftOrderComplete, DraftOrderCreate, DraftOrderDelete,
+    DraftOrderLineCreate, DraftOrderLineDelete, DraftOrderLineUpdate,
+    DraftOrderUpdate)
 from .order.mutations.fulfillments import (
-    FulfillmentCancel, FulfillmentCreate, FulfillmentUpdate)
+    FulfillmentCancel, FulfillmentCreate, FulfillmentUpdateTracking)
 from .order.mutations.orders import (
     OrderAddNote, OrderCancel, OrderCapture, OrderMarkAsPaid, OrderRefund,
-    OrderRelease, OrderUpdate)
+    OrderRelease, OrderUpdate, OrderUpdateShipping)
 from .page.resolvers import resolve_pages, resolve_page
 from .page.types import Page
 from .page.mutations import PageCreate, PageDelete, PageUpdate
 from .product.filters import ProductFilterSet
 from .product.mutations.attributes import (
-    AttributeChoiceValueCreate, AttributeChoiceValueDelete,
-    AttributeChoiceValueUpdate, ProductAttributeCreate, ProductAttributeDelete,
-    ProductAttributeUpdate)
+    AttributeValueCreate, AttributeValueDelete,
+    AttributeValueUpdate, AttributeCreate, AttributeDelete,
+    AttributeUpdate)
 from .product.mutations.products import (
     CategoryCreate, CategoryDelete, CategoryUpdate,
     CollectionAddProducts, CollectionCreate, CollectionDelete,
@@ -51,9 +54,9 @@ from .product.mutations.products import (
     ProductVariantUpdate, VariantImageAssign, VariantImageUnassign)
 from .product.resolvers import (
     resolve_attributes, resolve_categories, resolve_collections,
-    resolve_products, resolve_product_types)
+    resolve_products, resolve_product_types, resolve_product_variants)
 from .product.types import (
-    Category, Collection, Product, ProductAttribute, ProductType,
+    Category, Collection, Product, Attribute, ProductType,
     ProductVariant)
 from .shipping.resolvers import resolve_shipping_zones
 from .shipping.types import ShippingZone
@@ -67,13 +70,16 @@ from .shop.mutations import (
 
 
 class Query(graphene.ObjectType):
+    address_validator = graphene.Field(
+        AddressValidationData,
+        input=graphene.Argument(AddressValidationInput, required=True))
     attributes = DjangoFilterConnectionField(
-        ProductAttribute, filterset_class=DistinctFilterSet,
+        Attribute,
         query=graphene.String(description=DESCRIPTIONS['attributes']),
         in_category=graphene.Argument(graphene.ID),
-        description='List of the shop\'s product attributes.')
+        description='List of the shop\'s attributes.')
     categories = DjangoFilterConnectionField(
-        Category, filterset_class=DistinctFilterSet, query=graphene.String(
+        Category, query=graphene.String(
             description=DESCRIPTIONS['category']),
         level=graphene.Argument(graphene.Int),
         description='List of the shop\'s categories.')
@@ -111,7 +117,7 @@ class Query(graphene.ObjectType):
         Page, id=graphene.Argument(graphene.ID), slug=graphene.String(),
         description='Lookup a page by ID or by slug.')
     pages = DjangoFilterConnectionField(
-        Page, filterset_class=DistinctFilterSet, query=graphene.String(
+        Page, query=graphene.String(
             description=DESCRIPTIONS['page']),
         description='List of the shop\'s pages.')
     product = graphene.Field(
@@ -125,11 +131,13 @@ class Query(graphene.ObjectType):
         ProductType, id=graphene.Argument(graphene.ID),
         description='Lookup a product type by ID.')
     product_types = DjangoFilterConnectionField(
-        ProductType, filterset_class=DistinctFilterSet,
-        description='List of the shop\'s product types.')
+        ProductType, description='List of the shop\'s product types.')
     product_variant = graphene.Field(
         ProductVariant, id=graphene.Argument(graphene.ID),
         description='Lookup a variant by ID.')
+    product_variants = DjangoFilterConnectionField(
+        ProductVariant, ids=graphene.List(graphene.ID),
+        description='Lookup multiple variants by ID')
     sale = graphene.Field(
         Sale, id=graphene.Argument(graphene.ID),
         description='Lookup a sale by ID.')
@@ -151,10 +159,13 @@ class Query(graphene.ObjectType):
     user = graphene.Field(
         User, id=graphene.Argument(graphene.ID),
         description='Lookup an user by ID.')
-    users = DjangoFilterConnectionField(
+    customers = DjangoFilterConnectionField(
         User, description='List of the shop\'s users.',
         query=graphene.String(
             description=DESCRIPTIONS['user']))
+    staff_users = DjangoFilterConnectionField(
+        User, description='List of the shop\'s staff users.',
+        query=graphene.String(description=DESCRIPTIONS['user']))
     node = graphene.Node.Field()
 
     def resolve_attributes(self, info, in_category=None, query=None, **kwargs):
@@ -177,8 +188,12 @@ class Query(graphene.ObjectType):
         return graphene.Node.get_node_from_global_id(info, id, User)
 
     @permission_required('account.manage_users')
-    def resolve_users(self, info, query=None, **kwargs):
-        return resolve_users(info, query=query)
+    def resolve_customers(self, info, query=None, **kwargs):
+        return resolve_customers(info, query=query)
+
+    @permission_required('account.manage_staff')
+    def resolve_staff_users(self, info, query=None, **kwargs):
+        return resolve_staff_users(info, query=query)
 
     def resolve_menu(self, info, id=None, name=None):
         return resolve_menu(info, id, name)
@@ -232,6 +247,9 @@ class Query(graphene.ObjectType):
     def resolve_product_variant(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ProductVariant)
 
+    def resolve_product_variants(self, info, ids=None, **kwargs):
+        return resolve_product_variants(info, ids)
+
     @permission_required('discount.manage_discounts')
     def resolve_voucher(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, Voucher)
@@ -240,11 +258,16 @@ class Query(graphene.ObjectType):
     def resolve_vouchers(self, info, query=None, **kwargs):
         return resolve_vouchers(info, query)
 
+    @permission_required('shipping.manage_shipping')
     def resolve_shipping_zone(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ShippingZone)
 
+    @permission_required('shipping.manage_shipping')
     def resolve_shipping_zones(self, info, **kwargs):
         return resolve_shipping_zones(info)
+
+    def resolve_address_validator(self, info, input):
+        return resolve_address_validator(info, input)
 
 
 class Mutations(graphene.ObjectType):
@@ -257,9 +280,9 @@ class Mutations(graphene.ObjectType):
     set_password = SetPassword.Field()
     password_reset = PasswordReset.Field()
 
-    attribute_choice_value_create = AttributeChoiceValueCreate.Field()
-    attribute_choice_value_delete = AttributeChoiceValueDelete.Field()
-    attribute_choice_value_update = AttributeChoiceValueUpdate.Field()
+    attribute_value_create = AttributeValueCreate.Field()
+    attribute_value_delete = AttributeValueDelete.Field()
+    attribute_value_update = AttributeValueUpdate.Field()
 
     category_create = CategoryCreate.Field()
     category_delete = CategoryDelete.Field()
@@ -267,9 +290,12 @@ class Mutations(graphene.ObjectType):
 
     customer_create = CustomerCreate.Field()
     customer_update = CustomerUpdate.Field()
+    customer_password_reset = CustomerPasswordReset.Field()
+    customer_register = CustomerRegister.Field()
 
     staff_create = StaffCreate.Field()
     staff_update = StaffUpdate.Field()
+    staff_delete = StaffDelete.Field()
 
     address_create = AddressCreate.Field()
     address_update = AddressUpdate.Field()
@@ -292,14 +318,18 @@ class Mutations(graphene.ObjectType):
     draft_order_create = DraftOrderCreate.Field()
     draft_order_complete = DraftOrderComplete.Field()
     draft_order_delete = DraftOrderDelete.Field()
+    draft_order_line_create = DraftOrderLineCreate.Field()
+    draft_order_line_delete = DraftOrderLineDelete.Field()
+    draft_order_line_update = DraftOrderLineUpdate.Field()
     draft_order_update = DraftOrderUpdate.Field()
-    fulfillment_cancel = FulfillmentCancel.Field()
-    fulfillment_create = FulfillmentCreate.Field()
-    fulfillment_update = FulfillmentUpdate.Field()
+    order_fulfillment_cancel = FulfillmentCancel.Field()
+    order_fulfillment_create = FulfillmentCreate.Field()
+    order_fulfillment_update_tracking = FulfillmentUpdateTracking.Field()
     order_add_note = OrderAddNote.Field()
     order_cancel = OrderCancel.Field()
     order_capture = OrderCapture.Field()
     order_mark_as_paid = OrderMarkAsPaid.Field()
+    order_update_shipping = OrderUpdateShipping.Field()
     order_refund = OrderRefund.Field()
     order_release = OrderRelease.Field()
     order_update = OrderUpdate.Field()
@@ -308,9 +338,9 @@ class Mutations(graphene.ObjectType):
     page_delete = PageDelete.Field()
     page_update = PageUpdate.Field()
 
-    product_attribute_create = ProductAttributeCreate.Field()
-    product_attribute_delete = ProductAttributeDelete.Field()
-    product_attribute_update = ProductAttributeUpdate.Field()
+    attribute_create = AttributeCreate.Field()
+    attribute_delete = AttributeDelete.Field()
+    attribute_update = AttributeUpdate.Field()
 
     product_create = ProductCreate.Field()
     product_delete = ProductDelete.Field()

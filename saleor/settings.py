@@ -75,6 +75,7 @@ LANGUAGES = [
     ('pt-br', _('Portuguese (Brazil)')),
     ('ro', _('Romanian')),
     ('ru', _('Russian')),
+    ('ru-ru', _('Russian (Russia)')),
     ('sk', _('Slovak')),
     ('tr', _('Turkish')),
     ('uk', _('Ukrainian')),
@@ -110,7 +111,7 @@ ENABLE_SSL = get_bool_from_env('ENABLE_SSL', False)
 if ENABLE_SSL:
     SECURE_SSL_REDIRECT = not DEBUG
 
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 ORDER_FROM_EMAIL = os.getenv('ORDER_FROM_EMAIL', DEFAULT_FROM_EMAIL)
 
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'media')
@@ -257,7 +258,7 @@ if DEBUG:
         'debug_toolbar.panels.profiling.ProfilingPanel',
     ]
     DEBUG_TOOLBAR_CONFIG = {
-        'RESULTS_STORE_SIZE': 100}
+        'RESULTS_CACHE_SIZE': 100}
 
 ENABLE_SILK = get_bool_from_env('ENABLE_SILK', False)
 if ENABLE_SILK:
@@ -320,7 +321,9 @@ OPENEXCHANGERATES_API_KEY = os.environ.get('OPENEXCHANGERATES_API_KEY')
 
 # VAT configuration
 # Enabling vat requires valid vatlayer access key.
+# If you are subscribed to a paid vatlayer plan, you can enable HTTPS.
 VATLAYER_ACCESS_KEY = os.environ.get('VATLAYER_ACCESS_KEY')
+VATLAYER_USE_HTTPS = get_bool_from_env('VATLAYER_USE_HTTPS', False)
 
 ACCOUNT_ACTIVATION_DAYS = 3
 
@@ -396,12 +399,12 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
     'products': [
-        ('product_gallery', 'crop__540x540'),
-        ('product_gallery_2x', 'crop__1080x1080'),
-        ('product_small', 'crop__60x60'),
-        ('product_small_2x', 'crop__120x120'),
-        ('product_list', 'crop__255x255'),
-        ('product_list_2x', 'crop__510x510')]}
+        ('product_gallery', 'thumbnail__540x540'),
+        ('product_gallery_2x', 'thumbnail__1080x1080'),
+        ('product_small', 'thumbnail__60x60'),
+        ('product_small_2x', 'thumbnail__120x120'),
+        ('product_list', 'thumbnail__255x255'),
+        ('product_list_2x', 'thumbnail__510x510')]}
 
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment
@@ -477,7 +480,7 @@ SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
 # CELERY SETTINGS
 CELERY_BROKER_URL = os.environ.get(
     'CELERY_BROKER_URL', os.environ.get('CLOUDAMQP_URL')) or ''
-CELERY_TASK_ALWAYS_EAGER = False if CELERY_BROKER_URL else True
+CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'

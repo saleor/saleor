@@ -3,13 +3,13 @@ import * as React from "react";
 import { productImageUrl, productUrl } from "..";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
-import { ProductImageUpdateMutation } from "../../gql-types";
 import ProductImagePage from "../components/ProductImagePage";
 import {
   TypedProductImageDeleteMutation,
   TypedProductImageUpdateMutation
 } from "../mutations";
 import { productImageQuery, TypedProductImageQuery } from "../queries";
+import { ProductImageUpdate } from "../types/ProductImageUpdate";
 
 interface ProductImageProps {
   imageId: string;
@@ -26,7 +26,7 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
       <Navigator>
         {navigate => {
           const handleBack = () => navigate(productUrl(productId));
-          const handleUpdateSuccess = (data: ProductImageUpdateMutation) => {
+          const handleUpdateSuccess = (data: ProductImageUpdate) => {
             if (
               data.productImageUpdate &&
               data.productImageUpdate.errors.length === 0

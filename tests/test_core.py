@@ -1,20 +1,22 @@
 import io
 from contextlib import redirect_stdout
 from unittest.mock import Mock, patch
+from urllib.parse import urljoin
 
 import pytest
 
 from django.conf import settings
 from django.db.models import Case, F, When
 from django.shortcuts import reverse
+from django.templatetags.static import static
 from django.urls import translate_url
 from measurement.measures import Weight
 from prices import Money
 from saleor.account.models import Address, User
 from saleor.core.storages import S3MediaStorage
 from saleor.core.utils import (
-    Country, create_superuser, create_thumbnails, format_money,
-    get_country_by_ip, get_currency_for_country, random_data)
+    Country, build_absolute_uri, create_superuser, create_thumbnails,
+    format_money, get_country_by_ip, get_currency_for_country, random_data)
 from saleor.core.utils.text import get_cleaner, strip_html
 from saleor.core.weight import WeightUnits, convert_weight
 from saleor.discount.models import Sale, Voucher
@@ -299,3 +301,17 @@ def test_convert_weight():
     weight = Weight(kg=1)
     expected_result = Weight(g=1000)
     assert convert_weight(weight, WeightUnits.GRAM) == expected_result
+
+
+def test_build_absolute_uri(site_settings):
+    # Case when we are using external service for storing static files,
+    # eg. Amazon s3
+    url = 'https://example.com/static/images/image.jpg'
+    assert build_absolute_uri(location=url) == url
+
+    # Case when static url is resolved to relative url
+    logo_url = build_absolute_uri(static('images/logo-document.svg'))
+    protocol = 'https' if settings.ENABLE_SSL else 'http'
+    current_url = '%s://%s' % (protocol, site_settings.site.domain)
+    logo_location = urljoin(current_url, static('images/logo-document.svg'))
+    assert logo_url == logo_location

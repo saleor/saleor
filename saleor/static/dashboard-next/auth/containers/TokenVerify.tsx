@@ -4,17 +4,14 @@ import {
   PartialMutationProviderProps,
   PartialMutationProviderRenderProps
 } from "../..";
-import {
-  VerifyTokenMutation,
-  VerifyTokenMutationVariables
-} from "../../gql-types";
 import { TypedVerifyTokenMutation } from "../mutations";
+import { VerifyToken, VerifyTokenVariables } from "../types/VerifyToken";
 
 interface TokenVerifyProviderProps
-  extends PartialMutationProviderProps<VerifyTokenMutation> {
+  extends PartialMutationProviderProps<VerifyToken> {
   children: PartialMutationProviderRenderProps<
-    VerifyTokenMutation,
-    VerifyTokenMutationVariables
+    VerifyToken,
+    VerifyTokenVariables
   >;
 }
 

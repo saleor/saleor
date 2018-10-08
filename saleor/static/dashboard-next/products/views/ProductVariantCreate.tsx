@@ -4,15 +4,15 @@ import { productUrl, productVariantEditUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
-import { VariantCreateMutation } from "../../gql-types";
 import i18n from "../../i18n";
-import { decimal } from "../../misc";
+import { decimal, maybe } from "../../misc";
 import ProductVariantCreatePage from "../components/ProductVariantCreatePage";
 import { TypedVariantCreateMutation } from "../mutations";
 import {
   productVariantCreateQuery,
   TypedProductVariantCreateQuery
 } from "../queries";
+import { VariantCreate } from "../types/VariantCreate";
 
 interface ProductUpdateProps {
   productId: string;
@@ -25,8 +25,8 @@ interface FormData {
   }>;
   costPrice?: string;
   priceOverride?: string;
-  stock?: number;
-  sku?: string;
+  quantity: number;
+  sku: string;
 }
 
 export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
@@ -47,7 +47,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                 );
               }
 
-              const handleCreateSuccess = (data: VariantCreateMutation) => {
+              const handleCreateSuccess = (data: VariantCreate) => {
                 if (
                   data.productVariantCreate.errors &&
                   data.productVariantCreate.errors.length === 0
@@ -81,7 +81,7 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                           costPrice: decimal(formData.costPrice),
                           priceOverride: decimal(formData.priceOverride),
                           product: productId,
-                          quantity: formData.stock,
+                          quantity: formData.quantity || null,
                           sku: formData.sku,
                           trackInventory: true
                         }
@@ -93,20 +93,15 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                       productLoading || variantCreateResult.loading;
                     return (
                       <ProductVariantCreatePage
-                        errors={
-                          variantCreateResult.data &&
-                          variantCreateResult.data.productVariantCreate &&
-                          variantCreateResult.data.productVariantCreate &&
-                          variantCreateResult.data.productVariantCreate.errors
-                            ? variantCreateResult.data.productVariantCreate
-                                .errors
-                            : []
-                        }
+                        errors={maybe(
+                          () =>
+                            variantCreateResult.data.productVariantCreate
+                              .errors,
+                          []
+                        )}
                         header={i18n.t("Add Variant")}
                         loading={loading}
-                        product={
-                          data && data.product ? data.product : undefined
-                        }
+                        product={maybe(() => data.product)}
                         onBack={handleBack}
                         onSubmit={handleSubmit}
                         onVariantClick={handleVariantClick}

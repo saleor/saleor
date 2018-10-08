@@ -1,6 +1,6 @@
 {% load bootstrap_form from bootstrap4 %}
 {% load i18n %}
-{% load staticfiles %}
+{% load static %}
 
 <form method="post" action="{% url 'account:login' %}" novalidate>
   {% csrf_token %}

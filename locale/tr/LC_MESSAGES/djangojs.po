@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-04 04:15-0500\n"
+"POT-Creation-Date: 2018-08-16 04:42-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Ömer Faruk Demirel <farukdemirel@hotmail.com.tr>, 2018\n"
+"Last-Translator: Yasin Karadeniz <antiykd@gmail.com>, 2018\n"
 "Language-Team: Turkish (https://www.transifex.com/mirumee/teams/34782/tr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -307,7 +307,7 @@ msgstr "Alt başlık"
 #: saleor/static/dashboard/js/components/editor.js:46
 msgctxt "Rich text editor option"
 msgid "Quote"
-msgstr ""
+msgstr "Alıntı"
 
 #: saleor/static/dashboard/js/components/editor.js:51
 msgctxt "Rich text editor option"
@@ -322,17 +322,17 @@ msgstr ""
 #: saleor/static/dashboard/js/components/editor.js:63
 msgctxt "Rich text editor option"
 msgid "Left align"
-msgstr ""
+msgstr "Sola yaslı"
 
 #: saleor/static/dashboard/js/components/editor.js:68
 msgctxt "Rich text editor option"
 msgid "Center align"
-msgstr ""
+msgstr "Ortalanmış"
 
 #: saleor/static/dashboard/js/components/editor.js:73
 msgctxt "Rich text editor option"
 msgid "Right align"
-msgstr ""
+msgstr "Sağa yaslı"
 
 #: saleor/static/dashboard/js/components/editor.js:78
 msgctxt "Rich text editor option"
@@ -351,7 +351,7 @@ msgstr ""
 
 #: saleor/static/dashboard/js/components/google-preview.js:50
 msgid "Your input fits between the recommended lengths"
-msgstr ""
+msgstr "Önerilen uzunluğa uyuyor"
 
 #: saleor/static/js/components/variantPicker/QuantityInput.js:21
 msgctxt "Add to cart form field label"

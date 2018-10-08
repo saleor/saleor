@@ -1,6 +1,7 @@
 import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
 import ArrowBackIcon from "@material-ui/icons/ArrowBack";
+import * as classNames from "classnames";
 import * as React from "react";
 
 const decorate = withStyles(theme => ({
@@ -34,13 +35,14 @@ const decorate = withStyles(theme => ({
 }));
 
 interface ExtendedPageHeaderProps {
+  className?: string;
   title?: React.ReactNode;
   onBack?();
 }
 
 const ExtendedPageHeader = decorate<ExtendedPageHeaderProps>(
-  ({ children, classes, onBack, title }) => (
-    <div className={classes.root}>
+  ({ children, classes, className, onBack, title }) => (
+    <div className={classNames(classes.root, className)}>
       {onBack && (
         <IconButton
           color="inherit"

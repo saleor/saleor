@@ -7,13 +7,18 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
+import { ControlledCheckbox } from "../../../components/ControlledCheckbox";
+import Form from "../../../components/Form";
 import i18n from "../../../i18n";
+
+export interface FormData {
+  restock: boolean;
+}
 
 interface OrderFulfillmentCancelDialogProps {
   open: boolean;
-  id: string;
-  onClose?();
-  onConfirm?();
+  onClose();
+  onConfirm(data: FormData);
 }
 
 const decorate = withStyles(
@@ -30,31 +35,40 @@ const decorate = withStyles(
 );
 const OrderFulfillmentCancelDialog = decorate<
   OrderFulfillmentCancelDialogProps
->(({ classes, id, open, onConfirm, onClose }) => (
+>(({ classes, open, onConfirm, onClose }) => (
   <Dialog open={open}>
-    <DialogTitle>
-      {i18n.t("Cancel fulfillment", { context: "title" })}
-    </DialogTitle>
-    <DialogContent>
-      <DialogContentText
-        dangerouslySetInnerHTML={{
-          __html: i18n.t(
-            "Are you sure you want to cancel <strong>#{{ id }}</strong>?",
-            { id }
-          )
-        }}
-      />
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={onClose}>{i18n.t("Back", { context: "button" })}</Button>
-      <Button
-        className={classes.deleteButton}
-        variant="raised"
-        onClick={onConfirm}
-      >
-        {i18n.t("Cancel fulfillment", { context: "button" })}
-      </Button>
-    </DialogActions>
+    <Form initial={{ restock: true }} onSubmit={onConfirm}>
+      {({ change, data, submit }) => (
+        <>
+          <DialogTitle>
+            {i18n.t("Cancel fulfillment", { context: "title" })}
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              {i18n.t("Are you sure you want to cancel this fulfillment?")}
+            </DialogContentText>
+            <ControlledCheckbox
+              checked={data.restock}
+              label={i18n.t("Restock items?")}
+              name="restock"
+              onChange={change}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={onClose}>
+              {i18n.t("Back", { context: "button" })}
+            </Button>
+            <Button
+              className={classes.deleteButton}
+              variant="raised"
+              onClick={submit}
+            >
+              {i18n.t("Cancel fulfillment", { context: "button" })}
+            </Button>
+          </DialogActions>
+        </>
+      )}
+    </Form>
   </Dialog>
 ));
 export default OrderFulfillmentCancelDialog;

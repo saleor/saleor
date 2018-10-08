@@ -11,18 +11,24 @@ import { render } from "react-dom";
 import { BrowserRouter, Route, Switch } from "react-router-dom";
 import * as Cookies from "universal-cookie";
 
-import AppRoot from "./AppRoot";
 import Auth, { getAuthToken, removeAuthToken } from "./auth";
 import AuthProvider from "./auth/AuthProvider";
+import LoginLoading from "./auth/components/LoginLoading/LoginLoading";
+import SectionRoute from "./auth/components/SectionRoute";
+import { hasPermission } from "./auth/misc";
 import CategorySection from "./categories";
 import { DateProvider } from "./components/DateFormatter";
 import { LocaleProvider } from "./components/Locale";
 import { MessageManager } from "./components/messages";
-import { ConfigurationSection } from "./configuration";
+import ConfigurationSection, { configurationMenu } from "./configuration";
 import HomePage from "./home";
 import "./i18n";
+import { NotFound } from "./NotFound";
+import OrdersSection from "./orders";
 import PageSection from "./pages";
 import ProductSection from "./products";
+import ProductTypesSection from "./productTypes";
+import StaffSection from "./staff";
 import theme from "./theme";
 
 const cookies = new Cookies();
@@ -75,25 +81,65 @@ render(
             <MessageManager>
               <CssBaseline />
               <AuthProvider>
-                {({ isAuthenticated }) =>
-                  isAuthenticated ? (
-                    <AppRoot>
-                      <Switch>
-                        <Route exact path="/" component={HomePage} />
-                        <Route path="/categories" component={CategorySection} />
-                        <Route path="/pages" component={PageSection} />
-                        <Route path="/products" component={ProductSection} />
-                        <Route
+                {({
+                  hasToken,
+                  isAuthenticated,
+                  tokenAuthLoading,
+                  tokenVerifyLoading,
+                  user
+                }) => {
+                  return isAuthenticated &&
+                    !tokenAuthLoading &&
+                    !tokenVerifyLoading ? (
+                    <Switch>
+                      <SectionRoute exact path="/" component={HomePage} />
+                      <SectionRoute
+                        permissions={["product.manage_products"]}
+                        path="/categories"
+                        component={CategorySection}
+                      />
+                      <SectionRoute
+                        permissions={["page.manage_pages"]}
+                        path="/pages"
+                        component={PageSection}
+                      />
+                      <SectionRoute
+                        permissions={["order.manage_orders"]}
+                        path="/orders"
+                        component={OrdersSection}
+                      />
+                      <SectionRoute
+                        permissions={["product.manage_products"]}
+                        path="/products"
+                        component={ProductSection}
+                      />
+                      <SectionRoute
+                        permissions={["product.manage_products"]}
+                        path="/productTypes"
+                        component={ProductTypesSection}
+                      />
+                      <SectionRoute
+                        permissions={["account.manage_staff"]}
+                        path="/staff"
+                        component={StaffSection}
+                      />
+                      {configurationMenu.filter(menuItem =>
+                        hasPermission(menuItem.permission, user)
+                      ).length > 0 && (
+                        <SectionRoute
                           exact
                           path="/configuration"
                           component={ConfigurationSection}
                         />
-                      </Switch>
-                    </AppRoot>
+                      )}
+                      <Route component={NotFound} />
+                    </Switch>
+                  ) : hasToken && tokenVerifyLoading ? (
+                    <LoginLoading />
                   ) : (
-                    <Route component={Auth} />
-                  )
-                }
+                    <Auth loading={tokenAuthLoading} />
+                  );
+                }}
               </AuthProvider>
             </MessageManager>
           </LocaleProvider>

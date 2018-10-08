@@ -13,8 +13,8 @@ from .filters import ProductCategoryFilter, ProductCollectionFilter
 from .models import Category
 from .utils import (
     collections_visible_to_user, get_product_images, get_product_list_context,
-    handle_cart_form, products_for_cart, products_with_details,
-    products_for_products_list)
+    handle_cart_form, products_for_cart, products_for_products_list,
+    products_with_details)
 from .utils.attributes import get_product_attributes_data
 from .utils.availability import get_availability
 from .utils.variants_picker import get_variant_picker_data

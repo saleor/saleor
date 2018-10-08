@@ -58,6 +58,6 @@ urlpatterns = [
     url(r'^(?P<order_pk>\d+)/mark-as-paid/$',
         views.mark_order_as_paid, name='order-mark-as-paid'),
 
-    url('^(?P<order_pk>\d+)/ajax/shipping-methods/$',
+    url(r'^(?P<order_pk>\d+)/ajax/shipping-methods/$',
         views.ajax_order_shipping_methods_list,
         name='ajax-order-shipping-methods')]

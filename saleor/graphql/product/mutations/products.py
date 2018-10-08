@@ -206,7 +206,7 @@ class AttributeValueInput(InputObjectType):
 class ProductInput(graphene.InputObjectType):
     attributes = graphene.List(
         AttributeValueInput,
-        description='List of product attributes.')
+        description='List of attributes.')
     available_on = graphene.types.datetime.Date(
         description='Publication date. ISO 8601 standard.')
     category = graphene.ID(
@@ -221,9 +221,6 @@ class ProductInput(graphene.InputObjectType):
     is_published = graphene.Boolean(
         description='Determines if product is visible to customers.')
     name = graphene.String(description='Product name.')
-    product_type = graphene.ID(
-        description='ID of the type that product belongs to.',
-        name='productType')
     price = Decimal(description='Product price.')
     tax_rate = TaxRateType(description='Tax rate.')
     seo = SeoInput(description='Search engine optimization fields.')
@@ -231,9 +228,15 @@ class ProductInput(graphene.InputObjectType):
         description='Weight of the Product.', required=False)
 
 
+class ProductCreateInput(ProductInput):
+    product_type = graphene.ID(
+        description='ID of the type that product belongs to.',
+        name='productType', required=True)
+
+
 class ProductCreate(ModelMutation):
     class Arguments:
-        input = ProductInput(
+        input = ProductCreateInput(
             required=True, description='Fields required to create a product.')
 
     class Meta:
@@ -303,14 +306,11 @@ class ProductDelete(ModelDeleteMutation):
 
 class ProductVariantInput(graphene.InputObjectType):
     attributes = graphene.List(
-        AttributeValueInput,
+        AttributeValueInput, required=False,
         description='List of attributes specific to this variant.')
     cost_price = Decimal(description='Cost price of the variant.')
     price_override = Decimal(
         description='Special price of the particular variant.')
-    product = graphene.ID(
-        description='Product ID of which type is the variant.',
-        name='product')
     sku = graphene.String(description='Stock keeping unit.')
     quantity = graphene.Int(
         description='The total quantity of this variant available for sale.')
@@ -322,15 +322,37 @@ class ProductVariantInput(graphene.InputObjectType):
         description='Weight of the Product Variant.', required=False)
 
 
+class ProductVariantCreateInput(ProductVariantInput):
+    attributes = graphene.List(
+        AttributeValueInput, required=True,
+        description='List of attributes specific to this variant.')
+    product = graphene.ID(
+        description='Product ID of which type is the variant.',
+        name='product', required=True)
+
+
 class ProductVariantCreate(ModelMutation):
     class Arguments:
-        input = ProductVariantInput(
+        input = ProductVariantCreateInput(
             required=True,
             description='Fields required to create a product variant.')
 
     class Meta:
         description = 'Creates a new variant for a product'
         model = models.ProductVariant
+
+    @classmethod
+    def clean_product_type_attributes(
+            cls, attributes_qs, attributes_input, errors):
+        # transform attributes_input list to a dict of slug:value pairs
+        attributes_input = {
+            item['slug']: item['value'] for item in attributes_input}
+
+        for attr in attributes_qs:
+            value = attributes_input.get(attr.slug, None)
+            if not value:
+                fieldname = 'attributes:%s' % attr.slug
+                cls.add_error(errors, fieldname, 'This field cannot be blank.')
 
     @classmethod
     def clean_input(cls, info, instance, input, errors):
@@ -341,15 +363,18 @@ class ProductVariantCreate(ModelMutation):
         # `Product` model, which is HStore field that maps attribute's PK to
         # the value's PK.
 
-        attributes = cleaned_input.pop('attributes', [])
-        product = instance.product if instance.pk else cleaned_input.get(
-            'product')
-        product_type = product.product_type
-
-        if attributes and product_type:
+        if 'attributes' in input:
+            attributes_input = cleaned_input.pop('attributes')
+            product = instance.product if instance.pk else cleaned_input.get(
+                'product')
+            product_type = product.product_type
+            variant_attrs = product_type.variant_attributes.prefetch_related(
+                'values')
             try:
-                qs = product_type.variant_attributes.prefetch_related('values')
-                attributes = attributes_to_hstore(attributes, qs)
+                cls.clean_product_type_attributes(
+                    variant_attrs, attributes_input, errors)
+                attributes = attributes_to_hstore(
+                    attributes_input, variant_attrs)
             except ValueError as e:
                 cls.add_error(errors, 'attributes', str(e))
             else:

@@ -12,7 +12,7 @@ from ...account import models
 from ..account.types import User
 from ..file_upload.types import Upload
 from ..utils import get_nodes
-from .types.common import Error, WeightUnitsEnum
+from .types.common import Error
 from .utils import snake_to_camel_case
 
 registry = get_global_registry()
@@ -211,11 +211,13 @@ class ModelMutation(BaseMutation):
         opts = instance._meta
 
         for f in opts.fields:
-            if not f.editable or isinstance(
-                    f, models.AutoField) or f.name not in cleaned_data:
+            if any([not f.editable, isinstance(f, models.AutoField),
+                    f.name not in cleaned_data]):
                 continue
-            else:
-                f.save_form_data(instance, cleaned_data[f.name])
+            data = cleaned_data[f.name]
+            if not f.null and data is None:
+                data = f._get_default()
+            f.save_form_data(instance, data)
         return instance
 
     @classmethod
@@ -229,7 +231,7 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def user_is_allowed(cls, user, input):
-        """Determine wheter user has rights to perform this mutation.
+        """Determine whether user has rights to perform this mutation.
 
         Default implementation assumes that user is allowed to perform any
         mutation. By overriding this method, you can restrict access to it.
@@ -276,6 +278,8 @@ class ModelMutation(BaseMutation):
                 info, id, errors, 'id', model_type)
         else:
             instance = cls._meta.model()
+        if errors:
+            return cls(errors=errors)
 
         cleaned_input = cls.clean_input(info, instance, input, errors)
         instance = cls.construct_instance(instance, cleaned_input)

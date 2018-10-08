@@ -16,13 +16,15 @@ const decorate = withStyles(
 );
 
 interface PageHeaderProps {
+  className?: string;
   title?: string;
   onBack?();
 }
 
 const PageHeader = decorate<PageHeaderProps>(
-  ({ children, classes, onBack, title }) => (
+  ({ children, classes, className, onBack, title }) => (
     <ExtendedPageHeader
+      className={className}
       onBack={onBack}
       title={
         <Typography className={classes.title} variant="title">

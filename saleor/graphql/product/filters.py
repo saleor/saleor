@@ -5,15 +5,14 @@ from collections import defaultdict
 from django.db.models import Q
 from django_filters import OrderingFilter
 from django_filters.fields import Lookup
-from graphene_django.filter.filterset import Filter
+from graphene_django.filter.filterset import Filter, FilterSet
 
 from ...product.filters import SORT_BY_FIELDS
-from ...product.models import Product, ProductAttribute
-from ..core.filters import DistinctFilterSet
+from ...product.models import Attribute, Product
 from .fields import AttributeField
 
 
-class ProductAttributeFilter(Filter):
+class AttributeFilter(Filter):
     field_class = AttributeField
 
     def filter(self, qs, value):
@@ -23,7 +22,7 @@ class ProductAttributeFilter(Filter):
         if not value:
             return qs.distinct() if self.distinct else qs
 
-        attributes = ProductAttribute.objects.prefetch_related('values')
+        attributes = Attribute.objects.prefetch_related('values')
         attributes_map = {
             attribute.slug: attribute.pk for attribute in attributes}
         values_map = {
@@ -51,7 +50,7 @@ class ProductAttributeFilter(Filter):
         return qs.distinct() if self.distinct else qs
 
 
-class ProductFilterSet(DistinctFilterSet):
+class ProductFilterSet(FilterSet):
     sort_by = OrderingFilter(
         fields=SORT_BY_FIELDS.keys(), field_labels=SORT_BY_FIELDS)
 
@@ -68,10 +67,9 @@ class ProductFilterSet(DistinctFilterSet):
     @classmethod
     def filter_for_field(cls, f, field_name, lookup_expr='exact'):
         if field_name == 'attributes':
-            return ProductAttributeFilter(
+            return AttributeFilter(
                 field_name=field_name, lookup_expr=lookup_expr, distinct=True)
         # this class method is called during class construction so we can't
         # reference ProductFilterSet here yet
-        # pylint: disable=E1003
-        return super(DistinctFilterSet, cls).filter_for_field(
+        return FilterSet.filter_for_field(
             f, field_name, lookup_expr)

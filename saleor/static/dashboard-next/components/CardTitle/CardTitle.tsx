@@ -3,7 +3,7 @@ import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 interface CardTitleProps extends React.StatelessComponent {
-  title: string;
+  title: string | React.ReactNode;
   toolbar?: React.ReactNode;
   onClick?: (event: React.MouseEvent<any>) => void;
 }
@@ -14,29 +14,34 @@ const decorate = withStyles(theme => ({
     backgroundColor: "#eaeaea",
     border: "none",
     height: 1,
-    marginBottom: 0
+    marginBottom: 0,
+    marginTop: 0
   },
   root: theme.mixins.gutters({
+    alignItems: "center" as "center",
     display: "flex",
-    height: theme.spacing.unit * 6,
-    paddingBottom: theme.spacing.unit * 2,
-    paddingTop: theme.spacing.unit * 2
+    height: theme.spacing.unit * 6
   }),
   title: {
     flex: 1,
     fontSize: "1rem",
-    fontWeight: 600 as 600
+    fontWeight: 600 as 600,
+    lineHeight: 1
   },
   toolbar: {
-    marginRight: -theme.spacing.unit * 2,
-    marginTop: -theme.spacing.unit * 0.75 + "px"
+    marginRight: -theme.spacing.unit * 2
   }
 }));
 const CardTitle = decorate<CardTitleProps>(
   ({ classes, children, title, toolbar, onClick, ...props }) => (
     <>
       <div className={classes.root} {...props}>
-        <Typography className={classes.title} variant="body2" onClick={onClick}>
+        <Typography
+          className={classes.title}
+          variant="body1"
+          onClick={onClick}
+          component="span"
+        >
           {title}
         </Typography>
         <div className={classes.toolbar}>{toolbar}</div>

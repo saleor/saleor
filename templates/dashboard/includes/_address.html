@@ -1,5 +1,5 @@
-{% load format_address from i18n_address_tags %}
-{% load staticfiles %}
+{% load i18n_address_tags %}
+{% load static %}
 
 <div class="address">
 	<div class="formatted-address">{% format_address address include_phone=False latin=True %}</div>

@@ -2,7 +2,7 @@
 
 {% load i18n %}
 {% load price from taxed_prices %}
-{% load staticfiles %}
+{% load static %}
 {% load status %}
 
 {% block title %}
@@ -176,7 +176,7 @@
               <div class="row">
                 {% for image in images %}
                   <div class="col s4">
-                    <img class="responsive-img" src="{{ image.image.crop.255x255 }}" srcset="{{ image.image.crop.255x255 }} 1x, {{ image.image.crop.510x510 }} 2x" alt="{{ image.alt }}">
+                    <img class="responsive-img" src="{{ image.image.thumbnail.255x255 }}" srcset="{{ image.image.thumbnail.255x255 }} 1x, {{ image.image.thumbnail.510x510 }} 2x" alt="{{ image.alt }}">
                   </div>
                 {% empty %}
                 <div class="col s4">

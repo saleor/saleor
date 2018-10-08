@@ -20,15 +20,17 @@ import { renderCollection } from "../../../misc";
 interface CustomerOrdersProps {
   orders?: Array<{
     id: string;
-    number: number;
+    number: string;
     orderStatus: {
       localized: string;
       status: string;
     };
     created: string;
-    price: {
-      amount: number;
-      currency: string;
+    total: {
+      gross: {
+        amount: number;
+        currency: string;
+      };
     };
   }>;
   dateNow?: number;
@@ -111,10 +113,10 @@ const CustomerOrders = decorate<CustomerOrdersProps>(
                   )}
                 </TableCell>
                 <TableCell className={classes.textRight}>
-                  {order && order.price ? (
+                  {order && order.total && order.total.gross ? (
                     <Money
-                      amount={order.price.amount}
-                      currency={order.price.currency}
+                      amount={order.total.gross.amount}
+                      currency={order.total.gross.currency}
                     />
                   ) : (
                     <Skeleton />

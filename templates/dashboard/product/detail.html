@@ -2,7 +2,7 @@
 
 {% load i18n %}
 {% load price from taxed_prices %}
-{% load staticfiles %}
+{% load static %}
 {% load status %}
 {% load utils %}
 
@@ -66,9 +66,11 @@
               <h5>{% render_availability_status product %}</h5>
             </div>
           </div>
-          <p>
-            {{ product.description | safe }}
-          </p>
+          <div class="product-description">
+            <p>
+              {{ product.description | safe }}
+            </p>
+          </div>
         </div>
         <div class="card-action">
           <a href="{% url "dashboard:product-update" product.pk %}" class="btn-flat waves-effect">
@@ -260,7 +262,7 @@
               <div class="row">
                 {% for image in images %}
                   <div class="col s4">
-                    <img class="responsive-img" src="{{ image.image.crop.255x255 }}" srcset="{{ image.image.crop.255x255 }} 1x, {{ image.image.crop.510x510 }} 2x" alt="{{ image.alt }}">
+                    <img class="responsive-img" src="{{ image.image.thumbnail.255x255 }}" srcset="{{ image.image.thumbnail.255x255 }} 1x, {{ image.image.thumbnail.510x510 }} 2x" alt="{{ image.alt }}">
                   </div>
                 {% endfor %}
               </div>

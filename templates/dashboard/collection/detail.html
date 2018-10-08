@@ -1,7 +1,7 @@
 {% extends 'dashboard/base.html' %}
 {% load materializecss %}
 {% load i18n %}
-{% load staticfiles %}
+{% load static %}
 {% load status %}
 
 {% block title %}
@@ -89,7 +89,8 @@
                   <form id="toggle-publish-form" action="{% url 'dashboard:collection-publish' pk=collection.pk %}">
                     <div class="switch" id="collection-is-published">
                       <label>
-                        <input id="toggle-publish-switch" type="checkbox" {% if collection.is_published %} checked {% endif %}>
+                        <input id="toggle-publish-switch" type="checkbox" {% if collection.is_published %} checked {% endif %}
+                        {% if is_unpublish_restricted %} disabled {% endif %} >
                         <span class="lever"></span>
                         <span class="label">
                           {% if collection.is_published %}
@@ -102,6 +103,9 @@
                     </div>
                   {% csrf_token %}
                   </form>
+                  {% if is_unpublish_restricted %}
+                    <div class="label label-default">{% trans "Can't unpublish homepage collection" context "Collection field" %}</div>
+                  {% endif %}
                   <h5>{% render_collection_availability collection %}</h5>
                 </div>
               </div>

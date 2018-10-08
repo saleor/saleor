@@ -5,7 +5,7 @@ from django_filters import (
     RangeFilter)
 
 from ...core.filters import SortedFilterSet
-from ...product.models import Category, Product, ProductAttribute, ProductType
+from ...product.models import Attribute, Category, Product, ProductType
 from ..widgets import MoneyRangeWidget
 
 PRODUCT_SORT_BY_FIELDS = {
@@ -29,15 +29,15 @@ class ProductFilter(SortedFilterSet):
         lookup_expr='icontains')
     category = ModelMultipleChoiceFilter(
         label=pgettext_lazy('Product list filter label', 'Category'),
-        name='category',
+        field_name='category',
         queryset=Category.objects.all())
     product_type = ModelMultipleChoiceFilter(
         label=pgettext_lazy('Product list filter label', 'Product type'),
-        name='product_type',
+        field_name='product_type',
         queryset=ProductType.objects.all())
     price = RangeFilter(
         label=pgettext_lazy('Product list filter label', 'Price'),
-        name='price',
+        field_name='price',
         widget=MoneyRangeWidget)
     is_published = ChoiceFilter(
         label=pgettext_lazy('Product list filter label', 'Is published'),
@@ -62,24 +62,23 @@ class ProductFilter(SortedFilterSet):
             number=counter) % {'counter': counter}
 
 
-class ProductAttributeFilter(SortedFilterSet):
+class AttributeFilter(SortedFilterSet):
     name = CharFilter(
-        label=pgettext_lazy('Product attribute list filter label', 'Name'),
+        label=pgettext_lazy('Attribute list filter label', 'Name'),
         lookup_expr='icontains')
     sort_by = OrderingFilter(
-        label=pgettext_lazy('Product attribute list filter label', 'Sort by'),
+        label=pgettext_lazy('Attribute list filter label', 'Sort by'),
         fields=PRODUCT_TYPE_SORT_BY_FIELDS.keys(),
         field_labels=PRODUCT_TYPE_SORT_BY_FIELDS)
 
     class Meta:
-        model = ProductAttribute
+        model = Attribute
         fields = []
 
     def get_summary_message(self):
         counter = self.qs.count()
         return npgettext(
-            'Number of matching records in the dashboard '
-            'product attributes list',
+            'Number of matching records in the dashboard attributes list',
             'Found %(counter)d matching attribute',
             'Found %(counter)d matching attributes',
             number=counter) % {'counter': counter}
@@ -96,13 +95,13 @@ class ProductTypeFilter(SortedFilterSet):
     product_attributes = ModelMultipleChoiceFilter(
         label=pgettext_lazy(
             'Product type list filter label', 'Product attributes'),
-        name='product_attributes',
-        queryset=ProductAttribute.objects.all())
+        field_name='product_attributes',
+        queryset=Attribute.objects.all())
     variant_attributes = ModelMultipleChoiceFilter(
         label=pgettext_lazy(
             'Product type list filter label', 'Variant attributes'),
-        name='variant_attributes',
-        queryset=ProductAttribute.objects.all())
+        field_name='variant_attributes',
+        queryset=Attribute.objects.all())
 
     class Meta:
         model = ProductType

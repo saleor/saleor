@@ -3,125 +3,93 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import InputAdornment from "@material-ui/core/InputAdornment";
 import { withStyles } from "@material-ui/core/styles";
-import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
+import Form from "../../../components/Form";
 import { SingleAutocompleteSelectField } from "../../../components/SingleAutocompleteSelectField";
 import i18n from "../../../i18n";
 
-interface OrderProductAddDialogProps {
-  open: boolean;
-  variant?: {
+export interface FormData {
+  quantity: number;
+  variant: {
     label: string;
     value: string;
   };
-  quantity?: number;
+}
+
+interface OrderProductAddDialogProps {
+  open: boolean;
   variants?: Array<{
     id: string;
     name: string;
     sku: string;
-    stockAllocated;
+    stockQuantity: number;
   }>;
-  loading?: boolean;
-  fetchVariants(value: string);
-  onChange(event: React.ChangeEvent<any>);
-  onClose?();
-  onConfirm?(event: React.FormEvent<any>);
+  loading: boolean;
+  fetchVariants: (value: string) => void;
+  onClose: () => void;
+  onSubmit: (data: FormData) => void;
 }
 
 const decorate = withStyles(
-  theme => ({
-    dialog: {
+  {
+    overflow: {
       overflowY: "visible" as "visible"
-    },
-    root: {
-      display: "grid" as "grid",
-      gridColumnGap: theme.spacing.unit * 2 + "px",
-      gridTemplateColumns: "1fr 6rem",
-      overflowY: "visible" as "visible",
-      width: theme.breakpoints.values.sm
-    },
-    select: {
-      flex: 1,
-      marginRight: theme.spacing.unit * 2
-    },
-    textRight: {
-      textAlign: "right" as "right"
     }
-  }),
+  },
   { name: "OrderProductAddDialog" }
 );
-const OrderProductAddDialog = decorate<OrderProductAddDialogProps>(
-  ({
-    classes,
-    open,
-    loading,
-    variant,
-    variants,
-    quantity,
-    fetchVariants,
-    onChange,
-    onClose,
-    onConfirm
-  }) => {
-    const choices =
-      !loading && variants
-        ? variants.map(v => ({
-            label: `${v.sku} ${v.name}`,
-            value: v.id
-          }))
-        : [];
-    const maxQuantity =
-      !loading && variant && variant.value && variants
-        ? variants.filter(v => v.id === variant.value)[0].stockAllocated
-        : 0;
-    return (
-      <Dialog open={open} classes={{ paper: classes.dialog }}>
-        <DialogTitle>{i18n.t("Add product")}</DialogTitle>
-        <DialogContent className={classes.root}>
-          <div className={classes.select}>
-            <SingleAutocompleteSelectField
-              name="variant"
-              value={variant}
-              choices={choices}
-              onChange={onChange}
-              fetchChoices={fetchVariants}
-              loading={loading}
-            />
-          </div>
-          <div>
-            <TextField
-              type="number"
-              inputProps={{
-                max: maxQuantity,
-                style: { textAlign: "right", width: "4rem" }
-              }}
-              value={quantity}
-              onChange={onChange}
-              name="quantity"
-              error={quantity > maxQuantity}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    {`/ ${maxQuantity}`}
-                  </InputAdornment>
-                )
-              }}
-            />
-          </div>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose}>
-            {i18n.t("Cancel", { context: "button" })}
-          </Button>
-          <Button color="primary" variant="raised" onClick={onConfirm}>
-            {i18n.t("Confirm", { context: "button" })}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    );
+const initialForm: FormData = {
+  quantity: 1,
+  variant: {
+    label: "",
+    value: ""
   }
+};
+const OrderProductAddDialog = decorate<OrderProductAddDialogProps>(
+  ({ classes, open, loading, variants, fetchVariants, onClose, onSubmit }) => (
+    <Dialog
+      open={open}
+      classes={{ paper: classes.overflow }}
+      fullWidth
+      maxWidth="sm"
+    >
+      <Form initial={initialForm} onSubmit={onSubmit}>
+        {({ data, change }) => {
+          const choices =
+            !loading && variants
+              ? variants.map(v => ({
+                  label: `${v.sku} ${v.name}`,
+                  value: v.id
+                }))
+              : [];
+          return (
+            <>
+              <DialogTitle>{i18n.t("Add product")}</DialogTitle>
+              <DialogContent className={classes.overflow}>
+                <SingleAutocompleteSelectField
+                  name="variant"
+                  value={data.variant}
+                  choices={choices}
+                  onChange={change}
+                  fetchChoices={fetchVariants}
+                  loading={loading}
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={onClose}>
+                  {i18n.t("Cancel", { context: "button" })}
+                </Button>
+                <Button color="primary" variant="contained" type="submit">
+                  {i18n.t("Confirm", { context: "button" })}
+                </Button>
+              </DialogActions>
+            </>
+          );
+        }}
+      </Form>
+    </Dialog>
+  )
 );
 export default OrderProductAddDialog;
