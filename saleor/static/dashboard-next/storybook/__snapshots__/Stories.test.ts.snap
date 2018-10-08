@@ -5327,7 +5327,7 @@ exports[`Storyshots Orders / OrderHistory default 1`] = `
           <p
             class="MuiTypography-root-id MuiTypography-body1-id"
           >
-            Filfilled 1 items
+            Fulfilled 1 items
           </p>
           <p
             class="MuiTypography-root-id MuiTypography-body1-id"
@@ -14744,7 +14744,7 @@ exports[`Storyshots Views / Orders / Order details cancelled 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  Filfilled 1 items
+                  Fulfilled 1 items
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
@@ -15658,7 +15658,7 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  Filfilled 1 items
+                  Fulfilled 1 items
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
@@ -16608,7 +16608,7 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  Filfilled 1 items
+                  Fulfilled 1 items
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
@@ -18046,7 +18046,7 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  Filfilled 1 items
+                  Fulfilled 1 items
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
@@ -18996,7 +18996,7 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  Filfilled 1 items
+                  Fulfilled 1 items
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
@@ -19946,7 +19946,7 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  Filfilled 1 items
+                  Fulfilled 1 items
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
@@ -20882,7 +20882,7 @@ exports[`Storyshots Views / Orders / Order details payment confirmed 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  Filfilled 1 items
+                  Fulfilled 1 items
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
@@ -21818,7 +21818,7 @@ exports[`Storyshots Views / Orders / Order details payment error 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  Filfilled 1 items
+                  Fulfilled 1 items
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
@@ -22768,7 +22768,7 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  Filfilled 1 items
+                  Fulfilled 1 items
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
@@ -23683,7 +23683,7 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  Filfilled 1 items
+                  Fulfilled 1 items
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
@@ -24619,7 +24619,7 @@ exports[`Storyshots Views / Orders / Order details rejected payment 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  Filfilled 1 items
+                  Fulfilled 1 items
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
@@ -25569,7 +25569,7 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
                 >
-                  Filfilled 1 items
+                  Fulfilled 1 items
                 </p>
                 <p
                   class="MuiTypography-root-id MuiTypography-body1-id"
