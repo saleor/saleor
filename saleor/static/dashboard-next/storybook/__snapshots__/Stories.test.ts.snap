@@ -37876,7 +37876,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              XAG274.99
+              XAG 274.99
             </td>
           </tr>
           <tr
@@ -37916,7 +37916,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              ZWL432.30
+              ZWL 432.30
             </td>
           </tr>
           <tr
@@ -37956,7 +37956,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              XDR688.35
+              XDR 688.35
             </td>
           </tr>
           <tr
@@ -37996,7 +37996,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              SLL540
+              SLL 540
             </td>
           </tr>
           <tr
@@ -38036,7 +38036,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              AMD4
+              AMD 4
             </td>
           </tr>
           <tr
@@ -38076,7 +38076,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              GMD538.10
+              GMD 538.10
             </td>
           </tr>
           <tr
@@ -38116,7 +38116,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              CVE56.91
+              CVE 56.91
             </td>
           </tr>
           <tr
@@ -38156,7 +38156,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              XAG981.06
+              XAG 981.06
             </td>
           </tr>
           <tr
@@ -38196,7 +38196,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              WST449.93
+              WST 449.93
             </td>
           </tr>
           <tr
@@ -38236,7 +38236,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              MGA591
+              MGA 591
             </td>
           </tr>
         </tbody>
@@ -43252,7 +43252,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                CHF20.00
+                CHF 20.00
               </p>
             </td>
           </tr>
@@ -43340,7 +43340,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                EEK0.00
+                EEK 0.00
               </p>
             </td>
           </tr>
@@ -43475,7 +43475,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                XTS0.00
+                XTS 0.00
               </p>
             </td>
           </tr>
@@ -43610,7 +43610,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                CFA70
+                CFA 70
               </p>
             </td>
           </tr>
@@ -43661,7 +43661,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                PKR70
+                PKR 70
               </p>
             </td>
           </tr>
@@ -43895,7 +43895,7 @@ exports[`Storyshots Views / Vouchers / Voucher list default 1`] = `
               <p
                 class="MuiTypography-root-id MuiTypography-body1-id Component-tableCellFont-id"
               >
-                GTQ90.00
+                GTQ 90.00
               </p>
             </td>
           </tr>
