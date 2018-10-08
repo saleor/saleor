@@ -7,8 +7,6 @@ certifi==2018.8.24
 chardet==3.0.4
 codecov==2.0.15
 coverage==4.5.1
-django-debug-toolbar-request-history==0.0.9
-django-debug-toolbar==1.10.1
 django-extensions==2.1.2
 django-silk==2.0.0
 django==2.1.1
