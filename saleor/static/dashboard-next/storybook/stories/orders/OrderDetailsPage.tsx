@@ -131,4 +131,13 @@ storiesOf("Views / Orders / Order details", module)
         status: OrderStatus.UNFULFILLED
       }}
     />
+  ))
+  .add("no shipping address", () => (
+    <OrderDetailsPage
+      {...props}
+      order={{
+        ...props.order,
+        shippingAddress: null
+      }}
+    />
   ));
