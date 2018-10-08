@@ -114,7 +114,7 @@ def test_query_languages(settings, user_api_client):
     assert len(data['languages']) == len(settings.LANGUAGES)
 
 
-def test_query_permissions(staff_api_client, permission_manage_settings):
+def test_query_permissions(staff_api_client, permission_manage_users):
     query = """
     query {
         shop {
@@ -126,7 +126,7 @@ def test_query_permissions(staff_api_client, permission_manage_settings):
     }
     """
     response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_settings])
+        query, permissions=[permission_manage_users])
     content = get_graphql_content(response)
     data = content['data']['shop']
     permissions = data['permissions']
