@@ -11,5 +11,48 @@ const category = categoryFixture("");
 storiesOf("Views / Categories / Update category", module)
   .addDecorator(Decorator)
   .add("default", () => (
-    <CategoryUpdatePage header={category.name} category={category} />
+    <CategoryUpdatePage
+      subcategories={category.children}
+      disabled={false}
+      category={category}
+      errors={[]}
+      products={category.products}
+      loading={false}
+      pageInfo={{
+        hasNextPage: true,
+        hasPreviousPage: true
+      }}
+      onNextPage={undefined}
+      onPreviousPage={undefined}
+      onProductClick={() => undefined}
+      onAddProduct={undefined}
+      onCategoryClick={() => undefined}
+      onAddCategory={undefined}
+    />
+  ))
+  .add("When in root", () => (
+    <CategoryUpdatePage
+      subcategories={category.children}
+      disabled={false}
+      errors={[]}
+      loading={false}
+      category={undefined}
+      onNextPage={undefined}
+      onPreviousPage={undefined}
+      onProductClick={() => undefined}
+      onAddProduct={undefined}
+      onCategoryClick={() => undefined}
+      onAddCategory={undefined}
+    />
+  ))
+  .add("When loading", () => (
+    <CategoryUpdatePage
+      subcategories={category.children}
+      disabled={false}
+      category={category}
+      errors={[]}
+      // products={category.products}
+      loading={true}
+      onProductClick={() => undefined}
+    />
   ));

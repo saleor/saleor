@@ -82,6 +82,7 @@ export const CategoryCreatePage = decorate<CategoryCreatePageProps>(
                       data={data}
                       onChange={change}
                       errors={errors}
+                      loading={false}
                     />
                     <CategoryBackground
                       onImageUpload={onImageUpload}

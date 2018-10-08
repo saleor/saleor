@@ -8,6 +8,7 @@ import TextField from "@material-ui/core/TextField";
 import CardTitle from "../../../components/CardTitle";
 import FormSpacer from "../../../components/FormSpacer";
 import { RichTextEditor } from "../../../components/RichTextEditor";
+import Skeleton from "../../../components/Skeleton";
 
 import i18n from "../../../i18n";
 
@@ -19,6 +20,7 @@ interface CategoryDetailsFormProps {
   disabled: boolean;
   errors: { [key: string]: string };
   onChange(event: any);
+  loading?: boolean;
 }
 
 const decorate = withStyles(theme => ({
@@ -30,37 +32,43 @@ const decorate = withStyles(theme => ({
 }));
 
 export const CategoryDetailsForm = decorate<CategoryDetailsFormProps>(
-  ({ classes, disabled, data, onChange, errors }) => {
+  ({ classes, disabled, data, onChange, errors, loading }) => {
     return (
       <Card>
         <CardTitle title={i18n.t("General information")} />
         <CardContent>
-          <div className={classes.root}>
-            <TextField
-              label={i18n.t("Name")}
-              name="name"
-              disabled={disabled}
-              value={data.name}
-              onChange={onChange}
-              error={!!errors.name}
-              helperText={errors.name}
-            />
-          </div>
-          <FormSpacer />
-          <RichTextEditor
-            disabled={disabled}
-            label={i18n.t("Description")}
-            fullWidth
-            helperText={
-              errors.description
-                ? errors.description
-                : i18n.t("Select text to enable text-formatting tools.")
-            }
-            name="description"
-            value={data.description}
-            onChange={onChange}
-            error={!!errors.description}
-          />
+          {loading === true ? (
+            <Skeleton />
+          ) : (
+            <>
+              <div className={classes.root}>
+                <TextField
+                  label={i18n.t("Name")}
+                  name="name"
+                  disabled={disabled}
+                  value={data.name}
+                  onChange={onChange}
+                  error={!!errors.name}
+                  helperText={errors.name}
+                />
+              </div>
+              <FormSpacer />
+              <RichTextEditor
+                disabled={disabled}
+                label={i18n.t("Description")}
+                fullWidth
+                helperText={
+                  errors.description
+                    ? errors.description
+                    : i18n.t("Select text to enable text-formatting tools.")
+                }
+                name="description"
+                value={data.description}
+                onChange={onChange}
+                error={!!errors.description}
+              />
+            </>
+          )}
         </CardContent>
       </Card>
     );
