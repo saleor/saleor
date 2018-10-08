@@ -25,7 +25,7 @@ class AttributeCreateInput(graphene.InputObjectType):
         description='Attribute values to be created for this attribute.')
 
 
-class AttributeMixin(object):
+class AttributeMixin:
     @classmethod
     def clean_attribute_value_uniqueness(cls, values, errors, error_msg):
         """Checks if all provided values are unique."""

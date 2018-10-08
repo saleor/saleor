@@ -157,7 +157,7 @@ class ProductTypeForm(forms.ModelForm):
                 self.add_error('has_variants', msg)
 
 
-class AttributesMixin(object):
+class AttributesMixin:
     """Form mixin that dynamically adds attribute fields."""
 
     available_attributes = Attribute.objects.none()
