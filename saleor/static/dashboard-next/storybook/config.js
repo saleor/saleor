@@ -97,6 +97,9 @@ function loadStories() {
   // Product types
   require("./stories/productTypes/ProductTypeListPage");
   require("./stories/productTypes/ProductTypeDetailsPage");
+
+  // Site settings
+  require("./stories/siteSettings/SiteSettingsPage");
 }
 
 configure(loadStories, module);
