@@ -113,7 +113,7 @@ export const removeDoubleSlashes = (url: string) =>
   url.replace(/([^:]\/)\/+/g, "$1");
 
 export const translatedTaxRates = () => ({
-  [TaxRateType.ACCOMODATION]: i18n.t("Accomodation"),
+  [TaxRateType.ACCOMMODATION]: i18n.t("Accommodation"),
   [TaxRateType.ADMISSION_TO_CULTURAL_EVENTS]: i18n.t(
     "Admission to cultural events"
   ),

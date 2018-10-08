@@ -24,7 +24,7 @@ def check_session_caching(app_configs, **kwargs):  # pragma: no cover
 
 
 class TaxRateType:
-    ACCOMODATION = 'accomodation'
+    ACCOMMODATION = 'accommodation'
     ADMISSION_TO_CULTURAL_EVENTS = 'admission to cultural events'
     ADMISSION_TO_ENTERTAINMENT_EVENTS = 'admission to entertainment events'
     ADMISSION_TO_SPORTING_EVENTS = 'admission to sporting events'
@@ -51,7 +51,7 @@ class TaxRateType:
     WINE = 'wine'
 
     CHOICES = (
-        (ACCOMODATION, pgettext_lazy('VAT rate type', 'accommodation')),
+        (ACCOMMODATION, pgettext_lazy('VAT rate type', 'accommodation')),
         (ADMISSION_TO_CULTURAL_EVENTS, pgettext_lazy(
             'VAT rate type', 'admission to cultural events')),
         (ADMISSION_TO_ENTERTAINMENT_EVENTS, pgettext_lazy(
