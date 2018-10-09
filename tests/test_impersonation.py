@@ -32,20 +32,20 @@ def test_impersonate_start_url_uid_arg_is_number():
         reverse('impersonate', args=['string'])
 
 
-def test_impersonate_if_already_impersionating(staff_client, customer_user, staff_user, permission_impersonate_users):
+def test_impersonate_if_already_impersionating(
+        staff_client, customer_user, staff_user, permission_impersonate_users):
     staff_user.user_permissions.add(permission_impersonate_users)
     staff_user = User.objects.get(pk=staff_user.pk)
-    response = staff_client.get(reverse('impersonate-start',
-                                args=[customer_user.pk]), follow=True)
+    response = staff_client.get(
+        reverse('impersonate-start', args=[customer_user.pk]), follow=True)
     assert response.context['user'] == customer_user
     assert response.context['user'].is_impersonate
     assert response.context['request'].impersonator == staff_user
 
-    another_customer_user = User.objects.create_user(
-        'ex@mple.com',
-        'password')
-    response = staff_client.get(reverse('impersonate-start',
-                                args=[another_customer_user.pk]), follow=True)
+    another_customer_user = User.objects.create_user('ex@mple.com', 'password')
+    response = staff_client.get(
+        reverse('impersonate-start', args=[another_customer_user.pk]),
+        follow=True)
     assert response.context['user'] == another_customer_user
     assert response.context['user'].is_impersonate
     assert response.context['request'].impersonator == staff_user
