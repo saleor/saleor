@@ -5,6 +5,8 @@ import { productTypeListUrl } from "..";
 import Messages from "../../components/messages";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
+import { AttributeTypeEnum } from "../../types/globalTypes";
+import { FormData as AttributeForm } from "../components/ProductTypeAttributeEditDialog";
 import ProductTypeDetailsPage, {
   ProductTypeForm
 } from "../components/ProductTypeDetailsPage";
@@ -90,9 +92,12 @@ export const ProductTypeUpdate: React.StatelessComponent<
                   onProductTypeUpdate={handleProductTypeUpdateSuccess}
                 >
                   {({
+                    attributeCreate,
+                    // deleteAttribute,
                     deleteProductType,
                     errors,
                     loading: mutationLoading,
+                    updateAttribute,
                     updateProductType
                   }) => {
                     const handleProductTypeDelete = () =>
@@ -117,6 +122,56 @@ export const ProductTypeUpdate: React.StatelessComponent<
                         }
                       });
                     };
+                    const handleAttributeCreate = (
+                      data: AttributeForm,
+                      type: AttributeTypeEnum
+                    ) =>
+                      attributeCreate.mutate({
+                        id,
+                        input: {
+                          name: data.name,
+                          values: data.values.map(value => ({
+                            name: value.label,
+                            value: value.label
+                          }))
+                        },
+                        type
+                      });
+                    // const handleAttributeDelete = (id: string) =>
+                    //   deleteAttribute.mutate({ id });
+                    const handleAttributeUpdate = (
+                      id: string,
+                      formData: AttributeForm
+                    ) => {
+                      const attribute = data.productType.variantAttributes
+                        .concat(data.productType.productAttributes)
+                        .filter(attribute => attribute.id === id)[0];
+                      updateAttribute.mutate({
+                        id,
+                        input: {
+                          addValues: formData.values
+                            .filter(
+                              value =>
+                                !attribute.values
+                                  .map(value => value.id)
+                                  .includes(value.value)
+                            )
+                            .map(value => ({
+                              name: value.label,
+                              value: value.value
+                            })),
+                          name: formData.name,
+                          removeValues: attribute.values
+                            .filter(
+                              value =>
+                                !formData.values
+                                  .map(value => value.value)
+                                  .includes(value.id)
+                            )
+                            .map(value => value.id)
+                        }
+                      });
+                    };
                     const loading = mutationLoading || dataLoading;
                     return (
                       <ProductTypeDetailsPage
@@ -125,15 +180,11 @@ export const ProductTypeUpdate: React.StatelessComponent<
                         )}
                         disabled={loading}
                         errors={errors}
-                        pageTitle={
-                          data && data.productType
-                            ? data.productType.name
-                            : undefined
-                        }
+                        pageTitle={maybe(() => data.productType.name)}
                         productType={maybe(() => data.productType)}
                         saveButtonBarState={loading ? "loading" : "default"}
-                        onAttributeAdd={() => undefined}
-                        onAttributeUpdate={() => undefined}
+                        onAttributeAdd={handleAttributeCreate}
+                        onAttributeUpdate={handleAttributeUpdate}
                         onBack={() => navigate(productTypeListUrl)}
                         onDelete={handleProductTypeDelete}
                         onSubmit={handleProductTypeUpdate}

@@ -13,6 +13,7 @@ import Skeleton from "../../../components/Skeleton";
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
+import { AttributeTypeEnum } from "../../../types/globalTypes";
 import {
   ProductTypeDetails_productType_productAttributes,
   ProductTypeDetails_productType_variantAttributes
@@ -25,8 +26,11 @@ interface ProductTypeAttributesProps {
   attributes:
     | ProductTypeDetails_productType_productAttributes[]
     | ProductTypeDetails_productType_variantAttributes[];
-  title: string;
-  onAttributeAdd: (data: ProductTypeAttributeEditDialogFormData) => void;
+  type: AttributeTypeEnum;
+  onAttributeAdd: (
+    data: ProductTypeAttributeEditDialogFormData,
+    type: AttributeTypeEnum
+  ) => void;
   onAttributeUpdate: (
     id: string,
     data: ProductTypeAttributeEditDialogFormData
@@ -42,13 +46,17 @@ const decorate = withStyles({
   }
 });
 const ProductTypeAttributes = decorate<ProductTypeAttributesProps>(
-  ({ attributes, classes, title, onAttributeAdd, onAttributeUpdate }) => (
+  ({ attributes, classes, type, onAttributeAdd, onAttributeUpdate }) => (
     <Toggle>
       {(openedAttributeAddDialog, { toggle: toggleAttributeAddDialog }) => (
         <>
           <Card>
             <CardTitle
-              title={title}
+              title={
+                type === AttributeTypeEnum.PRODUCT
+                  ? i18n.t("Product Attributes")
+                  : i18n.t("Variant Attributes")
+              }
               toolbar={
                 <Button
                   color="secondary"
@@ -106,7 +114,10 @@ const ProductTypeAttributes = decorate<ProductTypeAttributesProps>(
                             opened={openedAttributeEditDialog}
                             title={i18n.t("Edit attribute")}
                             values={maybe(() =>
-                              attribute.values.map(value => value.name)
+                              attribute.values.map(value => ({
+                                label: value.name,
+                                value: value.id
+                              }))
                             )}
                             onClose={toggleAttributeEditDialog}
                             onConfirm={data =>
@@ -134,7 +145,7 @@ const ProductTypeAttributes = decorate<ProductTypeAttributesProps>(
             name=""
             values={[]}
             onClose={toggleAttributeAddDialog}
-            onConfirm={onAttributeAdd}
+            onConfirm={data => onAttributeAdd(data, type)}
           />
         </>
       )}

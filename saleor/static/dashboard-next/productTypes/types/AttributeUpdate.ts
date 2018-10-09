@@ -13,9 +13,25 @@ export interface AttributeUpdate_attributeUpdate_errors {
   message: string | null;
 }
 
+export interface AttributeUpdate_attributeUpdate_attribute_values {
+  __typename: "AttributeValue";
+  id: string;
+  name: string | null;
+  slug: string | null;
+}
+
+export interface AttributeUpdate_attributeUpdate_attribute {
+  __typename: "Attribute";
+  id: string;
+  name: string | null;
+  slug: string | null;
+  values: (AttributeUpdate_attributeUpdate_attribute_values | null)[] | null;
+}
+
 export interface AttributeUpdate_attributeUpdate {
   __typename: "AttributeUpdate";
   errors: (AttributeUpdate_attributeUpdate_errors | null)[] | null;
+  attribute: AttributeUpdate_attributeUpdate_attribute | null;
 }
 
 export interface AttributeUpdate {

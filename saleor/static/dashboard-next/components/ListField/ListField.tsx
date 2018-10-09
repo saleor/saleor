@@ -8,10 +8,14 @@ import i18n from "../../i18n";
 
 interface ListFieldProps
   extends Exclude<Exclude<TextFieldProps, "value">, "classes"> {
-  values: string[];
+  values: Array<{
+    label: string;
+    value: string;
+  }>;
 }
 
 interface ListFieldState {
+  newValueCounter: number;
   value: string;
 }
 
@@ -41,6 +45,7 @@ const ListField = decorate<
     ListFieldState
   > {
     state: ListFieldState = {
+      newValueCounter: 0,
       value: ""
     };
     handleFieldChange = (event: React.ChangeEvent<any>) =>
@@ -64,10 +69,19 @@ const ListField = decorate<
         this.props.onChange({
           target: {
             name: this.props.name,
-            value: [...this.props.values, this.state.value]
+            value: [
+              ...this.props.values,
+              {
+                label: this.state.value,
+                value: "generated-" + this.state.newValueCounter
+              }
+            ]
           }
         } as any);
-        this.setState({ value: "" });
+        this.setState({
+          newValueCounter: this.state.newValueCounter + 1,
+          value: ""
+        });
       }
     };
 
@@ -106,7 +120,7 @@ const ListField = decorate<
             {values.map((value, valueIndex) => (
               <div className={classes.chip} key={valueIndex}>
                 <Typography variant="caption">
-                  {value}{" "}
+                  {value.label}{" "}
                   <CloseIcon
                     className={classes.closeIcon}
                     onClick={() => this.handleValueRemove(valueIndex)}
