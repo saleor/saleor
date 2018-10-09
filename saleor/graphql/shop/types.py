@@ -6,9 +6,11 @@ from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
 from ...core.permissions import get_permissions
 from ...core.utils import get_client_ip, get_country_by_ip
+from ...site import AuthenticationBackends
 from ...site import models as site_models
 from ..core.types.common import (
     CountryDisplay, LanguageDisplay, PermissionDisplay, WeightUnitsEnum)
+from ..core.utils import str_to_enum
 from ..menu.types import Menu
 from ..product.types import Collection
 from ..utils import format_permissions_for_display
@@ -22,9 +24,16 @@ class Navigation(graphene.ObjectType):
         description = 'Represents shop\'s navigation menus.'
 
 
+AuthorizationKeyType = graphene.Enum(
+    'AuthorizationKeyType', [(str_to_enum(auth_type[0]), auth_type[0])
+                             for auth_type in AuthenticationBackends.BACKENDS])
+
+
 class AuthorizationKey(graphene.ObjectType):
-    name = graphene.String(description='Name of the key.', required=True)
-    key = graphene.String(description='Value of the key.', required=True)
+    name = AuthorizationKeyType(
+        description='Name of the authorization backend.', required=True)
+    key = graphene.String(
+        description='Authorization key (client ID).', required=True)
 
 
 class Domain(graphene.ObjectType):
@@ -53,7 +62,10 @@ class Shop(graphene.ObjectType):
         Geolocalization,
         description='Customer\'s geolocalization data.')
     authorization_keys = graphene.List(
-        AuthorizationKey, description='List of configured authorization keys.',
+        AuthorizationKey,
+        description='''List of configured authorization keys. Authorization
+        keys are used to enable thrid party OAuth authorization (currently
+        Facebook or Google).''',
         required=True)
     countries = graphene.List(
         CountryDisplay, description='List of countries available in the shop.',

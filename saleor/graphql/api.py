@@ -66,7 +66,8 @@ from .shipping.mutations import (
 
 from .shop.types import Shop
 from .shop.mutations import (
-    ShopDomainUpdate, ShopSettingsUpdate, HomepageCollectionUpdate)
+    AuthorizationKeyAdd, AuthorizationKeyDelete, ShopDomainUpdate,
+    ShopSettingsUpdate, HomepageCollectionUpdate)
 
 
 class Query(graphene.ObjectType):
@@ -271,6 +272,9 @@ class Query(graphene.ObjectType):
 
 
 class Mutations(graphene.ObjectType):
+    authorization_key_add = AuthorizationKeyAdd.Field()
+    authotization_key_delete = AuthorizationKeyDelete.Field()
+
     assign_navigation = AssignNavigation.Field()
 
     token_create = CreateToken.Field()
