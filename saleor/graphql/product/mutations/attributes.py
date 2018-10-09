@@ -6,7 +6,8 @@ from graphql_jwt.decorators import permission_required
 
 from ....product import models
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..types import Attribute, AttributeValue
+from ...product.types import ProductType
+from ..types import Attribute, AttributeTypeEnum, AttributeValue
 
 
 class AttributeCreateValueInput(graphene.InputObjectType):
@@ -24,22 +25,7 @@ class AttributeCreateInput(graphene.InputObjectType):
         description='Attribute values to be created for this attribute.')
 
 
-class AttributeCreate(ModelMutation):
-    ATTRIBUTE_VALUES_FIELD = 'values'
-
-    class Arguments:
-        input = AttributeCreateInput(
-            required=True,
-            description='Fields required to create an attribute.')
-
-    class Meta:
-        description = 'Creates an attribute.'
-        model = models.Attribute
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('product.manage_products')
-
+class AttributeMixin:
     @classmethod
     def clean_attribute_value_uniqueness(cls, values, errors, error_msg):
         """Checks if all provided values are unique."""
@@ -81,7 +67,7 @@ class AttributeCreate(ModelMutation):
         if attribute_with_same_slug_exists:
             cls.add_error(errors, 'name', 'Attribute\'s name is not unique.')
 
-        values = cleaned_input.get(cls.ATTRIBUTE_VALUES_FIELD, [])
+        values = cleaned_input.get(cls.ATTRIBUTE_VALUES_FIELD)
         if not values:
             return cleaned_input
 
@@ -104,9 +90,70 @@ class AttributeCreate(ModelMutation):
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
-        values = cleaned_data.get(cls.ATTRIBUTE_VALUES_FIELD, [])
+        values = cleaned_data.get(cls.ATTRIBUTE_VALUES_FIELD) or []
         for value in values:
             instance.values.create(**value)
+
+
+class AttributeCreate(AttributeMixin, ModelMutation):
+    ATTRIBUTE_VALUES_FIELD = 'values'
+
+    attribute = graphene.Field(
+        Attribute, description='A created Attribute.')
+
+    class Arguments:
+        id = graphene.ID(
+            required=True,
+            description='ID of the ProductType to create an attribute for.')
+        type = AttributeTypeEnum(
+            required=True,
+            description=(
+                'Type of an Attribute, if should be created for Products'
+                ' or Variants of this ProductType.'))
+        input = AttributeCreateInput(
+            required=True,
+            description='Fields required to create an attribute.')
+
+    class Meta:
+        description = 'Creates an attribute.'
+        model = models.Attribute
+
+    @classmethod
+    def clean_product_type_variant_attributes(
+            cls, product_type, type, errors):
+        if (type == AttributeTypeEnum.VARIANT.name
+                and not product_type.has_variants):
+            cls.add_error(
+                errors, 'product_type',
+                'Cannot create an Attribute for ProductType'
+                'not supporting ProductVariants.')
+        return errors
+
+    @classmethod
+    @permission_required('product.manage_products')
+    def mutate(cls, root, info, id, type, input):
+        errors = []
+        product_type = cls.get_node_or_error(
+            info, id, errors, 'id', ProductType)
+        if not product_type:
+            return AttributeCreate(errors=errors)
+
+        instance = models.Attribute()
+        cleaned_input = cls.clean_input(info, instance, input, errors)
+        instance = cls.construct_instance(instance, cleaned_input)
+        cls.clean_instance(instance, errors)
+        cls.clean_product_type_variant_attributes(
+            product_type, type, errors)
+        if errors:
+            return cls(errors=errors)
+
+        instance.save()
+        if type == AttributeTypeEnum.VARIANT.name:
+            product_type.variant_attributes.add(instance)
+        else:
+            product_type.product_attributes.add(instance)
+        cls._save_m2m(info, instance, cleaned_input)
+        return cls.success_response(instance)
 
 
 class AttributeUpdateInput(graphene.InputObjectType):
@@ -120,7 +167,7 @@ class AttributeUpdateInput(graphene.InputObjectType):
         description='Attribute values to be created for this attribute.')
 
 
-class AttributeUpdate(AttributeCreate):
+class AttributeUpdate(AttributeMixin, ModelMutation):
     ATTRIBUTE_VALUES_FIELD = 'add_values'
 
     class Arguments:
@@ -133,6 +180,10 @@ class AttributeUpdate(AttributeCreate):
     class Meta:
         description = 'Updates attribute.'
         model = models.Attribute
+
+    @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.manage_products')
 
     @classmethod
     def clean_remove_values(cls, cleaned_input, instance, errors):

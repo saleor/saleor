@@ -142,6 +142,11 @@ type AttributeDelete {
 
 scalar AttributeScalar
 
+enum AttributeTypeEnum {
+  PRODUCT
+  VARIANT
+}
+
 type AttributeUpdate {
   errors: [Error]
   attribute: Attribute
@@ -511,6 +516,10 @@ input FulfillmentUpdateTrackingInput {
 
 scalar GenericScalar
 
+type Geolocalization {
+  country: CountryDisplay
+}
+
 type HomepageCollectionUpdate {
   errors: [Error]
   shop: Shop
@@ -694,7 +703,7 @@ type Mutations {
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
-  attributeCreate(input: AttributeCreateInput!): AttributeCreate
+  attributeCreate(id: ID!, input: AttributeCreateInput!, type: AttributeTypeEnum!): AttributeCreate
   attributeDelete(id: ID!): AttributeDelete
   attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
   productCreate(input: ProductCreateInput!): ProductCreate
@@ -1447,6 +1456,7 @@ type ShippingZoneUpdate {
 }
 
 type Shop {
+  geolocalization: Geolocalization
   authorizationKeys: [AuthorizationKey]!
   countries: [CountryDisplay]!
   currencies: [String]!

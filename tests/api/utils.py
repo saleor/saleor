@@ -21,7 +21,7 @@ def assert_no_permission(response):
     content = _get_graphql_content_from_response(response)
     assert 'errors' in content
     assert content['errors'][0]['message'] == (
-        'You do not have permission to perform this action')
+        'You do not have permission to perform this action'), content['errors']
 
 
 def get_multipart_request_body(query, variables, file, file_name):

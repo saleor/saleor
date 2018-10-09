@@ -92,6 +92,11 @@ class Attribute(CountableDjangoObjectType):
         return self.values.all()
 
 
+class AttributeTypeEnum(graphene.Enum):
+    PRODUCT = 'PRODUCT'
+    VARIANT = 'VARIANT'
+
+
 class Margin(graphene.ObjectType):
     start = graphene.Int()
     stop = graphene.Int()

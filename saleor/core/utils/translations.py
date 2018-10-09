@@ -1,7 +1,7 @@
 from django.utils.translation import get_language
 
 
-class TranslationWrapper(object):
+class TranslationWrapper:
     def __init__(self, instance, locale):
         self.instance = instance
         self.translation = next((
@@ -21,7 +21,7 @@ class TranslationWrapper(object):
         return str(instance)
 
 
-class TranslationProxy(object):
+class TranslationProxy:
 
     def __get__(self, instance, owner):
         locale = get_language()
