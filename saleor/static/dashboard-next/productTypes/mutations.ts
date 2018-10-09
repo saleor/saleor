@@ -1,7 +1,7 @@
 import gql from "graphql-tag";
 
 import { TypedMutation } from "../mutations";
-import { productTypeDetailsFragment, attributeFragment } from "./queries";
+import { attributeFragment, productTypeDetailsFragment } from "./queries";
 import {
   AttributeCreate,
   AttributeCreateVariables
