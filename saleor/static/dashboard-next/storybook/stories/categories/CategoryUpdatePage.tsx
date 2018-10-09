@@ -47,12 +47,13 @@ storiesOf("Views / Categories / Update category", module)
   ))
   .add("When loading", () => (
     <CategoryUpdatePage
-      subcategories={category.children}
+      subcategories={undefined}
       disabled={false}
       category={category}
       errors={[]}
-      // products={category.products}
+      products={undefined}
       loading={true}
       onProductClick={() => undefined}
+      onCategoryClick={() => undefined}
     />
   ));

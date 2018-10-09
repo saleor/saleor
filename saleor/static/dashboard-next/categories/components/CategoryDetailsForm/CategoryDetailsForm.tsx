@@ -37,7 +37,7 @@ export const CategoryDetailsForm = decorate<CategoryDetailsFormProps>(
       <Card>
         <CardTitle title={i18n.t("General information")} />
         <CardContent>
-          {loading === true ? (
+          {loading ? (
             <Skeleton />
           ) : (
             <>

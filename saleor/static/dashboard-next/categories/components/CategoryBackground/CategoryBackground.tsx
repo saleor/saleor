@@ -1,4 +1,4 @@
-import { withStyles } from "@material-ui/core/styles";
+import { withStyles, WithStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 import Card from "@material-ui/core/Card";
@@ -12,7 +12,7 @@ import i18n from "../../../i18n";
 
 interface CategoryBackgroundProps {
   onImageUpload?(event: React.ChangeEvent<any>);
-  disabled: boolean;
+  disabled?: boolean;
 }
 
 const decorate = withStyles(theme => ({
@@ -30,39 +30,51 @@ const decorate = withStyles(theme => ({
   }
 }));
 
-export const CategoryBackground = decorate<CategoryBackgroundProps>(
-  ({ classes, onImageUpload, disabled }) => {
-    return (
-      <Card>
-        <CardTitle
-          title={i18n.t("Background image (optional)")}
-          toolbar={
-            <>
-              <Button
-                variant="flat"
-                color="secondary"
-                disabled={disabled}
-                onClick={() => this.upload.click()}
-              >
-                {i18n.t("Upload image")}
-              </Button>
-              <input
-                className={classes.fileField}
-                id="fileUpload"
-                onChange={onImageUpload}
-                type="file"
-                ref={ref => (this.upload = ref)}
-              />
-            </>
-          }
-        />
-        <CardContent>
-          <div className={classes.noPhotosIconContainer}>
-            <AddPhotoIcon className={classes.noPhotosIcon} />
-          </div>
-        </CardContent>
-      </Card>
-    );
+export const CategoryBackground = decorate(
+  class CategoryBackgroundClass extends React.Component<
+    CategoryBackgroundProps &
+      WithStyles<"noPhotosIcon" | "noPhotosIconContainer" | "fileField">,
+    {}
+  > {
+    imgInputAnchor = React.createRef<HTMLInputElement>();
+
+    clickImgInput = () => this.imgInputAnchor.current.click();
+
+    render() {
+      const { classes, onImageUpload, disabled } = this.props;
+      return (
+        <Card>
+          <CardTitle
+            title={i18n.t("Background image (optional)")}
+            toolbar={
+              <>
+                <Button
+                  variant="flat"
+                  color="secondary"
+                  disabled={disabled}
+                  onClick={this.clickImgInput}
+                >
+                  {i18n.t("Upload image")}
+                </Button>
+                <input
+                  className={classes.fileField}
+                  id="fileUpload"
+                  onChange={onImageUpload}
+                  type="file"
+                  ref={this.imgInputAnchor}
+                />
+              </>
+            }
+          />
+          <CardContent>
+            <div className={classes.noPhotosIconContainer}>
+              <AddPhotoIcon className={classes.noPhotosIcon} />
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
   }
 );
+
 export default CategoryBackground;

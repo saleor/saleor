@@ -11,6 +11,7 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import IconButton from "@material-ui/core/IconButton";
 import AddIcon from "@material-ui/icons/Add";
 // import CardActions from "@material-ui/core/CardActions";
+import Hr from "../../../components/Hr";
 
 import CardTitle from "../../../components/CardTitle";
 import Toggle from "../../../components/Toggle";
@@ -26,7 +27,8 @@ const decorate = withStyles(theme => ({
   root: {
     display: "grid",
     gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "5fr 8fr 0.5fr"
+    gridTemplateColumns: "5fr 8fr 30px",
+    marginBottom: "1rem"
   },
   helperText: {
     marginBottom: theme.spacing.unit * 4
@@ -37,13 +39,6 @@ const decorate = withStyles(theme => ({
   },
   addSubCat: {
     padding: "0px"
-  },
-  hr: {
-    backgroundColor: "#eaeaea",
-    border: "none",
-    height: 1,
-    marginBottom: theme.spacing.unit,
-    marginTop: theme.spacing.unit * 3
   }
 }));
 
@@ -87,8 +82,7 @@ export const CategoryCreateSubcategories = decorate<
                   </IconButton>
                 </div>
 
-                <hr className={classes.hr} />
-
+                <Hr />
                 <Button
                   variant="flat"
                   color="secondary"
