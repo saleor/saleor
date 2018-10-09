@@ -38,7 +38,7 @@ export interface ProductTypeForm {
   variantAttributes: ChoiceType[];
   weight: number;
 }
-interface ProductTypeDetailsPageProps {
+export interface ProductTypeDetailsPageProps {
   errors: Array<{
     field: string;
     message: string;

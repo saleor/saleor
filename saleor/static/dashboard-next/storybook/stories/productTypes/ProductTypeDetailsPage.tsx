@@ -1,16 +1,19 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import ProductTypeDetailsPage from "../../../productTypes/components/ProductTypeDetailsPage";
+import ProductTypeDetailsPage, {
+  ProductTypeDetailsPageProps
+} from "../../../productTypes/components/ProductTypeDetailsPage";
 import { productType } from "../../../productTypes/fixtures";
 import { WeightUnitsEnum } from "../../../types/globalTypes";
 import Decorator from "../../Decorator";
 
-const props = {
+const props: ProductTypeDetailsPageProps = {
   defaultWeightUnit: "kg" as WeightUnitsEnum,
   disabled: false,
   errors: [],
   onAttributeAdd: () => undefined,
+  onAttributeDelete: () => undefined,
   onAttributeUpdate: () => undefined,
   onBack: () => undefined,
   onDelete: () => undefined,
