@@ -12,6 +12,8 @@ storiesOf("Views / Categories / Create category", module)
       disabled={false}
       errors={[]}
       onBack={() => undefined}
+      onSubmit={() => undefined}
+      onDelete={() => undefined}
     />
   ))
   .add("When loading", () => (
@@ -20,5 +22,7 @@ storiesOf("Views / Categories / Create category", module)
       disabled={true}
       errors={[]}
       onBack={() => undefined}
+      onSubmit={() => undefined}
+      onDelete={() => undefined}
     />
   ));

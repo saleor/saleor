@@ -34,11 +34,11 @@ interface CategoryCreatePageProps {
 
   disabled: boolean;
 
-  onSubmit?(data: FormData);
+  onSubmit(data: FormData);
   onImageUpload?(event: React.ChangeEvent<any>);
 
-  onBack?();
-  onDelete?();
+  onBack();
+  onDelete();
   saveButtonBarState?: SaveButtonBarState;
 }
 const decorate = withStyles(theme => ({
