@@ -1,6 +1,19 @@
 import gql from "graphql-tag";
 
 import { TypedMutation } from "../mutations";
+import { productTypeDetailsFragment } from "./queries";
+import {
+  AttributeCreate,
+  AttributeCreateVariables
+} from "./types/AttributeCreate";
+import {
+  AttributeDelete,
+  AttributeDeleteVariables
+} from "./types/AttributeDelete";
+import {
+  AttributeUpdate,
+  AttributeUpdateVariables
+} from "./types/AttributeUpdate";
 import {
   ProductTypeCreate,
   ProductTypeCreateVariables
@@ -33,6 +46,7 @@ export const TypedProductTypeDeleteMutation = TypedMutation<
 >(productTypeDeleteMutation);
 
 export const productTypeUpdateMutation = gql`
+  ${productTypeDetailsFragment}
   mutation ProductTypeUpdate($id: ID!, $input: ProductTypeInput!) {
     productTypeUpdate(id: $id, input: $input) {
       errors {
@@ -40,21 +54,7 @@ export const productTypeUpdateMutation = gql`
         message
       }
       productType {
-        id
-        name
-        hasVariants
-        taxRate
-        productAttributes {
-          id
-          slug
-          name
-        }
-        variantAttributes {
-          id
-          slug
-          name
-        }
-        isShippingRequired
+        ...ProductTypeDetailsFragment
       }
     }
   }
@@ -65,6 +65,7 @@ export const TypedProductTypeUpdateMutation = TypedMutation<
 >(productTypeUpdateMutation);
 
 export const productTypeCreateMutation = gql`
+  ${productTypeDetailsFragment}
   mutation ProductTypeCreate($input: ProductTypeInput!) {
     productTypeCreate(input: $input) {
       errors {
@@ -72,20 +73,7 @@ export const productTypeCreateMutation = gql`
         message
       }
       productType {
-        id
-        name
-        hasVariants
-        productAttributes {
-          id
-          slug
-          name
-        }
-        variantAttributes {
-          id
-          slug
-          name
-        }
-        isShippingRequired
+        ...ProductTypeDetailsFragment
       }
     }
   }
@@ -94,3 +82,52 @@ export const TypedProductTypeCreateMutation = TypedMutation<
   ProductTypeCreate,
   ProductTypeCreateVariables
 >(productTypeCreateMutation);
+
+export const attributeCreateMutation = gql`
+  mutation AttributeCreate(
+    $id: ID!
+    $input: AttributeCreateInput!
+    $type: AttributeTypeEnum!
+  ) {
+    attributeCreate(id: $id, input: $input, type: $type) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedAttributeCreateMutation = TypedMutation<
+  AttributeCreate,
+  AttributeCreateVariables
+>(attributeCreateMutation);
+
+export const attributeUpdateMutation = gql`
+  mutation AttributeUpdate($id: ID!, $input: AttributeUpdateInput!) {
+    attributeUpdate(id: $id, input: $input) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedAttributeUpdateMutation = TypedMutation<
+  AttributeUpdate,
+  AttributeUpdateVariables
+>(attributeUpdateMutation);
+
+export const attributeDeleteMutation = gql`
+  mutation AttributeDelete($id: ID!) {
+    attributeDelete(id: $id) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedAttributeDeleteMutation = TypedMutation<
+  AttributeDelete,
+  AttributeDeleteVariables
+>(attributeDeleteMutation);
