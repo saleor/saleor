@@ -19,6 +19,8 @@ import SaveButtonBar, {
   SaveButtonBarState
 } from "../../../components/SaveButtonBar/SaveButtonBar";
 
+import Tabs, { SingleTab } from "../../../components/Tab";
+
 import { UserError } from "../../../";
 // import Card from "@material-ui/core/Card";
 import Button from "@material-ui/core/Button";
@@ -94,6 +96,9 @@ const decorate = withStyles(theme => ({
     display: "grid",
     marginTop: theme.spacing.unit * 2,
     gridGap: theme.spacing.unit * 4 + "px"
+  },
+  tabsBorder: {
+    borderBottom: "1px solid #eeeeee"
   }
 }));
 
@@ -189,23 +194,57 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
                         />
                       </>
                     )}
-                    <CategoryList
-                      categories={subcategories}
-                      isRoot={isRoot}
-                      onAdd={onAddCategory}
-                      onRowClick={onCategoryClick}
-                    />
+                    {isRoot && (
+                      <CategoryList
+                        categories={subcategories}
+                        isRoot={isRoot}
+                        onAdd={onAddCategory}
+                        onRowClick={onCategoryClick}
+                      />
+                    )}
                     {!isRoot && (
                       <>
-                        <CategoryProductsCard
-                          products={products}
-                          disabled={disabled}
-                          pageInfo={pageInfo}
-                          onNextPage={onNextPage}
-                          onPreviousPage={onPreviousPage}
-                          onRowClick={onProductClick}
-                          onAdd={onAddProduct}
-                        />{" "}
+                        <Tabs>
+                          {({ changeTab, currentTab }) => (
+                            <>
+                              <div className={classes.tabsBorder}>
+                                <SingleTab
+                                  isActive={currentTab === 0}
+                                  value={0}
+                                  changeTab={changeTab}
+                                >
+                                  Subcategories
+                                </SingleTab>
+                                <SingleTab
+                                  isActive={currentTab === 1}
+                                  value={1}
+                                  changeTab={changeTab}
+                                >
+                                  Products
+                                </SingleTab>
+                              </div>
+                              {currentTab === 0 && (
+                                <CategoryList
+                                  categories={subcategories}
+                                  isRoot={isRoot}
+                                  onAdd={onAddCategory}
+                                  onRowClick={onCategoryClick}
+                                />
+                              )}
+                              {currentTab === 1 && (
+                                <CategoryProductsCard
+                                  products={products}
+                                  disabled={disabled}
+                                  pageInfo={pageInfo}
+                                  onNextPage={onNextPage}
+                                  onPreviousPage={onPreviousPage}
+                                  onRowClick={onProductClick}
+                                  onAdd={onAddProduct}
+                                />
+                              )}
+                            </>
+                          )}
+                        </Tabs>
                         <SaveButtonBar
                           onCancel={onBack}
                           onDelete={toggleDeleteDialog}
