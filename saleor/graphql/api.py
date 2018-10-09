@@ -273,7 +273,7 @@ class Query(graphene.ObjectType):
 
 class Mutations(graphene.ObjectType):
     authorization_key_add = AuthorizationKeyAdd.Field()
-    authotization_key_delete = AuthorizationKeyDelete.Field()
+    authorization_key_delete = AuthorizationKeyDelete.Field()
 
     assign_navigation = AssignNavigation.Field()
 
