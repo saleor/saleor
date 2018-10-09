@@ -18,39 +18,28 @@ import Toggle from "../../../components/Toggle";
 import SaveButtonBar, {
   SaveButtonBarState
 } from "../../../components/SaveButtonBar/SaveButtonBar";
-
 import Tabs, { SingleTab } from "../../../components/Tab";
-
 import { UserError } from "../../../";
-// import Card from "@material-ui/core/Card";
 import Button from "@material-ui/core/Button";
-// import CardContent from "@material-ui/core/CardContent";
-// import AddPhotoIcon from "@material-ui/icons/AddAPhoto";
-// import Typography from "@material-ui/core/Typography";
-// import CardTitle from "../../../components/CardTitle";
-
 import i18n from "../../../i18n";
 
 interface FormData {
-  //CategoryDetailsForm
   description: string;
   name: string;
-
-  // SeoForm
   seoTitle: string;
   seoDescription: string;
 }
-interface CategoryUpdatePageProps {
+export interface CategoryUpdatePageProps {
   errors: UserError[];
   disabled: boolean;
   productCount?: number;
-  category?: {
-    SeoDescription?: string;
-    SeoTitle?: string;
-    name?: string;
-    description?: string;
+  category: {
+    SeoDescription: string;
+    SeoTitle: string;
+    name: string;
+    description: string;
   };
-  products?: Array<{
+  products: Array<{
     id: string;
     name: string;
     productType: {
@@ -62,7 +51,7 @@ interface CategoryUpdatePageProps {
     };
     price: MoneyType;
   }>;
-  subcategories?: Array<{
+  subcategories: Array<{
     id: string;
     name: string;
     children: {
@@ -72,7 +61,7 @@ interface CategoryUpdatePageProps {
       totalCount: number;
     };
   }>;
-  pageInfo?: {
+  pageInfo: {
     hasNextPage: boolean;
     hasPreviousPage: boolean;
   };
@@ -86,7 +75,6 @@ interface CategoryUpdatePageProps {
   onAddProduct?();
   onBack?();
   onDelete?();
-  onSubmit?(data: FormData);
   onAddCategory?();
   onCategoryClick?(id: string): () => void;
 }
