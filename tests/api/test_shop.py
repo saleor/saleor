@@ -329,7 +329,7 @@ def test_mutation_authorization_key_delete(
 
     query = """
     mutation DeleteKey($keyType: AuthorizationKeyType!) {
-        authotizationKeyDelete(keyType: $keyType) {
+        authorizationKeyDelete(keyType: $keyType) {
             errors {
                 field
                 message
@@ -349,4 +349,4 @@ def test_mutation_authorization_key_delete(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_settings])
     content = get_graphql_content(response)
-    assert content['data']['authotizationKeyDelete']['authorizationKey']
+    assert content['data']['authorizationKeyDelete']['authorizationKey']

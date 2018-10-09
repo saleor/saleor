@@ -124,7 +124,7 @@ class AuthorizationKeyAdd(BaseMutation):
 
     class Arguments:
         key_type = AuthorizationKeyType(
-            required=True, description='Type of authorization key to add.')
+            required=True, description='Type of an authorization key to add.')
         input = AuthorizationKeyInput(
             required=True,
             description='Fields required to create an authorization key.')
@@ -139,12 +139,13 @@ class AuthorizationKeyAdd(BaseMutation):
             return AuthorizationKeyAdd(errors=errors)
 
         site_settings = info.context.site.settings
-        instance = site_models.AuthorizationKey.objects.create(
+        instance = site_models.AuthorizationKey(
             name=key_type, site_settings=site_settings, **input)
         cls.clean_instance(instance, errors)
         if errors:
             return AuthorizationKeyAdd(errors=errors)
 
+        instance.save()
         return AuthorizationKeyAdd(authorization_key=instance)
 
 
@@ -154,7 +155,7 @@ class AuthorizationKeyDelete(BaseMutation):
 
     class Arguments:
         key_type = AuthorizationKeyType(
-            required=True, description='Type of key to delete.')
+            required=True, description='Type of a key to delete.')
 
     class Meta:
         description = 'Deletes an authorization key.'
