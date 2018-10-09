@@ -23,7 +23,7 @@ def test_query_authorization_keys(
         query, permissions=[permission_manage_settings])
     content = get_graphql_content(response)
     data = content['data']['shop']
-    assert data['authorizationKeys'][0]['name'] == authorization_key.name
+    assert data['authorizationKeys'][0]['name'] == 'FACEBOOK'
     assert data['authorizationKeys'][0]['key'] == authorization_key.key
 
 

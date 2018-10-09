@@ -1,21 +1,12 @@
-import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 
-from saleor.account.backends import BaseBackend
 from saleor.account.forms import LoginForm, SignupForm
 
 from .utils import get_redirect_location
 
 User = get_user_model()
-
-
-@pytest.fixture
-def base_backend():
-    base_backend = BaseBackend()
-    base_backend.DB_NAME = 'Backend'
-    return base_backend
 
 
 def test_login_form_valid(customer_user):
