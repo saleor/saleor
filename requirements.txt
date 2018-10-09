@@ -1,21 +1,23 @@
+-i https://pypi.python.org/simple
 amqp==2.3.2
 aniso8601==3.0.2
 asn1crypto==0.24.0
+autopep8==1.4
 babel==2.6.0
 billiard==3.5.0.4
 bleach==2.1.4
-boto3==1.9.17
-botocore==1.12.17
+boto3==1.9.19
+botocore==1.12.19
 braintree==3.48.0
 cairocffi==0.9.0
-cairosvg==2.2.1; python_version >= '3.0'
+cairosvg==2.2.1
 celery==4.2.1
 certifi==2018.8.24
 cffi==1.11.5
 chardet==3.0.4
 cryptography==2.3.1
 cssselect2==0.2.1
-defusedxml==0.5.0; python_version >= '3.0'
+defusedxml==0.5.0 ; python_version >= '3.0'
 dj-database-url==0.5.0
 dj-email-url==0.1.0
 django-appconf==1.0.2
@@ -24,6 +26,8 @@ django-bootstrap4==0.0.7
 django-cache-url==3.0.0
 django-celery-results==1.0.1
 django-countries==5.3.2
+django-debug-toolbar-request-history==0.0.9
+django-debug-toolbar==1.10.1
 django-elasticsearch-dsl==0.5.0
 django-filter==2.0.0
 django-fsm==2.6.0
@@ -40,6 +44,7 @@ django-prices==1.0.4
 django-recaptcha==1.4.0
 django-redis==4.9.0
 django-render-block==0.5
+django-silk==2.0.0
 django-storages==1.7.1
 django-templated-email==2.2.0
 django-versatileimagefield==1.10
@@ -52,34 +57,39 @@ faker==0.9.1
 freezegun==0.3.10
 google-i18n-address==2.3.2
 google-measurement-protocol==1.0.0
+gprof2dot==2016.10.13
 graphene-django==2.2.0
 graphene==2.1.3
 graphql-core==2.1
 graphql-relay==0.4.5
 html5lib==1.0.1
 idna==2.7
+jinja2==2.10
 jmespath==0.9.3
 jsonfield==2.0.2
 kombu==4.2.1
 markdown==3.0.1
+markupsafe==1.0
 maxminddb-geolite2==2018.703
 maxminddb==1.4.1
 measurement==2.0.1
 mpmath==1.0.0
 oauthlib==2.1.0
 pdfrw==0.4
-phonenumbers==8.9.14
-phonenumberslite==8.9.14
+phonenumbers==8.9.15
+phonenumberslite==8.9.15
 pillow==5.3.0
 prices==1.0.0
 promise==2.2.1
 psycopg2-binary==2.7.5
 purl==1.4
+pycodestyle==2.4.0
 pycparser==2.19
+pygments==2.2.0
 pyjwt==1.6.4
 pyphen==0.9.5
-python-dateutil==2.7.3; python_version >= '2.7'
-python3-openid==3.1.0; python_version >= '3.0'
+python-dateutil==2.7.3 ; python_version >= '2.7'
+python3-openid==3.1.0 ; python_version >= '3.0'
 pytz==2018.5
 raven==6.9.0
 redis==2.10.6
@@ -91,6 +101,7 @@ singledispatch==3.4.0.3
 six==1.11.0
 social-auth-app-django==2.1.0
 social-auth-core==1.7.0
+sqlparse==0.2.4
 stripe==2.10.1
 suds-jurko==0.6
 sympy==1.3
@@ -98,7 +109,7 @@ text-unidecode==1.2
 tinycss2==0.6.1
 typing==3.6.6
 urllib3==1.23
-uwsgi==2.0.17.1; platform_system != 'Windows'
+uwsgi==2.0.17.1 ; platform_system != 'Windows'
 vine==1.1.4
 weasyprint==0.42.3
 webencodings==0.5.1
