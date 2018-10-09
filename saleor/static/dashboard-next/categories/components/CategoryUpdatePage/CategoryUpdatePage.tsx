@@ -12,7 +12,8 @@ import CategoryDetailsForm from "../../components/CategoryDetailsForm";
 import SeoForm from "../../../components/SeoForm";
 import Form from "../../../components/Form";
 import CategoryProductsCard from "../CategoryProductsCard";
-import CategoryDeleteDialog from "../../components/CategoryDeleteDialog";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import ActionDialog from "../../../components/ActionDialog";
 import { MoneyType } from "../../../products";
 import Toggle from "../../../components/Toggle";
 import SaveButtonBar, {
@@ -32,7 +33,6 @@ interface FormData {
 export interface CategoryUpdatePageProps {
   errors: UserError[];
   disabled: boolean;
-  productCount?: number;
   category: {
     SeoDescription: string;
     SeoTitle: string;
@@ -109,7 +109,6 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
     saveButtonBarState,
     onSubmit,
     onBack,
-    productCount,
     onAddCategory,
     onCategoryClick
   }) => {
@@ -249,13 +248,22 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
                   </div>
                 </Container>
                 {!isRoot && (
-                  <CategoryDeleteDialog
-                    name={category.name}
+                  <ActionDialog
+                    title={i18n.t("Remove category")}
                     open={openedDeleteDialog}
-                    productCount={productCount}
                     onClose={toggleDeleteDialog}
                     onConfirm={onDelete}
-                  />
+                    variant={"delete"}
+                  >
+                    <DialogContentText
+                      dangerouslySetInnerHTML={{
+                        __html: i18n.t(
+                          "Are you sure you want to remove <strong>{{ name }}</strong>?",
+                          { name: category.name }
+                        )
+                      }}
+                    />
+                  </ActionDialog>
                 )}
               </>
             )}
