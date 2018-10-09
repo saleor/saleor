@@ -13,7 +13,11 @@ import SaveButtonBar, {
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { TaxRateType, WeightUnitsEnum } from "../../../types/globalTypes";
+import {
+  AttributeTypeEnum,
+  TaxRateType,
+  WeightUnitsEnum
+} from "../../../types/globalTypes";
 import { ProductTypeDetails_productType } from "../../types/ProductTypeDetails";
 import { FormData as ProductTypeAttributeEditDialogFormData } from "../ProductTypeAttributeEditDialog/ProductTypeAttributeEditDialog";
 import ProductTypeAttributes from "../ProductTypeAttributes/ProductTypeAttributes";
@@ -44,13 +48,16 @@ interface ProductTypeDetailsPageProps {
   disabled: boolean;
   pageTitle: string;
   saveButtonBarState: SaveButtonBarState;
-  onAttributeAdd: (data: ProductTypeAttributeEditDialogFormData) => void;
+  onAttributeAdd: (
+    data: ProductTypeAttributeEditDialogFormData,
+    type: AttributeTypeEnum
+  ) => void;
   onAttributeUpdate: (
     id: string,
     data: ProductTypeAttributeEditDialogFormData
   ) => void;
   onBack: () => void;
-  onDelete?: () => void;
+  onDelete: () => void;
   onSubmit: (data: ProductTypeForm) => void;
 }
 
@@ -134,7 +141,7 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
                           attributes={maybe(
                             () => productType.productAttributes
                           )}
-                          title={i18n.t("Product Attributes")}
+                          type={AttributeTypeEnum.PRODUCT}
                           onAttributeAdd={onAttributeAdd}
                           onAttributeUpdate={onAttributeUpdate}
                         />
@@ -154,7 +161,7 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
                             attributes={maybe(
                               () => productType.variantAttributes
                             )}
-                            title={i18n.t("Variant Attributes")}
+                            type={AttributeTypeEnum.VARIANT}
                             onAttributeAdd={onAttributeAdd}
                             onAttributeUpdate={onAttributeUpdate}
                           />

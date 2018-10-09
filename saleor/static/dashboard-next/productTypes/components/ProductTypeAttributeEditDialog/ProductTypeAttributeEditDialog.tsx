@@ -14,14 +14,20 @@ import i18n from "../../../i18n";
 
 export interface FormData {
   name: string;
-  values: string[];
+  values: Array<{
+    label: string;
+    value: string;
+  }>;
 }
 
 interface ProductTypeAttributeEditDialogProps {
   name: string;
   opened: boolean;
   title: string;
-  values: string[];
+  values: Array<{
+    label: string;
+    value: string;
+  }>;
   onClose: () => void;
   onConfirm: (data: FormData) => void;
 }

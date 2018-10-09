@@ -1,7 +1,7 @@
 import gql from "graphql-tag";
 
 import { TypedMutation } from "../mutations";
-import { productTypeDetailsFragment } from "./queries";
+import { productTypeDetailsFragment, attributeFragment } from "./queries";
 import {
   AttributeCreate,
   AttributeCreateVariables
@@ -103,11 +103,15 @@ export const TypedAttributeCreateMutation = TypedMutation<
 >(attributeCreateMutation);
 
 export const attributeUpdateMutation = gql`
+  ${attributeFragment}
   mutation AttributeUpdate($id: ID!, $input: AttributeUpdateInput!) {
     attributeUpdate(id: $id, input: $input) {
       errors {
         field
         message
+      }
+      attribute {
+        ...AttributeFragment
       }
     }
   }
