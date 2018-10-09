@@ -52,6 +52,7 @@ interface ProductTypeDetailsPageProps {
     data: ProductTypeAttributeEditDialogFormData,
     type: AttributeTypeEnum
   ) => void;
+  onAttributeDelete: (id: string, event: React.MouseEvent<any>) => void;
   onAttributeUpdate: (
     id: string,
     data: ProductTypeAttributeEditDialogFormData
@@ -81,6 +82,7 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
     productType,
     saveButtonBarState,
     onAttributeAdd,
+    onAttributeDelete,
     onAttributeUpdate,
     onBack,
     onDelete,
@@ -143,6 +145,7 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
                           )}
                           type={AttributeTypeEnum.PRODUCT}
                           onAttributeAdd={onAttributeAdd}
+                          onAttributeDelete={onAttributeDelete}
                           onAttributeUpdate={onAttributeUpdate}
                         />
                       </div>
@@ -163,6 +166,7 @@ const ProductTypeDetailsPage = decorate<ProductTypeDetailsPageProps>(
                             )}
                             type={AttributeTypeEnum.VARIANT}
                             onAttributeAdd={onAttributeAdd}
+                            onAttributeDelete={onAttributeDelete}
                             onAttributeUpdate={onAttributeUpdate}
                           />
                         </div>

@@ -93,7 +93,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                 >
                   {({
                     attributeCreate,
-                    // deleteAttribute,
+                    deleteAttribute,
                     deleteProductType,
                     errors,
                     loading: mutationLoading,
@@ -137,8 +137,13 @@ export const ProductTypeUpdate: React.StatelessComponent<
                         },
                         type
                       });
-                    // const handleAttributeDelete = (id: string) =>
-                    //   deleteAttribute.mutate({ id });
+                    const handleAttributeDelete = (
+                      id: string,
+                      event: React.MouseEvent<any>
+                    ) => {
+                      event.stopPropagation();
+                      deleteAttribute.mutate({ id });
+                    };
                     const handleAttributeUpdate = (
                       id: string,
                       formData: AttributeForm
@@ -184,6 +189,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                         productType={maybe(() => data.productType)}
                         saveButtonBarState={loading ? "loading" : "default"}
                         onAttributeAdd={handleAttributeCreate}
+                        onAttributeDelete={handleAttributeDelete}
                         onAttributeUpdate={handleAttributeUpdate}
                         onBack={() => navigate(productTypeListUrl)}
                         onDelete={handleProductTypeDelete}
