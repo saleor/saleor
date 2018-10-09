@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { ProductTypeInput } from "./../../types/globalTypes";
+import { ProductTypeInput, TaxRateType } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: ProductTypeCreate
@@ -13,18 +13,40 @@ export interface ProductTypeCreate_productTypeCreate_errors {
   message: string | null;
 }
 
+export interface ProductTypeCreate_productTypeCreate_productType_productAttributes_values {
+  __typename: "AttributeValue";
+  id: string;
+  name: string | null;
+  slug: string | null;
+}
+
 export interface ProductTypeCreate_productTypeCreate_productType_productAttributes {
   __typename: "Attribute";
   id: string;
-  slug: string | null;
   name: string | null;
+  slug: string | null;
+  values: (ProductTypeCreate_productTypeCreate_productType_productAttributes_values | null)[] | null;
+}
+
+export interface ProductTypeCreate_productTypeCreate_productType_variantAttributes_values {
+  __typename: "AttributeValue";
+  id: string;
+  name: string | null;
+  slug: string | null;
 }
 
 export interface ProductTypeCreate_productTypeCreate_productType_variantAttributes {
   __typename: "Attribute";
   id: string;
-  slug: string | null;
   name: string | null;
+  slug: string | null;
+  values: (ProductTypeCreate_productTypeCreate_productType_variantAttributes_values | null)[] | null;
+}
+
+export interface ProductTypeCreate_productTypeCreate_productType_weight {
+  __typename: "Weight";
+  unit: string;
+  value: number;
 }
 
 export interface ProductTypeCreate_productTypeCreate_productType {
@@ -32,9 +54,11 @@ export interface ProductTypeCreate_productTypeCreate_productType {
   id: string;
   name: string;
   hasVariants: boolean;
+  isShippingRequired: boolean;
+  taxRate: TaxRateType | null;
   productAttributes: (ProductTypeCreate_productTypeCreate_productType_productAttributes | null)[] | null;
   variantAttributes: (ProductTypeCreate_productTypeCreate_productType_variantAttributes | null)[] | null;
-  isShippingRequired: boolean;
+  weight: ProductTypeCreate_productTypeCreate_productType_weight | null;
 }
 
 export interface ProductTypeCreate_productTypeCreate {

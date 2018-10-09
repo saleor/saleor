@@ -5,6 +5,11 @@
 // START Enums and Input Objects
 //==============================================================
 
+export enum AttributeTypeEnum {
+  PRODUCT = "PRODUCT",
+  VARIANT = "VARIANT",
+}
+
 export enum AuthorizationKeyType {
   FACEBOOK = "FACEBOOK",
   GOOGLE_OAUTH2 = "GOOGLE_OAUTH2",
@@ -121,14 +126,30 @@ export interface AddressInput {
   phone?: string | null;
 }
 
+export interface AttributeCreateInput {
+  name: string;
+  values?: (AttributeCreateValueInput | null)[] | null;
+}
+
+export interface AttributeCreateValueInput {
+  name: string;
+  value: string;
+}
+
+export interface AttributeUpdateInput {
+  name?: string | null;
+  removeValues: (string | null)[];
+  addValues: (AttributeCreateValueInput | null)[];
+}
+
 export interface AttributeValueInput {
   slug: string;
   value: string;
 }
 
 export interface AuthorizationKeyInput {
-  key?: string | null;
-  password?: string | null;
+  key: string;
+  password: string;
 }
 
 export interface DraftOrderInput {
