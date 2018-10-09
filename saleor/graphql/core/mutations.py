@@ -6,7 +6,7 @@ from graphene.types.mutation import MutationOptions
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
 from graphql_jwt import ObtainJSONWebToken, Verify
-from graphql_jwt.exceptions import GraphQLJWTError, PermissionDenied
+from graphql_jwt.exceptions import JSONWebTokenError, PermissionDenied
 
 from ...account import models
 from ..account.types import User
@@ -330,7 +330,7 @@ class CreateToken(ObtainJSONWebToken):
     def mutate(cls, root, info, **kwargs):
         try:
             result = super().mutate(root, info, **kwargs)
-        except GraphQLJWTError as e:
+        except JSONWebTokenError as e:
             return CreateToken(errors=[Error(message=str(e))])
         else:
             return result
