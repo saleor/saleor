@@ -33,6 +33,7 @@ from saleor.product.models import (
     Product, ProductImage, ProductTranslation, ProductType, ProductVariant)
 from saleor.shipping.models import (
     ShippingMethod, ShippingMethodType, ShippingZone)
+from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
 
 
@@ -504,8 +505,8 @@ def sale(category, collection):
 @pytest.fixture
 def authorization_key(site_settings):
     return AuthorizationKey.objects.create(
-        site_settings=site_settings, name='Backend', key='Key',
-        password='Password')
+        site_settings=site_settings, name=AuthenticationBackends.FACEBOOK,
+        key='Key', password='Password')
 
 
 @pytest.fixture

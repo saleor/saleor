@@ -1,11 +1,11 @@
-
 import graphene
 from graphql_jwt.decorators import permission_required
 
+from ...site import models as site_models
 from ..core.mutations import BaseMutation
 from ..core.types.common import WeightUnitsEnum
 from ..product.types import Collection
-from .types import Shop
+from .types import AuthorizationKey, AuthorizationKeyType, Shop
 
 
 class ShopSettingsInput(graphene.InputObjectType):
@@ -108,3 +108,69 @@ class HomepageCollectionUpdate(BaseMutation):
             return HomepageCollectionUpdate(errors=errors)
         site_settings.save(update_fields=['homepage_collection'])
         return HomepageCollectionUpdate(shop=Shop(), errors=errors)
+
+
+class AuthorizationKeyInput(graphene.InputObjectType):
+    key = graphene.String(description='Client authorization key (client ID).')
+    password = graphene.String(description='Client secret.')
+
+
+class AuthorizationKeyAdd(BaseMutation):
+    authorization_key = graphene.Field(
+        AuthorizationKey, description='Newly added authorization key.')
+
+    class Meta:
+        description = 'Adds an authorization key.'
+
+    class Arguments:
+        key_type = AuthorizationKeyType(
+            required=True, description='Type of authorization key to add.')
+        input = AuthorizationKeyInput(
+            required=True,
+            description='Fields required to create an authorization key.')
+
+    @classmethod
+    @permission_required('site.manage_settings')
+    def mutate(cls, root, info, key_type, input):
+        errors = []
+        if site_models.AuthorizationKey.objects.filter(name=key_type).exists():
+            cls.add_error(
+                errors, 'key_type', 'Authorization key already exists.')
+            return AuthorizationKeyAdd(errors=errors)
+
+        site_settings = info.context.site.settings
+        instance = site_models.AuthorizationKey.objects.create(
+            name=key_type, site_settings=site_settings, **input)
+        cls.clean_instance(instance, errors)
+        if errors:
+            return AuthorizationKeyAdd(errors=errors)
+
+        return AuthorizationKeyAdd(authorization_key=instance)
+
+
+class AuthorizationKeyDelete(BaseMutation):
+    authorization_key = graphene.Field(
+        AuthorizationKey, description='Auhtorization key that was deleted.')
+
+    class Arguments:
+        key_type = AuthorizationKeyType(
+            required=True, description='Type of key to delete.')
+
+    class Meta:
+        description = 'Deletes an authorization key.'
+
+    @classmethod
+    @permission_required('site.manage_settings')
+    def mutate(cls, root, info, key_type):
+        errors = []
+        try:
+            site_settings = info.context.site.settings
+            instance = site_models.AuthorizationKey.objects.get(
+                name=key_type, site_settings=site_settings)
+        except site_models.AuthorizationKey.DoesNotExist:
+            cls.add_error(
+                errors, 'key_type', 'Couldn\'t resolve authorization key')
+            return AuthorizationKeyDelete(errors=errors)
+
+        instance.delete()
+        return AuthorizationKeyDelete(authorization_key=instance)
