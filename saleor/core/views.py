@@ -3,7 +3,7 @@ import json
 from django.contrib import messages
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
-from impersonate.views import impersonate as orig_impersonate
+from impersonate.views import impersonate as orig_impersonate, stop_impersonate
 
 from ..account.models import User
 from ..dashboard.views import staff_member_required
@@ -32,6 +32,9 @@ def styleguide(request):
 
 
 def impersonate(request, uid):
+    if request.user.is_impersonate:
+        stop_impersonate(request)
+        request.user = request.impersonator
     response = orig_impersonate(request, uid)
     if request.session.modified:
         msg = pgettext_lazy(
