@@ -33,7 +33,6 @@ def styleguide(request):
 
 def impersonate(request, uid):
     if request.user.is_impersonate:
-        stop_impersonate(request)
         request.user = request.impersonator
     response = orig_impersonate(request, uid)
     if request.session.modified:
