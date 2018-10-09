@@ -42,7 +42,7 @@ class ShippingZoneInput(graphene.InputObjectType):
             for countries not covered by other zones.""")
 
 
-class ShippingZoneMixin(object):
+class ShippingZoneMixin:
 
     @classmethod
     def clean_input(cls, info, instance, input, errors):
@@ -111,7 +111,7 @@ class ShippingZoneDelete(ModelDeleteMutation):
         return user.has_perm('shipping.manage_shipping')
 
 
-class ShippingPriceMixin(object):
+class ShippingPriceMixin:
 
     @classmethod
     def clean_input(cls, info, instance, input, errors):
