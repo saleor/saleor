@@ -46,6 +46,12 @@ class BaseMutation(graphene.Mutation):
         abstract = True
 
     @classmethod
+    def __init_subclass_with_meta__(cls, description=None, **options):
+        if not description:
+            raise ImproperlyConfigured('No description provided in Meta')
+        super().__init_subclass_with_meta__(description=description, **options)
+
+    @classmethod
     def _update_mutation_arguments_and_fields(cls, arguments, fields):
         cls._meta.arguments.update(arguments)
         cls._meta.fields.update(fields)
