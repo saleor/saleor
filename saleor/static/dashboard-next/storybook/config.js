@@ -99,6 +99,7 @@ function loadStories() {
   require("./stories/productTypes/ProductTypeDetailsPage");
 
   // Site settings
+  require("./stories/siteSettings/SiteSettingsKeyDialog");
   require("./stories/siteSettings/SiteSettingsPage");
 }
 

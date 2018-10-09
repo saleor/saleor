@@ -1,10 +1,23 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import SiteSettingsKeyDialog from "../../../siteSettings/components/SiteSettingsKeyDialog";
+import SiteSettingsKeyDialog, {
+  AuthorizationKeyType,
+  SiteSettingsKeyDialogProps
+} from "../../../siteSettings/components/SiteSettingsKeyDialog";
 import Decorator from "../../Decorator";
 
-storiesOf("SiteSettings / SiteSettingsKeyDialog", module)
+const props: SiteSettingsKeyDialogProps = {
+  errors: [],
+  initial: {
+    key: "912n3n123j9",
+    password: "090das9d86gad678adf7ad6f88asd8",
+    type: AuthorizationKeyType.FACEBOOK
+  },
+  onClose: () => undefined,
+  open: true
+};
+
+storiesOf("SiteSettings / Add key dialog", module)
   .addDecorator(Decorator)
-  .add("default", () => <SiteSettingsKeyDialog />)
-  .add("other", () => <SiteSettingsKeyDialog />);
+  .add("default", () => <SiteSettingsKeyDialog {...props} />);
