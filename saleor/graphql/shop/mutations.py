@@ -70,9 +70,9 @@ class ShopDomainUpdate(BaseMutation):
         site = info.context.site
         domain = input.get('domain')
         name = input.get('name')
-        if domain:
+        if domain is not None:
             site.domain = domain
-        if name:
+        if name is not None:
             site.name = name
         cls.clean_instance(site, errors)
         if errors:
@@ -109,8 +109,10 @@ class HomepageCollectionUpdate(BaseMutation):
 
 
 class AuthorizationKeyInput(graphene.InputObjectType):
-    key = graphene.String(description='Client authorization key (client ID).')
-    password = graphene.String(description='Client secret.')
+    key = graphene.String(
+        required=True, description='Client authorization key (client ID).')
+    password = graphene.String(
+        required=True, description='Client secret.')
 
 
 class AuthorizationKeyAdd(BaseMutation):
