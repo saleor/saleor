@@ -1,6 +1,8 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
+import { AuthorizationKeyType } from "./../../types/globalTypes";
+
 // ====================================================
 // GraphQL fragment: ShopFragment
 // ====================================================
@@ -8,7 +10,7 @@
 export interface ShopFragment_authorizationKeys {
   __typename: "AuthorizationKey";
   key: string;
-  name: string;
+  name: AuthorizationKeyType;
 }
 
 export interface ShopFragment_domain {
