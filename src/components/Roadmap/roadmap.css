@@ -1,10 +1,5 @@
 #roadmap {
-  border: solid var(--border-width) var(--sectionBorder);
-  border-bottom: 0;
   position: relative;
-  @media (max-width: 450px) {
-    border: 0;
-  }
   & section {
     &.hero {
       height: 90vh;

@@ -1,9 +1,4 @@
 #home {
-  border: solid var(--border-width) var(--sectionBorder);
-  border-bottom: none;
-  @media (max-width: 450px) {
-    border: none;
-  }
   & section {
     &.hero {
       position: relative;

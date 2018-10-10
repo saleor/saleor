@@ -1,9 +1,4 @@
 #feature {
-    border: solid var(--border-width) var(--sectionBorder);
-    border-bottom: 0;
-    @media (max-width: 450px) {
-      border: 0;
-    }
     & section {
         & .bg-container {
           background-image: url('../../images/feature-bg.svg');

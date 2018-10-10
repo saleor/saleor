@@ -144,12 +144,18 @@ img {
   max-width: var(--layout-width);
   overflow: hidden;
   margin: 0 auto;
-  padding: 0 calc(var(--spacer) * 2.5);
+}
+
+.borderFrame {
+  border: solid var(--border-width) var(--sectionBorder);
+  border-bottom: none;
+  margin: 0 calc(var(--spacer) * 2.5);
   @media (max-width: 768px) {
-    padding: 0 var(--spacer);
+    margin: 0 var(--spacer);
   }
   @media (max-width: 450px) {
-    padding: 0;
+    border: none;
+    margin: 0;
   }
 }
 

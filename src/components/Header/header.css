@@ -256,7 +256,7 @@ header {
             grid-column: -9 / span 5;
           }
           @media (max-width: 450px) {
-            grid-column: -8 / span 6;
+            grid-column: -8 / span 4;
           }
           padding: 0;      
           &.github-link {

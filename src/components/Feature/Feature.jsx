@@ -33,7 +33,7 @@ import patchGardenLogo from '../../images/patch-garden.png';
 const Feature = () => (
   <div>
     
-    <div id="feature">
+    <div id="feature" className="container">
       <section className="hero">
         <div className="feature bg-container"></div>
         <div className="plane">
@@ -43,7 +43,7 @@ const Feature = () => (
       </section>
       <section id="testimonial" className="testimonial">
         <div className="container">
-          <img classname="logo" src={patchGardenLogo}  />
+          <img className="logo" src={patchGardenLogo}  />
           <p className="comment quote text-light">“After actively using and developing our Saleor store for over a year, if I were to create a new shop today I would go for it again without a doubt.”</p>
           <div className="testimonial-author">
             <h5 className="name">Tyler Hildebrandt,</h5>
@@ -253,7 +253,7 @@ const Feature = () => (
           <h2>Documentation</h2>
           <h4 className="description">Check our comprehensive documentation which can guide
           you through the installation process or customizations that you may want to carry out.</h4>
-          <div class="position">
+          <div className="position">
             <a className="btn btn-secondary" href="https://saleor.readthedocs.io/en/latest/" target="_blank"><span>Read the docs</span></a>
           </div>
         </div>

@@ -3,7 +3,7 @@ import { ScrollLink, GitHubBanner } from '..';
 import css from './privacypolicy.css';
 
 const PrivacyPolicy = () => (
-	<div id="privacy-policy">
+	<div id="privacy-policy" className="container">
 		<section className="hero">
 			<div className="bg-container"></div>
 			<div className="plane">

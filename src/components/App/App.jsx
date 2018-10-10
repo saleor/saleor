@@ -18,7 +18,7 @@ class App extends Component {
           <CookiesProvider>
             <Header cookies={this.props.cookies} />
           </CookiesProvider>
-          <section className="container">
+          <section className="borderFrame">
             <Switch>
               <Route exact path="/" component={Home} />
               <Route path="/features" component={Feature} />

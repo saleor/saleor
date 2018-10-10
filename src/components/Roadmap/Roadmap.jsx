@@ -4,7 +4,7 @@ import { GitHubBanner, ScrollLink } from '..';
 import css from './roadmap.css';
 
 const Roadmap = (props) => (
-	<div id="roadmap">
+	<div id="roadmap" className="container">
     <section className="hero">
       <div className="bg-container"></div>
       <div className="plane">

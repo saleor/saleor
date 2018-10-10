@@ -33,7 +33,7 @@ class Home extends Component {
 
   render() {
     return (
-        <div id="home">
+        <div id="home" className="container">
           <section className="hero">
             <div className="bg-container"></div>
             <div className="plane">
