@@ -15,6 +15,16 @@ import greatExperienceIcon from '../../images/great-experience.svg';
 import starsBg from '../../images/open-source-bg.svg';
 import background from '../../images/background.svg';
 
+import dashboardIcon from '../../images/dashboard-icon.png';
+import dashboardIconX2 from '../../images/dashboard-icon-2x.png';
+import dashboardIconX3 from '../../images/dashboard-icon-3x.png';
+import dashboardIconX4 from '../../images/dashboard-icon-4x.png';
+
+import storefrontIcon from '../../images/storefront-icon.png';
+import storefrontIconX2 from '../../images/storefront-icon-2x.png';
+import storefrontIconX3 from '../../images/storefront-icon-3x.png';
+import storefrontIconX4 from '../../images/storefront-icon-4x.png';
+
 
 class Home extends Component {
   constructor(props) {
@@ -116,13 +126,13 @@ class Home extends Component {
                   <p>Unlike what you might expect from open source software Saleor’s user experience rivals that of the best commercial solutions.</p>
                 </div>
                 <div className="col-xs-12 col-sm-6 col-md-6 storefront">
-                  <img src="../../images/storefront-icon.png" />
+                  <img src={storefrontIcon} srcSet={`${storefrontIcon} 1x, ${storefrontIconX2} 2x, ${storefrontIconX3} 3x, ${storefrontIconX4} 4x`} />
                   <h2>Storefront</h2>
                   <p>Saleor takes advantage of PWA standards  to optimize mobile experiences of the rapidly growing group of people shopping on the run.</p>
                   <p className="text-light">Allow your customers to buy their next pair of jeans while enjoying a virgin margarita on a plane. They will only need an internet connection when they go to pay with Apple Pay or one of the cards stored by their phone. </p>
                 </div>
                 <div className="col-xs-12 col-sm-6 col-md-6 dashboard">
-                  <img src="../../images/dashboard-icon.png" />
+                  <img src={dashboardIcon} srcSet={`${dashboardIcon} 1x, ${dashboardIconX2} 2x, ${dashboardIconX3} 3x, ${dashboardIconX4} 4x`} />
                   <h2>Dashboard</h2>
                   <p>Easy-to-use dashboard makes managing your store a pleasant experience whether you’re using the latest Macbook or a two-year-old smartphone.</p>
                   <p className="text-light">Its intuitive interface is designed to aid your staff in daily routines like order management, inventory tracking or reporting. Saleor dashboard’s friendly home screen will also suggest items that may need your attention so you always stay on top of things.</p>
