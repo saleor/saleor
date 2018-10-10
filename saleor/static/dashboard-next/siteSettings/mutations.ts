@@ -7,11 +7,16 @@ import {
   AuthorizationKeyAddVariables
 } from "./types/AuthorizationKeyAdd";
 import {
+  AuthorizationKeyDelete,
+  AuthorizationKeyDeleteVariables
+} from "./types/AuthorizationKeyDelete";
+import {
   ShopSettingsUpdate,
   ShopSettingsUpdateVariables
 } from "./types/ShopSettingsUpdate";
 
 const authorizationKeyAdd = gql`
+  ${shopFragment}
   mutation AuthorizationKeyAdd(
     $input: AuthorizationKeyInput!
     $keyType: AuthorizationKeyType!
@@ -21,6 +26,9 @@ const authorizationKeyAdd = gql`
         field
         message
       }
+      shop {
+        ...ShopFragment
+      }
     }
   }
 `;
@@ -28,6 +36,25 @@ export const TypedAuthorizationKeyAdd = TypedMutation<
   AuthorizationKeyAdd,
   AuthorizationKeyAddVariables
 >(authorizationKeyAdd);
+
+const authorizationKeyDelete = gql`
+  ${shopFragment}
+  mutation AuthorizationKeyDelete($keyType: AuthorizationKeyType!) {
+    authorizationKeyDelete(keyType: $keyType) {
+      errors {
+        field
+        message
+      }
+      shop {
+        ...ShopFragment
+      }
+    }
+  }
+`;
+export const TypedAuthorizationKeyDelete = TypedMutation<
+  AuthorizationKeyDelete,
+  AuthorizationKeyDeleteVariables
+>(authorizationKeyDelete);
 
 const shopSettingsUpdate = gql`
   ${shopFragment}

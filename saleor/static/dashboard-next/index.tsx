@@ -1,6 +1,6 @@
 import CssBaseline from "@material-ui/core/CssBaseline";
 import MuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
-import { InMemoryCache } from "apollo-cache-inmemory";
+import { defaultDataIdFromObject, InMemoryCache } from "apollo-cache-inmemory";
 import { ApolloClient, ApolloError } from "apollo-client";
 import { setContext } from "apollo-link-context";
 import { ErrorResponse, onError } from "apollo-link-error";
@@ -68,7 +68,14 @@ const uploadLink = createUploadLink({
 });
 
 const apolloClient = new ApolloClient({
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    dataIdFromObject: (obj: any) => {
+      if (obj.__typename === "Shop") {
+        return "shop";
+      }
+      return defaultDataIdFromObject(obj);
+    }
+  }),
   link: invalidTokenLink.concat(authLink.concat(uploadLink))
 });
 

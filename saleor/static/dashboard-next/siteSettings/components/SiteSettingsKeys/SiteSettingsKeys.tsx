@@ -18,13 +18,14 @@ import {
   renderCollection,
   translatedAuthorizationKeyTypes
 } from "../../../misc";
+import { AuthorizationKeyType } from "../../../types/globalTypes";
 import { SiteSettings_shop_authorizationKeys } from "../../types/SiteSettings";
 
 interface SiteSettingsKeysProps {
   disabled: boolean;
   keys: SiteSettings_shop_authorizationKeys[];
   onAdd: () => void;
-  onRemove: (name: string) => void;
+  onRemove: (name: AuthorizationKeyType) => void;
 }
 
 const decorate = withStyles(theme => ({
