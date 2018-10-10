@@ -4,11 +4,11 @@ from django.utils.translation import npgettext, pgettext_lazy
 from django_filters import (
     CharFilter, ChoiceFilter, DateFromToRangeFilter, NumberFilter,
     OrderingFilter, RangeFilter)
-from payments import PaymentStatus
 
 from ...core.filters import SortedFilterSet
 from ...order import OrderStatus
 from ...order.models import Order
+from ...payment import PaymentMethodChargeStatus
 from ..widgets import DateRangeWidget, MoneyRangeWidget
 
 SORT_BY_FIELDS = [
@@ -45,7 +45,7 @@ class OrderFilter(SortedFilterSet):
     payment_status = ChoiceFilter(
         label=pgettext_lazy('Order list filter label', 'Payment status'),
         field_name='payments__status',
-        choices=PaymentStatus.CHOICES,
+        choices=PaymentMethodChargeStatus.CHOICES,
         empty_label=pgettext_lazy('Filter empty choice label', 'All'),
         widget=forms.Select)
     total_net = RangeFilter(

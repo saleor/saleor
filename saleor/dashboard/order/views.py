@@ -122,7 +122,7 @@ def order_details(request, order_pk):
         'payments', 'events__user', 'lines__variant__product',
         'fulfillments__lines__order_line')
     order = get_object_or_404(qs, pk=order_pk)
-    all_payments = order.payments.exclude(status=PaymentStatus.INPUT)
+    all_payments = order.payments.all()
     payment = order.get_last_payment()
     preauthorized = ZERO_TAXED_MONEY
     captured = ZERO_MONEY

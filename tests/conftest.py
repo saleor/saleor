@@ -467,14 +467,6 @@ def draft_order(order_with_lines):
 
 
 @pytest.fixture()
-def payment_waiting(order_with_lines):
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.WAITING,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total_gross.amount)
-
-
-@pytest.fixture()
 def payment_preauth(order_with_lines):
     return order_with_lines.payments.create(
         variant='default', status=PaymentStatus.PREAUTH,

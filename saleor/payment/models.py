@@ -4,7 +4,7 @@ from django.contrib.postgres.fields import JSONField
 from django.db import models
 from prices import Money
 
-from . import PaymentMethodCaptureStatus, TransactionType
+from . import PaymentMethodChargeStatus, TransactionType
 from ..checkout.models import Cart
 from ..order.models import Order
 
@@ -29,8 +29,8 @@ class PaymentMethod(models.Model):
     modified = models.DateTimeField(auto_now=True)
     charge_status = models.CharField(
         max_length=15,
-        choices=PaymentMethodCaptureStatus.CHOICES,
-        default=PaymentMethodCaptureStatus.NOT_CHARGED)
+        choices=PaymentMethodChargeStatus.CHOICES,
+        default=PaymentMethodChargeStatus.NOT_CHARGED)
     billing_first_name = models.CharField(max_length=256, blank=True)
     billing_last_name = models.CharField(max_length=256, blank=True)
     billing_address_1 = models.CharField(max_length=256, blank=True)

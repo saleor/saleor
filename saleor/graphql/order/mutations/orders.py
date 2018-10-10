@@ -74,7 +74,7 @@ def clean_order_capture(payment, amount, errors):
                 field='payment',
                 message='There\'s no payment associated with the order.'))
         return errors
-    if payment.status != PaymentStatus.PREAUTH:
+    if not payment.is_active:
         errors.append(
             Error(
                 field='payment',
@@ -84,7 +84,7 @@ def clean_order_capture(payment, amount, errors):
 
 def clean_release_payment(payment, errors):
     """Check for payment errors."""
-    if payment.status != PaymentStatus.PREAUTH:
+    if not payment.is_active:
         errors.append(
             Error(field='payment',
                   message='Only pre-authorized payments can be released'))
