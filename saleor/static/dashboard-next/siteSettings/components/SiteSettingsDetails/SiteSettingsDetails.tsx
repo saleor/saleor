@@ -10,6 +10,7 @@ import { SiteSettingsPageFormData } from "../SiteSettingsPage";
 
 interface SiteSettingsDetailsProps {
   data: SiteSettingsPageFormData;
+  errors: {}
   disabled: boolean;
   onChange: (event: React.ChangeEvent<any>) => void;
 }

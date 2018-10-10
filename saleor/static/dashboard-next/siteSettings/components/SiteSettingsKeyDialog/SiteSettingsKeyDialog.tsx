@@ -33,7 +33,7 @@ const SiteSettingsKeyDialog: React.StatelessComponent<
 > = ({ errors, initial, open, onClose, onSubmit }) => (
   <Dialog maxWidth="xs" open={open}>
     <Form initial={initial} onSubmit={onSubmit} errors={errors}>
-      {({ change, data }) => (
+      {({ change, data, errors }) => (
         <>
           <DialogTitle>
             {i18n.t("Add New Authorization Key", {
@@ -48,29 +48,35 @@ const SiteSettingsKeyDialog: React.StatelessComponent<
                   value: key
                 })
               )}
+              error={!!errors.keyType}
               label={i18n.t("Authentication type", {
                 context: "input label"
               })}
+              hint={errors.keyType}
               name="type"
               onChange={change}
               value={data.type}
             />
             <FormSpacer />
             <TextField
+              error={!!errors.key}
               fullWidth
               label={i18n.t("Key", {
                 context: "input label"
               })}
+              helperText={errors.key}
               name="key"
               onChange={change}
               value={data.key}
             />
             <FormSpacer />
             <TextField
+              error={!!errors.password}
               fullWidth
               label={i18n.t("Password", {
                 context: "input label"
               })}
+              helperText={errors.password}
               name="password"
               onChange={change}
               value={data.password}
