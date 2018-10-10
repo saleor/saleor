@@ -146,10 +146,18 @@ header {
                 fill: var(--primaryColor);
               }
             }
-            }
+          }
+          & .github-icon {
+            position: relative;
+            top: -2px;
+          }
+          & .star-icon {
+            position: relative;
+            top: -2px;
+          }
           & .star-value {
             position: relative;
-            top: -0.1rem;
+            top: -3px;
           }
         }
         @media (max-width: 768px) {
