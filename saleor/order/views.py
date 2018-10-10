@@ -84,10 +84,6 @@ def payment(request, token):
 
 @check_order_status
 def start_payment(request, order, variant):
-    waiting_payments = order.payments.filter(
-        status=PaymentStatus.WAITING).exists()
-    if waiting_payments:
-        return redirect('order:payment', token=order.token)
     billing = order.billing_address
     total = order.total
     defaults = {

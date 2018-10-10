@@ -37,7 +37,7 @@ class TransactionType:
                (VOID, pgettext_lazy('transaction type', 'Void'))]
 
 
-class PaymentMethodCaptureStatus:
+class PaymentMethodChargeStatus:
     """
     - Charged: Funds were taken off the customer founding source, partly or
                completly covering the payment amount.

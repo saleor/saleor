@@ -1189,7 +1189,7 @@ type PaymentMethod implements Node {
   isActive: Boolean!
   created: DateTime!
   modified: DateTime!
-  chargeStatus: PaymentMethodCaptureStatus!
+  chargeStatus: PaymentMethodChargeStatus!
   billingFirstName: String!
   billingLastName: String!
   billingAddress1: String!
@@ -1216,7 +1216,7 @@ type PaymentMethodCapture {
   paymentMethod: PaymentMethod
 }
 
-enum PaymentMethodCaptureStatus {
+enum PaymentMethodChargeStatus {
   CHARGED
   NOT_CHARGED
   FULLY_REFUNDED

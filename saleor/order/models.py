@@ -15,7 +15,6 @@ from django_prices.models import MoneyField, TaxedMoneyField
 from measurement.measures import Weight
 from payments import PurchasedItem
 from payments.models import BasePayment
-from payment import PaymentMethodChargeStatus
 from prices import Money, TaxedMoney
 
 from . import FulfillmentStatus, OrderEvents, OrderStatus, display_order_event
@@ -25,6 +24,7 @@ from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.taxes import ZERO_TAXED_MONEY
 from ..core.weight import WeightUnits, zero_weight
 from ..discount.models import Voucher
+from ..payment import PaymentMethodChargeStatus
 from ..shipping.models import ShippingMethod
 
 
@@ -132,8 +132,8 @@ class Order(models.Model):
     def is_fully_paid(self):
         payments = self.payment_methods.filter(
             charge_status=PaymentMethodChargeStatus.CHARGED)
-        total_paid = sum([
-            payment.get_total() for payment in payments], ZERO_TAXED_MONEY)
+        total_captured = [payment.get_captured_money() for payment in payments]
+        total_paid = sum(total_captured, ZERO_TAXED_MONEY)
         return total_paid.gross >= self.total.gross
 
     def get_user_current_email(self):

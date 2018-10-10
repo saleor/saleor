@@ -13,7 +13,6 @@ from django_countries.fields import Country
 from faker import Factory
 from faker.providers import BaseProvider
 from measurement.measures import Weight
-from payments import PaymentStatus
 from prices import Money
 
 from ...account.models import Address, User
@@ -25,9 +24,11 @@ from ...dashboard.menu.utils import update_menu
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
 from ...menu.models import Menu
-from ...order.models import Fulfillment, Order, Payment
+from ...order.models import Fulfillment, Order
 from ...order.utils import update_order_status
 from ...page.models import Page
+from ...payment import PaymentMethodChargeStatus, TransactionType
+from ...payment.models import PaymentMethod
 from ...product.models import (
     Attribute, AttributeValue, Category, Collection, Product, ProductImage,
     ProductType, ProductVariant)
@@ -376,13 +377,35 @@ def create_fake_user():
     return user
 
 
+def create_transactions(payment):
+    payment.transactions.create(
+        transaction_type=TransactionType.AUTH,
+        is_success=True, amount=payment.total, currency=payment.currency)
+    if payment.status == PaymentMethodChargeStatus.NOT_CHARGED:
+        if random.randint(0, 1):
+            payment.transactions.create(
+                transaction_type=TransactionType.RELEASE,
+                is_success=True, amount=payment.total,
+                currency=payment.currency)
+        return
+    payment.transactions.create(
+        transaction_type=TransactionType.CAPTURE,
+        is_success=True, amount=payment.total, currency=payment.currency)
+    if payment.status == PaymentMethodChargeStatus.FULLY_REFUNDED:
+            payment.transactions.create(
+                transaction_type=TransactionType.REFUND,
+                is_success=True, amount=payment.total,
+                currency=payment.currency)
+    return payment
+
+
 def create_payment(order):
     status = random.choice(
         [
-            PaymentStatus.WAITING,
-            PaymentStatus.PREAUTH,
-            PaymentStatus.CONFIRMED])
-    payment = Payment.objects.create(
+            PaymentMethodChargeStatus.FULLY_REFUNDED,
+            PaymentMethodChargeStatus.CHARGED,
+            PaymentMethodChargeStatus.NOT_CHARGED])
+    payment = PaymentMethod.objects.create(
         order=order,
         status=status,
         variant='default',
@@ -390,17 +413,19 @@ def create_payment(order):
         currency=settings.DEFAULT_CURRENCY,
         total=order.total.gross.amount,
         tax=order.total.tax.amount,
-        delivery=order.shipping_price.net.amount,
         customer_ip_address=fake.ipv4(),
         billing_first_name=order.billing_address.first_name,
         billing_last_name=order.billing_address.last_name,
         billing_address_1=order.billing_address.street_address_1,
+        billing_address_2=order.billing_address.street_address_2,
         billing_city=order.billing_address.city,
         billing_postcode=order.billing_address.postal_code,
-        billing_country_code=order.billing_address.country)
-    if status == PaymentStatus.CONFIRMED:
+        billing_country_code=order.billing_address.country,
+        billing_country_area=order.billing_address.country_area)
+    if status == PaymentMethodChargeStatus.CONFIRMED:
         payment.captured_amount = payment.total
         payment.save()
+    create_transactions(payment)
     return payment
 
 
