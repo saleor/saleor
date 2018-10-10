@@ -8,6 +8,7 @@ import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
+import { AuthorizationKeyType } from "../../../types/globalTypes";
 import { SiteSettings_shop } from "../../types/SiteSettings";
 import SiteSettingsDetails from "../SiteSettingsDetails/SiteSettingsDetails";
 import SiteSettingsKeys from "../SiteSettingsKeys/SiteSettingsKeys";
@@ -22,7 +23,7 @@ export interface SiteSettingsPageProps {
   disabled: boolean;
   shop: SiteSettings_shop;
   onKeyAdd: () => void;
-  onKeyRemove: (name: string) => void;
+  onKeyRemove: (keyType: AuthorizationKeyType) => void;
   onSubmit: (data: SiteSettingsPageFormData) => void;
 }
 

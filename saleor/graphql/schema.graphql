@@ -209,11 +209,13 @@ type AuthorizationKey {
 type AuthorizationKeyAdd {
   errors: [Error]
   authorizationKey: AuthorizationKey
+  shop: Shop
 }
 
 type AuthorizationKeyDelete {
   errors: [Error]
   authorizationKey: AuthorizationKey
+  shop: Shop
 }
 
 input AuthorizationKeyInput {

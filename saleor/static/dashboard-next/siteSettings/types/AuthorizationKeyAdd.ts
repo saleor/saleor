@@ -13,9 +13,29 @@ export interface AuthorizationKeyAdd_authorizationKeyAdd_errors {
   message: string | null;
 }
 
+export interface AuthorizationKeyAdd_authorizationKeyAdd_shop_authorizationKeys {
+  __typename: "AuthorizationKey";
+  key: string;
+  name: AuthorizationKeyType;
+}
+
+export interface AuthorizationKeyAdd_authorizationKeyAdd_shop_domain {
+  __typename: "Domain";
+  host: string;
+}
+
+export interface AuthorizationKeyAdd_authorizationKeyAdd_shop {
+  __typename: "Shop";
+  authorizationKeys: (AuthorizationKeyAdd_authorizationKeyAdd_shop_authorizationKeys | null)[];
+  description: string | null;
+  domain: AuthorizationKeyAdd_authorizationKeyAdd_shop_domain;
+  name: string;
+}
+
 export interface AuthorizationKeyAdd_authorizationKeyAdd {
   __typename: "AuthorizationKeyAdd";
   errors: (AuthorizationKeyAdd_authorizationKeyAdd_errors | null)[] | null;
+  shop: AuthorizationKeyAdd_authorizationKeyAdd_shop | null;
 }
 
 export interface AuthorizationKeyAdd {
