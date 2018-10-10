@@ -10,12 +10,8 @@ import Form, { FormProps } from "../../../components/Form";
 import { FormSpacer } from "../../../components/FormSpacer";
 import SingleSelectField from "../../../components/SingleSelectField";
 import i18n from "../../../i18n";
+import { translatedAuthorizationKeyTypes } from "../../../misc";
 import { AuthorizationKeyType } from "../../../types/globalTypes";
-
-const authorizationKeyTypes = () => ({
-  [AuthorizationKeyType.FACEBOOK]: i18n.t("Facebook"),
-  [AuthorizationKeyType.GOOGLE_OAUTH2]: i18n.t("Google OAuth2")
-});
 
 export interface SiteSettingsKeyDialogForm {
   key: string;
@@ -46,10 +42,12 @@ const SiteSettingsKeyDialog: React.StatelessComponent<
           </DialogTitle>
           <DialogContent>
             <SingleSelectField
-              choices={Object.keys(authorizationKeyTypes()).map(key => ({
-                label: authorizationKeyTypes()[key],
-                value: key
-              }))}
+              choices={Object.keys(translatedAuthorizationKeyTypes()).map(
+                key => ({
+                  label: translatedAuthorizationKeyTypes()[key],
+                  value: key
+                })
+              )}
               label={i18n.t("Authentication type", {
                 context: "input label"
               })}

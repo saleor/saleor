@@ -1,6 +1,6 @@
 import { stringify } from "qs";
 import i18n from "./i18n";
-import { TaxRateType } from "./types/globalTypes";
+import { AuthorizationKeyType, TaxRateType } from "./types/globalTypes";
 
 export interface PageInfo {
   endCursor: string;
@@ -143,6 +143,11 @@ export const translatedTaxRates = () => ({
   [TaxRateType.SOCIAL_HOUSING]: i18n.t("Social housing"),
   [TaxRateType.STANDARD]: i18n.t("Standard"),
   [TaxRateType.WATER]: i18n.t("Water")
+});
+
+export const translatedAuthorizationKeyTypes = () => ({
+  [AuthorizationKeyType.FACEBOOK]: i18n.t("Facebook"),
+  [AuthorizationKeyType.GOOGLE_OAUTH2]: i18n.t("Google OAuth2")
 });
 
 export function maybe<T>(exp: () => T, d?: T) {

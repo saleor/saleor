@@ -22,7 +22,6 @@ export interface SiteSettingsPageProps {
   disabled: boolean;
   shop: SiteSettings_shop;
   onKeyAdd: () => void;
-  onKeyClick: (name: string) => void;
   onKeyRemove: (name: string) => void;
   onSubmit: (data: SiteSettingsPageFormData) => void;
 }
@@ -41,7 +40,6 @@ const SiteSettingsPage = decorate<SiteSettingsPageProps>(
     disabled,
     shop,
     onKeyAdd,
-    onKeyClick,
     onKeyRemove,
     onSubmit
   }) => {
@@ -83,7 +81,6 @@ const SiteSettingsPage = decorate<SiteSettingsPageProps>(
                 disabled={disabled}
                 keys={maybe(() => shop.authorizationKeys)}
                 onAdd={onKeyAdd}
-                onRowClick={onKeyClick}
                 onRemove={onKeyRemove}
               />
             </div>
