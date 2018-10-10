@@ -219,8 +219,8 @@ type AuthorizationKeyDelete {
 }
 
 input AuthorizationKeyInput {
-  key: String
-  password: String
+  key: String!
+  password: String!
 }
 
 enum AuthorizationKeyType {
