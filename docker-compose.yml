@@ -7,7 +7,6 @@ services:
       dockerfile: ./Dockerfile
       args:
         STATIC_URL: '/static/'
-    container_name: saleor-web
     restart: unless-stopped
     networks:
       - saleor-backend-tier
@@ -24,7 +23,6 @@ services:
 
   db:
     image: library/postgres:latest
-    container_name: saleor-postgres
     restart: unless-stopped
     networks:
       - saleor-backend-tier
@@ -38,7 +36,6 @@ services:
 
   redis:
     image: library/redis:latest
-    container_name: saleor-redis
     restart: unless-stopped
     networks:
       - saleor-backend-tier
@@ -53,7 +50,6 @@ services:
       dockerfile: ./Dockerfile
       args:
         STATIC_URL: '/static/'
-    container_name: saleor-celery
     command: celery -A saleor worker --app=saleor.celeryconf:app --loglevel=info
     restart: unless-stopped
     networks:
@@ -66,7 +62,6 @@ services:
 
   search:
     image: elasticsearch:5.4.3
-    container_name: saleor-elasticsearch
     restart: unless-stopped
     networks:
       - saleor-backend-tier
