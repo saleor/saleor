@@ -15,14 +15,12 @@ storiesOf("Categories / CategoryDeleteDialog", module)
       open={true}
       onClose={undefined}
       onConfirm={undefined}
-      productCount={0}
     />
   ))
   .add("with products", () => (
     <CategoryDeleteDialog
       name={category.name}
       open={true}
-      productCount={100}
       onClose={undefined}
       onConfirm={undefined}
     />
