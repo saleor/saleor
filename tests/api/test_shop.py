@@ -2,10 +2,9 @@ import graphene
 from django.conf import settings
 from django_countries import countries
 from saleor.core.permissions import MODELS_PERMISSIONS
+from saleor.site import AuthenticationBackends
 from saleor.site.models import Site
 from tests.api.utils import get_graphql_content
-
-from .utils import assert_no_permission
 
 
 def test_query_authorization_keys(
@@ -24,7 +23,7 @@ def test_query_authorization_keys(
         query, permissions=[permission_manage_settings])
     content = get_graphql_content(response)
     data = content['data']['shop']
-    assert data['authorizationKeys'][0]['name'] == authorization_key.name
+    assert data['authorizationKeys'][0]['name'] == 'FACEBOOK'
     assert data['authorizationKeys'][0]['key'] == authorization_key.key
 
 
@@ -283,3 +282,71 @@ def test_query_geolocalization(user_api_client):
     content = get_graphql_content(response)
     data = content['data']['shop']['geolocalization']
     assert data['country'] is None
+
+
+AUTHORIZATION_KEY_ADD = """
+mutation AddKey($key: String!, $password: String!, $keyType: AuthorizationKeyType!) {
+    authorizationKeyAdd(input: {key: $key, password: $password}, keyType: $keyType) {
+        errors {
+            field
+            message
+        }
+        authorizationKey {
+            name
+            key
+        }
+    }
+}
+"""
+
+def test_mutation_authorization_key_add_existing(
+        staff_api_client, authorization_key, permission_manage_settings):
+
+    # adding a key of type that already exists should return an error
+    assert authorization_key.name == AuthenticationBackends.FACEBOOK
+    variables = {'keyType': 'FACEBOOK', 'key': 'key', 'password': 'secret'}
+    response = staff_api_client.post_graphql(
+        AUTHORIZATION_KEY_ADD, variables,
+        permissions=[permission_manage_settings])
+    content = get_graphql_content(response)
+    assert content['data']['authorizationKeyAdd']['errors'][0]['field'] == 'keyType'
+
+
+def test_mutation_authorization_key_add(
+        staff_api_client, permission_manage_settings):
+
+    # mutation with correct input data should create a new key instance
+    variables = {'keyType': 'FACEBOOK', 'key': 'key', 'password': 'secret'}
+    response = staff_api_client.post_graphql(
+        AUTHORIZATION_KEY_ADD, variables,
+        permissions=[permission_manage_settings])
+    content = get_graphql_content(response)
+    assert content['data']['authorizationKeyAdd']['authorizationKey']['key'] == 'key'
+
+
+def test_mutation_authorization_key_delete(
+        staff_api_client, authorization_key, permission_manage_settings):
+
+    query = """
+    mutation DeleteKey($keyType: AuthorizationKeyType!) {
+        authorizationKeyDelete(keyType: $keyType) {
+            errors {
+                field
+                message
+            }
+            authorizationKey {
+                name
+                key
+            }
+        }
+    }
+    """
+
+    assert authorization_key.name == AuthenticationBackends.FACEBOOK
+
+    # deleting non-existing key should return an error
+    variables = {'keyType': 'FACEBOOK'}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings])
+    content = get_graphql_content(response)
+    assert content['data']['authorizationKeyDelete']['authorizationKey']

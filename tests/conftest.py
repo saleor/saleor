@@ -16,6 +16,7 @@ from django_prices_vatlayer.utils import get_tax_for_rate
 from payments import FraudStatus, PaymentStatus
 from PIL import Image
 from prices import Money
+from saleor.account.backends import BaseBackend
 from saleor.account.models import Address, User
 from saleor.checkout import utils
 from saleor.checkout.models import Cart
@@ -33,6 +34,7 @@ from saleor.product.models import (
     Product, ProductImage, ProductTranslation, ProductType, ProductVariant)
 from saleor.shipping.models import (
     ShippingMethod, ShippingMethodType, ShippingZone)
+from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
 
 
@@ -502,10 +504,22 @@ def sale(category, collection):
 
 
 @pytest.fixture
-def authorization_key(site_settings):
+def authorization_backend_name():
+    return AuthenticationBackends.FACEBOOK
+
+
+@pytest.fixture
+def authorization_key(site_settings, authorization_backend_name):
     return AuthorizationKey.objects.create(
-        site_settings=site_settings, name='Backend', key='Key',
-        password='Password')
+        site_settings=site_settings, name=authorization_backend_name,
+        key='Key', password='Password')
+
+
+@pytest.fixture
+def base_backend(authorization_backend_name):
+    base_backend = BaseBackend()
+    base_backend.DB_NAME = authorization_backend_name
+    return base_backend
 
 
 @pytest.fixture

@@ -202,8 +202,28 @@ type AttributeValueUpdate {
 }
 
 type AuthorizationKey {
-  name: String!
+  name: AuthorizationKeyType!
   key: String!
+}
+
+type AuthorizationKeyAdd {
+  errors: [Error]
+  authorizationKey: AuthorizationKey
+}
+
+type AuthorizationKeyDelete {
+  errors: [Error]
+  authorizationKey: AuthorizationKey
+}
+
+input AuthorizationKeyInput {
+  key: String
+  password: String
+}
+
+enum AuthorizationKeyType {
+  FACEBOOK
+  GOOGLE_OAUTH2
 }
 
 type Category implements Node {
@@ -649,6 +669,8 @@ type MoneyRange {
 }
 
 type Mutations {
+  authorizationKeyAdd(input: AuthorizationKeyInput!, keyType: AuthorizationKeyType!): AuthorizationKeyAdd
+  authorizationKeyDelete(keyType: AuthorizationKeyType!): AuthorizationKeyDelete
   assignNavigation(menu: ID, navigationType: NavigationType!): AssignNavigation
   tokenCreate(email: String!, password: String!): CreateToken
   tokenRefresh(token: String): Refresh
