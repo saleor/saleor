@@ -2,6 +2,7 @@ import graphene
 from django_prices.templatetags import prices_i18n
 
 from ....core import TaxRateType as TaxRates
+from ..utils import str_to_enum
 
 
 class Money(graphene.ObjectType):
@@ -84,12 +85,6 @@ class ReducedRate(graphene.ObjectType):
         Represents a reduced VAT rate for a particular type of goods.'''
 
 
-def _str_to_enum(name):
-    """
-    Enum can't contain spaces or dashes
-    """
-    return name.replace(' ', '_').replace('-', '_').upper()
-
 TaxRateType = graphene.Enum(
     'TaxRateType',
-    [(_str_to_enum(rate[0]), rate[0]) for rate in TaxRates.CHOICES])
+    [(str_to_enum(rate[0]), rate[0]) for rate in TaxRates.CHOICES])
