@@ -13,7 +13,11 @@ import * as React from "react";
 import CardTitle from "../../../components/CardTitle";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
-import { maybe, renderCollection } from "../../../misc";
+import {
+  maybe,
+  renderCollection,
+  translatedAuthorizationKeyTypes
+} from "../../../misc";
 import { SiteSettings_shop_authorizationKeys } from "../../types/SiteSettings";
 
 interface SiteSettingsKeysProps {
@@ -21,7 +25,6 @@ interface SiteSettingsKeysProps {
   keys: SiteSettings_shop_authorizationKeys[];
   onAdd: () => void;
   onRemove: (name: string) => void;
-  onRowClick: (name: string) => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -30,13 +33,10 @@ const decorate = withStyles(theme => ({
       paddingRight: 0
     },
     width: 48 + theme.spacing.unit / 2
-  },
-  row: {
-    cursor: "pointer" as "pointer"
   }
 }));
 const SiteSettingsKeys = decorate<SiteSettingsKeysProps>(
-  ({ classes, disabled, keys, onAdd, onRemove, onRowClick }) => (
+  ({ classes, disabled, keys, onAdd, onRemove }) => (
     <Card>
       <CardTitle
         title={i18n.t("Authentication Keys", {
@@ -69,18 +69,13 @@ const SiteSettingsKeys = decorate<SiteSettingsKeysProps>(
           {renderCollection(
             keys,
             key => (
-              <TableRow
-                className={classes.row}
-                hover={!(disabled || !key)}
-                key={maybe(() => key.name)}
-                onClick={
-                  !disabled && maybe(() => key.name)
-                    ? () => onRowClick(key.name)
-                    : undefined
-                }
-              >
+              <TableRow hover={!(disabled || !key)} key={maybe(() => key.name)}>
                 <TableCell>
-                  {maybe(() => key.name) ? key.name : <Skeleton />}
+                  {maybe(() => key.name) ? (
+                    translatedAuthorizationKeyTypes()[key.name]
+                  ) : (
+                    <Skeleton />
+                  )}
                 </TableCell>
                 <TableCell>
                   {maybe(() => key.key) ? key.key : <Skeleton />}
