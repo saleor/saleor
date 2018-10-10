@@ -108,7 +108,7 @@ class BaseMutation(graphene.Mutation):
         except ValidationError as validation_errors:
             message_dict = validation_errors.message_dict
             for field in message_dict:
-                if field in cls._meta.exclude:
+                if hasattr(cls._meta, 'exclude') and field in cls._meta.exclude:
                     continue
                 for message in message_dict[field]:
                     field = snake_to_camel_case(field)
