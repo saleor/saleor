@@ -10,11 +10,7 @@ import Form, { FormProps } from "../../../components/Form";
 import { FormSpacer } from "../../../components/FormSpacer";
 import SingleSelectField from "../../../components/SingleSelectField";
 import i18n from "../../../i18n";
-
-export enum AuthorizationKeyType {
-  FACEBOOK = "FACEBOOK",
-  GOOGLE_OAUTH2 = "GOOGLE_OAUTH2"
-}
+import { AuthorizationKeyType } from "../../../types/globalTypes";
 
 const authorizationKeyTypes = () => ({
   [AuthorizationKeyType.FACEBOOK]: i18n.t("Facebook"),
