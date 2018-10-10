@@ -9,7 +9,7 @@ import { UserError } from "../../../";
 import i18n from "../../../i18n";
 import CategoryDetailsForm from "../../components/CategoryDetailsForm";
 import SeoForm from "../../../components/SeoForm";
-// import CategoryBackground from "../CategoryBackground";
+import CategoryBackground from "../CategoryBackground";
 import CategoryCreateSubcategories from "../CategoryCreateSubcategories";
 import Toggle from "../../../components/Toggle";
 import CategoryDeleteDialog from "../../components/CategoryDeleteDialog";
@@ -19,27 +19,23 @@ import SaveButtonBar, {
 } from "../../../components/SaveButtonBar/SaveButtonBar";
 
 interface FormData {
-  //CategoryDetailsForm
   description: string;
   name: string;
-
-  // SeoForm
   seoTitle: string;
   seoDescription: string;
 }
 
-interface CategoryCreatePageProps {
+export interface CategoryCreatePageProps {
   errors: UserError[];
   header: string;
-
+  placeholderImage: string;
   disabled: boolean;
-
   onSubmit(data: FormData);
   onImageUpload?(event: React.ChangeEvent<any>);
-
   onBack();
   onDelete();
   saveButtonBarState?: SaveButtonBarState;
+  onImageDelete: (id: string) => () => void;
 }
 const decorate = withStyles(theme => ({
   root: {
@@ -57,9 +53,11 @@ export const CategoryCreatePage = decorate<CategoryCreatePageProps>(
     onSubmit,
     onBack,
     errors: userErrors,
-    // onImageUpload,
     onDelete,
-    saveButtonBarState
+    saveButtonBarState,
+    onImageUpload,
+    onImageDelete,
+    placeholderImage
   }) => {
     const initialData: FormData = {
       name: "",
@@ -82,10 +80,12 @@ export const CategoryCreatePage = decorate<CategoryCreatePageProps>(
                       onChange={change}
                       errors={errors}
                     />
-                    {/* <CategoryBackground
+                    <CategoryBackground
                       onImageUpload={onImageUpload}
+                      onImageDelete={onImageDelete}
+                      placeholderImage={placeholderImage}
                       disabled={disabled}
-                    /> */}
+                    />
                     <CategoryCreateSubcategories disabled={disabled} />
                     <SeoForm
                       helperText={i18n.t(

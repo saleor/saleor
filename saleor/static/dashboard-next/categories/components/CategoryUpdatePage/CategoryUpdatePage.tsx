@@ -1,18 +1,18 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 import AddIcon from "@material-ui/icons/Add";
-
-import Container from "../../../components/Container";
-import PageHeader from "../../../components/PageHeader";
+import Button from "@material-ui/core/Button";
+import DialogContentText from "@material-ui/core/DialogContentText";
 
 import CategoryBackground from "../CategoryBackground";
+import Container from "../../../components/Container";
+import PageHeader from "../../../components/PageHeader";
 import CategoryList from "../../components/CategoryList";
-
 import CategoryDetailsForm from "../../components/CategoryDetailsForm";
 import SeoForm from "../../../components/SeoForm";
 import Form from "../../../components/Form";
 import CategoryProductsCard from "../CategoryProductsCard";
-import DialogContentText from "@material-ui/core/DialogContentText";
+
 import ActionDialog from "../../../components/ActionDialog";
 import { MoneyType } from "../../../products";
 import Toggle from "../../../components/Toggle";
@@ -21,7 +21,7 @@ import SaveButtonBar, {
 } from "../../../components/SaveButtonBar/SaveButtonBar";
 import Tabs, { SingleTab } from "../../../components/Tab";
 import { UserError } from "../../../";
-import Button from "@material-ui/core/Button";
+
 import i18n from "../../../i18n";
 
 interface FormData {
@@ -33,14 +33,14 @@ interface FormData {
 export interface CategoryUpdatePageProps {
   errors: UserError[];
   disabled: boolean;
-  placeholderImage?: string;
+  placeholderImage: string;
   category: {
     SeoDescription: string;
     SeoTitle: string;
     name: string;
     description: string;
   };
-  backgroundImage?: {
+  backgroundImage: {
     id?: string;
     url?: string;
   };
@@ -72,17 +72,17 @@ export interface CategoryUpdatePageProps {
   };
   loading: boolean;
   saveButtonBarState?: SaveButtonBarState;
-  onSubmit?(data: FormData);
+  onSubmit(data: FormData);
   onImageUpload?(event: React.ChangeEvent<any>);
-  onNextPage?();
-  onPreviousPage?();
-  onProductClick?(id: string): () => void;
-  onAddProduct?();
-  onBack?();
-  onDelete?();
-  onImageDelete?: (id: string) => () => void;
+  onNextPage();
+  onPreviousPage();
+  onProductClick(id: string): () => void;
+  onAddProduct();
+  onBack();
+  onDelete();
+  onImageDelete: (id: string) => () => void;
   onAddCategory();
-  onCategoryClick?(id: string): () => void;
+  onCategoryClick(id: string): () => void;
 }
 
 const decorate = withStyles(theme => ({
