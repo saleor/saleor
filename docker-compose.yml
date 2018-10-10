@@ -11,8 +11,6 @@ services:
     restart: unless-stopped
     networks:
       - saleor-backend-tier
-    ports:
-      - 8000:8000
     volumes:
       - .:/app:Z
     env_file: common.env
@@ -30,8 +28,6 @@ services:
       - saleor-backend-tier
     volumes:
       - saleor-db:/var/lib/postgresql
-    ports:
-      - 5432:5432
     environment:
       - POSTGRES_USER=saleor
       - POSTGRES_PASSWORD=saleor
@@ -44,8 +40,6 @@ services:
       - saleor-backend-tier
     volumes:
       - saleor-redis:/data
-    ports:
-      - 6379:6379
 
   celery:
     build:
@@ -72,8 +66,6 @@ services:
       - saleor-backend-tier
     volumes:
       - saleor-search:/usr/share/elasticsearch/
-    ports:
-      - 9200:9200
     # See https://github.com/docker/compose/issues/4513 if updating to version '3'
     mem_limit: 512m
     environment:

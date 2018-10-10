@@ -1,0 +1,15 @@
+version: '2'
+
+services:
+  web:
+    ports:
+      - 8000:8000
+  db:
+    ports:
+      - 5432:5432
+  redis:
+    ports:
+      - 6379:6379
+  search:
+    ports:
+      - 9200:9200
