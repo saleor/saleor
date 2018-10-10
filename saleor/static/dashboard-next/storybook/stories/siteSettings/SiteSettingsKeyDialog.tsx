@@ -2,9 +2,9 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
 import SiteSettingsKeyDialog, {
-  AuthorizationKeyType,
   SiteSettingsKeyDialogProps
 } from "../../../siteSettings/components/SiteSettingsKeyDialog";
+import { AuthorizationKeyType } from "../../../types/globalTypes";
 import Decorator from "../../Decorator";
 
 const props: SiteSettingsKeyDialogProps = {
