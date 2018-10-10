@@ -100,6 +100,9 @@ class AttributeCreate(AttributeMixin, ModelMutation):
 
     attribute = graphene.Field(
         Attribute, description='A created Attribute.')
+    product_type = graphene.Field(
+        ProductType,
+        description='A product type to which an attribute was added.')
 
     class Arguments:
         id = graphene.ID(
@@ -145,7 +148,7 @@ class AttributeCreate(AttributeMixin, ModelMutation):
         cls.clean_product_type_variant_attributes(
             product_type, type, errors)
         if errors:
-            return cls(errors=errors)
+            return AttributeCreate(errors=errors)
 
         instance.save()
         if type == AttributeTypeEnum.VARIANT.name:
@@ -153,7 +156,8 @@ class AttributeCreate(AttributeMixin, ModelMutation):
         else:
             product_type.product_attributes.add(instance)
         cls._save_m2m(info, instance, cleaned_input)
-        return cls.success_response(instance)
+        return AttributeCreate(
+            attribute=instance, product_type=product_type, errors=errors)
 
 
 class AttributeUpdateInput(graphene.InputObjectType):
@@ -170,6 +174,9 @@ class AttributeUpdateInput(graphene.InputObjectType):
 class AttributeUpdate(AttributeMixin, ModelMutation):
     ATTRIBUTE_VALUES_FIELD = 'add_values'
 
+    product_type = graphene.Field(
+        ProductType, description='A related product type.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of an attribute to update.')
@@ -180,10 +187,6 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
     class Meta:
         description = 'Updates attribute.'
         model = models.Attribute
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('product.manage_products')
 
     @classmethod
     def clean_remove_values(cls, cleaned_input, instance, errors):

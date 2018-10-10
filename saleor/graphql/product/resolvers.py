@@ -28,8 +28,8 @@ def resolve_attributes(info, category_id, query):
             for obj in models.Product.objects.filter(
                 category__in=tree).values_list('product_type_id')}
         queryset = queryset.filter(
-            Q(product_types__in=product_types)
-            | Q(product_variant_types__in=product_types))
+            Q(product_type__in=product_types)
+            | Q(product_variant_type__in=product_types))
     return queryset.distinct()
 
 
