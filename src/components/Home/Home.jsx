@@ -61,24 +61,32 @@ class Home extends Component {
           <section id="features-section" className="features">
             <div className="grid icons">
               <div className="col-xs-6 col-sm-6 col-md-3">
-                <img src={modernStackIcon} />
-                <h3><span>01<br/>-</span>Modern <br />stack</h3>
+                <a href="#software-stack">
+                  <img src={modernStackIcon} />
+                  <h3><span>01<br/>-</span>Modern <br />stack</h3>
+                </a>
               </div>
               <div className="col-xs-6 col-sm-6 col-md-3">
-                <img src={buildToScaleIcon} />
-                <h3><span>02<br/>-</span>Built to <br />scale</h3>
+                <a href="#build-to-scale">
+                  <img src={buildToScaleIcon} />
+                  <h3><span>02<br/>-</span>Built to <br />scale</h3>
+                </a>
               </div>
               <div className="col-xs-6 col-sm-6 col-md-3">
-                <img src={easyToCustomizeIcon} />
-                <h3><span>03<br/>-</span>Easy to <br />customize</h3>
+                <a href="#easy-to-customize">
+                  <img src={easyToCustomizeIcon} />
+                  <h3><span>03<br/>-</span>Easy to <br />customize</h3>
+                </a>
               </div>
               <div className="col-xs-6 col-sm-6 col-md-3">
-                <img src={greatExperienceIcon} />
-                <h3><span>04<br/>-</span>Great <br />expierience</h3>
+                <a href="#user-experience">
+                  <img src={greatExperienceIcon} />
+                  <h3><span>04<br/>-</span>Great <br />expierience</h3>
+                </a>
               </div>
             </div>
             <div className="section-container">
-              <div className="grid feature-item software-stack">
+              <div id="software-stack" className="grid feature-item software-stack">
                 <div className="col-xs-12 col-sm-6 col-md-6 text">
                   <h2>01. State of the art software stack</h2>
                   <p>Saleor is powered by a GraphQL server running on top of Python 3 and Django 2.</p>
@@ -86,7 +94,7 @@ class Home extends Component {
                 </div>
                 <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
               </div>
-              <div className="grid feature-item build-to-scale">
+              <div id="build-to-scale" className="grid feature-item build-to-scale">
                 <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
                 <div className="col-xs-12 col-sm-6 col-md-6 text">
                   <h2>02. Build to scale</h2>
@@ -94,7 +102,7 @@ class Home extends Component {
                   <p className="text-light">Saleor is optimized for cloud deployments using Docker. Horizontal scalability allows Saleor to take advantage of platforms such as AWS and Google Cloud and adapt to your traffic. Multi-container deployments allow your software to scale without downtimes. Persistent GraphQL Queries take advantage of CDN to ensure snappy performance under even the heaviest of loads.</p>
                 </div>
               </div>
-              <div className="grid feature-item easy-to-customize">
+              <div id="easy-to-customize" className="grid feature-item easy-to-customize">
                 <div className="col-xs-12 col-sm-6 col-md-6 text">
                   <h2>03. Easy to customize</h2>
                   <p>Saleor’s outstanding out-of-the-box experience may not be enough for everyone.</p>
@@ -102,7 +110,7 @@ class Home extends Component {
                 </div>
                 <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
               </div>
-              <div className="grid feature-item user-experience">
+              <div id="user-experience" className="grid feature-item user-experience">
                 <div className="col-xs-12 col-sm-12 col-md-12 text">
                   <h2>04. User experience that simply rocks</h2>
                   <p>Unlike what you might expect from open source software Saleor’s user experience rivals that of the best commercial solutions.</p>
