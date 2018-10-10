@@ -25,6 +25,7 @@ const updateProps: CategoryUpdatePageProps = {
     hasPreviousPage: true
   },
   onNextPage: undefined,
+  onSubmit: () => undefined,
   onPreviousPage: undefined,
   onImageDelete: () => undefined,
   onProductClick: () => undefined,

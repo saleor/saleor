@@ -1,4 +1,5 @@
 import { products } from "../products/fixtures";
+import * as block1 from "../../images/block1.jpg";
 
 export const categories = [
   {
@@ -73,7 +74,7 @@ export const category = (placeholderImage: string) => ({
   name: "Apparel",
   backgroundImage: {
     id: "UPJvZHVjfEs4YWdlOjV",
-    url: placeholderImage
+    url: block1
   },
   products: products(placeholderImage)
 });
