@@ -70,6 +70,8 @@ const uploadLink = createUploadLink({
 const apolloClient = new ApolloClient({
   cache: new InMemoryCache({
     dataIdFromObject: (obj: any) => {
+      // We need to set manually shop's ID, since it is singleton and
+      // API does not return its ID
       if (obj.__typename === "Shop") {
         return "shop";
       }
