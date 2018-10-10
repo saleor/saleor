@@ -258,7 +258,7 @@ ul {
     }
   }
   &.btn-secondary {
-    border: solid var(--border-width) var(--body-color);
+    border: solid calc(var(--border-width) * 3) var(--body-color);
     background-color: transparent;
     color: var(--body-color);
     &:hover {
