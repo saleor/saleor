@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
@@ -75,10 +76,6 @@ class CategoryTranslation(SeoModelTranslation):
 class ProductType(models.Model):
     name = models.CharField(max_length=128)
     has_variants = models.BooleanField(default=True)
-    product_attributes = models.ManyToManyField(
-        'Attribute', related_name='product_types', blank=True)
-    variant_attributes = models.ManyToManyField(
-        'Attribute', related_name='product_variant_types', blank=True)
     is_shipping_required = models.BooleanField(default=False)
     tax_rate = models.CharField(
         max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True,
@@ -318,8 +315,14 @@ class ProductVariantTranslation(models.Model):
 
 
 class Attribute(models.Model):
-    slug = models.SlugField(max_length=50, unique=True)
-    name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=50)
+    name = models.CharField(max_length=50)
+    product_type = models.ForeignKey(
+        ProductType, related_name='product_attributes', blank=True,
+        null=True, on_delete=models.CASCADE)
+    product_variant_type = models.ForeignKey(
+        ProductType, related_name='variant_attributes', blank=True,
+        null=True, on_delete=models.CASCADE)
 
     translated = TranslationProxy()
 
