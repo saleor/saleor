@@ -30,10 +30,6 @@ BILLING_ADDRESS_FIELD = 'default_billing_address'
 SHIPPING_ADDRESS_FIELD = 'default_shipping_address'
 
 
-BILLING_ADDRESS_FIELD = 'default_billing_address'
-SHIPPING_ADDRESS_FIELD = 'default_shipping_address'
-
-
 class CustomerRegisterInput(graphene.InputObjectType):
     email = graphene.String(
         description='The unique email address of the user.', required=True)
