@@ -23,6 +23,11 @@ def clean_shipping_method(
         checkout, method, errors, discounts, taxes, country_code=None):
     if not method:
         return errors
+    if not checkout.is_shipping_required():
+        errors.append(
+            Error(
+                field='checkout',
+                message='This checkout does not requires shipping.'))
     if not checkout.shipping_address:
         errors.append(
             Error(
@@ -31,11 +36,6 @@ def clean_shipping_method(
                     'Cannot choose a shipping method for a '
                     'checkout without the shipping address.')))
         return errors
-    if not checkout.is_shipping_required():
-        errors.append(
-            Error(
-                field='checkout',
-                message='This checkout does not requires shipping.'))
     valid_methods = (
         ShippingMethodModel.objects.applicable_shipping_methods(
             price=checkout.get_subtotal(discounts, taxes).gross.amount,

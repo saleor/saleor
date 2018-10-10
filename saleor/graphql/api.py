@@ -57,7 +57,8 @@ from .checkout.types import CheckoutLine, Checkout
 from .checkout.mutations import (
     CheckoutCreate, CheckoutLinesAdd, CheckoutLinesUpdate, CheckoutLineDelete,
     CheckoutCustomerAttach, CheckoutCustomerDetach,
-    CheckoutShippingAddressUpdate, CheckoutEmailUpdate, CheckoutComplete)
+    CheckoutShippingAddressUpdate, CheckoutEmailUpdate, CheckoutComplete,
+    CheckoutShippingMethodUpdate)
 from .checkout.resolvers import (
     resolve_checkouts, resolve_checkout_lines, resolve_checkout)
 
@@ -295,6 +296,7 @@ class Mutations(ProductMutations):
     checkout_customer_attach = CheckoutCustomerAttach.Field()
     checkout_customer_detach = CheckoutCustomerDetach.Field()
     checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
+    checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field()
     checkout_email_update = CheckoutEmailUpdate.Field()
     checkout_payment_method_create = CheckoutPaymentMethodCreate.Field()
     checkout_complete = CheckoutComplete.Field()
