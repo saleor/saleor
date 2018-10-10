@@ -9,7 +9,7 @@ import { UserError } from "../../../";
 import i18n from "../../../i18n";
 import CategoryDetailsForm from "../../components/CategoryDetailsForm";
 import SeoForm from "../../../components/SeoForm";
-import CategoryBackground from "../CategoryBackground";
+// import CategoryBackground from "../CategoryBackground";
 import CategoryCreateSubcategories from "../CategoryCreateSubcategories";
 import Toggle from "../../../components/Toggle";
 import CategoryDeleteDialog from "../../components/CategoryDeleteDialog";
@@ -57,7 +57,7 @@ export const CategoryCreatePage = decorate<CategoryCreatePageProps>(
     onSubmit,
     onBack,
     errors: userErrors,
-    onImageUpload,
+    // onImageUpload,
     onDelete,
     saveButtonBarState
   }) => {
@@ -66,7 +66,6 @@ export const CategoryCreatePage = decorate<CategoryCreatePageProps>(
       description: "",
       seoTitle: "",
       seoDescription: ""
-      // backgroundImage: ""
     };
     return (
       <Toggle>
@@ -82,12 +81,11 @@ export const CategoryCreatePage = decorate<CategoryCreatePageProps>(
                       data={data}
                       onChange={change}
                       errors={errors}
-                      loading={false}
                     />
-                    <CategoryBackground
+                    {/* <CategoryBackground
                       onImageUpload={onImageUpload}
                       disabled={disabled}
-                    />
+                    /> */}
                     <CategoryCreateSubcategories disabled={disabled} />
                     <SeoForm
                       helperText={i18n.t(
@@ -117,7 +115,6 @@ export const CategoryCreatePage = decorate<CategoryCreatePageProps>(
                 <CategoryDeleteDialog
                   name={undefined}
                   open={openedDeleteDialog}
-                  productCount={undefined}
                   onClose={toggleDeleteDialog}
                   onConfirm={onDelete}
                 />

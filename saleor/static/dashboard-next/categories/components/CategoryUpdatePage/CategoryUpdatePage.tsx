@@ -33,11 +33,16 @@ interface FormData {
 export interface CategoryUpdatePageProps {
   errors: UserError[];
   disabled: boolean;
+  placeholderImage?: string;
   category: {
     SeoDescription: string;
     SeoTitle: string;
     name: string;
     description: string;
+  };
+  backgroundImage?: {
+    id?: string;
+    url?: string;
   };
   products: Array<{
     id: string;
@@ -75,7 +80,8 @@ export interface CategoryUpdatePageProps {
   onAddProduct?();
   onBack?();
   onDelete?();
-  onAddCategory?();
+  onImageDelete?: (id: string) => () => void;
+  onAddCategory();
   onCategoryClick?(id: string): () => void;
 }
 
@@ -110,7 +116,10 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
     onSubmit,
     onBack,
     onAddCategory,
-    onCategoryClick
+    onCategoryClick,
+    onImageDelete,
+    placeholderImage,
+    backgroundImage
   }) => {
     const initialData = category
       ? {
@@ -161,11 +170,12 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
                           disabled={disabled}
                           errors={errors}
                           onChange={change}
-                          loading={loading}
                         />
                         <CategoryBackground
                           onImageUpload={onImageUpload}
-                          disabled={disabled}
+                          onImageDelete={onImageDelete}
+                          backgroundImage={backgroundImage}
+                          placeholderImage={placeholderImage}
                         />
                         <SeoForm
                           helperText={i18n.t(
@@ -258,8 +268,8 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
                     <DialogContentText
                       dangerouslySetInnerHTML={{
                         __html: i18n.t(
-                          "Are you sure you want to remove <strong>{{ name }}</strong>?",
-                          { name: category.name }
+                          "Are you sure you want to remove <strong>{{ name }}</strong>?"
+                          // { name: category.name }
                         )
                       }}
                     />

@@ -42,7 +42,6 @@ interface CategoryDetailsPageProps {
     hasNextPage: boolean;
     hasPreviousPage: boolean;
   };
-  productCount?: number;
   loading?: boolean;
   onAddCategory?();
   onAddProduct?();
@@ -86,7 +85,6 @@ const CategoryDetailsPage = decorate<CategoryDetailsPageProps>(
     classes,
     loading,
     pageInfo,
-    productCount,
     products,
     subcategories,
     onAddCategory,
@@ -174,7 +172,6 @@ const CategoryDetailsPage = decorate<CategoryDetailsPageProps>(
               <CategoryDeleteDialog
                 name={category.name}
                 open={opened}
-                productCount={productCount}
                 onClose={toggleDialog}
                 onConfirm={onDelete}
               />

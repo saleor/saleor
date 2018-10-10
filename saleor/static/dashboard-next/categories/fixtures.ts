@@ -71,6 +71,10 @@ export const category = (placeholderImage: string) => ({
     "Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.\nTell lose part purpose do when. Whatever drug contain particularly defense.",
   id: "c1",
   name: "Apparel",
+  backgroundImage: {
+    id: "UPJvZHVjfEs4YWdlOjV",
+    url: placeholderImage
+  },
   products: products(placeholderImage)
 });
 export const errors = [
