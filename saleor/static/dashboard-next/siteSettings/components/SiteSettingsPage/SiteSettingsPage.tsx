@@ -21,6 +21,10 @@ export interface SiteSettingsPageFormData {
 
 export interface SiteSettingsPageProps {
   disabled: boolean;
+  errors: Array<{
+    field: string;
+    message: string;
+  }>
   shop: SiteSettings_shop;
   onKeyAdd: () => void;
   onKeyRemove: (keyType: AuthorizationKeyType) => void;
@@ -39,6 +43,7 @@ const SiteSettingsPage = decorate<SiteSettingsPageProps>(
   ({
     classes,
     disabled,
+    errors,
     shop,
     onKeyAdd,
     onKeyRemove,
@@ -51,11 +56,12 @@ const SiteSettingsPage = decorate<SiteSettingsPageProps>(
     };
     return (
       <Form
+        errors={errors}
         initial={initialForm}
         onSubmit={onSubmit}
         key={JSON.stringify(shop)}
       >
-        {({ change, data, hasChanged, submit }) => (
+        {({ change, data, errors: formErrors, hasChanged, submit }) => (
           <Container width="md">
             <PageHeader
               title={i18n.t("General Information", {
@@ -70,6 +76,7 @@ const SiteSettingsPage = decorate<SiteSettingsPageProps>(
               </Typography>
               <SiteSettingsDetails
                 data={data}
+                errors={formErrors}
                 disabled={disabled}
                 onChange={change}
               />
