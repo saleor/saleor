@@ -26,6 +26,8 @@ class SiteDomainInput(graphene.InputObjectType):
 
 
 class ShopSettingsUpdate(BaseMutation):
+    shop = graphene.Field(Shop, description='Updated Shop')
+
     class Arguments:
         input = ShopSettingsInput(
             description='Fields required to update shop settings.',
@@ -33,9 +35,6 @@ class ShopSettingsUpdate(BaseMutation):
 
     class Meta:
         description = 'Updates shop settings'
-
-    shop = graphene.Field(
-        Shop, description='Updated Shop')
 
     @classmethod
     @permission_required('site.manage_settings')
@@ -56,13 +55,13 @@ class ShopSettingsUpdate(BaseMutation):
 
 
 class ShopDomainUpdate(BaseMutation):
+    shop = graphene.Field(Shop, description='Updated Shop')
+
     class Arguments:
         input = SiteDomainInput(description='Fields required to update site')
 
     class Meta:
         description = 'Updates site domain of the shop'
-
-    shop = graphene.Field(Shop, description='Updated Shop')
 
     @classmethod
     @permission_required('site.manage_settings')
@@ -83,15 +82,14 @@ class ShopDomainUpdate(BaseMutation):
 
 
 class HomepageCollectionUpdate(BaseMutation):
+    shop = graphene.Field(Shop, description='Updated Shop')
+
     class Arguments:
         collection = graphene.ID(
             description='Collection displayed on homepage')
 
     class Meta:
         description = 'Updates homepage collection of the shop'
-
-    shop = graphene.Field(
-        Shop, description='Updated Shop')
 
     @classmethod
     @permission_required('site.manage_settings')
@@ -118,6 +116,7 @@ class AuthorizationKeyInput(graphene.InputObjectType):
 class AuthorizationKeyAdd(BaseMutation):
     authorization_key = graphene.Field(
         AuthorizationKey, description='Newly added authorization key.')
+    shop = graphene.Field(Shop, description='Updated Shop')
 
     class Meta:
         description = 'Adds an authorization key.'
@@ -146,12 +145,13 @@ class AuthorizationKeyAdd(BaseMutation):
             return AuthorizationKeyAdd(errors=errors)
 
         instance.save()
-        return AuthorizationKeyAdd(authorization_key=instance)
+        return AuthorizationKeyAdd(authorization_key=instance, shop=Shop())
 
 
 class AuthorizationKeyDelete(BaseMutation):
     authorization_key = graphene.Field(
         AuthorizationKey, description='Auhtorization key that was deleted.')
+    shop = graphene.Field(Shop, description='Updated Shop')
 
     class Arguments:
         key_type = AuthorizationKeyType(
@@ -174,4 +174,4 @@ class AuthorizationKeyDelete(BaseMutation):
             return AuthorizationKeyDelete(errors=errors)
 
         instance.delete()
-        return AuthorizationKeyDelete(authorization_key=instance)
+        return AuthorizationKeyDelete(authorization_key=instance, shop=Shop())
