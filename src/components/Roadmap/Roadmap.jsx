@@ -17,6 +17,7 @@ const Roadmap = (props) => (
       <div className="grid roadmap-item">
         <div className="col-xs-3 col-sm-3 col-md-3 line">
           <div className="icon parrot"></div>
+          <div className="border-line parrot"></div>
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>Long-Term Goals</h2>
@@ -43,6 +44,7 @@ const Roadmap = (props) => (
       <div className="grid roadmap-item">
         <div className="col-xs-3 col-sm-3 col-md-3 line">
         <div className="icon lantern"></div>
+        <div className="border-line lantern"></div>
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>Upcoming Release</h2>
@@ -53,6 +55,7 @@ const Roadmap = (props) => (
       <div className="grid roadmap-item">
         <div className="col-xs-3 col-sm-3 col-md-3 line">
           <div className="icon"></div>
+          <div className="border-line"></div>
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>June Release</h2>
@@ -64,6 +67,7 @@ const Roadmap = (props) => (
       <div className="grid roadmap-item">
         <div className="col-xs-3 col-sm-3 col-md-3 line">
           <div className="icon"></div>
+          <div className="border-line"></div>
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>May Release</h2>
@@ -75,6 +79,7 @@ const Roadmap = (props) => (
       <div className="grid roadmap-item">
         <div className="col-xs-3 col-sm-3 col-md-3 line">
           <div className="icon"></div>
+          <div className="border-line"></div>
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>April Release</h2>
@@ -88,6 +93,7 @@ const Roadmap = (props) => (
       <div className="grid roadmap-item">
         <div className="col-xs-3 col-sm-3 col-md-3 line">
           <div className="icon"></div>
+          <div className="border-line"></div>
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>March Release</h2>
@@ -101,6 +107,7 @@ const Roadmap = (props) => (
       <div className="grid roadmap-item">
         <div className="col-xs-3 col-sm-3 col-md-3 line">
           <div className="icon"></div>
+          <div className="border-line"></div>
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>February Release</h2>
@@ -113,6 +120,7 @@ const Roadmap = (props) => (
       <div className="grid roadmap-item">
         <div className="col-xs-3 col-sm-3 col-md-3 line">
           <div className="icon"></div>
+          <div className="border-line"></div>
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>January Release</h2>
@@ -126,7 +134,8 @@ const Roadmap = (props) => (
       </div>
       <div className="grid roadmap-item">
         <div className="col-xs-3 col-sm-3 col-md-3 line">
-          <div className="icon last"></div>
+          <div className="icon"></div>
+          <div className="border-line last"></div>
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>December Release</h2>

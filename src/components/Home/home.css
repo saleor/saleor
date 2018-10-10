@@ -1,6 +1,9 @@
 #home {
   border: solid var(--border-width) var(--sectionBorder);
   border-bottom: none;
+  @media (max-width: 450px) {
+    border: none;
+  }
   & section {
     &.hero {
       position: relative;
@@ -24,7 +27,7 @@
         }
         @media (max-width: 450px) {
           background-position: 80% 100%;
-          background-size: 300%;
+          background-size: 250%;
         }
       }
       & .plane {
@@ -44,17 +47,11 @@
           width: 100%;
         }
         @media (max-width: 450px) {
-          padding: calc(var(--spacer) * 20) var(--spacer);
           width: auto;
           position: absolute;
+          left: var(--spacer);
           top: 50%;
           transform: translateY(-50%);
-          & .button-wrapper {
-            text-align: center;
-            & :last-child {
-              margin-right: 0;
-            }
-          }
         }
         & .news {
           position: relative;
@@ -99,11 +96,11 @@
             font-size: calc(var(--font-size-base) * 2.5);
           }
           @media (max-width: 570px) {
-            font-size: calc(var(--font-size-base) * 2);
+            font-size: calc(var(--font-size-base) * 2.5);
             padding-bottom: calc(var(--spacer) * 2);
           }
           @media (max-width: 450px) {
-            padding: 0 0 calc(var(--spacer) * 4) 0;
+            padding: 0 0 var(--spacer) 0;
           }
         }
         & .btn {
@@ -112,10 +109,15 @@
           @media (max-width: 570px) {
             font-size: var(--font-size-base);
           }
+          @media (max-width: 450px) {
+            display: block;
+            margin: var(--spacer) calc(var(--spacer) * 3) var(--spacer) calc(var(--spacer) * 2);
+            text-align: center;
+          }
           &.btn-primary {
-            padding: calc(var(--spacer) / 1.5) calc(var(--spacer) * 5);
+            padding: calc(var(--spacer) / 1.5) calc(var(--spacer) * 3);
             @media (max-width: 450px) {
-              padding: var(--spacer) calc(var(--spacer) * 3);
+              padding: calc(var(--spacer) / 1.5) 0;
             }
             @media (max-width: 320px) {
               padding: calc(var(--spacer) / 1.5) calc(var(--spacer) * 2);
@@ -124,7 +126,7 @@
           &.btn-secondary {
             padding: calc(var(--spacer) / 2) calc(var(--spacer) * 4); 
             @media (max-width: 450px) {
-              padding: var(--spacer) calc(var(--spacer) * 2);
+              padding: calc(var(--spacer) / 1.5) 0;
             }
             @media (max-width: 320px) {
               padding: calc(var(--spacer) / 2) calc(var(--spacer) * 2);
@@ -147,6 +149,9 @@
         @media (max-width: 768px) {
           bottom: 0;
         }
+        @media (max-width: 320px) {
+          bottom: calc(var(--spacer) * -3);
+        }
       }
       @media (max-width: 768px) {
         height: 70vh;
@@ -161,6 +166,9 @@
     &.features {
       position: relative;
       top: calc(var(--spacer) * -6);
+      @media (max-width: 450px) {
+        top: 0;
+      }
       & .grid {
         padding: 0 calc(var(--spacer) * 5);
         width: calc(100% - calc(var(--spacer) * 3));
@@ -181,12 +189,15 @@
           padding: 0 calc(var(--spacer) * 4) calc(var(--spacer) * 0) calc(var(--spacer) * 4);
         }
         @media (max-width: 450px) {
-          padding: 0 calc(var(--spacer) * 1) 0 calc(var(--spacer) * 3);
+          padding: 0 var(--spacer) 0 var(--spacer);
         }
       }
       & .icons {
         @media (max-width: 1024px) {
           padding: 0 0 calc(var(--spacer) * 2) 0;
+        }
+        @media (max-width: 450px) {
+          display: none;
         }
         & img {
           width: 60%;
@@ -259,7 +270,7 @@
             padding: 0;
           }
           @media (max-width: 450px) {
-            grid-row: 2;
+            z-index: 2;
           }
           & h2 {
             position: relative;
@@ -274,7 +285,7 @@
               }
             }
             @media (max-width: 570px) {
-              font-size: calc(var(--font-size-base) * 2);
+              font-size: calc(var(--font-size-base));
               & span {
                 font-size: calc(var(--font-size-base));
               }
@@ -313,9 +324,12 @@
           background-repeat: no-repeat;
           background-position: 50% 50%;
           @media (max-width: 450px) {
-            width: 200px;
-            height: 200px;
+            width: 100%;
+            height: 100%;
+            position: absolute;
             grid-row: 1;
+            opacity: 0.5;
+            z-index: 1;
           }
         }
         &.software-stack {
@@ -332,8 +346,8 @@
             }
             @media (max-width: 450px) {
               background-image: url('../../images/modern-stack.svg');
-              background-position: -70% 100%;
-              background-size: 80%;
+              background-position: 30% 100%;
+              background-size: cover;
             }
           }
           @media (max-width: 768px) {
@@ -356,8 +370,8 @@
               background-size: 100%;
             }
             @media (max-width: 450px) {
-              background-position: -20%;
-              background-size: 80%;
+              background-position: 50% 100%;
+              background-size: 150%;
             }
           }
         }
@@ -372,8 +386,8 @@
               background-size: 100%;
             }
             @media (max-width: 450px) {
-              background-position: -20% 90%;
-              background-size: 80%;
+              background-position: 0% 60%;
+              background-size: 120%;
             }
           }
         }
@@ -445,6 +459,9 @@
               color: var(--primaryColor);
               font-size: var(--font-size-base);
               padding-left: 20%;
+              @media (max-width: 450px) {
+                padding-left: 0;
+              }
             }
             & p {
               width: 80%;
@@ -455,6 +472,9 @@
               @media (max-width: 1440px) {
                 width: 90%;
                 font-size: var(--spacer);
+              }
+              @media (max-width: 450px) {
+                padding-left: 0;
               }
               &.text-light {
                 font-weight: 200;
@@ -469,6 +489,13 @@
           & .btn {
             padding: calc(var(--spacer) / 1.5) calc(var(--spacer) * 6);
           }
+          @media (max-width: 450px) {
+            margin: 0 auto calc(var(--spacer) * 2) auto;
+            & .btn {
+              margin: calc(var(--spacer) * 2) calc(var(--spacer) * 2) calc(var(--spacer) * 5) calc(var(--spacer) * 2);
+              padding: calc(var(--spacer) / 1.5) calc(var(--spacer) * 3);
+            }
+          }
         }
       }
     }
@@ -476,6 +503,9 @@
     &.open-source {
       position: relative;
       padding-top: calc(var(--spacer) * 3);
+      @media (max-width: 450px) {
+          padding: 0;
+        }
       & .section-container {
         padding: 0 calc(var(--spacer) * 10) calc(var(--spacer) * 10) calc(var(--spacer) * 10);
         @media (max-width: 1440px) {
@@ -483,6 +513,9 @@
         }
         @media (max-width: 1024px) {
           padding: calc(var(--spacer) * 4) calc(var(--spacer) * 4) calc(var(--spacer) * 0) calc(var(--spacer) * 4);
+        }
+        @media (max-width: 450px) {
+          padding: 0 var(--spacer);
         }
       }
       & .text {
@@ -513,7 +546,7 @@
         }
         @media (max-width: 450px) {
           width: 100%;
-          padding-top: calc(var(--spacer) * 15); 
+          padding-top: 0; 
         }
         & p {
           & strong {
@@ -554,21 +587,7 @@
           background-size: 250%;
         }
         @media (max-width: 450px) {
-          width: 100%;
-          height: 50%;
-          background-size: 400%;
-          top: -9%;
-          left: 55%;
-          right: initial;
-          transform: translateX(-50%);
-        }
-        @media (max-width: 375px) {
-          top: -10%;
-          left: 55%;
-        }
-        @media (max-width: 320px) {
-          top: -10%;
-          background-size: 450%;
+          display: none;
         }
       }
       & .github-circle {
@@ -666,7 +685,7 @@
             padding: 0;
           }
           @media (max-width: 450px) {
-            padding-top: calc(var(--spacer) * 2);
+            padding-top: var(--spacer);
           }
           & .logo {
             & svg {
@@ -701,6 +720,9 @@
       position: relative;
       background: rgb(16,10,53);
       background: linear-gradient(135deg, rgba(16,10,53,0) 8%, rgba(16,10,53,1) 8%, rgba(16,10,53,1) 92%, rgba(16,10,53,0) 92%, rgba(16,10,53,0) 100%);
+      @media (max-width: 450px) {
+        background: linear-gradient(135deg, rgba(16,10,53,0) 4%, rgba(16,10,53,1) 4%, rgba(16,10,53,1) 96%, rgba(16,10,53,0) 96%, rgba(16,10,53,0) 100%);
+      }
       & .section-container {
         padding: calc(var(--spacer) * 4) calc(var(--spacer) * 10);
         min-height: 700px;
@@ -717,6 +739,8 @@
         border-bottom: solid 2px var(--primaryColor);
         @media (max-width: 450px) {
           padding-top: var(--spacer);
+          border-bottom: none;
+          margin-bottom: 0;
         }
         & h2 {
           &.tab-1 { color: var(--body-color); }
@@ -725,6 +749,9 @@
           padding-top: calc(var(--spacer) * 1.5);
           @media (max-width: 768px) {
             padding-bottom: calc(var(--spacer) * 2);
+          }
+          @media (max-width: 450px) {
+            font-size: calc(var(--font-size-base) * 2);
           }
         }
         & ul {
@@ -744,13 +771,19 @@
               font-size: calc(var(--font-size-base) * 1.2);
             }
             @media (max-width: 450px) {
+              width: auto;
+              margin-left: 0;
               font-size: calc(var(--font-size-base) * 0.8);
+              text-align: left;
             }
             text-transform: uppercase;
             cursor: pointer;
             & .trapezoidButton {
               position: relative;
               top: 8px;
+              @media (max-width: 450px) {
+                top: calc(var(--spacer) * -2.5);
+              }
               & .text {
                 width: 100%;
                 position: absolute;
@@ -762,6 +795,13 @@
                 top: var(--spacer);
                 @media (max-width: 768px) {
                   top: calc(var(--spacer) * 1.5);
+                }
+                @media (max-width: 450px) {
+                  width: auto;
+                  position: relative;
+                  display: inline;
+                  font-size: calc(var(--font-size-base) * 1.2);
+                  text-align: left;
                 }
               }
             }
@@ -776,6 +816,18 @@
                 position: relative;
                 z-index: 999;
                 top: 8px;
+                @media (max-width: 450px) {
+                  top: calc(var(--spacer) * -2.5);
+                }
+                @media (max-width: 450px) {
+                  width: auto;
+                  height: auto;
+                }
+                & .text {
+                  @media (max-width: 450px) {
+                    border-bottom: solid 2px var(--primaryColor);
+                  }
+                }
                 & .trapezoid {
                   width: 150px;
                   height: 70px;
@@ -794,7 +846,11 @@
                     transform: skew(30deg);
                     right: 0;
                   }
+                  @media (max-width: 450px) {
+                    display: none;
+                  }
                 }
+                
               }
             }
           }
@@ -849,6 +905,11 @@
               }
             }
           }
+          @media (max-width: 450px) {
+            & .btn {
+              padding: calc(var(--spacer) / 1.5) calc(var(--spacer) * 4)
+            }
+          }
         }
       }
       & .implementation {
@@ -876,6 +937,9 @@
         padding: calc(var(--spacer) * 4) calc(var(--spacer) * 10);
         @media (max-width: 1024px) {
           padding: calc(var(--spacer) * 4) calc(var(--spacer) * 4) calc(var(--spacer) * 0) calc(var(--spacer) * 4);
+        }
+        @media (max-width: 450px) {
+          padding: calc(var(--spacer) * 4) calc(var(--spacer) * 1) calc(var(--spacer) * 0) calc(var(--spacer) * 1);
         }
       }
       & h2 {
@@ -936,6 +1000,7 @@
             }
             @media (max-width: 450px) {
               font-size: calc(var(--font-size-base) * 1.2);
+              padding-bottom: calc(var(--spacer) * 1.5);
             }
           }
         }
@@ -946,6 +1011,7 @@
         @media (max-width: 450px) {
           font-size: var(--font-size-base);
           padding: calc(var(--spacer) / 2) calc(var(--spacer) * 2);
+          margin-left: 0;
         }
         @media (max-width: 320px) {
           font-size: calc(var(--font-size-base) * 1.1);

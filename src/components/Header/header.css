@@ -139,6 +139,14 @@ header {
               fill: var(--body-color);
             }
           }
+          @media (max-width: 450px) {
+              & svg {
+              fill: var(--primaryColor);
+              & path {
+                fill: var(--primaryColor);
+              }
+            }
+            }
           & .star-value {
             position: relative;
             top: -0.1rem;
@@ -248,10 +256,18 @@ header {
             grid-column: -9 / span 5;
           }
           @media (max-width: 450px) {
-            grid-column: -9 / span 6;
+            grid-column: -8 / span 6;
           }
           padding: 0;      
           &.github-link {
+            @media (max-width: 450px) {
+              & .githubLink {
+                color: var(--primaryColor);
+              }
+              & svg {
+                fill: var(--primaryColor);
+              }
+            }
             &.open {
               visibility: hidden;
             }
@@ -268,6 +284,9 @@ header {
             right: var(--spacer);
             transform: rotate(0deg);
             cursor: pointer;
+            @media (max-width: 320px) {
+              right: calc(var(--spacer) / 6);
+            }
             & span {
               display: block;
               position: absolute;

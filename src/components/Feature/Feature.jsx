@@ -42,7 +42,7 @@ const Feature = () => (
         <ScrollLink to="#testimonial"> Learn more </ScrollLink>
       </section>
       <section id="testimonial" className="testimonial">
-        <div class="container">
+        <div className="container">
           <img classname="logo" src={patchGardenLogo}  />
           <p className="comment quote text-light">“After actively using and developing our Saleor store for over a year, if I were to create a new shop today I would go for it again without a doubt.”</p>
           <div className="testimonial-author">
@@ -253,7 +253,9 @@ const Feature = () => (
           <h2>Documentation</h2>
           <h4 className="description">Check our comprehensive documentation which can guide
           you through the installation process or customizations that you may want to carry out.</h4>
-          <a className="btn btn-secondary" href="https://saleor.readthedocs.io/en/latest/" target="_blank"><span>Read the docs</span></a>
+          <div class="position">
+            <a className="btn btn-secondary" href="https://saleor.readthedocs.io/en/latest/" target="_blank"><span>Read the docs</span></a>
+          </div>
         </div>
       </section>
       <GitHubBanner />

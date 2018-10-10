@@ -1,6 +1,9 @@
 #privacy-policy {
   border: solid var(--border-width) var(--sectionBorder);
   border-bottom: 0;
+  @media (max-width: 450px) {
+    border: 0;
+  }
 	& section {
     padding-top: var(--spacer);
     padding-bottom: calc(var(--spacer) * 3);
@@ -22,6 +25,7 @@
         background-position: 180% 0%;
       }
       @media (max-width: 450px) {
+        background-size: 100%;
         background-position: 35% 0%;
       }
     }
@@ -45,6 +49,7 @@
           width: auto;
           position: absolute;
           top: 50%;
+          left: 0;
           transform: translateY(-50%);
           & p {
             width: auto;
@@ -64,6 +69,9 @@
         @media (max-width: 450px) {
           bottom: 10%;
         }
+        @media (max-width: 320px) {
+          bottom: -5%;
+        }
       }
       @media (max-width: 700px) {
         height: 180vh;
@@ -77,6 +85,9 @@
       padding: calc(var(--spacer) * 2) calc(var(--spacer) * 10);
       @media (max-width: 1024px) {
         padding: calc(var(--spacer) * 2) calc(var(--spacer) * 4);
+      }
+      @media (max-width: 450px) {
+        padding: calc(var(--spacer) * 2) var(--spacer);
       }
       & a {
         color: var(--body-color);

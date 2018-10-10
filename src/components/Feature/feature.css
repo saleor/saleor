@@ -1,6 +1,9 @@
 #feature {
     border: solid var(--border-width) var(--sectionBorder);
     border-bottom: 0;
+    @media (max-width: 450px) {
+      border: 0;
+    }
     & section {
         & .bg-container {
           background-image: url('../../images/feature-bg.svg');
@@ -46,6 +49,10 @@
               position: absolute;
               top: 50%;
               transform: translateY(-50%);
+              left: 0;
+              & h1 {
+                font-size: calc(var(--spacer) * 2.5);
+              }
               & p {
                 width: auto;
               }
@@ -55,13 +62,16 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 998;
+            z-index: 997;
             bottom: calc(var(--spacer) * 10);
             @media (max-width: 1024px) {
               bottom: calc(var(--spacer) * 4);
             }
             @media (max-width: 768px) {
               bottom: calc(var(--spacer) * 4);
+            }
+            @media (max-width: 320px) {
+              bottom: calc(var(--spacer) * 2);
             }
           }
           @media (max-width: 700px) {
@@ -136,6 +146,9 @@
                 position: relative;
                 top: 5%;
                 left: -9%;
+                @media (max-width: 450px) {
+                  width: 100%;
+                }
               }
               & h3 {
                 color: var(--body-color);
@@ -148,9 +161,11 @@
             & .icons {
               grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
               & .icon-card {
-                margin-left: calc(var(--spacer) * 2);
                 &.title {
-                  width: 80%;                  
+                  width: 100%;                  
+                }
+                & p {
+                  width: 100%;                  
                 }
               }
             }
@@ -210,6 +225,7 @@
           }
           @media (max-width: 450px) {
             padding: calc(var(--spacer) * 2) var(--spacer);
+            margin: 0;
           }
         }
         &.documentation {
@@ -237,6 +253,9 @@
           }
           & .btn {
             margin-left: calc(var(--spacer) * 2);
+            @media (max-width: 450px) {
+              margin-left: 0;
+            }
           }
           @media (max-width: 700px) {
             padding: calc(var(--spacer) * 2) var(--spacer);
@@ -247,9 +266,13 @@
           }
           @media (max-width: 450px) {
             padding: calc(var(--spacer) * 2) var(--spacer);
+            margin: 0;
             & .description {
               margin-top: calc(var(--spacer) * 0.5);
               font-size: calc(var(--font-size-base) * 1.2);
+            }
+            & .position {
+              text-align: center;
             }
           }
         }

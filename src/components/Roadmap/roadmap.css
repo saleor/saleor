@@ -2,6 +2,9 @@
   border: solid var(--border-width) var(--sectionBorder);
   border-bottom: 0;
   position: relative;
+  @media (max-width: 450px) {
+    border: 0;
+  }
   & section {
     &.hero {
       height: 90vh;
@@ -29,7 +32,7 @@
         width: 30%;
         padding: calc(var(--spacer) * 15) calc(var(--spacer) * 10);
         position: relative;
-        z-index: 999;
+        z-index: 997;
         @media (max-width: 1440px) {
           width: 40%;
         }
@@ -47,7 +50,7 @@
         }
         @media (max-width: 578px) {
           width: calc(100% - 4rem);
-          padding: calc(var(--spacer) * 12) calc(var(--spacer) * 2);
+          padding: calc(var(--spacer) * 12) calc(var(--spacer) * 1);
         }
       }
       & .scroll-link {
@@ -58,6 +61,9 @@
         text-align: center;
         @media (max-width: 768px) {
           bottom: 8%;
+        }
+        @media (max-width: 320px) {
+          bottom: -5%;
         }
       }
     }
@@ -75,52 +81,63 @@
             position: absolute;
             top: 0;
             right: 21.5%;
-            background-image: url('../../images/done-icon.png');
+            z-index: 2;
+            background-image: url('../../images/done-icon-bg.png');
             background-size: 40%;
             background-repeat: no-repeat;
             background-position: 85% 5%;
             @media (max-width: 578px) {
               width: 100px;
             }
-            &::after {
-              content: "";
-              position: absolute;
-              top: 84px;
-              bottom: -19px;
-              left: 70%;
-              border-left: 1px solid var(--primaryColor);
-              @media (max-width: 578px) {
-                top: 37%;
-              }
-            }
             &.lantern {
-              background-image: url('../../images/lantern-icon.png');
+              background-image: url('../../images/lantern-icon-bg.png');
               background-size: 50%;
               background-position: 85% 5%;
-              &::after {
-                top: 95px;
-                @media (max-width: 578px) {
-                  top: 35%;
-                }
-              }
             }
             &.parrot {
-              background-image: url('../../images/parrot-icon.png');
+              background-image: url('../../images/parrot-icon-bg.png');
               background-size: contain;
               background-position: 20% 5%;
-              &::after {
-                top: 105px;
-              }
               @media (max-width: 578px) {
                 background-position: 20% 0;
-                &::after {
-                  top: 15%;
-                }
               }
             }
+            
+          }
+          & .border-line {
+            width: 1px;
+            height: 100%;
+            position: absolute;
+            border-right: solid 1px var(--primaryColor);
+            right: 33%;
+            top: 8%;
+            z-index: 1;
             &.last {
-              &::after {
-                border: none;
+              display: none;
+            }
+            @media (max-width: 1440px) {
+               right: 37%;
+            }
+            @media (max-width: 1024px) {
+               right: 43%;
+            }
+            @media (max-width: 768px) {
+               right: 49%;
+            }
+            @media (max-width: 450px) {
+              right: 51%;
+              top: 9%;
+            }
+            @media (max-width: 320px) {
+              right: 56%;
+              top: 9%;
+            }
+            &.parrot {
+              @media (max-width: 450px) {
+                top: 6%;
+              }
+              @media (max-width: 320px) {
+                top: 5%;
               }
             }
           }

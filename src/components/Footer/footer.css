@@ -8,6 +8,9 @@ footer {
     padding: 0;
     border: solid var(--border-width) var(--sectionBorder);
     border-top: none;
+    @media (max-width: 450px) {
+      border: none;
+    }
   }
   & .logo {
     width: 120px;
@@ -19,6 +22,7 @@ footer {
     }
     @media (max-width: 450px) {
       width: 80px;
+      padding: calc(var(--spacer) * 3.5) 0 0 0;
     }
   }
   & .content {
@@ -26,6 +30,11 @@ footer {
     @media (max-width: 1024px) {
       padding: 0 calc(var(--spacer) * 4);
     }
+    @media (max-width: 450px) {
+      padding: 0;
+      border-bottom: solid 1px var(--primaryColor);
+    }
+
     & .menu {
       padding: calc(var(--spacer) * 2) 0;
       @media (max-width: 768px) {
@@ -41,6 +50,9 @@ footer {
         }
       }
       & .menu-item {
+        @media (max-width: 450px) {
+          margin-bottom: calc(var(--spacer) * 2);
+        }
         & h4 {
           font-size: var(--font-size);
           color: var(--primaryColor);

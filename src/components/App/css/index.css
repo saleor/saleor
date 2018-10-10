@@ -26,6 +26,7 @@ body {
     background-position: 0 0, 50% 0;
     background-size: cover, cover;
     background-repeat: repeat, repeat-y;
+    background-blend-mode: screen;
   }
 }
 
@@ -132,6 +133,10 @@ img {
   position: absolute;
 }
 
+.center {
+  text-align: center;
+}
+
 .primaryColor { color: var(--primaryColor); }
 .seconadyColor { color: var(--secondaryColor); }
 
@@ -144,7 +149,7 @@ img {
     padding: 0 var(--spacer);
   }
   @media (max-width: 450px) {
-    padding: 0 calc(var(--spacer) * 0.5);
+    padding: 0;
   }
 }
 
