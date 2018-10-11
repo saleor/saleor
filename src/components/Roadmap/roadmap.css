@@ -24,28 +24,26 @@
         }
       }
       & .plane {
-        width: 30%;
-        padding: calc(var(--spacer) * 15) calc(var(--spacer) * 10);
-        position: relative;
-        z-index: 997;
+        width: 40%;
+        position: absolute;
+        top: 40%;
+        left: 10%;
+        transform: translateY(-50%);
         @media (max-width: 1440px) {
           width: 40%;
         }
         & p {
-          font-size: calc(var(--font-size-base) * 1.3);
+          font-size: calc(var(--font-size-base) * 1.5);
           font-weight: var(--font-weight-light);
         }
         @media (max-width: 1024px) {
           width: 40%;
-          padding: calc(var(--spacer) * 15) calc(var(--spacer) * 5);
         }
         @media (max-width: 768px) {
           width: 80%;
-          padding: calc(var(--spacer) * 10) calc(var(--spacer) * 5);
         }
         @media (max-width: 578px) {
           width: calc(100% - 4rem);
-          padding: calc(var(--spacer) * 12) calc(var(--spacer) * 1);
         }
       }
       & .scroll-link {
