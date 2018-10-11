@@ -30,72 +30,73 @@ export interface SiteSettingsKeyDialogProps
 
 const SiteSettingsKeyDialog: React.StatelessComponent<
   SiteSettingsKeyDialogProps
-> = ({ errors, initial, open, onClose, onSubmit }) => (
-  <Dialog maxWidth="xs" open={open}>
-    <Form initial={initial} onSubmit={onSubmit} errors={errors}>
-      {({ change, data, errors }) => (
-        <>
-          <DialogTitle>
-            {i18n.t("Add New Authorization Key", {
-              context: "modal title"
-            })}
-          </DialogTitle>
-          <DialogContent>
-            <SingleSelectField
-              choices={Object.keys(translatedAuthorizationKeyTypes()).map(
-                key => ({
-                  label: translatedAuthorizationKeyTypes()[key],
+> = ({ errors, initial, open, onClose, onSubmit }) => {
+  const keyTypes = translatedAuthorizationKeyTypes();
+  return (
+    <Dialog maxWidth="xs" open={open}>
+      <Form initial={initial} onSubmit={onSubmit} errors={errors}>
+        {({ change, data, errors }) => (
+          <>
+            <DialogTitle>
+              {i18n.t("Add New Authorization Key", {
+                context: "modal title"
+              })}
+            </DialogTitle>
+            <DialogContent>
+              <SingleSelectField
+                choices={Object.keys(keyTypes).map(key => ({
+                  label: keyTypes[key],
                   value: key
-                })
-              )}
-              error={!!errors.keyType}
-              label={i18n.t("Authentication type", {
-                context: "input label"
-              })}
-              hint={errors.keyType}
-              name="type"
-              onChange={change}
-              value={data.type}
-            />
-            <FormSpacer />
-            <TextField
-              error={!!errors.key}
-              fullWidth
-              label={i18n.t("Key", {
-                context: "input label"
-              })}
-              helperText={errors.key}
-              name="key"
-              onChange={change}
-              value={data.key}
-            />
-            <FormSpacer />
-            <TextField
-              error={!!errors.password}
-              fullWidth
-              label={i18n.t("Password", {
-                context: "input label"
-              })}
-              helperText={errors.password}
-              name="password"
-              onChange={change}
-              value={data.password}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={onClose}>
-              {i18n.t("Cancel", { context: "button" })}
-            </Button>
-            <Button color="secondary" type="submit" variant="contained">
-              {i18n.t("Add authentication", {
-                context: "button"
-              })}
-            </Button>
-          </DialogActions>
-        </>
-      )}
-    </Form>
-  </Dialog>
-);
+                }))}
+                error={!!errors.keyType}
+                label={i18n.t("Authentication type", {
+                  context: "input label"
+                })}
+                hint={errors.keyType}
+                name="type"
+                onChange={change}
+                value={data.type}
+              />
+              <FormSpacer />
+              <TextField
+                error={!!errors.key}
+                fullWidth
+                label={i18n.t("Key", {
+                  context: "input label"
+                })}
+                helperText={errors.key}
+                name="key"
+                onChange={change}
+                value={data.key}
+              />
+              <FormSpacer />
+              <TextField
+                error={!!errors.password}
+                fullWidth
+                label={i18n.t("Password", {
+                  context: "input label"
+                })}
+                helperText={errors.password}
+                name="password"
+                onChange={change}
+                value={data.password}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={onClose}>
+                {i18n.t("Cancel", { context: "button" })}
+              </Button>
+              <Button color="secondary" type="submit" variant="contained">
+                {i18n.t("Add authentication", {
+                  context: "button"
+                })}
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Form>
+    </Dialog>
+  );
+};
 SiteSettingsKeyDialog.displayName = "SiteSettingsKeyDialog";
 export default SiteSettingsKeyDialog;
