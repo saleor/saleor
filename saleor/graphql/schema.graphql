@@ -1016,8 +1016,21 @@ enum PaymentStatusEnum {
 }
 
 type PermissionDisplay {
-  code: String!
+  code: PermissionEnum!
   name: String!
+}
+
+enum PermissionEnum {
+  ACCOUNT_MANAGE_USERS
+  ACCOUNT_MANAGE_STAFF
+  ACCOUNT_IMPERSONATE_USERS
+  DISCOUNT_MANAGE_DISCOUNTS
+  MENU_MANAGE_MENUS
+  ORDER_MANAGE_ORDERS
+  PAGE_MANAGE_PAGES
+  PRODUCT_MANAGE_PRODUCTS
+  SHIPPING_MANAGE_SHIPPING
+  SITE_MANAGE_SETTINGS
 }
 
 type Product implements Node {
