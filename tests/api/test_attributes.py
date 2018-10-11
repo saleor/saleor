@@ -105,6 +105,10 @@ CREATE_ATTRIBUTES_QUERY = """
                 slug
             }
         }
+        productType {
+            id
+            name
+        }
     }
 }
 """
@@ -125,15 +129,16 @@ def test_create_attribute_and_attribute_values(
         query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     assert not content['data']['attributeCreate']['errors']
-    data = content['data']['attributeCreate']['attribute']
-    assert data['name'] == attribute_name
-    assert data['slug'] == slugify(attribute_name)
+    data = content['data']['attributeCreate']
+    assert data['attribute']['name'] == attribute_name
+    assert data['attribute']['slug'] == slugify(attribute_name)
 
-    assert len(data['values']) == 1
-    assert data['values'][0]['name'] == name
-    assert data['values'][0]['slug'] == slugify(name)
+    assert len(data['attribute']['values']) == 1
+    assert data['attribute']['values'][0]['name'] == name
+    assert data['attribute']['values'][0]['slug'] == slugify(name)
     attribute = Attribute.objects.get(name=attribute_name)
     assert attribute in product_type.product_attributes.all()
+    assert data['productType']['name'] == product_type.name
 
 
 @pytest.mark.parametrize(
@@ -236,13 +241,18 @@ UPDATE_ATTRIBUTE_QUERY = """
                 slug
             }
         }
+        productType {
+            id
+            name
+        }
     }
 }
 """
 
 
 def test_update_attribute_name(
-        staff_api_client, color_attribute, permission_manage_products):
+        staff_api_client, color_attribute, product_type,
+        permission_manage_products):
     query = UPDATE_ATTRIBUTE_QUERY
     attribute = color_attribute
     name = 'Wings name'
@@ -254,6 +264,7 @@ def test_update_attribute_name(
     attribute.refresh_from_db()
     data = content['data']['attributeUpdate']
     assert data['attribute']['name'] == name == attribute.name
+    assert data['productType']['name'] == attribute.product_type.name
 
 
 def test_update_attribute_remove_and_add_values(
