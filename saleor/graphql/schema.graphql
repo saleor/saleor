@@ -106,6 +106,8 @@ type Attribute implements Node {
   id: ID!
   slug: String
   name: String
+  productType: ProductType
+  productVariantType: ProductType
   values: [AttributeValue]
 }
 
@@ -123,6 +125,7 @@ type AttributeCountableEdge {
 type AttributeCreate {
   errors: [Error]
   attribute: Attribute
+  productType: ProductType
 }
 
 input AttributeCreateInput {
@@ -149,6 +152,7 @@ enum AttributeTypeEnum {
 
 type AttributeUpdate {
   errors: [Error]
+  productType: ProductType
   attribute: Attribute
 }
 
@@ -1182,12 +1186,12 @@ type ProductType implements Node {
   id: ID!
   name: String!
   hasVariants: Boolean!
-  productAttributes: [Attribute]
-  variantAttributes: [Attribute]
   isShippingRequired: Boolean!
   taxRate: TaxRateType
   weight: Weight
   products(before: String, after: String, first: Int, last: Int, category: ID, price: Float, price_Range: Float, price_Lte: Float, price_Gte: Float, attributes: [AttributeScalar], name: String, name_Icontains: String, productType_Name: String, isPublished: Boolean, sortBy: String): ProductCountableConnection
+  productAttributes: [Attribute]
+  variantAttributes: [Attribute]
 }
 
 type ProductTypeCountableConnection {
