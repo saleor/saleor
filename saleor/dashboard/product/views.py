@@ -532,16 +532,19 @@ def ajax_upload_image(request, product_pk):
 @staff_member_required
 @permission_required('product.manage_products')
 def attribute_list(request):
-    attributes = (Attribute.objects.prefetch_related('values')
-                  .order_by('name'))
+    attributes = (
+        Attribute.objects.prefetch_related(
+            'values', 'product_type', 'product_variant_type').order_by('name'))
     attribute_filter = AttributeFilter(request.GET, queryset=attributes)
-    attributes = [
-        (attribute.pk, attribute.name, attribute.values.all())
-        for attribute in attribute_filter.qs]
+    attributes = [(
+        attribute.pk, attribute.name,
+        attribute.product_type or attribute.product_variant_type,
+        attribute.values.all()) for attribute in attribute_filter.qs]
     attributes = get_paginator_items(
         attributes, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {
-        'attributes': attributes, 'filter_set': attribute_filter,
+        'attributes': attributes,
+        'filter_set': attribute_filter,
         'is_empty': not attribute_filter.queryset.exists()}
     return TemplateResponse(
         request, 'dashboard/product/attribute/list.html', ctx)
@@ -550,10 +553,13 @@ def attribute_list(request):
 @staff_member_required
 @permission_required('product.manage_products')
 def attribute_details(request, pk):
-    attributes = Attribute.objects.prefetch_related('values').all()
+    attributes = Attribute.objects.prefetch_related(
+        'values', 'product_type', 'product_variant_type').all()
     attribute = get_object_or_404(attributes, pk=pk)
+    product_type = attribute.product_type or attribute.product_variant_type
     values = attribute.values.all()
-    ctx = {'attribute': attribute, 'values': values}
+    ctx = {
+        'attribute': attribute, 'product_type': product_type, 'values': values}
     return TemplateResponse(
         request, 'dashboard/product/attribute/detail.html', ctx)
 
