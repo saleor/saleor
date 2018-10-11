@@ -20,7 +20,12 @@ export interface FormData {
   }>;
 }
 
-interface ProductTypeAttributeEditDialogProps {
+export interface ProductTypeAttributeEditDialogProps {
+  disabled: boolean;
+  errors: Array<{
+    field: string;
+    message: string;
+  }>;
   name: string;
   opened: boolean;
   title: string;
@@ -35,21 +40,24 @@ interface ProductTypeAttributeEditDialogProps {
 const decorate = withStyles({ root: {} });
 const ProductTypeAttributeEditDialog = decorate<
   ProductTypeAttributeEditDialogProps
->(({ name, opened, title, values, onClose, onConfirm }) => {
+>(({ disabled, errors, name, opened, title, values, onClose, onConfirm }) => {
   const initialForm: FormData = {
     name: name || "",
     values: values || []
   };
   return (
     <Dialog open={opened}>
-      <Form initial={initialForm} onSubmit={onConfirm}>
-        {({ change, data }) => (
+      <Form errors={errors} initial={initialForm} onSubmit={onConfirm}>
+        {({ change, data, errors: formErrors }) => (
           <>
             <DialogTitle>{title}</DialogTitle>
             <DialogContent>
               <TextField
+                disabled={disabled}
+                error={!!formErrors.name}
                 fullWidth
                 label={i18n.t("Attribute name")}
+                helperText={formErrors.name}
                 name="name"
                 value={data.name}
                 onChange={change}
@@ -57,9 +65,12 @@ const ProductTypeAttributeEditDialog = decorate<
               <FormSpacer />
               <ListField
                 autoComplete="off"
+                disabled={disabled}
+                error={!!formErrors.values}
                 fullWidth
                 name="values"
                 label={i18n.t("Attribute values")}
+                helperText={formErrors.values}
                 values={data.values}
                 onChange={change}
               />
