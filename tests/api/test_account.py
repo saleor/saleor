@@ -80,7 +80,7 @@ def test_token_create_user_data(
     assert token_data['user']['id'] == user_id
     assert token_data['user']['email'] == staff_user.email
     assert token_data['user']['permissions'][0]['name'] == name
-    assert token_data['user']['permissions'][0]['code'] == 'ORDER_MANAGE_ORDERS'
+    assert token_data['user']['permissions'][0]['code'] == 'MANAGE_ORDERS'
 
 
 def test_query_user(staff_api_client, customer_user, permission_manage_users):
@@ -449,7 +449,7 @@ def test_staff_create(
     assert data['user']['isStaff'] == True
     assert data['user']['isActive'] == True
     permissions = data['user']['permissions']
-    assert permissions[0]['code'] == 'PRODUCT_MANAGE_PRODUCTS'
+    assert permissions[0]['code'] == 'MANAGE_PRODUCTS'
 
     assert send_password_reset_mock.call_count == 1
     args, kwargs = send_password_reset_mock.call_args
