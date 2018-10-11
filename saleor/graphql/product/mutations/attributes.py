@@ -122,17 +122,6 @@ class AttributeCreate(AttributeMixin, ModelMutation):
         model = models.Attribute
 
     @classmethod
-    def clean_product_type_variant_attributes(
-            cls, product_type, type, errors):
-        if (type == AttributeTypeEnum.VARIANT.name
-                and not product_type.has_variants):
-            cls.add_error(
-                errors, 'product_type',
-                'Cannot create an Attribute for ProductType'
-                'not supporting ProductVariants.')
-        return errors
-
-    @classmethod
     @permission_required('product.manage_products')
     def mutate(cls, root, info, id, type, input):
         errors = []
@@ -145,8 +134,6 @@ class AttributeCreate(AttributeMixin, ModelMutation):
         cleaned_input = cls.clean_input(info, instance, input, errors)
         instance = cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(instance, errors)
-        cls.clean_product_type_variant_attributes(
-            product_type, type, errors)
         if errors:
             return AttributeCreate(errors=errors)
 
