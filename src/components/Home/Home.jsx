@@ -25,7 +25,6 @@ import storefrontIconX2 from '../../images/storefront-icon-2x.png';
 import storefrontIconX3 from '../../images/storefront-icon-3x.png';
 import storefrontIconX4 from '../../images/storefront-icon-4x.png';
 
-
 class Home extends Component {
   constructor(props) {
     super(props);
@@ -70,28 +69,32 @@ class Home extends Component {
           </section>
           <section id="features-section" className="features">
             <div className="grid icons">
-              <div className="col-xs-6 col-sm-6 col-md-3">
+              <div className="col-xs-6 col-sm-6 col-md-3 software-stack">
                 <a href="#software-stack">
-                  <img src={modernStackIcon} />
-                  <h3><span>01<br/>-</span>Modern <br />stack</h3>
+                  <div class="image">
+                    <h3><span>01<br/>-</span>Modern <br />stack</h3>
+                  </div>
                 </a>
               </div>
-              <div className="col-xs-6 col-sm-6 col-md-3">
+              <div className="col-xs-6 col-sm-6 col-md-3 build-to-scale">
                 <a href="#build-to-scale">
-                  <img src={buildToScaleIcon} />
-                  <h3><span>02<br/>-</span>Built to <br />scale</h3>
+                  <div class="image">
+                    <h3><span>02<br/>-</span>Built to <br />scale</h3>
+                  </div>
                 </a>
               </div>
-              <div className="col-xs-6 col-sm-6 col-md-3">
+              <div className="col-xs-6 col-sm-6 col-md-3 easy-to-customize">
                 <a href="#easy-to-customize">
-                  <img src={easyToCustomizeIcon} />
-                  <h3><span>03<br/>-</span>Easy to <br />customize</h3>
+                  <div class="image">
+                    <h3><span>03<br/>-</span>Easy to <br />customize</h3>
+                  </div>
                 </a>
               </div>
-              <div className="col-xs-6 col-sm-6 col-md-3">
+              <div className="col-xs-6 col-sm-6 col-md-3 user-experience">
                 <a href="#user-experience">
-                  <img src={greatExperienceIcon} />
-                  <h3><span>04<br/>-</span>Great <br />expierience</h3>
+                  <div class="image">
+                    <h3><span>04<br/>-</span>Great <br />expierience</h3>
+                  </div>
                 </a>
               </div>
             </div>

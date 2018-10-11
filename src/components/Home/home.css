@@ -189,15 +189,59 @@
       }
       & .icons {
         @media (max-width: 1024px) {
-          padding: 0 0 calc(var(--spacer) * 2) 0;
+          width: calc(100% - calc(var(--spacer) * 4));
+          padding: 0 calc(var(--spacer) * 2) calc(var(--spacer) * 2) calc(var(--spacer) * 2);
         }
         @media (max-width: 450px) {
           display: none;
         }
-        & img {
+        & .image {
           width: 60%;
+          height: 35vh;
+          background-size: 100%;
+          background-repeat: no-repeat;
           position: relative;
-          left: 2rem;
+          @media (max-width: 1024px) {
+            height: 25vh;
+          }
+          @media (max-width: 768px) {
+            height: 30vh;
+          }
+          & h3 {
+            position: absolute;
+            bottom: calc(var(--spacer) * -3);
+            left: calc(var(--spacer) * -3);
+            font-size: calc(var(--font-size-base) * 2.5);
+            @media (max-width: 1440px) {
+              font-size: calc(var(--font-size-base) * 2);
+            }
+            @media (max-width: 1024px) {
+              font-size: calc(var(--font-size-base) * 1.5);
+            }
+            @media (max-width: 768px) {
+              bottom: calc(var(--spacer) * 1);
+            }
+          }
+        }
+        & .software-stack {
+          & .image {
+            background-image: url('../../images/modern-stack.svg');
+          }
+        }
+        & .build-to-scale {
+          & .image {
+            background-image: url('../../images/build-to-scale.svg');
+          }
+        }
+        & .easy-to-customize {
+          & .image {
+            background-image: url('../../images/easy-to-customize.svg');
+          }
+        }
+        & .user-experience {
+          & .image {
+            background-image: url('../../images/great-experience.svg');
+          }
         }
       }
       & img {
@@ -219,7 +263,7 @@
           transform: translateY(-50%);
           left: calc(var(--spacer) * 3);
           color: var(--body-color);
-          font-size: var(--font-size-base);
+          font-size: calc(var(--font-size-base) * 1.2);
           text-align: right;
           @media (max-width: 768px) {
             transform: translateY(-65%);
