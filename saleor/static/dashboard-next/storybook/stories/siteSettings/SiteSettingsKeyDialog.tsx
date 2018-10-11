@@ -6,6 +6,7 @@ import SiteSettingsKeyDialog, {
 } from "../../../siteSettings/components/SiteSettingsKeyDialog";
 import { AuthorizationKeyType } from "../../../types/globalTypes";
 import Decorator from "../../Decorator";
+import { formError } from "../../misc";
 
 const props: SiteSettingsKeyDialogProps = {
   errors: [],
@@ -20,4 +21,10 @@ const props: SiteSettingsKeyDialogProps = {
 
 storiesOf("SiteSettings / Add key dialog", module)
   .addDecorator(Decorator)
-  .add("default", () => <SiteSettingsKeyDialog {...props} />);
+  .add("default", () => <SiteSettingsKeyDialog {...props} />)
+  .add("form errors", () => (
+    <SiteSettingsKeyDialog
+      {...props}
+      errors={["key", "password", "keyType"].map(field => formError(field))}
+    />
+  ));

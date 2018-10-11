@@ -10,14 +10,18 @@ import { SiteSettingsPageFormData } from "../SiteSettingsPage";
 
 interface SiteSettingsDetailsProps {
   data: SiteSettingsPageFormData;
-  errors: {}
+  errors: Partial<{
+    description: string;
+    domain: string;
+    name: string;
+  }>;
   disabled: boolean;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
 const SiteSettingsDetails: React.StatelessComponent<
   SiteSettingsDetailsProps
-> = ({ data, disabled, onChange }) => (
+> = ({ data, disabled, errors, onChange }) => (
   <Card>
     <CardTitle
       title={i18n.t("General Information", {
@@ -27,45 +31,57 @@ const SiteSettingsDetails: React.StatelessComponent<
     <CardContent>
       <TextField
         disabled={disabled}
+        error={!!errors.name}
         fullWidth
         name="name"
         label={i18n.t("Store Name", {
           context: "field label"
         })}
-        helperText={i18n.t("Store Name is shown on taskbar in web browser", {
-          context: "help text"
-        })}
+        helperText={
+          errors.name ||
+          i18n.t("Store Name is shown on taskbar in web browser", {
+            context: "help text"
+          })
+        }
         value={data.name}
         onChange={onChange}
       />
       <FormSpacer />
       <TextField
         disabled={disabled}
+        error={!!errors.domain}
         fullWidth
         name="domain"
         label={i18n.t("Domain", {
           context: "field label"
         })}
-        helperText={i18n.t("Domain is your store URL", {
-          context: "help text"
-        })}
+        helperText={
+          errors.domain ||
+          i18n.t("Domain is your store URL", {
+            context: "help text"
+          })
+        }
         value={data.domain}
         onChange={onChange}
       />
       <FormSpacer />
       <TextField
         disabled={disabled}
+        error={!!errors.domain}
         fullWidth
         name="description"
         label={i18n.t("Store Description", {
           context: "field label"
         })}
-        helperText={i18n.t(
-          "Store description is shown on taskbar after your store name",
-          {
-            context: "help text"
-          }
-        )}
+        helperText={
+          errors.description ||
+          i18n.t(
+            "Store description is shown on taskbar after your store name",
+            {
+              context: "help text"
+            }
+          )
+        }
         value={data.description}
         onChange={onChange}
       />
