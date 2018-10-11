@@ -201,6 +201,15 @@
           background-size: 100%;
           background-repeat: no-repeat;
           position: relative;
+          transition: opacity 1s ease, top 1s ease;
+          &.visible {
+            opacity: 1;
+            top: 0;
+          }
+          &.invisible {
+            opacity: 0;
+            top: 30px;
+          }
           @media (max-width: 1024px) {
             height: 25vh;
           }
