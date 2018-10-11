@@ -562,7 +562,7 @@ type Margin {
 type Menu implements Node {
   id: ID!
   name: String!
-  items(before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
+  items: [MenuItem]!
 }
 
 type MenuCountableConnection {
@@ -605,7 +605,7 @@ type MenuItem implements Node {
   collection: Collection
   page: Page
   level: Int!
-  children(before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
+  children: [MenuItem]!
 }
 
 type MenuItemCountableConnection {

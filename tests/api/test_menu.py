@@ -2,6 +2,7 @@ import pytest
 
 import graphene
 from saleor.graphql.menu.mutations import NavigationType
+from saleor.menu.models import MenuItem
 from tests.api.utils import get_graphql_content
 
 from .utils import assert_no_permission
@@ -43,16 +44,12 @@ def test_menus_query(user_api_client, menu, menu_item):
             edges {
                 node {
                     name
-                    items(first: 1) {
-                        edges {
-                            node {
-                                name
-                                menu {
-                                    name
-                                }
-                                url
-                            }
+                    items {
+                        name
+                        menu {
+                            name
                         }
+                        url
                     }
                 }
             }
@@ -68,10 +65,12 @@ def test_menus_query(user_api_client, menu, menu_item):
     content = get_graphql_content(response)
     menu_data = content['data']['menus']['edges'][0]['node']
     assert menu_data['name'] == menu.name
-    items = menu_data['items']['edges'][0]['node']
-    assert items['name'] == menu_item.name
-    assert items['url'] == menu_item.url
-    assert items['menu']['name'] == menu.name
+    items = menu_data['items']
+    assert len(items) == 1
+    item = items[0]
+    assert item['name'] == menu_item.name
+    assert item['url'] == menu_item.url
+    assert item['menu']['name'] == menu.name
 
 
 def test_menu_items_query(user_api_client, menu_item, collection):
@@ -80,7 +79,7 @@ def test_menu_items_query(user_api_client, menu_item, collection):
         menuItem(id: $id) {
             name
             children {
-                totalCount
+                name
             }
             collection {
                 name
@@ -98,12 +97,16 @@ def test_menu_items_query(user_api_client, menu_item, collection):
     menu_item.collection = collection
     menu_item.url = None
     menu_item.save()
+    child_menu = MenuItem.objects.create(
+        menu=menu_item.menu, name='Link 2', url='http://example2.com/',
+        parent=menu_item)
     variables = {'id': graphene.Node.to_global_id('MenuItem', menu_item.pk)}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['menuItem']
     assert data['name'] == menu_item.name
-    assert data['children']['totalCount'] == menu_item.children.count()
+    assert len(data['children']) == 1
+    assert data['children'][0]['name'] == child_menu.name
     assert data['collection']['name'] == collection.name
     assert not data['category']
     assert not data['page']
@@ -152,11 +155,7 @@ def test_create_menu(
             menu {
                 name
                 items {
-                    edges {
-                        node {
-                            id
-                        }
-                    }
+                    id
                 }
             }
         }
