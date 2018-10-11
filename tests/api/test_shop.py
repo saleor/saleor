@@ -2,6 +2,7 @@ import graphene
 from django.conf import settings
 from django_countries import countries
 from saleor.core.permissions import MODELS_PERMISSIONS
+from saleor.graphql.core.utils import str_to_enum
 from saleor.site import AuthenticationBackends
 from saleor.site.models import Site
 from tests.api.utils import get_graphql_content
@@ -12,7 +13,7 @@ def test_query_authorization_keys(
     query = """
     query {
         shop {
-            s {
+            authorizationKeys {
                 name
                 key
             }
@@ -23,7 +24,7 @@ def test_query_authorization_keys(
         query, permissions=[permission_manage_settings])
     content = get_graphql_content(response)
     data = content['data']['shop']
-    assert data['s'][0]['name'] == 'FACEBOOK'
+    assert data['authorizationKeys'][0]['name'] == 'FACEBOOK'
     assert data['authorizationKeys'][0]['key'] == authorization_key.key
 
 
@@ -132,7 +133,8 @@ def test_query_permissions(staff_api_client, permission_manage_users):
     permissions_codes = {permission.get('code') for permission in permissions}
     assert len(permissions_codes) == len(MODELS_PERMISSIONS)
     for code in permissions_codes:
-        assert code in MODELS_PERMISSIONS
+        assert code in [str_to_enum(code)
+                        for code in MODELS_PERMISSIONS]
 
 
 def test_query_navigation(user_api_client, site_settings):
