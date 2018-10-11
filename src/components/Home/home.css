@@ -372,11 +372,48 @@
           }
         }
         &.software-stack {
+          position: relative;
           & .image {
             background-image: url('../../images/stack-icons.svg');
             background-size: 120%;
             background-position: -20%;
             position: relative;
+            z-index: 2;
+            @media (max-width: 768px) {
+              background-size: 140%;
+              background-position: 10% 50%;
+            }
+            @media (max-width: 700px) {
+              background-position: -50% 50%;
+            }
+            @media (max-width: 450px) {
+              background-image: url('../../images/modern-stack.svg');
+              background-position: 30% 100%;
+              background-size: cover;
+            }
+          }
+          & .shadow-image {
+            width: 50%;
+            height: 100%;
+            background-image: url('../../images/stack-icons-black.svg');
+            background-size: 120%;
+            background-position: -20%;
+            background-repeat: no-repeat;
+            position: absolute;
+            top: calc(var(--spacer) * 5);
+            right: calc(var(--spacer) * -7);
+            opacity: 0.5;
+            z-index: 1;
+            filter: blur(calc(var(--spacer) / 2));
+            transform: skew(-20deg);
+            @media (max-width: 1440px) {
+              top: calc(var(--spacer) * 3);
+              right: calc(var(--spacer) * -5);
+            }
+            @media (max-width: 1024px) {
+              top: calc(var(--spacer) * 2);
+              right: calc(var(--spacer) * -4);
+            }
             @media (max-width: 768px) {
               background-size: 140%;
               background-position: 10% 50%;

@@ -106,6 +106,7 @@ class Home extends Component {
                   <p className="text-light">Both the storefront and the dashboard are React applications written in TypeScript and use Apollo GraphQL. Strict code quality checks and code reviews make the code easy to read and understand. High test coverage ensures it’s also safe to deploy in a continuous manner.</p>
                 </div>
                 <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
+                <div className="col-xs-12 col-sm-6 col-md-6 shadow-image"></div>
               </div>
               <div id="build-to-scale" className="grid feature-item build-to-scale">
                 <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
