@@ -1,6 +1,5 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
-import * as placeholderImage from "../../../../images/placeholder255x255.png";
 
 import CategoryCreatePage, {
   CategoryCreatePageProps
@@ -13,9 +12,7 @@ const createProps: CategoryCreatePageProps = {
   errors: [],
   onBack: () => undefined,
   onSubmit: () => undefined,
-  onDelete: () => undefined,
-  placeholderImage: placeholderImage,
-  onImageDelete: () => undefined
+  onDelete: () => undefined
 };
 
 storiesOf("Views / Categories / Create category", module)

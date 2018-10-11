@@ -12,7 +12,6 @@ import CategoryDetailsForm from "../../components/CategoryDetailsForm";
 import SeoForm from "../../../components/SeoForm";
 import Form from "../../../components/Form";
 import CategoryProductsCard from "../CategoryProductsCard";
-
 import ActionDialog from "../../../components/ActionDialog";
 import { MoneyType } from "../../../products";
 import Toggle from "../../../components/Toggle";
@@ -23,6 +22,7 @@ import Tabs, { SingleTab } from "../../../components/Tab";
 import { UserError } from "../../../";
 
 import i18n from "../../../i18n";
+import { CardSpacer } from "../../../components/CardSpacer";
 
 interface FormData {
   description: string;
@@ -87,7 +87,6 @@ export interface CategoryUpdatePageProps {
 
 const decorate = withStyles(theme => ({
   root: {
-    display: "grid",
     marginTop: theme.spacing.unit * 2,
     gridGap: theme.spacing.unit * 4 + "px"
   },
@@ -126,7 +125,7 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
           name: category.name,
           description: category.description,
           seoTitle: category.SeoTitle,
-          seoDescription: category.SeoTitle
+          seoDescription: category.SeoDescription
         }
       : {
           name: "",
@@ -141,7 +140,7 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
           <Form onSubmit={onSubmit} initial={initialData} errors={userErrors}>
             {({ data, change, errors, submit, hasChanged }) => (
               <>
-                <Container width="lg">
+                <Container width="md">
                   <PageHeader
                     title={
                       isRoot
@@ -171,12 +170,14 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
                           errors={errors}
                           onChange={change}
                         />
+                        <CardSpacer />
                         <CategoryBackground
                           onImageUpload={onImageUpload}
                           onImageDelete={onImageDelete}
                           backgroundImage={backgroundImage}
                           placeholderImage={placeholderImage}
                         />
+                        <CardSpacer />
                         <SeoForm
                           helperText={i18n.t(
                             "Add search engine title and description to make this product easier to find"
@@ -189,6 +190,7 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
                           onChange={change}
                           disabled={disabled}
                         />
+                        <CardSpacer />
                       </>
                     )}
                     {isRoot && (
@@ -219,6 +221,7 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
                                 >
                                   Products
                                 </SingleTab>
+                                <CardSpacer />
                               </div>
                               {currentTab === 0 && (
                                 <CategoryList
@@ -242,6 +245,7 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
                             </>
                           )}
                         </Tabs>
+
                         <SaveButtonBar
                           onCancel={onBack}
                           onDelete={toggleDeleteDialog}
@@ -268,8 +272,7 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
                     <DialogContentText
                       dangerouslySetInnerHTML={{
                         __html: i18n.t(
-                          "Are you sure you want to remove <strong>{{ name }}</strong>?"
-                          // { name: category.name }
+                          "Are you sure you want to remove this category"
                         )
                       }}
                     />
