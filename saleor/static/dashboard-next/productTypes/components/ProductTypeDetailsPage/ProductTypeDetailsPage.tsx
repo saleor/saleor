@@ -19,7 +19,6 @@ import {
   WeightUnitsEnum
 } from "../../../types/globalTypes";
 import { ProductTypeDetails_productType } from "../../types/ProductTypeDetails";
-import { FormData as ProductTypeAttributeEditDialogFormData } from "../ProductTypeAttributeEditDialog/ProductTypeAttributeEditDialog";
 import ProductTypeAttributes from "../ProductTypeAttributes/ProductTypeAttributes";
 import ProductTypeDetails from "../ProductTypeDetails/ProductTypeDetails";
 import ProductTypeShipping from "../ProductTypeShipping/ProductTypeShipping";
@@ -48,15 +47,9 @@ export interface ProductTypeDetailsPageProps {
   disabled: boolean;
   pageTitle: string;
   saveButtonBarState: SaveButtonBarState;
-  onAttributeAdd: (
-    data: ProductTypeAttributeEditDialogFormData,
-    type: AttributeTypeEnum
-  ) => void;
+  onAttributeAdd: (type: AttributeTypeEnum) => void;
   onAttributeDelete: (id: string, event: React.MouseEvent<any>) => void;
-  onAttributeUpdate: (
-    id: string,
-    data: ProductTypeAttributeEditDialogFormData
-  ) => void;
+  onAttributeUpdate: (id: string) => void;
   onBack: () => void;
   onDelete: () => void;
   onSubmit: (data: ProductTypeForm) => void;

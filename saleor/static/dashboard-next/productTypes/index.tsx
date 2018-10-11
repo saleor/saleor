@@ -38,7 +38,7 @@ export const ProductTypeRouter: React.StatelessComponent<
   <Switch>
     <Route exact path={match.url} component={ProductTypeList} />
     <Route exact path={match.url + "/add/"} component={ProductTypeCreate} />
-    <Route exact path={match.url + "/:id/"} component={ProductTypeUpdate} />
+    <Route path={match.url + "/:id/"} component={ProductTypeUpdate} />
   </Switch>
 );
 ProductTypeRouter.displayName = "ProductTypeRouter";
