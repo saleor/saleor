@@ -1,7 +1,9 @@
 import * as React from "react";
 
 import Messages from "../../components/messages";
+import Navigator from "../../components/Navigator";
 import Toggle from "../../components/Toggle";
+import { configurationMenuUrl } from "../../configuration";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
 import { AuthorizationKeyType } from "../../types/globalTypes";
@@ -22,153 +24,160 @@ import { AuthorizationKeyDelete } from "../types/AuthorizationKeyDelete";
 import { ShopSettingsUpdate } from "../types/ShopSettingsUpdate";
 
 export const SiteSettings: React.StatelessComponent<{}> = () => (
-  <Messages>
-    {pushMessage => (
-      <Toggle>
-        {(openedAddKeyDialog, { toggle: toggleAddKeyDialog }) => {
-          const handleAddKeySuccess = (data: AuthorizationKeyAdd) => {
-            if (!maybe(() => data.authorizationKeyAdd.errors.length)) {
-              pushMessage({
-                text: i18n.t("Authorization key added", {
-                  context: "notification"
-                })
-              });
-              toggleAddKeyDialog();
-            }
-          };
-          const handleDeleteKeySuccess = (data: AuthorizationKeyDelete) => {
-            if (!maybe(() => data.authorizationKeyDelete.errors.length)) {
-              pushMessage({
-                text: i18n.t("Authorization key deleted", {
-                  context: "notification"
-                })
-              });
-            } else {
-              pushMessage({
-                text: i18n.t(
-                  "Could not delete authorization key: {{ message }}",
-                  {
-                    context: "notification",
-                    message: data.authorizationKeyDelete.errors[0].message
-                  }
-                )
-              });
-            }
-          };
-          const handleSiteSettingsSuccess = (data: ShopSettingsUpdate) => {
-            if (
-              !maybe(() => data.shopDomainUpdate.errors.length) &&
-              !maybe(() => data.shopSettingsUpdate.errors.length)
-            ) {
-              pushMessage({
-                text: i18n.t("Site settings updated", {
-                  context: "notification"
-                })
-              });
-            }
-          };
-          return (
-            <TypedSiteSettingsQuery>
-              {siteSettings => (
-                <TypedAuthorizationKeyAdd onCompleted={handleAddKeySuccess}>
-                  {(addAuthorizationKey, addAuthorizationKeyOpts) => (
-                    <TypedAuthorizationKeyDelete
-                      onCompleted={handleDeleteKeySuccess}
-                    >
-                      {(deleteAuthorizationKey, _) => (
-                        <TypedShopSettingsUpdate
-                          onCompleted={handleSiteSettingsSuccess}
+  <Navigator>
+    {navigate => (
+      <Messages>
+        {pushMessage => (
+          <Toggle>
+            {(openedAddKeyDialog, { toggle: toggleAddKeyDialog }) => {
+              const handleAddKeySuccess = (data: AuthorizationKeyAdd) => {
+                if (!maybe(() => data.authorizationKeyAdd.errors.length)) {
+                  pushMessage({
+                    text: i18n.t("Authorization key added", {
+                      context: "notification"
+                    })
+                  });
+                  toggleAddKeyDialog();
+                }
+              };
+              const handleDeleteKeySuccess = (data: AuthorizationKeyDelete) => {
+                if (!maybe(() => data.authorizationKeyDelete.errors.length)) {
+                  pushMessage({
+                    text: i18n.t("Authorization key deleted", {
+                      context: "notification"
+                    })
+                  });
+                } else {
+                  pushMessage({
+                    text: i18n.t(
+                      "Could not delete authorization key: {{ message }}",
+                      {
+                        context: "notification",
+                        message: data.authorizationKeyDelete.errors[0].message
+                      }
+                    )
+                  });
+                }
+              };
+              const handleSiteSettingsSuccess = (data: ShopSettingsUpdate) => {
+                if (
+                  !maybe(() => data.shopDomainUpdate.errors.length) &&
+                  !maybe(() => data.shopSettingsUpdate.errors.length)
+                ) {
+                  pushMessage({
+                    text: i18n.t("Site settings updated", {
+                      context: "notification"
+                    })
+                  });
+                }
+              };
+              return (
+                <TypedSiteSettingsQuery>
+                  {siteSettings => (
+                    <TypedAuthorizationKeyAdd onCompleted={handleAddKeySuccess}>
+                      {(addAuthorizationKey, addAuthorizationKeyOpts) => (
+                        <TypedAuthorizationKeyDelete
+                          onCompleted={handleDeleteKeySuccess}
                         >
-                          {(updateShopSettings, updateShopSettingsOpts) => {
-                            const errors = [
-                              ...maybe(
-                                () =>
-                                  updateShopSettingsOpts.data.shopDomainUpdate
-                                    .errors,
-                                []
-                              ),
-                              ...maybe(
-                                () =>
-                                  updateShopSettingsOpts.data.shopSettingsUpdate
-                                    .errors,
-                                []
-                              )
-                            ];
-                            const loading =
-                              siteSettings.loading ||
-                              addAuthorizationKeyOpts.loading ||
-                              updateShopSettingsOpts.loading;
-
-                            const handleAuthenticationKeyAdd = (
-                              data: SiteSettingsKeyDialogForm
-                            ) =>
-                              addAuthorizationKey({
-                                variables: {
-                                  input: {
-                                    key: data.key,
-                                    password: data.password
-                                  },
-                                  keyType: data.type
-                                }
-                              });
-                            const handleUpdateShopSettings = (
-                              data: SiteSettingsPageFormData
-                            ) =>
-                              updateShopSettings({
-                                variables: {
-                                  shopDomainInput: {
-                                    domain: data.domain,
-                                    name: data.name,
-                                  },
-                                  shopSettingsInput: {
-                                    description: data.description,
-                                  }
-                                }
-                              });
-                            return (
-                              <>
-                                <SiteSettingsPage
-                                  disabled={loading}
-                                  errors={errors}
-                                  shop={maybe(() => siteSettings.data.shop)}
-                                  onKeyAdd={toggleAddKeyDialog}
-                                  onKeyRemove={keyType =>
-                                    deleteAuthorizationKey({
-                                      variables: { keyType }
-                                    })
-                                  }
-                                  onSubmit={handleUpdateShopSettings}
-                                />
-                                <SiteSettingsKeyDialog
-                                  errors={maybe(
+                          {(deleteAuthorizationKey, _) => (
+                            <TypedShopSettingsUpdate
+                              onCompleted={handleSiteSettingsSuccess}
+                            >
+                              {(updateShopSettings, updateShopSettingsOpts) => {
+                                const errors = [
+                                  ...maybe(
                                     () =>
-                                      addAuthorizationKeyOpts.data
-                                        .authorizationKeyAdd.errors,
+                                      updateShopSettingsOpts.data
+                                        .shopDomainUpdate.errors,
                                     []
-                                  )}
-                                  initial={{
-                                    key: "",
-                                    password: "",
-                                    type: AuthorizationKeyType.FACEBOOK
-                                  }}
-                                  open={openedAddKeyDialog}
-                                  onClose={toggleAddKeyDialog}
-                                  onSubmit={handleAuthenticationKeyAdd}
-                                />
-                              </>
-                            );
-                          }}
-                        </TypedShopSettingsUpdate>
+                                  ),
+                                  ...maybe(
+                                    () =>
+                                      updateShopSettingsOpts.data
+                                        .shopSettingsUpdate.errors,
+                                    []
+                                  )
+                                ];
+                                const loading =
+                                  siteSettings.loading ||
+                                  addAuthorizationKeyOpts.loading ||
+                                  updateShopSettingsOpts.loading;
+
+                                const handleAuthenticationKeyAdd = (
+                                  data: SiteSettingsKeyDialogForm
+                                ) =>
+                                  addAuthorizationKey({
+                                    variables: {
+                                      input: {
+                                        key: data.key,
+                                        password: data.password
+                                      },
+                                      keyType: data.type
+                                    }
+                                  });
+                                const handleUpdateShopSettings = (
+                                  data: SiteSettingsPageFormData
+                                ) =>
+                                  updateShopSettings({
+                                    variables: {
+                                      shopDomainInput: {
+                                        domain: data.domain,
+                                        name: data.name
+                                      },
+                                      shopSettingsInput: {
+                                        description: data.description
+                                      }
+                                    }
+                                  });
+                                return (
+                                  <>
+                                    <SiteSettingsPage
+                                      disabled={loading}
+                                      errors={errors}
+                                      shop={maybe(() => siteSettings.data.shop)}
+                                      onBack={() =>
+                                        navigate(configurationMenuUrl)
+                                      }
+                                      onKeyAdd={toggleAddKeyDialog}
+                                      onKeyRemove={keyType =>
+                                        deleteAuthorizationKey({
+                                          variables: { keyType }
+                                        })
+                                      }
+                                      onSubmit={handleUpdateShopSettings}
+                                    />
+                                    <SiteSettingsKeyDialog
+                                      errors={maybe(
+                                        () =>
+                                          addAuthorizationKeyOpts.data
+                                            .authorizationKeyAdd.errors,
+                                        []
+                                      )}
+                                      initial={{
+                                        key: "",
+                                        password: "",
+                                        type: AuthorizationKeyType.FACEBOOK
+                                      }}
+                                      open={openedAddKeyDialog}
+                                      onClose={toggleAddKeyDialog}
+                                      onSubmit={handleAuthenticationKeyAdd}
+                                    />
+                                  </>
+                                );
+                              }}
+                            </TypedShopSettingsUpdate>
+                          )}
+                        </TypedAuthorizationKeyDelete>
                       )}
-                    </TypedAuthorizationKeyDelete>
+                    </TypedAuthorizationKeyAdd>
                   )}
-                </TypedAuthorizationKeyAdd>
-              )}
-            </TypedSiteSettingsQuery>
-          );
-        }}
-      </Toggle>
+                </TypedSiteSettingsQuery>
+              );
+            }}
+          </Toggle>
+        )}
+      </Messages>
     )}
-  </Messages>
+  </Navigator>
 );
 export default SiteSettings;
