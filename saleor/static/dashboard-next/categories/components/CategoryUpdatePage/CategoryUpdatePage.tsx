@@ -30,6 +30,7 @@ interface FormData {
   seoTitle: string;
   seoDescription: string;
 }
+
 export interface CategoryUpdatePageProps {
   errors: UserError[];
   disabled: boolean;
@@ -41,7 +42,6 @@ export interface CategoryUpdatePageProps {
     description: string;
   };
   backgroundImage: {
-    id?: string;
     url?: string;
   };
   products: Array<{

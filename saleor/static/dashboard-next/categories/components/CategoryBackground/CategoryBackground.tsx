@@ -112,7 +112,7 @@ const BackgroundImage = decorate<BackgroundImageProps>(
             open={opened}
             onClose={toggle}
             onConfirm={() => {
-              onImageDelete(backgroundImage.id)();
+              onImageDelete(backgroundImage.url)();
               toggle();
             }}
             variant="delete"
