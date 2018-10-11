@@ -449,6 +449,14 @@ class ProductTypeCreate(ModelMutation):
     def user_is_allowed(cls, user, input):
         return user.has_perm('product.manage_products')
 
+    @classmethod
+    def _save_m2m(cls, info, instance, cleaned_data):
+        super()._save_m2m(info, instance, cleaned_data)
+        if 'product_attributes' in cleaned_data:
+            instance.product_attributes.set(cleaned_data['product_attributes'])
+        if 'variant_attributes' in cleaned_data:
+            instance.variant_attributes.set(cleaned_data['variant_attributes'])
+
 
 class ProductTypeUpdate(ProductTypeCreate):
     class Arguments:

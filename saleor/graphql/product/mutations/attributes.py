@@ -189,6 +189,10 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
         model = models.Attribute
 
     @classmethod
+    def user_is_allowed(cls, user, input):
+        return user.has_perm('product.manage_products')
+
+    @classmethod
     def clean_remove_values(cls, cleaned_input, instance, errors):
         """Check if AttributeValues to be removed are assigned to given
         Attribute.
