@@ -73,7 +73,6 @@ export const category = (placeholderImage: string) => ({
   id: "c1",
   name: "Apparel",
   backgroundImage: {
-    id: "UPJvZHVjfEs4YWdlOjV",
     url: block1
   },
   products: products(placeholderImage)
