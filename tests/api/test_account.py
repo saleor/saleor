@@ -806,3 +806,4 @@ def test_customer_reset_password(
     content = get_graphql_content(response)
     assert send_password_reset_mock.called
     assert send_password_reset_mock.mock_calls[0][1][1] == customer_user.email
+

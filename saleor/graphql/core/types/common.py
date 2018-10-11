@@ -3,6 +3,8 @@ import decimal
 import graphene
 from graphene_django import DjangoObjectType
 
+from saleor.core.permissions import get_permissions, MODELS_PERMISSIONS, split_permission_codename
+from saleor.graphql.core.utils import str_to_enum
 from ....core import weight
 from ..connection import CountableConnection
 
@@ -59,8 +61,13 @@ class LanguageDisplay(graphene.ObjectType):
     language = graphene.String(description='Language.', required=True)
 
 
+PermissionEnum = graphene.Enum(
+    'PermissionEnum', [(str_to_enum(codename), codename)
+                       for codename in MODELS_PERMISSIONS])
+
+
 class PermissionDisplay(graphene.ObjectType):
-    code = graphene.String(
+    code = PermissionEnum(
         description='Internal code for permission.', required=True)
     name = graphene.String(
         description='Describe action(s) allowed to do by permission.',
