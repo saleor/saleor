@@ -169,25 +169,6 @@ def test_create_attribute_and_attribute_values_errors(
     assert errors[0]['message'] == error_msg
 
 
-def test_create_variant_attribute_for_product_type_without_variants(
-        staff_api_client, permission_manage_products, product_type):
-    assert not product_type.has_variants
-    query = CREATE_ATTRIBUTES_QUERY
-    id = graphene.Node.to_global_id('ProductType', product_type.id)
-
-    variables = {
-        'name': 'Example name', 'id': id,
-        'type': AttributeTypeEnum.VARIANT.name, 'values': []}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
-    content = get_graphql_content(response)
-    errors = content['data']['attributeCreate']['errors']
-    assert errors[0]['field'] == 'productType'
-    assert errors[0]['message'] == (
-        'Cannot create an Attribute for ProductType'
-        'not supporting ProductVariants.')
-
-
 def test_create_variant_attribute(
         staff_api_client, permission_manage_products, product_type):
     product_type.has_variants = True
