@@ -14,56 +14,57 @@ import StoreMall from "../icons/StoreMall";
 import { productTypeListUrl } from "../productTypes";
 import { staffListUrl } from "../staff";
 import ConfigurationPage, { MenuItem } from "./ConfigurationPage";
+import { PermissionEnum } from "../types/globalTypes";
 
 export const configurationMenu: MenuItem[] = [
   {
     description: i18n.t("Define types of products you sell"),
     icon: <Folder fontSize="inherit" />,
-    permission: "product.manage_products",
+    permission: PermissionEnum.PRODUCT_MANAGE_PRODUCTS,
     title: i18n.t("Product Types"),
     url: productTypeListUrl
   },
   {
     description: i18n.t("Define attributes of products yousell"),
     icon: <Ballot fontSize="inherit" />,
-    permission: "product.manage_products",
+    permission: PermissionEnum.PRODUCT_MANAGE_PRODUCTS,
     title: i18n.t("Attributes")
   },
   {
     description: i18n.t("Manage your employees and their permissions"),
     icon: <AccountCircle fontSize="inherit" />,
-    permission: "account.manage_staff",
+    permission: PermissionEnum.ACCOUNT_MANAGE_STAFF,
     title: i18n.t("Staff Members"),
     url: staffListUrl
   },
   {
     description: i18n.t("Manage how you ship out orders."),
     icon: <LocalShipping fontSize="inherit" />,
-    permission: "shipping.manage_shipping",
+    permission: PermissionEnum.SHIPPING_MANAGE_SHIPPING,
     title: i18n.t("Shipping Methods")
   },
   {
     description: i18n.t("Manage how your store charges tax"),
     icon: <Monetization fontSize="inherit" />,
-    permission: "product.manage_products",
+    permission: PermissionEnum.PRODUCT_MANAGE_PRODUCTS,
     title: i18n.t("Taxes")
   },
   {
     description: i18n.t("Define how users can navigate through your store"),
     icon: <Navigation fontSize="inherit" />,
-    permission: "menu.manage_menus",
+    permission: PermissionEnum.MENU_MANAGE_MENUS,
     title: i18n.t("Navigation")
   },
   {
     description: i18n.t("View and update your site settings"),
     icon: <StoreMall fontSize="inherit" />,
-    permission: "site.manage_settings",
+    permission: PermissionEnum.SITE_MANAGE_SETTINGS,
     title: i18n.t("Site Settings")
   },
   {
     description: i18n.t("Manage and add additional pages"),
     icon: <Pages fontSize="inherit" />,
-    permission: "page.manage_pages",
+    permission: PermissionEnum.PAGE_MANAGE_PAGES,
     title: i18n.t("Pages")
   }
 ];
