@@ -57,6 +57,8 @@ footer {
           font-size: var(--font-size);
           color: var(--primaryColor);
           line-height: var(--line-height-lg);
+          text-transform: initial;
+          font-weight: var(--font-weight-lighter);
           @media (max-width: 570px) {
             font-size: calc(var(--font-size-base) * 0.8);
           }
@@ -91,6 +93,23 @@ footer {
     }
     & .icons {
       padding: calc(var(--spacer) * 2) 0;
+      & h4 {
+        font-size: var(--font-size);
+        color: var(--primaryColor);
+        line-height: var(--line-height-lg);
+        font-weight: var(--font-weight-lighter);
+        text-transform: initial;
+        padding: 0 0 var(--spacer) calc(var(--spacer) / 2);
+        @media (max-width: 570px) {
+          font-size: calc(var(--font-size-base) * 0.8);
+        }
+        @media (max-width: 450px) {
+          font-size: calc(var(--font-size-base));
+        }
+        @media (max-width: 320px) {
+          font-size: calc(var(--font-size-base) * 0.8);
+        }
+      }
       & svg {
         width: 25px;
         height: 25px;

@@ -50,6 +50,7 @@ const Footer = () => (
               </div>
             </div>
             <div className="col-xs-12 col-sm-3 col-md-2 col-lg-1 icons">
+              <h4>Find us</h4>
               <div className="grid">
                 <div className="col-sm-1 col-md-4">
                   <a href=""><ReactSVG className="twitter-icon" path="images/twiiter-icon.svg" /></a>
