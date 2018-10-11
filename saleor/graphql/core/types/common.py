@@ -2,9 +2,9 @@ import decimal
 
 import graphene
 from graphene_django import DjangoObjectType
-
-from saleor.core.permissions import get_permissions, MODELS_PERMISSIONS, split_permission_codename
+from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.graphql.core.utils import str_to_enum
+
 from ....core import weight
 from ..connection import CountableConnection
 
