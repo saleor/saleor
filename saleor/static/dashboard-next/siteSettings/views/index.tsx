@@ -61,8 +61,10 @@ export const SiteSettings: React.StatelessComponent<{}> = () => (
               };
               const handleSiteSettingsSuccess = (data: ShopSettingsUpdate) => {
                 if (
-                  !maybe(() => data.shopDomainUpdate.errors.length) &&
-                  !maybe(() => data.shopSettingsUpdate.errors.length)
+                  (!data.shopDomainUpdate.errors ||
+                    data.shopDomainUpdate.errors.length === 0) &&
+                  (!data.shopSettingsUpdate.errors ||
+                    data.shopSettingsUpdate.errors.length === 0)
                 ) {
                   pushMessage({
                     text: i18n.t("Site settings updated", {
