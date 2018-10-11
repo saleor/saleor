@@ -1,3 +1,4 @@
+import { AuthorizationKeyType } from "../types/globalTypes";
 import { SiteSettings_shop } from "./types/SiteSettings";
 
 export const shop: SiteSettings_shop = {
@@ -6,7 +7,7 @@ export const shop: SiteSettings_shop = {
     {
       __typename: "AuthorizationKey",
       key: "n1n62jkn2123:123n",
-      name: "facebook"
+      name: AuthorizationKeyType.FACEBOOK
     }
   ],
   description: "Lorem ipsum dolor sit amet",
