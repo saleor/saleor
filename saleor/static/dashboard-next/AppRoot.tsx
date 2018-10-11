@@ -34,6 +34,7 @@ import Shop from "./icons/Shop";
 import Truck from "./icons/Truck";
 import { removeDoubleSlashes } from "./misc";
 import { productListUrl } from "./products";
+import { PermissionEnum } from './types/globalTypes';
 
 const drawerWidth = 256;
 const navigationBarHeight = 64;
@@ -236,7 +237,7 @@ interface IMenuItem {
   children?: IMenuItem[];
   icon: React.ReactNode;
   label: string;
-  permission?: string;
+  permission?: PermissionEnum;
   url?: string;
 }
 interface MenuListProps {
