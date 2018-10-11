@@ -12,6 +12,8 @@ const primary = "#5AB378";
 const secondary = "#03a9f4";
 const error = "#CD5E5E";
 
+export const ICONBUTTON_SIZE = 48;
+
 export default createMuiTheme({
   overrides: {
     MuiButton: {
