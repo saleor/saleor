@@ -80,10 +80,13 @@ const SiteSettingsKeys = decorate<SiteSettingsKeysProps>(
                   key={maybe(() => key.name)}
                 >
                   <TableCell>
-                    {maybe(() => key.name) ? keyTypes[key.name] : <Skeleton />}
+                    {maybe<React.ReactNode>(
+                      () => keyTypes[key.name],
+                      <Skeleton />
+                    )}
                   </TableCell>
                   <TableCell>
-                    {maybe(() => key.key) ? key.key : <Skeleton />}
+                    {maybe<React.ReactNode>(() => key.key, <Skeleton />)}
                   </TableCell>
                   <TableCell className={classes.iconCell}>
                     <IconButton onClick={() => onRemove(key.name)}>
