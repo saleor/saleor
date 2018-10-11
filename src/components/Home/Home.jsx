@@ -71,28 +71,28 @@ class Home extends Component {
             <div className="grid icons">
               <div className="col-xs-6 col-sm-6 col-md-3 software-stack">
                 <a href="#software-stack">
-                  <div class="image">
+                  <div className="image">
                     <h3><span>01<br/>-</span>Modern <br />stack</h3>
                   </div>
                 </a>
               </div>
               <div className="col-xs-6 col-sm-6 col-md-3 build-to-scale">
                 <a href="#build-to-scale">
-                  <div class="image">
+                  <div className="image">
                     <h3><span>02<br/>-</span>Built to <br />scale</h3>
                   </div>
                 </a>
               </div>
               <div className="col-xs-6 col-sm-6 col-md-3 easy-to-customize">
                 <a href="#easy-to-customize">
-                  <div class="image">
+                  <div className="image">
                     <h3><span>03<br/>-</span>Easy to <br />customize</h3>
                   </div>
                 </a>
               </div>
               <div className="col-xs-6 col-sm-6 col-md-3 user-experience">
                 <a href="#user-experience">
-                  <div class="image">
+                  <div className="image">
                     <h3><span>04<br/>-</span>Great <br />expierience</h3>
                   </div>
                 </a>
