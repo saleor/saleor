@@ -11,6 +11,7 @@ import { formError } from "../../misc";
 const props: SiteSettingsPageProps = {
   disabled: false,
   errors: [],
+  onBack: () => undefined,
   onKeyAdd: () => undefined,
   onKeyRemove: () => undefined,
   onSubmit: () => undefined,

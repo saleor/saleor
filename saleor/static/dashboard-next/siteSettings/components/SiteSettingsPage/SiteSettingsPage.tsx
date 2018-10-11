@@ -24,8 +24,9 @@ export interface SiteSettingsPageProps {
   errors: Array<{
     field: string;
     message: string;
-  }>
+  }>;
   shop: SiteSettings_shop;
+  onBack: () => void;
   onKeyAdd: () => void;
   onKeyRemove: (keyType: AuthorizationKeyType) => void;
   onSubmit: (data: SiteSettingsPageFormData) => void;
@@ -45,6 +46,7 @@ const SiteSettingsPage = decorate<SiteSettingsPageProps>(
     disabled,
     errors,
     shop,
+    onBack,
     onKeyAdd,
     onKeyRemove,
     onSubmit
@@ -94,7 +96,7 @@ const SiteSettingsPage = decorate<SiteSettingsPageProps>(
             </div>
             <SaveButtonBar
               disabled={disabled || !hasChanged}
-              onCancel={() => undefined}
+              onCancel={onBack}
               onSave={submit}
             />
           </Container>
