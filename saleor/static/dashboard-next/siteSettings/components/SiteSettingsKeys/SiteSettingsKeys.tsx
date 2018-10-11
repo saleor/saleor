@@ -18,6 +18,7 @@ import {
   renderCollection,
   translatedAuthorizationKeyTypes
 } from "../../../misc";
+import { ICONBUTTON_SIZE } from "../../../theme";
 import { AuthorizationKeyType } from "../../../types/globalTypes";
 import { SiteSettings_shop_authorizationKeys } from "../../types/SiteSettings";
 
@@ -33,7 +34,7 @@ const decorate = withStyles(theme => ({
     "&:last-child": {
       paddingRight: 0
     },
-    width: 48 + theme.spacing.unit / 2
+    width: ICONBUTTON_SIZE + theme.spacing.unit / 2
   }
 }));
 const SiteSettingsKeys = decorate<SiteSettingsKeysProps>(
