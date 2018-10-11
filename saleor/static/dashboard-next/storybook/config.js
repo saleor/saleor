@@ -95,9 +95,10 @@ function loadStories() {
   require("./stories/vouchers/VoucherListPage");
 
   // Product types
+  require("./stories/productTypes/ProductTypeAttributeEditDialog");
   require("./stories/productTypes/ProductTypeCreatePage");
-  require("./stories/productTypes/ProductTypeListPage");
   require("./stories/productTypes/ProductTypeDetailsPage");
+  require("./stories/productTypes/ProductTypeListPage");
 
   // Site settings
   require("./stories/siteSettings/SiteSettingsKeyDialog");

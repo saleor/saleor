@@ -221,6 +221,8 @@ export const ProductTypeUpdate: React.StatelessComponent<
                               >
                                 {({ match }) => (
                                   <ProductTypeAttributeEditDialog
+                                    disabled={attributeCreate.loading}
+                                    errors={errors}
                                     name=""
                                     values={[]}
                                     onClose={closeModal}
@@ -253,6 +255,8 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                 );
                                 return (
                                   <ProductTypeAttributeEditDialog
+                                    disabled={updateAttribute.loading}
+                                    errors={maybe(() => errors)}
                                     name={maybe(() => attribute.name)}
                                     values={maybe(() =>
                                       attribute.values.map(value => ({
