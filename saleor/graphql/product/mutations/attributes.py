@@ -243,8 +243,17 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
         for attribute_value in cleaned_data.get('remove_values', []):
             attribute_value.delete()
 
+    @classmethod
+    def success_response(cls, instance):
+        response = super().success_response(instance)
+        response.product_type = instance.product_type
+        return response
+
 
 class AttributeDelete(ModelDeleteMutation):
+    product_type = graphene.Field(
+        ProductType, description='A related product type.')
+
     class Arguments:
         id = graphene.ID(
             required=True, description='ID of an attribute to delete.')

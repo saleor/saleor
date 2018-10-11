@@ -140,6 +140,7 @@ input AttributeCreateValueInput {
 
 type AttributeDelete {
   errors: [Error]
+  productType: ProductType
   attribute: Attribute
 }
 
