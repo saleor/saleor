@@ -64,13 +64,13 @@ const menuStructure: IMenuItem[] = [
     ],
     icon: <Shop />,
     label: i18n.t("Catalogue", { context: "Menu label" }),
-    permission: PermissionEnum.PRODUCT_MANAGE_PRODUCTS
+    permission: PermissionEnum.MANAGE_PRODUCTS
   },
   {
     ariaLabel: "orders",
     icon: <Truck />,
     label: i18n.t("Orders", { context: "Menu label" }),
-    permission: PermissionEnum.ORDER_MANAGE_ORDERS,
+    permission: PermissionEnum.MANAGE_ORDERS,
     url: "/orders/"
   }
 ];

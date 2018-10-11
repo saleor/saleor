@@ -133,8 +133,8 @@ def test_query_permissions(staff_api_client, permission_manage_users):
     permissions_codes = {permission.get('code') for permission in permissions}
     assert len(permissions_codes) == len(MODELS_PERMISSIONS)
     for code in permissions_codes:
-        assert code in [str_to_enum(code)
-                        for code in MODELS_PERMISSIONS]
+        assert code in [
+            str_to_enum(code.split('.')[1]) for code in MODELS_PERMISSIONS]
 
 
 def test_query_navigation(user_api_client, site_settings):

@@ -62,8 +62,9 @@ class LanguageDisplay(graphene.ObjectType):
 
 
 PermissionEnum = graphene.Enum(
-    'PermissionEnum', [(str_to_enum(codename), codename)
-                       for codename in MODELS_PERMISSIONS])
+    'PermissionEnum', [
+        (str_to_enum(codename.split('.')[1]), codename)
+        for codename in MODELS_PERMISSIONS])
 
 
 class PermissionDisplay(graphene.ObjectType):
