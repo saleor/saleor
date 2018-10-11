@@ -1,22 +1,26 @@
 import * as React from "react";
-import Navigator from "../../components/Navigator";
+import { Route } from "react-router-dom";
 
-import { productTypeListUrl } from "..";
-import Messages from "../../components/messages";
-import i18n from "../../i18n";
-import { maybe } from "../../misc";
-import { AttributeTypeEnum } from "../../types/globalTypes";
-import { FormData as AttributeForm } from "../components/ProductTypeAttributeEditDialog";
+import { productTypeDetailsUrl, productTypeListUrl } from "../../";
+import Messages from "../../../components/messages";
+import Navigator from "../../../components/Navigator";
+import i18n from "../../../i18n";
+import { maybe } from "../../../misc";
+import { AttributeTypeEnum } from "../../../types/globalTypes";
+import ProductTypeAttributeEditDialog, {
+  FormData as AttributeForm
+} from "../../components/ProductTypeAttributeEditDialog";
 import ProductTypeDetailsPage, {
   ProductTypeForm
-} from "../components/ProductTypeDetailsPage";
-import ProductTypeOperations from "../containers/ProductTypeOperations";
-import { TypedProductTypeDetailsQuery } from "../queries";
-import { AttributeCreate } from "../types/AttributeCreate";
-import { AttributeDelete } from "../types/AttributeDelete";
-import { AttributeUpdate } from "../types/AttributeUpdate";
-import { ProductTypeDelete } from "../types/ProductTypeDelete";
-import { ProductTypeUpdate as ProductTypeUpdateMutation } from "../types/ProductTypeUpdate";
+} from "../../components/ProductTypeDetailsPage";
+import ProductTypeOperations from "../../containers/ProductTypeOperations";
+import { TypedProductTypeDetailsQuery } from "../../queries";
+import { AttributeCreate } from "../../types/AttributeCreate";
+import { AttributeDelete } from "../../types/AttributeDelete";
+import { AttributeUpdate } from "../../types/AttributeUpdate";
+import { ProductTypeDelete } from "../../types/ProductTypeDelete";
+import { ProductTypeUpdate as ProductTypeUpdateMutation } from "../../types/ProductTypeUpdate";
+import { addAttributeUrl, editAttributeUrl } from "./urls";
 
 interface ProductTypeUpdateProps {
   id: string;
@@ -31,6 +35,8 @@ export const ProductTypeUpdate: React.StatelessComponent<
         {navigate => (
           <TypedProductTypeDetailsQuery variables={{ id }}>
             {({ data, loading: dataLoading }) => {
+              const closeModal = () =>
+                navigate(productTypeDetailsUrl(id), true);
               const handleAttributeCreateSuccess = (data: AttributeCreate) => {
                 if (!maybe(() => data.attributeCreate.errors.length)) {
                   pushMessage({
@@ -38,6 +44,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                       context: "notification"
                     })
                   });
+                  closeModal();
                 }
               };
               const handleAttributeDeleteSuccess = (data: AttributeDelete) => {
@@ -56,6 +63,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                       context: "notification"
                     })
                   });
+                  closeModal();
                 }
               };
               const handleProductTypeDeleteSuccess = (
@@ -179,22 +187,97 @@ export const ProductTypeUpdate: React.StatelessComponent<
                     };
                     const loading = mutationLoading || dataLoading;
                     return (
-                      <ProductTypeDetailsPage
-                        defaultWeightUnit={maybe(
-                          () => data.shop.defaultWeightUnit
+                      <>
+                        <ProductTypeDetailsPage
+                          defaultWeightUnit={maybe(
+                            () => data.shop.defaultWeightUnit
+                          )}
+                          disabled={loading}
+                          errors={errors}
+                          pageTitle={maybe(() => data.productType.name)}
+                          productType={maybe(() => data.productType)}
+                          saveButtonBarState={loading ? "loading" : "default"}
+                          onAttributeAdd={type =>
+                            navigate(addAttributeUrl(id, type))
+                          }
+                          onAttributeDelete={handleAttributeDelete}
+                          onAttributeUpdate={attributeId =>
+                            navigate(editAttributeUrl(id, attributeId))
+                          }
+                          onBack={() => navigate(productTypeListUrl)}
+                          onDelete={handleProductTypeDelete}
+                          onSubmit={handleProductTypeUpdate}
+                        />
+                        {!dataLoading && (
+                          <>
+                            {Object.keys(AttributeTypeEnum).map(key => (
+                              <Route
+                                exact
+                                path={addAttributeUrl(
+                                  id,
+                                  AttributeTypeEnum[key]
+                                )}
+                                key={key}
+                              >
+                                {({ match }) => (
+                                  <ProductTypeAttributeEditDialog
+                                    name=""
+                                    values={[]}
+                                    onClose={closeModal}
+                                    onConfirm={data =>
+                                      handleAttributeCreate(
+                                        data,
+                                        AttributeTypeEnum[key]
+                                      )
+                                    }
+                                    opened={!!match}
+                                    title={i18n.t("Add Attribute", {
+                                      context: "modal title"
+                                    })}
+                                  />
+                                )}
+                              </Route>
+                            ))}
+                            <Route exact path={editAttributeUrl(id, ":id")}>
+                              {({ match }) => {
+                                const attribute = maybe(
+                                  () =>
+                                    data.productType.productAttributes
+                                      .concat(
+                                        data.productType.variantAttributes
+                                      )
+                                      .filter(
+                                        attribute =>
+                                          attribute.id === match.params.id
+                                      )[0]
+                                );
+                                return (
+                                  <ProductTypeAttributeEditDialog
+                                    name={maybe(() => attribute.name)}
+                                    values={maybe(() =>
+                                      attribute.values.map(value => ({
+                                        label: value.name,
+                                        value: value.id
+                                      }))
+                                    )}
+                                    onClose={closeModal}
+                                    onConfirm={data =>
+                                      handleAttributeUpdate(
+                                        match.params.id,
+                                        data
+                                      )
+                                    }
+                                    opened={!!match}
+                                    title={i18n.t("Edit Attribute", {
+                                      context: "modal title"
+                                    })}
+                                  />
+                                );
+                              }}
+                            </Route>
+                          </>
                         )}
-                        disabled={loading}
-                        errors={errors}
-                        pageTitle={maybe(() => data.productType.name)}
-                        productType={maybe(() => data.productType)}
-                        saveButtonBarState={loading ? "loading" : "default"}
-                        onAttributeAdd={handleAttributeCreate}
-                        onAttributeDelete={handleAttributeDelete}
-                        onAttributeUpdate={handleAttributeUpdate}
-                        onBack={() => navigate(productTypeListUrl)}
-                        onDelete={handleProductTypeDelete}
-                        onSubmit={handleProductTypeUpdate}
-                      />
+                      </>
                     );
                   }}
                 </ProductTypeOperations>
