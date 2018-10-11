@@ -9,11 +9,12 @@ import { User } from "../auth/types/User";
 import Container from "../components/Container";
 import PageHeader from "../components/PageHeader";
 import i18n from "../i18n";
+import { PermissionEnum } from "../types/globalTypes";
 
 export interface MenuItem {
   description: string;
   icon: React.ReactElement<IconProps>;
-  permission: string;
+  permission: PermissionEnum;
   title: string;
   url?: string;
 }
