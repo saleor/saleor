@@ -85,7 +85,7 @@ const decorate = withStyles(theme => ({
   },
   imageOverlayToolbar: {
     display: "flex" as "flex",
-    justifyContent: "center",
+    justifyContent: "flex-end",
     position: "relative" as "relative",
     top: "-10px"
   }

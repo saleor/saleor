@@ -24,7 +24,7 @@ interface CategoryCreateSubcategoriesProps {
 }
 
 const decorate = withStyles(theme => ({
-  root: {
+  inputGrid: {
     display: "grid",
     gridColumnGap: theme.spacing.unit * 2 + "px",
     gridTemplateColumns: "5fr 8fr 30px",
@@ -38,7 +38,14 @@ const decorate = withStyles(theme => ({
     alignSelf: "end"
   },
   addSubCat: {
-    padding: "0px"
+    padding: "0",
+    marginTop: ".5rem"
+  },
+  root: {
+    paddingBottom: "0px",
+    "&:last-child": {
+      paddingBottom: ".5rem"
+    }
   }
 }));
 
@@ -62,7 +69,7 @@ export const CategoryCreateSubcategories = decorate<
               </Button>
             }
           />
-          <CardContent>
+          <CardContent className={classNames({ [classes.root]: toggled })}>
             <Typography
               className={classNames({ [classes.helperText]: toggled })}
             >
@@ -70,14 +77,10 @@ export const CategoryCreateSubcategories = decorate<
             </Typography>
             {toggled && (
               <>
-                <div className={classes.root}>
+                <div className={classes.inputGrid}>
                   <TextField label={i18n.t("Category Name")} />
                   <TextField label={i18n.t("Category Description")} />
-                  <IconButton
-                    className={classes.deleteIcon}
-                    color="secondary"
-                    // onClick={onImageDelete}
-                  >
+                  <IconButton className={classes.deleteIcon} color="secondary">
                     <DeleteIcon />
                   </IconButton>
                 </div>

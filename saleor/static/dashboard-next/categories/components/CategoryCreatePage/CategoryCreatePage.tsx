@@ -1,7 +1,7 @@
 import { withStyles } from "@material-ui/core/styles";
-// import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 
+import { CardSpacer } from "../../../components/CardSpacer";
 import Form from "../../../components/Form";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
@@ -9,10 +9,9 @@ import { UserError } from "../../../";
 import i18n from "../../../i18n";
 import CategoryDetailsForm from "../../components/CategoryDetailsForm";
 import SeoForm from "../../../components/SeoForm";
-import CategoryBackground from "../CategoryBackground";
-import CategoryCreateSubcategories from "../CategoryCreateSubcategories";
 import Toggle from "../../../components/Toggle";
-import CategoryDeleteDialog from "../../components/CategoryDeleteDialog";
+import ActionDialog from "../../../components/ActionDialog";
+import DialogContentText from "@material-ui/core/DialogContentText";
 
 import SaveButtonBar, {
   SaveButtonBarState
@@ -28,14 +27,11 @@ interface FormData {
 export interface CategoryCreatePageProps {
   errors: UserError[];
   header: string;
-  placeholderImage: string;
   disabled: boolean;
   onSubmit(data: FormData);
-  onImageUpload?(event: React.ChangeEvent<any>);
   onBack();
   onDelete();
   saveButtonBarState?: SaveButtonBarState;
-  onImageDelete: (id: string) => () => void;
 }
 const decorate = withStyles(theme => ({
   root: {
@@ -47,17 +43,13 @@ const decorate = withStyles(theme => ({
 
 export const CategoryCreatePage = decorate<CategoryCreatePageProps>(
   ({
-    classes,
     header,
     disabled,
     onSubmit,
     onBack,
     errors: userErrors,
     onDelete,
-    saveButtonBarState,
-    onImageUpload,
-    onImageDelete,
-    placeholderImage
+    saveButtonBarState
   }) => {
     const initialData: FormData = {
       name: "",
@@ -73,20 +65,15 @@ export const CategoryCreatePage = decorate<CategoryCreatePageProps>(
               <>
                 <Container width="lg">
                   <PageHeader title={header} />
-                  <div className={classes.root}>
+                  <div>
                     <CategoryDetailsForm
                       disabled={disabled}
                       data={data}
                       onChange={change}
                       errors={errors}
                     />
-                    <CategoryBackground
-                      onImageUpload={onImageUpload}
-                      onImageDelete={onImageDelete}
-                      placeholderImage={placeholderImage}
-                      disabled={disabled}
-                    />
-                    <CategoryCreateSubcategories disabled={disabled} />
+                    <CardSpacer />
+                    <CardSpacer />
                     <SeoForm
                       helperText={i18n.t(
                         "Add search engine title and description to make this product easier to find"
@@ -112,12 +99,21 @@ export const CategoryCreatePage = decorate<CategoryCreatePageProps>(
                     />
                   </div>
                 </Container>
-                <CategoryDeleteDialog
-                  name={undefined}
+                <ActionDialog
+                  title={i18n.t("Remove category")}
                   open={openedDeleteDialog}
                   onClose={toggleDeleteDialog}
                   onConfirm={onDelete}
-                />
+                  variant={"delete"}
+                >
+                  <DialogContentText
+                    dangerouslySetInnerHTML={{
+                      __html: i18n.t(
+                        "Are you sure you want to remove this category"
+                      )
+                    }}
+                  />
+                </ActionDialog>
               </>
             )}
           </Form>
