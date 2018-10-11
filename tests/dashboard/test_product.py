@@ -781,7 +781,7 @@ def test_view_attribute_list(db, admin_client, color_attribute):
     assert len(result) == 1
     assert result[0][0] == color_attribute.pk
     assert result[0][1] == color_attribute.name
-    assert len(result[0][2]) == 2
+    assert len(result[0][3]) == 2
     assert not response.context['is_empty']
 
 

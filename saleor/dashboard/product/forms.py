@@ -1,7 +1,7 @@
 import bleach
 from django import forms
 from django.conf import settings
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.forms.models import ModelChoiceIterator
 from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.encoding import smart_text
@@ -76,6 +76,15 @@ class ProductTypeForm(forms.ModelForm):
             'ProductVariant weight help text',
             'Default weight that will be used for calculating shipping'
             ' price for products of that type.'))
+    product_attributes = forms.ModelMultipleChoiceField(
+        queryset=Attribute.objects.none(), required=False,
+        label=pgettext_lazy(
+            'Product type attributes', 'Attributes common to all variants.'))
+    variant_attributes = forms.ModelMultipleChoiceField(
+        queryset=Attribute.objects.none(), required=False,
+        label=pgettext_lazy(
+            'Product type attributes',
+            'Attributes specific to each variant.'))
 
     class Meta:
         model = ProductType
@@ -87,12 +96,6 @@ class ProductTypeForm(forms.ModelForm):
             'has_variants': pgettext_lazy(
                 'Enable variants',
                 'Enable variants'),
-            'variant_attributes': pgettext_lazy(
-                'Product type attributes',
-                'Attributes specific to each variant'),
-            'product_attributes': pgettext_lazy(
-                'Product type attributes',
-                'Attributes common to all variants'),
             'is_shipping_required': pgettext_lazy(
                 'Shipping toggle',
                 'Require shipping')}
@@ -100,12 +103,33 @@ class ProductTypeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['tax_rate'].choices = get_tax_rate_type_choices()
+        unassigned_attrs_q = Q(
+            product_type__isnull=True, product_variant_type__isnull=True)
+
+        if self.instance.pk:
+            product_attrs_qs = Attribute.objects.filter(
+                Q(product_type=self.instance) | unassigned_attrs_q)
+            variant_attrs_qs = Attribute.objects.filter(
+                Q(product_variant_type=self.instance) | unassigned_attrs_q)
+            product_attrs_initial = self.instance.product_attributes.all()
+            variant_attrs_initial = self.instance.variant_attributes.all()
+        else:
+            unassigned_attrs = Attribute.objects.filter(unassigned_attrs_q)
+            product_attrs_qs = unassigned_attrs
+            variant_attrs_qs = unassigned_attrs
+            product_attrs_initial = []
+            variant_attrs_initial = []
+
+        self.fields['product_attributes'].queryset = product_attrs_qs
+        self.fields['variant_attributes'].queryset = variant_attrs_qs
+        self.fields['product_attributes'].initial = product_attrs_initial
+        self.fields['variant_attributes'].initial = variant_attrs_initial
 
     def clean(self):
         data = super().clean()
         has_variants = self.cleaned_data['has_variants']
-        product_attr = set(self.cleaned_data['product_attributes'])
-        variant_attr = set(self.cleaned_data['variant_attributes'])
+        product_attr = set(self.cleaned_data.get('product_attributes', []))
+        variant_attr = set(self.cleaned_data.get('variant_attributes', []))
         if not has_variants and variant_attr:
             msg = pgettext_lazy(
                 'Product type form error',
@@ -137,10 +161,11 @@ class ProductTypeForm(forms.ModelForm):
             product__product_type__variant_attributes__in=attributes_changed)
         variants_to_be_updated = variants_to_be_updated.prefetch_related(
             'product__product_type__variant_attributes__values').all()
-        attributes = self.instance.variant_attributes.all()
+        attributes = self.instance.variant_attributes.prefetch_related(
+            'translations', 'values__translations')
         for variant in variants_to_be_updated:
             variant.name = get_name_from_attributes(variant, attributes)
-            variant.save()
+            variant.save(update_fields=['name'])
 
     def check_if_variants_changed(self, has_variants):
         variants_changed = (
@@ -155,6 +180,14 @@ class ProductTypeForm(forms.ModelForm):
                     'Some products of this type have more than '
                     'one variant.')
                 self.add_error('has_variants', msg)
+
+    def save(self, *args, **kwargs):
+        instance = super().save(*args, **kwargs)
+        new_product_attrs = self.cleaned_data.get('product_attributes', [])
+        new_variant_attrs = self.cleaned_data.get('variant_attributes', [])
+        instance.product_attributes.set(new_product_attrs)
+        instance.variant_attributes.set(new_variant_attrs)
+        return instance
 
 
 class AttributesMixin:

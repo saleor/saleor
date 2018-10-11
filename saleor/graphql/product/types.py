@@ -83,7 +83,7 @@ class Attribute(CountableDjangoObjectType):
     class Meta:
         description = """Custom attribute of a product. Attributes can be
         assigned to products and variants at the product type level."""
-        exclude_fields = ['product_types', 'product_variant_types']
+        exclude_fields = []
         interfaces = [relay.Node]
         filter_fields = ['id', 'slug']
         model = models.Attribute
