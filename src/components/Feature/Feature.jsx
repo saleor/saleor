@@ -28,7 +28,6 @@ import search from '../../images/search.svg';
 import staffManagement from '../../images/staff-management.svg';
 import gdprReady from '../../images/gdpr-ready.svg';
 import analytics from '../../images/analytics.svg';
-import patchGardenLogo from '../../images/patch-garden.png';
 
 const Feature = () => (
   <div>
@@ -43,7 +42,10 @@ const Feature = () => (
       </section>
       <section id="testimonial" className="testimonial">
         <div className="container">
-          <img className="logo" src={patchGardenLogo}  />
+          <div class="patchgarden-logo">
+            <ReactSVG className="logo-svg" path="../../images/patch-garden.svg" />
+            <span>Patch Garden</span>
+          </div>
           <p className="comment quote text-light">“After actively using and developing our Saleor store for over a year, if I were to create a new shop today I would go for it again without a doubt.”</p>
           <div className="testimonial-author">
             <h5 className="name">Tyler Hildebrandt,</h5>

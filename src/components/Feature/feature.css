@@ -93,9 +93,24 @@
             & .testimonial-author {
               text-transform: uppercase;
             }
-            & img {
-              padding: var(--spacer) calc(var(--spacer) * 0.5);
+            & .patchgarden-logo {
+              & .logo-svg {
+                display: inline-block;
+                & svg {
+                  width: 50px;
+                  height: 50px;
+                  padding: var(--spacer) calc(var(--spacer) * 0.5);
+                }
+              }
+              & span {
+                display: inline-block;
+                position: relative;
+                top: calc(var(--spacer) * -2);
+                left: var(--spacer);
+                text-transform: uppercase;
+              }
             }
+            
             @media (max-width: 768px) {
               padding: calc(var(--spacer) * 4) calc(var(--spacer) * 2);
             }
