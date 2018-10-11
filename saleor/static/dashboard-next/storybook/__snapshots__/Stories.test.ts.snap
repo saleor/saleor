@@ -5834,6 +5834,8 @@ exports[`Storyshots Pages / PageProperties when loading 1`] = `
 
 exports[`Storyshots SiteSettings / Add key dialog default 1`] = `<div />`;
 
+exports[`Storyshots SiteSettings / Add key dialog form errors 1`] = `<div />`;
+
 exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
 <div>
   <form>
@@ -40853,12 +40855,305 @@ exports[`Storyshots Views / Site settings / Page default 1`] = `
               class="MuiTableBody-root-id"
             >
               <tr
-                class="MuiTableRow-root-id MuiTableRow-hover-id Component-row-id"
+                class="MuiTableRow-root-id MuiTableRow-hover-id"
               >
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id"
                 >
-                  facebook
+                  Facebook
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  n1n62jkn2123:123n
+                </td>
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id Component-iconCell-id"
+                >
+                  <button
+                    class="MuiButtonBase-root-id MuiIconButton-root-id"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id MuiSvgIcon-colorSecondary-id"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <g>
+                          <path
+                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                          />
+                        </g>
+                      </svg>
+                    </span>
+                    <span
+                      class="MuiTouchRipple-root-id"
+                    />
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div
+        class="Component-root-id"
+      >
+        <div
+          class="Component-spacer-id"
+        />
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id Component-cancelButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Cancel
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Save
+          </span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Site settings / Page form errors 1`] = `
+<div>
+  <form>
+    <div
+      class="Component-md-id"
+    >
+      <div
+        class="Component-root-id"
+      >
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
+        >
+          General Information
+        </h2>
+        <div
+          class="Component-action-id"
+        />
+      </div>
+      <div
+        class="Component-root-id"
+      >
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id"
+        >
+          Site Settings
+        </h2>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <div
+            class="Component-root-id"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+            >
+              General Information
+            </span>
+            <div
+              class="Component-toolbar-id"
+            />
+          </div>
+          <div
+            class="Component-children-id"
+          />
+          <hr
+            class="Component-hr-id"
+          />
+          <div
+            class="MuiCardContent-root-id"
+          >
+            <div
+              class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+            >
+              <label
+                class="MuiFormLabel-root-id MuiFormLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                data-shrink="true"
+              >
+                Store Name
+              </label>
+              <div
+                class="MuiInput-root-id MuiInput-error-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+              >
+                <input
+                  aria-invalid="true"
+                  class="MuiInput-input-id"
+                  name="name"
+                  type="text"
+                  value="Saleor e-commerce"
+                />
+              </div>
+              <p
+                class="MuiFormHelperText-root-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+              >
+                Generic form error
+              </p>
+            </div>
+            <div
+              class="Component-spacer-id"
+            />
+            <div
+              class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+            >
+              <label
+                class="MuiFormLabel-root-id MuiFormLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                data-shrink="true"
+              >
+                Domain
+              </label>
+              <div
+                class="MuiInput-root-id MuiInput-error-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+              >
+                <input
+                  aria-invalid="true"
+                  class="MuiInput-input-id"
+                  name="domain"
+                  type="text"
+                  value="localhost:8000"
+                />
+              </div>
+              <p
+                class="MuiFormHelperText-root-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+              >
+                Generic form error
+              </p>
+            </div>
+            <div
+              class="Component-spacer-id"
+            />
+            <div
+              class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+            >
+              <label
+                class="MuiFormLabel-root-id MuiFormLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                data-shrink="true"
+              >
+                Store Description
+              </label>
+              <div
+                class="MuiInput-root-id MuiInput-error-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+              >
+                <input
+                  aria-invalid="true"
+                  class="MuiInput-input-id"
+                  name="description"
+                  type="text"
+                  value="Lorem ipsum dolor sit amet"
+                />
+              </div>
+              <p
+                class="MuiFormHelperText-root-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
+              >
+                Generic form error
+              </p>
+            </div>
+          </div>
+        </div>
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id"
+        >
+          Authentication keys
+        </h2>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <div
+            class="Component-root-id"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+            >
+              Authentication Keys
+            </span>
+            <div
+              class="Component-toolbar-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiButton-label-id"
+                >
+                  Add key
+                </span>
+                <span
+                  class="MuiTouchRipple-root-id"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="Component-children-id"
+          />
+          <hr
+            class="Component-hr-id"
+          />
+          <table
+            class="MuiTable-root-id"
+            padding="default"
+          >
+            <thead
+              class="MuiTableHead-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-head-id"
+              >
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id"
+                  scope="col"
+                >
+                  Authentication Type
+                </th>
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id"
+                  scope="col"
+                >
+                  Key
+                </th>
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id"
+                  scope="col"
+                />
+              </tr>
+            </thead>
+            <tbody
+              class="MuiTableBody-root-id"
+            >
+              <tr
+                class="MuiTableRow-root-id MuiTableRow-hover-id"
+              >
+                <td
+                  class="MuiTableCell-root-id MuiTableCell-body-id"
+                >
+                  Facebook
                 </td>
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -41147,7 +41442,7 @@ exports[`Storyshots Views / Site settings / Page loading 1`] = `
               class="MuiTableBody-root-id"
             >
               <tr
-                class="MuiTableRow-root-id Component-row-id"
+                class="MuiTableRow-root-id"
               >
                 <td
                   class="MuiTableCell-root-id MuiTableCell-body-id"
