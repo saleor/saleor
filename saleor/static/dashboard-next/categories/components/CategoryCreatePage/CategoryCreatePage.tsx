@@ -1,14 +1,14 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { CardSpacer } from "../../../components/CardSpacer";
-import Form from "../../../components/Form";
-import Container from "../../../components/Container";
-import PageHeader from "../../../components/PageHeader";
 import { UserError } from "../../../";
+import { CardSpacer } from "../../../components/CardSpacer";
+import Container from "../../../components/Container";
+import Form from "../../../components/Form";
+import PageHeader from "../../../components/PageHeader";
+import SeoForm from "../../../components/SeoForm";
 import i18n from "../../../i18n";
 import CategoryDetailsForm from "../../components/CategoryDetailsForm";
-import SeoForm from "../../../components/SeoForm";
 
 import SaveButtonBar, {
   SaveButtonBarState
@@ -21,43 +21,30 @@ interface FormData {
   seoDescription: string;
 }
 
+const initialData: FormData = {
+  description: "",
+  name: "",
+  seoDescription: "",
+  seoTitle: ""
+};
+
 export interface CategoryCreatePageProps {
   errors: UserError[];
-  header: string;
   disabled: boolean;
+  saveButtonBarState?: SaveButtonBarState;
   onSubmit(data: FormData);
   onBack();
-  saveButtonBarState?: SaveButtonBarState;
 }
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid",
-    marginTop: theme.spacing.unit * 2,
-    gridGap: theme.spacing.unit * 4 + "px"
-  }
-}));
+const decorate = withStyles({});
 
 export const CategoryCreatePage = decorate<CategoryCreatePageProps>(
-  ({
-    header,
-    disabled,
-    onSubmit,
-    onBack,
-    errors: userErrors,
-    saveButtonBarState
-  }) => {
-    const initialData: FormData = {
-      name: "",
-      description: "",
-      seoTitle: "",
-      seoDescription: ""
-    };
+  ({ disabled, onSubmit, onBack, errors: userErrors, saveButtonBarState }) => {
     return (
       <Form onSubmit={onSubmit} initial={initialData} errors={userErrors}>
         {({ data, change, errors, submit, hasChanged }) => (
           <>
-            <Container width="lg">
-              <PageHeader title={header} />
+            <Container width="md">
+              <PageHeader title={i18n.t("Add Category")} onBack={onBack} />
               <div>
                 <CategoryDetailsForm
                   disabled={disabled}
@@ -65,7 +52,6 @@ export const CategoryCreatePage = decorate<CategoryCreatePageProps>(
                   onChange={change}
                   errors={errors}
                 />
-                <CardSpacer />
                 <CardSpacer />
                 <SeoForm
                   helperText={i18n.t(
@@ -78,7 +64,7 @@ export const CategoryCreatePage = decorate<CategoryCreatePageProps>(
                   loading={disabled}
                   onChange={change}
                   disabled={disabled}
-                />{" "}
+                />
                 <SaveButtonBar
                   onCancel={onBack}
                   onSave={submit}

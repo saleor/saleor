@@ -1,36 +1,23 @@
 import { withStyles, WithStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import Card from "@material-ui/core/Card";
 import Button from "@material-ui/core/Button";
+import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import AddPhotoIcon from "@material-ui/icons/AddAPhoto";
-import DeleteIcon from "@material-ui/icons/Delete";
-import IconButton from "@material-ui/core/IconButton";
 
-import Toggle from "../../../components/Toggle";
+import BackgroundImage from "./CategoryBackgroundImage";
+
 import CardTitle from "../../../components/CardTitle";
-import ActionDialog from "../../../components/ActionDialog";
-import DialogContentText from "@material-ui/core/DialogContentText";
-
 import i18n from "../../../i18n";
 
 interface CategoryBackgroundProps {
-  onImageUpload?(event: React.ChangeEvent<any>);
   onImageDelete?: (id: string) => () => void;
   placeholderImage: string;
   backgroundImage?: {
-    id?: string;
     url?: string;
   };
-}
-
-interface BackgroundImageProps {
-  onImageDelete?: (id: string) => () => void;
-  backgroundImage?: {
-    id?: string;
-    url?: string;
-  };
+  onImageUpload?(event: React.ChangeEvent<any>);
 }
 
 const decorate = withStyles(theme => ({
@@ -46,10 +33,6 @@ const decorate = withStyles(theme => ({
   fileField: {
     display: "none"
   },
-  root: {
-    display: "grid" as "grid",
-    gridTemplateColumns: "repeat(4, 1fr)"
-  },
   image: {
     height: "100%",
     objectFit: "contain" as "contain",
@@ -62,71 +45,17 @@ const decorate = withStyles(theme => ({
         display: "block" as "block"
       }
     },
-    justifySelf: "start",
-    height: 148,
-    width: 148,
     background: "#ffffff",
     border: "1px solid #eaeaea",
     borderRadius: theme.spacing.unit,
+    height: 148,
+    justifySelf: "start",
     overflow: "hidden" as "hidden",
     padding: theme.spacing.unit * 2,
-    position: "relative" as "relative"
-  },
-  imageOverlay: {
-    background: "rgba(0, 0, 0, 0.6)",
-    cursor: "pointer",
-    display: "none" as "none",
-    height: 148,
-    left: 0,
-    padding: theme.spacing.unit * 2,
-    position: "absolute" as "absolute",
-    top: 0,
-    width: 148
-  },
-  imageOverlayToolbar: {
-    display: "flex" as "flex",
-    justifyContent: "flex-end",
     position: "relative" as "relative",
-    top: "-10px"
+    width: 148
   }
 }));
-
-const BackgroundImage = decorate<BackgroundImageProps>(
-  ({ classes, onImageDelete, backgroundImage }) => (
-    <Toggle>
-      {(opened, { toggle }) => (
-        <>
-          <div className={classes.root}>
-            <div className={classes.imageContainer}>
-              <div className={classes.imageOverlay}>
-                <div className={classes.imageOverlayToolbar}>
-                  <IconButton color="secondary" onClick={toggle}>
-                    <DeleteIcon />
-                  </IconButton>
-                </div>
-              </div>
-              <img className={classes.image} src={backgroundImage.url} />
-            </div>
-          </div>
-          <ActionDialog
-            open={opened}
-            onClose={toggle}
-            onConfirm={() => {
-              onImageDelete(backgroundImage.url)();
-              toggle();
-            }}
-            variant="delete"
-            title={i18n.t("Remove category image")}
-          >
-            <DialogContentText>
-              {i18n.t("Are you sure you want to delete this image?")}
-            </DialogContentText>
-          </ActionDialog>
-        </>
-      )}
-    </Toggle>
-  )
-);
 
 export const CategoryBackground = decorate(
   class CategoryBackgroundClass extends React.Component<
@@ -138,8 +67,6 @@ export const CategoryBackground = decorate(
         | "root"
         | "image"
         | "imageContainer"
-        | "imageOverlay"
-        | "imageOverlayToolbar"
       >,
     {}
   > {
@@ -180,7 +107,7 @@ export const CategoryBackground = decorate(
           />
           <CardContent>
             {backgroundImage === undefined ? (
-              <div className={classes.root}>
+              <div>
                 <div className={classes.imageContainer}>
                   <img className={classes.image} src={placeholderImage} />
                 </div>

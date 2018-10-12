@@ -1,28 +1,28 @@
-import { withStyles } from "@material-ui/core/styles";
-import * as React from "react";
-import AddIcon from "@material-ui/icons/Add";
 import Button from "@material-ui/core/Button";
 import DialogContentText from "@material-ui/core/DialogContentText";
+import { withStyles } from "@material-ui/core/styles";
+import AddIcon from "@material-ui/icons/Add";
+import * as React from "react";
 
-import CategoryBackground from "../CategoryBackground";
-import Container from "../../../components/Container";
-import PageHeader from "../../../components/PageHeader";
-import CategoryList from "../../components/CategoryList";
-import CategoryDetailsForm from "../../components/CategoryDetailsForm";
-import SeoForm from "../../../components/SeoForm";
-import Form from "../../../components/Form";
-import CategoryProductsCard from "../CategoryProductsCard";
+import { UserError } from "../../../";
 import ActionDialog from "../../../components/ActionDialog";
-import { MoneyType } from "../../../products";
-import Toggle from "../../../components/Toggle";
+import Container from "../../../components/Container";
+import Form from "../../../components/Form";
+import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar, {
   SaveButtonBarState
 } from "../../../components/SaveButtonBar/SaveButtonBar";
+import SeoForm from "../../../components/SeoForm";
 import Tabs, { SingleTab } from "../../../components/Tab";
-import { UserError } from "../../../";
+import Toggle from "../../../components/Toggle";
+import { MoneyType } from "../../../products";
+import CategoryDetailsForm from "../../components/CategoryDetailsForm";
+import CategoryList from "../../components/CategoryList";
+import CategoryBackground from "../CategoryBackground";
+import CategoryProductsCard from "../CategoryProductsCard";
 
-import i18n from "../../../i18n";
 import { CardSpacer } from "../../../components/CardSpacer";
+import i18n from "../../../i18n";
 
 interface FormData {
   description: string;
@@ -72,28 +72,24 @@ export interface CategoryUpdatePageProps {
   };
   loading: boolean;
   saveButtonBarState?: SaveButtonBarState;
+  onImageDelete: (id: string) => () => void;
   onSubmit(data: FormData);
-  onImageUpload?(event: React.ChangeEvent<any>);
+  onImageUpload(event: React.ChangeEvent<any>);
   onNextPage();
   onPreviousPage();
   onProductClick(id: string): () => void;
   onAddProduct();
   onBack();
   onDelete();
-  onImageDelete: (id: string) => () => void;
   onAddCategory();
   onCategoryClick(id: string): () => void;
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    marginTop: theme.spacing.unit * 2,
-    gridGap: theme.spacing.unit * 4 + "px"
-  },
+const decorate = withStyles({
   tabsBorder: {
     borderBottom: "1px solid #eeeeee"
   }
-}));
+});
 
 export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
   ({
@@ -161,7 +157,7 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
                     )}
                   </PageHeader>
 
-                  <div className={classes.root}>
+                  <div>
                     {!isRoot && (
                       <>
                         <CategoryDetailsForm
@@ -221,8 +217,8 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
                                 >
                                   Products
                                 </SingleTab>
-                                <CardSpacer />
                               </div>
+                              <CardSpacer />
                               {currentTab === 0 && (
                                 <CategoryList
                                   categories={subcategories}
@@ -233,6 +229,7 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
                               )}
                               {currentTab === 1 && (
                                 <CategoryProductsCard
+                                  categoryName={category.name}
                                   products={products}
                                   disabled={disabled}
                                   pageInfo={pageInfo}
@@ -251,8 +248,8 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
                           onDelete={toggleDeleteDialog}
                           onSave={submit}
                           labels={{
-                            save: i18n.t("Save category"),
-                            delete: i18n.t("Delete category")
+                            delete: i18n.t("Delete category"),
+                            save: i18n.t("Save category")
                           }}
                           state={saveButtonBarState}
                           disabled={disabled || !hasChanged}
