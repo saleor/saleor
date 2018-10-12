@@ -62,7 +62,7 @@ class ShippingMethodQueryset(models.QuerySet):
 
     def applicable_shipping_methods(self, price, weight, country_code):
         """Returns ShippingMethods that can be used on an order with
-        shippment to given country(code), that are applicable to given
+        shipment to given country(code), that are applicable to given
         price & weight total.
         """
         # If dedicated shipping zone for the country exists, we should use it
