@@ -36,7 +36,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
           <TypedProductTypeDetailsQuery variables={{ id }}>
             {({ data, loading: dataLoading }) => {
               const closeModal = () =>
-                navigate(productTypeDetailsUrl(id), true);
+                navigate(productTypeDetailsUrl(encodeURIComponent(id)), true);
               const handleAttributeCreateSuccess = (data: AttributeCreate) => {
                 if (!maybe(() => data.attributeCreate.errors.length)) {
                   pushMessage({
@@ -103,7 +103,6 @@ export const ProductTypeUpdate: React.StatelessComponent<
                     attributeCreate,
                     deleteAttribute,
                     deleteProductType,
-                    errors,
                     loading: mutationLoading,
                     updateAttribute,
                     updateProductType
@@ -193,16 +192,26 @@ export const ProductTypeUpdate: React.StatelessComponent<
                             () => data.shop.defaultWeightUnit
                           )}
                           disabled={loading}
-                          errors={errors}
+                          errors={maybe(
+                            () =>
+                              updateProductType.data.productTypeUpdate.errors
+                          )}
                           pageTitle={maybe(() => data.productType.name)}
                           productType={maybe(() => data.productType)}
                           saveButtonBarState={loading ? "loading" : "default"}
                           onAttributeAdd={type =>
-                            navigate(addAttributeUrl(id, type))
+                            navigate(
+                              addAttributeUrl(encodeURIComponent(id), type)
+                            )
                           }
                           onAttributeDelete={handleAttributeDelete}
                           onAttributeUpdate={attributeId =>
-                            navigate(editAttributeUrl(id, attributeId))
+                            navigate(
+                              editAttributeUrl(
+                                encodeURIComponent(id),
+                                encodeURIComponent(attributeId)
+                              )
+                            )
                           }
                           onBack={() => navigate(productTypeListUrl)}
                           onDelete={handleProductTypeDelete}
@@ -214,7 +223,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                               <Route
                                 exact
                                 path={addAttributeUrl(
-                                  id,
+                                  encodeURIComponent(id),
                                   AttributeTypeEnum[key]
                                 )}
                                 key={key}
@@ -222,7 +231,11 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                 {({ match }) => (
                                   <ProductTypeAttributeEditDialog
                                     disabled={attributeCreate.loading}
-                                    errors={errors}
+                                    errors={maybe(
+                                      () =>
+                                        attributeCreate.data.attributeCreate
+                                          .errors
+                                    )}
                                     name=""
                                     values={[]}
                                     onClose={closeModal}
@@ -240,7 +253,13 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                 )}
                               </Route>
                             ))}
-                            <Route exact path={editAttributeUrl(id, ":id")}>
+                            <Route
+                              exact
+                              path={editAttributeUrl(
+                                encodeURIComponent(id),
+                                ":id"
+                              )}
+                            >
                               {({ match }) => {
                                 const attribute = maybe(
                                   () =>
@@ -250,13 +269,18 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                       )
                                       .filter(
                                         attribute =>
-                                          attribute.id === match.params.id
+                                          attribute.id ===
+                                          decodeURIComponent(match.params.id)
                                       )[0]
                                 );
                                 return (
                                   <ProductTypeAttributeEditDialog
                                     disabled={updateAttribute.loading}
-                                    errors={maybe(() => errors)}
+                                    errors={maybe(
+                                      () =>
+                                        updateAttribute.data.attributeUpdate
+                                          .errors
+                                    )}
                                     name={maybe(() => attribute.name)}
                                     values={maybe(() =>
                                       attribute.values.map(value => ({
@@ -267,7 +291,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                     onClose={closeModal}
                                     onConfirm={data =>
                                       handleAttributeUpdate(
-                                        match.params.id,
+                                        decodeURIComponent(match.params.id),
                                         data
                                       )
                                     }
