@@ -253,6 +253,12 @@ class AttributeDelete(ModelDeleteMutation):
     def user_is_allowed(cls, user, input):
         return user.has_perm('product.manage_products')
 
+    @classmethod
+    def success_response(cls, instance):
+        response = super().success_response(instance)
+        response.product_type = instance.product_type
+        return response
+
 
 class AttributeValueCreateInput(graphene.InputObjectType):
     name = graphene.String(
