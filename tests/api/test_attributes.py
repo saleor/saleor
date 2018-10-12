@@ -324,13 +324,21 @@ def test_update_attribute_and_remove_others_attribute_value(
 
 
 def test_delete_attribute(
-        staff_api_client, color_attribute, permission_manage_products):
+        staff_api_client, color_attribute, permission_manage_products,
+        product_type):
     attribute = color_attribute
     query = """
     mutation deleteAttribute($id: ID!) {
         attributeDelete(id: $id) {
+            errors {
+                field
+                message
+            }
             attribute {
                 id
+            }
+            productType {
+                name
             }
         }
     }
@@ -340,6 +348,8 @@ def test_delete_attribute(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
+    data = content['data']['attributeDelete']
+    assert data['productType']['name'] == attribute.product_type.name
     with pytest.raises(attribute._meta.model.DoesNotExist):
         attribute.refresh_from_db()
 
