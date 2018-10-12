@@ -14,8 +14,8 @@ const ProductList: React.StatelessComponent<RouteComponentProps<any>> = ({
 }) => {
   const qs = parseQs(location.search.substr(1));
   const params = {
-    after: qs.after,
-    before: qs.before
+    after: decodeURIComponent(qs.after),
+    before: decodeURIComponent(qs.before)
   };
   return <ProductListComponent params={params} />;
 };
@@ -23,7 +23,7 @@ const ProductList: React.StatelessComponent<RouteComponentProps<any>> = ({
 const ProductUpdate: React.StatelessComponent<RouteComponentProps<any>> = ({
   match
 }) => {
-  return <ProductUpdateComponent id={match.params.id} />;
+  return <ProductUpdateComponent id={decodeURIComponent(match.params.id)} />;
 };
 
 const ProductVariant: React.StatelessComponent<RouteComponentProps<any>> = ({
@@ -31,8 +31,8 @@ const ProductVariant: React.StatelessComponent<RouteComponentProps<any>> = ({
 }) => {
   return (
     <ProductVariantComponent
-      variantId={match.params.variantId}
-      productId={match.params.productId}
+      variantId={decodeURIComponent(match.params.variantId)}
+      productId={decodeURIComponent(match.params.productId)}
     />
   );
 };
@@ -42,8 +42,8 @@ const ProductImage: React.StatelessComponent<RouteComponentProps<any>> = ({
 }) => {
   return (
     <ProductImageComponent
-      imageId={match.params.imageId}
-      productId={match.params.productId}
+      imageId={decodeURIComponent(match.params.imageId)}
+      productId={decodeURIComponent(match.params.productId)}
     />
   );
 };
@@ -51,7 +51,11 @@ const ProductImage: React.StatelessComponent<RouteComponentProps<any>> = ({
 const ProductVariantCreate: React.StatelessComponent<
   RouteComponentProps<any>
 > = ({ match }) => {
-  return <ProductVariantCreateComponent productId={match.params.id} />;
+  return (
+    <ProductVariantCreateComponent
+      productId={decodeURIComponent(match.params.id)}
+    />
+  );
 };
 
 const Component = ({ match }) => (
