@@ -13,8 +13,8 @@ const OrderList: React.StatelessComponent<RouteComponentProps<any>> = ({
 }) => {
   const qs = parseQs(location.search.substr(1));
   const params = {
-    after: qs.after,
-    before: qs.before
+    after: decodeURIComponent(qs.after),
+    before: decodeURIComponent(qs.before)
   };
   return <OrderListComponent params={params} />;
 };
@@ -22,7 +22,7 @@ const OrderList: React.StatelessComponent<RouteComponentProps<any>> = ({
 const OrderDetails: React.StatelessComponent<RouteComponentProps<any>> = ({
   match
 }) => {
-  return <OrderDetailsComponent id={match.params.id} />;
+  return <OrderDetailsComponent id={decodeURIComponent(match.params.id)} />;
 };
 
 const Component = ({ match }) => (
