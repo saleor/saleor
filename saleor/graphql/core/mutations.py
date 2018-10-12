@@ -150,7 +150,7 @@ class ModelMutation(BaseMutation):
 
         Fields containing IDs or lists of IDs are automatically resolved into
         model instances. `instance` argument is the model instance the mutation
-        is operating on (befor setting the input data). `input` is raw input
+        is operating on (before setting the input data). `input` is raw input
         data the mutation receives. `errors` is a list of errors that occurred
         during mutation's execution.
 
