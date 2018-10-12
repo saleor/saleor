@@ -18,7 +18,7 @@ interface CategoryDetailsFormProps {
   };
   disabled: boolean;
   errors: { [key: string]: string };
-  onChange(event: any);
+  onChange: (event: React.ChangeEvent<any>) => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -41,7 +41,7 @@ export const CategoryDetailsForm = decorate<CategoryDetailsFormProps>(
                 label={i18n.t("Name")}
                 name="name"
                 disabled={disabled}
-                value={data.name}
+                value={data && data.name}
                 onChange={onChange}
                 error={!!errors.name}
                 helperText={errors.name}

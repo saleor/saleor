@@ -56,7 +56,7 @@ export const ProductList = decorate<ProductListProps>(
   }) => (
     <Card>
       <CardTitle
-        title={i18n.t(`Products in`)}
+        title={i18n.t("Products")}
         toolbar={
           <Button variant="flat" color="secondary" onClick={onAddProduct}>
             {i18n.t("Add product")}

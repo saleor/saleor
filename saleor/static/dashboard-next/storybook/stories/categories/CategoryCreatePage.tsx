@@ -7,12 +7,10 @@ import CategoryCreatePage, {
 import Decorator from "../../Decorator";
 
 const createProps: CategoryCreatePageProps = {
-  header: "Add category",
   disabled: false,
   errors: [],
   onBack: () => undefined,
-  onSubmit: () => undefined,
-  onDelete: () => undefined
+  onSubmit: () => undefined
 };
 
 storiesOf("Views / Categories / Create category", module)

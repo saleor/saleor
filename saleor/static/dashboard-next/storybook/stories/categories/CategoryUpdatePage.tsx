@@ -13,13 +13,13 @@ const category = categoryFixture(placeholderImage);
 
 const updateProps: CategoryUpdatePageProps = {
   category: category,
-  subcategories: category.children,
   backgroundImage: category.backgroundImage,
-  placeholderImage: placeholderImage,
+  subcategories: category.children,
   disabled: false,
   errors: [],
   products: category.products,
   loading: false,
+  placeholderImage: placeholderImage,
   pageInfo: {
     hasNextPage: true,
     hasPreviousPage: true

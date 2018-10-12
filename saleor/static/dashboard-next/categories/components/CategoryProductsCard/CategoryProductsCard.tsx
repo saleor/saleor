@@ -2,14 +2,14 @@ import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import * as React from "react";
 
-import { MoneyType } from "../../../products";
 import { PageListProps } from "../../..";
 import CardTitle from "../../../components/CardTitle";
 import ProductList from "../../../components/ProductList";
 import i18n from "../../../i18n";
+import { MoneyType } from "../../../products";
 
 interface CategoryProductsCardProps extends PageListProps {
-  products?: Array<{
+  products: Array<{
     id: string;
     name: string;
     productType: {
@@ -21,6 +21,7 @@ interface CategoryProductsCardProps extends PageListProps {
     };
     price: MoneyType;
   }>;
+  categoryName: string;
   onAddProduct?();
 }
 
@@ -33,11 +34,12 @@ export const CategoryProductsCard: React.StatelessComponent<
   onAddProduct,
   onNextPage,
   onPreviousPage,
-  onRowClick
+  onRowClick,
+  categoryName
 }) => (
   <Card>
     <CardTitle
-      title={i18n.t("Products")}
+      title={i18n.t("Products in {{ categoryName }}", { categoryName })}
       toolbar={
         <Button color="secondary" variant="flat" onClick={onAddProduct}>
           {i18n.t("Add product")}
