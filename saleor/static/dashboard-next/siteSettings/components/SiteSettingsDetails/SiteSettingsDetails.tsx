@@ -34,9 +34,7 @@ const SiteSettingsDetails: React.StatelessComponent<
         error={!!errors.name}
         fullWidth
         name="name"
-        label={i18n.t("Name of your store", {
-          context: "field label"
-        })}
+        label={i18n.t("Name of your store")}
         helperText={
           errors.name ||
           i18n.t("Name of your store is shown on tab in web browser")
@@ -50,10 +48,8 @@ const SiteSettingsDetails: React.StatelessComponent<
         error={!!errors.domain}
         fullWidth
         name="domain"
-        label={i18n.t("Domain", {
-          context: "field label"
-        })}
-        helperText={errors.domain || i18n.t("Domain is your store URL")}
+        label={i18n.t("URL of your online store")}
+        helperText={errors.domain}
         value={data.domain}
         onChange={onChange}
       />

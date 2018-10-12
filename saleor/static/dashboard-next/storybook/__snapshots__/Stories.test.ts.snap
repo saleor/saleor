@@ -40732,7 +40732,7 @@ exports[`Storyshots Views / Site settings / Page default 1`] = `
                 class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
                 data-shrink="true"
               >
-                Domain
+                URL of your online store
               </label>
               <div
                 class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
@@ -40745,11 +40745,6 @@ exports[`Storyshots Views / Site settings / Page default 1`] = `
                   value="localhost:8000"
                 />
               </div>
-              <p
-                class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
-              >
-                Domain is your store URL
-              </p>
             </div>
             <div
               class="Component-spacer-id"
@@ -41025,7 +41020,7 @@ exports[`Storyshots Views / Site settings / Page form errors 1`] = `
                 class="MuiFormLabel-root-id MuiFormLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
                 data-shrink="true"
               >
-                Domain
+                URL of your online store
               </label>
               <div
                 class="MuiInput-root-id MuiInput-error-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
@@ -41319,7 +41314,7 @@ exports[`Storyshots Views / Site settings / Page loading 1`] = `
                 class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
                 data-shrink="false"
               >
-                Domain
+                URL of your online store
               </label>
               <div
                 class="MuiInput-root-id MuiInput-disabled-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
@@ -41333,11 +41328,6 @@ exports[`Storyshots Views / Site settings / Page loading 1`] = `
                   value=""
                 />
               </div>
-              <p
-                class="MuiFormHelperText-root-id"
-              >
-                Domain is your store URL
-              </p>
             </div>
             <div
               class="Component-spacer-id"
