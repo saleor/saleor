@@ -213,7 +213,7 @@ class Order(CountableDjangoObjectType):
     @gql_optimizer.resolver_hints(prefetch_related='payments')
     def resolve_total_captured(obj, info):
         payment = obj.get_last_payment()
-        #FIXME adjust to multiple payments
+        # FIXME adjust to multiple payments
         if payment:
             return payment.get_captured_money()
 

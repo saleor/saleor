@@ -384,7 +384,7 @@ def create_transactions(payment):
     if payment.status == PaymentMethodChargeStatus.NOT_CHARGED:
         if random.randint(0, 1):
             payment.transactions.create(
-                transaction_type=TransactionType.RELEASE,
+                transaction_type=TransactionType.VOID,
                 is_success=True, amount=payment.total,
                 currency=payment.currency)
         return

@@ -84,11 +84,11 @@ def test_view_capture_order_payment_preauth(
 
 @pytest.mark.integration
 def test_view_capture_order_invalid_payment_confirmed_status(
-        admin_client, order_with_lines, payment_method_txn_charged):
+        admin_client, order_with_lines, payment_method_txn_captured):
     order = order_with_lines
     url = reverse(
         'dashboard:capture-payment', kwargs={
-            'order_pk': order.pk, 'payment_pk': payment_method_txn_charged.pk})
+            'order_pk': order.pk, 'payment_pk': payment_method_txn_captured.pk})
     response = admin_client.get(url)
     assert response.status_code == 200
 
@@ -132,9 +132,9 @@ def test_view_capture_order_invalid_payment_refunded_status(
 
 @pytest.mark.integration
 def test_view_refund_order_payment_confirmed(
-        admin_client, order_with_lines, payment_method_txn_charged):
+        admin_client, order_with_lines, payment_method_txn_captured):
     order = order_with_lines
-    payment_confirmed = payment_method_txn_charged
+    payment_confirmed = payment_method_txn_captured
     url = reverse(
         'dashboard:refund-payment', kwargs={
             'order_pk': order.pk, 'payment_pk': payment_confirmed.pk})
@@ -228,12 +228,12 @@ def test_view_release_order_payment_preauth(
 
 @pytest.mark.integration
 def test_view_release_order_invalid_payment_confirmed_status(
-        admin_client, order_with_lines, payment_method_txn_charged):
+        admin_client, order_with_lines, payment_method_txn_captured):
     order = order_with_lines
 
     url = reverse(
         'dashboard:release-payment', kwargs={
-            'order_pk': order.pk, 'payment_pk': payment_method_txn_charged.pk})
+            'order_pk': order.pk, 'payment_pk': payment_method_txn_captured.pk})
     response = admin_client.get(url)
     assert response.status_code == 200
 

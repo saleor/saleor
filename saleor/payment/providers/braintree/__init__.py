@@ -97,6 +97,8 @@ def authorize(payment_method, transaction_token, **client_kwargs):
 
 def capture(payment_method, amount=None, **client_kwargs):
     gateway = get_gateway(**client_kwargs)
+    # FIXME we are assuming that appropriate transaction exists without
+    # forcing the flow
     auth_transaction = payment_method.transactions.filter(
         transaction_type=TransactionType.AUTH).first()
     if not amount:
@@ -118,6 +120,8 @@ def capture(payment_method, amount=None, **client_kwargs):
 
 def void(payment_method, **client_kwargs):
     gateway = get_gateway(**client_kwargs)
+    # FIXME we are assuming that appropriate transaction exists without
+    # forcing the flow
     auth_transaction = payment_method.transactions.filter(
         transaction_type=TransactionType.AUTH).first()
     result = gateway.transaction.void(transaction_id=auth_transaction.token)
@@ -135,6 +139,8 @@ def void(payment_method, **client_kwargs):
 
 def refund(payment_method, amount=None, **client_kwargs):
     gateway = get_gateway(**client_kwargs)
+    # FIXME we are assuming that appropriate transaction exists without
+    # forcing the flow
     auth_transaction = payment_method.transactions.filter(
         transaction_type=TransactionType.CAPTURE).first()
     result = gateway.transaction.refund(

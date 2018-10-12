@@ -4,7 +4,7 @@ from django.core.validators import MinValueValidator
 from django.urls import reverse, reverse_lazy
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.forms import MoneyField
-from payments import PaymentError, PaymentStatus
+from payments import PaymentError
 
 from ...account.i18n import (
     AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField)
@@ -15,12 +15,12 @@ from ...core.utils.taxes import ZERO_TAXED_MONEY
 from ...discount.models import Voucher
 from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
 from ...order import CustomPaymentChoices, OrderStatus
-from ...order.models import (
-    Fulfillment, FulfillmentLine, Order, OrderLine, Payment)
+from ...order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ...order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
     change_order_line_quantity, recalculate_order)
 from ...payment import PaymentMethodChargeStatus
+from ...payment.models import PaymentMethod
 from ...product.models import Product, ProductVariant
 from ...product.utils import allocate_stock, deallocate_stock
 from ...shipping.models import ShippingMethod
@@ -362,9 +362,9 @@ class OrderMarkAsPaidForm(forms.Form):
                 'Payment description', 'Order %(order)s') % {
                     'order': self.order},
             'captured_amount': self.order.total.gross.amount}
-        Payment.objects.get_or_create(
+        PaymentMethod.objects.get_or_create(
             variant=CustomPaymentChoices.MANUAL,
-            status=PaymentStatus.CONFIRMED, order=self.order,
+            status=PaymentMethodChargeStatus.CHARGED, order=self.order,
             defaults=defaults)
 
 
@@ -531,7 +531,7 @@ class OrderRemoveVoucherForm(forms.ModelForm):
 
 PAYMENT_STATUS_CHOICES = (
     [('', pgettext_lazy('Payment status field value', 'All'))] +
-    PaymentStatus.CHOICES)
+    PaymentMethodChargeStatus.CHOICES)
 
 
 class PaymentFilterForm(forms.Form):
