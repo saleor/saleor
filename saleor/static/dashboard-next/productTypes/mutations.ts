@@ -84,6 +84,7 @@ export const TypedProductTypeCreateMutation = TypedMutation<
 >(productTypeCreateMutation);
 
 export const attributeCreateMutation = gql`
+  ${productTypeDetailsFragment}
   mutation AttributeCreate(
     $id: ID!
     $input: AttributeCreateInput!
@@ -93,6 +94,9 @@ export const attributeCreateMutation = gql`
       errors {
         field
         message
+      }
+      productType {
+        ...ProductTypeDetailsFragment
       }
     }
   }
@@ -122,11 +126,15 @@ export const TypedAttributeUpdateMutation = TypedMutation<
 >(attributeUpdateMutation);
 
 export const attributeDeleteMutation = gql`
+  ${productTypeDetailsFragment}
   mutation AttributeDelete($id: ID!) {
     attributeDelete(id: $id) {
       errors {
         field
         message
+      }
+      productType {
+        ...ProductTypeDetailsFragment
       }
     }
   }
