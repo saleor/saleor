@@ -40703,7 +40703,7 @@ exports[`Storyshots Views / Site settings / Page default 1`] = `
                 class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
                 data-shrink="true"
               >
-                Store Name
+                Name of your store
               </label>
               <div
                 class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
@@ -40719,7 +40719,7 @@ exports[`Storyshots Views / Site settings / Page default 1`] = `
               <p
                 class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
               >
-                Store Name is shown on taskbar in web browser
+                Name of your store is shown on tab in web browser
               </p>
             </div>
             <div
@@ -40996,7 +40996,7 @@ exports[`Storyshots Views / Site settings / Page form errors 1`] = `
                 class="MuiFormLabel-root-id MuiFormLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
                 data-shrink="true"
               >
-                Store Name
+                Name of your store
               </label>
               <div
                 class="MuiInput-root-id MuiInput-error-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
@@ -41289,7 +41289,7 @@ exports[`Storyshots Views / Site settings / Page loading 1`] = `
                 class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
                 data-shrink="false"
               >
-                Store Name
+                Name of your store
               </label>
               <div
                 class="MuiInput-root-id MuiInput-disabled-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
@@ -41306,7 +41306,7 @@ exports[`Storyshots Views / Site settings / Page loading 1`] = `
               <p
                 class="MuiFormHelperText-root-id"
               >
-                Store Name is shown on taskbar in web browser
+                Name of your store is shown on tab in web browser
               </p>
             </div>
             <div
