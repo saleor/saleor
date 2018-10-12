@@ -4,6 +4,7 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404, redirect
 from prices import Money, TaxedMoney
 
+from saleor.shipping.models import ShippingMethod
 from ..account.utils import store_user_address
 from ..checkout import AddressType
 from ..core.utils.taxes import (
@@ -231,3 +232,24 @@ def sum_order_totals(qs):
     zero = Money(0, currency=settings.DEFAULT_CURRENCY)
     taxed_zero = TaxedMoney(zero, zero)
     return sum([order.total for order in qs], taxed_zero)
+
+
+def validate_shipping_method(order):
+    """Checks order for valid shipping method.
+
+    Deletes the `shipping_method` and `shipping_method_name`
+    if `shipping_method` is invalid for this particular order.
+    """
+    if order.is_shipping_required():
+        valid_methods = (
+            ShippingMethod.objects.applicable_shipping_methods(
+                price=order.total.gross.amount,
+                weight=order.get_total_weight(),
+                country_code=order.shipping_address.country.code))
+        valid_methods = valid_methods.values_list('id', flat=True)
+        if order.shipping_method.pk not in valid_methods:
+            order.shipping_method = None
+            order.shipping_method_name = None
+            order.save(
+                update_fields=['shipping_method', 'shipping_method_name'])
+

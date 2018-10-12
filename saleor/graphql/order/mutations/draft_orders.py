@@ -9,7 +9,8 @@ from ....core.exceptions import InsufficientStock
 from ....core.utils.taxes import ZERO_TAXED_MONEY
 from ....order import OrderEvents, OrderStatus, models
 from ....order.utils import (
-    add_variant_to_order, allocate_stock, recalculate_order)
+    add_variant_to_order, allocate_stock, recalculate_order,
+    validate_shipping_method)
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -138,6 +139,11 @@ class DraftOrderUpdate(DraftOrderCreate):
         description = 'Updates a draft order.'
         model = models.Order
 
+    @classmethod
+    def success_response(cls, instance):
+        validate_shipping_method(instance)
+        return DraftOrderUpdate(order=instance)
+
 
 class DraftOrderDelete(ModelDeleteMutation):
     class Arguments:
@@ -168,8 +174,8 @@ def check_for_draft_order_errors(order, errors):
         method = order.shipping_method
         shipping_address = order.shipping_address
         shipping_not_valid = (
-            method and shipping_address and
-            shipping_address.country.code not in method.shipping_zone.countries)  # noqa
+            method and shipping_address and shipping_address.country.code
+            not in method.shipping_zone.countries)  # noqa
         if shipping_not_valid:
             errors.append(
                 Error(
