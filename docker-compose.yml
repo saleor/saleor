@@ -12,8 +12,6 @@ services:
       - saleor-backend-tier
     ports:
       - 8000:8000
-    volumes:
-      - .:/app:Z
     env_file: common.env
     depends_on:
       - db
