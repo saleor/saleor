@@ -25,7 +25,7 @@ const SiteSettingsDetails: React.StatelessComponent<
   <Card>
     <CardTitle
       title={i18n.t("General Information", {
-        context: "card title"
+        context: "store configuration"
       })}
     />
     <CardContent>
@@ -34,14 +34,12 @@ const SiteSettingsDetails: React.StatelessComponent<
         error={!!errors.name}
         fullWidth
         name="name"
-        label={i18n.t("Store Name", {
+        label={i18n.t("Name of your store", {
           context: "field label"
         })}
         helperText={
           errors.name ||
-          i18n.t("Store Name is shown on taskbar in web browser", {
-            context: "help text"
-          })
+          i18n.t("Name of your store is shown on tab in web browser")
         }
         value={data.name}
         onChange={onChange}
@@ -55,12 +53,7 @@ const SiteSettingsDetails: React.StatelessComponent<
         label={i18n.t("Domain", {
           context: "field label"
         })}
-        helperText={
-          errors.domain ||
-          i18n.t("Domain is your store URL", {
-            context: "help text"
-          })
-        }
+        helperText={errors.domain || i18n.t("Domain is your store URL")}
         value={data.domain}
         onChange={onChange}
       />
