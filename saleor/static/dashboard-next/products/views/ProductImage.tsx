@@ -26,7 +26,7 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
       <Navigator>
         {navigate => {
           const handleBack = () =>
-            navigate(productUrl(decodeURIComponent(productId)));
+            navigate(productUrl(encodeURIComponent(productId)));
           const handleUpdateSuccess = (data: ProductImageUpdate) => {
             if (
               data.productImageUpdate &&
@@ -57,8 +57,8 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
                           const handleImageClick = (id: string) => () =>
                             navigate(
                               productImageUrl(
-                                decodeURIComponent(productId),
-                                decodeURIComponent(id)
+                                encodeURIComponent(productId),
+                                encodeURIComponent(id)
                               )
                             );
                           const handleUpdate = (formData: {
