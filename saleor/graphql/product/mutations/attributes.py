@@ -14,7 +14,8 @@ class AttributeCreateValueInput(graphene.InputObjectType):
     name = graphene.String(
         required=True, description='Name displayed in the interface.')
     value = graphene.String(
-        required=True, description='Real value eg. HEX color.')
+        description='''Value different than a textual name e.g. color
+        in a hexadecimal format.''')
 
 
 class AttributeCreateInput(graphene.InputObjectType):

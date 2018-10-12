@@ -135,7 +135,7 @@ input AttributeCreateInput {
 
 input AttributeCreateValueInput {
   name: String!
-  value: String!
+  value: String
 }
 
 type AttributeDelete {
@@ -167,7 +167,7 @@ type AttributeValue implements Node {
   id: ID!
   sortOrder: Int!
   name: String
-  value: String!
+  value: String
   slug: String
   type: AttributeValueType
 }
