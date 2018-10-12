@@ -71,11 +71,7 @@ const SiteSettingsPage = decorate<SiteSettingsPageProps>(
               })}
             />
             <div className={classes.root}>
-              <Typography variant="title">
-                {i18n.t("Site Settings", {
-                  context: "section name"
-                })}
-              </Typography>
+              <Typography variant="title">{i18n.t("Site Settings")}</Typography>
               <SiteSettingsDetails
                 data={data}
                 errors={formErrors}
