@@ -41169,7 +41169,7 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
                       <input
                         class="MuiSwitchBase-input-id"
                         disabled=""
-                        name="account.impersonate_users"
+                        name="IMPERSONATE_USERS"
                         type="checkbox"
                       />
                     </span>
@@ -41203,7 +41203,7 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
                       <input
                         class="MuiSwitchBase-input-id"
                         disabled=""
-                        name="discount.manage_discounts"
+                        name="MANAGE_DISCOUNTS"
                         type="checkbox"
                       />
                     </span>
@@ -41237,7 +41237,7 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
                       <input
                         class="MuiSwitchBase-input-id"
                         disabled=""
-                        name="menu.manage_menus"
+                        name="MANAGE_MENUS"
                         type="checkbox"
                       />
                     </span>
@@ -41271,7 +41271,7 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
                       <input
                         class="MuiSwitchBase-input-id"
                         disabled=""
-                        name="order.manage_orders"
+                        name="MANAGE_ORDERS"
                         type="checkbox"
                       />
                     </span>
@@ -41305,7 +41305,7 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
                       <input
                         class="MuiSwitchBase-input-id"
                         disabled=""
-                        name="page.manage_pages"
+                        name="MANAGE_PAGES"
                         type="checkbox"
                       />
                     </span>
@@ -41339,7 +41339,7 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
                       <input
                         class="MuiSwitchBase-input-id"
                         disabled=""
-                        name="product.manage_products"
+                        name="MANAGE_PRODUCTS"
                         type="checkbox"
                       />
                     </span>
@@ -41373,7 +41373,7 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
                       <input
                         class="MuiSwitchBase-input-id"
                         disabled=""
-                        name="site.manage_settings"
+                        name="MANAGE_SETTINGS"
                         type="checkbox"
                       />
                     </span>
@@ -41407,7 +41407,7 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
                       <input
                         class="MuiSwitchBase-input-id"
                         disabled=""
-                        name="shipping.manage_shipping"
+                        name="MANAGE_SHIPPING"
                         type="checkbox"
                       />
                     </span>
@@ -41441,7 +41441,7 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
                       <input
                         class="MuiSwitchBase-input-id"
                         disabled=""
-                        name="account.manage_staff"
+                        name="MANAGE_STAFF"
                         type="checkbox"
                       />
                     </span>
@@ -41475,7 +41475,7 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
                       <input
                         class="MuiSwitchBase-input-id"
                         disabled=""
-                        name="account.manage_users"
+                        name="MANAGE_USERS"
                         type="checkbox"
                       />
                     </span>
@@ -41822,7 +41822,7 @@ exports[`Storyshots Views / Staff / Staff member details not admin 1`] = `
                       </svg>
                       <input
                         class="MuiSwitchBase-input-id"
-                        name="account.impersonate_users"
+                        name="IMPERSONATE_USERS"
                         type="checkbox"
                       />
                     </span>
@@ -41858,7 +41858,7 @@ exports[`Storyshots Views / Staff / Staff member details not admin 1`] = `
                       <input
                         checked=""
                         class="MuiSwitchBase-input-id"
-                        name="discount.manage_discounts"
+                        name="MANAGE_DISCOUNTS"
                         type="checkbox"
                       />
                     </span>
@@ -41894,7 +41894,7 @@ exports[`Storyshots Views / Staff / Staff member details not admin 1`] = `
                       <input
                         checked=""
                         class="MuiSwitchBase-input-id"
-                        name="menu.manage_menus"
+                        name="MANAGE_MENUS"
                         type="checkbox"
                       />
                     </span>
@@ -41930,7 +41930,7 @@ exports[`Storyshots Views / Staff / Staff member details not admin 1`] = `
                       <input
                         checked=""
                         class="MuiSwitchBase-input-id"
-                        name="order.manage_orders"
+                        name="MANAGE_ORDERS"
                         type="checkbox"
                       />
                     </span>
@@ -41966,7 +41966,7 @@ exports[`Storyshots Views / Staff / Staff member details not admin 1`] = `
                       <input
                         checked=""
                         class="MuiSwitchBase-input-id"
-                        name="page.manage_pages"
+                        name="MANAGE_PAGES"
                         type="checkbox"
                       />
                     </span>
@@ -42002,7 +42002,7 @@ exports[`Storyshots Views / Staff / Staff member details not admin 1`] = `
                       <input
                         checked=""
                         class="MuiSwitchBase-input-id"
-                        name="product.manage_products"
+                        name="MANAGE_PRODUCTS"
                         type="checkbox"
                       />
                     </span>
@@ -42038,7 +42038,7 @@ exports[`Storyshots Views / Staff / Staff member details not admin 1`] = `
                       <input
                         checked=""
                         class="MuiSwitchBase-input-id"
-                        name="site.manage_settings"
+                        name="MANAGE_SETTINGS"
                         type="checkbox"
                       />
                     </span>
@@ -42074,7 +42074,7 @@ exports[`Storyshots Views / Staff / Staff member details not admin 1`] = `
                       <input
                         checked=""
                         class="MuiSwitchBase-input-id"
-                        name="shipping.manage_shipping"
+                        name="MANAGE_SHIPPING"
                         type="checkbox"
                       />
                     </span>
@@ -42110,7 +42110,7 @@ exports[`Storyshots Views / Staff / Staff member details not admin 1`] = `
                       <input
                         checked=""
                         class="MuiSwitchBase-input-id"
-                        name="account.manage_staff"
+                        name="MANAGE_STAFF"
                         type="checkbox"
                       />
                     </span>
@@ -42146,7 +42146,7 @@ exports[`Storyshots Views / Staff / Staff member details not admin 1`] = `
                       <input
                         checked=""
                         class="MuiSwitchBase-input-id"
-                        name="account.manage_users"
+                        name="MANAGE_USERS"
                         type="checkbox"
                       />
                     </span>
