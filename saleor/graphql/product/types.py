@@ -62,6 +62,9 @@ class AttributeValue(CountableDjangoObjectType):
     slug = graphene.String(
         description='Internal representation of an attribute name.')
     type = AttributeValueType(description='Type of value.')
+    value = graphene.String(
+        description='''Value different than a textual name e.g. color
+        in a hexadecimal format.''')
 
     class Meta:
         description = 'Represents a value of an attribute.'
