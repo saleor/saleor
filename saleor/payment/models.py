@@ -22,6 +22,8 @@ class PaymentMethod(models.Model):
     within a single order.
     """
     variant = models.CharField(max_length=255)
+    # FIXME probably we should have error/pending/active status instead of
+    # a bool
     is_active = models.BooleanField(default=True)
     #: Creation date and time
     created = models.DateTimeField(auto_now_add=True)
@@ -113,6 +115,8 @@ class Transaction(models.Model):
     token = models.CharField(max_length=64, blank=True, default='')
     transaction_type = models.CharField(
         max_length=10, choices=TransactionType.CHOICES)
+    # FIXME probably we should have error/pending/success status instead of
+    # a bool, eg for payments with 3d secure
     is_success = models.BooleanField(default=False)
     amount = models.DecimalField(
         max_digits=9, decimal_places=2, default=Decimal('0.0'))

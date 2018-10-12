@@ -15,24 +15,20 @@ class TransactionType:
                      source. Money does not change hands until the
                      authorization is captured.
     - Charge: Authorization and capture in a single step.
-    - Void: A cancellation of a pending authorization.
+    - Void: A cancellation of a pending authorization or capture.
     - Capture: A transfer of the money that was reserved during the
                authorization stage.
     - Refund: Full or partial return of captured funds to the customer.
-    - Release: Release of the funds that were reserved during the authorization
-               stage to the customer's funding source.
     """
     AUTH = 'auth'
     CHARGE = 'capture'
     CAPTURE = 'capture'
     VOID = 'void'
     REFUND = 'refund'
-    RELEASE = 'release'
 
     CHOICES = [(AUTH, pgettext_lazy('transaction type', 'Authorization')),
                (CHARGE, pgettext_lazy('transaction type', 'Charge')),
                (REFUND, pgettext_lazy('transaction type', 'Refund')),
-               (RELEASE, pgettext_lazy('transaction type', 'Release')),
                (CAPTURE, pgettext_lazy('transaction type', 'Capture')),
                (VOID, pgettext_lazy('transaction type', 'Void'))]
 
@@ -47,6 +43,11 @@ class PaymentMethodChargeStatus:
     CHARGED = 'charged'
     NOT_CHARGED = 'not-charged'
     FULLY_REFUNDED = 'fully-refunded'
+    # FIXME
+    # We should probably support other statuses, like:
+    # pending
+    # partially charged
+    # partially refunded
 
     CHOICES = [
         (CHARGED, pgettext_lazy('payment method status', 'Charged')),

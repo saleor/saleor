@@ -21,6 +21,7 @@ from .types import Checkout, CheckoutLine
 
 def clean_shipping_method(
         checkout, method, errors, discounts, taxes, country_code=None):
+    # FIXME Add tests for this function
     if not method:
         return errors
     if not checkout.is_shipping_required():
@@ -55,6 +56,7 @@ def check_lines_quantity(variants, quantities):
     """Check if stock is sufficient for each line in the list of dicts.
     Return list of errors.
     """
+    # FIXME Add tests
     errors = []
 
     for variant, quantity in zip(variants, quantities):
@@ -276,15 +278,24 @@ class CheckoutShippingAddressUpdate(BaseMutation):
         description = 'Update shipping address in the existing Checkout.'
 
     @classmethod
-    def mutate(cls, root, info, checkout_id, shipping_address):
+    def clean_address(cls, address, errors):
+        if address:
+            address = Address(**address)
+            cls.clean_instance(address, errors)
+        return address
+
+    @classmethod
+    def mutate(
+            cls, root, info, checkout_id, shipping_address, billing_adddress):
         errors = []
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
-
-        shipping_address = Address(**shipping_address)
-        cls.clean_instance(shipping_address, errors)
+        if shipping_address:
+            shipping_address = cls.clean_address(shipping_address, errors)
+        if billing_adddress:
+            billing_adddress = cls.clean_address(shipping_address, errors)
         if errors:
-            CheckoutShippingAddressUpdate(errors=errors)
+            return CheckoutShippingAddressUpdate(errors=errors)
 
         clean_shipping_method(
             checkout, checkout.shipping_method, errors,
@@ -322,6 +333,7 @@ class CheckoutEmailUpdate(BaseMutation):
 
 
 class CheckoutShippingMethodUpdate(BaseMutation):
+    # FIXME test this mutations
     checkout = graphene.Field(Checkout, description='An updated checkout')
 
     class Arguments:

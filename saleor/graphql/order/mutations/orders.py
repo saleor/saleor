@@ -1,7 +1,6 @@
 import graphene
 from django.utils.translation import pgettext_lazy
 from graphql_jwt.decorators import permission_required
-from payments import PaymentError, PaymentStatus
 
 from ....account.models import User
 from ....core.utils.taxes import ZERO_TAXED_MONEY
@@ -13,6 +12,8 @@ from ...core.mutations import BaseMutation
 from ...core.types.common import Decimal, Error
 from ...order.mutations.draft_orders import DraftOrderUpdate
 from ...order.types import Order, OrderEvent
+from ....payment import PaymentError, PaymentMethodChargeStatus
+from ....payment.models import PaymentMethod
 from ...shipping.types import ShippingMethod
 
 
@@ -297,9 +298,9 @@ class OrderMarkAsPaid(BaseMutation):
             'description': pgettext_lazy(
                 'Payment description', 'Order %(order)s') % {'order': order},
             'captured_amount': order.total.gross.amount}
-        models.Payment.objects.get_or_create(
+        models.PaymentMethod.objects.get_or_create(
             variant=CustomPaymentChoices.MANUAL,
-            status=PaymentStatus.CONFIRMED, order=order,
+            charge_status=PaymentMethodChargeStatus.CHARGED, order=order,
             defaults=defaults)
 
         order.events.create(

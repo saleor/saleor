@@ -492,7 +492,7 @@ def payment_method_txn_preauth(order_with_lines, payment_method_dummy):
 
 
 @pytest.fixture()
-def payment_method_txn_charged(order_with_lines, payment_method_dummy):
+def payment_method_txn_captured(order_with_lines, payment_method_dummy):
     order = order_with_lines
     payment = payment_method_dummy
     payment.order = order
@@ -503,7 +503,7 @@ def payment_method_txn_charged(order_with_lines, payment_method_dummy):
 
     payment.transactions.create(
         amount=payment.total,
-        transaction_type=TransactionType.CHARGE,
+        transaction_type=TransactionType.CAPTURE,
         gateway_response={},
         is_success=True)
     return payment
