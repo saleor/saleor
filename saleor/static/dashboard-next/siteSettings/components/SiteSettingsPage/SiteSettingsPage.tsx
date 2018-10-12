@@ -83,9 +83,7 @@ const SiteSettingsPage = decorate<SiteSettingsPageProps>(
                 onChange={change}
               />
               <Typography variant="title">
-                {i18n.t("Authentication keys", {
-                  context: "section name"
-                })}
+                {i18n.t("Authentication keys")}
               </Typography>
               <SiteSettingsKeys
                 disabled={disabled}
