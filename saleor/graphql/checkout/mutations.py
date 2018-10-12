@@ -286,14 +286,12 @@ class CheckoutShippingAddressUpdate(BaseMutation):
 
     @classmethod
     def mutate(
-            cls, root, info, checkout_id, shipping_address, billing_adddress):
+            cls, root, info, checkout_id, shipping_address):
         errors = []
         checkout = cls.get_node_or_error(
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
         if shipping_address:
             shipping_address = cls.clean_address(shipping_address, errors)
-        if billing_adddress:
-            billing_adddress = cls.clean_address(shipping_address, errors)
         if errors:
             return CheckoutShippingAddressUpdate(errors=errors)
 
