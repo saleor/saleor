@@ -70,7 +70,6 @@ def test_token_create_user_data(
 
     permission = permission_manage_orders
     staff_user.user_permissions.add(permission)
-    code = '.'.join([permission.content_type.name, permission.codename])
     name = permission.name
     user_id = graphene.Node.to_global_id('User', staff_user.id)
 
@@ -81,7 +80,7 @@ def test_token_create_user_data(
     assert token_data['user']['id'] == user_id
     assert token_data['user']['email'] == staff_user.email
     assert token_data['user']['permissions'][0]['name'] == name
-    assert token_data['user']['permissions'][0]['code'] == code
+    assert token_data['user']['permissions'][0]['code'] == 'MANAGE_ORDERS'
 
 
 def test_query_user(staff_api_client, customer_user, permission_manage_users):
@@ -450,7 +449,7 @@ def test_staff_create(
     assert data['user']['isStaff'] == True
     assert data['user']['isActive'] == True
     permissions = data['user']['permissions']
-    assert permissions[0]['code'] == permission_manage_products_codename
+    assert permissions[0]['code'] == 'MANAGE_PRODUCTS'
 
     assert send_password_reset_mock.call_count == 1
     args, kwargs = send_password_reset_mock.call_args
@@ -806,3 +805,4 @@ def test_customer_reset_password(
     content = get_graphql_content(response)
     assert send_password_reset_mock.called
     assert send_password_reset_mock.mock_calls[0][1][1] == customer_user.email
+

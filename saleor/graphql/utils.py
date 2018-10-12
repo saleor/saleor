@@ -4,7 +4,7 @@ from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
 from graphql_relay import from_global_id
 
-from .core.types.common import PermissionDisplay
+from .core.types.common import PermissionDisplay, PermissionEnum
 
 registry = get_global_registry()
 
@@ -93,8 +93,12 @@ def format_permissions_for_display(permissions):
     Keyword arguments:
     permissions - queryset with permissions
     """
-    return [
-        PermissionDisplay(
-            code='.'.join(
-                [permission.content_type.app_label, permission.codename]),
-            name=permission.name) for permission in permissions]
+    formatted_permissions = []
+    for permission in permissions:
+        codename = '.'.join(
+            [permission.content_type.app_label, permission.codename])
+        formatted_permissions.append(
+            PermissionDisplay(
+                code=PermissionEnum.get(codename),
+                name=permission.name))
+    return formatted_permissions

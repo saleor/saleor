@@ -30,6 +30,8 @@ import ProductSection from "./products";
 import ProductTypesSection from "./productTypes";
 import StaffSection from "./staff";
 import theme from "./theme";
+import { PermissionEnum } from './types/globalTypes';
+
 
 const cookies = new Cookies();
 
@@ -94,32 +96,32 @@ render(
                     <Switch>
                       <SectionRoute exact path="/" component={HomePage} />
                       <SectionRoute
-                        permissions={["product.manage_products"]}
+                        permissions={[PermissionEnum.MANAGE_PRODUCTS]}
                         path="/categories"
                         component={CategorySection}
                       />
                       <SectionRoute
-                        permissions={["page.manage_pages"]}
+                        permissions={[PermissionEnum.MANAGE_PAGES]}
                         path="/pages"
                         component={PageSection}
                       />
                       <SectionRoute
-                        permissions={["order.manage_orders"]}
+                        permissions={[PermissionEnum.MANAGE_ORDERS]}
                         path="/orders"
                         component={OrdersSection}
                       />
                       <SectionRoute
-                        permissions={["product.manage_products"]}
+                        permissions={[PermissionEnum.MANAGE_PRODUCTS]}
                         path="/products"
                         component={ProductSection}
                       />
                       <SectionRoute
-                        permissions={["product.manage_products"]}
+                        permissions={[PermissionEnum.MANAGE_PRODUCTS]}
                         path="/productTypes"
                         component={ProductTypesSection}
                       />
                       <SectionRoute
-                        permissions={["account.manage_staff"]}
+                        permissions={[PermissionEnum.MANAGE_STAFF]}
                         path="/staff"
                         component={StaffSection}
                       />
