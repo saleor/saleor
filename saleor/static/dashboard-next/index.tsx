@@ -1,6 +1,6 @@
 import CssBaseline from "@material-ui/core/CssBaseline";
 import MuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
-import { InMemoryCache } from "apollo-cache-inmemory";
+import { defaultDataIdFromObject, InMemoryCache } from "apollo-cache-inmemory";
 import { ApolloClient, ApolloError } from "apollo-client";
 import { setContext } from "apollo-link-context";
 import { ErrorResponse, onError } from "apollo-link-error";
@@ -28,10 +28,10 @@ import OrdersSection from "./orders";
 import PageSection from "./pages";
 import ProductSection from "./products";
 import ProductTypesSection from "./productTypes";
+import SiteSettingsSection from "./siteSettings";
 import StaffSection from "./staff";
 import theme from "./theme";
-import { PermissionEnum } from './types/globalTypes';
-
+import { PermissionEnum } from "./types/globalTypes";
 
 const cookies = new Cookies();
 
@@ -68,7 +68,16 @@ const uploadLink = createUploadLink({
 });
 
 const apolloClient = new ApolloClient({
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    dataIdFromObject: (obj: any) => {
+      // We need to set manually shop's ID, since it is singleton and
+      // API does not return its ID
+      if (obj.__typename === "Shop") {
+        return "shop";
+      }
+      return defaultDataIdFromObject(obj);
+    }
+  }),
   link: invalidTokenLink.concat(authLink.concat(uploadLink))
 });
 
@@ -124,6 +133,11 @@ render(
                         permissions={[PermissionEnum.MANAGE_STAFF]}
                         path="/staff"
                         component={StaffSection}
+                      />
+                      <SectionRoute
+                        permissions={[PermissionEnum.MANAGE_SETTINGS]}
+                        path="/siteSettings"
+                        component={SiteSettingsSection}
                       />
                       {configurationMenu.filter(menuItem =>
                         hasPermission(menuItem.permission, user)
