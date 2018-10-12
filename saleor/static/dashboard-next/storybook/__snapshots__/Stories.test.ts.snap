@@ -10950,7 +10950,407 @@ exports[`Storyshots Views / Configuration default 1`] = `
     </div>
     <div
       class="Component-root-id"
-    />
+    >
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-card-id"
+      >
+        <div
+          class="MuiCardContent-root-id Component-cardContent-id"
+        >
+          <div
+            class="Component-icon-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeInherit-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <rect
+                fill-opacity="0"
+                height="24"
+                width="24"
+              />
+              <rect
+                fill-opacity="0"
+                height="16"
+                transform="translate(2 4)"
+                width="20"
+              />
+              <path
+                d="M9.17 6L11.17 8H20V18H4V6H9.17ZM10 4H4C2.9 4 2.01 4.9 2.01 6L2 18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V8C22 6.9 21.1 6 20 6H12L10 4Z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id Component-sectionTitle-id"
+            >
+              Product Types
+            </p>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id Component-sectionDescription-id"
+            >
+              Define types of products you sell
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-cardDisabled-id"
+      >
+        <div
+          class="MuiCardContent-root-id Component-cardContent-id"
+        >
+          <div
+            class="Component-icon-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeInherit-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <rect
+                fill="black"
+                fill-opacity="0"
+                height="24"
+                width="24"
+              />
+              <rect
+                fill-opacity="0"
+                height="18"
+                transform="translate(3 3)"
+                width="18"
+              />
+              <rect
+                fill="black"
+                fill-opacity="0"
+                transform="translate(3 3)"
+                width="18"
+              />
+              <path
+                d="M18 7.5H13V9.5H18V7.5Z"
+              />
+              <path
+                d="M18 14.5H13V16.5H18V14.5Z"
+              />
+              <path
+                d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM19 19H5V5H19V19Z"
+              />
+              <path
+                d="M11 6H6V11H11V6ZM10 10H7V7H10V10Z"
+              />
+              <path
+                d="M11 13H6V18H11V13ZM10 17H7V14H10V17Z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id Component-sectionTitle-id"
+            >
+              Attributes
+            </p>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id Component-sectionDescription-id"
+            >
+              Define attributes of products yousell
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-card-id"
+      >
+        <div
+          class="MuiCardContent-root-id Component-cardContent-id"
+        >
+          <div
+            class="Component-icon-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeInherit-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <rect
+                fill-opacity="0"
+                height="24"
+                width="24"
+              />
+              <rect
+                fill-opacity="0"
+                height="20"
+                transform="translate(2 2)"
+                width="20"
+              />
+              <rect
+                fill="black"
+                fill-opacity="0"
+                height="20"
+                transform="translate(2 2)"
+                width="20"
+              />
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM7.07 18.28C7.5 17.38 10.12 16.5 12 16.5C13.88 16.5 16.51 17.38 16.93 18.28C15.57 19.36 13.86 20 12 20C10.14 20 8.43 19.36 7.07 18.28ZM18.36 16.83C16.93 15.09 13.46 14.5 12 14.5C10.54 14.5 7.07 15.09 5.64 16.83C4.62 15.49 4 13.82 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 13.82 19.38 15.49 18.36 16.83Z"
+              />
+              <path
+                d="M12 6C10.06 6 8.5 7.56 8.5 9.5C8.5 11.44 10.06 13 12 13C13.94 13 15.5 11.44 15.5 9.5C15.5 7.56 13.94 6 12 6ZM12 11C11.17 11 10.5 10.33 10.5 9.5C10.5 8.67 11.17 8 12 8C12.83 8 13.5 8.67 13.5 9.5C13.5 10.33 12.83 11 12 11Z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id Component-sectionTitle-id"
+            >
+              Staff Members
+            </p>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id Component-sectionDescription-id"
+            >
+              Manage your employees and their permissions
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-cardDisabled-id"
+      >
+        <div
+          class="MuiCardContent-root-id Component-cardContent-id"
+        >
+          <div
+            class="Component-icon-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeInherit-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <rect
+                fill-opacity="0"
+                height="24"
+                width="24"
+              />
+              <rect
+                fill-opacity="0"
+                height="16"
+                transform="translate(1 4)"
+                width="22"
+              />
+              <path
+                d="M20 8H17V4H3C1.9 4 1 4.9 1 6V17H3C3 18.66 4.34 20 6 20C7.66 20 9 18.66 9 17H15C15 18.66 16.34 20 18 20C19.66 20 21 18.66 21 17H23V12L20 8ZM19.5 9.5L21.46 12H17V9.5H19.5ZM6 18C5.45 18 5 17.55 5 17C5 16.45 5.45 16 6 16C6.55 16 7 16.45 7 17C7 17.55 6.55 18 6 18ZM8.22 15C7.67 14.39 6.89 14 6 14C5.11 14 4.33 14.39 3.78 15H3V6H15V15H8.22ZM18 18C17.45 18 17 17.55 17 17C17 16.45 17.45 16 18 16C18.55 16 19 16.45 19 17C19 17.55 18.55 18 18 18Z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id Component-sectionTitle-id"
+            >
+              Shipping Methods
+            </p>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id Component-sectionDescription-id"
+            >
+              Manage how you ship out orders.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-cardDisabled-id"
+      >
+        <div
+          class="MuiCardContent-root-id Component-cardContent-id"
+        >
+          <div
+            class="Component-icon-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeInherit-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <rect
+                fill="black"
+                fill-opacity="0"
+                height="24"
+                width="24"
+              />
+              <rect
+                fill-opacity="0"
+                height="20"
+                transform="translate(2 2)"
+                width="20"
+              />
+              <rect
+                fill-opacity="0"
+                height="20"
+                transform="translate(2 2)"
+                width="20"
+              />
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z"
+              />
+              <path
+                d="M12.31 11.14C10.54 10.69 9.97004 10.2 9.97004 9.47C9.97004 8.63 10.76 8.04 12.07 8.04C13.45 8.04 13.97 8.7 14.01 9.68H15.72C15.67 8.34 14.85 7.11 13.23 6.71V5H10.9V6.69C9.39004 7.01 8.18004 7.99 8.18004 9.5C8.18004 11.29 9.67004 12.19 11.84 12.71C13.79 13.17 14.18 13.86 14.18 14.58C14.18 15.11 13.79 15.97 12.08 15.97C10.48 15.97 9.85004 15.25 9.76004 14.33H8.04004C8.14004 16.03 9.40004 16.99 10.9 17.3V19H13.24V17.33C14.76 17.04 15.96 16.17 15.97 14.56C15.96 12.36 14.07 11.6 12.31 11.14Z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id Component-sectionTitle-id"
+            >
+              Taxes
+            </p>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id Component-sectionDescription-id"
+            >
+              Manage how your store charges tax
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-cardDisabled-id"
+      >
+        <div
+          class="MuiCardContent-root-id Component-cardContent-id"
+        >
+          <div
+            class="Component-icon-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeInherit-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <rect
+                fill-opacity="0"
+                height="24"
+                width="24"
+              />
+              <rect
+                fill-opacity="0"
+                height="19"
+                transform="translate(4.5 2)"
+                width="15"
+              />
+              <path
+                d="M12 7.27L16.28 17.7L12.81 16.17L12 15.81L11.19 16.17L7.72 17.7L12 7.27ZM12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id Component-sectionTitle-id"
+            >
+              Navigation
+            </p>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id Component-sectionDescription-id"
+            >
+              Define how users can navigate through your store
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-cardDisabled-id"
+      >
+        <div
+          class="MuiCardContent-root-id Component-cardContent-id"
+        >
+          <div
+            class="Component-icon-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeInherit-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <rect
+                fill-opacity="0"
+                height="24"
+                width="24"
+              />
+              <rect
+                fill-opacity="0"
+                height="16"
+                transform="translate(3 4)"
+                width="18"
+              />
+              <path
+                d="M18.36 9L18.96 12H5.04L5.64 9H18.36ZM20 4H4V6H20V4ZM20 7H4L3 12V14H4V20H14V14H18V20H20V14H21V12L20 7ZM6 18V14H12V18H6Z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id Component-sectionTitle-id"
+            >
+              Site Settings
+            </p>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id Component-sectionDescription-id"
+            >
+              View and update your site settings
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-cardDisabled-id"
+      >
+        <div
+          class="MuiCardContent-root-id Component-cardContent-id"
+        >
+          <div
+            class="Component-icon-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeInherit-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <rect
+                fill-opacity="0"
+                height="24"
+                width="24"
+              />
+              <rect
+                fill-opacity="0"
+                height="18"
+                transform="translate(3 3)"
+                width="18"
+              />
+              <path
+                d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12V5C21 3.9 20.1 3 19 3ZM13 5H19V11H16L17 7L13 8V5ZM5 5H11V8L7 7L8 11H5V5ZM11 19H5V13H8L7 17L11 16V19ZM19 19H13V16L17 17L16 13H19V19ZM14.63 14.63L12 13.72L9.37 14.63L10.28 12L9.37 9.37L12 10.28L14.63 9.37L13.72 12L14.63 14.63Z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id Component-sectionTitle-id"
+            >
+              Pages
+            </p>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id Component-sectionDescription-id"
+            >
+              Manage and add additional pages
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 `;
@@ -10974,7 +11374,262 @@ exports[`Storyshots Views / Configuration partial access 1`] = `
     </div>
     <div
       class="Component-root-id"
-    />
+    >
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-card-id"
+      >
+        <div
+          class="MuiCardContent-root-id Component-cardContent-id"
+        >
+          <div
+            class="Component-icon-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeInherit-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <rect
+                fill-opacity="0"
+                height="24"
+                width="24"
+              />
+              <rect
+                fill-opacity="0"
+                height="16"
+                transform="translate(2 4)"
+                width="20"
+              />
+              <path
+                d="M9.17 6L11.17 8H20V18H4V6H9.17ZM10 4H4C2.9 4 2.01 4.9 2.01 6L2 18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V8C22 6.9 21.1 6 20 6H12L10 4Z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id Component-sectionTitle-id"
+            >
+              Product Types
+            </p>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id Component-sectionDescription-id"
+            >
+              Define types of products you sell
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-cardDisabled-id"
+      >
+        <div
+          class="MuiCardContent-root-id Component-cardContent-id"
+        >
+          <div
+            class="Component-icon-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeInherit-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <rect
+                fill="black"
+                fill-opacity="0"
+                height="24"
+                width="24"
+              />
+              <rect
+                fill-opacity="0"
+                height="18"
+                transform="translate(3 3)"
+                width="18"
+              />
+              <rect
+                fill="black"
+                fill-opacity="0"
+                transform="translate(3 3)"
+                width="18"
+              />
+              <path
+                d="M18 7.5H13V9.5H18V7.5Z"
+              />
+              <path
+                d="M18 14.5H13V16.5H18V14.5Z"
+              />
+              <path
+                d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM19 19H5V5H19V19Z"
+              />
+              <path
+                d="M11 6H6V11H11V6ZM10 10H7V7H10V10Z"
+              />
+              <path
+                d="M11 13H6V18H11V13ZM10 17H7V14H10V17Z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id Component-sectionTitle-id"
+            >
+              Attributes
+            </p>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id Component-sectionDescription-id"
+            >
+              Define attributes of products yousell
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-cardDisabled-id"
+      >
+        <div
+          class="MuiCardContent-root-id Component-cardContent-id"
+        >
+          <div
+            class="Component-icon-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeInherit-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <rect
+                fill="black"
+                fill-opacity="0"
+                height="24"
+                width="24"
+              />
+              <rect
+                fill-opacity="0"
+                height="20"
+                transform="translate(2 2)"
+                width="20"
+              />
+              <rect
+                fill-opacity="0"
+                height="20"
+                transform="translate(2 2)"
+                width="20"
+              />
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z"
+              />
+              <path
+                d="M12.31 11.14C10.54 10.69 9.97004 10.2 9.97004 9.47C9.97004 8.63 10.76 8.04 12.07 8.04C13.45 8.04 13.97 8.7 14.01 9.68H15.72C15.67 8.34 14.85 7.11 13.23 6.71V5H10.9V6.69C9.39004 7.01 8.18004 7.99 8.18004 9.5C8.18004 11.29 9.67004 12.19 11.84 12.71C13.79 13.17 14.18 13.86 14.18 14.58C14.18 15.11 13.79 15.97 12.08 15.97C10.48 15.97 9.85004 15.25 9.76004 14.33H8.04004C8.14004 16.03 9.40004 16.99 10.9 17.3V19H13.24V17.33C14.76 17.04 15.96 16.17 15.97 14.56C15.96 12.36 14.07 11.6 12.31 11.14Z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id Component-sectionTitle-id"
+            >
+              Taxes
+            </p>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id Component-sectionDescription-id"
+            >
+              Manage how your store charges tax
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-cardDisabled-id"
+      >
+        <div
+          class="MuiCardContent-root-id Component-cardContent-id"
+        >
+          <div
+            class="Component-icon-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeInherit-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <rect
+                fill-opacity="0"
+                height="24"
+                width="24"
+              />
+              <rect
+                fill-opacity="0"
+                height="19"
+                transform="translate(4.5 2)"
+                width="15"
+              />
+              <path
+                d="M12 7.27L16.28 17.7L12.81 16.17L12 15.81L11.19 16.17L7.72 17.7L12 7.27ZM12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id Component-sectionTitle-id"
+            >
+              Navigation
+            </p>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id Component-sectionDescription-id"
+            >
+              Define how users can navigate through your store
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-cardDisabled-id"
+      >
+        <div
+          class="MuiCardContent-root-id Component-cardContent-id"
+        >
+          <div
+            class="Component-icon-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id MuiSvgIcon-fontSizeInherit-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <rect
+                fill-opacity="0"
+                height="24"
+                width="24"
+              />
+              <rect
+                fill-opacity="0"
+                height="18"
+                transform="translate(3 3)"
+                width="18"
+              />
+              <path
+                d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12V5C21 3.9 20.1 3 19 3ZM13 5H19V11H16L17 7L13 8V5ZM5 5H11V8L7 7L8 11H5V5ZM11 19H5V13H8L7 17L11 16V19ZM19 19H13V16L17 17L16 13H19V19ZM14.63 14.63L12 13.72L9.37 14.63L10.28 12L9.37 9.37L12 10.28L14.63 9.37L13.72 12L14.63 14.63Z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id MuiTypography-colorPrimary-id Component-sectionTitle-id"
+            >
+              Pages
+            </p>
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id Component-sectionDescription-id"
+            >
+              Manage and add additional pages
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 `;
