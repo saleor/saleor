@@ -4,6 +4,13 @@ from django.utils.translation import pgettext_lazy
 from ...account.models import CustomerNote, User
 
 
+def get_name_placeholder(name):
+    return pgettext_lazy(
+        'Customer form: Name field placeholder',
+        '%(name)s (Inherit from default biling address)') % {
+            'name': name}
+
+
 class CustomerDeleteForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
@@ -42,10 +49,24 @@ class CustomerForm(forms.ModelForm):
             self.fields['is_active'].disabled = True
             self.fields['note'].disabled = True
 
+        address = self.instance.default_billing_address
+        if not address:
+            return
+        if address.first_name:
+            placeholder = get_name_placeholder(address.first_name)
+            self.fields['first_name'].widget.attrs['placeholder'] = placeholder
+        if address.last_name:
+            placeholder = get_name_placeholder(address.last_name)
+            self.fields['last_name'].widget.attrs['placeholder'] = placeholder
+
     class Meta:
         model = User
-        fields = ['email', 'is_active', 'note']
+        fields = ['first_name', 'last_name', 'email', 'is_active', 'note']
         labels = {
+            'first_name': pgettext_lazy(
+                'Customer form: Given name field', 'Given name'),
+            'last_name': pgettext_lazy(
+                'Customer form: Family name field', 'Family name'),
             'email': pgettext_lazy(
                 'Customer form: email address field', 'Email'),
             'is_active': pgettext_lazy(
