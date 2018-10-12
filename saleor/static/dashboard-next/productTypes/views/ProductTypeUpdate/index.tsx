@@ -138,8 +138,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                         input: {
                           name: data.name,
                           values: data.values.map(value => ({
-                            name: value.label,
-                            value: value.label
+                            name: value.label
                           }))
                         },
                         type
@@ -169,8 +168,7 @@ export const ProductTypeUpdate: React.StatelessComponent<
                                   .includes(value.value)
                             )
                             .map(value => ({
-                              name: value.label,
-                              value: value.value
+                              name: value.label
                             })),
                           name: formData.name,
                           removeValues: attribute.values

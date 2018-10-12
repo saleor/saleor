@@ -133,7 +133,7 @@ export interface AttributeCreateInput {
 
 export interface AttributeCreateValueInput {
   name: string;
-  value: string;
+  value?: string | null;
 }
 
 export interface AttributeUpdateInput {
