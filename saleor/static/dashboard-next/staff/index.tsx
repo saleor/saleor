@@ -10,8 +10,8 @@ const StaffList: React.StatelessComponent<RouteComponentProps<{}>> = ({
 }) => {
   const qs = parseQs(location.search.substr(1));
   const params = {
-    after: qs.after,
-    before: qs.before
+    after: decodeURIComponent(qs.after),
+    before: decodeURIComponent(qs.before)
   };
   return <StaffListComponent params={params} />;
 };
@@ -21,7 +21,9 @@ interface StaffDetailsRouteProps {
 }
 const StaffDetails: React.StatelessComponent<
   RouteComponentProps<StaffDetailsRouteProps>
-> = ({ match }) => <StaffDetailsComponent id={match.params.id} />;
+> = ({ match }) => (
+  <StaffDetailsComponent id={decodeURIComponent(match.params.id)} />
+);
 
 const Component = ({ match }) => (
   <Switch>
