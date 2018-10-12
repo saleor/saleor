@@ -30,7 +30,9 @@ interface ProductTypeUpdateRouteParams {
 }
 const ProductTypeUpdate: React.StatelessComponent<
   RouteComponentProps<ProductTypeUpdateRouteParams>
-> = ({ match }) => <ProductTypeUpdateComponent id={match.params.id} />;
+> = ({ match }) => (
+  <ProductTypeUpdateComponent id={decodeURIComponent(match.params.id)} />
+);
 
 export const ProductTypeRouter: React.StatelessComponent<
   RouteComponentProps<any>
