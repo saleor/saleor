@@ -2,12 +2,12 @@ import * as React from "react";
 import { arrayMove } from "react-sortable-hoc";
 
 import * as placeholderImg from "../../../images/placeholder255x255.png";
-import { attributesListUrl } from "../../attributes";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Messages from "../../components/messages";
 import Navigator from "../../components/Navigator";
 import i18n from "../../i18n";
 import { decimal } from "../../misc";
+import { productTypeDetailsUrl } from "../../productTypes";
 import ProductUpdatePage from "../components/ProductUpdatePage";
 import ProductUpdateOperations from "../containers/ProductUpdateOperations";
 import {
@@ -143,7 +143,15 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                                 ? product.variants.edges.map(edge => edge.node)
                                 : undefined
                             }
-                            onAttributesEdit={() => navigate(attributesListUrl)}
+                            onAttributesEdit={() =>
+                              navigate(
+                                productTypeDetailsUrl(
+                                  encodeURIComponent(
+                                    data.product.productType.id
+                                  )
+                                )
+                              )
+                            }
                             onBack={() => {
                               navigate(productListUrl);
                             }}
