@@ -360,7 +360,7 @@ class AttributeTranslation(models.Model):
 
 class AttributeValue(SortableModel):
     name = models.CharField(max_length=100)
-    value = models.CharField(max_length=100, default='')
+    value = models.CharField(max_length=100, blank=True, default='')
     slug = models.SlugField(max_length=100)
     attribute = models.ForeignKey(
         Attribute, related_name='values', on_delete=models.CASCADE)
