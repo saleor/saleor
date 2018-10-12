@@ -32,7 +32,7 @@
       & .col-ls-11 { grid-column: span 11; }
       & .col-ls-12 { grid-column: span 12; }
     }
-    @media (max-width: 768px) and (min-width: 500px) {
+    @media (max-width: 991px) and (min-width: 500px) {
       & .col-sm-1 { grid-column: span 1; }
       & .col-sm-2 { grid-column: span 2; }
       & .col-sm-3 { grid-column: span 3; }

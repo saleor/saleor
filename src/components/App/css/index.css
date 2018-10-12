@@ -258,7 +258,10 @@ ul {
     }
   }
   &.btn-secondary {
-    border: solid calc(var(--border-width) * 3) var(--body-color);
+    border-top: solid calc(var(--border-width) * 2) var(--body-color);
+    border-bottom: solid calc(var(--border-width) * 2) var(--body-color);
+    border-left: solid calc(var(--border-width) * 3) var(--body-color);
+    border-right: solid calc(var(--border-width) * 3) var(--body-color);
     background-color: transparent;
     color: var(--body-color);
     &:hover {

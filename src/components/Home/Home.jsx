@@ -296,9 +296,7 @@ class Home extends Component {
                   </ul>
                 </div>
               </div>
-              <div className="center">
-                <a className="btn btn-primary" href="https://mirumee.com/hire-us/" target="_blank"><span>Estimate your project</span></a>
-              </div>
+              <a className="btn btn-primary" href="https://mirumee.com/hire-us/" target="_blank"><span>Estimate your project</span></a>
             </div>
           </section>
         </div>
