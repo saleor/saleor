@@ -7,6 +7,7 @@ services:
       dockerfile: ./Dockerfile
       args:
         STATIC_URL: '/static/'
+        MODE: 'dev'
     restart: unless-stopped
     networks:
       - saleor-backend-tier

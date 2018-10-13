@@ -23,6 +23,7 @@ jobs:
           command: |
             docker build \
               --build-arg STATIC_URL=$STATIC_URL \
+              --build-arg MODE=prod \
               -t mirumee/saleor:latest .
       - run:
           name: Run tests
