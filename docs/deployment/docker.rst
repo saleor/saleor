@@ -9,4 +9,4 @@ Then use Docker to build the image:
 
 .. code-block:: bash
 
- $ docker build -t mystorefront .
+ $ docker build --build-arg MODE=prod -t mystorefront .

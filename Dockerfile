@@ -1,6 +1,16 @@
 ### Build and install packages
 FROM python:3.6 as build-python
 
+ARG MODE
+ENV MODE ${MODE:-dev}
+
+RUN \
+  if [ "${MODE}" != dev ] && [ "${MODE}" != prod ]; then \
+    exit "unknown MODE"; \
+  else \
+    echo "Building docker image in ${MODE} mode"; \
+  fi
+
 RUN \
   apt-get -y update && \
   apt-get install -y gettext && \
@@ -13,7 +23,13 @@ RUN pip install pipenv
 ADD Pipfile /app/
 ADD Pipfile.lock /app/
 WORKDIR /app
-RUN pipenv install --system --deploy --dev
+
+RUN \
+  if [ "${MODE}" = dev ]; then \
+    pipenv install --system --deploy --dev; \
+  else \
+    pipenv install --system --deploy; \
+  fi
 
 ### Build static assets
 FROM node:10 as build-nodejs
