@@ -236,10 +236,10 @@ def sum_order_totals(qs):
 
 
 def validate_shipping_method(order):
-    """Checks order for valid shipping method.
+    """Validates `order` shipping method.
 
-    Deletes the `shipping_method` and `shipping_method_name`
-    if `shipping_method` is invalid for this particular order.
+    Clears shipping attributes for an order if its `shipping_method`
+    is invalid.
     """
     if order.is_shipping_required():
         valid_methods = (
@@ -251,6 +251,10 @@ def validate_shipping_method(order):
         if order.shipping_method.pk not in valid_methods:
             order.shipping_method = None
             order.shipping_method_name = None
+            order.shipping_price = TaxedMoney(
+                net=Money(0, settings.DEFAULT_CURRENCY),
+                gross=Money(0, settings.DEFAULT_CURRENCY))
             order.save(
-                update_fields=['shipping_method', 'shipping_method_name'])
-
+                update_fields=[
+                    'shipping_method', 'shipping_method_name',
+                    'shipping_price'])

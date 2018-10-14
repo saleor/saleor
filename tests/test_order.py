@@ -292,17 +292,20 @@ def test_restock_fulfillment_lines(fulfilled_order):
 def test_validate_shipping_method_for_valid_draft_order(draft_order):
     shipping_method = draft_order.shipping_method
     shipping_method_name = draft_order.shipping_method_name
+    shipping_price = draft_order.shipping_price
 
     validate_shipping_method(draft_order)
     draft_order.refresh_from_db()
 
     assert shipping_method == draft_order.shipping_method
     assert shipping_method_name == draft_order.shipping_method_name
+    assert shipping_price == draft_order.shipping_price
 
 
-def test_validate_shipping_method_for_invalid_price_draft_order(draft_order):
+def test_validate_shipping_method_for_invalid_draft_order_price(draft_order):
     shipping_method = draft_order.shipping_method
     shipping_method_name = draft_order.shipping_method_name
+    shipping_price = draft_order.shipping_price
 
     draft_order.shipping_method.maximum_order_price = Money(50, 'USD')
     draft_order.total_gross = Money(100, 'USD')
@@ -313,14 +316,18 @@ def test_validate_shipping_method_for_invalid_price_draft_order(draft_order):
 
     assert shipping_method != draft_order.shipping_method
     assert shipping_method_name != draft_order.shipping_method_name
+    assert shipping_price != draft_order.shipping_price
     assert draft_order.shipping_method_name is None
     assert draft_order.shipping_method is None
+    assert draft_order.shipping_price == TaxedMoney(
+                net=Money(0, 'USD'), gross=Money(0, 'USD'))
 
 
-def test_validate_shipping_method_for_valid_weight_draft_order(
+def test_validate_shipping_method_for_valid_draft_order_weight(
         draft_order_weight_based):
     shipping_method = draft_order_weight_based.shipping_method
     shipping_method_name = draft_order_weight_based.shipping_method_name
+    shipping_price = draft_order_weight_based.shipping_price
 
     draft_order_weight_based.shipping_method.\
         maximum_order_weight = Weight(kg=100)
@@ -332,12 +339,14 @@ def test_validate_shipping_method_for_valid_weight_draft_order(
     assert shipping_method == draft_order_weight_based.shipping_method
     assert (shipping_method_name ==
             draft_order_weight_based.shipping_method_name)
+    assert shipping_price == draft_order_weight_based.shipping_price
 
 
-def test_validate_shipping_method_for_invalid_weight_draft_order(
+def test_validate_shipping_method_for_invalid_draft_order_weight(
         draft_order_weight_based):
     shipping_method = draft_order_weight_based.shipping_method
     shipping_method_name = draft_order_weight_based.shipping_method_name
+    shipping_price = draft_order_weight_based.shipping_price
 
     draft_order_weight_based.shipping_method.\
         maximum_order_weight = Weight(kg=10)
@@ -348,8 +357,11 @@ def test_validate_shipping_method_for_invalid_weight_draft_order(
     assert shipping_method != draft_order_weight_based.shipping_method
     assert (shipping_method_name !=
             draft_order_weight_based.shipping_method_name)
+    assert shipping_price != draft_order_weight_based.shipping_price
     assert draft_order_weight_based.shipping_method_name is None
     assert draft_order_weight_based.shipping_method is None
+    assert draft_order_weight_based.shipping_price == TaxedMoney(
+                net=Money(0, 'USD'), gross=Money(0, 'USD'))
 
 
 def test_cancel_order(fulfilled_order):
