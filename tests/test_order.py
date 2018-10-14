@@ -15,7 +15,7 @@ from saleor.order.models import Order
 from saleor.order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order, recalculate_order,
     restock_fulfillment_lines, restock_order_lines, update_order_prices,
-    update_order_status)
+    update_order_status, validate_shipping_method)
 from saleor.payment import ChargeStatus
 from saleor.payment.models import Payment
 from tests.utils import get_redirect_location
@@ -286,6 +286,17 @@ def test_restock_fulfillment_lines(fulfilled_order):
         stock_2_quantity_allocated_before + line_2.quantity)
     assert stock_1.quantity == stock_1_quantity_before + line_1.quantity
     assert stock_2.quantity == stock_2_quantity_before + line_2.quantity
+
+
+def test_validate_shipping_method_for_valid_draft_order(draft_order):
+    shipping_method = draft_order.shipping_method
+    shipping_method_name = draft_order.shipping_method_name
+
+    validate_shipping_method(draft_order)
+    draft_order.refresh_from_db()
+
+    assert shipping_method == draft_order.shipping_method
+    assert shipping_method_name == draft_order.shipping_method_name
 
 
 def test_cancel_order(fulfilled_order):
