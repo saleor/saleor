@@ -4,6 +4,7 @@ import pytest
 
 from django.urls import reverse
 from django_countries.fields import Country
+from measurement.measures import Weight
 from prices import Money, TaxedMoney
 from saleor.account.models import User
 from saleor.checkout.utils import create_order
@@ -299,7 +300,7 @@ def test_validate_shipping_method_for_valid_draft_order(draft_order):
     assert shipping_method_name == draft_order.shipping_method_name
 
 
-def test_validate_shipping_method_for_invalid_draft_order(draft_order):
+def test_validate_shipping_method_for_invalid_price_draft_order(draft_order):
     shipping_method = draft_order.shipping_method
     shipping_method_name = draft_order.shipping_method_name
 
@@ -314,6 +315,22 @@ def test_validate_shipping_method_for_invalid_draft_order(draft_order):
     assert shipping_method_name != draft_order.shipping_method_name
     assert draft_order.shipping_method_name is None
     assert draft_order.shipping_method is None
+
+
+def test_validate_shipping_method_for_invalid_weight_draft_order(
+    draft_order_weight_based):
+    shipping_method = draft_order_weight_based.shipping_method
+    shipping_method_name = draft_order_weight_based.shipping_method_name
+
+    draft_order_weight_based.shipping_method.maximum_order_weight = Weight(kg=10)
+    draft_order_weight_based.shipping_method.save()
+
+    validate_shipping_method(draft_order_weight_based)
+
+    assert shipping_method != draft_order_weight_based.shipping_method
+    assert shipping_method_name != draft_order_weight_based.shipping_method_name
+    assert draft_order_weight_based.shipping_method_name is None
+    assert draft_order_weight_based.shipping_method is None
 
 
 def test_cancel_order(fulfilled_order):
