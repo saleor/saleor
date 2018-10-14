@@ -13,6 +13,7 @@ from django.utils.encoding import smart_text
 from django_countries import countries
 from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
+from measurement.measures import Weight
 from PIL import Image
 from prices import Money
 from saleor.account.backends import BaseBackend
@@ -202,6 +203,25 @@ def shipping_method(shipping_zone):
         name='DHL', minimum_order_price=Money(0, 'USD'),
         type=ShippingMethodType.PRICE_BASED,
         price=Money(10, 'USD'), shipping_zone=shipping_zone)
+
+
+@pytest.fixture
+def shipping_zone_weight_based(db):  # pylint: disable=W0613
+    shipping_zone = ShippingZone.objects.create(
+        name='Europe', countries=[code for code, name in countries])
+    shipping_zone.shipping_methods.create(
+        name='DHL', minimum_order_weight=Weight(kg=0),
+        type=ShippingMethodType.WEIGHT_BASED, price=Money(10, 'USD'),
+        shipping_zone=shipping_zone)
+    return shipping_zone
+
+
+@pytest.fixture
+def shipping_method_weight_based(shipping_zone):
+    return ShippingMethod.objects.create(
+        name='DHL', minimum_order_weight=Weight(kg=0),
+        type=ShippingMethodType.WEIGHT_BASED,
+        price=Money(10, 'USD'), shipping_zone=shipping_method_weight_based)
 
 
 @pytest.fixture
