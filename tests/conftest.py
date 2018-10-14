@@ -217,11 +217,11 @@ def shipping_zone_weight_based(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def shipping_method_weight_based(shipping_zone):
+def shipping_method_weight_based(shipping_zone_weight_based):
     return ShippingMethod.objects.create(
         name='DHL', minimum_order_weight=Weight(kg=0),
         type=ShippingMethodType.WEIGHT_BASED,
-        price=Money(10, 'USD'), shipping_zone=shipping_method_weight_based)
+        price=Money(10, 'USD'), shipping_zone=shipping_zone_weight_based)
 
 
 @pytest.fixture
@@ -484,6 +484,17 @@ def fulfillment(fulfilled_order):
 def draft_order(order_with_lines):
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.save(update_fields=['status'])
+    return order_with_lines
+
+
+@pytest.fixture
+def draft_order_weight_based(order_with_lines, shipping_zone_weight_based):
+    method = shipping_zone_weight_based.shipping_methods.get()
+    order_with_lines.shipping_method_name = method.name
+    order_with_lines.shipping_method = method
+    order_with_lines.status = OrderStatus.DRAFT
+    order_with_lines.save(
+        update_fields=['status', 'shipping_method_name', 'shipping_method'])
     return order_with_lines
 
 
