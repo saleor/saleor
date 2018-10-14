@@ -299,6 +299,23 @@ def test_validate_shipping_method_for_valid_draft_order(draft_order):
     assert shipping_method_name == draft_order.shipping_method_name
 
 
+def test_validate_shipping_method_for_invalid_draft_order(draft_order):
+    shipping_method = draft_order.shipping_method
+    shipping_method_name = draft_order.shipping_method_name
+
+    draft_order.shipping_method.maximum_order_price = Money(50, 'USD')
+    draft_order.total_gross = Money(100, 'USD')
+    draft_order.shipping_method.save()
+    draft_order.save()
+
+    validate_shipping_method(draft_order)
+
+    assert shipping_method != draft_order.shipping_method
+    assert shipping_method_name != draft_order.shipping_method_name
+    assert draft_order.shipping_method_name is None
+    assert draft_order.shipping_method is None
+
+
 def test_cancel_order(fulfilled_order):
     cancel_order(fulfilled_order, restock=False)
     assert all([
