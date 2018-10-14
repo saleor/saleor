@@ -416,7 +416,7 @@ def order_with_lines(
         product_type=product_type, category=category)
     variant = ProductVariant.objects.create(
         product=product, sku='SKU_A', cost_price=Money(1, 'USD'), quantity=5,
-        quantity_allocated=3)
+        quantity_allocated=3, weight=Weight(kg=20))
     order.lines.create(
         product_name=variant.display_product(),
         product_sku=variant.sku,
