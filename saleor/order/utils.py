@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, redirect
 from prices import Money, TaxedMoney
 
 from saleor.shipping.models import ShippingMethod
+
 from ..account.utils import store_user_address
 from ..checkout import AddressType
 from ..core.utils.taxes import (

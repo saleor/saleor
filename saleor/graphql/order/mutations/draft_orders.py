@@ -174,8 +174,8 @@ def check_for_draft_order_errors(order, errors):
         method = order.shipping_method
         shipping_address = order.shipping_address
         shipping_not_valid = (
-            method and shipping_address and shipping_address.country.code
-            not in method.shipping_zone.countries)  # noqa
+            method and shipping_address and
+            shipping_address.country.code not in method.shipping_zone.countries)  # noqa
         if shipping_not_valid:
             errors.append(
                 Error(
