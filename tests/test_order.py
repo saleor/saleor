@@ -364,6 +364,26 @@ def test_validate_shipping_method_for_invalid_draft_order_weight(
                 net=Money(0, 'USD'), gross=Money(0, 'USD'))
 
 
+def test_validate_shipping_method_for_no_shipping_order_with_shipping_method(
+        draft_order_no_shipping, shipping_zone, vatlayer):
+    method = shipping_zone.shipping_methods.get()
+    draft_order_no_shipping.shipping_method_name = method.name
+    draft_order_no_shipping.shipping_method = method
+    draft_order_no_shipping.shipping_price = method.get_total(vatlayer)
+    draft_order_no_shipping.save()
+
+    validate_shipping_method(draft_order_no_shipping)
+
+    assert method != draft_order_no_shipping.shipping_method
+    assert (method.name !=
+            draft_order_no_shipping.shipping_method_name)
+    assert method.get_total(vatlayer) != draft_order_no_shipping.shipping_price
+    assert draft_order_no_shipping.shipping_method_name is None
+    assert draft_order_no_shipping.shipping_method is None
+    assert draft_order_no_shipping.shipping_price == TaxedMoney(
+                net=Money(0, 'USD'), gross=Money(0, 'USD'))
+
+
 def test_cancel_order(fulfilled_order):
     cancel_order(fulfilled_order, restock=False)
     assert all([

@@ -292,6 +292,15 @@ def product_type(color_attribute, size_attribute):
 
 
 @pytest.fixture
+def product_type_no_shipping(color_attribute, size_attribute):
+    product_type = ProductType.objects.create(
+        name='Default Type', has_variants=False, is_shipping_required=False)
+    product_type.product_attributes.add(color_attribute)
+    product_type.variant_attributes.add(size_attribute)
+    return product_type
+
+
+@pytest.fixture
 def product(product_type, category):
     product_attr = product_type.product_attributes.first()
     attr_value = product_attr.values.first()
@@ -461,6 +470,46 @@ def order_events(order):
 
 
 @pytest.fixture()
+def order_with_lines_no_shipping(
+        order, product_type_no_shipping, category, vatlayer):
+    taxes = vatlayer
+    product = Product.objects.create(
+        name='Test product', price=Money('10.00', 'USD'),
+        product_type=product_type_no_shipping, category=category)
+    variant = ProductVariant.objects.create(
+        product=product, sku='SKU_A', cost_price=Money(1, 'USD'), quantity=5,
+        quantity_allocated=3, weight=Weight(kg=20))
+    order.lines.create(
+        product_name=variant.display_product(),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=3,
+        variant=variant,
+        unit_price=variant.get_price(taxes=taxes),
+        tax_rate=taxes['standard']['value'])
+
+    product = Product.objects.create(
+        name='Test product 2', price=Money('20.00', 'USD'),
+        product_type=product_type_no_shipping, category=category)
+    variant = ProductVariant.objects.create(
+        product=product, sku='SKU_B', cost_price=Money(2, 'USD'), quantity=2,
+        quantity_allocated=2)
+    order.lines.create(
+        product_name=variant.display_product(),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=2,
+        variant=variant,
+        unit_price=variant.get_price(taxes=taxes),
+        tax_rate=taxes['standard']['value'])
+
+    recalculate_order(order)
+
+    order.refresh_from_db()
+    return order
+
+
+@pytest.fixture()
 def fulfilled_order(order_with_lines):
     order = order_with_lines
     fulfillment = order.fulfillments.create()
@@ -488,14 +537,20 @@ def draft_order(order_with_lines):
 
 
 @pytest.fixture
-def draft_order_weight_based(order_with_lines, shipping_zone_weight_based):
+def draft_order_no_shipping(order_with_lines_no_shipping):
+    order_with_lines_no_shipping.status = OrderStatus.DRAFT
+    order_with_lines_no_shipping.save(update_fields=['status'])
+    return order_with_lines_no_shipping
+
+
+@pytest.fixture
+def draft_order_weight_based(draft_order, shipping_zone_weight_based):
     method = shipping_zone_weight_based.shipping_methods.get()
-    order_with_lines.shipping_method_name = method.name
-    order_with_lines.shipping_method = method
-    order_with_lines.status = OrderStatus.DRAFT
-    order_with_lines.save(
-        update_fields=['status', 'shipping_method_name', 'shipping_method'])
-    return order_with_lines
+    draft_order.shipping_method_name = method.name
+    draft_order.shipping_method = method
+    draft_order.save(
+        update_fields=['shipping_method_name', 'shipping_method'])
+    return draft_order
 
 
 @pytest.fixture()

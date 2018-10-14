@@ -236,10 +236,12 @@ def sum_order_totals(qs):
 
 
 def validate_shipping_method(order):
-    """Validates `order` shipping method.
+    """Validates `order.shipping_method`.
 
-    Clears shipping attributes for an order if its `shipping_method`
-    is invalid.
+    Clears shipping attributes for a draft order if its `shipping_method`
+    is invalid after the draft order has been updated. A draft order is invalid
+    if either its price or weight is not within the range of the price or
+    weight of the `ShippingMethod` that the user has selected.
     """
     if order.is_shipping_required():
         valid_methods = (
@@ -249,12 +251,18 @@ def validate_shipping_method(order):
                 country_code=order.shipping_address.country.code))
         valid_methods = valid_methods.values_list('id', flat=True)
         if order.shipping_method.pk not in valid_methods:
-            order.shipping_method = None
-            order.shipping_method_name = None
-            order.shipping_price = TaxedMoney(
-                net=Money(0, settings.DEFAULT_CURRENCY),
-                gross=Money(0, settings.DEFAULT_CURRENCY))
-            order.save(
-                update_fields=[
-                    'shipping_method', 'shipping_method_name',
-                    'shipping_price'])
+            clear_shipping_attributes(order)
+    elif order.shipping_method and not order.is_shipping_required():
+        clear_shipping_attributes(order)
+
+
+def clear_shipping_attributes(order):
+    order.shipping_method = None
+    order.shipping_method_name = None
+    order.shipping_price = TaxedMoney(
+        net=Money(0, settings.DEFAULT_CURRENCY),
+        gross=Money(0, settings.DEFAULT_CURRENCY))
+    order.save(
+        update_fields=[
+            'shipping_method', 'shipping_method_name',
+            'shipping_price'])
