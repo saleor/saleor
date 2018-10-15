@@ -15,21 +15,14 @@ const decorate = withStyles(theme => ({
     "&$active": {
       borderBottomColor: theme.palette.primary.main
     },
-    borderBottomWidth: 1,
-    borderBottomStyle: "solid" as "solid",
-    borderBottomColor: "transparent",
+    borderBottom: "1px solid transparent",
     display: "inline-block" as "inline-block",
     minWidth: 40,
     fontWeight: theme.typography.fontWeightRegular,
     marginRight: theme.spacing.unit * 4,
     cursor: "pointer",
     "&:hover": {
-      color: "#5AB378",
-      opacity: 1
-    },
-    "&$tabSelected": {
-      color: "#5AB378",
-      fontWeight: theme.typography.fontWeightMedium
+      color: "#5AB378"
     },
     "&:focus": {
       color: "#5AB378"
@@ -37,7 +30,7 @@ const decorate = withStyles(theme => ({
   }
 }));
 
-export const SingleTab = decorate<TabProps>(
+export const Tab = decorate<TabProps>(
   ({ classes, children, isActive, value, changeTab }) => (
     <Typography
       component="span"
@@ -52,4 +45,4 @@ export const SingleTab = decorate<TabProps>(
   )
 );
 
-export default SingleTab;
+export default Tab;

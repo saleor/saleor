@@ -9,6 +9,13 @@ import Decorator from "../../Decorator";
 
 const products = productFixture(placeholderImage);
 
+// disabled: false,
+// onAdd: undefined,
+// onNextPage: undefined,
+// onPreviousPage: undefined,
+// onRowClick: () => undefined,
+// pageInfo
+
 storiesOf("Views / Products / Product list", module)
   .addDecorator(Decorator)
   .add("default", () => (

@@ -12,28 +12,29 @@ import Decorator from "../../Decorator";
 const category = categoryFixture(placeholderImage);
 
 const updateProps: CategoryUpdatePageProps = {
-  category: category,
   backgroundImage: category.backgroundImage,
-  subcategories: category.children,
+  category,
   disabled: false,
   errors: [],
-  products: category.products,
   loading: false,
-  placeholderImage: placeholderImage,
+  onAddCategory: undefined,
+  onAddProduct: undefined,
+  onBack: undefined,
+  onCategoryClick: () => undefined,
+  onDelete: () => undefined,
+  onImageDelete: () => undefined,
+  onImageUpload: () => undefined,
+  onNextPage: undefined,
+  onPreviousPage: undefined,
+  onProductClick: () => undefined,
+  onSubmit: () => undefined,
   pageInfo: {
     hasNextPage: true,
     hasPreviousPage: true
   },
-  onNextPage: undefined,
-  onSubmit: () => undefined,
-  onPreviousPage: undefined,
-  onImageDelete: () => undefined,
-  onProductClick: () => undefined,
-  onAddProduct: undefined,
-  onCategoryClick: () => undefined,
-  onAddCategory: undefined,
-  onBack: undefined,
-  onDelete: undefined
+  placeholderImage,
+  products: category.products,
+  subcategories: category.children
 };
 
 storiesOf("Views / Categories / Update category", module)

@@ -22,28 +22,28 @@ interface CategoryCreateSubcategoriesProps {
 }
 
 const decorate = withStyles(theme => ({
+  addSubCat: {
+    marginTop: ".5rem",
+    padding: "0"
+  },
+  deleteIcon: {
+    alignSelf: "end",
+    justifySelf: "center"
+  },
+  helperText: {
+    marginBottom: theme.spacing.unit * 4
+  },
   inputGrid: {
     display: "grid",
     gridColumnGap: theme.spacing.unit * 2 + "px",
     gridTemplateColumns: "5fr 8fr 30px",
     marginBottom: "1rem"
   },
-  helperText: {
-    marginBottom: theme.spacing.unit * 4
-  },
-  deleteIcon: {
-    justifySelf: "center",
-    alignSelf: "end"
-  },
-  addSubCat: {
-    padding: "0",
-    marginTop: ".5rem"
-  },
   root: {
-    paddingBottom: "0px",
     "&:last-child": {
       paddingBottom: ".5rem"
-    }
+    },
+    paddingBottom: "0px"
   }
 }));
 

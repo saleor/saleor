@@ -7,7 +7,7 @@ import Decorator from "../../Decorator";
 
 const category = categoryFixture("");
 
-storiesOf("Categories / CategoryDeleteDialog", module)
+storiesOf("Views / Categories / Category Delete Dialog", module)
   .addDecorator(Decorator)
   .add("default", () => (
     <CategoryDeleteDialog

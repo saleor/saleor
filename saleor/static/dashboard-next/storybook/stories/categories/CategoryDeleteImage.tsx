@@ -1,17 +1,17 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import CategoryDelete from "../../../categories/components/CategoryDelete";
+import CategoryDeleteImage from "../../../categories/components/CategoryDeleteImage";
 import Decorator from "../../Decorator";
 
-storiesOf("Categories / Remove image dialog", module)
+storiesOf("Views / Categories / Remove image dialog", module)
   .addDecorator(Decorator)
   .add("default", () => (
-    <CategoryDelete
+    <CategoryDeleteImage
       open={true}
       onClose={undefined}
       onConfirm={undefined}
       title={"Remove"}
-      dialogText={"Do you want to remove this"}
+      dialogText={"Do you want to remove this image"}
     />
   ));

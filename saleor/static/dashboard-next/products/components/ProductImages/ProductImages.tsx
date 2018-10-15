@@ -7,7 +7,7 @@ import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import AddPhotoIcon from "@material-ui/icons/AddAPhoto";
 import * as React from "react";
-import { SortableContainer } from "react-sortable-hoc";
+import { SortableContainer, SortableElement } from "react-sortable-hoc";
 import ActionDialog from "../../../components/ActionDialog";
 import CardTitle from "../../../components/CardTitle";
 import Image from "../../../components/Image";
@@ -116,6 +116,18 @@ const decorate = withStyles(theme => ({
   }
 }));
 
+const SortableImage = SortableElement(
+  ({ image, onImageEdit, toggle, tile }) => (
+    <Image
+      tile={tile}
+      deleteIcon={true}
+      editIcon={true}
+      onImageEdit={onImageEdit ? onImageEdit(image.id) : null}
+      onImageDelete={toggle}
+    />
+  )
+);
+
 const ImageListContainer = SortableContainer(
   decorate<ImageListContainerProps>(
     ({ classes, items, onImageDelete, onImageEdit, ...props }) => {
@@ -125,7 +137,7 @@ const ImageListContainer = SortableContainer(
             <Toggle key={index}>
               {(opened, { toggle }) => (
                 <>
-                  <Image
+                  <SortableImage
                     key={`item-${index}`}
                     index={index}
                     tile={image}

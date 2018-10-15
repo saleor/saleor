@@ -6,25 +6,25 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import AddPhotoIcon from "@material-ui/icons/AddAPhoto";
 
-import BackgroundImage from "./CategoryBackgroundImage";
+import CategoryBackgroundImage from "./CategoryBackgroundImage";
 
 import CardTitle from "../../../components/CardTitle";
 import i18n from "../../../i18n";
 
 interface CategoryBackgroundProps {
-  onImageDelete?: (id: string) => () => void;
+  onImageDelete: (id: string) => () => void;
   placeholderImage: string;
   backgroundImage?: {
     url?: string;
   };
-  onImageUpload?(event: React.ChangeEvent<any>);
+  onImageUpload(event: React.ChangeEvent<any>);
 }
 
 const decorate = withStyles(theme => ({
   PhotosIcon: {
-    height: theme.spacing.unit * 8,
+    height: "64px",
     margin: "0 auto",
-    width: theme.spacing.unit * 8
+    width: "64px"
   },
   PhotosIconContainer: {
     margin: `${theme.spacing.unit * 5}px 0`,
@@ -53,6 +53,7 @@ const decorate = withStyles(theme => ({
     overflow: "hidden" as "hidden",
     padding: theme.spacing.unit * 2,
     position: "relative" as "relative",
+    margin: "auto",
     width: 148
   }
 }));
@@ -64,7 +65,6 @@ export const CategoryBackground = decorate(
         | "PhotosIcon"
         | "PhotosIconContainer"
         | "fileField"
-        | "root"
         | "image"
         | "imageContainer"
       >,
@@ -113,7 +113,7 @@ export const CategoryBackground = decorate(
                 </div>
               </div>
             ) : backgroundImage.url ? (
-              <BackgroundImage
+              <CategoryBackgroundImage
                 onImageDelete={onImageDelete}
                 backgroundImage={backgroundImage}
               />

@@ -3,24 +3,29 @@ import * as React from "react";
 
 import Image from "../../../components/Image";
 import Toggle from "../../../components/Toggle";
-import CategoryDelete from "../CategoryDelete";
+import CategoryDeleteImage from "../CategoryDeleteImage";
 
 const decorate = withStyles({});
 
-interface BackgroundImageProps {
+interface CategoryBackgroundImageProps {
   onImageDelete?: (id: string) => () => void;
   backgroundImage?: {
     url?: string;
   };
 }
 
-const BackgroundImage = decorate<BackgroundImageProps>(
+const CategoryBackgroundImage = decorate<CategoryBackgroundImageProps>(
   ({ onImageDelete, backgroundImage }) => (
     <Toggle>
       {(opened, { toggle }) => (
         <>
-          <Image tile={backgroundImage} onImageDelete={toggle} />
-          <CategoryDelete
+          <Image
+            tile={backgroundImage}
+            onImageDelete={toggle}
+            deleteIcon={true}
+            editIcon={false}
+          />
+          <CategoryDeleteImage
             open={opened}
             onClose={toggle}
             onConfirm={() => {
@@ -36,4 +41,4 @@ const BackgroundImage = decorate<BackgroundImageProps>(
   )
 );
 
-export default BackgroundImage;
+export default CategoryBackgroundImage;

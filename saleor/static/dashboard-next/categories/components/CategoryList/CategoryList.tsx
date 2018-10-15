@@ -24,7 +24,7 @@ interface CategoryListProps {
       totalCount: number;
     };
   }>;
-  isRoot?: boolean;
+  isRoot: boolean;
   onAdd?();
   onRowClick?(id: string): () => void;
 }

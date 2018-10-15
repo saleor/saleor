@@ -25,8 +25,8 @@ const decorate = withStyles(
 export interface CategoryDeleteDialogProps {
   open: boolean;
   name: string;
-  onClose?();
-  onConfirm?();
+  onClose();
+  onConfirm();
 }
 
 const CategoryDeleteDialog = decorate<CategoryDeleteDialogProps>(props => {
