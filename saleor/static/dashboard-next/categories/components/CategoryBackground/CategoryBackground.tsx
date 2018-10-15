@@ -40,11 +40,6 @@ const decorate = withStyles(theme => ({
     width: "100%"
   },
   imageContainer: {
-    "&:hover, &.dragged": {
-      "& $imageOverlay": {
-        display: "block" as "block"
-      }
-    },
     background: "#ffffff",
     border: "1px solid #eaeaea",
     borderRadius: theme.spacing.unit,
@@ -53,7 +48,6 @@ const decorate = withStyles(theme => ({
     overflow: "hidden" as "hidden",
     padding: theme.spacing.unit * 2,
     position: "relative" as "relative",
-    margin: "auto",
     width: 148
   }
 }));
