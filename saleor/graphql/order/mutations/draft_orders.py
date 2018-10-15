@@ -140,9 +140,9 @@ class DraftOrderUpdate(DraftOrderCreate):
         model = models.Order
 
     @classmethod
-    def success_response(cls, instance):
+    def save(cls, info, instance, cleaned_input):
+        super().save(info, instance, cleaned_input)
         validate_shipping_method(instance)
-        return DraftOrderUpdate(order=instance)
 
 
 class DraftOrderDelete(ModelDeleteMutation):

@@ -548,6 +548,8 @@ def draft_order_weight_based(draft_order, shipping_zone_weight_based):
     method = shipping_zone_weight_based.shipping_methods.get()
     draft_order.shipping_method_name = method.name
     draft_order.shipping_method = method
+    draft_order.shipping_price_gross = Money('10.00', 'USD')
+    draft_order.shipping_price_net = Money('10.00', 'USD')
     draft_order.save(
         update_fields=['shipping_method_name', 'shipping_method'])
     return draft_order

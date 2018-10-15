@@ -384,6 +384,22 @@ def test_validate_shipping_method_for_no_shipping_order_with_shipping_method(
                 net=Money(0, 'USD'), gross=Money(0, 'USD'))
 
 
+def test_validate_shipping_method_for_draft_order_with_no_shipping_method(
+        draft_order):
+    draft_order.shipping_method = None
+    draft_order.shipping_method_name = None
+    draft_order.shipping_price_net = Money(0, 'USD')
+    draft_order.shipping_price_gross = Money(0, 'USD')
+    draft_order.save()
+
+    validate_shipping_method(draft_order)
+
+    assert draft_order.shipping_method is None
+    assert draft_order.shipping_method_name is None
+    assert draft_order.shipping_price == TaxedMoney(
+                net=Money(0, 'USD'), gross=Money(0, 'USD'))
+
+
 def test_cancel_order(fulfilled_order):
     cancel_order(fulfilled_order, restock=False)
     assert all([

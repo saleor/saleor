@@ -243,7 +243,7 @@ def validate_shipping_method(order):
     if either its price or weight is not within the range of the price or
     weight of the `ShippingMethod` that the user has selected.
     """
-    if order.is_shipping_required():
+    if order.shipping_method and order.is_shipping_required():
         valid_methods = (
             ShippingMethod.objects.applicable_shipping_methods(
                 price=order.total.gross.amount,
