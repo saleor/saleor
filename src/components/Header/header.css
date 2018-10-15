@@ -75,7 +75,10 @@ header {
     & .logo-svg {
       transition: width 0.5s;
       width: 95px;
-      padding: calc(var(--spacer) * 1.2) calc(var(--spacer) / 2);
+      padding: calc(var(--spacer) * 1.2) var(--spacer);
+      @media (max-width: 450px) {
+        padding: calc(var(--spacer) * 1.2) calc(var(--spacer) / 2);
+      }
     }
     &.open {
       display: block;
@@ -260,7 +263,7 @@ header {
               bottom: calc(var(--spacer) * 5.5);
             }
             @media (max-width: 450px) {
-              left: calc(var(--spacer) * 2);
+              left: var(--spacer);
               right: initial;
               bottom: calc(var(--spacer) * 7);
             }
