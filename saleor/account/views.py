@@ -14,7 +14,7 @@ from ..core.utils import get_paginator_items
 from .emails import send_account_delete_confirmation_email
 from .forms import (
     ChangePasswordForm, LoginForm, PasswordResetForm, SignupForm,
-    get_address_form, logout_on_password_change)
+    get_address_form, logout_on_password_change, NameForm)
 
 
 @find_and_assign_anonymous_cart()
@@ -76,12 +76,14 @@ def password_reset_confirm(request, uidb64=None, token=None):
 @login_required
 def details(request):
     password_form = get_or_process_password_form(request)
+    name_form = get_or_process_name_form(request)
     orders = request.user.orders.confirmed().prefetch_related('lines')
     orders_paginated = get_paginator_items(
         orders, settings.PAGINATE_BY, request.GET.get('page'))
     ctx = {'addresses': request.user.addresses.all(),
            'orders': orders_paginated,
-           'change_password_form': password_form}
+           'change_password_form': password_form,
+           'user_name_form': name_form}
 
     return TemplateResponse(request, 'account/details.html', ctx)
 
@@ -93,6 +95,15 @@ def get_or_process_password_form(request):
         logout_on_password_change(request, form.user)
         messages.success(request, pgettext(
             'Storefront message', 'Password successfully changed.'))
+    return form
+
+
+def get_or_process_name_form(request):
+    form = NameForm(data=request.POST or None, instance=request.user)
+    if form.is_valid():
+        form.save()
+        messages.success(request, pgettext(
+            'Storefront message', 'Data successfully changed.'))
     return form
 
 
