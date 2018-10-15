@@ -24,7 +24,7 @@ export interface CategoryTableProps {
 
 const decorate = withStyles({});
 
-export const CategoryTable = decorate<CategoryTableProps>(
+export const CategoryListPage = decorate<CategoryTableProps>(
   ({ categories, onAddCategory, onCategoryClick }) => {
     return (
       <>
@@ -49,4 +49,4 @@ export const CategoryTable = decorate<CategoryTableProps>(
     );
   }
 );
-export default CategoryTable;
+export default CategoryListPage;

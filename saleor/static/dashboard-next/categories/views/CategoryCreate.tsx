@@ -1,19 +1,20 @@
 import * as React from "react";
 
+import { categoryUrl } from "../";
 import Messages from "../../components/messages";
-import Navigator, { NavigatorLink } from "../../components/Navigator";
+import Navigator from "../../components/Navigator";
 import i18n from "../../i18n";
-import CategoryEditPage from "../components/CategoryEditPage";
-import { categoryShowUrl } from "../index";
+import { maybe } from "../../misc";
+import CategoryCreatePage from "../components/CategoryCreatePage";
 import { TypedCategoryCreateMutation } from "../mutations";
 import { CategoryCreate } from "../types/CategoryCreate";
 
-interface CategoryCreateFormProps {
+interface CategoryCreateViewProps {
   parentId: string;
 }
 
-export const CategoryCreateForm: React.StatelessComponent<
-  CategoryCreateFormProps
+export const CategoryCreateView: React.StatelessComponent<
+  CategoryCreateViewProps
 > = ({ parentId }) => (
   <Messages>
     {pushMessage => (
@@ -22,36 +23,33 @@ export const CategoryCreateForm: React.StatelessComponent<
           const handleSuccess = (data: CategoryCreate) => {
             if (data.categoryCreate.errors.length === 0) {
               pushMessage({ text: i18n.t("Category created") });
-              navigate(categoryShowUrl(data.categoryCreate.category.id));
+              navigate(categoryUrl(data.categoryCreate.category.id));
             }
           };
           return (
             <TypedCategoryCreateMutation onCompleted={handleSuccess}>
-              {(
-                mutate,
-                { called, data: createResult, loading: createInProgress }
-              ) => {
-                const errors =
-                  called && !createInProgress && createResult
-                    ? createResult.categoryCreate.errors
-                    : [];
-                return (
-                  <NavigatorLink to={categoryShowUrl(parentId)}>
-                    {handleCancel => (
-                      <CategoryEditPage
-                        category={{ description: "", name: "" }}
-                        errors={errors}
-                        disabled={createInProgress}
-                        variant="add"
-                        onBack={handleCancel}
-                        onSubmit={data =>
-                          mutate({ variables: { ...data, parent: parentId } })
+              {(mutate, { data, loading }) => (
+                <CategoryCreatePage
+                  errors={maybe(() => data.categoryCreate.errors, [])}
+                  disabled={loading}
+                  onBack={() => navigate(categoryUrl(parentId))}
+                  onSubmit={formData =>
+                    mutate({
+                      variables: {
+                        input: {
+                          description: formData.description,
+                          name: formData.name,
+                          parent: parentId,
+                          seo: {
+                            description: formData.seoDescription,
+                            title: formData.seoTitle
+                          }
                         }
-                      />
-                    )}
-                  </NavigatorLink>
-                );
-              }}
+                      }
+                    })
+                  }
+                />
+              )}
             </TypedCategoryCreateMutation>
           );
         }}
@@ -59,3 +57,4 @@ export const CategoryCreateForm: React.StatelessComponent<
     )}
   </Messages>
 );
+export default CategoryCreateView;
