@@ -4,7 +4,6 @@ from django.core.validators import MinValueValidator
 from django.urls import reverse, reverse_lazy
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.forms import MoneyField
-from payments import PaymentError
 
 from ...account.i18n import (
     AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField)
@@ -19,7 +18,7 @@ from ...order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ...order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
     change_order_line_quantity, recalculate_order)
-from ...payment import PaymentMethodChargeStatus
+from ...payment import PaymentMethodChargeStatus, PaymentError
 from ...payment.models import PaymentMethod
 from ...product.models import Product, ProductVariant
 from ...product.utils import allocate_stock, deallocate_stock

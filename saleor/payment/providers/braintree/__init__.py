@@ -1,6 +1,7 @@
 from typing import Dict
 
 import braintree as braintree_sdk
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import pgettext_lazy
 
 from ... import TransactionType
@@ -54,6 +55,17 @@ def extract_gateway_response(braintree_result) -> Dict:
 
 
 def get_gateway(sandbox_mode, merchant_id, public_key, private_key):
+    if not all([merchant_id, private_key, public_key]):
+        missing = []
+        if not merchant_id:
+            missing.append('Merchant ID')
+        if not public_key:
+            missing.append('Public Key')
+        if not private_key:
+            missing.append('Private Key')
+        raise ImproperlyConfigured(
+            'Incorrectly configured Braintree gateway.'
+            ' Missing: %s' % ', '.join(missing))
     environment = braintree_sdk.Environment.Sandbox
     if not sandbox_mode:
         environment = braintree_sdk.Environment.Production

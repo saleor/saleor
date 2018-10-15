@@ -45,7 +45,6 @@ class PaymentMethodChargeStatus:
     FULLY_REFUNDED = 'fully-refunded'
     # FIXME
     # We should probably support other statuses, like:
-    # pending
     # partially charged
     # partially refunded
 
@@ -72,3 +71,7 @@ def get_provider(provider_name):
     provider_params = settings.PAYMENT_PROVIDERS[provider_name][
         'connection_params']
     return provider_module, provider_params
+
+
+def can_be_voided(payment):
+    return payment.charge_status == PaymentMethodChargeStatus.NOT_CHARGED

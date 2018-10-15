@@ -1,12 +1,10 @@
 from decimal import Decimal
 
 import pytest
+
 from django.urls import reverse
 from django_countries.fields import Country
-from payments import FraudStatus, PaymentStatus
 from prices import Money, TaxedMoney
-from tests.utils import get_redirect_location
-
 from saleor.account.models import User
 from saleor.checkout.utils import create_order
 from saleor.core.exceptions import InsufficientStock
@@ -18,6 +16,8 @@ from saleor.order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order, recalculate_order,
     restock_fulfillment_lines, restock_order_lines, update_order_prices,
     update_order_status)
+from saleor.payment import PaymentMethodChargeStatus
+from tests.utils import get_redirect_location
 
 
 def test_total_setter():
@@ -367,8 +367,8 @@ def test_order_queryset_to_ship():
     ]
     for order in orders_to_ship:
         order.payments.create(
-            variant='default', status=PaymentStatus.CONFIRMED, currency='USD',
-            total=order.total_gross.amount,
+            variant='default', status=PaymentMethodChargeStatus.CHARGED,
+            currency='USD', total=order.total_gross.amount,
             captured_amount=order.total_gross.amount)
 
     orders_not_to_ship = [
@@ -455,12 +455,6 @@ def test_order_payment_flow(
 
     # Go to payment details page, enter payment data
     data = {
-        'status': PaymentStatus.PREAUTH,
-        'fraud_status': FraudStatus.UNKNOWN,
-        'gateway_response': '3ds-disabled',
-        'verification_result': 'waiting'}
-
-    data = {
         'variant': 'dummy',
         'is_active': True,
         'total': order.total.gross.amount,
@@ -480,6 +474,7 @@ def test_order_payment_flow(
     assert payment.currency == order.total.currency
     assert payment.transactions.count() == 1
     assert payment.transactions.first().transaction_type == 'auth'
+
 
 def test_create_user_after_order(order, client):
     order.user_email = 'hello@mirumee.com'

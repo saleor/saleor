@@ -163,14 +163,14 @@ class Order(models.Model):
     def get_last_payment_status(self):
         last_payment = self.get_last_payment()
         if last_payment:
-            return last_payment.status
+            return last_payment.charge_status
         return None
 
     def get_last_payment_status_display(self):
         last_payment = max(
-            self.payments.all(), default=None, key=attrgetter('pk'))
+            self.payment_methods.all(), default=None, key=attrgetter('pk'))
         if last_payment:
-            return last_payment.get_status_display()
+            return last_payment.get_charge_status_display()
         return None
 
     def is_pre_authorized(self):
