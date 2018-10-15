@@ -1,5 +1,4 @@
 import * as block1 from "../../images/block1.jpg";
-import { products } from "../products/fixtures";
 
 export const categories = [
   {
@@ -63,20 +62,18 @@ export const categories = [
     }
   }
 ];
-export const category = (placeholderImage: string) => ({
+export const category = {
   SeoDescription:
     "Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.\nTell lose part purpose do when. Whatever drug contain particularly defense.",
   SeoTitle: "Apparel",
   backgroundImage: {
     url: block1
   },
-  children: categories,
   description:
     "Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.\nTell lose part purpose do when. Whatever drug contain particularly defense.",
   id: "c1",
-  name: "Apparel",
-  products: products(placeholderImage)
-});
+  name: "Apparel"
+};
 export const errors = [
   {
     field: "name",

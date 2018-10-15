@@ -12,10 +12,10 @@ import CardTitle from "../../../components/CardTitle";
 import i18n from "../../../i18n";
 
 interface CategoryBackgroundProps {
-  onImageDelete: (id: string) => () => void;
+  onImageDelete: () => void;
   placeholderImage: string;
-  backgroundImage?: {
-    url?: string;
+  backgroundImage: {
+    url: string;
   };
   onImageUpload(event: React.ChangeEvent<any>);
 }

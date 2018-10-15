@@ -2,6 +2,7 @@ import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 import { UserError } from "../../../";
+import { CardSpacer } from "../../../components/CardSpacer";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
@@ -10,14 +11,13 @@ import SaveButtonBar, {
 } from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
 import Tabs, { Tab } from "../../../components/Tab";
+import i18n from "../../../i18n";
+import { maybe } from "../../../misc";
 import { MoneyType } from "../../../products";
 import CategoryDetailsForm from "../../components/CategoryDetailsForm";
 import CategoryList from "../../components/CategoryList";
 import CategoryBackground from "../CategoryBackground";
 import CategoryProductsCard from "../CategoryProductsCard";
-
-import { CardSpacer } from "../../../components/CardSpacer";
-import i18n from "../../../i18n";
 
 interface FormData {
   description: string;
@@ -33,11 +33,12 @@ export interface CategoryUpdatePageProps {
   category: {
     SeoDescription: string;
     SeoTitle: string;
+    backgroundImage: {
+      url: string;
+    };
+    id: string;
     name: string;
     description: string;
-  };
-  backgroundImage?: {
-    url?: string;
   };
   products: Array<{
     id: string;
@@ -67,7 +68,7 @@ export interface CategoryUpdatePageProps {
   };
   loading: boolean;
   saveButtonBarState?: SaveButtonBarState;
-  onImageDelete: (id: string) => () => void;
+  onImageDelete: () => void;
   onSubmit(data: FormData);
   onImageUpload(event: React.ChangeEvent<any>);
   onNextPage();
@@ -88,28 +89,27 @@ const decorate = withStyles({
 
 export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
   ({
+    category,
     classes,
     disabled,
     errors: userErrors,
-    category,
-    onImageUpload,
-    subcategories,
     loading,
-    products,
     pageInfo,
+    placeholderImage,
+    products,
+    saveButtonBarState,
+    subcategories,
+    onAddCategory,
+    onAddProduct,
+    onBack,
+    onCategoryClick,
+    onDelete,
+    onImageDelete,
+    onImageUpload,
     onNextPage,
     onPreviousPage,
     onProductClick,
-    onAddProduct,
-    onDelete,
-    saveButtonBarState,
-    onSubmit,
-    onBack,
-    onAddCategory,
-    onCategoryClick,
-    onImageDelete,
-    placeholderImage,
-    backgroundImage
+    onSubmit
   }) => {
     const initialData = category
       ? {
@@ -139,7 +139,7 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
             <CategoryBackground
               onImageUpload={onImageUpload}
               onImageDelete={onImageDelete}
-              backgroundImage={backgroundImage}
+              backgroundImage={maybe(() => category.backgroundImage)}
               placeholderImage={placeholderImage}
             />
             <CardSpacer />
