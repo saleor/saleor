@@ -27,7 +27,7 @@ IS_ACTIVE_CHOICES = (
 
 class UserFilter(SortedFilterSet):
     name_or_email = CharFilter(
-        label=pgettext_lazy('Customer name  or email filter', 'Name or email'),
+        label=pgettext_lazy('Customer name or email filter', 'Name or email'),
         method='filter_by_customer')
     location = CharFilter(
         label=pgettext_lazy('Customer list filter label', 'Location'),

@@ -44,12 +44,16 @@ class UserDocument(DocType):
         return instance.email
 
     def prepare_first_name(self, instance):
+        if instance.first_name:
+            return instance.first_name
         address = instance.default_billing_address
         if address:
             return address.first_name
         return None
 
     def prepare_last_name(self, instance):
+        if instance.last_name:
+            return instance.last_name
         address = instance.default_billing_address
         if address:
             return address.last_name
