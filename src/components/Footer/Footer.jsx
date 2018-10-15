@@ -19,7 +19,7 @@ const Footer = () => (
                   <ul>
                     <li><h4>Company</h4></li>
                     <li><a href="https://medium.com/saleor">Blog</a></li>
-                    <li><a href="https://mirumee.com/jobs/">Carieers</a></li>
+                    <li><a href="https://mirumee.com/jobs/">Careers</a></li>
                     <li><a href="https://mirumee.com/hire-us/">Contact</a></li>
                   </ul>
                 </div>

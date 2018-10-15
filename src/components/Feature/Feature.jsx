@@ -60,20 +60,16 @@ const Feature = () => (
             <h3 className="title">
               Loved by search<br/> engines
             </h3>
-            <p>Saleor is packed with everything you need from sitemaps,
-               schema.org structured data, to Open Graph that get you kick-started
-               with your e-commerce SEO. Integrate with Google Merchant Center and
-               present your products to wider audience.</p>
+            <p>Saleor is packed with everything you need from sitemaps and schema.org structured data, to Open Graph that kick-starts your e-commerce SEO. Integrate with Google Merchant Center and present your products to a wider audience.</p>
           </div>
           <div className="icon-card">
             <ReactSVG className="graphql" path={graphQLIcon} />
             <h3 className="title">
               Headless commerce<br/> with GraphQL
             </h3>
-            <p>Take advantage of the robust API that gives you an access to any
-               third-party integrations you want. Build a mobile app, customize your
-               storefront or externalize processes such as inventory management, order
-               processing, fulfillment and more</p>
+            <p>Take advantage of the robust API that gives you access to any third-party     integrations you want. Build a mobile app, customize your
+            storefront or externalize processes such as inventory management, order
+            processing, fulfillment and more</p>
           </div>
           <div className="icon-card">
             <ReactSVG className="pwa" path={progressiveWebAppIcon} />
@@ -101,8 +97,7 @@ const Feature = () => (
       <section className="product-management management-section grid">
         <div className="side-header col-lg-4 col-md-6 col-sm-12 col-xs-12">
           <h2>Product <br/> Management</h2>
-          <p className="sub-description">Product offer attractiveness is the resultant of many factors - price,
-          exposure and variety. Be in charge of that. </p>
+          <p className="sub-description">Product offer attractiveness is a combination of factors like price, exposure, and variety. Take charge and drive sales</p>
         </div>
         <div className="card-grid col-lg-8 col-md-6 col-sm-12 col-xs-12">
           <div className="icon-card">
@@ -129,9 +124,7 @@ const Feature = () => (
             <div className="icon-card">
               <ReactSVG path={seoIcon} />
               <h5 className="title">SEO</h5>
-              <p>Edit individual product’s metadata and override fields like name
-                 and description to improve your visibility both in search engine
-                 results and in social media.</p>
+              <p>Edit individual product metadata and override fields like name and description to improve your visibility in search engine results and on social media.</p>
             </div>
             <div className="icon-card">
               <ReactSVG path={nonShippableIcon} />
@@ -144,8 +137,7 @@ const Feature = () => (
       <section className="product-management management-section grid">
         <div className="side-header col-lg-4 col-md-6 col-sm-12 col-xs-12">
           <h2>Order <br/> Management</h2>
-          <p className="sub-description">Saleor gives you full control over placed orders
-          - from the checkout to customer management and finishing  with product delivery.</p>
+          <p className="sub-description">Saleor gives you full control over orders, from the checkout and customer management through product delivery.</p>
         </div>
         <div className="card-grid col-lg-8 col-md-6 col-sm-12 col-xs-12">
           <div className="icon-card">
@@ -186,13 +178,12 @@ const Feature = () => (
       <section className="management-section grid">
         <div className="side-header col-lg-4 col-md-6 col-sm-12 col-xs-12">
           <h2>Cart & Checkout</h2>
-          <p className="sub-description">Saleor is packed with a number of ready-to-use payment methods,
-          sales optimization and discount options.</p>
+          <p className="sub-description">Saleor is packed with a number of ready-to-use payment methods, as well as sales optimization and discount options.</p>
         </div>
         <div className="card-grid col-lg-8 col-md-6 col-sm-12 col-xs-12">
           <div className="icon-card">
               <ReactSVG path={paymentIntegration} />
-              <h5 className="title">Payments integration</h5>
+              <h5 className="title">Payment integration</h5>
               <p>Collect payments using a wide range of global payment providers like PayPal or Stripe,
                  or opt for a region-specific option like CyberSource.</p>
             </div>
@@ -205,15 +196,12 @@ const Feature = () => (
             <div className="icon-card">
               <ReactSVG path={paymentRequests} />
               <h5 className="title">Payment requests</h5>
-              <p>Allowing for a seamless mobile checkout with the Payment Request API.
-                 Allow your customers to pay using Google Pay or Apple Pay.</p>
+              <p>Allow for seamless mobile checkout with the Payment Request API. Provide customers with Google Pay or Apple Pay options.</p>
             </div>
             <div className="icon-card">
               <ReactSVG path={discountAndPromotions} />
               <h5 className="title">Discounts & Promotions</h5>
-              <p>Build seasonal sales with incentives such as free shipping, fixed amount
-                 or percentage rate discounts which could be limited to single
-                 products or entire categories.</p>
+              <p>Build seasonal sales with incentives such as free shipping and fixed-amount or percentage-rate discounts on single products or across entire categories.</p>
             </div>
         </div>
       </section>
@@ -233,8 +221,7 @@ const Feature = () => (
             <div className="icon-card">
               <ReactSVG path={staffManagement} />
               <h5 className="title">Staff management </h5>
-              <p>Control responsibilities and access by giving your staff members specific permissions.
-                 Use history timelines to see who carried out which changes.</p>
+              <p>Control responsibilities and access by giving specific permissions to individual staff members. Use history timelines to see who carried out which changes.</p>
             </div>
             <div className="icon-card">
               <ReactSVG path={gdprReady} />

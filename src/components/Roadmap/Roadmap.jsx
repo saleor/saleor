@@ -61,7 +61,7 @@ const Roadmap = (props) => (
           <h2>June Release</h2>
           <h4>GraphQL Api (Beta)</h4>
           <h4>Sentry Integration</h4>
-          <h4>New Language - Czech, Chinese (Taiwan)</h4>
+          <h4>New Languages - Czech, Chinese (Taiwan)</h4>
         </div>
       </div>
       <div className="grid roadmap-item">
@@ -71,7 +71,7 @@ const Roadmap = (props) => (
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>May Release</h2>
-          <h4>Ability to remove customer’s data</h4>
+          <h4>Ability to remove customer data</h4>
           <h4>reCAPTCHA integration</h4>
           <h4>Product overselling</h4>
         </div>
@@ -83,7 +83,7 @@ const Roadmap = (props) => (
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>April Release</h2>
-          <h4>Tax support for european countries</h4>
+          <h4>Tax support for European countries</h4>
           <h4>Simplified stock management</h4>
           <h4>Customer notes</h4>
           <h4>Improved menu management</h4>
@@ -111,7 +111,7 @@ const Roadmap = (props) => (
         </div>
         <div className="col-xs-8 col-sm-8 col-md-8 text">
           <h2>February Release</h2>
-          <h4>Upgraded prices handling</h4>
+          <h4>Upgraded price handling</h4>
           <h4>Adding custom pages through the  dashboard</h4>
           <h4>Dropped Satchless API</h4>
           <h4>Switched to Webpack 4</h4>
