@@ -40,6 +40,8 @@ def search_orders(phrase):
 def search_users(phrase):
     """Return matching users for dashboard views."""
     sv = (SearchVector('email', weight='A') +
+          SearchVector('first_name', weight='B') +
+          SearchVector('last_name', weight='B') +
           SearchVector('default_billing_address__first_name', weight='B') +
           SearchVector('default_billing_address__last_name', weight='B'))
     rank = SearchRank(sv, SearchQuery(phrase))
