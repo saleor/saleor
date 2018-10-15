@@ -89,7 +89,7 @@ def test_attributes_in_category_query(user_api_client, product):
 
 CREATE_ATTRIBUTES_QUERY = """
     mutation createAttribute(
-        $name: String!, $values: [AttributeCreateValueInput],
+        $name: String!, $values: [AttributeValueCreateInput],
         $id: ID!, $type: AttributeTypeEnum!) {
     attributeCreate(
             id: $id, type: $type, input: {name: $name, values: $values}) {
@@ -145,10 +145,10 @@ def test_create_attribute_and_attribute_values(
     'name_1, name_2, error_msg', (
         (
             'Red color', 'Red color',
-            'Duplicated AttributeValue names provided.'),
+            'Provided values are not unique.'),
         (
             'Red color', 'red color',
-            'Provided AttributeValue names are not unique.')))
+            'Provided values are not unique.')))
 def test_create_attribute_and_attribute_values_errors(
         staff_api_client, name_1, name_2, error_msg,
         permission_manage_products, product_type):
@@ -203,7 +203,7 @@ def test_create_attribute_incorrect_product_type_id(
 
 UPDATE_ATTRIBUTE_QUERY = """
     mutation updateAttribute(
-        $id: ID!, $name: String!, $addValues: [AttributeCreateValueInput]!,
+        $id: ID!, $name: String!, $addValues: [AttributeValueCreateInput]!,
         $removeValues: [ID]!) {
     attributeUpdate(
             id: $id,
@@ -277,10 +277,10 @@ def test_update_attribute_remove_and_add_values(
     'name_1, name_2, error_msg', (
         (
             'Red color', 'Red color',
-            'Duplicated AttributeValue names provided.'),
+            'Provided values are not unique.'),
         (
             'Red color', 'red color',
-            'Provided AttributeValue names are not unique.')))
+            'Provided values are not unique.')))
 def test_update_attribute_and_add_attribute_values_errors(
         staff_api_client, name_1, name_2, error_msg, color_attribute,
         permission_manage_products):
@@ -317,10 +317,10 @@ def test_update_attribute_and_remove_others_attribute_value(
     content = get_graphql_content(response)
     errors = content['data']['attributeUpdate']['errors']
     assert errors
-    assert errors[0]['field'] == 'removeValues:%s' % str(
-        size_attribute).lower()
-    assert errors[0]['message'] == (
-        'AttributeValue does not belong to this Attribute.')
+    assert errors[0]['field'] == 'removeValues'
+    err_msg = (
+        'Value %s does not belong to this attribute.' % str(size_attribute))
+    assert errors[0]['message'] == err_msg
 
 
 def test_delete_attribute(
@@ -356,9 +356,9 @@ def test_delete_attribute(
 
 CREATE_ATTRIBUTE_VALUE_QUERY = """
     mutation createAttributeValue(
-        $id: ID!, $name: String!, $value: String!) {
+        $attributeId: ID!, $name: String!, $value: String) {
     attributeValueCreate(
-        attribute: $id, input: {name: $name, value: $value}) {
+        attribute: $attributeId, input: {name: $name, value: $value}) {
         errors {
             field
             message
@@ -386,7 +386,7 @@ def test_create_attribute_value(
     attribute_id = graphene.Node.to_global_id('Attribute', attribute.id)
     name = 'test name'
     value = 'test-string'
-    variables = {'name': name, 'value': value, 'id': attribute_id}
+    variables = {'name': name, 'value': value, 'attributeId': attribute_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
@@ -408,19 +408,19 @@ def test_create_attribute_value_not_unique_name(
     attribute_id = graphene.Node.to_global_id('Attribute', attribute.id)
     value_name = attribute.values.first().name
     variables = {
-        'name': value_name, 'value': 'test-string', 'id': attribute_id}
+        'name': value_name, 'value': 'test-string',
+        'attributeId': attribute_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     data = content['data']['attributeValueCreate']
     assert data['errors']
-    assert data['errors'][0]['field'] == 'name'
-    assert data['errors'][0]['message'] == 'Provided name is not unique.'
+    assert data['errors'][0]['field'] == 'All'
 
 
 UPDATE_ATTRIBUTE_VALUE_QUERY = """
 mutation updateChoice(
-        $id: ID!, $name: String!, $value: String!) {
+        $id: ID!, $name: String!, $value: String) {
     attributeValueUpdate(
     id: $id, input: {name: $name, value: $value}) {
         errors {
@@ -471,8 +471,7 @@ def test_update_attribute_value_name_not_unique(
     content = get_graphql_content(response)
     data = content['data']['attributeValueUpdate']
     assert data['errors']
-    assert data['errors'][0]['field'] == 'name'
-    assert data['errors'][0]['message'] == 'Provided name is not unique.'
+    assert data['errors'][0]['field'] == 'All'
 
 
 def test_update_same_attribute_value(

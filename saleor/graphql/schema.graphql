@@ -130,12 +130,7 @@ type AttributeCreate {
 
 input AttributeCreateInput {
   name: String!
-  values: [AttributeCreateValueInput]
-}
-
-input AttributeCreateValueInput {
-  name: String!
-  value: String
+  values: [AttributeValueCreateInput]
 }
 
 type AttributeDelete {
@@ -159,8 +154,8 @@ type AttributeUpdate {
 
 input AttributeUpdateInput {
   name: String
-  removeValues: [ID]!
-  addValues: [AttributeCreateValueInput]!
+  removeValues: [ID]
+  addValues: [AttributeValueCreateInput]
 }
 
 type AttributeValue implements Node {
@@ -180,11 +175,12 @@ type AttributeValueCreate {
 
 input AttributeValueCreateInput {
   name: String!
-  value: String!
+  value: String
 }
 
 type AttributeValueDelete {
   errors: [Error]
+  attribute: Attribute
   attributeValue: AttributeValue
 }
 

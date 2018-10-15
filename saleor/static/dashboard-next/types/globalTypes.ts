@@ -128,10 +128,10 @@ export interface AddressInput {
 
 export interface AttributeCreateInput {
   name: string;
-  values?: (AttributeCreateValueInput | null)[] | null;
+  values?: (AttributeValueCreateInput | null)[] | null;
 }
 
-export interface AttributeCreateValueInput {
+export interface AttributeValueCreateInput {
   name: string;
   value?: string | null;
 }
@@ -139,7 +139,7 @@ export interface AttributeCreateValueInput {
 export interface AttributeUpdateInput {
   name?: string | null;
   removeValues: (string | null)[];
-  addValues: (AttributeCreateValueInput | null)[];
+  addValues: (AttributeValueCreateInput | null)[];
 }
 
 export interface AttributeValueInput {
