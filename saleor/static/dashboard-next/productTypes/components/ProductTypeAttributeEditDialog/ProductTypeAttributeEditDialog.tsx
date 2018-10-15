@@ -64,11 +64,19 @@ const ProductTypeAttributeEditDialog: React.StatelessComponent<
               <ListField
                 autoComplete="off"
                 disabled={disabled}
-                error={!!formErrors.values}
+                error={
+                  !!formErrors.values ||
+                  !!formErrors.addValues ||
+                  !!formErrors.removeValues
+                }
                 fullWidth
                 name="values"
                 label={i18n.t("Attribute values")}
-                helperText={formErrors.values}
+                helperText={
+                  formErrors.values ||
+                  formErrors.addValues ||
+                  formErrors.removeValues
+                }
                 values={data.values}
                 onChange={change}
               />
