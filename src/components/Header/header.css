@@ -75,7 +75,7 @@ header {
     & .logo-svg {
       transition: width 0.5s;
       width: 95px;
-      padding: calc(var(--spacer) * 1.2) calc(var(--spacer));
+      padding: calc(var(--spacer) * 1.2) calc(var(--spacer) / 2);
     }
     &.open {
       display: block;
@@ -83,15 +83,19 @@ header {
       top: 0;
       left: var(--spacer);
       z-index: 999;
+      & .logo-svg {
+        width: 100px;
+      }
       @media (max-width: 768px) {
         left: calc(var(--spacer) * 2);
       }
       @media (max-width: 450px) {
-        left: calc(var(--spacer) * 1.2);
+        left: calc(var(--spacer) / 2);
+        & .logo-svg {
+          width: 80px;
+        }
       }
-      & .logo-svg {
-        width: 100px;
-      }
+      
     }
   }
 
@@ -168,7 +172,7 @@ header {
         & .count, & li:first-child { display: none; }
       }
       &.menu-mobile {
-        width: calc(100% - 4rem);
+        width: calc(100% - calc(var(--spacer) * 4));
         height: 100%;
         display: block;
         visibility: visible;
@@ -178,6 +182,7 @@ header {
         top: 0;
         z-index: 998;
         background: var(--mobile-background);
+        background-image: linear-gradient(-150deg, rgba(254,62,62, 0.3) 0%, rgba(125,185,232,0) 30%, rgba(125,185,232,0) 100%), url('../../images/background.svg');
         padding: calc(var(--spacer) * 5) calc(var(--spacer) * 2) 0 calc(var(--spacer) * 2);
         @media (max-width: 700px) {
           padding: calc(var(--spacer) * 3) calc(var(--spacer) * 2) 0 calc(var(--spacer) * 2);
@@ -186,33 +191,41 @@ header {
           padding: calc(var(--spacer) * 4) calc(var(--spacer) * 2) 0 calc(var(--spacer) * 2);
         }
          @media (max-width: 450px) {
-          padding: calc(var(--spacer) * 5) calc(var(--spacer) * 2) 0 calc(var(--spacer) * 2);
+          width: calc(100% - calc(var(--spacer) * 2));
+          padding: calc(var(--spacer) * 5) var(--spacer) 0 var(--spacer);
         }
         & li {
           position: relative;
           padding: 0 calc(var(--spacer) * 4);
           text-align: left;
           top: 1rem;
-          text-transform: uppercase;
-          font-size: calc(var(--font-size-base) * 2);
           @media (max-width: 570px) {
             font-size: calc(var(--font-size-base) * 1.5);
           }
           @media (max-width: 450px) {
             font-size: calc(var(--font-size-base) * 2);
+            padding: 0 calc(var(--spacer) * 3);
           }
           &:first-child {
             display: block;
           }
           & a {
             color: var(--body-color);
+            font-size: calc(var(--font-size-base) * 2);
+            text-transform: none;
+            position: relative;
             &:hover {
               text-decoration: none;
+            }
+            &::after {
+              top: initial;
+              bottom: 0;
+              transform: skewX(-45deg);
             }
           }
           & .count { 
             display: inline;
-            font-size: calc(var(--font-size-base) * 1.5);
+            font-size: calc(var(--font-size-base) * 1.3);
             position: absolute;
             left: 0;
             bottom: calc(var(--spacer) * 0.2);
@@ -221,9 +234,23 @@ header {
           &.github-link {
             position: absolute;
             padding-left: 0;
-            left: calc(var(--spacer) * 2);
+            left: var(--spacer);
             top: initial;
             bottom: calc(var(--spacer) * 7);
+            & .star-icon {
+              & svg {
+                width: 25px !important;
+                height: 25px !important;
+                padding: 0 calc(var(--spacer) / 2);
+              }
+            }
+            & .github-icon {
+              & svg {
+                width: 35px !important;
+                height: 35px !important;
+              }
+            }
+            
             @media (max-width: 700px) {
               left: initial;
               right: calc(var(--spacer) * -2);
@@ -288,7 +315,7 @@ header {
             width: 40px;
             height: 40px;
             position: absolute;
-            top: calc(var(--spacer) * 1.7);
+            top: calc(var(--spacer) * 1.5);
             right: var(--spacer);
             transform: rotate(0deg);
             cursor: pointer;
@@ -304,7 +331,7 @@ header {
               border-radius: 5px;
               opacity: 1;
               right: 0;
-              transform: rotate(0deg) skew(-20deg);
+              transform: rotate(0deg) skew(-45deg);
               transition: .25s ease-in-out;
               &:nth-child(1) { width: 90%; top: 0; }
               &:nth-child(2) { width: 70%; top: 10px; }
@@ -328,9 +355,11 @@ header {
               }
             }
             &.open {
+              width: 30px;
+              height: 30px;
               display: block;
               position: fixed;
-              top: calc(var(--spacer) * 2);
+              top: calc(var(--spacer) * 1.5);
               right: calc(var(--spacer) * 1.4);
               z-index: 999;
             }

@@ -56,7 +56,7 @@ const Feature = () => (
       <section className="features section-container">
         <div className="grid icons">
           <div className="icon-card">
-            <ReactSVG className="icon" path={lovesEnginesIcon} />
+            <ReactSVG className="loved-by-search" path={lovesEnginesIcon} />
             <h3 className="title">
               Loved by search<br/> engines
             </h3>
@@ -66,7 +66,7 @@ const Feature = () => (
                present your products to wider audience.</p>
           </div>
           <div className="icon-card">
-            <ReactSVG className="icon" path={graphQLIcon} />
+            <ReactSVG className="graphql" path={graphQLIcon} />
             <h3 className="title">
               Headless commerce<br/> with GraphQL
             </h3>
@@ -76,7 +76,7 @@ const Feature = () => (
                processing, fulfillment and more</p>
           </div>
           <div className="icon-card">
-            <ReactSVG className="icon" path={progressiveWebAppIcon} />
+            <ReactSVG className="pwa" path={progressiveWebAppIcon} />
             <span className="decorator"></span>
             <h3 className="title">
               Progressive Web<br/> Apps
@@ -87,7 +87,7 @@ const Feature = () => (
                in doubling your conversions.</p>
           </div>
           <div className="icon-card">
-            <ReactSVG className="icon" path={internationalizationIcon} />
+            <ReactSVG className="localization" path={internationalizationIcon} />
             <h3 className="title">
               Internationalization & <br/> Localization
             </h3>

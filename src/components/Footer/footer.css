@@ -104,7 +104,7 @@ footer {
           font-size: calc(var(--font-size-base) * 0.8);
         }
         @media (max-width: 450px) {
-          font-size: calc(var(--font-size-base));
+          display: none;
         }
         @media (max-width: 320px) {
           font-size: calc(var(--font-size-base) * 0.8);
@@ -136,4 +136,8 @@ footer {
   padding: 0 calc(var(--spacer) * 1.5);
   font-weight: var(--font-weight-lighter);
   opacity: 0.6;
+  @media (max-width: 450px) {
+    padding: var(--spacer);
+    font-size: calc(var(--font-size-base) * 0.9);
+  }
 }

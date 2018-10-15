@@ -134,8 +134,18 @@
               grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             }
             grid-gap: calc(var(--spacer) * 5) calc(var(--spacer) * 5);
+            @media (max-width: 450px) {
+              grid-gap: calc(var(--spacer) * 2) calc(var(--spacer) * 2);
+            }
             & .icon-card {
               position: relative;
+              & .loved-by-search {
+                & svg {
+                  @media (max-width: 450px) {
+                    width: 130%;
+                  }
+                }
+              }
               & .title {
                 font-size: calc(var(--font-size-base) * 2);
                 width: 85%;
@@ -157,7 +167,7 @@
                 top: 5%;
                 left: -9%;
                 @media (max-width: 450px) {
-                  width: 100%;
+                  width: 110%;
                 }
               }
               & h3 {

@@ -43,6 +43,7 @@ class Home extends Component {
   };
 
   render() {
+    console.log(!isMobileOnly);
     return (
         <div id="home" className="container">
           <section className="hero">
@@ -73,38 +74,30 @@ class Home extends Component {
             <div className="grid icons">
               <div className="col-xs-6 col-sm-6 col-md-3 software-stack">
                 <a href="#software-stack">
-                  <Fade bottom>
                     <div className="image">
                       <h3><span>01<br/>-</span>Modern <br />stack</h3>
                     </div>
-                  </Fade>
                 </a>
               </div>
               <div className="col-xs-6 col-sm-6 col-md-3 build-to-scale">
                 <a href="#build-to-scale">
-                  <Fade bottom>
                   <div className="image">
                     <h3><span>02<br/>-</span>Built to <br />scale</h3>
                   </div>
-                  </Fade>
                 </a>
               </div>
               <div className="col-xs-6 col-sm-6 col-md-3 easy-to-customize">
                 <a href="#easy-to-customize">
-                  <Fade bottom>
                   <div className="image">
                     <h3><span>03<br/>-</span>Easy to <br />customize</h3>
                   </div>
-                  </Fade>
                 </a>
               </div>
               <div className="col-xs-6 col-sm-6 col-md-3 user-experience">
                 <a href="#user-experience">
-                  <Fade bottom>
                   <div className="image">
                     <h3><span>04<br/>-</span>Great <br />expierience</h3>
                   </div>
-                  </Fade>
                 </a>
               </div>
             </div>
@@ -115,15 +108,11 @@ class Home extends Component {
                   <p>Saleor is powered by a GraphQL server running on top of Python 3 and Django 2.</p>
                   <p className="text-light">Both the storefront and the dashboard are React applications written in TypeScript and use Apollo GraphQL. Strict code quality checks and code reviews make the code easy to read and understand. High test coverage ensures it’s also safe to deploy in a continuous manner.</p>
                 </div>
-                <Fade bottom>
                 <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
                 <div className="col-xs-12 col-sm-6 col-md-6 shadow-image"></div>
-                </Fade>
               </div>
               <div id="build-to-scale" className="grid feature-item build-to-scale">
-                <Fade bottom>
                 <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
-                </Fade>
                 <div className="col-xs-12 col-sm-6 col-md-6 text">
                   <h2>02. Build to scale</h2>
                   <p>Serve millions of products and thousands of customers without breaking a sweat.</p>
@@ -136,9 +125,7 @@ class Home extends Component {
                   <p>Saleor’s outstanding out-of-the-box experience may not be enough for everyone.</p>
                   <p className="text-light">Take it even further to automate any commerce process like ordering, shipping or payment. Whether you’re a local florist or a government agency, Saleor is a solid foundation to build and deliver bespoke solutions to your specific problems. Build the store that you want instead of trying to bend your requirements around enterprise platforms.</p>
                 </div>
-                <Fade bottom>
                 <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
-                </Fade>
               </div>
               <div id="user-experience" className="grid feature-item user-experience">
                 <div className="col-xs-12 col-sm-12 col-md-12 text">
@@ -146,20 +133,18 @@ class Home extends Component {
                   <p>Unlike what you might expect from open source software Saleor’s user experience rivals that of the best commercial solutions.</p>
                 </div>
                 <div className="col-xs-12 col-sm-6 col-md-6 storefront">
-                  <Fade bottom>
                   <img src={storefrontIcon} srcSet={`${storefrontIcon} 1x, ${storefrontIconX2} 2x, ${storefrontIconX3} 3x, ${storefrontIconX4}4x`} />
-                  </Fade>
                   <h2>Storefront</h2>
                   <p>Saleor takes advantage of PWA standards  to optimize mobile experiences of the rapidly growing group of people shopping on the run.</p>
                   <p className="text-light">Allow your customers to buy their next pair of jeans while enjoying a virgin margarita on a plane. They will only need an internet connection when they go to pay with Apple Pay or one of the cards stored by their phone. </p>
+                  <a href="">See Storefront</a>
                 </div>
                 <div className="col-xs-12 col-sm-6 col-md-6 dashboard">
-                  <Fade bottom>
                   <img src={dashboardIcon} srcSet={`${dashboardIcon} 1x, ${dashboardIconX2} 2x, ${dashboardIconX3} 3x, ${dashboardIconX4} 4x`} />
-                  </Fade>
                   <h2>Dashboard</h2>
                   <p>Easy-to-use dashboard makes managing your store a pleasant experience whether you’re using the latest Macbook or a two-year-old smartphone.</p>
                   <p className="text-light">Its intuitive interface is designed to aid your staff in daily routines like order management, inventory tracking or reporting. Saleor dashboard’s friendly home screen will also suggest items that may need your attention so you always stay on top of things.</p>
+                  <a href="">See Dashboard</a>
                 </div>
                 <div className="col-xs-12 col-sm-12 col-md-12 more-btn">
                   <a className="btn btn-secondary" href=""><span>See more features</span></a>
@@ -168,6 +153,7 @@ class Home extends Component {
             </div>
           </section>
           <section className="open-source">
+            <div class="background-mobile"></div>
             <div className="section-container">
               <div className="text">
                 <h2>Open source</h2>
@@ -296,7 +282,9 @@ class Home extends Component {
                   </ul>
                 </div>
               </div>
-              <a className="btn btn-primary" href="https://mirumee.com/hire-us/" target="_blank"><span>Estimate your project</span></a>
+              <div class="btn-container">
+                <a className="btn btn-primary" href="https://mirumee.com/hire-us/" target="_blank"><span>Estimate your project</span></a>
+              </div>
             </div>
           </section>
         </div>
