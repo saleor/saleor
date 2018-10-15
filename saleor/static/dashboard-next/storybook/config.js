@@ -33,12 +33,10 @@ function loadStories() {
   require("./stories/auth/LoginLoading");
 
   // Categories
-  require("./stories/categories/CategoryDeleteDialog");
-  require("./stories/categories/CategoryDeleteImage");
   require("./stories/categories/CategoryProducts");
   require("./stories/categories/CategoryCreatePage");
   require("./stories/categories/CategoryUpdatePage");
-  require("./stories/categories/CategoryTable");
+  require("./stories/categories/CategoryListPage");
 
   // Collections
   require("./stories/collections/CollectionDetailsPage");
