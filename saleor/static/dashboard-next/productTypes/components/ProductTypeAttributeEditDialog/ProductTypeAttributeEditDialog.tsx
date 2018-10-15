@@ -3,7 +3,6 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import { withStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
@@ -37,10 +36,9 @@ export interface ProductTypeAttributeEditDialogProps {
   onConfirm: (data: FormData) => void;
 }
 
-const decorate = withStyles({ root: {} });
-const ProductTypeAttributeEditDialog = decorate<
+const ProductTypeAttributeEditDialog: React.StatelessComponent<
   ProductTypeAttributeEditDialogProps
->(({ disabled, errors, name, opened, title, values, onClose, onConfirm }) => {
+> = ({ disabled, errors, name, opened, title, values, onClose, onConfirm }) => {
   const initialForm: FormData = {
     name: name || "",
     values: values || []
@@ -88,6 +86,6 @@ const ProductTypeAttributeEditDialog = decorate<
       </Form>
     </Dialog>
   );
-});
+};
 ProductTypeAttributeEditDialog.displayName = "ProductTypeAttributeEditDialog";
 export default ProductTypeAttributeEditDialog;
