@@ -301,6 +301,52 @@ def test_checkout_shipping_address_update(user_api_client, cart_with_item):
     assert cart.shipping_address.city == shipping_address['city']
 
 
+def test_checkout_billing_address_update(user_api_client, cart_with_item):
+    cart = cart_with_item
+    assert cart.shipping_address is None
+    checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
+
+    query = """
+    mutation checkoutBillingAddressUpdate($checkoutId: ID!, $billingAddress: AddressInput!) {
+        checkoutBillingAddressUpdate(checkoutId: $checkoutId, billingAddress: $billingAddress) {
+            checkout {
+                token,
+                id
+            },
+            errors {
+                field,
+                message
+            }
+        }
+    }
+    """
+    billing_address = {
+        'firstName': "John",
+        'lastName': 'Doe',
+        'streetAddress1': 'Wall st.',
+        'streetAddress2': '',
+        'postalCode': '902010',
+        'country': 'US',
+        'city': 'New York'}
+
+    variables = {'checkoutId': checkout_id, 'billingAddress': billing_address}
+
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['checkoutBillingAddressUpdate']
+    assert not data['errors']
+    cart.refresh_from_db()
+    assert cart.billing_address is not None
+    assert cart.billing_address.first_name == billing_address['firstName']
+    assert cart.billing_address.last_name == billing_address['lastName']
+    assert cart.billing_address.street_address_1 == billing_address[
+        'streetAddress1']
+    assert cart.billing_address.street_address_2 == billing_address[
+        'streetAddress2']
+    assert cart.billing_address.postal_code == billing_address['postalCode']
+    assert cart.billing_address.country == billing_address['country']
+    assert cart.billing_address.city == billing_address['city']
+
 def test_checkout_email_update(user_api_client, cart_with_item):
     cart = cart_with_item
     assert not cart.email
@@ -367,8 +413,7 @@ def test_checkout_complete(
         }
     }
     """
-    variables = {
-        'checkoutId': checkout_id, }
+    variables = {'checkoutId': checkout_id}
     assert not Order.objects.exists()
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
