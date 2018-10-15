@@ -148,7 +148,7 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
             <CardSpacer />
             <SeoForm
               helperText={i18n.t(
-                "Add search engine title and description to make this product easier to find"
+                "Add search engine title and description to make this category easier to find"
               )}
               title={data.seoTitle}
               titlePlaceholder={data.name}
@@ -168,14 +168,14 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
                       value={0}
                       changeTab={changeTab}
                     >
-                      Subcategories
+                      {i18n.t("Subcategories")}
                     </Tab>
                     <Tab
                       isActive={currentTab === 1}
                       value={1}
                       changeTab={changeTab}
                     >
-                      Products
+                      {i18n.t("Products")}
                     </Tab>
                   </div>
                   <CardSpacer />
