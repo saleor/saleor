@@ -91,7 +91,7 @@ const ListField = decorate<
           name: this.props.name,
           value: this.props.values
             .slice(0, index)
-            .concat(this.props.values.slice(index + 1, -1))
+            .concat(this.props.values.slice(index + 1))
         }
       } as any);
 
