@@ -60,7 +60,7 @@ const CategoryList = decorate<CategoryListProps>(
             <TableCell className={classes.wideColumn}>
               {i18n.t("Category Name", { context: "object" })}
             </TableCell>
-            <TableCell>
+            <TableCell className={classes.centerText}>
               {i18n.t("Subcategories", { context: "object" })}
             </TableCell>
             <TableCell className={classes.centerText}>
@@ -83,7 +83,7 @@ const CategoryList = decorate<CategoryListProps>(
                 <TableCell>
                   {category && category.name ? category.name : <Skeleton />}
                 </TableCell>
-                <TableCell>
+                <TableCell className={classes.centerText}>
                   {category &&
                   category.children &&
                   category.children.totalCount !== undefined ? (
