@@ -19,7 +19,7 @@ const updateProps: CategoryUpdatePageProps = {
   loading: false,
   onAddCategory: undefined,
   onAddProduct: undefined,
-  onBack: undefined,
+  onBack: () => undefined,
   onCategoryClick: () => undefined,
   onDelete: () => undefined,
   onImageDelete: () => undefined,

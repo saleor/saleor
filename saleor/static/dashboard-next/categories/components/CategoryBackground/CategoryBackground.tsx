@@ -53,7 +53,7 @@ const decorate = withStyles(theme => ({
 }));
 
 export const CategoryBackground = decorate(
-  class CategoryBackgroundClass extends React.Component<
+  class CategoryBackgroundComponent extends React.Component<
     CategoryBackgroundProps &
       WithStyles<
         | "PhotosIcon"
@@ -106,15 +106,15 @@ export const CategoryBackground = decorate(
                   <img className={classes.image} src={placeholderImage} />
                 </div>
               </div>
-            ) : backgroundImage.url ? (
+            ) : backgroundImage === null ? (
+              <div className={classes.PhotosIconContainer}>
+                <AddPhotoIcon className={classes.PhotosIcon} />
+              </div>
+            ) : (
               <CategoryBackgroundImage
                 onImageDelete={onImageDelete}
                 backgroundImage={backgroundImage}
               />
-            ) : (
-              <div className={classes.PhotosIconContainer}>
-                <AddPhotoIcon className={classes.PhotosIcon} />
-              </div>
             )}
           </CardContent>
         </Card>

@@ -128,7 +128,10 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
       <Form onSubmit={onSubmit} initial={initialData} errors={userErrors}>
         {({ data, change, errors, submit, hasChanged }) => (
           <Container width="md">
-            <PageHeader title={category ? category.name : undefined} />
+            <PageHeader
+              title={category ? category.name : undefined}
+              onBack={onBack}
+            />
             <CategoryDetailsForm
               data={data}
               disabled={disabled}
