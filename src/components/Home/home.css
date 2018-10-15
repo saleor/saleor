@@ -390,7 +390,7 @@
             height: 100%;
             position: absolute;
             grid-row: 1;
-            opacity: 0.5;
+            opacity: 0.5 !important;
             z-index: 1;
           }
         }
