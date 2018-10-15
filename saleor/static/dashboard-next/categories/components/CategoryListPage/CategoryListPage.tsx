@@ -5,7 +5,7 @@ import * as React from "react";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
-import CategoryList from "../../components/CategoryList";
+import CategoryList from "../CategoryList";
 
 export interface CategoryTableProps {
   categories: Array<{
