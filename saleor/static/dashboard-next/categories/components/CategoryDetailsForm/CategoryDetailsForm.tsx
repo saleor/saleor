@@ -21,13 +21,11 @@ interface CategoryDetailsFormProps {
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
-const decorate = withStyles(theme => ({
+const decorate = withStyles({
   root: {
-    display: "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: `1fr 1fr`
+    width: "50%"
   }
-}));
+});
 
 export const CategoryDetailsForm = decorate<CategoryDetailsFormProps>(
   ({ classes, disabled, data, onChange, errors }) => {
@@ -36,8 +34,9 @@ export const CategoryDetailsForm = decorate<CategoryDetailsFormProps>(
         <CardTitle title={i18n.t("General information")} />
         <CardContent>
           <>
-            <div className={classes.root}>
+            <div>
               <TextField
+                classes={{ root: classes.root }}
                 label={i18n.t("Name")}
                 name="name"
                 disabled={disabled}

@@ -1,11 +1,7 @@
-import Button from "@material-ui/core/Button";
-import DialogContentText from "@material-ui/core/DialogContentText";
 import { withStyles } from "@material-ui/core/styles";
-import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 
 import { UserError } from "../../../";
-import ActionDialog from "../../../components/ActionDialog";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
@@ -13,8 +9,7 @@ import SaveButtonBar, {
   SaveButtonBarState
 } from "../../../components/SaveButtonBar/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
-import Tabs, { SingleTab } from "../../../components/Tab";
-import Toggle from "../../../components/Toggle";
+import Tabs, { Tab } from "../../../components/Tab";
 import { MoneyType } from "../../../products";
 import CategoryDetailsForm from "../../components/CategoryDetailsForm";
 import CategoryList from "../../components/CategoryList";
@@ -41,7 +36,7 @@ export interface CategoryUpdatePageProps {
     name: string;
     description: string;
   };
-  backgroundImage: {
+  backgroundImage?: {
     url?: string;
   };
   products: Array<{
@@ -118,168 +113,106 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
   }) => {
     const initialData = category
       ? {
-          name: category.name,
           description: category.description,
-          seoTitle: category.SeoTitle,
-          seoDescription: category.SeoDescription
+          name: category.name,
+          seoDescription: category.SeoDescription,
+          seoTitle: category.SeoTitle
         }
       : {
-          name: "",
           description: "",
-          seoTitle: "",
-          seoDescription: ""
+          name: "",
+          seoDescription: "",
+          seoTitle: ""
         };
-    const isRoot = !loading && !products && !category;
     return (
-      <Toggle>
-        {(openedDeleteDialog, { toggle: toggleDeleteDialog }) => (
-          <Form onSubmit={onSubmit} initial={initialData} errors={userErrors}>
-            {({ data, change, errors, submit, hasChanged }) => (
-              <>
-                <Container width="md">
-                  <PageHeader
-                    title={
-                      isRoot
-                        ? i18n.t("Category")
-                        : category
-                          ? category.name
-                          : undefined
-                    }
-                  >
-                    {isRoot && (
-                      <Button
-                        color="secondary"
-                        variant="contained"
-                        onClick={onAddCategory}
-                      >
-                        {i18n.t("Add category")} <AddIcon />
-                      </Button>
-                    )}
-                  </PageHeader>
-
-                  <div>
-                    {!isRoot && (
-                      <>
-                        <CategoryDetailsForm
-                          data={data}
-                          disabled={disabled}
-                          errors={errors}
-                          onChange={change}
-                        />
-                        <CardSpacer />
-                        <CategoryBackground
-                          onImageUpload={onImageUpload}
-                          onImageDelete={onImageDelete}
-                          backgroundImage={backgroundImage}
-                          placeholderImage={placeholderImage}
-                        />
-                        <CardSpacer />
-                        <SeoForm
-                          helperText={i18n.t(
-                            "Add search engine title and description to make this product easier to find"
-                          )}
-                          title={data.seoTitle}
-                          titlePlaceholder={data.name}
-                          description={data.seoDescription}
-                          descriptionPlaceholder={data.description}
-                          loading={loading}
-                          onChange={change}
-                          disabled={disabled}
-                        />
-                        <CardSpacer />
-                      </>
-                    )}
-                    {isRoot && (
-                      <CategoryList
-                        categories={subcategories}
-                        isRoot={isRoot}
-                        onAdd={onAddCategory}
-                        onRowClick={onCategoryClick}
-                      />
-                    )}
-                    {!isRoot && (
-                      <>
-                        <Tabs>
-                          {({ changeTab, currentTab }) => (
-                            <>
-                              <div className={classes.tabsBorder}>
-                                <SingleTab
-                                  isActive={currentTab === 0}
-                                  value={0}
-                                  changeTab={changeTab}
-                                >
-                                  Subcategories
-                                </SingleTab>
-                                <SingleTab
-                                  isActive={currentTab === 1}
-                                  value={1}
-                                  changeTab={changeTab}
-                                >
-                                  Products
-                                </SingleTab>
-                              </div>
-                              <CardSpacer />
-                              {currentTab === 0 && (
-                                <CategoryList
-                                  categories={subcategories}
-                                  isRoot={isRoot}
-                                  onAdd={onAddCategory}
-                                  onRowClick={onCategoryClick}
-                                />
-                              )}
-                              {currentTab === 1 && (
-                                <CategoryProductsCard
-                                  categoryName={category.name}
-                                  products={products}
-                                  disabled={disabled}
-                                  pageInfo={pageInfo}
-                                  onNextPage={onNextPage}
-                                  onPreviousPage={onPreviousPage}
-                                  onRowClick={onProductClick}
-                                  onAdd={onAddProduct}
-                                />
-                              )}
-                            </>
-                          )}
-                        </Tabs>
-
-                        <SaveButtonBar
-                          onCancel={onBack}
-                          onDelete={toggleDeleteDialog}
-                          onSave={submit}
-                          labels={{
-                            delete: i18n.t("Delete category"),
-                            save: i18n.t("Save category")
-                          }}
-                          state={saveButtonBarState}
-                          disabled={disabled || !hasChanged}
-                        />
-                      </>
-                    )}
+      <Form onSubmit={onSubmit} initial={initialData} errors={userErrors}>
+        {({ data, change, errors, submit, hasChanged }) => (
+          <Container width="md">
+            <PageHeader title={category ? category.name : undefined} />
+            <CategoryDetailsForm
+              data={data}
+              disabled={disabled}
+              errors={errors}
+              onChange={change}
+            />
+            <CardSpacer />
+            <CategoryBackground
+              onImageUpload={onImageUpload}
+              onImageDelete={onImageDelete}
+              backgroundImage={backgroundImage}
+              placeholderImage={placeholderImage}
+            />
+            <CardSpacer />
+            <SeoForm
+              helperText={i18n.t(
+                "Add search engine title and description to make this product easier to find"
+              )}
+              title={data.seoTitle}
+              titlePlaceholder={data.name}
+              description={data.seoDescription}
+              descriptionPlaceholder={data.description}
+              loading={loading}
+              onChange={change}
+              disabled={disabled}
+            />
+            <CardSpacer />
+            <Tabs>
+              {({ changeTab, currentTab }) => (
+                <>
+                  <div className={classes.tabsBorder}>
+                    <Tab
+                      isActive={currentTab === 0}
+                      value={0}
+                      changeTab={changeTab}
+                    >
+                      Subcategories
+                    </Tab>
+                    <Tab
+                      isActive={currentTab === 1}
+                      value={1}
+                      changeTab={changeTab}
+                    >
+                      Products
+                    </Tab>
                   </div>
-                </Container>
-                {!isRoot && (
-                  <ActionDialog
-                    title={i18n.t("Remove category")}
-                    open={openedDeleteDialog}
-                    onClose={toggleDeleteDialog}
-                    onConfirm={onDelete}
-                    variant={"delete"}
-                  >
-                    <DialogContentText
-                      dangerouslySetInnerHTML={{
-                        __html: i18n.t(
-                          "Are you sure you want to remove this category"
-                        )
-                      }}
+                  <CardSpacer />
+                  {currentTab === 0 && (
+                    <CategoryList
+                      isRoot={false}
+                      categories={subcategories}
+                      onAdd={onAddCategory}
+                      onRowClick={onCategoryClick}
                     />
-                  </ActionDialog>
-                )}
-              </>
-            )}
-          </Form>
+                  )}
+                  {currentTab === 1 && (
+                    <CategoryProductsCard
+                      categoryName={category.name}
+                      products={products}
+                      disabled={disabled}
+                      pageInfo={pageInfo}
+                      onNextPage={onNextPage}
+                      onPreviousPage={onPreviousPage}
+                      onRowClick={onProductClick}
+                      onAdd={onAddProduct}
+                    />
+                  )}
+                </>
+              )}
+            </Tabs>
+            <SaveButtonBar
+              onCancel={onBack}
+              onDelete={onDelete}
+              onSave={submit}
+              labels={{
+                delete: i18n.t("Delete category"),
+                save: i18n.t("Save category")
+              }}
+              state={saveButtonBarState}
+              disabled={disabled || !hasChanged}
+            />
+          </Container>
         )}
-      </Toggle>
+      </Form>
     );
   }
 );

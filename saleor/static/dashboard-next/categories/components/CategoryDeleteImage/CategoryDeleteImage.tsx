@@ -7,7 +7,7 @@ import i18n from "../../../i18n";
 
 const decorate = withStyles({});
 
-interface CategoryDeleteProps {
+interface CategoryDeleteImageProps {
   open: boolean;
   title: string;
   dialogText: string;
@@ -15,7 +15,7 @@ interface CategoryDeleteProps {
   onConfirm?(event: React.FormEvent<any>);
 }
 
-const CategoryDelete = decorate<CategoryDeleteProps>(
+const CategoryDeleteImage = decorate<CategoryDeleteImageProps>(
   ({ open, onClose, onConfirm, title, dialogText }) => (
     <ActionDialog
       open={open}
@@ -29,4 +29,4 @@ const CategoryDelete = decorate<CategoryDeleteProps>(
   )
 );
 
-export default CategoryDelete;
+export default CategoryDeleteImage;

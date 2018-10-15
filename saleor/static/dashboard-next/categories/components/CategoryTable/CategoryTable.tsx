@@ -4,8 +4,8 @@ import AddIcon from "@material-ui/icons/Add";
 import * as React from "react";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
-import CategoryList from "../../components/CategoryList";
 import i18n from "../../../i18n";
+import CategoryList from "../../components/CategoryList";
 
 export interface CategoryTableProps {
   categories: Array<{
@@ -38,11 +38,11 @@ export const CategoryTable = decorate<CategoryTableProps>(
               {i18n.t("Add category")} <AddIcon />
             </Button>
           </PageHeader>
-
           <CategoryList
             categories={categories}
             onAdd={onAddCategory}
             onRowClick={onCategoryClick}
+            isRoot={true}
           />
         </Container>
       </>
