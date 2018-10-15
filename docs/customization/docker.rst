@@ -35,9 +35,9 @@ Usage
 
    .. code-block:: bash
 
-    $ docker-compose run web python3 manage.py migrate
-    $ docker-compose run web python3 manage.py collectstatic
-    $ docker-compose run web python3 manage.py populatedb --createsuperuser
+    $ docker-compose run --rm web python3 manage.py migrate
+    $ docker-compose run --rm web python3 manage.py collectstatic
+    $ docker-compose run --rm web python3 manage.py populatedb --createsuperuser
 
    The ``--createsuperuser`` argument creates an admin account for
    ``admin@example.com`` with the password set to ``admin``.
