@@ -4,8 +4,9 @@ from django.db import transaction
 from ...account.models import Address
 from ...checkout import models
 from ...checkout.utils import (
-    add_variant_to_cart, change_shipping_address_in_cart, create_order,
-    get_taxes_for_cart, ready_to_place_order)
+    add_variant_to_cart, change_billing_address_in_cart,
+    change_shipping_address_in_cart, create_order, get_taxes_for_cart,
+    ready_to_place_order)
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import get_taxes_for_address
@@ -305,6 +306,36 @@ class CheckoutShippingAddressUpdate(BaseMutation):
             with transaction.atomic():
                 shipping_address.save()
                 change_shipping_address_in_cart(checkout, shipping_address)
+        return CheckoutShippingAddressUpdate(checkout=checkout, errors=errors)
+
+
+class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
+    checkout = graphene.Field(Checkout, description='An updated checkout')
+
+    class Arguments:
+        checkout_id = graphene.ID(description='ID of the Checkout.')
+        billing_address = AddressInput(
+            description=(
+                'The billing address of the checkout.'))
+
+    class Meta:
+        description = 'Update billing address in the existing Checkout.'
+
+    @classmethod
+    def mutate(
+            cls, root, info, checkout_id, billing_address):
+        errors = []
+        checkout = cls.get_node_or_error(
+            info, checkout_id, errors, 'checkout_id', only_type=Checkout)
+        if billing_address:
+            billing_address = cls.clean_address(billing_address, errors)
+        if errors:
+            return CheckoutBillingAddressUpdate(errors=errors)
+
+        if checkout and billing_address:
+            with transaction.atomic():
+                billing_address.save()
+                change_billing_address_in_cart(checkout, billing_address)
         return CheckoutShippingAddressUpdate(checkout=checkout, errors=errors)
 
 
