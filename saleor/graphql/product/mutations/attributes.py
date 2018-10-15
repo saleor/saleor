@@ -7,8 +7,8 @@ from graphql_jwt.decorators import permission_required
 from ....product import models
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...product.types import ProductType
-from ..types import Attribute, AttributeTypeEnum
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
+from ..types import Attribute, AttributeTypeEnum
 
 
 class AttributeValueCreateInput(graphene.InputObjectType):
@@ -42,7 +42,9 @@ class AttributeMixin:
         for value_data in values_input:
             slug = slugify(value_data['name'])
             if slug in existing_values:
-                msg = 'Value %s already exists within this attribute.' % value_data['name']
+                msg = (
+                    'Value %s already exists within this attribute.' %
+                    value_data['name'])
                 cls.add_error(errors, cls.ATTRIBUTE_VALUES_FIELD, msg)
 
         new_slugs = [
@@ -78,7 +80,8 @@ class AttributeMixin:
         return errors
 
     @classmethod
-    def clean_attribute(cls, instance, cleaned_input, errors, product_type=None):
+    def clean_attribute(
+            cls, instance, cleaned_input, errors, product_type=None):
         if 'name' in cleaned_input:
             slug = slugify(cleaned_input['name'])
         elif instance.pk:
@@ -99,6 +102,7 @@ class AttributeMixin:
             cls.add_error(
                 errors, 'name',
                 'Attribute already exists within this product type.')
+        return cleaned_input
 
     @classmethod
     def _save_m2m(cls, info, attribute, cleaned_data):
