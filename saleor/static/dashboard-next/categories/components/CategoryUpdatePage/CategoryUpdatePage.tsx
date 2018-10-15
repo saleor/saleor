@@ -204,8 +204,7 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
               onDelete={onDelete}
               onSave={submit}
               labels={{
-                delete: i18n.t("Delete category"),
-                save: i18n.t("Save category")
+                delete: i18n.t("Delete category")
               }}
               state={saveButtonBarState}
               disabled={disabled || !hasChanged}

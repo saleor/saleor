@@ -21,7 +21,6 @@ const decorate = withStyles(theme => ({
     background: "#ffffff",
     border: "1px solid #eaeaea",
     borderRadius: theme.spacing.unit,
-    margin: "auto",
     height: 148,
     overflow: "hidden" as "hidden",
     padding: theme.spacing.unit * 2,
@@ -34,21 +33,17 @@ const decorate = withStyles(theme => ({
     display: "none" as "none",
     height: 148,
     left: 0,
-    padding: theme.spacing.unit * 2,
     position: "absolute" as "absolute",
     top: 0,
     width: 148
   },
   imageOverlayToolbar: {
-    alignContent: "flex-end",
     display: "flex" as "flex",
-    position: "relative" as "relative",
-    right: -theme.spacing.unit * 4,
-    top: -theme.spacing.unit * 2
+    justifyContent: "flex-end"
   }
 }));
 
-interface ImageProps {
+interface ImageTileProps {
   tile?: {
     id?: string;
     alt?: string;
@@ -62,21 +57,21 @@ interface ImageProps {
   index?: string;
 }
 
-const Image = decorate<ImageProps>(
+const ImageTile = decorate<ImageTileProps>(
   ({ classes, onImageDelete, onImageEdit, tile, editIcon, deleteIcon }) => (
     <div className={classes.imageContainer}>
       <div className={classes.imageOverlay}>
         <div className={classes.imageOverlayToolbar}>
-          {editIcon ? (
+          {editIcon && (
             <IconButton color="secondary" onClick={onImageEdit}>
               <EditIcon />
             </IconButton>
-          ) : null}
-          {deleteIcon ? (
+          )}
+          {deleteIcon && (
             <IconButton color="secondary" onClick={onImageDelete}>
               <DeleteIcon />
             </IconButton>
-          ) : null}
+          )}
         </div>
       </div>
       <img className={classes.image} src={tile.url} alt={tile.alt} />
@@ -84,4 +79,4 @@ const Image = decorate<ImageProps>(
   )
 );
 
-export default Image;
+export default ImageTile;

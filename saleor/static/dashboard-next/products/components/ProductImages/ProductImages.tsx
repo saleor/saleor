@@ -10,7 +10,7 @@ import * as React from "react";
 import { SortableContainer, SortableElement } from "react-sortable-hoc";
 import ActionDialog from "../../../components/ActionDialog";
 import CardTitle from "../../../components/CardTitle";
-import Image from "../../../components/Image";
+import ImageTile from "../../../components/ImageTile";
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
 
@@ -118,7 +118,7 @@ const decorate = withStyles(theme => ({
 
 const SortableImage = SortableElement(
   ({ image, onImageEdit, toggle, tile }) => (
-    <Image
+    <ImageTile
       tile={tile}
       deleteIcon={true}
       editIcon={true}

@@ -1,7 +1,7 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import Image from "../../../components/Image";
+import ImageTile from "../../../components/ImageTile";
 import Toggle from "../../../components/Toggle";
 import CategoryDeleteImage from "../CategoryDeleteImage";
 
@@ -19,7 +19,7 @@ const CategoryBackgroundImage = decorate<CategoryBackgroundImageProps>(
     <Toggle>
       {(opened, { toggle }) => (
         <>
-          <Image
+          <ImageTile
             tile={backgroundImage}
             onImageDelete={toggle}
             deleteIcon={true}

@@ -40,17 +40,10 @@ const updateProps: CategoryUpdatePageProps = {
 storiesOf("Views / Categories / Update category", module)
   .addDecorator(Decorator)
   .add("default", () => <CategoryUpdatePage {...updateProps} />)
-  .add("default without background", () => (
+  .add("no background", () => (
     <CategoryUpdatePage {...updateProps} backgroundImage={{}} />
   ))
-  .add("When in root", () => (
-    <CategoryUpdatePage
-      {...updateProps}
-      products={undefined}
-      category={undefined}
-    />
-  ))
-  .add("When loading", () => (
+  .add("loading", () => (
     <CategoryUpdatePage
       {...updateProps}
       subcategories={undefined}
