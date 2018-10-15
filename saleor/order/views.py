@@ -10,7 +10,6 @@ from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 from django.views.decorators.csrf import csrf_exempt
-from payments import PaymentStatus
 
 from . import FulfillmentStatus
 from ..account.forms import LoginForm
@@ -18,6 +17,7 @@ from ..account.models import User
 from ..core.utils import get_client_ip
 from ..payment.forms import PaymentMethodForm
 from ..payment.models import PaymentMethod
+from ..payment import PaymentMethodChargeStatus
 from .forms import (
     CustomerNoteForm, PasswordForm, PaymentDeleteForm, PaymentMethodsForm)
 from .models import Order, Payment
@@ -57,7 +57,9 @@ def payment(request, token):
     payments = order.payments.all()
     form_data = request.POST or None
     try:
-        waiting_payment = order.payments.get(status=PaymentStatus.WAITING)
+        waiting_payment = order.payments.filter(
+            is_active=True,
+            charge_status=PaymentMethodChargeStatus.NOT_CHARGED)
     except Payment.DoesNotExist:
         waiting_payment = None
         waiting_payment_form = None

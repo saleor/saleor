@@ -1,10 +1,11 @@
 from django import forms
 from django.conf import settings
 from django.utils.translation import pgettext_lazy
-from payments import PaymentStatus
 
 from ..account.forms import SignupForm
-from .models import Order, Payment
+from ..payment import PaymentMethodChargeStatus, can_be_voided
+from ..payment.models import PaymentMethod
+from .models import Order
 
 
 class PaymentMethodsForm(forms.Form):
@@ -24,23 +25,24 @@ class PaymentDeleteForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
         payment_id = cleaned_data.get('payment_id')
-        waiting_payments = self.order.payments.filter(
-            status=PaymentStatus.WAITING)
-        try:
-            payment = waiting_payments.get(id=payment_id)
-        except Payment.DoesNotExist:
+        payment = PaymentMethod.objects.filter(is_active=True).first(
+            id=payment_id)
+        if not payment:
+            self._errors['number'] = self.error_class([
+                pgettext_lazy(
+                    'Payment delete form error', 'Payment does not exist')])
+        elif not can_be_voided(payment):
             self._errors['number'] = self.error_class([
                 pgettext_lazy(
                     'Payment delete form error',
-                    'Payment does not exist')])
+                    'Payment cannot be cancelled.')])
         else:
             cleaned_data['payment'] = payment
         return cleaned_data
 
     def save(self):
         payment = self.cleaned_data['payment']
-        payment.status = PaymentStatus.REJECTED
-        payment.save()
+        payment.void()
 
 
 class PasswordForm(SignupForm):

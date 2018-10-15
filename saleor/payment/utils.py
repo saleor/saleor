@@ -4,7 +4,8 @@ from typing import Dict, Optional
 
 from django.db import transaction
 
-from . import PaymentError, PaymentMethodChargeStatus, get_provider
+from . import (
+    PaymentError, PaymentMethodChargeStatus, can_be_voided, get_provider)
 from .models import PaymentMethod, Transaction
 
 
@@ -92,7 +93,7 @@ def gateway_capture(payment_method, amount) -> Transaction:
 
 @validate_payment_method
 def gateway_void(payment_method) -> Transaction:
-    if not payment_method.charge_status == PaymentMethodChargeStatus.NOT_CHARGED:
+    if not can_be_voided(payment_method):
         raise PaymentError('Only pre-authorized transactions can be void.')
     provider, provider_params = get_provider(payment_method.variant)
     with transaction.atomic():

@@ -887,7 +887,7 @@ def create_order(cart, tracking_code, discounts, taxes):
 
 def is_fully_paid(cart: Cart):
     payment_methods = cart.payment_methods.all()
-    total_paid = sum([p.total for p in payment_methods])
+    total_paid = sum([p.get_captured_money() for p in payment_methods])
     return total_paid == cart.get_total().gross.amount
 
 

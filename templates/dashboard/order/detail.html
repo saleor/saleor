@@ -580,9 +580,6 @@
                   {% trans "Payment status" context "Payment history table header" %}
                 </th>
                 <th>
-                  {% trans "Fraud status" context "Payment history table header" %}
-                </th>
-                <th>
                   {% trans "Amount" context "Payment history table header" %}
                 </th>
               </tr>
@@ -599,14 +596,7 @@
                     {{ payment.created }}
                   </td>
                   <td>
-                    {% render_status payment.charget_status payment.get_charge_status_display %}
-                  </td>
-                  <td>
-                    {% if payment.fraud_status %}
-                      {% render_status payment.fraud_status payment.get_fraud_status_display %}
-                    {% else %}
-                      -
-                    {% endif %}
+                    {% render_status payment.charge_status payment.get_charge_status_display %}
                   </td>
                   <td>
                     {{ payment.total|currencyfmt:payment.currency }}
