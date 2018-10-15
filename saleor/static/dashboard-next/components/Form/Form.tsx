@@ -62,7 +62,10 @@ class Form<T extends {} = {}> extends React.Component<FormProps<T>, T> {
         data: this.state,
         errors: errors
           ? errors.reduce(
-              (prev, curr) => ({ ...prev, [curr.field]: curr.message }),
+              (prev, curr) => ({
+                ...prev,
+                [curr.field.split(":")[0]]: curr.message
+              }),
               {}
             )
           : {},
