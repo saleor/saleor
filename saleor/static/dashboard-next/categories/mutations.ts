@@ -30,10 +30,8 @@ export const TypedCategoryDeleteMutation = TypedMutation<
 >(categoryDeleteMutation);
 
 export const categoryCreateMutation = gql`
-  mutation CategoryCreate($name: String, $description: String, $parent: ID) {
-    categoryCreate(
-      input: { name: $name, description: $description, parent: $parent }
-    ) {
+  mutation CategoryCreate($input: CategoryInput!) {
+    categoryCreate(input: $input) {
       errors {
         field
         message
@@ -45,6 +43,8 @@ export const categoryCreateMutation = gql`
         parent {
           id
         }
+        seoDescription
+        seoTitle
       }
     }
   }
