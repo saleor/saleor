@@ -14,11 +14,7 @@ class App extends Component {
   render() {
     console.log(navigator);
     if('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./service-worker.js').then(function(reg) {
-        console.log(reg);
-      }).catch(function(e) {
-        console.error('Error during service worker registration:', e);
-      });
+      navigator.serviceWorker.register('/service-worker.js');
     }  
     return (
       <Router>
