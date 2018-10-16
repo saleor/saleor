@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus, WeightUnitsEnum } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL query operation: OrderDetails
@@ -262,6 +262,7 @@ export interface OrderDetails_shop_countries {
 export interface OrderDetails_shop {
   __typename: "Shop";
   countries: (OrderDetails_shop_countries | null)[];
+  defaultWeightUnit: WeightUnitsEnum | null;
 }
 
 export interface OrderDetails {

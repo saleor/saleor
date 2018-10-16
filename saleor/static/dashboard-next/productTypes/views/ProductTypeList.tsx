@@ -4,12 +4,12 @@ import {
   productTypeAddUrl,
   productTypeDetailsUrl,
   productTypeListUrl
-} from "../";
+} from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import { createPaginationData, createPaginationState, maybe } from "../../misc";
 import ProductTypeListPage from "../components/ProductTypeListPage";
-import { productTypeListQuery, TypedProductTypeListQuery } from "../queries";
+import { TypedProductTypeListQuery } from "../queries";
 
 interface ProductTypeListProps {
   params: {
@@ -27,11 +27,7 @@ export const ProductTypeList: React.StatelessComponent<
     {navigate => {
       const paginationState = createPaginationState(PAGINATE_BY, params);
       return (
-        <TypedProductTypeListQuery
-          query={productTypeListQuery}
-          variables={paginationState}
-          fetchPolicy="network-only"
-        >
+        <TypedProductTypeListQuery variables={paginationState}>
           {({ data, loading, error }) => {
             if (error) {
               return <ErrorMessageCard message="Something went wrong" />;

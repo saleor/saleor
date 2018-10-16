@@ -4,7 +4,6 @@ import Navigator from "../components/Navigator";
 import { UserContext } from "../auth";
 import i18n from "../i18n";
 import AccountCircle from "../icons/AccountCircle";
-import Ballot from "../icons/Ballot";
 import Folder from "../icons/Folder";
 import LocalShipping from "../icons/LocalShipping";
 import Monetization from "../icons/Monetization";
@@ -24,12 +23,6 @@ export const configurationMenu: MenuItem[] = [
     permission: PermissionEnum.MANAGE_PRODUCTS,
     title: i18n.t("Product Types"),
     url: productTypeListUrl
-  },
-  {
-    description: i18n.t("Define attributes of products yousell"),
-    icon: <Ballot fontSize="inherit" />,
-    permission: PermissionEnum.MANAGE_PRODUCTS,
-    title: i18n.t("Attributes")
   },
   {
     description: i18n.t("Manage your employees and their permissions"),

@@ -1,47 +1,19 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
+import { TaxRateType } from "./../../types/globalTypes";
+
 // ====================================================
 // GraphQL query operation: ProductTypeList
 // ====================================================
-
-export interface ProductTypeList_productTypes_edges_node_productAttributes_values {
-  __typename: "AttributeValue";
-  id: string;
-  name: string | null;
-  slug: string | null;
-}
-
-export interface ProductTypeList_productTypes_edges_node_productAttributes {
-  __typename: "Attribute";
-  id: string;
-  name: string | null;
-  slug: string | null;
-  values: (ProductTypeList_productTypes_edges_node_productAttributes_values | null)[] | null;
-}
-
-export interface ProductTypeList_productTypes_edges_node_variantAttributes_values {
-  __typename: "AttributeValue";
-  id: string;
-  name: string | null;
-  slug: string | null;
-}
-
-export interface ProductTypeList_productTypes_edges_node_variantAttributes {
-  __typename: "Attribute";
-  id: string;
-  name: string | null;
-  slug: string | null;
-  values: (ProductTypeList_productTypes_edges_node_variantAttributes_values | null)[] | null;
-}
 
 export interface ProductTypeList_productTypes_edges_node {
   __typename: "ProductType";
   id: string;
   name: string;
   hasVariants: boolean;
-  productAttributes: (ProductTypeList_productTypes_edges_node_productAttributes | null)[] | null;
-  variantAttributes: (ProductTypeList_productTypes_edges_node_variantAttributes | null)[] | null;
+  isShippingRequired: boolean;
+  taxRate: TaxRateType | null;
 }
 
 export interface ProductTypeList_productTypes_edges {

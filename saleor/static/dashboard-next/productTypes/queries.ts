@@ -1,6 +1,7 @@
 import gql from "graphql-tag";
-import { Query, QueryProps } from "react-apollo";
 
+import { TypedQuery } from "../queries";
+import { ProductTypeCreateData } from "./types/ProductTypeCreateData";
 import {
   ProductTypeDetails,
   ProductTypeDetailsVariables
@@ -26,12 +27,36 @@ export const attributeFragment = gql`
     }
   }
 `;
+export const productTypeFragment = gql`
+  fragment ProductTypeFragment on ProductType {
+    id
+    name
+    hasVariants
+    isShippingRequired
+    taxRate
+  }
+`;
 
-export const TypedProductTypeListQuery = Query as React.ComponentType<
-  QueryProps<ProductTypeList, ProductTypeListVariables>
->;
-export const productTypeListQuery = gql`
+export const productTypeDetailsFragment = gql`
   ${attributeFragment}
+  ${productTypeFragment}
+  fragment ProductTypeDetailsFragment on ProductType {
+    ...ProductTypeFragment
+    productAttributes {
+      ...AttributeFragment
+    }
+    variantAttributes {
+      ...AttributeFragment
+    }
+    weight {
+      unit
+      value
+    }
+  }
+`;
+
+export const productTypeListQuery = gql`
+  ${productTypeFragment}
   query ProductTypeList(
     $after: String
     $before: String
@@ -41,15 +66,7 @@ export const productTypeListQuery = gql`
     productTypes(after: $after, before: $before, first: $first, last: $last) {
       edges {
         node {
-          id
-          name
-          hasVariants
-          productAttributes {
-            ...AttributeFragment
-          }
-          variantAttributes {
-            ...AttributeFragment
-          }
+          ...ProductTypeFragment
         }
       }
       pageInfo {
@@ -61,32 +78,39 @@ export const productTypeListQuery = gql`
     }
   }
 `;
+export const TypedProductTypeListQuery = TypedQuery<
+  ProductTypeList,
+  ProductTypeListVariables
+>(productTypeListQuery);
 
-export const TypedProductTypeDetailsQuery = Query as React.ComponentType<
-  QueryProps<ProductTypeDetails, ProductTypeDetailsVariables>
->;
 export const productTypeDetailsQuery = gql`
-  ${attributeFragment}
+  ${productTypeDetailsFragment}
   query ProductTypeDetails($id: ID!) {
     productType(id: $id) {
-      id
-      name
-      hasVariants
-      productAttributes {
-        ...AttributeFragment
-      }
-      variantAttributes {
-        ...AttributeFragment
-      }
-      isShippingRequired
-      taxRate
+      ...ProductTypeDetailsFragment
+    }
+    shop {
+      defaultWeightUnit
     }
   }
 `;
+export const TypedProductTypeDetailsQuery = TypedQuery<
+  ProductTypeDetails,
+  ProductTypeDetailsVariables
+>(productTypeDetailsQuery);
 
-export const TypedSearchAttributeQuery = Query as React.ComponentType<
-  QueryProps<SearchAttribute, SearchAttributeVariables>
->;
+export const productTypeCreateDataQuery = gql`
+  query ProductTypeCreateData {
+    shop {
+      defaultWeightUnit
+    }
+  }
+`;
+export const TypedProductTypeCreateDataQuery = TypedQuery<
+  ProductTypeCreateData,
+  {}
+>(productTypeCreateDataQuery);
+
 export const searchAttributeQuery = gql`
   ${attributeFragment}
   query SearchAttribute($search: String!) {
@@ -99,3 +123,7 @@ export const searchAttributeQuery = gql`
     }
   }
 `;
+export const TypedSearchAttributeQuery = TypedQuery<
+  SearchAttribute,
+  SearchAttributeVariables
+>(searchAttributeQuery);
