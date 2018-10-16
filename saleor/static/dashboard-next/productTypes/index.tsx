@@ -13,14 +13,10 @@ export const productTypeListUrl = "/productTypes";
 const ProductTypeList: React.StatelessComponent<RouteComponentProps<{}>> = ({
   location
 }) => {
-  const queryString = parseQs(location.search.substr(1));
+  const qs = parseQs(location.search.substr(1));
   const params = {
-    after: queryString.after
-      ? decodeURIComponent(queryString.after)
-      : undefined,
-    before: queryString.before
-      ? decodeURIComponent(queryString.before)
-      : undefined
+    after: qs.after,
+    before: qs.before
   };
   return <ProductTypeListComponent params={params} />;
 };
