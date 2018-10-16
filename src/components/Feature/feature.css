@@ -31,7 +31,7 @@
           height: 100vh;
           padding: 0;
           & .plane {
-            width: 50%;
+            width: 55%;
             position: absolute;
             top: 40%;
             left: 10%;
