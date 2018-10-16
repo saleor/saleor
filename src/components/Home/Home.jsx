@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import ReactSVG from 'react-svg';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import { Link } from 'react-router-dom';
 import { GitHubLink } from '..';
 import { isMobileOnly } from 'react-device-detect';
 
@@ -43,7 +44,6 @@ class Home extends Component {
   };
 
   render() {
-    console.log(!isMobileOnly);
     return (
         <div id="home" className="container">
           <section className="hero">
@@ -129,7 +129,7 @@ class Home extends Component {
                 <div className="col-xs-12 col-sm-6 col-md-6 text">
                   <h2>03. Easy to customize</h2>
                   <p>Saleor delivers even when you need more than an out-of-the-box solution.</p>
-                  <p className="text-light">Take it even further to automate any commerce process like ordering, shipping or payment. Whether you’re a local florist or a government agency, Saleor is a solid foundation to build and deliver bespoke solutions to your specific problems. Build the store that you want instead of trying to bend your requirements around enterprise platforms.</p>
+                  <p className="text-light">Take it even further to automate any process like ordering, shipping or payment. Whether you’re a local florist or a government agency, Saleor is a solid foundation to build and deliver bespoke solutions to your specific problems. Build the store that you want instead of trying to bend your requirements around enterprise platforms.</p>
                 </div>
                 <Fade bottom when={true} appear={!isMobileOnly} duration={1500}>
                 <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
@@ -159,7 +159,7 @@ class Home extends Component {
                   <a href="">See Dashboard</a>
                 </div>
                 <div className="col-xs-12 col-sm-12 col-md-12 more-btn">
-                  <a className="btn btn-secondary" href=""><span>See more features</span></a>
+                  <Link className="btn btn-secondary" to="/features"><span>See more features</span></Link>
                 </div>
               </div>
             </div>

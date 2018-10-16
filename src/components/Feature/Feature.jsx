@@ -60,7 +60,7 @@ const Feature = () => (
             <h3 className="title">
               Loved by search<br/> engines
             </h3>
-            <p>Saleor is packed with everything you need from sitemaps and schema.org structured data, to Open Graph that kick-starts your e-commerce SEO. Integrate with Google Merchant Center and present your products to a wider audience.</p>
+            <p>Saleor is packed with everything you need, from sitemaps and schema.org structured data to Open Graph that kick-starts your e-commerce SEO. Integrate with Google Merchant Center and present your products to a wider audience.</p>
           </div>
           <div className="icon-card">
             <ReactSVG className="graphql" path={graphQLIcon} />
@@ -97,12 +97,12 @@ const Feature = () => (
       <section className="product-management management-section grid">
         <div className="side-header col-lg-4 col-md-6 col-sm-12 col-xs-12">
           <h2>Product <br/> Management</h2>
-          <p className="sub-description">Product offer attractiveness is a combination of factors like price, exposure, and variety. Take charge and drive sales</p>
+          <p className="sub-description">Product offer attractiveness is a combination of factors like price, exposure, and variety. Take charge and drive sales.</p>
         </div>
         <div className="card-grid col-lg-8 col-md-6 col-sm-12 col-xs-12">
           <div className="icon-card">
               <ReactSVG path={productVariant} />
-              <h5 className="title">Product & Variants</h5>
+              <h5 className="title">Products & Variants</h5>
               <p>Use attributes like color and size to create
                  unlimited product variants. Enable your customers
                  to use faceted search to find relevant products.</p>
@@ -151,8 +151,7 @@ const Feature = () => (
               <ReactSVG path={multipleDispatch} />
               <h5 className="title">Multiple dispatch</h5>
               <p>Need to ship certain items separately or on a different date? Deliver
-                 a single order using multiple fulfillments, even if it means
-                 splitting the quantity of a single product.</p>
+                 a single order using multiple fulfillments, even if it means splitting the quantity of a specific product.</p>
             </div>
             <div className="icon-card">
               <ReactSVG path={refunds} />

@@ -8,6 +8,10 @@
           width: 100%;
           height: 100%;
           position: absolute;
+          @media (min-width: 2500px) {
+            background-size: 90%;
+            background-position: 250% 0%;
+          }
           @media (max-width: 1024px) {
             background-size: 90%;
             background-position: 120% 0%;
@@ -78,7 +82,7 @@
         }
         &.testimonial {
           background-color: #100A35;
-          background: linear-gradient(135deg, rgba(16,10,53,0) 5%, rgba(16,10,53,1) 8%, rgba(16,10,53,1) 95%, rgba(16,10,53,0) 8%, rgba(16,10,53,0) 100%);
+          background: linear-gradient(135deg, rgba(16,10,53,0) 4%, rgba(16,10,53,1) 4%, rgba(16,10,53,1) 96%, rgba(16,10,53,0) 4%, rgba(16,10,53,0) 100%);
           padding: calc(var(--spacer) * 8) 0 calc(var(--spacer) * 6);
           font-weight: var(--font-weight-lighter);
           & .container {

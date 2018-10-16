@@ -10,7 +10,10 @@
       & .bg-container {
         background-image: url('../../images/roadmap-bg.svg');
         background-size: 60%;
-        background-position: 100% 20%;
+        background-position: 100% 50%;
+        @media (min-width: 2500px) {
+          background-size: 70%;
+        }
         @media (max-width: 1024px) {
           background-size: 70%;
         }
@@ -24,7 +27,7 @@
         }
       }
       & .plane {
-        width: 40%;
+        width: 30%;
         position: absolute;
         top: 40%;
         left: 10%;

@@ -241,6 +241,7 @@ ul {
   transform: skew(45deg);
   display: inline-block;
   font-size: calc(var(--font-size-base) * 1.2);
+  text-decoration: none;
   & span {
     display: block;
     transform: skew(-45deg);
