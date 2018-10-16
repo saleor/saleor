@@ -23,7 +23,9 @@ export const CategoryCreateView: React.StatelessComponent<
           const handleSuccess = (data: CategoryCreate) => {
             if (data.categoryCreate.errors.length === 0) {
               pushMessage({ text: i18n.t("Category created") });
-              navigate(categoryUrl(data.categoryCreate.category.id));
+              navigate(
+                categoryUrl(encodeURIComponent(data.categoryCreate.category.id))
+              );
             }
           };
           return (
@@ -32,7 +34,9 @@ export const CategoryCreateView: React.StatelessComponent<
                 <CategoryCreatePage
                   errors={maybe(() => data.categoryCreate.errors, [])}
                   disabled={loading}
-                  onBack={() => navigate(categoryUrl(parentId))}
+                  onBack={() =>
+                    navigate(categoryUrl(encodeURIComponent(parentId)))
+                  }
                   onSubmit={formData =>
                     mutate({
                       variables: {

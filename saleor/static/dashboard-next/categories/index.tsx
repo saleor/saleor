@@ -14,12 +14,17 @@ const CategoryDetails: React.StatelessComponent<RouteComponentProps<any>> = ({
     after: qs.after,
     before: qs.before
   };
-  return <CategoryDetailsView id={match.params.id} params={params} />;
+  return (
+    <CategoryDetailsView
+      id={decodeURIComponent(match.params.id)}
+      params={params}
+    />
+  );
 };
 const CategoryCreate: React.StatelessComponent<RouteComponentProps<any>> = ({
   match
 }) => {
-  return <CategoryCreateView parentId={match.params.id} />;
+  return <CategoryCreateView parentId={decodeURIComponent(match.params.id)} />;
 };
 
 const Component = ({ match }) => (

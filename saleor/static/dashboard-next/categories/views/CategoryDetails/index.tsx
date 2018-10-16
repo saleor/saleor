@@ -98,26 +98,36 @@ export const CategoryDetails: React.StatelessComponent<
                                 )}
                                 placeholderImage={""}
                                 onAddCategory={() =>
-                                  navigate(categoryAddUrl(id))
+                                  navigate(
+                                    categoryAddUrl(encodeURIComponent(id))
+                                  )
                                 }
                                 onAddProduct={() => navigate(productAddUrl)}
                                 onBack={() =>
                                   navigate(
                                     categoryUrl(
-                                      maybe(() => data.category.parent.id)
+                                      maybe(() =>
+                                        encodeURIComponent(
+                                          data.category.parent.id
+                                        )
+                                      )
                                     )
                                   )
                                 }
                                 onCategoryClick={id => () =>
-                                  navigate(categoryUrl(id))}
-                                onDelete={() => navigate(categoryDeleteUrl(id))}
+                                  navigate(categoryUrl(encodeURIComponent(id)))}
+                                onDelete={() =>
+                                  navigate(
+                                    categoryDeleteUrl(encodeURIComponent(id))
+                                  )
+                                }
                                 onImageDelete={() => undefined}
                                 onImageUpload={() => undefined}
                                 onNextPage={paginationData.loadNextPage}
                                 onPreviousPage={paginationData.loadPreviousPage}
                                 pageInfo={paginationData.pageInfo}
                                 onProductClick={id => () =>
-                                  navigate(productUrl(id))}
+                                  navigate(productUrl(encodeURIComponent(id)))}
                                 onSubmit={formData =>
                                   updateCategory({
                                     variables: {
@@ -152,7 +162,10 @@ export const CategoryDetails: React.StatelessComponent<
                                 render={({ match }) => (
                                   <ActionDialog
                                     onClose={() =>
-                                      navigate(categoryUrl(id), true)
+                                      navigate(
+                                        categoryUrl(encodeURIComponent(id)),
+                                        true
+                                      )
                                     }
                                     onConfirm={() =>
                                       deleteCategory({ variables: { id } })
