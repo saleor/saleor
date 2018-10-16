@@ -42,7 +42,7 @@ const Feature = () => (
       </section>
       <section id="testimonial" className="testimonial">
         <div className="container">
-          <div class="patchgarden-logo">
+          <div className="patchgarden-logo">
             <ReactSVG className="logo-svg" path="../../images/patch-garden.svg" />
             <span>Patch Garden</span>
           </div>

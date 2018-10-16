@@ -165,7 +165,7 @@ class Home extends Component {
             </div>
           </section>
           <section className="open-source">
-            <div class="background-mobile"></div>
+            <div className="background-mobile"></div>
             <div className="section-container">
               <div className="text">
                 <h2>Open source</h2>
@@ -294,7 +294,7 @@ class Home extends Component {
                   </ul>
                 </div>
               </div>
-              <div class="btn-container">
+              <div className="btn-container">
                 <a className="btn btn-primary" href="https://mirumee.com/hire-us/" target="_blank"><span>Estimate your project</span></a>
               </div>
             </div>
