@@ -2,21 +2,19 @@ import { storiesOf } from "@storybook/react";
 import * as React from "react";
 import * as placeholderImage from "../../../../images/placeholder255x255.png";
 
-import { categories, category } from "../../../categories/fixtures";
-import { products as productsFixture } from "../../../products/fixtures";
+import { category as categoryFixture } from "../../../categories/fixtures";
 
 import CategoryUpdatePage, {
   CategoryUpdatePageProps
 } from "../../../categories/components/CategoryUpdatePage";
 import Decorator from "../../Decorator";
 
-const products = productsFixture(placeholderImage);
+const category = categoryFixture(placeholderImage);
 
 const updateProps: CategoryUpdatePageProps = {
   category,
   disabled: false,
   errors: [],
-  loading: false,
   onAddCategory: undefined,
   onAddProduct: undefined,
   onBack: () => undefined,
@@ -33,18 +31,15 @@ const updateProps: CategoryUpdatePageProps = {
     hasPreviousPage: true
   },
   placeholderImage,
-  products,
-  subcategories: categories
+  products: category.products.edges.map(edge => edge.node),
+  subcategories: category.children.edges.map(edge => edge.node)
 };
 
 storiesOf("Views / Categories / Update category", module)
   .addDecorator(Decorator)
   .add("default", () => <CategoryUpdatePage {...updateProps} />)
   .add("no background", () => (
-    <CategoryUpdatePage
-      {...updateProps}
-      category={{ ...category, backgroundImage: null }}
-    />
+    <CategoryUpdatePage {...updateProps} category={category} />
   ))
   .add("no subcategories", () => (
     <CategoryUpdatePage {...updateProps} subcategories={[]} />
@@ -58,7 +53,6 @@ storiesOf("Views / Categories / Update category", module)
       subcategories={undefined}
       disabled={true}
       products={undefined}
-      loading={true}
       category={undefined}
     />
   ));

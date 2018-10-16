@@ -13,10 +13,14 @@ import SeoForm from "../../../components/SeoForm";
 import Tabs, { Tab } from "../../../components/Tab";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { MoneyType } from "../../../products";
 import CategoryDetailsForm from "../../components/CategoryDetailsForm";
 import CategoryList from "../../components/CategoryList";
-import CategoryBackground from "../CategoryBackground";
+import {
+  CategoryDetails_category,
+  CategoryDetails_category_children_edges_node,
+  CategoryDetails_category_products_edges_node
+} from "../../types/CategoryDetails";
+// import CategoryBackground from "../CategoryBackground";
 import CategoryProductsCard from "../CategoryProductsCard";
 
 interface FormData {
@@ -30,46 +34,16 @@ export interface CategoryUpdatePageProps {
   errors: UserError[];
   disabled: boolean;
   placeholderImage: string;
-  category: {
-    SeoDescription: string;
-    SeoTitle: string;
-    backgroundImage: {
-      url: string;
-    };
-    id: string;
-    name: string;
-    description: string;
-  };
-  products: Array<{
-    id: string;
-    name: string;
-    productType: {
-      name: string;
-    };
-    thumbnailUrl: string;
-    availability: {
-      available: boolean;
-    };
-    price: MoneyType;
-  }>;
-  subcategories: Array<{
-    id: string;
-    name: string;
-    children: {
-      totalCount: number;
-    };
-    products: {
-      totalCount: number;
-    };
-  }>;
+  category: CategoryDetails_category;
+  products: CategoryDetails_category_products_edges_node[];
+  subcategories: CategoryDetails_category_children_edges_node[];
   pageInfo: {
     hasNextPage: boolean;
     hasPreviousPage: boolean;
   };
-  loading: boolean;
   saveButtonBarState?: SaveButtonBarState;
   onImageDelete: () => void;
-  onSubmit(data: FormData);
+  onSubmit: (data: FormData) => void;
   onImageUpload(event: React.ChangeEvent<any>);
   onNextPage();
   onPreviousPage();
@@ -93,9 +67,7 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
     classes,
     disabled,
     errors: userErrors,
-    loading,
     pageInfo,
-    placeholderImage,
     products,
     saveButtonBarState,
     subcategories,
@@ -104,8 +76,6 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
     onBack,
     onCategoryClick,
     onDelete,
-    onImageDelete,
-    onImageUpload,
     onNextPage,
     onPreviousPage,
     onProductClick,
@@ -113,10 +83,10 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
   }) => {
     const initialData = category
       ? {
-          description: category.description,
+          description: category.description || "",
           name: category.name,
-          seoDescription: category.SeoDescription,
-          seoTitle: category.SeoTitle
+          seoDescription: category.seoDescription || "",
+          seoTitle: category.seoTitle || ""
         }
       : {
           description: "",
@@ -125,7 +95,12 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
           seoTitle: ""
         };
     return (
-      <Form onSubmit={onSubmit} initial={initialData} errors={userErrors}>
+      <Form
+        onSubmit={onSubmit}
+        initial={initialData}
+        errors={userErrors}
+        key={JSON.stringify(category)}
+      >
         {({ data, change, errors, submit, hasChanged }) => (
           <Container width="md">
             <PageHeader
@@ -139,12 +114,13 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
               onChange={change}
             />
             <CardSpacer />
-            <CategoryBackground
+            {/* TODO: Uncomment this section after API fixes */}
+            {/* <CategoryBackground
               onImageUpload={onImageUpload}
               onImageDelete={onImageDelete}
               backgroundImage={maybe(() => category.backgroundImage)}
               placeholderImage={placeholderImage}
-            />
+            /> */}
             <CardSpacer />
             <SeoForm
               helperText={i18n.t(
@@ -154,7 +130,7 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
               titlePlaceholder={data.name}
               description={data.seoDescription}
               descriptionPlaceholder={data.description}
-              loading={loading}
+              loading={!category}
               onChange={change}
               disabled={disabled}
             />
@@ -189,7 +165,7 @@ export const CategoryUpdatePage = decorate<CategoryUpdatePageProps>(
                   )}
                   {currentTab === 1 && (
                     <CategoryProductsCard
-                      categoryName={category.name}
+                      categoryName={maybe(() => category.name)}
                       products={products}
                       disabled={disabled}
                       pageInfo={pageInfo}

@@ -6,23 +6,11 @@ import { PageListProps } from "../../..";
 import CardTitle from "../../../components/CardTitle";
 import ProductList from "../../../components/ProductList";
 import i18n from "../../../i18n";
-import { MoneyType } from "../../../products";
+import { CategoryDetails_category_products_edges_node } from "../../types/CategoryDetails";
 
 interface CategoryProductsCardProps extends PageListProps {
-  products: Array<{
-    id: string;
-    name: string;
-    productType: {
-      name: string;
-    };
-    thumbnailUrl: string;
-    availability: {
-      available: boolean;
-    };
-    price: MoneyType;
-  }>;
+  products: CategoryDetails_category_products_edges_node[];
   categoryName: string;
-  onAddProduct?();
 }
 
 export const CategoryProductsCard: React.StatelessComponent<
@@ -31,7 +19,7 @@ export const CategoryProductsCard: React.StatelessComponent<
   products,
   disabled,
   pageInfo,
-  onAddProduct,
+  onAdd,
   onNextPage,
   onPreviousPage,
   onRowClick,
@@ -41,7 +29,7 @@ export const CategoryProductsCard: React.StatelessComponent<
     <CardTitle
       title={i18n.t("Products in {{ categoryName }}", { categoryName })}
       toolbar={
-        <Button color="secondary" variant="flat" onClick={onAddProduct}>
+        <Button color="secondary" variant="flat" onClick={onAdd}>
           {i18n.t("Add product")}
         </Button>
       }
