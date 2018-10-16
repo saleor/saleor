@@ -156,6 +156,11 @@ module.exports = (env, argv) => {
       new SWPrecacheWebpackPlugin({
         cacheId: 'get-saleor',
         filename: 'service-worker.js',
+        staticFileGlobs: [
+          `${distDir}images/**.*`,
+          `${distDir}css/**.*`,
+          `${distDir}js/**.*`
+        ],
         staticFileGlobsIgnorePatterns: [/\.map$/, /asset-manifest\.json$/],
       })
     ]
