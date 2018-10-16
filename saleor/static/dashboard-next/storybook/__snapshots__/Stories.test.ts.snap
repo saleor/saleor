@@ -1,9 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Storyshots Categories / CategoryDeleteDialog default 1`] = `<div />`;
-
-exports[`Storyshots Categories / CategoryDeleteDialog with products 1`] = `<div />`;
-
 exports[`Storyshots Categories / CategoryProducts when loading data 1`] = `
 <div>
   <div
@@ -6238,678 +6234,7 @@ exports[`Storyshots Views / Authentication / Verifying remembered user default 1
 </div>
 `;
 
-exports[`Storyshots Views / Categories / Category details default 1`] = `
-<div>
-  <div
-    class="Component-md-id"
-  >
-    <div
-      class="Component-root-id"
-    >
-      <button
-        class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiIconButton-label-id"
-        >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root-id"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <g>
-              <path
-                d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
-              />
-            </g>
-          </svg>
-        </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
-      </button>
-      <h2
-        class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-      >
-        Apparel
-      </h2>
-      <div
-        class="Component-action-id"
-      />
-    </div>
-    <div>
-      <div
-        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
-      >
-        <div
-          class="Component-root-id"
-        >
-          <span
-            class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
-          >
-            Details
-          </span>
-          <div
-            class="Component-toolbar-id"
-          >
-            <button
-              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-              tabindex="0"
-              type="button"
-            >
-              <span
-                class="MuiButton-label-id"
-              >
-                Edit category
-              </span>
-              <span
-                class="MuiTouchRipple-root-id"
-              />
-            </button>
-          </div>
-        </div>
-        <div
-          class="Component-children-id"
-        />
-        <hr
-          class="Component-hr-id"
-        />
-        <div
-          class="MuiCardContent-root-id"
-        >
-          <p
-            class="MuiTypography-root-id MuiTypography-body1-id"
-          >
-            Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
-Tell lose part purpose do when. Whatever drug contain particularly defense.
-          </p>
-        </div>
-      </div>
-      <div
-        class="Component-cardContainer-id"
-      >
-        <div
-          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
-        >
-          <div
-            class="Component-root-id"
-          >
-            <span
-              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
-            >
-              Subcategories
-            </span>
-            <div
-              class="Component-toolbar-id"
-            >
-              <button
-                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiButton-label-id"
-                >
-                  Add subcategory
-                </span>
-                <span
-                  class="MuiTouchRipple-root-id"
-                />
-              </button>
-            </div>
-          </div>
-          <div
-            class="Component-children-id"
-          />
-          <hr
-            class="Component-hr-id"
-          />
-          <table
-            class="MuiTable-root-id"
-            padding="default"
-          >
-            <thead
-              class="MuiTableHead-root-id"
-            >
-              <tr
-                class="MuiTableRow-root-id MuiTableRow-head-id"
-              >
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id Component-wideColumn-id"
-                  scope="col"
-                >
-                  Name
-                </th>
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id"
-                  scope="col"
-                >
-                  Subcategories
-                </th>
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
-                  scope="col"
-                >
-                  No. Products
-                </th>
-              </tr>
-            </thead>
-            <tbody
-              class="MuiTableBody-root-id"
-            >
-              <tr
-                class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  Lorem ipsum dolor
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  2
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
-                >
-                  4
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  Mauris vehicula tortor vulputate
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  18
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
-                >
-                  2
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div
-        class="Component-cardContainer-id"
-      >
-        <div
-          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
-        >
-          <div
-            class="Component-root-id"
-          >
-            <span
-              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
-            >
-              Products
-            </span>
-            <div
-              class="Component-toolbar-id"
-            >
-              <button
-                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiButton-label-id"
-                >
-                  Add product
-                </span>
-                <span
-                  class="MuiTouchRipple-root-id"
-                />
-              </button>
-            </div>
-          </div>
-          <div
-            class="Component-children-id"
-          />
-          <hr
-            class="Component-hr-id"
-          />
-          <table
-            class="MuiTable-root-id"
-            padding="default"
-          >
-            <thead
-              class="MuiTableHead-root-id"
-            >
-              <tr
-                class="MuiTableRow-root-id MuiTableRow-head-id"
-              >
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id"
-                  scope="col"
-                />
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id Component-textLeft-id"
-                  scope="col"
-                >
-                  Name
-                </th>
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id"
-                  scope="col"
-                >
-                  Type
-                </th>
-              </tr>
-            </thead>
-            <tfoot
-              class="MuiTableFooter-root-id"
-            >
-              <tr
-                class="MuiTableRow-root-id MuiTableRow-footer-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
-                  colspan="3"
-                >
-                  <div
-                    class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
-                  >
-                    <div
-                      class="TablePagination-spacer-id"
-                    />
-                    <div
-                      class="TablePaginationActions-root-id"
-                    >
-                      <button
-                        class="MuiButtonBase-root-id MuiIconButton-root-id"
-                        tabindex="0"
-                        type="button"
-                      >
-                        <span
-                          class="MuiIconButton-label-id"
-                        >
-                          <svg
-                            aria-hidden="true"
-                            class="MuiSvgIcon-root-id"
-                            focusable="false"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
-                            />
-                          </svg>
-                        </span>
-                        <span
-                          class="MuiTouchRipple-root-id"
-                        />
-                      </button>
-                      <button
-                        class="MuiButtonBase-root-id MuiIconButton-root-id"
-                        tabindex="0"
-                        type="button"
-                      >
-                        <span
-                          class="MuiIconButton-label-id"
-                        >
-                          <svg
-                            aria-hidden="true"
-                            class="MuiSvgIcon-root-id"
-                            focusable="false"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
-                            />
-                          </svg>
-                        </span>
-                        <span
-                          class="MuiTouchRipple-root-id"
-                        />
-                      </button>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            </tfoot>
-            <tbody
-              class="MuiTableBody-root-id"
-            >
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
-                >
-                  <div
-                    class="MuiAvatar-root-id Component-avatar-id"
-                  >
-                    <img
-                      class="MuiAvatar-img-id"
-                      src="placeholder60x60.png"
-                    />
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-                >
-                  <span
-                    class="Component-link-id"
-                  >
-                    Gorgeous Frozen Chips
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  Awesome Wooden Pizza
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
-                >
-                  <div
-                    class="MuiAvatar-root-id Component-avatar-id"
-                  >
-                    <img
-                      class="MuiAvatar-img-id"
-                      src="placeholder60x60.png"
-                    />
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-                >
-                  <span
-                    class="Component-link-id"
-                  >
-                    Handcrafted Wooden Towels
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  Future
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
-                >
-                  <div
-                    class="MuiAvatar-root-id Component-avatar-id"
-                  >
-                    <img
-                      class="MuiAvatar-img-id"
-                      src="placeholder60x60.png"
-                    />
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-                >
-                  <span
-                    class="Component-link-id"
-                  >
-                    Handcrafted Metal Cheese
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  SMS
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
-                >
-                  <div
-                    class="MuiAvatar-root-id Component-avatar-id"
-                  >
-                    <img
-                      class="MuiAvatar-img-id"
-                      src="placeholder60x60.png"
-                    />
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-                >
-                  <span
-                    class="Component-link-id"
-                  >
-                    Refined Rubber Keyboard
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  Virtual
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
-                >
-                  <div
-                    class="MuiAvatar-root-id Component-avatar-id"
-                  >
-                    <img
-                      class="MuiAvatar-img-id"
-                      src="placeholder60x60.png"
-                    />
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-                >
-                  <span
-                    class="Component-link-id"
-                  >
-                    Gorgeous Metal Gloves
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  Vermont
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
-                >
-                  <div
-                    class="MuiAvatar-root-id Component-avatar-id"
-                  >
-                    <img
-                      class="MuiAvatar-img-id"
-                      src="placeholder60x60.png"
-                    />
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-                >
-                  <span
-                    class="Component-link-id"
-                  >
-                    Small Cotton Shirt
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  Gorgeous
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
-                >
-                  <div
-                    class="MuiAvatar-root-id Component-avatar-id"
-                  >
-                    <img
-                      class="MuiAvatar-img-id"
-                      src="placeholder60x60.png"
-                    />
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-                >
-                  <span
-                    class="Component-link-id"
-                  >
-                    Fantastic Cotton Tuna
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  TCP
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
-                >
-                  <div
-                    class="MuiAvatar-root-id Component-avatar-id"
-                  >
-                    <img
-                      class="MuiAvatar-img-id"
-                      src="placeholder60x60.png"
-                    />
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-                >
-                  <span
-                    class="Component-link-id"
-                  >
-                    Tasty Steel Pants
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  Buckinghamshire
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
-                >
-                  <div
-                    class="MuiAvatar-root-id Component-avatar-id"
-                  >
-                    <img
-                      class="MuiAvatar-img-id"
-                      src="placeholder60x60.png"
-                    />
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-                >
-                  <span
-                    class="Component-link-id"
-                  >
-                    Ergonomic Cotton Shoes
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  Jewelery
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
-                >
-                  <div
-                    class="MuiAvatar-root-id Component-avatar-id"
-                  >
-                    <img
-                      class="MuiAvatar-img-id"
-                      src="placeholder60x60.png"
-                    />
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-                >
-                  <span
-                    class="Component-link-id"
-                  >
-                    Unbranded Steel Tuna
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  Agent
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-    <div
-      class="Component-actions-id"
-    >
-      <button
-        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiButton-label-id"
-        >
-          Remove category
-        </span>
-        <span
-          class="MuiTouchRipple-root-id"
-        />
-      </button>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Views / Categories / Category details when in root 1`] = `
+exports[`Storyshots Views / Categories / Category list default 1`] = `
 <div>
   <div
     class="Component-md-id"
@@ -6920,7 +6245,7 @@ exports[`Storyshots Views / Categories / Category details when in root 1`] = `
       <h2
         class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
       >
-        Categories
+        Category
       </h2>
       <div
         class="Component-action-id"
@@ -6953,94 +6278,164 @@ exports[`Storyshots Views / Categories / Category details when in root 1`] = `
         </button>
       </div>
     </div>
-    <div>
-      <div
-        class=""
+    <div
+      class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    >
+      <table
+        class="MuiTable-root-id"
+        padding="default"
       >
-        <div
-          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        <thead
+          class="MuiTableHead-root-id"
         >
-          <table
-            class="MuiTable-root-id"
-            padding="default"
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-head-id"
           >
-            <thead
-              class="MuiTableHead-root-id"
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-wideColumn-id"
+              scope="col"
             >
-              <tr
-                class="MuiTableRow-root-id MuiTableRow-head-id"
-              >
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id Component-wideColumn-id"
-                  scope="col"
-                >
-                  Name
-                </th>
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id"
-                  scope="col"
-                >
-                  Subcategories
-                </th>
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
-                  scope="col"
-                >
-                  No. Products
-                </th>
-              </tr>
-            </thead>
-            <tbody
-              class="MuiTableBody-root-id"
+              Category Name
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
+              scope="col"
             >
-              <tr
-                class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  Lorem ipsum dolor
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  2
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
-                >
-                  4
-                </td>
-              </tr>
-              <tr
-                class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  Mauris vehicula tortor vulputate
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  18
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
-                >
-                  2
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+              Subcategories
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
+              scope="col"
+            >
+              No. Products
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          class="MuiTableBody-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Lorem ipsum dolor
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+            >
+              2
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+            >
+              4
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Mauris vehicula tortor vulputate
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+            >
+              54
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+            >
+              3
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Excepteur sint occaecat cupidatat non proident
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+            >
+              2
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+            >
+              6
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Ut enim ad minim veniam
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+            >
+              6
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+            >
+              12
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Duis aute irure dolor in reprehenderit
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+            >
+              76
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+            >
+              43
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Neque porro quisquam est
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+            >
+              11
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+            >
+              21
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
 `;
 
-exports[`Storyshots Views / Categories / Category details when loading 1`] = `
+exports[`Storyshots Views / Categories / Category list empty 1`] = `
 <div>
   <div
     class="Component-md-id"
@@ -7051,18 +6446,715 @@ exports[`Storyshots Views / Categories / Category details when loading 1`] = `
       <h2
         class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
       >
-        <span
-          class="Skeleton-skeleton-id"
-          style="width:10em"
-        >
-          ‌
-        </span>
+        Category
       </h2>
       <div
         class="Component-action-id"
-      />
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Add category 
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+      </div>
     </div>
-    <div>
+    <div
+      class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    >
+      <table
+        class="MuiTable-root-id"
+        padding="default"
+      >
+        <thead
+          class="MuiTableHead-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-head-id"
+          >
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-wideColumn-id"
+              scope="col"
+            >
+              Category Name
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
+              scope="col"
+            >
+              Subcategories
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
+              scope="col"
+            >
+              No. Products
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          class="MuiTableBody-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+              colspan="3"
+            >
+              No categories found
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Categories / Category list loading 1`] = `
+<div>
+  <div
+    class="Component-md-id"
+  >
+    <div
+      class="Component-root-id"
+    >
+      <h2
+        class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
+      >
+        Category
+      </h2>
+      <div
+        class="Component-action-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Add category 
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+      </div>
+    </div>
+    <div
+      class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+    >
+      <table
+        class="MuiTable-root-id"
+        padding="default"
+      >
+        <thead
+          class="MuiTableHead-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-head-id"
+          >
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-wideColumn-id"
+              scope="col"
+            >
+              Category Name
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
+              scope="col"
+            >
+              Subcategories
+            </th>
+            <th
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
+              scope="col"
+            >
+              No. Products
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          class="MuiTableBody-root-id"
+        >
+          <tr
+            class="MuiTableRow-root-id Component-tableRow-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+            >
+              <span
+                class="Skeleton-skeleton-id"
+              >
+                ‌
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots Views / Categories / Create category When loading 1`] = `
+<div>
+  <form>
+    <div
+      class="Component-md-id"
+    >
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
+        >
+          Add Category
+        </h2>
+        <div
+          class="Component-action-id"
+        />
+      </div>
+      <div>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <div
+            class="Component-root-id"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+            >
+              General information
+            </span>
+            <div
+              class="Component-toolbar-id"
+            />
+          </div>
+          <div
+            class="Component-children-id"
+          />
+          <hr
+            class="Component-hr-id"
+          />
+          <div
+            class="MuiCardContent-root-id"
+          >
+            <div>
+              <div
+                class="MuiFormControl-root-id Component-root-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
+                >
+                  Name
+                </label>
+                <div
+                  class="MuiInput-root-id MuiInput-disabled-id MuiInput-formControl-id MuiInput-underline-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInput-input-id MuiInput-disabled-id"
+                    disabled=""
+                    name="name"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="Component-spacer-id"
+            />
+            <div
+              class="MuiFormControl-root-id"
+              style="width:100%"
+            >
+              <label
+                class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                data-shrink="false"
+              >
+                Description
+              </label>
+              <div
+                class="MuiInput-root-id MuiInput-disabled-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
+              >
+                <div
+                  class="Textarea-root-id"
+                  style="height:19px"
+                >
+                  <textarea
+                    aria-hidden="true"
+                    class="Textarea-textarea-id Textarea-shadow-id"
+                    readonly=""
+                    rows="1"
+                    tabindex="-1"
+                  />
+                  <textarea
+                    aria-hidden="true"
+                    class="Textarea-textarea-id Textarea-shadow-id"
+                    readonly=""
+                    rows="1"
+                    tabindex="-1"
+                  />
+                  <textarea
+                    aria-invalid="false"
+                    class="Textarea-textarea-id MuiInput-input-id MuiInput-disabled-id MuiInput-inputMultiline-id"
+                    disabled=""
+                    name="description"
+                    rows="1"
+                    type="text"
+                  />
+                </div>
+              </div>
+              <p
+                class="MuiFormHelperText-root-id"
+              >
+                Select text to enable text-formatting tools.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div
+          class="Component-spacer-id"
+        />
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <div
+            class="Component-root-id"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+            >
+              Search Engine Preview
+            </span>
+            <div
+              class="Component-toolbar-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiButton-label-id"
+                >
+                  Edit website SEO
+                </span>
+                <span
+                  class="MuiTouchRipple-root-id"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="Component-children-id"
+          />
+          <hr
+            class="Component-hr-id"
+          />
+          <div
+            class="MuiCardContent-root-id"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id"
+            >
+              Add search engine title and description to make this product easier to find
+            </p>
+          </div>
+        </div>
+        <div
+          class="Component-root-id"
+        >
+          <div
+            class="Component-spacer-id"
+          />
+          <button
+            class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id Component-cancelButton-id"
+            tabindex="0"
+            type="button"
+          >
+            <span
+              class="MuiButton-label-id"
+            >
+              Cancel
+            </span>
+            <span
+              class="MuiTouchRipple-root-id"
+            />
+          </button>
+          <button
+            class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+            disabled=""
+            tabindex="-1"
+            type="button"
+          >
+            <span
+              class="MuiButton-label-id"
+            >
+              Save category
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Categories / Create category default 1`] = `
+<div>
+  <form>
+    <div
+      class="Component-md-id"
+    >
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
+        >
+          Add Category
+        </h2>
+        <div
+          class="Component-action-id"
+        />
+      </div>
+      <div>
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <div
+            class="Component-root-id"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+            >
+              General information
+            </span>
+            <div
+              class="Component-toolbar-id"
+            />
+          </div>
+          <div
+            class="Component-children-id"
+          />
+          <hr
+            class="Component-hr-id"
+          />
+          <div
+            class="MuiCardContent-root-id"
+          >
+            <div>
+              <div
+                class="MuiFormControl-root-id Component-root-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
+                >
+                  Name
+                </label>
+                <div
+                  class="MuiInput-root-id MuiInput-formControl-id MuiInput-underline-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInput-input-id"
+                    name="name"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="Component-spacer-id"
+            />
+            <div
+              class="MuiFormControl-root-id"
+              style="width:100%"
+            >
+              <label
+                class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                data-shrink="false"
+              >
+                Description
+              </label>
+              <div
+                class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
+              >
+                <div
+                  class="Textarea-root-id"
+                  style="height:19px"
+                >
+                  <textarea
+                    aria-hidden="true"
+                    class="Textarea-textarea-id Textarea-shadow-id"
+                    readonly=""
+                    rows="1"
+                    tabindex="-1"
+                  />
+                  <textarea
+                    aria-hidden="true"
+                    class="Textarea-textarea-id Textarea-shadow-id"
+                    readonly=""
+                    rows="1"
+                    tabindex="-1"
+                  />
+                  <textarea
+                    aria-invalid="false"
+                    class="Textarea-textarea-id MuiInput-input-id MuiInput-inputMultiline-id"
+                    name="description"
+                    rows="1"
+                    type="text"
+                  />
+                </div>
+              </div>
+              <p
+                class="MuiFormHelperText-root-id"
+              >
+                Select text to enable text-formatting tools.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div
+          class="Component-spacer-id"
+        />
+        <div
+          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+        >
+          <div
+            class="Component-root-id"
+          >
+            <span
+              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+            >
+              Search Engine Preview
+            </span>
+            <div
+              class="Component-toolbar-id"
+            >
+              <button
+                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiButton-label-id"
+                >
+                  Edit website SEO
+                </span>
+                <span
+                  class="MuiTouchRipple-root-id"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="Component-children-id"
+          />
+          <hr
+            class="Component-hr-id"
+          />
+          <div
+            class="MuiCardContent-root-id"
+          >
+            <p
+              class="MuiTypography-root-id MuiTypography-body1-id"
+            >
+              Add search engine title and description to make this product easier to find
+            </p>
+          </div>
+        </div>
+        <div
+          class="Component-root-id"
+        >
+          <div
+            class="Component-spacer-id"
+          />
+          <button
+            class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id Component-cancelButton-id"
+            tabindex="0"
+            type="button"
+          >
+            <span
+              class="MuiButton-label-id"
+            >
+              Cancel
+            </span>
+            <span
+              class="MuiTouchRipple-root-id"
+            />
+          </button>
+          <button
+            class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+            disabled=""
+            tabindex="-1"
+            type="button"
+          >
+            <span
+              class="MuiButton-label-id"
+            >
+              Save category
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Categories / Update category default 1`] = `
+<div>
+  <form>
+    <div
+      class="Component-md-id"
+    >
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
+        >
+          Coffees
+        </h2>
+        <div
+          class="Component-action-id"
+        />
+      </div>
       <div
         class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
       >
@@ -7072,7 +7164,115 @@ exports[`Storyshots Views / Categories / Category details when loading 1`] = `
           <span
             class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
           >
-            Details
+            General information
+          </span>
+          <div
+            class="Component-toolbar-id"
+          />
+        </div>
+        <div
+          class="Component-children-id"
+        />
+        <hr
+          class="Component-hr-id"
+        />
+        <div
+          class="MuiCardContent-root-id"
+        >
+          <div>
+            <div
+              class="MuiFormControl-root-id Component-root-id"
+            >
+              <label
+                class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                data-shrink="true"
+              >
+                Name
+              </label>
+              <div
+                class="MuiInput-root-id MuiInput-formControl-id MuiInput-underline-id"
+              >
+                <input
+                  aria-invalid="false"
+                  class="MuiInput-input-id"
+                  name="name"
+                  type="text"
+                  value="Coffees"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiFormControl-root-id"
+            style="width:100%"
+          >
+            <label
+              class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+              data-shrink="true"
+            >
+              Description
+            </label>
+            <div
+              class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
+            >
+              <div
+                class="Textarea-root-id"
+                style="height:19px"
+              >
+                <textarea
+                  aria-hidden="true"
+                  class="Textarea-textarea-id Textarea-shadow-id"
+                  readonly=""
+                  rows="1"
+                  tabindex="-1"
+                />
+                <textarea
+                  aria-hidden="true"
+                  class="Textarea-textarea-id Textarea-shadow-id"
+                  readonly=""
+                  rows="1"
+                  tabindex="-1"
+                >
+                  Difference direction to treat anything worker occur. Miss in thousand Democrat civil hope set.
+                </textarea>
+                <textarea
+                  aria-invalid="false"
+                  class="Textarea-textarea-id MuiInput-input-id MuiInput-inputMultiline-id"
+                  name="description"
+                  rows="1"
+                  type="text"
+                >
+                  Difference direction to treat anything worker occur. Miss in thousand Democrat civil hope set.
+                </textarea>
+              </div>
+            </div>
+            <p
+              class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
+            >
+              Select text to enable text-formatting tools.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+      >
+        <div
+          class="Component-root-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+          >
+            Search Engine Preview
           </span>
           <div
             class="Component-toolbar-id"
@@ -7085,7 +7285,7 @@ exports[`Storyshots Views / Categories / Category details when loading 1`] = `
               <span
                 class="MuiButton-label-id"
               >
-                Edit category
+                Edit website SEO
               </span>
               <span
                 class="MuiTouchRipple-root-id"
@@ -7102,433 +7302,132 @@ exports[`Storyshots Views / Categories / Category details when loading 1`] = `
         <div
           class="MuiCardContent-root-id"
         >
-          <span
-            class="Skeleton-skeleton-id"
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id"
           >
-            ‌
-          </span>
+            Add search engine title and description to make this category easier to find
+          </p>
         </div>
       </div>
       <div
-        class="Component-cardContainer-id"
-      >
-        <div
-          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
-        >
-          <div
-            class="Component-root-id"
-          >
-            <span
-              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
-            >
-              Subcategories
-            </span>
-            <div
-              class="Component-toolbar-id"
-            >
-              <button
-                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiButton-label-id"
-                >
-                  Add subcategory
-                </span>
-                <span
-                  class="MuiTouchRipple-root-id"
-                />
-              </button>
-            </div>
-          </div>
-          <div
-            class="Component-children-id"
-          />
-          <hr
-            class="Component-hr-id"
-          />
-          <table
-            class="MuiTable-root-id"
-            padding="default"
-          >
-            <thead
-              class="MuiTableHead-root-id"
-            >
-              <tr
-                class="MuiTableRow-root-id MuiTableRow-head-id"
-              >
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id Component-wideColumn-id"
-                  scope="col"
-                >
-                  Name
-                </th>
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id"
-                  scope="col"
-                >
-                  Subcategories
-                </th>
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
-                  scope="col"
-                >
-                  No. Products
-                </th>
-              </tr>
-            </thead>
-            <tbody
-              class="MuiTableBody-root-id"
-            >
-              <tr
-                class="MuiTableRow-root-id Component-tableRow-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <span
-                    class="Skeleton-skeleton-id"
-                  >
-                    ‌
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <span
-                    class="Skeleton-skeleton-id"
-                  >
-                    ‌
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
-                >
-                  <span
-                    class="Skeleton-skeleton-id"
-                  >
-                    ‌
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+        class="Component-spacer-id"
+      />
       <div
-        class="Component-cardContainer-id"
-      >
-        <div
-          class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
-        >
-          <div
-            class="Component-root-id"
-          >
-            <span
-              class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
-            >
-              Products
-            </span>
-            <div
-              class="Component-toolbar-id"
-            >
-              <button
-                class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-                tabindex="0"
-                type="button"
-              >
-                <span
-                  class="MuiButton-label-id"
-                >
-                  Add product
-                </span>
-                <span
-                  class="MuiTouchRipple-root-id"
-                />
-              </button>
-            </div>
-          </div>
-          <div
-            class="Component-children-id"
-          />
-          <hr
-            class="Component-hr-id"
-          />
-          <table
-            class="MuiTable-root-id"
-            padding="default"
-          >
-            <thead
-              class="MuiTableHead-root-id"
-            >
-              <tr
-                class="MuiTableRow-root-id MuiTableRow-head-id"
-              >
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id"
-                  scope="col"
-                />
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id Component-textLeft-id"
-                  scope="col"
-                >
-                  Name
-                </th>
-                <th
-                  class="MuiTableCell-root-id MuiTableCell-head-id"
-                  scope="col"
-                >
-                  Type
-                </th>
-              </tr>
-            </thead>
-            <tfoot
-              class="MuiTableFooter-root-id"
-            >
-              <tr
-                class="MuiTableRow-root-id MuiTableRow-footer-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
-                  colspan="3"
-                >
-                  <div
-                    class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
-                  >
-                    <div
-                      class="TablePagination-spacer-id"
-                    />
-                    <div
-                      class="TablePaginationActions-root-id"
-                    >
-                      <button
-                        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
-                        disabled=""
-                        tabindex="-1"
-                        type="button"
-                      >
-                        <span
-                          class="MuiIconButton-label-id"
-                        >
-                          <svg
-                            aria-hidden="true"
-                            class="MuiSvgIcon-root-id"
-                            focusable="false"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
-                            />
-                          </svg>
-                        </span>
-                      </button>
-                      <button
-                        class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
-                        disabled=""
-                        tabindex="-1"
-                        type="button"
-                      >
-                        <span
-                          class="MuiIconButton-label-id"
-                        >
-                          <svg
-                            aria-hidden="true"
-                            class="MuiSvgIcon-root-id"
-                            focusable="false"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
-                            />
-                          </svg>
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            </tfoot>
-            <tbody
-              class="MuiTableBody-root-id"
-            >
-              <tr
-                class="MuiTableRow-root-id"
-              >
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
-                >
-                  <div
-                    class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
-                  >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      viewBox="0 0 24 24"
-                    >
-                      <g>
-                        <path
-                          d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
-                        />
-                      </g>
-                    </svg>
-                  </div>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-                >
-                  <span
-                    class="Skeleton-skeleton-id"
-                  >
-                    ‌
-                  </span>
-                </td>
-                <td
-                  class="MuiTableCell-root-id MuiTableCell-body-id"
-                >
-                  <span
-                    class="Skeleton-skeleton-id"
-                  >
-                    ‌
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-    <div
-      class="Component-actions-id"
-    >
-      <button
-        class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
-        tabindex="0"
-        type="button"
+        class="Component-tabsBorder-id"
       >
         <span
-          class="MuiButton-label-id"
+          class="MuiTypography-root-id MuiTypography-body1-id Component-root-id Component-active-id"
         >
-          Remove category
+          Subcategories
         </span>
         <span
-          class="MuiTouchRipple-root-id"
+          class="MuiTypography-root-id MuiTypography-body1-id Component-root-id"
+        >
+          Products
+        </span>
+      </div>
+      <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+      >
+        <div
+          class="Component-root-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+          >
+            All Subcategories
+          </span>
+          <div
+            class="Component-toolbar-id"
+          >
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Add subcategory
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="Component-children-id"
         />
-      </button>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`Storyshots Views / Categories / Category edit default 1`] = `
-<div>
-  <form>
-    <div
-      class="Component-md-id"
-    >
+        <hr
+          class="Component-hr-id"
+        />
+        <table
+          class="MuiTable-root-id"
+          padding="default"
+        >
+          <thead
+            class="MuiTableHead-root-id"
+          >
+            <tr
+              class="MuiTableRow-root-id MuiTableRow-head-id"
+            >
+              <th
+                class="MuiTableCell-root-id MuiTableCell-head-id Component-wideColumn-id"
+                scope="col"
+              >
+                Category Name
+              </th>
+              <th
+                class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
+                scope="col"
+              >
+                Subcategories
+              </th>
+              <th
+                class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
+                scope="col"
+              >
+                No. Products
+              </th>
+            </tr>
+          </thead>
+          <tbody
+            class="MuiTableBody-root-id"
+          >
+            <tr
+              class="MuiTableRow-root-id"
+            >
+              <td
+                class="MuiTableCell-root-id MuiTableCell-body-id"
+                colspan="3"
+              >
+                No subcategories found
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <div
         class="Component-root-id"
       >
         <button
-          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
           tabindex="0"
           type="button"
         >
           <span
-            class="MuiIconButton-label-id"
+            class="MuiButton-label-id"
           >
-            <svg
-              aria-hidden="true"
-              class="MuiSvgIcon-root-id"
-              focusable="false"
-              viewBox="0 0 24 24"
-            >
-              <g>
-                <path
-                  d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
-                />
-              </g>
-            </svg>
+            Delete category
           </span>
           <span
             class="MuiTouchRipple-root-id"
           />
         </button>
-        <h2
-          class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
-        >
-          Edit category
-        </h2>
-        <div
-          class="Component-action-id"
-        />
-      </div>
-      <div
-        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
-      >
-        <div
-          class="MuiCardContent-root-id"
-        >
-          <div
-            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-          >
-            <label
-              class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-              data-shrink="true"
-            >
-              Name
-            </label>
-            <div
-              class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
-            >
-              <input
-                aria-invalid="false"
-                autofocus=""
-                class="MuiInput-input-id"
-                name="name"
-                type="text"
-                value="Apparel"
-              />
-            </div>
-          </div>
-          <div
-            class="Component-spacer-id"
-          />
-          <div
-            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-          >
-            <label
-              class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-              data-shrink="true"
-            >
-              Description
-            </label>
-            <div
-              class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
-            >
-              <textarea
-                aria-invalid="false"
-                class="MuiInput-input-id MuiInput-inputMultiline-id"
-                name="description"
-                rows="10"
-                type="text"
-              >
-                Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
-Tell lose part purpose do when. Whatever drug contain particularly defense.
-              </textarea>
-            </div>
-            <p
-              class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
-            >
-              Optional
-            </p>
-          </div>
-        </div>
-      </div>
-      <div
-        class="Component-root-id"
-      >
         <div
           class="Component-spacer-id"
         />
@@ -7564,7 +7463,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
 </div>
 `;
 
-exports[`Storyshots Views / Categories / Category edit when loading 1`] = `
+exports[`Storyshots Views / Categories / Update category loading 1`] = `
 <div>
   <form>
     <div
@@ -7601,7 +7500,12 @@ exports[`Storyshots Views / Categories / Category edit when loading 1`] = `
         <h2
           class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
         >
-          Edit category
+          <span
+            class="Skeleton-skeleton-id"
+            style="width:10em"
+          >
+            ‌
+          </span>
         </h2>
         <div
           class="Component-action-id"
@@ -7611,69 +7515,294 @@ exports[`Storyshots Views / Categories / Category edit when loading 1`] = `
         class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
       >
         <div
+          class="Component-root-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+          >
+            General information
+          </span>
+          <div
+            class="Component-toolbar-id"
+          />
+        </div>
+        <div
+          class="Component-children-id"
+        />
+        <hr
+          class="Component-hr-id"
+        />
+        <div
           class="MuiCardContent-root-id"
         >
-          <div
-            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-          >
-            <label
-              class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-              data-shrink="true"
-            >
-              Name
-            </label>
+          <div>
             <div
-              class="MuiInput-root-id MuiInput-disabled-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+              class="MuiFormControl-root-id Component-root-id"
             >
-              <input
-                aria-invalid="false"
-                autofocus=""
-                class="MuiInput-input-id MuiInput-disabled-id"
-                disabled=""
-                name="name"
-                type="text"
-                value="Apparel"
-              />
+              <label
+                class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                data-shrink="false"
+              >
+                Name
+              </label>
+              <div
+                class="MuiInput-root-id MuiInput-disabled-id MuiInput-formControl-id MuiInput-underline-id"
+              >
+                <input
+                  aria-invalid="false"
+                  class="MuiInput-input-id MuiInput-disabled-id"
+                  disabled=""
+                  name="name"
+                  type="text"
+                  value=""
+                />
+              </div>
             </div>
           </div>
           <div
             class="Component-spacer-id"
           />
           <div
-            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+            class="MuiFormControl-root-id"
+            style="width:100%"
           >
             <label
-              class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-              data-shrink="true"
+              class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+              data-shrink="false"
             >
               Description
             </label>
             <div
               class="MuiInput-root-id MuiInput-disabled-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
             >
-              <textarea
-                aria-invalid="false"
-                class="MuiInput-input-id MuiInput-disabled-id MuiInput-inputMultiline-id"
-                disabled=""
-                name="description"
-                rows="10"
-                type="text"
+              <div
+                class="Textarea-root-id"
+                style="height:19px"
               >
-                Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
-Tell lose part purpose do when. Whatever drug contain particularly defense.
-              </textarea>
+                <textarea
+                  aria-hidden="true"
+                  class="Textarea-textarea-id Textarea-shadow-id"
+                  readonly=""
+                  rows="1"
+                  tabindex="-1"
+                />
+                <textarea
+                  aria-hidden="true"
+                  class="Textarea-textarea-id Textarea-shadow-id"
+                  readonly=""
+                  rows="1"
+                  tabindex="-1"
+                />
+                <textarea
+                  aria-invalid="false"
+                  class="Textarea-textarea-id MuiInput-input-id MuiInput-disabled-id MuiInput-inputMultiline-id"
+                  disabled=""
+                  name="description"
+                  rows="1"
+                  type="text"
+                />
+              </div>
             </div>
             <p
-              class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
+              class="MuiFormHelperText-root-id"
             >
-              Optional
+              Select text to enable text-formatting tools.
             </p>
           </div>
         </div>
       </div>
       <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+      >
+        <div
+          class="Component-root-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+          >
+            Search Engine Preview
+          </span>
+          <div
+            class="Component-toolbar-id"
+          >
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Edit website SEO
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="Component-children-id"
+        />
+        <hr
+          class="Component-hr-id"
+        />
+        <div
+          class="MuiCardContent-root-id"
+        >
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id"
+          >
+            Add search engine title and description to make this category easier to find
+          </p>
+        </div>
+      </div>
+      <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="Component-tabsBorder-id"
+      >
+        <span
+          class="MuiTypography-root-id MuiTypography-body1-id Component-root-id Component-active-id"
+        >
+          Subcategories
+        </span>
+        <span
+          class="MuiTypography-root-id MuiTypography-body1-id Component-root-id"
+        >
+          Products
+        </span>
+      </div>
+      <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+      >
+        <div
+          class="Component-root-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+          >
+            All Subcategories
+          </span>
+          <div
+            class="Component-toolbar-id"
+          >
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Add subcategory
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="Component-children-id"
+        />
+        <hr
+          class="Component-hr-id"
+        />
+        <table
+          class="MuiTable-root-id"
+          padding="default"
+        >
+          <thead
+            class="MuiTableHead-root-id"
+          >
+            <tr
+              class="MuiTableRow-root-id MuiTableRow-head-id"
+            >
+              <th
+                class="MuiTableCell-root-id MuiTableCell-head-id Component-wideColumn-id"
+                scope="col"
+              >
+                Category Name
+              </th>
+              <th
+                class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
+                scope="col"
+              >
+                Subcategories
+              </th>
+              <th
+                class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
+                scope="col"
+              >
+                No. Products
+              </th>
+            </tr>
+          </thead>
+          <tbody
+            class="MuiTableBody-root-id"
+          >
+            <tr
+              class="MuiTableRow-root-id Component-tableRow-id"
+            >
+              <td
+                class="MuiTableCell-root-id MuiTableCell-body-id"
+              >
+                <span
+                  class="Skeleton-skeleton-id"
+                >
+                  ‌
+                </span>
+              </td>
+              <td
+                class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+              >
+                <span
+                  class="Skeleton-skeleton-id"
+                >
+                  ‌
+                </span>
+              </td>
+              <td
+                class="MuiTableCell-root-id MuiTableCell-body-id Component-centerText-id"
+              >
+                <span
+                  class="Skeleton-skeleton-id"
+                >
+                  ‌
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div
         class="Component-root-id"
       >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Delete category
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
         <div
           class="Component-spacer-id"
         />
@@ -7709,7 +7838,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense.
 </div>
 `;
 
-exports[`Storyshots Views / Categories / Category edit with errors 1`] = `
+exports[`Storyshots Views / Categories / Update category no background 1`] = `
 <div>
   <form>
     <div
@@ -7746,7 +7875,7 @@ exports[`Storyshots Views / Categories / Category edit with errors 1`] = `
         <h2
           class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
         >
-          Edit category
+          Coffees
         </h2>
         <div
           class="Component-action-id"
@@ -7756,40 +7885,55 @@ exports[`Storyshots Views / Categories / Category edit with errors 1`] = `
         class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
       >
         <div
+          class="Component-root-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+          >
+            General information
+          </span>
+          <div
+            class="Component-toolbar-id"
+          />
+        </div>
+        <div
+          class="Component-children-id"
+        />
+        <hr
+          class="Component-hr-id"
+        />
+        <div
           class="MuiCardContent-root-id"
         >
-          <div
-            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-          >
-            <label
-              class="MuiFormLabel-root-id MuiFormLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-              data-shrink="true"
-            >
-              Name
-            </label>
+          <div>
             <div
-              class="MuiInput-root-id MuiInput-error-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+              class="MuiFormControl-root-id Component-root-id"
             >
-              <input
-                aria-invalid="true"
-                autofocus=""
-                class="MuiInput-input-id"
-                name="name"
-                type="text"
-                value="Apparel"
-              />
+              <label
+                class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                data-shrink="true"
+              >
+                Name
+              </label>
+              <div
+                class="MuiInput-root-id MuiInput-formControl-id MuiInput-underline-id"
+              >
+                <input
+                  aria-invalid="false"
+                  class="MuiInput-input-id"
+                  name="name"
+                  type="text"
+                  value="Coffees"
+                />
+              </div>
             </div>
-            <p
-              class="MuiFormHelperText-root-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
-            >
-              To pole jest wymagane.
-            </p>
           </div>
           <div
             class="Component-spacer-id"
           />
           <div
-            class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+            class="MuiFormControl-root-id"
+            style="width:100%"
           >
             <label
               class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
@@ -7800,28 +7944,918 @@ exports[`Storyshots Views / Categories / Category edit with errors 1`] = `
             <div
               class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
             >
-              <textarea
-                aria-invalid="false"
-                class="MuiInput-input-id MuiInput-inputMultiline-id"
-                name="description"
-                rows="10"
-                type="text"
+              <div
+                class="Textarea-root-id"
+                style="height:19px"
               >
-                Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
-Tell lose part purpose do when. Whatever drug contain particularly defense.
-              </textarea>
+                <textarea
+                  aria-hidden="true"
+                  class="Textarea-textarea-id Textarea-shadow-id"
+                  readonly=""
+                  rows="1"
+                  tabindex="-1"
+                />
+                <textarea
+                  aria-hidden="true"
+                  class="Textarea-textarea-id Textarea-shadow-id"
+                  readonly=""
+                  rows="1"
+                  tabindex="-1"
+                >
+                  Difference direction to treat anything worker occur. Miss in thousand Democrat civil hope set.
+                </textarea>
+                <textarea
+                  aria-invalid="false"
+                  class="Textarea-textarea-id MuiInput-input-id MuiInput-inputMultiline-id"
+                  name="description"
+                  rows="1"
+                  type="text"
+                >
+                  Difference direction to treat anything worker occur. Miss in thousand Democrat civil hope set.
+                </textarea>
+              </div>
             </div>
             <p
               class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
             >
-              Optional
+              Select text to enable text-formatting tools.
             </p>
           </div>
         </div>
       </div>
       <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+      >
+        <div
+          class="Component-root-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+          >
+            Search Engine Preview
+          </span>
+          <div
+            class="Component-toolbar-id"
+          >
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Edit website SEO
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="Component-children-id"
+        />
+        <hr
+          class="Component-hr-id"
+        />
+        <div
+          class="MuiCardContent-root-id"
+        >
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id"
+          >
+            Add search engine title and description to make this category easier to find
+          </p>
+        </div>
+      </div>
+      <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="Component-tabsBorder-id"
+      >
+        <span
+          class="MuiTypography-root-id MuiTypography-body1-id Component-root-id Component-active-id"
+        >
+          Subcategories
+        </span>
+        <span
+          class="MuiTypography-root-id MuiTypography-body1-id Component-root-id"
+        >
+          Products
+        </span>
+      </div>
+      <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+      >
+        <div
+          class="Component-root-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+          >
+            All Subcategories
+          </span>
+          <div
+            class="Component-toolbar-id"
+          >
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Add subcategory
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="Component-children-id"
+        />
+        <hr
+          class="Component-hr-id"
+        />
+        <table
+          class="MuiTable-root-id"
+          padding="default"
+        >
+          <thead
+            class="MuiTableHead-root-id"
+          >
+            <tr
+              class="MuiTableRow-root-id MuiTableRow-head-id"
+            >
+              <th
+                class="MuiTableCell-root-id MuiTableCell-head-id Component-wideColumn-id"
+                scope="col"
+              >
+                Category Name
+              </th>
+              <th
+                class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
+                scope="col"
+              >
+                Subcategories
+              </th>
+              <th
+                class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
+                scope="col"
+              >
+                No. Products
+              </th>
+            </tr>
+          </thead>
+          <tbody
+            class="MuiTableBody-root-id"
+          >
+            <tr
+              class="MuiTableRow-root-id"
+            >
+              <td
+                class="MuiTableCell-root-id MuiTableCell-body-id"
+                colspan="3"
+              >
+                No subcategories found
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div
         class="Component-root-id"
       >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Delete category
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <div
+          class="Component-spacer-id"
+        />
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id Component-cancelButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Cancel
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Save
+          </span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Categories / Update category no products 1`] = `
+<div>
+  <form>
+    <div
+      class="Component-md-id"
+    >
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
+        >
+          Coffees
+        </h2>
+        <div
+          class="Component-action-id"
+        />
+      </div>
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+      >
+        <div
+          class="Component-root-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+          >
+            General information
+          </span>
+          <div
+            class="Component-toolbar-id"
+          />
+        </div>
+        <div
+          class="Component-children-id"
+        />
+        <hr
+          class="Component-hr-id"
+        />
+        <div
+          class="MuiCardContent-root-id"
+        >
+          <div>
+            <div
+              class="MuiFormControl-root-id Component-root-id"
+            >
+              <label
+                class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                data-shrink="true"
+              >
+                Name
+              </label>
+              <div
+                class="MuiInput-root-id MuiInput-formControl-id MuiInput-underline-id"
+              >
+                <input
+                  aria-invalid="false"
+                  class="MuiInput-input-id"
+                  name="name"
+                  type="text"
+                  value="Coffees"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiFormControl-root-id"
+            style="width:100%"
+          >
+            <label
+              class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+              data-shrink="true"
+            >
+              Description
+            </label>
+            <div
+              class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
+            >
+              <div
+                class="Textarea-root-id"
+                style="height:19px"
+              >
+                <textarea
+                  aria-hidden="true"
+                  class="Textarea-textarea-id Textarea-shadow-id"
+                  readonly=""
+                  rows="1"
+                  tabindex="-1"
+                />
+                <textarea
+                  aria-hidden="true"
+                  class="Textarea-textarea-id Textarea-shadow-id"
+                  readonly=""
+                  rows="1"
+                  tabindex="-1"
+                >
+                  Difference direction to treat anything worker occur. Miss in thousand Democrat civil hope set.
+                </textarea>
+                <textarea
+                  aria-invalid="false"
+                  class="Textarea-textarea-id MuiInput-input-id MuiInput-inputMultiline-id"
+                  name="description"
+                  rows="1"
+                  type="text"
+                >
+                  Difference direction to treat anything worker occur. Miss in thousand Democrat civil hope set.
+                </textarea>
+              </div>
+            </div>
+            <p
+              class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
+            >
+              Select text to enable text-formatting tools.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+      >
+        <div
+          class="Component-root-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+          >
+            Search Engine Preview
+          </span>
+          <div
+            class="Component-toolbar-id"
+          >
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Edit website SEO
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="Component-children-id"
+        />
+        <hr
+          class="Component-hr-id"
+        />
+        <div
+          class="MuiCardContent-root-id"
+        >
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id"
+          >
+            Add search engine title and description to make this category easier to find
+          </p>
+        </div>
+      </div>
+      <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="Component-tabsBorder-id"
+      >
+        <span
+          class="MuiTypography-root-id MuiTypography-body1-id Component-root-id Component-active-id"
+        >
+          Subcategories
+        </span>
+        <span
+          class="MuiTypography-root-id MuiTypography-body1-id Component-root-id"
+        >
+          Products
+        </span>
+      </div>
+      <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+      >
+        <div
+          class="Component-root-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+          >
+            All Subcategories
+          </span>
+          <div
+            class="Component-toolbar-id"
+          >
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Add subcategory
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="Component-children-id"
+        />
+        <hr
+          class="Component-hr-id"
+        />
+        <table
+          class="MuiTable-root-id"
+          padding="default"
+        >
+          <thead
+            class="MuiTableHead-root-id"
+          >
+            <tr
+              class="MuiTableRow-root-id MuiTableRow-head-id"
+            >
+              <th
+                class="MuiTableCell-root-id MuiTableCell-head-id Component-wideColumn-id"
+                scope="col"
+              >
+                Category Name
+              </th>
+              <th
+                class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
+                scope="col"
+              >
+                Subcategories
+              </th>
+              <th
+                class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
+                scope="col"
+              >
+                No. Products
+              </th>
+            </tr>
+          </thead>
+          <tbody
+            class="MuiTableBody-root-id"
+          >
+            <tr
+              class="MuiTableRow-root-id"
+            >
+              <td
+                class="MuiTableCell-root-id MuiTableCell-body-id"
+                colspan="3"
+              >
+                No subcategories found
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Delete category
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <div
+          class="Component-spacer-id"
+        />
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id Component-cancelButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Cancel
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Save
+          </span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Categories / Update category no subcategories 1`] = `
+<div>
+  <form>
+    <div
+      class="Component-md-id"
+    >
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
+        >
+          Coffees
+        </h2>
+        <div
+          class="Component-action-id"
+        />
+      </div>
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+      >
+        <div
+          class="Component-root-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+          >
+            General information
+          </span>
+          <div
+            class="Component-toolbar-id"
+          />
+        </div>
+        <div
+          class="Component-children-id"
+        />
+        <hr
+          class="Component-hr-id"
+        />
+        <div
+          class="MuiCardContent-root-id"
+        >
+          <div>
+            <div
+              class="MuiFormControl-root-id Component-root-id"
+            >
+              <label
+                class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                data-shrink="true"
+              >
+                Name
+              </label>
+              <div
+                class="MuiInput-root-id MuiInput-formControl-id MuiInput-underline-id"
+              >
+                <input
+                  aria-invalid="false"
+                  class="MuiInput-input-id"
+                  name="name"
+                  type="text"
+                  value="Coffees"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiFormControl-root-id"
+            style="width:100%"
+          >
+            <label
+              class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+              data-shrink="true"
+            >
+              Description
+            </label>
+            <div
+              class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-multiline-id MuiInput-underline-id"
+            >
+              <div
+                class="Textarea-root-id"
+                style="height:19px"
+              >
+                <textarea
+                  aria-hidden="true"
+                  class="Textarea-textarea-id Textarea-shadow-id"
+                  readonly=""
+                  rows="1"
+                  tabindex="-1"
+                />
+                <textarea
+                  aria-hidden="true"
+                  class="Textarea-textarea-id Textarea-shadow-id"
+                  readonly=""
+                  rows="1"
+                  tabindex="-1"
+                >
+                  Difference direction to treat anything worker occur. Miss in thousand Democrat civil hope set.
+                </textarea>
+                <textarea
+                  aria-invalid="false"
+                  class="Textarea-textarea-id MuiInput-input-id MuiInput-inputMultiline-id"
+                  name="description"
+                  rows="1"
+                  type="text"
+                >
+                  Difference direction to treat anything worker occur. Miss in thousand Democrat civil hope set.
+                </textarea>
+              </div>
+            </div>
+            <p
+              class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
+            >
+              Select text to enable text-formatting tools.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+      >
+        <div
+          class="Component-root-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+          >
+            Search Engine Preview
+          </span>
+          <div
+            class="Component-toolbar-id"
+          >
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Edit website SEO
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="Component-children-id"
+        />
+        <hr
+          class="Component-hr-id"
+        />
+        <div
+          class="MuiCardContent-root-id"
+        >
+          <p
+            class="MuiTypography-root-id MuiTypography-body1-id"
+          >
+            Add search engine title and description to make this category easier to find
+          </p>
+        </div>
+      </div>
+      <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="Component-tabsBorder-id"
+      >
+        <span
+          class="MuiTypography-root-id MuiTypography-body1-id Component-root-id Component-active-id"
+        >
+          Subcategories
+        </span>
+        <span
+          class="MuiTypography-root-id MuiTypography-body1-id Component-root-id"
+        >
+          Products
+        </span>
+      </div>
+      <div
+        class="Component-spacer-id"
+      />
+      <div
+        class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+      >
+        <div
+          class="Component-root-id"
+        >
+          <span
+            class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+          >
+            All Subcategories
+          </span>
+          <div
+            class="Component-toolbar-id"
+          >
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Add subcategory
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="Component-children-id"
+        />
+        <hr
+          class="Component-hr-id"
+        />
+        <table
+          class="MuiTable-root-id"
+          padding="default"
+        >
+          <thead
+            class="MuiTableHead-root-id"
+          >
+            <tr
+              class="MuiTableRow-root-id MuiTableRow-head-id"
+            >
+              <th
+                class="MuiTableCell-root-id MuiTableCell-head-id Component-wideColumn-id"
+                scope="col"
+              >
+                Category Name
+              </th>
+              <th
+                class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
+                scope="col"
+              >
+                Subcategories
+              </th>
+              <th
+                class="MuiTableCell-root-id MuiTableCell-head-id Component-centerText-id"
+                scope="col"
+              >
+                No. Products
+              </th>
+            </tr>
+          </thead>
+          <tbody
+            class="MuiTableBody-root-id"
+          >
+            <tr
+              class="MuiTableRow-root-id"
+            >
+              <td
+                class="MuiTableCell-root-id MuiTableCell-body-id"
+                colspan="3"
+              >
+                No subcategories found
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Delete category
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
         <div
           class="Component-spacer-id"
         />
@@ -37878,52 +38912,12 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
             >
-              Gorgeous Frozen Chips
+              Gardner-Schultz
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              Awesome Wooden Pizza
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id undefined Component-successDot-id"
-              >
-                Published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              XAG 274.99
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
-            >
-              <div
-                class="MuiAvatar-root-id Component-avatar-id"
-              >
-                <img
-                  class="MuiAvatar-img-id"
-                  src="placeholder255x255.png"
-                />
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-            >
-              Handcrafted Wooden Towels
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Future
+              Coffee
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -37937,7 +38931,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              ZWL 432.30
+              $83.30
             </td>
           </tr>
           <tr
@@ -37958,92 +38952,12 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
             >
-              Handcrafted Metal Cheese
+              James, Martinez and Murray
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              SMS
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id undefined Component-errorDot-id"
-              >
-                Not published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              XDR 688.35
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
-            >
-              <div
-                class="MuiAvatar-root-id Component-avatar-id"
-              >
-                <img
-                  class="MuiAvatar-img-id"
-                  src="placeholder255x255.png"
-                />
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-            >
-              Refined Rubber Keyboard
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Virtual
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id undefined Component-errorDot-id"
-              >
-                Not published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              SLL 540
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
-            >
-              <div
-                class="MuiAvatar-root-id Component-avatar-id"
-              >
-                <img
-                  class="MuiAvatar-img-id"
-                  src="placeholder255x255.png"
-                />
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-            >
-              Gorgeous Metal Gloves
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Vermont
+              Coffee
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -38057,7 +38971,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              AMD 4
+              $68.27
             </td>
           </tr>
           <tr
@@ -38078,132 +38992,12 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
             >
-              Small Cotton Shirt
+              Curtis, Joyce and Turner
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              Gorgeous
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id undefined Component-errorDot-id"
-              >
-                Not published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              GMD 538.10
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
-            >
-              <div
-                class="MuiAvatar-root-id Component-avatar-id"
-              >
-                <img
-                  class="MuiAvatar-img-id"
-                  src="placeholder255x255.png"
-                />
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-            >
-              Fantastic Cotton Tuna
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              TCP
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id undefined Component-errorDot-id"
-              >
-                Not published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              CVE 56.91
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
-            >
-              <div
-                class="MuiAvatar-root-id Component-avatar-id"
-              >
-                <img
-                  class="MuiAvatar-img-id"
-                  src="placeholder255x255.png"
-                />
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-            >
-              Tasty Steel Pants
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Buckinghamshire
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id undefined Component-errorDot-id"
-              >
-                Not published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              XAG 981.06
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
-            >
-              <div
-                class="MuiAvatar-root-id Component-avatar-id"
-              >
-                <img
-                  class="MuiAvatar-img-id"
-                  src="placeholder255x255.png"
-                />
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
-            >
-              Ergonomic Cotton Shoes
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              Jewelery
+              Coffee
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -38217,7 +39011,7 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              WST 449.93
+              $21.43
             </td>
           </tr>
           <tr
@@ -38238,26 +39032,266 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
             >
-              Unbranded Steel Tuna
+              Davis, Brown and Ray
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              Agent
+              Coffee
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
               <div
-                class="Component-root-id undefined Component-errorDot-id"
+                class="Component-root-id undefined Component-successDot-id"
               >
-                Not published
+                Published
               </div>
             </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
             >
-              MGA 591
+              $62.76
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+            >
+              <div
+                class="MuiAvatar-root-id Component-avatar-id"
+              >
+                <img
+                  class="MuiAvatar-img-id"
+                  src="placeholder255x255.png"
+                />
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+            >
+              Gallegos Ltd
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Coffee
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              $7.13
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+            >
+              <div
+                class="MuiAvatar-root-id Component-avatar-id"
+              >
+                <img
+                  class="MuiAvatar-img-id"
+                  src="placeholder255x255.png"
+                />
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+            >
+              Franklin Inc
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Coffee
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              $48.82
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+            >
+              <div
+                class="MuiAvatar-root-id Component-avatar-id"
+              >
+                <img
+                  class="MuiAvatar-img-id"
+                  src="placeholder255x255.png"
+                />
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+            >
+              Williams-Taylor
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Coffee
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              $27.34
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+            >
+              <div
+                class="MuiAvatar-root-id Component-avatar-id"
+              >
+                <img
+                  class="MuiAvatar-img-id"
+                  src="placeholder255x255.png"
+                />
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+            >
+              Riddle, Evans and Hicks
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Coffee
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              $75.42
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+            >
+              <div
+                class="MuiAvatar-root-id Component-avatar-id"
+              >
+                <img
+                  class="MuiAvatar-img-id"
+                  src="placeholder255x255.png"
+                />
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+            >
+              Hebert-Sherman
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Coffee
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              $86.62
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-link-id"
+          >
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+            >
+              <div
+                class="MuiAvatar-root-id Component-avatar-id"
+              >
+                <img
+                  class="MuiAvatar-img-id"
+                  src="placeholder255x255.png"
+                />
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+            >
+              Carter and Sons
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Coffee
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Published
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+            >
+              $48.66
             </td>
           </tr>
         </tbody>
