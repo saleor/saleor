@@ -30,7 +30,9 @@ interface ProductTypeUpdateRouteParams {
 }
 const ProductTypeUpdate: React.StatelessComponent<
   RouteComponentProps<ProductTypeUpdateRouteParams>
-> = ({ match }) => <ProductTypeUpdateComponent id={match.params.id} />;
+> = ({ match }) => (
+  <ProductTypeUpdateComponent id={decodeURIComponent(match.params.id)} />
+);
 
 export const ProductTypeRouter: React.StatelessComponent<
   RouteComponentProps<any>
@@ -38,7 +40,7 @@ export const ProductTypeRouter: React.StatelessComponent<
   <Switch>
     <Route exact path={match.url} component={ProductTypeList} />
     <Route exact path={match.url + "/add/"} component={ProductTypeCreate} />
-    <Route exact path={match.url + "/:id/"} component={ProductTypeUpdate} />
+    <Route path={match.url + "/:id/"} component={ProductTypeUpdate} />
   </Switch>
 );
 ProductTypeRouter.displayName = "ProductTypeRouter";

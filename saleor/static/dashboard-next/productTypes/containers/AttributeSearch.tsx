@@ -1,6 +1,6 @@
 import * as React from "react";
 import { QueryResult } from "react-apollo";
-import { searchAttributeQuery, TypedSearchAttributeQuery } from "../queries";
+import { TypedSearchAttributeQuery } from "../queries";
 import {
   SearchAttribute,
   SearchAttributeVariables
@@ -31,7 +31,6 @@ export class AttributeSearchProvider extends React.Component<
     if (typeof children === "function") {
       return (
         <TypedSearchAttributeQuery
-          query={searchAttributeQuery}
           variables={{ search: this.state.query }}
           skip={!this.state.query}
         >

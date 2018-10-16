@@ -16,6 +16,7 @@ from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import (
     Money, MoneyRange, TaxedMoney, TaxedMoneyRange, TaxRateType)
 from ..utils import get_database_id
+from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .filters import ProductFilterSet
 
 COLOR_PATTERN = r'^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$'  # noqa
@@ -58,10 +59,10 @@ def resolve_attribute_value_type(attribute_value):
 
 
 class AttributeValue(CountableDjangoObjectType):
-    name = graphene.String(description='Visible name for display purposes.')
-    slug = graphene.String(
-        description='Internal representation of an attribute name.')
-    type = AttributeValueType(description='Type of value.')
+    name = graphene.String(description=AttributeValueDescriptions.NAME)
+    slug = graphene.String(description=AttributeValueDescriptions.SLUG)
+    type = AttributeValueType(description=AttributeValueDescriptions.TYPE)
+    value = graphene.String(description=AttributeValueDescriptions.VALUE)
 
     class Meta:
         description = 'Represents a value of an attribute.'
@@ -74,11 +75,10 @@ class AttributeValue(CountableDjangoObjectType):
 
 
 class Attribute(CountableDjangoObjectType):
-    name = graphene.String(description='Visible name for display purposes.')
-    slug = graphene.String(
-        description='Internal representation of an attribute name.')
+    name = graphene.String(description=AttributeDescriptions.NAME)
+    slug = graphene.String(description=AttributeDescriptions.SLUG)
     values = graphene.List(
-        AttributeValue, description='List of attribute\'s values.')
+        AttributeValue, description=AttributeDescriptions.VALUES)
 
     class Meta:
         description = """Custom attribute of a product. Attributes can be
@@ -104,8 +104,7 @@ class Margin(graphene.ObjectType):
 
 class SelectedAttribute(graphene.ObjectType):
     attribute = graphene.Field(
-        Attribute,
-        default_value=None, description='Name of an attribute')
+        Attribute, default_value=None, description=AttributeDescriptions.NAME)
     value = graphene.Field(
         AttributeValue,
         default_value=None, description='Value of an attribute.')

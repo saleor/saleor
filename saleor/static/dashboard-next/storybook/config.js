@@ -28,10 +28,6 @@ function loadStories() {
   require("./stories/components/Timeline");
   require("./stories/components/messages");
 
-  // Attributes
-  require("./stories/attributes/AttributeDetailsPage");
-  require("./stories/attributes/AttributeListPage");
-
   // Authentication
   require("./stories/auth/LoginPage");
   require("./stories/auth/LoginLoading");
@@ -95,8 +91,10 @@ function loadStories() {
   require("./stories/vouchers/VoucherListPage");
 
   // Product types
-  require("./stories/productTypes/ProductTypeListPage");
+  require("./stories/productTypes/ProductTypeAttributeEditDialog");
+  require("./stories/productTypes/ProductTypeCreatePage");
   require("./stories/productTypes/ProductTypeDetailsPage");
+  require("./stories/productTypes/ProductTypeListPage");
 
   // Site settings
   require("./stories/siteSettings/SiteSettingsKeyDialog");

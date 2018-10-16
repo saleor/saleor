@@ -43,6 +43,7 @@ class Form<T extends {} = {}> extends React.Component<FormProps<T>, T> {
   handleSubmit = (event?: React.FormEvent<any>) => {
     const { onSubmit } = this.props;
     if (event) {
+      event.stopPropagation();
       event.preventDefault();
     }
     if (onSubmit !== undefined) {
@@ -61,7 +62,10 @@ class Form<T extends {} = {}> extends React.Component<FormProps<T>, T> {
         data: this.state,
         errors: errors
           ? errors.reduce(
-              (prev, curr) => ({ ...prev, [curr.field]: curr.message }),
+              (prev, curr) => ({
+                ...prev,
+                [curr.field.split(":")[0]]: curr.message
+              }),
               {}
             )
           : {},
