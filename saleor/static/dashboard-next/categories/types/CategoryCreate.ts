@@ -23,9 +23,9 @@ export interface CategoryCreate_categoryCreate_category {
   id: string;
   name: string;
   description: string;
-  parent: CategoryCreate_categoryCreate_category_parent | null;
   seoDescription: string | null;
   seoTitle: string | null;
+  parent: CategoryCreate_categoryCreate_category_parent | null;
 }
 
 export interface CategoryCreate_categoryCreate {

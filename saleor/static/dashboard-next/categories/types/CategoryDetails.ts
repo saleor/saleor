@@ -46,6 +46,17 @@ export interface CategoryDetails_category_products_pageInfo {
   startCursor: string | null;
 }
 
+export interface CategoryDetails_category_products_edges_node_availability {
+  __typename: "ProductAvailability";
+  available: boolean | null;
+}
+
+export interface CategoryDetails_category_products_edges_node_price {
+  __typename: "Money";
+  amount: number;
+  currency: string;
+}
+
 export interface CategoryDetails_category_products_edges_node_productType {
   __typename: "ProductType";
   id: string;
@@ -56,7 +67,9 @@ export interface CategoryDetails_category_products_edges_node {
   __typename: "Product";
   id: string;
   name: string;
+  availability: CategoryDetails_category_products_edges_node_availability | null;
   thumbnailUrl: string | null;
+  price: CategoryDetails_category_products_edges_node_price | null;
   productType: CategoryDetails_category_products_edges_node_productType;
 }
 
@@ -77,6 +90,8 @@ export interface CategoryDetails_category {
   id: string;
   name: string;
   description: string;
+  seoDescription: string | null;
+  seoTitle: string | null;
   parent: CategoryDetails_category_parent | null;
   children: CategoryDetails_category_children | null;
   products: CategoryDetails_category_products | null;

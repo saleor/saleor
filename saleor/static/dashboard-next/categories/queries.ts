@@ -7,6 +7,19 @@ import {
 } from "./types/CategoryDetails";
 import { RootCategories } from "./types/RootCategories";
 
+export const categoryDetailsFragment = gql`
+  fragment CategoryDetailsFragment on Category {
+    id
+    name
+    description
+    seoDescription
+    seoTitle
+    parent {
+      id
+    }
+  }
+`;
+
 export const rootCategories = gql`
   query RootCategories {
     categories(level: 0) {
@@ -30,6 +43,7 @@ export const TypedRootCategoriesQuery = TypedQuery<RootCategories, {}>(
 );
 
 export const categoryDetails = gql`
+  ${categoryDetailsFragment}
   query CategoryDetails(
     $id: ID!
     $first: Int
@@ -38,12 +52,7 @@ export const categoryDetails = gql`
     $before: String
   ) {
     category(id: $id) {
-      id
-      name
-      description
-      parent {
-        id
-      }
+      ...CategoryDetailsFragment
       children {
         edges {
           node {
@@ -70,7 +79,14 @@ export const categoryDetails = gql`
           node {
             id
             name
+            availability {
+              available
+            }
             thumbnailUrl
+            price {
+              amount
+              currency
+            }
             productType {
               id
               name
