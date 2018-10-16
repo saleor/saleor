@@ -36,7 +36,7 @@ const Feature = () => (
       <section className="hero">
         <div className="feature bg-container"></div>
         <div className="plane">
-          <h1 className="title">Agile e-commerce unafraid of developing business needs.</h1>
+          <h1 className="title"><span className="primaryColor">Agile e-commerce</span> unafraid of developing business needs.</h1>
         </div>
         <ScrollLink to="#testimonial"> Learn more </ScrollLink>
       </section>
