@@ -28,7 +28,7 @@ export const fragmentMoney = gql`
 `;
 
 export const fragmentProductImage = gql`
-  fragment ProductImage on ProductImage {
+  fragment ProductImageFragment on ProductImage {
     id
     alt
     sortOrder
@@ -109,7 +109,7 @@ export const fragmentProduct = gql`
     images {
       edges {
         node {
-          ...ProductImage
+          ...ProductImageFragment
         }
       }
     }
@@ -177,7 +177,7 @@ export const fragmentVariant = gql`
       images {
         edges {
           node {
-            ...ProductImage
+            ...ProductImageFragment
           }
         }
       }
