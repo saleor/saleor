@@ -13,15 +13,11 @@ import CardTitle from "../../../components/CardTitle";
 import ImageTile from "../../../components/ImageTile";
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
+import { ProductDetails_product_images_edges_node } from "../../types/ProductDetails";
 
 interface ProductImagesProps {
   placeholderImage?: string;
-  images?: Array<{
-    id: string;
-    alt?: string;
-    sortOrder: number;
-    url: string;
-  }>;
+  images: ProductDetails_product_images_edges_node[];
   loading?: boolean;
   onImageDelete: (id: string) => () => void;
   onImageEdit: (id: string) => () => void;
@@ -116,17 +112,15 @@ const decorate = withStyles(theme => ({
   }
 }));
 
-const SortableImage = SortableElement(
-  ({ image, onImageEdit, toggle, tile }) => (
-    <ImageTile
-      tile={tile}
-      deleteIcon={true}
-      editIcon={true}
-      onImageEdit={onImageEdit ? onImageEdit(image.id) : null}
-      onImageDelete={toggle}
-    />
-  )
-);
+const SortableImage = SortableElement(({ image, onImageEdit, toggle }) => (
+  <ImageTile
+    image={image}
+    deleteIcon={true}
+    editIcon={true}
+    onImageEdit={onImageEdit ? () => onImageEdit(image.id) : undefined}
+    onImageDelete={toggle}
+  />
+));
 
 const ImageListContainer = SortableContainer(
   decorate<ImageListContainerProps>(
@@ -140,7 +134,7 @@ const ImageListContainer = SortableContainer(
                   <SortableImage
                     key={`item-${index}`}
                     index={index}
-                    tile={image}
+                    image={image}
                     onImageEdit={onImageEdit ? onImageEdit(image.id) : null}
                     onImageDelete={toggle}
                   />
