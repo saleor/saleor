@@ -12,7 +12,7 @@ import css from './css/index.css';
 class App extends Component {
 
   render() {
-    if('serviceWorker' in navigator) { navigator.serviceWorker.register('/service-worker.js'); }  
+    if('serviceWorker' in navigator) { navigator.serviceWorker.register('./service-worker.js'); }  
     return (
       <Router>
         <ScrollToTop>
