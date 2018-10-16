@@ -14,7 +14,7 @@ from django.template import Context, Template
 from django.urls import reverse
 from django_countries.fields import Country
 from saleor.account import forms, i18n
-from saleor.account.forms import FormWithReCaptcha
+from saleor.account.forms import FormWithReCaptcha, NameForm
 from saleor.account.models import User
 from saleor.account.templatetags.i18n_address_tags import format_address
 from saleor.account.validators import validate_possible_number
@@ -285,3 +285,24 @@ def test_view_account_delete_confirm(customer_user, authorized_client):
     assert response.status_code == 302
     customer_user = User.objects.filter(pk=customer_user.pk).first()
     assert customer_user is None
+
+
+def test_add_names_to_user(customer_user):
+    name_form = NameForm(
+        {'first_name': 'Jan', 'last_name': 'Nowak'},
+        instance=customer_user)
+    name_form.is_valid()
+    name_form.save()
+    updated_user = User.objects.get(pk=customer_user.pk)
+    assert updated_user.first_name == 'Jan'
+    assert updated_user.last_name == 'Nowak'
+
+
+def test_add_names_to_user_post(customer_user, authorized_client):
+    url = reverse('account:details')
+    response = authorized_client.post(
+        url, data={'first_name': 'Jan', 'last_name': 'Nowak'})
+    assert response.status_code == 200
+    updated_user = User.objects.get(pk=customer_user.pk)
+    assert updated_user.first_name == 'Jan'
+    assert updated_user.last_name == 'Nowak'
