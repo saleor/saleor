@@ -451,6 +451,7 @@
           & .image {
             background-image: url('../../images/build-to-scale.svg');
             background-size: 80%;
+            background-position: 50% 30%;
             @media (max-width: 1440px) {
               background-size: 90%;
             }
@@ -1059,6 +1060,7 @@
               display: inline-block;
               padding-left: var(--spacer);
               text-transform: uppercase;
+              line-height: 1.5;
               @media (max-width: 450px) {
                 font-size: calc(var(--font-size-base) * 0.8);
               }
@@ -1068,6 +1070,9 @@
                 padding-top: calc(var(--spacer) * 1.5);
               }
             }
+          }
+          & .btn {
+            margin-left: calc(var(--spacer) * 2);
           }
           @media (max-width: 450px) {
             & .btn {

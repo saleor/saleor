@@ -53,13 +53,13 @@ const Footer = () => (
               <h4>Find us</h4>
               <div className="grid">
                 <div className="col-sm-1 col-md-4">
-                  <a href=""><ReactSVG className="twitter-icon" path="images/twiiter-icon.svg" /></a>
+                  <a href="https://twitter.com/mirumeelabs" target="_blank"><ReactSVG className="twitter-icon" path="images/twiiter-icon.svg" /></a>
                 </div>
                 <div className="col-sm-1 col-md-4">
-                  <a href=""><ReactSVG className="facebook-icon" path="images/fb-icon.svg" /></a>
+                  <a href="https://www.facebook.com/mirumeelabs/" target="_blank"><ReactSVG className="facebook-icon" path="images/fb-icon.svg" /></a>
                 </div>
                 <div className="col-sm-1 col-md-4">
-                  <a href=""><ReactSVG className="github-icon" path="images/github-icon.svg" /></a>
+                  <a href="https://github.com/mirumee/saleor" target="_blank"><ReactSVG className="github-icon" path="images/github-icon.svg" /></a>
                 </div>
               </div>
             </div>

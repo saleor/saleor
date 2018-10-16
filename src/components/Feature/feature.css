@@ -97,6 +97,9 @@
             & .testimonial-author {
               text-transform: uppercase;
             }
+            & h5 {
+              padding-top: calc(var(--spacer) / 2);
+            }
             & .patchgarden-logo {
               & .logo-svg {
                 display: inline-block;
