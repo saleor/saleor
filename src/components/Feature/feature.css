@@ -81,7 +81,7 @@
           }
         }
         &.testimonial {
-          background-color: #100A35;
+          background: #100A35;
           background: linear-gradient(135deg, rgba(16,10,53,0) 4%, rgba(16,10,53,1) 4%, rgba(16,10,53,1) 96%, rgba(16,10,53,0) 4%, rgba(16,10,53,0) 100%);
           padding: calc(var(--spacer) * 8) 0 calc(var(--spacer) * 6);
           font-weight: var(--font-weight-lighter);
