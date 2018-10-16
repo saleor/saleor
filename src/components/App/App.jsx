@@ -12,7 +12,8 @@ import css from './css/index.css';
 class App extends Component {
 
   render() {
-    if('serviceWorker' in navigator) { 
+    console.log(navigator);
+    if('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./service-worker.js').then(function(reg) {
         console.log(reg);
       }).catch(function(e) {
