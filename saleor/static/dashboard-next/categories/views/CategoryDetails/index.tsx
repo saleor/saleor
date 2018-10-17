@@ -158,7 +158,7 @@ export const CategoryDetails: React.StatelessComponent<
                                 )}
                               />
                               <Route
-                                path={categoryDeleteUrl(id)}
+                                path={categoryDeleteUrl(encodeURIComponent(id))}
                                 render={({ match }) => (
                                   <ActionDialog
                                     onClose={() =>
