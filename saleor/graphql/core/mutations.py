@@ -127,8 +127,8 @@ class ModelMutation(BaseMutation):
 
     @classmethod
     def __init_subclass_with_meta__(
-            cls, arguments=None, model=None, exclude=None, return_field_name=None,
-            _meta=None, **options):
+            cls, arguments=None, model=None, exclude=None,
+            return_field_name=None, _meta=None, **options):
         if not model:
             raise ImproperlyConfigured('model is required for ModelMutation')
         if not _meta:

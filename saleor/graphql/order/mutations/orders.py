@@ -1,19 +1,18 @@
 import graphene
-from django.utils.translation import pgettext_lazy
 from graphql_jwt.decorators import permission_required
 
 from ....account.models import User
 from ....core.utils.taxes import ZERO_TAXED_MONEY
 from ....order import CustomPaymentChoices, OrderEvents, models
 from ....order.utils import cancel_order
+from ....payment import ChargeStatus, PaymentError
+from ....payment.models import PaymentMethod
 from ....shipping.models import ShippingMethod as ShippingMethodModel
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation
 from ...core.types.common import Decimal, Error
 from ...order.mutations.draft_orders import DraftOrderUpdate
 from ...order.types import Order, OrderEvent
-from ....payment import PaymentError, PaymentMethodChargeStatus
-from ....payment.models import PaymentMethod
 from ...shipping.types import ShippingMethod
 
 
@@ -59,7 +58,7 @@ def clean_order_cancel(order, errors):
 
 
 def clean_order_mark_as_paid(order, errors):
-    if order and order.payments.exists():
+    if order and order.payment_methods.exists():
         errors.append(
             Error(
                 field='payment',
@@ -90,7 +89,7 @@ def clean_release_payment(payment, errors):
             Error(field='payment',
                   message='Only pre-authorized payments can be released'))
     try:
-        payment.release()
+        payment.void()
     except (PaymentError, ValueError) as e:
         errors.append(Error(field='payment', message=str(e)))
     return errors
@@ -289,18 +288,12 @@ class OrderMarkAsPaid(BaseMutation):
         clean_order_mark_as_paid(order, errors)
         if errors:
             return OrderMarkAsPaid(errors=errors)
-
+        # FIXME add more fields to the payment method
         defaults = {
-            'total': order.total.gross.amount,
-            'tax': order.total.tax.amount,
-            'currency': order.total.currency,
-            'delivery': order.shipping_price.net.amount,
-            'description': pgettext_lazy(
-                'Payment description', 'Order %(order)s') % {'order': order},
-            'captured_amount': order.total.gross.amount}
-        models.PaymentMethod.objects.get_or_create(
+            'total': order.total, 'captured_amount': order.total.gross}
+        PaymentMethod.objects.get_or_create(
             variant=CustomPaymentChoices.MANUAL,
-            charge_status=PaymentMethodChargeStatus.CHARGED, order=order,
+            charge_status=ChargeStatus.CHARGED, order=order,
             defaults=defaults)
 
         order.events.create(
@@ -324,6 +317,7 @@ class OrderCapture(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, amount):
+        # FIXME we should validate if amount is positive number
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
         payment = order.get_last_payment()
@@ -360,7 +354,6 @@ class OrderRelease(BaseMutation):
 
         if errors:
             return OrderRelease(errors=errors)
-
         order.events.create(
             type=OrderEvents.PAYMENT_RELEASED.value,
             user=info.context.user)
@@ -382,6 +375,7 @@ class OrderRefund(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, amount):
+        # FIXME we should validate if amount is positive number
         errors = []
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
         if order:

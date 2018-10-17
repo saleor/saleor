@@ -20,7 +20,7 @@ def authorize(payment_method, transaction_token, **client_kwargs):
     txn = create_transaction(
         payment_method=payment_method,
         transaction_type=TransactionType.AUTH,
-        amount=payment_method.total,
+        amount=payment_method.total.gross,
         gateway_response={},
         token=str(uuid.uuid4()),
         is_success=success)
@@ -35,7 +35,7 @@ def void(payment_method, **client_kwargs):
     txn = create_transaction(
         payment_method=payment_method,
         transaction_type=TransactionType.VOID,
-        amount=payment_method.total,
+        amount=payment_method.total.gross,
         gateway_response={},
         token=str(uuid.uuid4()),
         is_success=success)

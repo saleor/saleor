@@ -886,13 +886,15 @@ def create_order(cart, tracking_code, discounts, taxes):
 
 
 def is_fully_paid(cart: Cart):
-    payment_methods = cart.payment_methods.all()
-    total_paid = sum([p.get_captured_money() for p in payment_methods])
-    return total_paid == cart.get_total().gross.amount
+    payment_methods = cart.payment_methods.filter(is_active=True)
+    total_paid = sum(
+        [p.captured_amount.amount for p in payment_methods])
+    import pdb; pdb.set_trace()
+    return total_paid >= cart.get_total().gross.amount
 
 
 def ready_to_place_order(cart: Cart):
-    if cart.is_shipping_required:
+    if cart.is_shipping_required():
         if not cart.shipping_method:
             return False, pgettext_lazy(
                 'order placement_error', 'Shipping method is not set')

@@ -11,6 +11,7 @@ class OrderAppConfig(AppConfig):
     name = 'saleor.order'
 
     def ready(self):
+        #FIXME should work with new dashboard
         from payments.signals import status_changed
         from .signals import order_status_change
         status_changed.connect(order_status_change)

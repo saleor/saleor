@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.checks import Warning, register
 from django.utils.translation import pgettext_lazy
+from prices import Money
 
 TOKEN_PATTERN = ('(?P<token>[0-9a-z]{8}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}'
                  '-[0-9a-z]{12})')
@@ -84,3 +85,8 @@ class TaxRateType:
         (SOCIAL_HOUSING, pgettext_lazy('VAT rate type', 'social housing')),
         (STANDARD, pgettext_lazy('VAT rate type', 'standard')),
         (WATER, pgettext_lazy('VAT rate type', 'water')))
+
+
+def zero_money():
+    """Function used as a model's default."""
+    return Money(0, currency=settings.DEFAULT_CURRENCY)

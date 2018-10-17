@@ -1,4 +1,3 @@
-import json
 from io import BytesIO
 from urllib.parse import urlparse
 
@@ -6,6 +5,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db.models import Q
 from django.utils.encoding import smart_text
 from PIL import Image
+from prices import Money
 
 
 def get_url_path(url):
@@ -55,3 +55,7 @@ def create_pdf_file_with_image_ext():
     file_data = SimpleUploadedFile(
         file_name, b'product_data', 'application/pdf')
     return file_data, file_name
+
+
+def money(amount):
+    return Money(amount, 'USD')

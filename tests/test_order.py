@@ -16,7 +16,7 @@ from saleor.order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order, recalculate_order,
     restock_fulfillment_lines, restock_order_lines, update_order_prices,
     update_order_status)
-from saleor.payment import PaymentMethodChargeStatus
+from saleor.payment import ChargeStatus
 from tests.utils import get_redirect_location
 
 
@@ -366,10 +366,9 @@ def test_order_queryset_to_ship():
             status=OrderStatus.PARTIALLY_FULFILLED, total=total)
     ]
     for order in orders_to_ship:
-        order.payments.create(
-            variant='default', status=PaymentMethodChargeStatus.CHARGED,
-            currency='USD', total=order.total_gross.amount,
-            captured_amount=order.total_gross.amount)
+        order.payment_methods.create(
+            variant='default', charge_status=ChargeStatus.CHARGED,
+            total=order.total, captured_amount=order.total_gross)
 
     orders_not_to_ship = [
         Order.objects.create(status=OrderStatus.DRAFT, total=total),
@@ -457,9 +456,8 @@ def test_order_payment_flow(
     data = {
         'variant': 'dummy',
         'is_active': True,
-        'total': order.total.gross.amount,
+        'total': order.total,
         'charge_status': 'not-charged'}
-
     response = client.post(redirect_url, data)
 
     assert response.status_code == 302
@@ -469,9 +467,7 @@ def test_order_payment_flow(
 
     # Assert that payment object was created and contains correct data
     payment = order.payment_methods.all()[0]
-    assert payment.total == order.total.gross.amount
-    assert payment.tax == order.total.tax.amount
-    assert payment.currency == order.total.currency
+    assert payment.total == order.total.gross
     assert payment.transactions.count() == 1
     assert payment.transactions.first().transaction_type == 'auth'
 

@@ -18,7 +18,7 @@ from ...order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ...order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
     change_order_line_quantity, recalculate_order)
-from ...payment import PaymentMethodChargeStatus, PaymentError
+from ...payment import ChargeStatus, PaymentError
 from ...payment.models import PaymentMethod
 from ...product.models import Product, ProductVariant
 from ...product.utils import allocate_stock, deallocate_stock
@@ -283,17 +283,17 @@ class ManagePaymentForm(forms.Form):
 
 class CapturePaymentForm(ManagePaymentForm):
 
-    clean_status = PaymentMethodChargeStatus.NOT_CHARGED
+    clean_status = ChargeStatus.NOT_CHARGED
     clean_error = pgettext_lazy('Payment form error',
                                 'Only pre-authorized payments can be captured')
 
     def capture(self):
-        return self.try_payment_action(self.payment.charge)
+        return self.try_payment_action(self.payment.capture)
 
 
 class RefundPaymentForm(ManagePaymentForm):
 
-    clean_status = PaymentMethodChargeStatus.CHARGED
+    clean_status = ChargeStatus.CHARGED
     clean_error = pgettext_lazy('Payment form error',
                                 'Only confirmed payments can be refunded')
 
@@ -316,7 +316,7 @@ class ReleasePaymentForm(forms.Form):
         super().__init__(*args, **kwargs)
 
     def clean(self):
-        if self.payment.charge_status != PaymentMethodChargeStatus.NOT_CHARGED:
+        if self.payment.charge_status != ChargeStatus.NOT_CHARGED:
             raise forms.ValidationError(
                 pgettext_lazy(
                     'Payment form error',
@@ -345,25 +345,20 @@ class OrderMarkAsPaidForm(forms.Form):
 
     def clean(self):
         super().clean()
-        if self.order.payments.exists():
+        if self.order.payment_methods.exists():
             raise forms.ValidationError(
                 pgettext_lazy(
                     'Mark order as paid form error',
                     'Orders with payments can not be manually marked as paid'))
 
     def save(self):
+        # FIXME add more fields to the payment method
         defaults = {
-            'total': self.order.total.gross.amount,
-            'tax': self.order.total.tax.amount,
-            'currency': self.order.total.currency,
-            'delivery': self.order.shipping_price.net.amount,
-            'description': pgettext_lazy(
-                'Payment description', 'Order %(order)s') % {
-                    'order': self.order},
-            'captured_amount': self.order.total.gross.amount}
+            'total': self.order.total,
+            'captured_amount': self.order.total.gross}
         PaymentMethod.objects.get_or_create(
             variant=CustomPaymentChoices.MANUAL,
-            status=PaymentMethodChargeStatus.CHARGED, order=self.order,
+            charge_status=ChargeStatus.CHARGED, order=self.order,
             defaults=defaults)
 
 
@@ -530,7 +525,7 @@ class OrderRemoveVoucherForm(forms.ModelForm):
 
 PAYMENT_STATUS_CHOICES = (
     [('', pgettext_lazy('Payment status field value', 'All'))] +
-    PaymentMethodChargeStatus.CHOICES)
+    ChargeStatus.CHOICES)
 
 
 class PaymentFilterForm(forms.Form):

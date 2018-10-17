@@ -15,12 +15,12 @@ from . import FulfillmentStatus
 from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
+from ..payment import ChargeStatus
 from ..payment.forms import PaymentMethodForm
 from ..payment.models import PaymentMethod
-from ..payment import PaymentMethodChargeStatus
 from .forms import (
     CustomerNoteForm, PasswordForm, PaymentDeleteForm, PaymentMethodsForm)
-from .models import Order, Payment
+from .models import Order
 from .utils import attach_order_to_user, check_order_status
 
 logger = logging.getLogger(__name__)
@@ -54,13 +54,13 @@ def payment(request, token):
     orders = orders.select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)
-    payments = order.payments.all()
+    payments = order.payment_methods.all()
     form_data = request.POST or None
     try:
-        waiting_payment = order.payments.filter(
+        waiting_payment = payments.filter(
             is_active=True,
-            charge_status=PaymentMethodChargeStatus.NOT_CHARGED)
-    except Payment.DoesNotExist:
+            charge_status=ChargeStatus.NOT_CHARGED).get()
+    except PaymentMethod.DoesNotExist:
         waiting_payment = None
         waiting_payment_form = None
     else:
@@ -89,15 +89,13 @@ def start_payment(request, order, variant):
     billing = order.billing_address
     total = order.total
     defaults = {
-        'total': total.gross.amount,
-        'tax': total.tax.amount,
-        'currency': total.currency,
+        'total': total,
         'billing_first_name': billing.first_name,
         'billing_last_name': billing.last_name,
         'billing_address_1': billing.street_address_1,
         'billing_address_2': billing.street_address_2,
         'billing_city': billing.city,
-        'billing_postcode': billing.postal_code,
+        'billing_postal_code': billing.postal_code,
         'billing_country_code': billing.country.code,
         'billing_email': order.user_email,
         'billing_country_area': billing.country_area,

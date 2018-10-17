@@ -164,13 +164,15 @@ class Query(ProductQueries):
     def resolve_checkout_line(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, CheckoutLine)
 
+    @permission_required('order.manage_orders')
     def resolve_checkout_lines(self, info, query=None, **kwargs):
         return resolve_checkout_lines(info, query)
 
+    @permission_required('order.manage_orders')
     def resolve_checkouts(self, info, query=None, **kwargs):
         resolve_checkouts(info, query)
 
-    @permission_required(['account.manage_users'])
+    @permission_required('account.manage_users')
     def resolve_user(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, User)
 
@@ -355,5 +357,6 @@ class Mutations(ProductMutations):
 
     variant_image_assign = VariantImageAssign.Field()
     variant_image_unassign = VariantImageUnassign.Field()
+
 
 schema = graphene.Schema(Query, Mutations)

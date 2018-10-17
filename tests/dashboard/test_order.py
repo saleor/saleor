@@ -18,7 +18,7 @@ from saleor.order import (
     FulfillmentStatus, OrderEvents, OrderEventsEmails, OrderStatus)
 from saleor.order.models import Order, OrderEvent, OrderLine
 from saleor.order.utils import add_variant_to_order, change_order_line_quantity
-from saleor.payment import PaymentMethodChargeStatus, TransactionType
+from saleor.payment import ChargeStatus, TransactionType
 from saleor.product.models import ProductVariant
 from saleor.shipping.models import ShippingZone
 
@@ -78,8 +78,9 @@ def test_view_capture_order_payment_preauth(
             'csrfmiddlewaretoken': 'hello',
             'amount': str(order.total.gross.amount)})
     assert response.status_code == 302
-    assert order.payment_methods.last().charge_status == PaymentMethodChargeStatus.CHARGED
-    assert order.payment_methods.last().captured_amount == order.total.gross.amount
+    payment = order.payment_methods.last()
+    assert payment.charge_status == ChargeStatus.CHARGED
+    assert payment.captured_amount == order.total.gross
 
 
 @pytest.mark.integration
@@ -95,23 +96,26 @@ def test_view_capture_order_invalid_payment_confirmed_status(
     response = admin_client.post(
         url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
     assert response.status_code == 400
-    assert order.payment_methods.last().charge_status == PaymentMethodChargeStatus.CHARGED
+    payment = order.payment_methods.last()
+    assert payment.charge_status == ChargeStatus.CHARGED
 
 
 @pytest.mark.integration
 def test_view_capture_order_invalid_payment_rejected_status(
-        admin_client, order_with_lines, payment_rejected):
-    order = order_with_lines
+        admin_client, payment_method_not_authorized):
+    order = payment_method_not_authorized.order
     url = reverse(
         'dashboard:capture-payment', kwargs={
-            'order_pk': order.pk, 'payment_pk': payment_rejected.pk})
+            'order_pk': order.pk,
+            'payment_pk': payment_method_not_authorized.pk})
     response = admin_client.get(url)
     assert response.status_code == 200
 
     response = admin_client.post(
         url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
     assert response.status_code == 400
-    assert order.payments.last().status == PaymentStatus.REJECTED
+    payment = order.payment_methods.last()
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
 
 
 @pytest.mark.integration
@@ -127,7 +131,8 @@ def test_view_capture_order_invalid_payment_refunded_status(
     response = admin_client.post(
         url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
     assert response.status_code == 400
-    assert order.payment_methods.last().charge_status == PaymentMethodChargeStatus.FULLY_REFUNDED
+    payment = order.payment_methods.last()
+    assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
 
 
 @pytest.mark.integration
@@ -144,10 +149,11 @@ def test_view_refund_order_payment_confirmed(
     response = admin_client.post(
         url, {
             'csrfmiddlewaretoken': 'hello',
-            'amount': str(payment_confirmed.captured_amount)})
+            'amount': str(payment_confirmed.captured_amount.amount)})
     assert response.status_code == 302
-    assert order.payment_methods.last().charge_status == PaymentMethodChargeStatus.FULLY_REFUNDED
-    assert order.payment_methods.last().get_captured_money() == Money(0, 'USD')
+    payment = order.payment_methods.last()
+    assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
+    assert payment.captured_amount == Money(0, 'USD')
 
 
 @pytest.mark.integration
@@ -181,8 +187,8 @@ def test_view_refund_order_invalid_payment_preauth_status(
     response = admin_client.post(
         url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
     assert response.status_code == 400
-    assert order.payment_methods.last().charge_status == PaymentMethodChargeStatus.NOT_CHARGED
-
+    payment = order.payment_methods.last()
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
 
 
 @pytest.mark.integration
@@ -199,8 +205,8 @@ def test_view_refund_order_invalid_payment_refunded_status(
     response = admin_client.post(
         url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
     assert response.status_code == 400
-    assert order.payment_methods.last().charge_status == PaymentMethodChargeStatus.FULLY_REFUNDED
-
+    payment = order.payment_methods.last()
+    assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
 
 
 @pytest.mark.integration
@@ -218,11 +224,11 @@ def test_view_release_order_payment_preauth(
         'csrfmiddlewaretoken': 'hello'})
     assert response.status_code == 302
     order_payment = order.payment_methods.last()
-    assert order_payment.charge_status == PaymentMethodChargeStatus.NOT_CHARGED
+    assert order_payment.charge_status == ChargeStatus.NOT_CHARGED
     last_transaction = order_payment.transactions.latest('pk')
 
     assert last_transaction.transaction_type == TransactionType.VOID
-    assert order_payment.get_captured_money() == Money(0, 'USD')
+    assert order_payment.captured_amount == Money(0, 'USD')
 
 
 
@@ -241,9 +247,8 @@ def test_view_release_order_invalid_payment_confirmed_status(
         'csrfmiddlewaretoken': 'hello'})
     assert response.status_code == 400
     order_payment = order.payment_methods.last()
-    assert order_payment.charge_status == PaymentMethodChargeStatus.CHARGED
-    assert order_payment.get_captured_money() == order.total.gross
-
+    assert order_payment.charge_status == ChargeStatus.CHARGED
+    assert order_payment.captured_amount == order.total.gross
 
 
 @pytest.mark.integration
@@ -260,10 +265,9 @@ def test_view_release_order_invalid_payment_refunded_status(
     response = admin_client.post(url, {
         'csrfmiddlewaretoken': 'hello'})
     assert response.status_code == 400
-    order_payment = order.payment_methods.last()
-    assert order_payment.charge_status == PaymentMethodChargeStatus.FULLY_REFUNDED
-    assert order_payment.get_captured_money() == Money(0, 'USD')
-
+    payment = order.payment_methods.last()
+    assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
+    assert payment.captured_amount == Money(0, 'USD')
 
 
 @pytest.mark.integration

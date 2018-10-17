@@ -889,7 +889,7 @@ type Mutations {
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
-  paymentMethodCharge(amount: Decimal, paymentMethodId: ID!): PaymentMethodCapture
+  paymentMethodCapture(amount: Decimal, paymentMethodId: ID!): PaymentMethodCapture
   paymentMethodRefund(amount: Decimal, paymentMethodId: ID!): PaymentMethodRefund
   paymentMethodVoid(paymentMethodId: ID!): PaymentMethodVoid
   saleCreate(input: SaleInput!): SaleCreate
@@ -1189,7 +1189,7 @@ type PaymentMethod implements Node {
   isActive: Boolean!
   created: DateTime!
   modified: DateTime!
-  chargeStatus: PaymentMethodChargeStatus!
+  chargeStatus: ChargeStatus!
   billingFirstName: String!
   billingLastName: String!
   billingAddress1: String!
@@ -1216,7 +1216,7 @@ type PaymentMethodCapture {
   paymentMethod: PaymentMethod
 }
 
-enum PaymentMethodChargeStatus {
+enum ChargeStatus {
   CHARGED
   NOT_CHARGED
   FULLY_REFUNDED

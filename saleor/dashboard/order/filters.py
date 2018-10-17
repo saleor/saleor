@@ -8,7 +8,7 @@ from django_filters import (
 from ...core.filters import SortedFilterSet
 from ...order import OrderStatus
 from ...order.models import Order
-from ...payment import PaymentMethodChargeStatus
+from ...payment import ChargeStatus
 from ..widgets import DateRangeWidget, MoneyRangeWidget
 
 SORT_BY_FIELDS = [
@@ -20,7 +20,8 @@ SORT_BY_FIELDS = [
 
 SORT_BY_FIELDS_LABELS = {
     'pk': pgettext_lazy('Order list sorting option', '#'),
-    'payments__status': pgettext_lazy('Order list sorting option', 'payment'),
+    'payments__charge_status': pgettext_lazy(
+        'Order list sorting option', 'payment'),
     'user__email': pgettext_lazy('Order list sorting option', 'email'),
     'created': pgettext_lazy('Order list sorting option', 'created'),
     'total_net': pgettext_lazy('Order list sorting option', 'created')}
@@ -45,7 +46,7 @@ class OrderFilter(SortedFilterSet):
     payment_status = ChoiceFilter(
         label=pgettext_lazy('Order list filter label', 'Payment status'),
         field_name='payments__status',
-        choices=PaymentMethodChargeStatus.CHOICES,
+        choices=ChargeStatus.CHOICES,
         empty_label=pgettext_lazy('Filter empty choice label', 'All'),
         widget=forms.Select)
     total_net = RangeFilter(

@@ -33,7 +33,7 @@ class TransactionType:
                (VOID, pgettext_lazy('transaction type', 'Void'))]
 
 
-class PaymentMethodChargeStatus:
+class ChargeStatus:
     """
     - Charged: Funds were taken off the customer founding source, partly or
                completly covering the payment amount.
@@ -74,4 +74,4 @@ def get_provider(provider_name):
 
 
 def can_be_voided(payment):
-    return payment.charge_status == PaymentMethodChargeStatus.NOT_CHARGED
+    return payment.charge_status == ChargeStatus.NOT_CHARGED
