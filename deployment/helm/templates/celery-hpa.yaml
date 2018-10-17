@@ -1,0 +1,24 @@
+---
+{{- if (eq .Values.celery.autoscaling.enabled true) }}
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ template "saleor.fullname" . }}-celery
+  labels:
+    app: {{ template "saleor.name" . }}
+    chart: {{ template "saleor.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1beta2
+    kind: Deployment
+    name: {{ template "saleor.fullname" . }}-celery
+  minReplicas: {{ .Values.celery.autoscaling.minReplicaCount }}
+  maxReplicas: {{ .Values.celery.autoscaling.maxReplicaCount }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        targetAverageUtilization: {{ .Values.celery.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}

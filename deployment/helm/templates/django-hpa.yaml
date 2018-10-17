@@ -1,0 +1,24 @@
+---
+{{- if (eq .Values.django.autoscaling.enabled true) }}
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ template "saleor.fullname" . }}-django
+  labels:
+    app: {{ template "saleor.name" . }}
+    chart: {{ template "saleor.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1beta2
+    kind: Deployment
+    name: {{ template "saleor.fullname" . }}-django
+  minReplicas: {{ .Values.django.autoscaling.minReplicaCount }}
+  maxReplicas: {{ .Values.django.autoscaling.maxReplicaCount }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        targetAverageUtilization: {{ .Values.django.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}
