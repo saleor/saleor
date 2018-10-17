@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 from functools import wraps
 from typing import Dict, Optional
@@ -7,7 +8,28 @@ from django.db import transaction
 from prices import Money
 
 from . import ChargeStatus, PaymentError, can_be_voided, get_provider
+from ..core import analytics
+from ..order import OrderEvents, OrderEventsEmails
+from ..order.emails import send_payment_confirmation
 from .models import PaymentMethod, Transaction
+
+logger = logging.getLogger(__name__)
+
+
+def handle_fully_paid_order(order):
+    order.events.create(type=OrderEvents.ORDER_FULLY_PAID.value)
+    if order.get_user_current_email():
+        send_payment_confirmation.delay(order.pk)
+        order.events.create(
+            type=OrderEvents.EMAIL_SENT.value,
+            parameters={
+                'email': order.get_user_current_email(),
+                'email_type': OrderEventsEmails.PAYMENT.value})
+    try:
+        analytics.report_order(order.tracking_client_id, order)
+    except Exception:
+        # Analytics failing should not abort the checkout flow
+        logger.exception('Recording order in analytics failed')
 
 
 def validate_payment_method(view):
@@ -92,7 +114,9 @@ def gateway_capture(
             payment_method.captured_amount += txn.amount
             payment_method.save(
                 update_fields=['charge_status', 'captured_amount'])
-
+            order = payment_method.order
+            if order and order.is_fully_paid():
+                handle_fully_paid_order(order)
     if not txn.is_success:
         # TODO: Handle gateway response here somehow
         raise PaymentError(error)

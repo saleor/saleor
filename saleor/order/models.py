@@ -45,9 +45,9 @@ class OrderQueryset(models.QuerySet):
         fulfilled).
         """
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
-        return self.filter(status__in=statuses).annotate(
-            amount_paid=Sum('payments__captured_amount')).filter(
-                total_gross__lte=F('amount_paid'))
+        qs = self.filter(status__in=statuses, payment_methods__is_active=True)
+        qs = qs.annotate(amount_paid=Sum('payment_methods__captured_amount'))
+        return qs.filter(total_gross__lte=F('amount_paid'))
 
     def ready_to_capture(self):
         """Return orders with payments to capture.

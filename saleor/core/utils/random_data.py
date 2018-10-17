@@ -378,28 +378,30 @@ def create_fake_user():
 
 
 def create_transactions(payment):
-    #FIXME Add tests
+    # FIXME Add tests for this function
     payment.transactions.create(
         transaction_type=TransactionType.AUTH,
-        is_success=True, amount=payment.total)
+        is_success=True, amount=payment.total.gross, gateway_response={})
     if payment.charge_status == ChargeStatus.NOT_CHARGED:
         if random.randint(0, 1):
             payment.transactions.create(
                 transaction_type=TransactionType.VOID,
-                is_success=True, amount=payment.total)
+                is_success=True, amount=payment.total.gross,
+                gateway_response={})
         return
     payment.transactions.create(
         transaction_type=TransactionType.CAPTURE,
-        is_success=True, amount=payment.total)
+        is_success=True, amount=payment.total.gross, gateway_response={})
     if payment.charge_status == ChargeStatus.FULLY_REFUNDED:
             payment.transactions.create(
                 transaction_type=TransactionType.REFUND,
-                is_success=True, amount=payment.total)
+                is_success=True, amount=payment.total.gross,
+                gateway_response={})
     return payment
 
 
 def create_payment(order):
-    #FIXME Add tests
+    # FIXME Add tests for this function
     status = random.choice(
         [
             ChargeStatus.FULLY_REFUNDED,
@@ -409,7 +411,6 @@ def create_payment(order):
         order=order,
         charge_status=status,
         variant='default',
-        transaction_id=str(fake.random_int(1, 100000)),
         total=order.total,
         customer_ip_address=fake.ipv4(),
         billing_first_name=order.billing_address.first_name,
@@ -420,7 +421,7 @@ def create_payment(order):
         billing_postal_code=order.billing_address.postal_code,
         billing_country_code=order.billing_address.country,
         billing_country_area=order.billing_address.country_area)
-    if status == ChargeStatus.CONFIRMED:
+    if status == ChargeStatus.CHARGED:
         payment.captured_amount = payment.total.gross
         payment.save()
     create_transactions(payment)

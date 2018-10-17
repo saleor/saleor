@@ -1,20 +1,9 @@
 from enum import Enum
 
-from django.apps import AppConfig
 from django.conf import settings
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.templatetags import prices_i18n
 from prices import Money
-
-
-class OrderAppConfig(AppConfig):
-    name = 'saleor.order'
-
-    def ready(self):
-        #FIXME should work with new dashboard
-        from payments.signals import status_changed
-        from .signals import order_status_change
-        status_changed.connect(order_status_change)
 
 
 class OrderStatus:
