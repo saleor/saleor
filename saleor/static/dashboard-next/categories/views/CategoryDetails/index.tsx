@@ -2,7 +2,7 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import * as React from "react";
 import { Route } from "react-router-dom";
 
-import { categoryListUrl, categoryUrl, categoryAddUrl } from "../..";
+import { categoryAddUrl, categoryListUrl, categoryUrl } from "../..";
 import ActionDialog from "../../../components/ActionDialog";
 import Messages from "../../../components/messages";
 import Navigator from "../../../components/Navigator";
@@ -12,7 +12,7 @@ import {
   createPaginationState,
   maybe
 } from "../../../misc";
-import { productUrl, productAddUrl } from "../../../products";
+import { productAddUrl, productUrl } from "../../../products";
 import { CategoryUpdatePage } from "../../components/CategoryUpdatePage/CategoryUpdatePage";
 import {
   TypedCategoryDeleteMutation,
