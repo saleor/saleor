@@ -467,7 +467,7 @@ def test_order_payment_flow(
 
     # Assert that payment object was created and contains correct data
     payment = order.payment_methods.all()[0]
-    assert payment.total == order.total.gross
+    assert payment.total == order.total
     assert payment.transactions.count() == 1
     assert payment.transactions.first().transaction_type == 'auth'
 

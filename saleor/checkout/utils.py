@@ -889,7 +889,6 @@ def is_fully_paid(cart: Cart):
     payment_methods = cart.payment_methods.filter(is_active=True)
     total_paid = sum(
         [p.captured_amount.amount for p in payment_methods])
-    import pdb; pdb.set_trace()
     return total_paid >= cart.get_total().gross.amount
 
 

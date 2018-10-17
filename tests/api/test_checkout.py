@@ -388,6 +388,7 @@ def test_checkout_complete(
     total = checkout.get_total()
     payment_method = payment_method_dummy
     payment_method.is_active = True
+    payment_method.order = None
     payment_method.total = total
     payment_method.captured_amount = total.gross
     payment_method.checkout = checkout
@@ -421,7 +422,7 @@ def test_checkout_complete(
     assert not data['errors']
     order_token = data['order']['token']
     assert Order.objects.count() == orders_count + 1
-    order = Order.objects.last()
+    order = Order.objects.first()
     assert order.token == order_token
     assert order.total.gross == total.gross
     checkout_line = checkout.lines.first()

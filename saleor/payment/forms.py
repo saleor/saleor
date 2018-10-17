@@ -11,5 +11,6 @@ class PaymentMethodForm(forms.ModelForm):
 
     def authorize_payment(self):
         self.instance.transactions.create(
-            amount=self.instance.total, transaction_type=TransactionType.AUTH,
+            amount=self.instance.total.gross,
+            transaction_type=TransactionType.AUTH,
             gateway_response={}, is_success=True)
