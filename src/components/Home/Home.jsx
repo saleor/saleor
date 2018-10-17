@@ -21,12 +21,14 @@ import background from '../../images/background.svg';
 import dashboardIcon from '../../images/dashboard-icon.png';
 import dashboardIconX2 from '../../images/dashboard-icon-2x.png';
 import dashboardIconX3 from '../../images/dashboard-icon-3x.png';
-import dashboardIconX4 from '../../images/dashboard-icon-4x.png';
 
 import storefrontIcon from '../../images/storefront-icon.png';
 import storefrontIconX2 from '../../images/storefront-icon-2x.png';
 import storefrontIconX3 from '../../images/storefront-icon-3x.png';
-import storefrontIconX4 from '../../images/storefront-icon-4x.png';
+
+import pgShowCase from '../../images/pg-showcase.png';
+import pgShowCaseX2 from '../../images/pg-showcase-2x.png';
+import pgShowCaseX3 from '../../images/pg-showcase-3x.png';
 
 class Home extends Component {
   constructor(props) {
@@ -142,7 +144,7 @@ class Home extends Component {
                 </div>
                 <div className="col-xs-12 col-sm-6 col-md-6 storefront">
                   <Fade bottom when={true} appear={!isMobileOnly} duration={1300}>
-                    <img src={storefrontIcon} srcSet={`${storefrontIcon} 1x, ${storefrontIconX2} 2x, ${storefrontIconX3} 3x, ${storefrontIconX4}4x`} />
+                    <img src={storefrontIcon} srcSet={`${storefrontIcon} 1x, ${storefrontIconX2} 2x, ${storefrontIconX3} 3x`} />
                   </Fade>
                   <h2>Storefront</h2>
                   <p>Saleor takes advantage of PWA standards to optimize mobile experiences of the rapidly growing group of people shopping on the run.</p>
@@ -151,7 +153,7 @@ class Home extends Component {
                 </div>
                 <div className="col-xs-12 col-sm-6 col-md-6 dashboard">
                   <Fade bottom when={true} appear={!isMobileOnly} duration={1600}>
-                    <img src={dashboardIcon} srcSet={`${dashboardIcon} 1x, ${dashboardIconX2} 2x, ${dashboardIconX3} 3x, ${dashboardIconX4} 4x`} />
+                    <img src={dashboardIcon} srcSet={`${dashboardIcon} 1x, ${dashboardIconX2} 2x, ${dashboardIconX3} 3x`} />
                   </Fade>
                   <h2>Dashboard</h2>
                   <p>Easy-to-use dashboard makes managing your store a pleasant experience whether you’re using the latest Macbook or a two-year-old smartphone.</p>
@@ -241,7 +243,7 @@ class Home extends Component {
                   <div className="grid">
                     <div className="col-xs-12 col-sm-12 col-md-6">
                       <ReactSVG className="pg-logo" path="images/pg-logo.svg" />
-                      <img src="../../images/pg-showcase.png" />
+                      <img src={pgShowCase} srcSet={`${pgShowCase} 1x, ${pgShowCaseX2} 2x, ${pgShowCaseX3} 3x`} />
                     </div>
                     <div className="col-xs-12 col-sm-12 col-md-6">
                       <div className="pg-quote">
