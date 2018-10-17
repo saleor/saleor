@@ -13,8 +13,6 @@ from django.utils.translation import pgettext_lazy
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
 from measurement.measures import Weight
-from payments import PurchasedItem
-from payments.models import BasePayment
 from prices import Money, TaxedMoney
 
 from . import FulfillmentStatus, OrderEvents, OrderStatus, display_order_event
@@ -297,51 +295,6 @@ class FulfillmentLine(models.Model):
     fulfillment = models.ForeignKey(
         Fulfillment, related_name='lines', on_delete=models.CASCADE)
     quantity = models.IntegerField(validators=[MinValueValidator(1)])
-
-
-class Payment(BasePayment):
-    order = models.ForeignKey(
-        Order, related_name='payments', on_delete=models.PROTECT)
-
-    class Meta:
-        ordering = ('-pk',)
-
-    def get_failure_url(self):
-        return build_absolute_uri(
-            reverse('order:details', kwargs={'token': self.order.token}))
-
-    def get_success_url(self):
-        return build_absolute_uri(
-            reverse(
-                'order:payment-success', kwargs={'token': self.order.token}))
-
-    def get_purchased_items(self):
-        lines = [
-            PurchasedItem(
-                name=line.product_name, sku=line.product_sku,
-                quantity=line.quantity,
-                price=line.unit_price_net.quantize(Decimal('0.01')).amount,
-                currency=line.unit_price.currency)
-            for line in self.order]
-
-        voucher = self.order.voucher
-        if voucher is not None:
-            lines.append(
-                PurchasedItem(
-                    name=self.order.discount_name,
-                    sku='DISCOUNT',
-                    quantity=1,
-                    price=-self.order.discount_amount.amount,
-                    currency=self.order.discount_amount.currency))
-        return lines
-
-    def get_total(self):
-        return TaxedMoney(
-            net=Money(self.total - self.tax, self.currency),
-            gross=Money(self.total, self.currency))
-
-    def get_captured_price(self):
-        return Money(self.captured_amount, self.currency)
 
 
 class OrderEvent(models.Model):

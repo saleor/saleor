@@ -13,7 +13,6 @@ from django.utils.encoding import smart_text
 from django_countries import countries
 from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
-from payments import FraudStatus, PaymentStatus
 from PIL import Image
 from prices import Money
 from saleor.account.backends import BaseBackend

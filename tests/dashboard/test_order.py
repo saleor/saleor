@@ -3,7 +3,6 @@ import json
 import pytest
 from django.conf import settings
 from django.urls import reverse
-from payments import PaymentStatus
 from prices import Money
 from tests.utils import get_form_errors, get_redirect_location
 

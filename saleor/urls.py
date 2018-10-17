@@ -47,8 +47,7 @@ translatable_urlpatterns = [
         include((account_urls, 'account'), namespace='account')),
     url(r'^feeds/',
         include((feed_urls, 'data_feeds'), namespace='data_feeds')),
-    url(r'^search/', include((search_urls, 'search'), namespace='search')),
-    url(r'', include('payments.urls'))]
+    url(r'^search/', include((search_urls, 'search'), namespace='search'))]
 
 urlpatterns = non_translatable_urlpatterns + i18n_patterns(
     *translatable_urlpatterns)
