@@ -147,7 +147,7 @@ class Home extends Component {
                   <h2>Storefront</h2>
                   <p>Saleor takes advantage of PWA standards to optimize mobile experiences of the rapidly growing group of people shopping on the run.</p>
                   <p className="text-light">Allow your customers to buy their next pair of jeans while enjoying a virgin margarita on a plane. They will only need an internet connection when they go to pay with Apple Pay or one of the cards stored by their phone. </p>
-                  <a href="">See Storefront</a>
+                  <a href="https://demo.getsaleor.com" target="blank">See Storefront</a>
                 </div>
                 <div className="col-xs-12 col-sm-6 col-md-6 dashboard">
                   <Fade bottom when={true} appear={!isMobileOnly} duration={1600}>
@@ -156,7 +156,7 @@ class Home extends Component {
                   <h2>Dashboard</h2>
                   <p>Easy-to-use dashboard makes managing your store a pleasant experience whether you’re using the latest Macbook or a two-year-old smartphone.</p>
                   <p className="text-light">Its intuitive interface is designed to aid your staff in daily routines like order management, inventory tracking or reporting. Saleor dashboard’s friendly home screen will also suggest items that may need your attention so you always stay on top of things.</p>
-                  <a href="">See Dashboard</a>
+                  <a href="https://demo.getsaleor.com/en/account/login/" target="blank">See Dashboard</a>
                 </div>
                 <div className="col-xs-12 col-sm-12 col-md-12 more-btn">
                   <Link className="btn btn-secondary" to="/features"><span>See more features</span></Link>
@@ -250,7 +250,7 @@ class Home extends Component {
                           <img src="../../images/pg-quote.png" />
                           <h5>Tim Kalic, <br/>Head of Digital, Pretty Green</h5>
                         </div>
-                        <a className="btn btn-secondary" href="#"><span>See case study</span></a>
+                        <a className="btn btn-secondary" href="https://www.prettygreen.com/" target="_blank"><span>Visit website</span></a>
                       </div>
                     </div>
                   </div>
@@ -260,13 +260,13 @@ class Home extends Component {
                     <div className="col-xs-12 col-sm-12 col-md-6">
                       <img src="../../images/implementation1.png" />
                       <div className="text-center">
-                        <a className="btn btn-secondary" href="#"><span>Visit website</span></a>
+                        <a className="btn btn-secondary" href="https://roomlab.co.uk" target="_blank"><span>Visit website</span></a>
                       </div>
                     </div>
                     <div className="col-xs-12 col-sm-12 col-md-6">
                       <img src="../../images/implementation2.png" />
                       <div className="text-center">
-                      <a className="btn btn-secondary" href="#"><span>Visit website</span></a>
+                      <a className="btn btn-secondary" href="https://patch.garden/" target="_blank"><span>Visit website</span></a>
                       </div>
                     </div>
                   </div>
