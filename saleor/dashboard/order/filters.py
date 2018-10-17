@@ -13,14 +13,14 @@ from ..widgets import DateRangeWidget, MoneyRangeWidget
 
 SORT_BY_FIELDS = [
     ('pk', 'pk'),
-    ('payments__status', 'payment_status'),
+    ('payment_methods__charge_status', 'payment_status'),
     ('user__email', 'email'),
     ('created', 'created'),
     ('total_net', 'total')]
 
 SORT_BY_FIELDS_LABELS = {
     'pk': pgettext_lazy('Order list sorting option', '#'),
-    'payments__charge_status': pgettext_lazy(
+    'payment_methods__charge_status': pgettext_lazy(
         'Order list sorting option', 'payment'),
     'user__email': pgettext_lazy('Order list sorting option', 'email'),
     'created': pgettext_lazy('Order list sorting option', 'created'),

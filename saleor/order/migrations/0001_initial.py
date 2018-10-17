@@ -104,7 +104,7 @@ class Migration(migrations.Migration):
                 ('billing_address_1', models.CharField(max_length=256, blank=True)),
                 ('billing_address_2', models.CharField(max_length=256, blank=True)),
                 ('billing_city', models.CharField(max_length=256, blank=True)),
-                ('billing_postal_code', models.CharField(max_length=256, blank=True)),
+                ('billing_postcode', models.CharField(max_length=256, blank=True)),
                 ('billing_country_code', models.CharField(max_length=2, blank=True)),
                 ('billing_country_area', models.CharField(max_length=256, blank=True)),
                 ('billing_email', models.EmailField(max_length=254, blank=True)),
