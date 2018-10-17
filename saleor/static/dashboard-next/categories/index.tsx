@@ -5,10 +5,12 @@ import { CategoryCreateView } from "./views/CategoryCreate";
 import CategoryDetailsView from "./views/CategoryDetails";
 import CategoryList from "./views/CategoryList";
 
-const CategoryDetails: React.StatelessComponent<RouteComponentProps<any>> = ({
-  location,
-  match
-}) => {
+interface CategoryDetailsRouteParams {
+  id: string;
+}
+const CategoryDetails: React.StatelessComponent<
+  RouteComponentProps<CategoryDetailsRouteParams>
+> = ({ location, match }) => {
   const qs = parseQs(location.search.substr(1));
   const params = {
     after: qs.after,
@@ -21,10 +23,18 @@ const CategoryDetails: React.StatelessComponent<RouteComponentProps<any>> = ({
     />
   );
 };
-const CategoryCreate: React.StatelessComponent<RouteComponentProps<any>> = ({
-  match
-}) => {
-  return <CategoryCreateView parentId={decodeURIComponent(match.params.id)} />;
+
+interface CategoryCreateRouteParams {
+  id: string;
+}
+const CategoryCreate: React.StatelessComponent<
+  RouteComponentProps<CategoryCreateRouteParams>
+> = ({ match }) => {
+  return (
+    <CategoryCreateView
+      parentId={match.params.id ? decodeURIComponent(match.params.id) : null}
+    />
+  );
 };
 
 const Component = ({ match }) => (
