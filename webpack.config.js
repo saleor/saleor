@@ -8,6 +8,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const PostcssPresetEnv = require('postcss-preset-env');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 const sourceDir = path.join(__dirname, './src/');
 const distDir = path.join(__dirname, './dist/');
@@ -120,7 +121,8 @@ module.exports = (env, argv) => {
     },
     optimization: {
       minimizer: [
-        new OptimizeCSSAssetsPlugin({})
+        new OptimizeCSSAssetsPlugin({}),
+        new UglifyJsPlugin()
       ]
     },
     plugins: [

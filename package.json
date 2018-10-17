@@ -40,6 +40,7 @@
         "postcss-preset-env": "^5.3.0",
         "style-loader": "^0.21.0",
         "sw-precache-webpack-plugin": "^0.11.5",
+        "uglifyjs-webpack-plugin": "^2.0.1",
         "webapp-webpack-plugin": "^2.2.0",
         "webpack": "^4.16.2",
         "webpack-cli": "^3.1.0",
@@ -51,7 +52,7 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "start": "webpack-dev-server --watch --port 3000 --mode development --host 0.0.0.0",
-        "build": "webpack -p --progress",
+        "build": "webpack -p --mode production --progress",
         "watch": "webpack -d --watch --progress --colors"
     }
 }
