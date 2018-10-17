@@ -1,17 +1,37 @@
-export const product = (placeholderImage: string) => ({
+import { ProductDetails_product } from "./types/ProductDetails";
+
+export const product: (
+  placeholderImage: string
+) => ProductDetails_product = placeholderImage => ({
+  __typename: "Product",
   attributes: [
     {
+      __typename: "SelectedAttribute",
       attribute: {
+        __typename: "Attribute",
         id: "pta18161",
         name: "Borders",
         slug: "Borders",
         sortNumber: 0,
         values: [
-          { id: "ptav47282", sortNumber: 0, name: "portals", slug: "portals" },
-          { id: "ptav17253", sortNumber: 1, name: "Baht", slug: "Baht" }
+          {
+            __typename: "AttributeValue",
+            id: "ptav47282",
+            name: "portals",
+            slug: "portals",
+            sortNumber: 0
+          },
+          {
+            __typename: "AttributeValue",
+            id: "ptav17253",
+            name: "Baht",
+            slug: "Baht",
+            sortNumber: 1
+          }
         ]
       },
       value: {
+        __typename: "AttributeValue",
         id: "ptav47282",
         name: "portals",
         slug: "portals",
@@ -19,24 +39,46 @@ export const product = (placeholderImage: string) => ({
       }
     },
     {
+      __typename: "SelectedAttribute",
       attribute: {
+        __typename: "Attribute",
         id: "pta22785",
         name: "Legacy",
         slug: "Legacy",
         sortNumber: 1,
         values: [
-          { id: "ptav31282", sortNumber: 0, name: "payment", slug: "payment" },
           {
+            __typename: "AttributeValue",
+            id: "ptav31282",
+            name: "payment",
+            slug: "payment",
+            sortNumber: 0
+          },
+          {
+            __typename: "AttributeValue",
             id: "ptav14907",
             name: "Auto Loan Account",
             slug: "Auto-Loan-Account",
             sortNumber: 1
           },
-          { id: "ptav27366", sortNumber: 2, name: "Garden", slug: "Garden" },
-          { id: "ptav11873", sortNumber: 3, name: "override", slug: "override" }
+          {
+            __typename: "AttributeValue",
+            id: "ptav27366",
+            name: "Garden",
+            slug: "Garden",
+            sortNumber: 2
+          },
+          {
+            __typename: "AttributeValue",
+            id: "ptav11873",
+            name: "override",
+            slug: "override",
+            sortNumber: 3
+          }
         ]
       },
       value: {
+        __typename: "AttributeValue",
         id: "ptav14907",
         name: "Auto Loan Account",
         slug: "Auto-Loan-Account",
@@ -44,19 +86,65 @@ export const product = (placeholderImage: string) => ({
       }
     }
   ],
-  availability: { available: false },
+  availability: {
+    __typename: "ProductAvailability",
+    available: false,
+    priceRange: {
+      __typename: "TaxedMoneyRange",
+      start: {
+        __typename: "TaxedMoney",
+        gross: {
+          __typename: "Money",
+          amount: 12.3,
+          currency: "USD"
+        },
+        net: {
+          __typename: "Money",
+          amount: 10,
+          currency: "USD"
+        }
+      },
+      stop: {
+        __typename: "TaxedMoney",
+        gross: {
+          __typename: "Money",
+          amount: 24.6,
+          currency: "USD"
+        },
+        net: {
+          __typename: "Money",
+          amount: 20,
+          currency: "USD"
+        }
+      }
+    }
+  },
   availableOn: "2018-08-25T18:45:54.125Z",
-  category: { id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
+  category: { __typename: "Category", id: "Q2F0ZWdvcnk6MQ==", name: "Apparel" },
+  chargeTaxes: true,
   collections: {
-    edges: [{ node: { id: "Q29sbGVjdGlvbjoy", name: "Winter sale" } }]
+    __typename: "CollectionCountableConnection",
+    edges: [
+      {
+        __typename: "CollectionCountableEdge",
+        node: {
+          __typename: "Collection",
+          id: "Q29sbGVjdGlvbjoy",
+          name: "Winter sale"
+        }
+      }
+    ]
   },
   description:
     "Omnis rerum ea. Fugit dignissimos modi est rerum. Qui corrupti expedita et. Dolorem dolorum illo doloremque. Officia perspiciatis facilis ab maxime voluptatem eligendi ipsam. Quisquam impedit repudiandae eos. Id sit dolores adipisci qui omnis dolores qui. Illo deleniti mollitia perspiciatis.",
   id: "p10171",
   images: {
+    __typename: "ProductImageCountableConnection",
     edges: [
       {
+        __typename: "ProductImageCountableEdge",
         node: {
+          __typename: "ProductImage",
           alt: "Id sit dolores adipisci",
           id: "UHJvZHVjdEltYWdlOjE=",
           sortOrder: 0,
@@ -64,7 +152,9 @@ export const product = (placeholderImage: string) => ({
         }
       },
       {
+        __typename: "ProductImageCountableEdge",
         node: {
+          __typename: "ProductImage",
           alt: "Id sit dolores adipisci",
           id: "UHJvZHVjdEltYWdlOaE=",
           sortOrder: 2,
@@ -72,7 +162,9 @@ export const product = (placeholderImage: string) => ({
         }
       },
       {
+        __typename: "ProductImageCountableEdge",
         node: {
+          __typename: "ProductImage",
           alt: "Id sit dolores adipisci",
           id: "UPJvZHVjdEltYWdlOjV=",
           sortOrder: 1,
@@ -80,7 +172,9 @@ export const product = (placeholderImage: string) => ({
         }
       },
       {
+        __typename: "ProductImageCountableEdge",
         node: {
+          __typename: "ProductImage",
           alt: "Id sit dolores adipisci",
           id: "UHJvZHVjdEltYHdlOjX=",
           sortOrder: 3,
@@ -88,7 +182,9 @@ export const product = (placeholderImage: string) => ({
         }
       },
       {
+        __typename: "ProductImageCountableEdge",
         node: {
+          __typename: "ProductImage",
           alt: "Id sit dolores adipisci",
           id: "UHJvZHVjdIlnYWdlOjX=",
           sortOrder: 4,
@@ -99,10 +195,16 @@ export const product = (placeholderImage: string) => ({
   },
   isFeatured: false,
   isPublished: true,
-  margin: { start: 2, stop: 7 },
+  margin: { __typename: "Margin", start: 2, stop: 7 },
   name: "Ergonomic Plastic Bacon",
-  price: { currency: "NZD", amount: 339.39, localized: "339.39 NZD" },
+  price: {
+    __typename: "Money",
+    amount: 339.39,
+    currency: "NZD",
+    localized: "339.39 NZD"
+  },
   productType: {
+    __typename: "ProductType",
     hasVariants: true,
     id: "pt76406",
     name: "Versatile",
@@ -122,16 +224,32 @@ export const product = (placeholderImage: string) => ({
     ]
   },
   purchaseCost: {
-    start: { currency: "NZD", amount: 339.39, localized: "339.39 NZD" },
-    stop: { currency: "NZD", amount: 678.78, localized: "678.78 NZD" }
+    __typename: "MoneyRange",
+    start: {
+      __typename: "Money",
+      amount: 339.39,
+      currency: "NZD",
+      localized: "339.39 NZD"
+    },
+    stop: {
+      __typename: "Money",
+      amount: 678.78,
+      currency: "NZD",
+      localized: "678.78 NZD"
+    }
   },
+  seoDescription: "Seo description",
+  seoTitle: "Seo title",
   sku: "59661-34207",
   thumbnailUrl: placeholderImage,
   url: "/example-url",
   variants: {
+    __typename: "ProductVariantCountableConnection",
     edges: [
       {
+        __typename: "ProductVariantCountableEdge",
         node: {
+          __typename: "ProductVariant",
           id: "pv75934",
           image: {
             edges: [
@@ -159,6 +277,7 @@ export const product = (placeholderImage: string) => ({
           margin: 2,
           name: "Cordoba Oro",
           priceOverride: {
+            __typename: "Money",
             amount: 678.78,
             currency: "USD",
             localized: "678.78 USD"
@@ -168,7 +287,9 @@ export const product = (placeholderImage: string) => ({
         }
       },
       {
+        __typename: "ProductVariantCountableEdge",
         node: {
+          __typename: "ProductVariant",
           id: "pv68615",
           image: {
             edges: [
