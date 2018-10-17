@@ -7,8 +7,9 @@ import { Container } from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
 import { CollectionList_collections_edges_node } from "../../types/CollectionList";
+import CollectionList from "../CollectionList/CollectionList";
 
-interface CollectionListPageProps extends PageListProps {
+export interface CollectionListPageProps extends PageListProps {
   collections: CollectionList_collections_edges_node[];
 }
 
@@ -29,6 +30,7 @@ const CollectionListPage: React.StatelessComponent<CollectionListPageProps> = ({
         <AddIcon />
       </Button>
     </PageHeader>
+    <CollectionList disabled={disabled} {...listProps} />
   </Container>
 );
 CollectionListPage.displayName = "CollectionListPage";

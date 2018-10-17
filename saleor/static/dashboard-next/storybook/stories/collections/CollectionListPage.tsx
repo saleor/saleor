@@ -1,10 +1,21 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import CollectionListPage from "../../../collections/components/CollectionListPage";
+import CollectionListPage, {
+  CollectionListPageProps
+} from "../../../collections/components/CollectionListPage";
+import { collections } from "../../../collections/fixtures";
+import { pageListProps } from "../../../fixtures";
 import Decorator from "../../Decorator";
 
-storiesOf("Collections / CollectionListPage", module)
+const props: CollectionListPageProps = {
+  ...pageListProps.default,
+  collections
+};
+
+storiesOf("Views / Collections / Collection list", module)
   .addDecorator(Decorator)
-  .add("default", () => <CollectionListPage />)
-  .add("other", () => <CollectionListPage />);
+  .add("default", () => <CollectionListPage {...props} />)
+  .add("loading", () => (
+    <CollectionListPage {...props} collections={undefined} disabled={true} />
+  ));
