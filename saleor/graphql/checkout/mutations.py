@@ -154,7 +154,7 @@ class CheckoutLinesAdd(BaseMutation):
                 'an item in the checkout.'))
 
     class Meta:
-        description = 'Adds a checkout line to existing checkout.'
+        description = 'Adds a checkout line to the existing checkout.'
 
     @classmethod
     def mutate(cls, root, info, checkout_id, lines, replace=False):
@@ -247,7 +247,7 @@ class CheckoutCustomerDetach(BaseMutation):
         checkout_id = graphene.ID(description='Checkout ID', required=True)
 
     class Meta:
-        description = 'Update shipping address in existing Checkout object'
+        description = 'Removes the user assigned as the owner of the checkout.'
 
     @classmethod
     def mutate(cls, root, info, checkout_id):
@@ -370,6 +370,9 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         shipping_method_id = graphene.ID(
             required=True, description='Shipping method')
 
+    class Meta:
+        description = 'Updates the shipping address of the checkout.'
+
     @classmethod
     def mutate(cls, root, info, checkout_id, shipping_method_id):
         errors = []
@@ -395,6 +398,11 @@ class CheckoutComplete(BaseMutation):
 
     class Arguments:
         checkout_id = graphene.ID(description='Checkout ID')
+
+    class Meta:
+        description = (
+            'Completes the checkout, creates an order from it and '
+            'charges the customer\'s funding source.')
 
     @classmethod
     def mutate(cls, root, info, checkout_id):

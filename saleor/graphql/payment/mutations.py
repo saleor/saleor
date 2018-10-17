@@ -113,6 +113,9 @@ class PaymentMethodCapture(BaseMutation):
             required=True, description='Payment method ID')
         amount = Decimal(description='Transaction amount')
 
+    class Meta:
+        description = 'Captures the authorized payment amount'
+
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, payment_method_id, amount=None):
@@ -153,6 +156,9 @@ class PaymentMethodRefund(PaymentMethodCapture):
         return PaymentMethodRefund(
             payment_method=payment_method, errors=errors)
 
+    class Meta:
+        description = 'Refunds the captured payment amount'
+
 
 class PaymentMethodVoid(BaseMutation):
     payment_method = graphene.Field(
@@ -161,6 +167,9 @@ class PaymentMethodVoid(BaseMutation):
     class Arguments:
         payment_method_id = graphene.ID(
             required=True, description='Payment method ID')
+
+    class Meta:
+        description = 'Voids the authorized payment'
 
     @classmethod
     @permission_required('order.manage_orders')
