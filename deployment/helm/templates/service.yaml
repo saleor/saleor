@@ -15,5 +15,5 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app: {{ template "saleor.name" . }}-app
+    app: {{ template "saleor.name" . }}-django
     release: {{ .Release.Name }}
