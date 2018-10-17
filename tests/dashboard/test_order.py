@@ -157,23 +157,6 @@ def test_view_refund_order_payment_confirmed(
 
 
 @pytest.mark.integration
-def test_view_refund_order_invalid_payment_waiting_status(
-        admin_client, order_with_lines, payment_waiting):
-    order = order_with_lines
-
-    url = reverse(
-        'dashboard:refund-payment', kwargs={
-            'order_pk': order.pk, 'payment_pk': payment_waiting.pk})
-    response = admin_client.get(url)
-    assert response.status_code == 200
-
-    response = admin_client.post(
-        url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
-    assert response.status_code == 400
-    assert order.payments.last().status == PaymentStatus.WAITING
-
-
-@pytest.mark.integration
 def test_view_refund_order_invalid_payment_preauth_status(
         admin_client, order_with_lines, payment_method_txn_preauth):
     order = order_with_lines
