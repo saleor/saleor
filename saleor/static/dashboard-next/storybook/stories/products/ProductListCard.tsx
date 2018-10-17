@@ -16,7 +16,9 @@ storiesOf("Views / Products / Product list", module)
   .add("default", () => (
     <ProductListCard products={products} {...pageListProps.default} />
   ))
-  .add("loading", () => <ProductListCard {...pageListProps.loading} />)
+  .add("loading", () => (
+    <ProductListCard {...pageListProps.loading} products={undefined} />
+  ))
   .add("no data", () => (
     <ProductListCard products={[]} {...pageListProps.default} />
   ));

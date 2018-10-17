@@ -1,7 +1,6 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
-import { AttributeType, ProductImageType } from "../../";
 import { UserError } from "../../..";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
@@ -11,6 +10,7 @@ import SaveButtonBar, {
 } from "../../../components/SaveButtonBar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
+import { ProductVariantCreateData_product } from "../../types/ProductVariantCreateData";
 import ProductVariantAttributes from "../ProductVariantAttributes";
 import ProductVariantNavigation from "../ProductVariantNavigation";
 import ProductVariantPrice from "../ProductVariantPrice";
@@ -31,33 +31,7 @@ interface ProductVariantCreatePageProps {
   errors: UserError[];
   header: string;
   loading: boolean;
-  product?: {
-    images?: {
-      edges?: Array<{
-        node: ProductImageType;
-      }>;
-    };
-    productType?: {
-      name?: string;
-      variantAttributes?: AttributeType[];
-    };
-    variants?: {
-      edges?: Array<{
-        node: {
-          id: string;
-          name: string;
-          sku: string;
-          image: {
-            edges: Array<{
-              node: {
-                url: string;
-              };
-            }>;
-          };
-        };
-      }>;
-    };
-  };
+  product: ProductVariantCreateData_product;
   saveButtonBarState?: SaveButtonBarState;
   onBack: () => void;
   onSubmit: (data: FormData) => void;
