@@ -1,7 +1,7 @@
-import * as React from "react";
 import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as classNames from "classnames";
+import * as React from "react";
 
 interface TabProps {
   isActive: boolean;
@@ -15,18 +15,18 @@ const decorate = withStyles(theme => ({
     "&$active": {
       borderBottomColor: theme.palette.primary.main
     },
-    borderBottom: "1px solid transparent",
-    display: "inline-block" as "inline-block",
-    minWidth: 40,
-    fontWeight: theme.typography.fontWeightRegular,
-    marginRight: theme.spacing.unit * 4,
-    cursor: "pointer",
+    "&:focus": {
+      color: "#5AB378"
+    },
     "&:hover": {
       color: "#5AB378"
     },
-    "&:focus": {
-      color: "#5AB378"
-    }
+    borderBottom: "1px solid transparent",
+    cursor: "pointer",
+    display: "inline-block" as "inline-block",
+    fontWeight: theme.typography.fontWeightRegular,
+    marginRight: theme.spacing.unit * 4,
+    minWidth: 40
   }
 }));
 
