@@ -1,5 +1,7 @@
 import graphene
+from django.conf import settings
 from graphql_jwt.decorators import permission_required
+from prices import Money, TaxedMoney
 
 from ...payment import PaymentError
 from ...payment.utils import (
@@ -14,18 +16,21 @@ from .types import PaymentGatewayEnum, PaymentMethod
 
 class PaymentMethodInput(graphene.InputObjectType):
     gateway = PaymentGatewayEnum()
-    checkout_id = graphene.ID(description='Checkout ID')
-    transaction_token = graphene.Argument(
-        graphene.String,
+    checkout_id = graphene.ID(description='Checkout ID.')
+    transaction_token = graphene.String(
+        required=True, description='One time transaction token.')
+    tax = Decimal(
         required=True,
-        description='One time transaction token')
-    amount = graphene.Argument(
-        Decimal, required=True, description='Transaction amount')
+        description='Tax included in the transaction\'s total amount.')
+    amount = Decimal(
+        required=True,
+        description=(
+            'Total amount of the transaction, including '
+            'all taxes and discounts.'))
     billing_address = AddressInput(description='Billing address')
-    store_payment_method = graphene.Argument(
-        graphene.Boolean,
+    store_payment_method = graphene.Boolean(
         default_value=False,
-        description='Store card for further usage')
+        description='Store card for further usage.')
 
 
 class CheckoutPaymentMethodCreate(BaseMutation):
@@ -55,9 +60,14 @@ class CheckoutPaymentMethodCreate(BaseMutation):
             billing_data = cls.clean_billing_address(input['billing_address'])
 
         # create payment method
+        # FIXME should take amount and tax into the consideration
+        gross = Money(input['amount'], currency=settings.DEFAULT_CURRENCY)
+        tax = Money(input['amount'], currency=settings.DEFAULT_CURRENCY)
+        net = (gross - tax) or gross
         payment_method = create_payment_method(
+            total_net=net, total_gross=gross,
             variant=input['gateway'], billing_email=checkout.email,
-            extra_data=extra_data, total=input['amount'], checkout=checkout,
+            extra_data=extra_data, checkout=checkout,
             **billing_data)
 
         # authorize payment
@@ -78,7 +88,7 @@ class CheckoutPaymentMethodCreate(BaseMutation):
             'billing_address_1': billing_address.street_address_1,
             'billing_address_2': billing_address.street_address_2,
             'billing_city': billing_address.city,
-            'billing_postcode': billing_address.postal_code,
+            'billing_postal_code': billing_address.postal_code,
             'billing_country_code': billing_address.country,
             'billing_country_area': billing_address.country_area}
         return billing_data
@@ -101,7 +111,7 @@ class PaymentMethodCapture(BaseMutation):
     class Arguments:
         payment_method_id = graphene.ID(
             required=True, description='Payment method ID')
-        amount = graphene.Argument(Decimal, description='Transaction amount')
+        amount = Decimal(description='Transaction amount')
 
     @classmethod
     @permission_required('order.manage_orders')

@@ -3,7 +3,7 @@ from django.conf import settings
 from django.utils.translation import pgettext_lazy
 
 from ..account.forms import SignupForm
-from ..payment import PaymentMethodChargeStatus, can_be_voided
+from ..payment import can_be_voided
 from ..payment.models import PaymentMethod
 from .models import Order
 

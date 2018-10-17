@@ -4,8 +4,8 @@ from ...checkout import models
 from ...core.utils.taxes import get_taxes_for_address
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import TaxedMoney
-from ..shipping.types import ShippingMethod
 from ..order.resolvers import resolve_shipping_methods
+from ..shipping.types import ShippingMethod
 
 
 class CheckoutLine(CountableDjangoObjectType):

@@ -385,18 +385,18 @@ def test_checkout_complete(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.save()
-    total = checkout.get_total().gross
+    total = checkout.get_total()
     payment_method = payment_method_dummy
-    payment_method.total = total.amount
-    payment_method.currency = total.currency
+    payment_method.is_active = True
+    payment_method.total = total
+    payment_method.captured_amount = total.gross
     payment_method.checkout = checkout
+    payment_method.save()
     payment_method.transactions.create(
         transaction_type=TransactionType.AUTH,
         is_success=True,
         gateway_response={},
-        amount=total.amount)
-    payment_method.save()
-
+        amount=total.gross.amount)
     checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
 
     query = """
@@ -414,15 +414,16 @@ def test_checkout_complete(
     }
     """
     variables = {'checkoutId': checkout_id}
-    assert not Order.objects.exists()
+    orders_count = Order.objects.count()
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content['data']['checkoutComplete']
     assert not data['errors']
     order_token = data['order']['token']
-    order = Order.objects.get()
+    assert Order.objects.count() == orders_count + 1
+    order = Order.objects.last()
     assert order.token == order_token
-    assert order.total.gross == total
+    assert order.total.gross == total.gross
     checkout_line = checkout.lines.first()
     order_line = order.lines.first()
     assert checkout_line.quantity == order_line.quantity

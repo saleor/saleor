@@ -19,12 +19,13 @@ from prices import Money, TaxedMoney
 
 from . import FulfillmentStatus, OrderEvents, OrderStatus, display_order_event
 from ..account.models import Address
+from ..core import zero_money
 from ..core.utils import build_absolute_uri
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.taxes import ZERO_TAXED_MONEY
 from ..core.weight import WeightUnits, zero_weight
 from ..discount.models import Voucher
-from ..payment import PaymentMethodChargeStatus
+from ..payment import ChargeStatus
 from ..shipping.models import ShippingMethod
 
 
@@ -97,17 +98,20 @@ class Order(models.Model):
     token = models.CharField(max_length=36, unique=True, blank=True)
     total_net = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=zero_money)
     total_gross = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=zero_money)
     total = TaxedMoneyField(net_field='total_net', gross_field='total_gross')
     voucher = models.ForeignKey(
         Voucher, blank=True, null=True, related_name='+',
         on_delete=models.SET_NULL)
     discount_amount = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=zero_money)
     discount_name = models.CharField(max_length=255, default='', blank=True)
     translated_discount_name = models.CharField(
         max_length=255, default='', blank=True)
@@ -131,8 +135,8 @@ class Order(models.Model):
 
     def is_fully_paid(self):
         payments = self.payment_methods.filter(
-            charge_status=PaymentMethodChargeStatus.CHARGED)
-        total_captured = [payment.get_captured_money() for payment in payments]
+            charge_status=ChargeStatus.CHARGED)
+        total_captured = [payment.captured_amount for payment in payments]
         total_paid = sum(total_captured, ZERO_TAXED_MONEY)
         return total_paid.gross >= self.total.gross
 
@@ -158,7 +162,7 @@ class Order(models.Model):
         return reverse('order:details', kwargs={'token': self.token})
 
     def get_last_payment(self):
-        return max(self.payments.all(), default=None, key=attrgetter('pk'))
+        return max(self.payment_methods.all(), default=None, key=attrgetter('pk'))
 
     def get_last_payment_status(self):
         last_payment = self.get_last_payment()
@@ -177,7 +181,7 @@ class Order(models.Model):
         # FIXME for Braintree, payment is preauthorized if it was added
         # properly and set to active. This might need to be adjusted for other
         # payment gateways in the future.
-        return not self.payment_methods.filter(is_active=True).exists()
+        return self.payment_methods.filter(is_active=True).exists()
 
     @property
     def quantity_fulfilled(self):

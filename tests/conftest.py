@@ -29,8 +29,8 @@ from saleor.order import OrderStatus, OrderEvents
 from saleor.order.models import Order, OrderEvent
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
+from saleor.payment import ChargeStatus, TransactionType
 from saleor.payment.models import PaymentMethod
-from saleor.payment import TransactionType, PaymentMethodChargeStatus
 from saleor.product.models import (
     Attribute, AttributeTranslation, AttributeValue, Category, Collection,
     Product, ProductImage, ProductTranslation, ProductType, ProductVariant)
@@ -467,24 +467,14 @@ def draft_order(order_with_lines):
 
 
 @pytest.fixture()
-def payment_preauth(order_with_lines):
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.PREAUTH,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total.gross.amount,
-        tax=order_with_lines.total.tax.amount)
-
-
-@pytest.fixture()
 def payment_method_txn_preauth(order_with_lines, payment_method_dummy):
     order = order_with_lines
     payment = payment_method_dummy
     payment.order = order
-    payment.total = order.total.gross.amount
     payment.save()
 
     payment.transactions.create(
-        amount=payment.total,
+        amount=payment.total.gross,
         transaction_type=TransactionType.AUTH,
         gateway_response={},
         is_success=True)
@@ -496,13 +486,12 @@ def payment_method_txn_captured(order_with_lines, payment_method_dummy):
     order = order_with_lines
     payment = payment_method_dummy
     payment.order = order
-    payment.total = order.total.gross.amount
-    payment.charge_status = PaymentMethodChargeStatus.CHARGED
-    payment.captured_amount = payment.total
+    payment.charge_status = ChargeStatus.CHARGED
+    payment.captured_amount = payment.total.gross
     payment.save()
 
     payment.transactions.create(
-        amount=payment.total,
+        amount=payment.total.gross,
         transaction_type=TransactionType.CAPTURE,
         gateway_response={},
         is_success=True)
@@ -514,14 +503,12 @@ def payment_method_txn_refunded(order_with_lines, payment_method_dummy):
     order = order_with_lines
     payment = payment_method_dummy
     payment.order = order
-    payment.total = order.total.gross.amount
-    payment.charge_status = PaymentMethodChargeStatus.FULLY_REFUNDED
-    payment.captured_amount = 0
+    payment.charge_status = ChargeStatus.FULLY_REFUNDED
     payment.is_active = False
     payment.save()
 
     payment.transactions.create(
-        amount=payment.total,
+        amount=payment.total.gross,
         transaction_type=TransactionType.REFUND,
         gateway_response={},
         is_success=True)
@@ -529,45 +516,10 @@ def payment_method_txn_refunded(order_with_lines, payment_method_dummy):
 
 
 @pytest.fixture()
-def payment_confirmed(order_with_lines):
-    order_amount = order_with_lines.total_gross.amount
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.CONFIRMED,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_amount, captured_amount=order_amount,
-        tax=order_with_lines.total.tax.amount)
-
-
-@pytest.fixture()
-def payment_rejected(order_with_lines):
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.REJECTED,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total_gross.amount)
-
-
-@pytest.fixture()
-def payment_refunded(order_with_lines):
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.REFUNDED,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total_gross.amount)
-
-
-@pytest.fixture()
-def payment_error(order_with_lines):
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.ERROR,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total_gross.amount)
-
-
-@pytest.fixture()
-def payment_input(order_with_lines):
-    return order_with_lines.payments.create(
-        variant='default', status=PaymentStatus.INPUT,
-        fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total_gross.amount)
+def payment_method_not_authorized(payment_method_dummy):
+    payment_method_dummy.is_active = False
+    payment_method_dummy.save()
+    return payment_method_dummy
 
 
 @pytest.fixture()
@@ -775,6 +727,18 @@ def product_translation_fr(product):
 
 
 @pytest.fixture
-def payment_method_dummy(db):
+def payment_method_dummy(db, order_with_lines):
     return PaymentMethod.objects.create(
-        variant='dummy', is_active=True, total=100, currency='USD')
+        variant='dummy',
+        order=order_with_lines,
+        is_active=True,
+        total=order_with_lines.total,
+        billing_first_name=order_with_lines.billing_address.first_name,
+        billing_last_name=order_with_lines.billing_address.last_name,
+        billing_address_1=order_with_lines.billing_address.street_address_1,
+        billing_address_2=order_with_lines.billing_address.street_address_2,
+        billing_city=order_with_lines.billing_address.city,
+        billing_postal_code=order_with_lines.billing_address.postal_code,
+        billing_country_code=order_with_lines.billing_address.country.code,
+        billing_country_area=order_with_lines.billing_address.country_area,
+        billing_email=order_with_lines.user_email)

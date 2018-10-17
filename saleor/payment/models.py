@@ -1,11 +1,11 @@
-from decimal import Decimal
-
+from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
-from prices import Money
+from django_prices.models import MoneyField, TaxedMoneyField
 
-from . import PaymentMethodChargeStatus, TransactionType
+from . import ChargeStatus, TransactionType
 from ..checkout.models import Cart
+from ..core import zero_money
 from ..order.models import Order
 
 
@@ -31,14 +31,16 @@ class PaymentMethod(models.Model):
     modified = models.DateTimeField(auto_now=True)
     charge_status = models.CharField(
         max_length=15,
-        choices=PaymentMethodChargeStatus.CHOICES,
-        default=PaymentMethodChargeStatus.NOT_CHARGED)
+        choices=ChargeStatus.CHOICES,
+        default=ChargeStatus.NOT_CHARGED)
+
+    # FIXME assign it as a separate Address instance?
     billing_first_name = models.CharField(max_length=256, blank=True)
     billing_last_name = models.CharField(max_length=256, blank=True)
     billing_address_1 = models.CharField(max_length=256, blank=True)
     billing_address_2 = models.CharField(max_length=256, blank=True)
     billing_city = models.CharField(max_length=256, blank=True)
-    billing_postcode = models.CharField(max_length=256, blank=True)
+    billing_postal_code = models.CharField(max_length=256, blank=True)
     billing_country_code = models.CharField(max_length=2, blank=True)
     billing_country_area = models.CharField(max_length=256, blank=True)
     billing_email = models.EmailField(blank=True)
@@ -46,14 +48,19 @@ class PaymentMethod(models.Model):
     extra_data = models.TextField(blank=True, default='')
     token = models.CharField(max_length=36, blank=True, default='')
 
-    # FIXME refactor to MoneyField
-    total = models.DecimalField(
-        max_digits=9, decimal_places=2, default=Decimal('0.0'))
-    currency = models.CharField(max_length=10)
-    captured_amount = models.DecimalField(
-        max_digits=9, decimal_places=2, default=Decimal('0.0'))
-    tax = models.DecimalField(
-        max_digits=9, decimal_places=2, default=Decimal('0.0'))
+    total_net = MoneyField(
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=zero_money)
+    total_gross = MoneyField(
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=zero_money)
+    total = TaxedMoneyField(net_field='total_net', gross_field='total_gross')
+    captured_amount = MoneyField(
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=zero_money)
 
     checkout = models.ForeignKey(
         Cart, null=True, related_name='payment_methods',
@@ -61,18 +68,6 @@ class PaymentMethod(models.Model):
     order = models.ForeignKey(
         Order, null=True, related_name='payment_methods',
         on_delete=models.PROTECT)
-
-    def _get_money(self, amount):
-        return Money(amount=amount, currency=self.currency)
-
-    def get_total(self):
-        return self._get_money(self.total)
-
-    def get_captured_money(self):
-        return self._get_money(self.captured_amount)
-
-    def get_tax_money(self):
-        return self._get_money(self.tax)
 
     def get_auth_transaction(self):
         txn = self.transactions.get(
@@ -118,11 +113,9 @@ class Transaction(models.Model):
     # FIXME probably we should have error/pending/success status instead of
     # a bool, eg for payments with 3d secure
     is_success = models.BooleanField(default=False)
-    amount = models.DecimalField(
-        max_digits=9, decimal_places=2, default=Decimal('0.0'))
-    currency = models.CharField(max_length=10, editable=False)
+    amount = MoneyField(
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=zero_money)
 
     gateway_response = JSONField()
-
-    def get_amount(self):
-        return Money(amount=self.amount, currency=self.currency)

@@ -23,7 +23,7 @@ from ...order.emails import (
     send_order_confirmation)
 from ...order.models import Fulfillment, FulfillmentLine, Order
 from ...order.utils import update_order_prices, update_order_status
-from ...payment import PaymentMethodChargeStatus
+from ...payment import ChargeStatus
 from ...shipping.models import ShippingMethod
 from ..views import staff_member_required
 from .filters import OrderFilter
@@ -119,10 +119,10 @@ def remove_draft_order(request, order_pk):
 def order_details(request, order_pk):
     qs = Order.objects.select_related(
         'user', 'shipping_address', 'billing_address').prefetch_related(
-        'payments', 'events__user', 'lines__variant__product',
+        'payment_methods', 'events__user', 'lines__variant__product',
         'fulfillments__lines__order_line')
     order = get_object_or_404(qs, pk=order_pk)
-    all_payments = order.payments.all()
+    all_payments = order.payment_methods.all()
     payment = order.get_last_payment()
     preauthorized = ZERO_TAXED_MONEY
     captured = ZERO_MONEY
@@ -130,22 +130,22 @@ def order_details(request, order_pk):
     if payment:
         can_capture = (
             payment.is_active and
-            payment.charge_status == PaymentMethodChargeStatus.NOT_CHARGED and
+            payment.charge_status == ChargeStatus.NOT_CHARGED and
             order.status not in {OrderStatus.DRAFT, OrderStatus.CANCELED})
         can_release = (
             payment.is_active and
-            payment.charge_status == PaymentMethodChargeStatus.NOT_CHARGED)
+            payment.charge_status == ChargeStatus.NOT_CHARGED)
         can_refund = (
             payment.is_active and
-            payment.charge_status == PaymentMethodChargeStatus.CHARGED and
+            payment.charge_status == ChargeStatus.CHARGED and
             payment.variant != CustomPaymentChoices.MANUAL)
-        preauthorized = payment.get_total()
-        if payment.charge_status == PaymentMethodChargeStatus.CHARGED:
-            captured = payment.get_captured_money()
+        preauthorized = payment.total
+        if payment.charge_status == ChargeStatus.CHARGED:
+            captured = payment.captured_amount
             balance = captured - order.total.gross
     else:
         can_capture = can_release = can_refund = False
-    can_mark_as_paid = not order.payments.exists()
+    can_mark_as_paid = not order.payment_methods.exists()
     ctx = {
         'order': order, 'all_payments': all_payments, 'payment': payment,
         'notes': order.events.filter(type=OrderEvents.NOTE_ADDED.value),
@@ -188,8 +188,8 @@ def capture_payment(request, order_pk, payment_pk):
     order = get_object_or_404(orders, pk=order_pk)
     payment = get_object_or_404(order.payment_methods, pk=payment_pk)
     amount = order.total.quantize('0.01').gross
-    form = CapturePaymentForm(request.POST or None, payment=payment,
-                              initial={'amount': amount})
+    form = CapturePaymentForm(
+        request.POST or None, payment=payment, initial={'amount': amount})
     if form.is_valid() and form.capture():
         amount = form.cleaned_data['amount']
         msg = pgettext_lazy(
@@ -202,8 +202,11 @@ def capture_payment(request, order_pk, payment_pk):
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     status = 400 if form.errors else 200
-    ctx = {'captured': payment.captured_amount, 'currency': payment.currency,
-           'form': form, 'order': order, 'payment': payment}
+    ctx = {
+        'captured': payment.captured_amount,
+        'form': form,
+        'order': order,
+        'payment': payment}
     return TemplateResponse(request, 'dashboard/order/modal/capture.html', ctx,
                             status=status)
 
@@ -215,8 +218,8 @@ def refund_payment(request, order_pk, payment_pk):
     order = get_object_or_404(orders, pk=order_pk)
     payment = get_object_or_404(order.payment_methods, pk=payment_pk)
     amount = payment.captured_amount
-    form = RefundPaymentForm(request.POST or None, payment=payment,
-                             initial={'amount': amount})
+    form = RefundPaymentForm(
+        request.POST or None, payment=payment, initial={'amount': amount})
     if form.is_valid() and form.refund():
         amount = form.cleaned_data['amount']
         msg = pgettext_lazy(
@@ -229,8 +232,11 @@ def refund_payment(request, order_pk, payment_pk):
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     status = 400 if form.errors else 200
-    ctx = {'captured': payment.captured_amount, 'currency': payment.currency,
-           'form': form, 'order': order, 'payment': payment}
+    ctx = {
+        'captured': payment.captured_amount,
+        'form': form,
+        'order': order,
+        'payment': payment}
     return TemplateResponse(request, 'dashboard/order/modal/refund.html', ctx,
                             status=status)
 
@@ -250,8 +256,9 @@ def release_payment(request, order_pk, payment_pk):
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     status = 400 if form.errors else 200
-    ctx = {'captured': payment.captured_amount, 'currency': payment.currency,
-           'form': form, 'order': order, 'payment': payment}
+    ctx = {
+        'captured': payment.captured_amount, 'form': form, 'order': order,
+        'payment': payment}
     return TemplateResponse(request, 'dashboard/order/modal/release.html', ctx,
                             status=status)
 

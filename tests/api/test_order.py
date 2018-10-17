@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, Mock
 import pytest
 
 import graphene
-from payments import PaymentStatus
 from saleor.account.models import Address
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.graphql.core.types import ReportingPeriod
@@ -16,7 +15,8 @@ from saleor.graphql.order.types import (
     OrderEventsEmailsEnum, PaymentStatusEnum, OrderStatusFilter)
 from saleor.order import (
     CustomPaymentChoices, OrderEvents, OrderEventsEmails, OrderStatus)
-from saleor.order.models import Order, OrderEvent, Payment
+from saleor.order.models import Order, OrderEvent
+from saleor.payment.models import PaymentMethod
 from saleor.shipping.models import ShippingMethod
 from tests.api.utils import get_graphql_content
 
@@ -911,8 +911,9 @@ def test_order_cancel(
 
 
 def test_order_capture(
-        staff_api_client, permission_manage_orders, payment_preauth, staff_user):
-    order = payment_preauth.order
+        staff_api_client, permission_manage_orders,
+        payment_method_txn_preauth, staff_user):
+    order = payment_method_txn_preauth.order
     query = """
         mutation captureOrder($id: ID!, $amount: Decimal!) {
             orderCapture(id: $id, amount: $amount) {
@@ -927,14 +928,14 @@ def test_order_capture(
         }
     """
     order_id = graphene.Node.to_global_id('Order', order.id)
-    amount = float(payment_preauth.get_total().gross.amount)
+    amount = float(payment_method_txn_preauth.total.gross.amount)
     variables = {'id': order_id, 'amount': amount}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     data = content['data']['orderCapture']['order']
     order.refresh_from_db()
-    assert data['paymentStatus'] == PaymentStatusEnum.CONFIRMED.name
+    assert data['paymentStatus'] == PaymentStatusEnum.CHARGED.name
     assert data['isPaid']
     assert data['totalCaptured']['amount'] == float(amount)
 
@@ -953,8 +954,9 @@ def test_order_capture(
 
 
 def test_paid_order_mark_as_paid(
-        staff_api_client, permission_manage_orders, payment_preauth):
-    order = payment_preauth.order
+        staff_api_client, permission_manage_orders,
+        payment_method_txn_preauth):
+    order = payment_method_txn_preauth.order
     query = """
             mutation markPaid($id: ID!) {
                 orderMarkAsPaid(id: $id) {
@@ -1012,8 +1014,9 @@ def test_order_mark_as_paid(
 
 
 def test_order_release(
-        staff_api_client, permission_manage_orders, payment_preauth, staff_user):
-    order = payment_preauth.order
+        staff_api_client, permission_manage_orders, payment_method_txn_preauth,
+        staff_user):
+    order = payment_method_txn_preauth.order
     query = """
             mutation releaseOrder($id: ID!) {
                 orderRelease(id: $id) {
@@ -1029,15 +1032,16 @@ def test_order_release(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     data = content['data']['orderRelease']['order']
-    assert data['paymentStatus'] == PaymentStatusEnum.REFUNDED.name
+    assert data['paymentStatus'] == PaymentStatusEnum.NOT_CHARGED.name
     event_payment_released = order.events.last()
     assert event_payment_released.type == OrderEvents.PAYMENT_RELEASED.value
     assert event_payment_released.user == staff_user
 
 
 def test_order_refund(
-        staff_api_client, permission_manage_orders, payment_confirmed):
-    order = order = payment_confirmed.order
+        staff_api_client, permission_manage_orders,
+        payment_method_txn_captured):
+    order = order = payment_method_txn_captured.order
     query = """
         mutation refundOrder($id: ID!, $amount: Decimal!) {
             orderRefund(id: $id, amount: $amount) {
@@ -1050,7 +1054,7 @@ def test_order_refund(
         }
     """
     order_id = graphene.Node.to_global_id('Order', order.id)
-    amount = float(payment_confirmed.get_total().gross.amount)
+    amount = float(payment_method_txn_captured.total.gross.amount)
     variables = {'id': order_id, 'amount': amount}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
@@ -1058,7 +1062,7 @@ def test_order_refund(
     data = content['data']['orderRefund']['order']
     order.refresh_from_db()
     assert data['status'] == order.status.upper()
-    assert data['paymentStatus'] == PaymentStatusEnum.REFUNDED.name
+    assert data['paymentStatus'] == PaymentStatusEnum.FULLY_REFUNDED.name
     assert data['isPaid'] == False
 
     order_event = order.events.last()
@@ -1067,22 +1071,22 @@ def test_order_refund(
 
 
 def test_clean_order_release_payment():
-    payment = MagicMock(spec=Payment)
-    payment.status = 'not preauth'
+    payment = MagicMock(spec=PaymentMethod)
+    payment.is_active = False
     errors = clean_release_payment(payment, [])
     assert errors[0].field == 'payment'
     assert errors[0].message == 'Only pre-authorized payments can be released'
 
-    payment.status = PaymentStatus.PREAUTH
+    payment.is_active = True
     error_msg = 'error has happened.'
-    payment.release = Mock(side_effect=ValueError(error_msg))
+    payment.void = Mock(side_effect=ValueError(error_msg))
     errors = clean_release_payment(payment, [])
     assert errors[0].field == 'payment'
     assert errors[0].message == error_msg
 
 
 def test_clean_order_refund_payment():
-    payment = MagicMock(spec=Payment)
+    payment = MagicMock(spec=PaymentMethod)
     payment.variant = CustomPaymentChoices.MANUAL
     amount = Mock(spec='string')
     errors = clean_refund_payment(payment, amount, [])
@@ -1098,14 +1102,15 @@ def test_clean_order_capture():
         'There\'s no payment associated with the order.')
 
 
-def test_clean_order_mark_as_paid(payment_preauth):
-    order = payment_preauth.order
+def test_clean_order_mark_as_paid(payment_method_txn_preauth):
+    order = payment_method_txn_preauth.order
     errors = clean_order_mark_as_paid(order, [])
     assert errors[0].field == 'payment'
     assert errors[0].message == (
         'Orders with payments can not be manually marked as paid.')
 
-    order.payments.all().delete()
+
+def test_clean_order_mark_as_paid_no_payments(order):
     assert clean_order_mark_as_paid(order, []) == []
 
 

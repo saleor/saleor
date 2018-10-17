@@ -11,6 +11,7 @@ from django_prices.models import MoneyField
 from measurement.measures import Weight
 
 from ..account.models import Address
+from ..core import zero_money
 from ..core.utils.taxes import ZERO_TAXED_MONEY
 from ..shipping.models import ShippingMethod
 
@@ -56,7 +57,8 @@ class Cart(models.Model):
     note = models.TextField(blank=True, default='')
     discount_amount = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=zero_money)
     discount_name = models.CharField(max_length=255, blank=True, null=True)
     translated_discount_name = models.CharField(
         max_length=255, blank=True, null=True)

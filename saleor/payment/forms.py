@@ -7,7 +7,7 @@ from .models import PaymentMethod
 class PaymentMethodForm(forms.ModelForm):
     class Meta:
         model = PaymentMethod
-        fields = ['variant', 'is_active', 'total', 'charge_status']
+        fields = ['variant', 'is_active', 'charge_status']
 
     def authorize_payment(self):
         self.instance.transactions.create(

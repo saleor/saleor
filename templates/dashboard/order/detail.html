@@ -599,7 +599,7 @@
                     {% render_status payment.charge_status payment.get_charge_status_display %}
                   </td>
                   <td>
-                    {{ payment.total|currencyfmt:payment.currency }}
+                    {% price payment.total %}
                   </td>
                 </tr>
               {% endfor %}
