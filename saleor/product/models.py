@@ -434,6 +434,7 @@ class Collection(SeoModel):
         Product, blank=True, related_name='collections')
     background_image = VersatileImageField(
         upload_to='collection-backgrounds', blank=True, null=True)
+    published_at = models.DateField(blank=True, null=True)
     is_published = models.BooleanField(default=False)
 
     objects = CollectionQuerySet.as_manager()
@@ -449,6 +450,10 @@ class Collection(SeoModel):
         return reverse(
             'product:collection',
             kwargs={'pk': self.id, 'slug': self.slug})
+
+    def is_available(self):
+        today = datetime.date.today()
+        return self.published_at is None or self.published_at <= today
 
 
 class CollectionTranslation(SeoModelTranslation):
