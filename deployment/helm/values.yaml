@@ -2,13 +2,15 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: 1
-
 image:
   repository: mirumee/saleor
-  tag: 6a32d2dee23811c91b50c43186328a1d18a04b63
+  tag: afce249100f2b90e96bc9b50a8a7b28c710378a0
   pullPolicy: IfNotPresent
   #  pullSecret:
+
+# If using the standard saleor-secrets file, then leave this empty
+# The value of 'existingSecret' is the name of the alternative secrets file to use
+# existingSecret:
 
 service:
   type: ClusterIP
@@ -55,8 +57,8 @@ persistence:
 
 resources:
   requests:
-    cpu: 500m
-    memory: 128Mi
+    cpu: 200m
+    memory: 256Mi
   limits:
     cpu: 1000m
     memory: 1Gi
@@ -68,30 +70,37 @@ tolerations: []
 affinity: {}
 
 django:
-  # One can optionally set an alternative config map for the settings.py file
-  # alternativeConfigMapName: custom-django-config
+  # One can optionally set an alternative config map for the settings.py file, eg
+  #  alternativeConfigMap: custom-django-config
+  alternativeConfigMap:
+  settingsModule: saleor.custom-settings
   uwsgi:
     processes: 2
   init:
     migrations: true
     populateDbDemo: true
-  debug: "True"
+  replicaCount: 1
+  autoscaling:
+    enabled: true
+    minReplicaCount: 1
+    maxReplicaCount: 4
+    targetCPUUtilizationPercentage: 80
+  debugMode: true
   internalIps:
     - 127.0.0.1
-  timezone: UTC
+  timezone: Etc/UTC
   languageCode: en
-  internationalization: "True"
-  localization: "True"
-  enableSsl: "False"
-  defaultFromEmail:
+  internationalization: true
+  localization: true
+  enableSSL: true
   staticUrl: /static/
   mediaUrl: /media/
-  enableSilk: "False"
+  enableSilk: false
   defaultCountry: US
   defaultCurrency: USD
   availableCurrencies:
     - USD
-  accountActivationDays: 3
+    - EUR
   loginRedirectUrl: home
   googleAnalyticsTrackingId: home
   lowStockThreshold: 10
@@ -102,45 +111,83 @@ django:
   allowedHosts:
     - localhost
     - 127.0.0.1
-    - shop.codinghere.com
-  primaryAdmin: saleor
-  primaryAdminEmail: saleor@example.com
+  admins:
+    - name: saleor
+      email: saleor@example.com
+    - name: admin
+      email: admin@example.com
 
+  # Log levels
   levels:
     saleorLogs: DEBUG
     djangoServerLogs: INFO
     djangoLogs: INFO
+    rootLogs: INFO
     consoleHandler: DEBUG
     mailAdminsHandler: ERROR
-    rootLogs: INFO
 
   images:
     placeholders:
-      default: images/placeholder255x255.png
       size_60: images/placeholder60x60.png
       size_120: images/placeholder120x120.png
       size_255: images/placeholder255x255.png
       size_540: images/placeholder540x540.png
       size_1080: images/placeholder1080x1080.png
-    createOnDemand: "True"
-  logoutOnPasswordChange: "False"
+    createOnDemand: true
 
+  logoutOnPasswordChange: false
+
+  # See https://developers.google.com/recaptcha/docs/versions
   captcha:
-    # See https://developers.google.com/recaptcha/docs/versions
-    version: 2
     publicKey:
 
+  # Aws
+
+  # Django docs:
+  # Further mirumee docs - https://github.com/mirumee/saleor/blob/master/docs/deployment/s3.rst
+  # django-storages docs - https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
+
+  # Aws docs:
+  # Further info on location https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html
+  # Further info on buckets https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingBucket.html#create-bucket-intro
+  # By setting a staticBucketName, static files will be served from aws s3 (eg js, css)
+  # By setting a mediaBucketName, media files will be served from aws s3 (eg product images)
+  # Aws docs on custom domains: https://docs.aws.amazon.com/AmazonS3/latest/dev/website-hosting-custom-domain-walkthrough.html
+  # Aws docs on queryStringAuth https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-authenticating-requests.html
   aws:
     enabled: false
-    location:
-    storageBucketName:
+    location: eu-west-1
+    staticBucketName:
+    staticCustomDomain:
     mediaBucketName:
     mediaCustomDomain:
-    queryStringAuth:
-    s3CustomDomain:
+    queryStringAuth: false
+
+  # smtpSettings format: smtp://[loginName]@[customDomainName]:[password]@[providerDomainName]:[port]/[extraArgs]
+  # The password should be set in the secrets file under EMAIL_PASSWORD
+  # See https://github.com/mirumee/saleor/blob/master/docs/guides/email_integration.rst
+  email:
+    defaultFromEmail: saleor@example.com
+    # if orderFromEmail is unset, will default to defaultFromEmail
+    orderFromEmail:
+    smtpSettings:
+      loginName:
+      customDomainName:
+      providerDomainName: smtp.mailgun.org
+      port: 465
+      extraArgs: "?ssl=True"
+
+  tokens:
+    jwt:
+      expires: true
 
 celery:
   replicas: 1
+  autoscaling:
+    enabled: false
+    minReplicaCount: 1
+    maxReplicaCount: 4
+    targetCPUUtilizationPercentage: 80
   # choose between fixed or auto
   concurrencyType: auto
   fixedConcurrency: 2
@@ -154,8 +201,8 @@ celery:
   taskEventsMonitoringEnabled: true
   resources:
     requests:
-      cpu: 500m
-      memory: 128Mi
+      cpu: 200m
+      memory: 256Mi
     limits:
       cpu: 1000m
       memory: 1Gi
@@ -168,13 +215,18 @@ celery:
 # Refer to https://github.com/helm/charts/blob/master/stable/postgresql/values.yaml
 postgresql:
   enabled: true
-  # By setting alternateUrl, saleor will be directed to use an alternative postgresql instance
-  # alternateUrl:
+  # By setting useExternalUrl to true, saleor will be directed to use an alternative postgresql instance
+  # The settings for that instance must be set in a secret see `templates/secrets.yaml`
+  useExternalUrl: false
+
   image: "postgres"
   imageTag: "9.6.2"
   imagePullPolicy: IfNotPresent
+
+  # If postgresPassword is left empty, a random password will be generated in the postgresql secret
+  # Default: random 10 character string
+  # postgresPassword:
   postgresUser: saleor
-  postgresPassword: saleor
   postgresDatabase: saleor
   usePasswordFile: false
   # existingSecret: 'secret'
@@ -206,8 +258,9 @@ postgresql:
 # Refer to https://github.com/bitnami/charts/blob/master/bitnami/elasticsearch/
 elasticsearch:
   enabled: true
-  # By setting alternateUrl, saleor will be directed to use an alternative elasticsearch instance
-  # alternateUrl:
+  # By setting useExternalUrl to true, saleor will be directed to use an alternative elasticsearch instance
+  # The settings for that instance must be set in a secret see `templates/secrets.yaml`
+  useExternalUrl: false
 
   appVersion: 6.3.2
 
@@ -244,12 +297,12 @@ elasticsearch:
     tolerations: {}
     resources:
       requests:
-        cpu: 50m
+        cpu: 200m
         memory: 512Mi
       limits:
         cpu: 1000m
         memory: 1024Mi
-    priorityClassName: 
+    priorityClassName:
     ## (dict) If specified, apply these annotations to each client Pod
     # podAnnotations:
     #   example: client-foo
@@ -274,12 +327,12 @@ elasticsearch:
     tolerations: {}
     resources:
       requests:
-        cpu: 50m
+        cpu: 100m
         memory: 512Mi
       limits:
         cpu: 1000m
        memory: 1Gi
-    priorityClassName: 
+    priorityClassName:
     ## (dict) If specified, apply these annotations to each master Pod
     # podAnnotations:
     #   example: master-foo
@@ -297,7 +350,7 @@ elasticsearch:
       enabled: false
       accessMode: ReadWriteOnce
       name: data
-      size: 10Gi
+      size: 30Gi
       # storageClass: ssd
     terminationGracePeriodSeconds: 3600
     antiAffinity: soft
@@ -305,12 +358,12 @@ elasticsearch:
     tolerations: {}
     resources:
       requests:
-        cpu: 50m
+        cpu: 100m
         memory: 1536Mi
       limits:
         cpu: 1000m
         memory: 2048Mi
-    priorityClassName: 
+    priorityClassName:
     ## (dict) If specified, apply these annotations to each data Pod
     # podAnnotations:
     #   example: data-foo
@@ -321,8 +374,10 @@ elasticsearch:
 
 redis:
   enabled: true
-  # If using external url, set it below
-  #  alternateUrl:
+  # By setting useExternalUrl to true, saleor will be directed to use an alternative postgresql instance
+  # The settings for that instance must be set in a secret see `templates/secrets.yaml`
+  useExternalUrl: false
+
   ## Bitnami Redis image version
   ## ref: https://hub.docker.com/r/bitnami/redis/tags/
   ##
@@ -422,7 +477,7 @@ redis:
   ## Defaults to a random 10-character alphanumeric string if not set and usePassword is true
   ## ref: https://github.com/bitnami/bitnami-docker-redis#setting-the-server-password-on-first-run
   ##
-  usePassword: false
+  usePassword: true
   password:
   ## Use existing secret (ignores previous password)
   # existingSecret:

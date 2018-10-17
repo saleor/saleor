@@ -1,7 +1,7 @@
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: {{ template "saleor.fullname" . }}-app
+  name: {{ template "saleor.fullname" . }}-django
   labels:
     app: {{ template "saleor.name" . }}
     chart: {{ template "saleor.chart" . }}
@@ -11,12 +11,12 @@ spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ template "saleor.name" . }}-app
+      app: {{ template "saleor.name" . }}-django
       release: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: {{ template "saleor.name" . }}-app
+        app: {{ template "saleor.name" . }}-django
         release: {{ .Release.Name }}
     spec:
       {{- if .Values.image.pullSecret }}
@@ -45,7 +45,7 @@ spec:
         {{- end }}
       # TODO Introduce a conditional for /app/media when one is using S3 based storage
       initContainers:
-        - name: {{ template "saleor.fullname" . }}-app-init
+        - name: {{ template "saleor.fullname" . }}-django-init
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["chown", "-R", "saleor:saleor", "/app/media"]
@@ -56,7 +56,7 @@ spec:
             runAsUser: 0
             privileged: true
       containers:
-        - name: {{ template "saleor.fullname" . }}-app
+        - name: {{ template "saleor.fullname" . }}-django
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
@@ -84,9 +84,65 @@ spec:
               mountPath: /app/saleor/custom-settings.py
               subPath: custom-settings.py
               readOnly: true
+
           envFrom:
+          {{- if .Values.existingSecret }}
+            - secretRef:
+                name: {{ .Values.existingSecret }}
+          {{- else }}
+            - secretRef:
+                name: {{ template "saleor.fullname" . }}-secrets
+          {{- end }}
             - configMapRef:
-                name: saleor-env-{{ .Release.Namespace }}
+                name: {{ template "saleor.fullname" . }}-env-{{ .Release.Namespace }}
+          env:
+          {{ if and (eq .Values.postgresql.enabled true) (eq .Values.postgresql.useExternalUrl false)  }}
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                {{- if .Values.postgresql.existingSecret }}
+                  name: {{ .Values.postgresql.existingSecret }}
+                {{- else }}
+                  name: {{ .Release.Name }}-postgresql
+                {{- end }}
+                  key: postgres-password
+          {{- end }}
+          {{ if and (eq .Values.redis.enabled true) (eq .Values.redis.usePassword true) (eq .Values.redis.useExternalUrl false) }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                {{- if .Values.redis.existingSecret }}
+                  name: {{ .Values.redis.existingSecret }}
+                {{- else }}
+                  name: {{ .Release.Name }}-redis
+                {{- end }}
+                  key: redis-password
+          {{- end }}
+
+            - name: DATABASE_URL
+              value: "postgres://$(POSTGRESQL_USER):$(POSTGRESQL_PASSWORD)@$(POSTGRESQL_HOST):$(POSTGRESQL_PORT)/$(POSTGRESQL_DATABASE)"
+
+          {{- if and (eq .Values.elasticsearch.enabled true) (eq .Values.elasticsearch.useExternalUrl false) }}
+            - name: ELASTICSEARCH_URL
+              value: "http://$(ELASTICSEARCH_HOST):$(ELASTICSEARCH_PORT)"
+          {{- else if (eq .Values.elasticsearch.useExternalUrl true) }}
+            - name: ELASTICSEARCH_URL
+              value: "https://$(ELASTICSEARCH_USER):$(ELASTICSEARCH_PASSWORD)@$(ELASTICSEARCH_HOST):$(ELASTICSEARCH_PORT)"
+          {{- end }}
+
+            - name: REDIS_URL
+          {{- if or (eq .Values.redis.useExternalUrl true) (eq .Values.redis.usePassword true) }}
+              value: "redis://$(REDIS_PASSWORD)@$(REDIS_HOST):$(REDIS_PORT)/$(REDIS_DB_NUMBER)"
+          {{- else }}
+              value: "redis://$(REDIS_HOST):$(REDIS_PORT)/$(REDIS_DB_NUMBER)"
+          {{- end }}
+
+            - name: CELERY_BROKER_URL
+          {{- if or (eq .Values.redis.useExternalUrl true) (eq .Values.redis.usePassword true) }}
+              value: "redis://$(REDIS_PASSWORD)@$(REDIS_HOST):$(REDIS_PORT)/$(CELERY_BROKER_DB_NUMBER)"
+          {{- else }}
+              value: "redis://$(REDIS_HOST):$(REDIS_PORT)/$(CELERY_BROKER_DB_NUMBER)"
+          {{- end }}
           resources:
 {{ toYaml .Values.resources | indent 12 }}
     {{- with .Values.nodeSelector }}
