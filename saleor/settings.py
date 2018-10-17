@@ -417,16 +417,11 @@ VERSATILEIMAGEFIELD_SETTINGS = {
 }
 
 PLACEHOLDER_IMAGES = {
-    60: os.environ.get(
-        'PLACEHOLDER_IMAGE_60', 'images/placeholder60x60.png'),
-    120: os.environ.get(
-        'PLACEHOLDER_IMAGE_120', 'images/placeholder120x120.png'),
-    255: os.environ.get(
-        'PLACEHOLDER_IMAGE_255', 'images/placeholder255x255.png'),
-    540: os.environ.get(
-        'PLACEHOLDER_IMAGE_540', 'images/placeholder540x540.png'),
-    1080: os.environ.get(
-        'PLACEHOLDER_IMAGE_1080', 'images/placeholder1080x1080.png')}
+    60: 'images/placeholder60x60.png',
+    120: 'images/placeholder120x120.png',
+    255: 'images/placeholder255x255.png',
+    540: 'images/placeholder540x540.png',
+    1080: 'images/placeholder1080x1080.png'
 
 DEFAULT_PLACEHOLDER = PLACEHOLDER_IMAGES[255]
 

@@ -132,19 +132,6 @@ Further documentation on `logging <https://docs.djangoproject.com/en/2.1/topics/
 ``DASHBOARD_SEARCH_LIMIT``
   Number of search results to display after a product search. Defaults to ``5``.
 
-``PLACEHOLDER IMAGES``
-=========================  ===========  ====================
-  Variable Name            Dimensions    Default Value
-=========================  ===========  ====================
-PLACEHOLDER_IMAGE_60       60 x 60       images/placeholder60x60.png
-PLACEHOLDER_IMAGE_120      120 x 120     images/placeholder120x120.png
-PLACEHOLDER_IMAGE_255      255 x 255     images/placeholder255x255.png
-PLACEHOLDER_IMAGE_540      540 x 540     images/placeholder540x540.png
-PLACEHOLDER_IMAGE_1080     1080 x 1080   images/placeholder1080x1080.png
-DEFAULT_PLACEHOLDER            -         value of PLACEHOLDER_IMAGE_255
-=========================  ===========  ====================
-
-
 ``LOGOUT_ON_PASSWORD_CHANGE``
   Whether one should be logged out after changing one's password. Defaults to ``False``.
 
