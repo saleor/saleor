@@ -1,8 +1,10 @@
 import { ProductDetails_product } from "./types/ProductDetails";
+import { ProductVariantCreateData_product } from "./types/ProductVariantCreateData";
 
 export const product: (
   placeholderImage: string
-) => ProductDetails_product = placeholderImage => ({
+) => ProductDetails_product &
+  ProductVariantCreateData_product = placeholderImage => ({
   __typename: "Product",
   attributes: [
     {
@@ -212,13 +214,26 @@ export const product: (
     seoTitle: "Ergonomic Plastic Bacon",
     variantAttributes: [
       {
+        __typename: "Attribute",
         id: "pta18161",
         name: "Color",
         slug: "color",
-        sortNumber: 0,
+        sortOrder: 0,
         values: [
-          { id: "ptvav47282", sortNumber: 0, name: "Black", slug: "black" },
-          { id: "ptvav17253", sortNumber: 1, name: "White", slug: "white" }
+          {
+            __typename: "AttributeValue",
+            id: "ptvav47282",
+            name: "Black",
+            slug: "black",
+            sortOrder: 0
+          },
+          {
+            __typename: "AttributeValue",
+            id: "ptvav17253",
+            name: "White",
+            slug: "white",
+            sortOrder: 1
+          }
         ]
       }
     ]
@@ -252,9 +267,13 @@ export const product: (
           __typename: "ProductVariant",
           id: "pv75934",
           image: {
+            __typename: "ProductImageCountableConnection",
             edges: [
               {
+                __typename: "ProductImageCountableEdge",
                 node: {
+                  __typename: "ProductImage",
+                  id: "pi92837",
                   url: placeholderImage
                 }
               }
@@ -292,9 +311,13 @@ export const product: (
           __typename: "ProductVariant",
           id: "pv68615",
           image: {
+            __typename: "ProductImageCountableConnection",
             edges: [
               {
+                __typename: "ProductImageCountableEdge",
                 node: {
+                  __typename: "ProductImage",
+                  id: "pi81234",
                   url: placeholderImage
                 }
               }
