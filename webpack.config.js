@@ -9,6 +9,7 @@ const PostcssPresetEnv = require('postcss-preset-env');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const ImageminPlugin = require('imagemin-webpack-plugin').default
 
 const sourceDir = path.join(__dirname, './src/');
 const distDir = path.join(__dirname, './dist/');
@@ -98,22 +99,6 @@ module.exports = (env, argv) => {
                 name: '[name].[hash].[ext]',
                 outputPath: 'images/',
               }
-            },
-            {
-              loader: 'image-webpack-loader',
-              options: {
-                mozjpeg: {
-                  progressive: true,
-                  quality: 85
-                },
-                pngquant: {
-                  quality: '65-90',
-                  speed: 4
-                },
-                gifsicle: {
-                  enabled: false,
-                },
-              }
             }
           ],
         },
@@ -137,7 +122,23 @@ module.exports = (env, argv) => {
         chunkFilename: devMode ? '[id].css' : '[id].[contenthash].css'
       }),
       new CopyWebpackPlugin(
-        [{ from: `${sourceDir}images/`, to: `${distDir}images/` }]),
+        [{ from: `${sourceDir}images/`, to: `${distDir}images/` }]
+      ),
+      new ImageminPlugin({ 
+        test: `${distDir}images/**.*`,
+        pngquant: {
+          quality: '95-100'
+        },
+        optipng: {
+          optimizationLevel: 9
+        },
+        svgo: {
+          plugins: [{
+            removeViewBox: false,
+            removeEmptyAttrs: true,
+          }],
+        }
+      }),
       // PWA plugins
       new WebappWebpackPlugin({
         logo: `${sourceDir}images/logo.svg`,
