@@ -40,6 +40,11 @@ class ReportingPeriod(graphene.Enum):
     MONTH = 'MONTH'
 
 
+class StockAvailability(graphene.Enum):
+    IN_STOCK = 'AVAILABLE'
+    OUT_OF_STOCK = 'OUT_OF_STOCK'
+
+
 def resolve_attribute_list(attributes):
     keys = list(attributes.keys())
     values = list(attributes.values())
