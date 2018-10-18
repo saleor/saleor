@@ -48,6 +48,12 @@ export const collectionList = gql`
           }
         }
       }
+      pageInfo {
+        endCursor
+        hasNextPage
+        hasPreviousPage
+        startCursor
+      }
     }
   }
 `;
@@ -80,6 +86,12 @@ export const collectionDetails = gql`
             }
             thumbnailUrl
           }
+        }
+        pageInfo {
+          endCursor
+          hasNextPage
+          hasPreviousPage
+          startCursor
         }
       }
     }

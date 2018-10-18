@@ -31,9 +31,18 @@ export interface CollectionDetails_collection_products_edges {
   node: CollectionDetails_collection_products_edges_node;
 }
 
+export interface CollectionDetails_collection_products_pageInfo {
+  __typename: "PageInfo";
+  endCursor: string | null;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  startCursor: string | null;
+}
+
 export interface CollectionDetails_collection_products {
   __typename: "ProductCountableConnection";
   edges: CollectionDetails_collection_products_edges[];
+  pageInfo: CollectionDetails_collection_products_pageInfo;
 }
 
 export interface CollectionDetails_collection {

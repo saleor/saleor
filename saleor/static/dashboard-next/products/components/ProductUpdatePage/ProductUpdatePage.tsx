@@ -293,7 +293,6 @@ export const ProductUpdate = decorate<ProductUpdateProps>(
                           titlePlaceholder={data.name}
                           description={data.seoDescription}
                           descriptionPlaceholder={data.description}
-                          storefrontUrl={product ? product.url : undefined}
                           loading={disabled}
                           onClick={onSeoClick}
                           onChange={change}
