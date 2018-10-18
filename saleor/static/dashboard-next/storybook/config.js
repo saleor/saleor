@@ -39,7 +39,7 @@ function loadStories() {
   require("./stories/categories/CategoryListPage");
 
   // Collections
-  // require("./stories/collections/CollectionDetailsPage");
+  require("./stories/collections/CollectionDetailsPage");
   require("./stories/collections/CollectionListPage");
 
   // Configuration

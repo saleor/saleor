@@ -38,10 +38,12 @@ export interface CollectionDetails_collection_products {
 
 export interface CollectionDetails_collection {
   __typename: "Collection";
+  id: string;
+  isPublished: boolean;
+  name: string;
   backgroundImage: CollectionDetails_collection_backgroundImage | null;
   seoDescription: string | null;
   seoTitle: string | null;
-  isPublished: boolean;
   products: CollectionDetails_collection_products | null;
 }
 
