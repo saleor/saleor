@@ -9,6 +9,7 @@ const PostcssPresetEnv = require('postcss-preset-env');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const WebpackPwaManifest = require('webpack-pwa-manifest');
 
 const sourceDir = path.join(__dirname, './src/');
 const distDir = path.join(__dirname, './dist/');
@@ -124,7 +125,7 @@ module.exports = (env, argv) => {
         [{ from: `${sourceDir}images/`, to: `${distDir}images/` }]
       ),
       // PWA plugins
-      new WebappWebpackPlugin({
+      /*new WebappWebpackPlugin({
         logo: `${sourceDir}images/logo.svg`,
         prefix: 'images/favicons/',
         favicons: {
@@ -139,11 +140,52 @@ module.exports = (env, argv) => {
             yandex: false
           }
         }
-      }),
+      }),*/
       new SWPrecacheWebpackPlugin({
         cacheId: 'get-saleor',
         filename: 'service-worker.js',
         staticFileGlobsIgnorePatterns: [/\.map$/, /asset-manifest\.json$/],
+      }),
+      new WebpackPwaManifest({
+        name: 'Get Saleor Web App',
+        short_name: 'GetSaleor',
+        description: 'Informations about the Saloer ecommerce',
+        display: "standalone",
+        background_color: '#ffffff',
+        start_url: "/",
+        ios: true,
+        inject: true,
+        crossorigin: 'use-credentials',
+        includeDirectory: true,
+        icons: [
+          {
+            src: `${sourceDir}images/favicon.png`,
+            sizes: [96, 128, 192, 256, 384, 512],
+            destination: path.join('images/icons')
+          },
+          {
+            src: `${sourceDir}images/favicon.png`,
+            size: '1024x1024',
+            destination: path.join('images/icons'),
+          },
+          {
+            src: `${sourceDir}images/favicon.png`,
+            sizes: [120, 152, 167, 180, 1024],
+            destination: path.join('images/icons', 'ios'),
+            ios: true
+          },
+          {
+            src: `${sourceDir}images/favicon.png`,
+            size: 1024,
+            destination: path.join('images/icons', 'ios'),
+            ios: 'startup'
+          },
+          {
+            src: `${sourceDir}images/favicon.png`,
+            sizes: [36, 48, 72, 96, 144, 192, 512],
+            destination: path.join('images/icons', 'android')
+          }
+        ]
       })
     ]
   }

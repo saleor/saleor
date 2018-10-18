@@ -201,7 +201,7 @@ header {
           position: relative;
           padding: 0 calc(var(--spacer) * 4);
           text-align: left;
-          top: 1rem;
+          top: var(--spacer);
           @media (max-width: 570px) {
             font-size: calc(var(--font-size-base) * 1.5);
           }

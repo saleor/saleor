@@ -205,10 +205,6 @@
             opacity: 1;
             top: 0;
           }
-          &.invisible {
-            opacity: 0;
-            top: 30px;
-          }
           @media (max-width: 1024px) {
             height: 25vh;
           }
@@ -331,7 +327,6 @@
               margin-bottom: var(--spacer);
               & span {
                 left: calc(var(--spacer) * -1.8);
-                
               }
             }
             @media (max-width: 570px) {
@@ -514,7 +509,7 @@
               padding: calc(var(--spacer) * 1.5) calc(var(--spacer) * 5);
               margin: 0 auto;
               font-size: var(--font-size-base);
-              font-weight: 300;
+              font-weight: var(--font-weight-light);
               letter-spacing: 2px;
               @media (max-width: 450px) {
                 padding: 0;
@@ -615,7 +610,7 @@
                 padding: var(--spacer) var(--spacer) 0 var(--spacer);
               }
               &.text-light {
-                font-weight: 200;
+                font-weight: var(--font-weight-lighter);
                 font-size: var(--spacer);
               }
             }
@@ -847,7 +842,7 @@
             & svg {
               width: 60px;
               height: 60px;
-              padding-right: 3rem;
+              padding-right: calc(var(--spacer) * 3);
               @media (max-width: 768px) {
                 width: 40px;
                 height: 40px;
@@ -862,7 +857,7 @@
             line-height: 60px;
             letter-spacing: 0.6px;
             @media (max-width: 1440px) {
-              line-height: 1.2;
+              line-height: var(--headings-line-height);
               padding-top: calc(var(--spacer) * 1.2);
             }
             @media (max-width: 768px) {
@@ -936,7 +931,7 @@
             cursor: pointer;
             & .trapezoidButton {
               position: relative;
-              top: 8px;
+              top: calc(var(--spacer) / 2);
               @media (max-width: 450px) {
                 top: calc(var(--spacer) * -2.5);
               }
@@ -971,7 +966,7 @@
                 height: 70px;
                 position: relative;
                 z-index: 999;
-                top: 8px;
+                top: calc(var(--spacer) / 2);
                 @media (max-width: 450px) {
                   top: calc(var(--spacer) * -2.5);
                 }
