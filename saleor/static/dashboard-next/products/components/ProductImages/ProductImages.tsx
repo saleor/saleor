@@ -2,44 +2,27 @@ import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
-import IconButton from "@material-ui/core/IconButton";
+
 import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import AddPhotoIcon from "@material-ui/icons/AddAPhoto";
-import DeleteIcon from "@material-ui/icons/Delete";
-import EditIcon from "@material-ui/icons/Edit";
 import * as React from "react";
 import { SortableContainer, SortableElement } from "react-sortable-hoc";
-
 import ActionDialog from "../../../components/ActionDialog";
 import CardTitle from "../../../components/CardTitle";
+import ImageTile from "../../../components/ImageTile";
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
+import { ProductDetails_product_images_edges_node } from "../../types/ProductDetails";
 
 interface ProductImagesProps {
   placeholderImage?: string;
-  images?: Array<{
-    id: string;
-    alt?: string;
-    sortOrder: number;
-    url: string;
-  }>;
+  images: ProductDetails_product_images_edges_node[];
   loading?: boolean;
   onImageDelete: (id: string) => () => void;
   onImageEdit: (id: string) => () => void;
   onImageUpload?(event: React.ChangeEvent<any>);
   onImageReorder?(event: { oldIndex: number; newIndex: number });
-}
-
-interface ImageListElementProps {
-  tile: {
-    id: string;
-    alt?: string;
-    sortOrder: number;
-    url: string;
-  };
-  onImageDelete: () => void;
-  onImageEdit: (event: React.ChangeEvent<any>) => void;
 }
 
 interface ImageListContainerProps {
@@ -129,25 +112,15 @@ const decorate = withStyles(theme => ({
   }
 }));
 
-const ImageListElement = SortableElement(
-  decorate<ImageListElementProps>(
-    ({ classes, onImageDelete, onImageEdit, tile }) => (
-      <div className={classes.imageContainer}>
-        <div className={classes.imageOverlay}>
-          <div className={classes.imageOverlayToolbar}>
-            <IconButton color="secondary" onClick={onImageEdit}>
-              <EditIcon />
-            </IconButton>
-            <IconButton color="secondary" onClick={onImageDelete}>
-              <DeleteIcon />
-            </IconButton>
-          </div>
-        </div>
-        <img className={classes.image} src={tile.url} alt={tile.alt} />
-      </div>
-    )
-  )
-);
+const SortableImage = SortableElement(({ image, onImageEdit, toggle }) => (
+  <ImageTile
+    image={image}
+    deleteIcon={true}
+    editIcon={true}
+    onImageEdit={onImageEdit ? () => onImageEdit(image.id) : undefined}
+    onImageDelete={toggle}
+  />
+));
 
 const ImageListContainer = SortableContainer(
   decorate<ImageListContainerProps>(
@@ -158,10 +131,10 @@ const ImageListContainer = SortableContainer(
             <Toggle key={index}>
               {(opened, { toggle }) => (
                 <>
-                  <ImageListElement
+                  <SortableImage
                     key={`item-${index}`}
                     index={index}
-                    tile={image}
+                    image={image}
                     onImageEdit={onImageEdit ? onImageEdit(image.id) : null}
                     onImageDelete={toggle}
                   />

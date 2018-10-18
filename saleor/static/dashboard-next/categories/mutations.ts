@@ -1,6 +1,7 @@
 import gql from "graphql-tag";
 
 import { TypedMutation } from "../mutations";
+import { categoryDetailsFragment } from "./queries";
 import {
   CategoryCreate,
   CategoryCreateVariables
@@ -30,21 +31,15 @@ export const TypedCategoryDeleteMutation = TypedMutation<
 >(categoryDeleteMutation);
 
 export const categoryCreateMutation = gql`
-  mutation CategoryCreate($name: String, $description: String, $parent: ID) {
-    categoryCreate(
-      input: { name: $name, description: $description, parent: $parent }
-    ) {
+  ${categoryDetailsFragment}
+  mutation CategoryCreate($input: CategoryInput!) {
+    categoryCreate(input: $input) {
       errors {
         field
         message
       }
       category {
-        id
-        name
-        description
-        parent {
-          id
-        }
+        ...CategoryDetailsFragment
       }
     }
   }
@@ -55,19 +50,15 @@ export const TypedCategoryCreateMutation = TypedMutation<
 >(categoryCreateMutation);
 
 export const categoryUpdateMutation = gql`
-  mutation CategoryUpdate($id: ID!, $name: String, $description: String) {
-    categoryUpdate(id: $id, input: { name: $name, description: $description }) {
+  ${categoryDetailsFragment}
+  mutation CategoryUpdate($id: ID!, $input: CategoryInput!) {
+    categoryUpdate(id: $id, input: $input) {
       errors {
         field
         message
       }
       category {
-        id
-        name
-        description
-        parent {
-          id
-        }
+        ...CategoryDetailsFragment
       }
     }
   }

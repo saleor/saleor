@@ -131,15 +131,15 @@ export interface AttributeCreateInput {
   values?: (AttributeValueCreateInput | null)[] | null;
 }
 
+export interface AttributeUpdateInput {
+  name?: string | null;
+  removeValues?: (string | null)[] | null;
+  addValues?: (AttributeValueCreateInput | null)[] | null;
+}
+
 export interface AttributeValueCreateInput {
   name: string;
   value?: string | null;
-}
-
-export interface AttributeUpdateInput {
-  name?: string | null;
-  removeValues: (string | null)[];
-  addValues: (AttributeValueCreateInput | null)[];
 }
 
 export interface AttributeValueInput {
@@ -150,6 +150,14 @@ export interface AttributeValueInput {
 export interface AuthorizationKeyInput {
   key: string;
   password: string;
+}
+
+export interface CategoryInput {
+  description?: string | null;
+  name?: string | null;
+  parent?: string | null;
+  slug?: string | null;
+  seo?: SeoInput | null;
 }
 
 export interface DraftOrderInput {
@@ -213,6 +221,11 @@ export interface ProductTypeInput {
   isShippingRequired?: boolean | null;
   weight?: any | null;
   taxRate?: TaxRateType | null;
+}
+
+export interface SeoInput {
+  title?: string | null;
+  description?: string | null;
 }
 
 export interface ShopSettingsInput {
