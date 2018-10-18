@@ -10,6 +10,7 @@ import { maybe } from "../../../misc";
 import { CollectionDetails_collection } from "../../types/CollectionDetails";
 import CollectionDetails from "../CollectionDetails/CollectionDetails";
 import CollectionProducts from "../CollectionProducts/CollectionProducts";
+import { CollectionImage } from "../CollectionImage/CollectionImage";
 
 export interface CollectionDetailsPageFormData {
   name: string;
@@ -22,6 +23,7 @@ export interface CollectionDetailsPageProps extends PageListProps {
   collection: CollectionDetails_collection;
   onBack: () => void;
   onCollectionRemove: () => void;
+  onImageDelete: () => void;
   onImageUpload: () => void;
   onSubmit: (data: CollectionDetailsPageFormData) => void;
 }
@@ -40,6 +42,8 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
     disabled,
     onBack,
     onCollectionRemove,
+    onImageDelete,
+    onImageUpload,
     onSubmit,
     ...pageListProps
   }) => (
@@ -62,6 +66,12 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
                 disabled={disabled}
                 errors={formErrors}
                 onChange={change}
+              />
+              <CardSpacer />
+              <CollectionImage
+                image={maybe(() => collection.backgroundImage)}
+                onImageDelete={onImageDelete}
+                onImageUpload={onImageUpload}
               />
               <CardSpacer />
               <CollectionProducts

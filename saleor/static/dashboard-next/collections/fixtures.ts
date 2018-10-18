@@ -24,13 +24,16 @@ export const collections: CollectionList_collections_edges_node[] = [
   }
 ];
 export const collection: (
-  placeholderImage: string
-) => CollectionDetails_collection = placeholderImage => ({
+  placeholderCollectionImage: string,
+  placeholderProductImage: string
+) => CollectionDetails_collection = (
+  placeholderCollectionImage,
+  placeholderImage
+) => ({
   __typename: "Collection",
   backgroundImage: {
     __typename: "Image",
-    url:
-      "/media/collection-backgrounds/saleor/static/placeholders/products-list/summer_drbDitj.jpg"
+    url: placeholderCollectionImage
   },
   id: "Q29sbGVjdGlvbjox",
   isPublished: true,

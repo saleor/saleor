@@ -1,7 +1,8 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import * as placeholderImage from "../../../../images/placeholder60x60.png";
+import * as placeholderCollectionImage from "../../../../images/block1.jpg";
+import * as placeholderProductImage from "../../../../images/placeholder60x60.png";
 import CollectionDetailsPage, {
   CollectionDetailsPageProps
 } from "../../../collections/components/CollectionDetailsPage";
@@ -9,7 +10,10 @@ import { collection as collectionFixture } from "../../../collections/fixtures";
 import { pageListProps } from "../../../fixtures";
 import Decorator from "../../Decorator";
 
-const collection = collectionFixture(placeholderImage);
+const collection = collectionFixture(
+  placeholderCollectionImage,
+  placeholderProductImage
+);
 
 const props: CollectionDetailsPageProps = {
   ...pageListProps.default,
@@ -17,6 +21,7 @@ const props: CollectionDetailsPageProps = {
   disabled: false,
   onBack: () => undefined,
   onCollectionRemove: () => undefined,
+  onImageDelete: () => undefined,
   onImageUpload: () => undefined,
   onSubmit: () => undefined
 };
