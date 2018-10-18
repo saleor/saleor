@@ -1,6 +1,8 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
+import { CategoryInput } from "./../../types/globalTypes";
+
 // ====================================================
 // GraphQL mutation operation: CategoryCreate
 // ====================================================
@@ -21,6 +23,8 @@ export interface CategoryCreate_categoryCreate_category {
   id: string;
   name: string;
   description: string;
+  seoDescription: string | null;
+  seoTitle: string | null;
   parent: CategoryCreate_categoryCreate_category_parent | null;
 }
 
@@ -35,7 +39,5 @@ export interface CategoryCreate {
 }
 
 export interface CategoryCreateVariables {
-  name?: string | null;
-  description?: string | null;
-  parent?: string | null;
+  input: CategoryInput;
 }

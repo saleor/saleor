@@ -338,8 +338,10 @@ class Category(CountableDjangoObjectType):
         return self.get_absolute_url()
 
     def resolve_products(self, info, **kwargs):
-        qs = models.Product.objects.available_products()
-        qs = qs.filter(category=self)
+        qs = models.Product.objects.available_products().prefetch_related(
+            'variants', 'images', 'product_type')
+        categories_tree = self.get_descendants(include_self=True)
+        qs = qs.filter(category__in=categories_tree)
         return qs.distinct()
 
 

@@ -12,7 +12,7 @@ import i18n from "../../i18n";
 interface ActionDialogProps {
   open: boolean;
   title: string;
-  variant?: "default" | "delete";
+  variant?: string;
   onClose?();
   onConfirm?(event: React.FormEvent<any>);
 }

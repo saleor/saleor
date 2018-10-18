@@ -14,6 +14,7 @@ import SaveButtonBar, {
 import SeoForm from "../../../components/SeoForm";
 import Toggle from "../../../components/Toggle";
 import i18n from "../../../i18n";
+import { ProductDetails_product_images_edges_node } from "../../types/ProductDetails";
 import ProductAvailabilityForm from "../ProductAvailabilityForm";
 import ProductDetailsForm from "../ProductDetailsForm";
 import ProductImages from "../ProductImages";
@@ -46,12 +47,7 @@ interface ProductUpdateProps {
     stockQuantity: number;
     margin: number;
   }>;
-  images?: Array<{
-    id: string;
-    alt?: string;
-    sortOrder: number;
-    url: string;
-  }>;
+  images?: ProductDetails_product_images_edges_node[];
   product?: {
     id: string;
     name: string;

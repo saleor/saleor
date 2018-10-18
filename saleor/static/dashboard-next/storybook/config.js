@@ -33,10 +33,10 @@ function loadStories() {
   require("./stories/auth/LoginLoading");
 
   // Categories
-  require("./stories/categories/CategoryDeleteDialog");
-  require("./stories/categories/CategoryDetailsPage");
-  require("./stories/categories/CategoryEditPage");
   require("./stories/categories/CategoryProducts");
+  require("./stories/categories/CategoryCreatePage");
+  require("./stories/categories/CategoryUpdatePage");
+  require("./stories/categories/CategoryListPage");
 
   // Collections
   require("./stories/collections/CollectionDetailsPage");
@@ -51,8 +51,8 @@ function loadStories() {
   require("./stories/customers/CustomerListPage");
 
   // Staff
-  require("./stories/staff/StaffListPage")
-  require("./stories/staff/StaffDetailsPage")
+  require("./stories/staff/StaffListPage");
+  require("./stories/staff/StaffDetailsPage");
 
   // Pages
   require("./stories/pages/PageContent");

@@ -55,6 +55,7 @@ storiesOf("Views / Products / Create product variant", module)
       errors={[]}
       header="Add variant"
       loading={true}
+      product={undefined}
       onBack={() => undefined}
       onSubmit={() => undefined}
       onVariantClick={undefined}
