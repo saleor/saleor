@@ -6,23 +6,26 @@ import { Container } from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
+import SeoForm from "../../../components/SeoForm";
+import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { CollectionDetails_collection } from "../../types/CollectionDetails";
 import CollectionDetails from "../CollectionDetails/CollectionDetails";
-import CollectionProducts from "../CollectionProducts/CollectionProducts";
 import { CollectionImage } from "../CollectionImage/CollectionImage";
-import SeoForm from "../../../components/SeoForm";
-import i18n from "../../../i18n";
+import CollectionProducts from "../CollectionProducts/CollectionProducts";
+import CollectionStatus from "../CollectionStatus/CollectionStatus";
 
 export interface CollectionDetailsPageFormData {
   name: string;
   seoDescription: string;
   seoTitle: string;
+  isFeatured: boolean;
   isPublished: boolean;
 }
 
 export interface CollectionDetailsPageProps extends PageListProps {
   collection: CollectionDetails_collection;
+  isFeatured: boolean;
   onBack: () => void;
   onCollectionRemove: () => void;
   onImageDelete: () => void;
@@ -42,6 +45,7 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
     classes,
     collection,
     disabled,
+    isFeatured,
     onBack,
     onCollectionRemove,
     onImageDelete,
@@ -51,6 +55,7 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
   }) => (
     <Form
       initial={{
+        isFeatured,
         isPublished: maybe(() => collection.isPublished),
         name: maybe(() => collection.name),
         seoDescription: maybe(() => collection.seoDescription),
@@ -97,7 +102,15 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
                 onChange={change}
               />
             </div>
-            <div />
+            <div>
+              <div>
+                <CollectionStatus
+                  data={data}
+                  disabled={disabled}
+                  onChange={change}
+                />
+              </div>
+            </div>
           </div>
           <SaveButtonBar
             disabled={disabled || !hasChanged}
