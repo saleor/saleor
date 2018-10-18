@@ -36,7 +36,7 @@ class TransactionType:
 class ChargeStatus:
     """
     - Charged: Funds were taken off the customer founding source, partly or
-               completly covering the payment amount.
+               completely covering the payment amount.
     - Not charged: No funds were take off the customer founding source yet.
     - Fully refunded: All charged funds were returned to the customer.
     """
