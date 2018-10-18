@@ -1,11 +1,12 @@
 import json
 
 import pytest
-
 from django.conf import settings
 from django.urls import reverse
 from payments import PaymentStatus
 from prices import Money
+from tests.utils import get_form_errors, get_redirect_location
+
 from saleor.checkout import AddressType
 from saleor.core.utils.taxes import ZERO_MONEY, ZERO_TAXED_MONEY
 from saleor.dashboard.order.forms import ChangeQuantityForm
@@ -15,11 +16,10 @@ from saleor.dashboard.order.utils import (
 from saleor.discount.utils import increase_voucher_usage
 from saleor.order import (
     FulfillmentStatus, OrderEvents, OrderEventsEmails, OrderStatus)
-from saleor.order.models import Order, OrderLine, OrderEvent
+from saleor.order.models import Order, OrderEvent, OrderLine
 from saleor.order.utils import add_variant_to_order, change_order_line_quantity
 from saleor.product.models import ProductVariant
 from saleor.shipping.models import ShippingZone
-from tests.utils import get_form_errors, get_redirect_location
 
 
 def test_ajax_order_shipping_methods_list(
@@ -1232,7 +1232,7 @@ def test_order_event_display(admin_user, type, order):
         'quantity': 12,
         'email_type': OrderEventsEmails.PAYMENT.value,
         'email': 'example@example.com',
-        'amount': '80.00',
+        'amount': {'_type': 'Money', 'amount': '10.00', 'currency': 'USD'},
         'composed_id': 12,
         'tracking_number': '5421AB',
         'oversold_items': ['Blue Shirt', 'Red Shirt']}
