@@ -87,6 +87,13 @@ export default createMuiTheme({
       checked: {
         transform: "translateX(24px)"
       },
+      disabled: {
+        "&$switchBase": {
+          "& + $bar": {
+            backgroundColor: "#eeeeee"
+          }
+        }
+      },
       icon: {
         backgroundColor: "#ffffff",
         boxShadow: "none",
