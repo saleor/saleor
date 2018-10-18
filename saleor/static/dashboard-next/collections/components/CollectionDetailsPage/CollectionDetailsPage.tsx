@@ -11,6 +11,8 @@ import { CollectionDetails_collection } from "../../types/CollectionDetails";
 import CollectionDetails from "../CollectionDetails/CollectionDetails";
 import CollectionProducts from "../CollectionProducts/CollectionProducts";
 import { CollectionImage } from "../CollectionImage/CollectionImage";
+import SeoForm from "../../../components/SeoForm";
+import i18n from "../../../i18n";
 
 export interface CollectionDetailsPageFormData {
   name: string;
@@ -78,6 +80,21 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
                 disabled={disabled}
                 collection={collection}
                 {...pageListProps}
+              />
+              <CardSpacer />
+              <SeoForm
+                description={data.seoDescription}
+                disabled={disabled}
+                descriptionPlaceholder=""
+                helperText={i18n.t(
+                  "Add search engine title and description to make this collection easier to find",
+                  {
+                    context: "help text"
+                  }
+                )}
+                title={data.seoTitle}
+                titlePlaceholder={maybe(() => collection.name)}
+                onChange={change}
               />
             </div>
             <div />
