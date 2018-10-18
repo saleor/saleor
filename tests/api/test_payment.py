@@ -4,11 +4,9 @@ from saleor.payment.models import (
 from tests.api.utils import get_graphql_content
 
 
-# FIXME Test void query
-
 VOID_QUERY = """
-    mutation PaymentMethodRefund($paymentMethodId: ID!, $amount: Decimal!) {
-        paymentMethodRefund(paymentMethodId: $paymentMethodId, amount: $amount) {
+    mutation PaymentMethodVoid($paymentMethodId: ID!) {
+        paymentMethodVoid(paymentMethodId: $paymentMethodId) {
             paymentMethod {
                 id,
                 chargeStatus
@@ -20,6 +18,50 @@ VOID_QUERY = """
         }
     }
 """
+
+
+def test_payment_method_void_success(
+        staff_api_client, permission_manage_orders, payment_method_dummy):
+    assert payment_method_dummy.charge_status == ChargeStatus.NOT_CHARGED
+    payment_method_id = graphene.Node.to_global_id(
+        'PaymentMethod', payment_method_dummy.pk)
+    variables = {'paymentMethodId': payment_method_id}
+    response = staff_api_client.post_graphql(
+        VOID_QUERY, variables, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    data = content['data']['paymentMethodVoid']
+    assert not data['errors']
+    payment_method_dummy.refresh_from_db()
+    assert payment_method_dummy.is_active == False
+    assert payment_method_dummy.transactions.count() == 1
+    txn = payment_method_dummy.transactions.first()
+    assert txn.transaction_type == TransactionType.VOID
+
+
+def test_payment_method_charge_gateway_error(
+        staff_api_client, permission_manage_orders, payment_method_dummy,
+        monkeypatch):
+    assert payment_method.charge_status == ChargeStatus.NOT_CHARGED
+    payment_method_id = graphene.Node.to_global_id(
+        'PaymentMethod', payment_method_dummy.pk)
+    variables = {'paymentMethodId': payment_method_id}
+    monkeypatch.setattr(
+        'saleor.payment.providers.dummy.dummy_success', lambda: False)
+    response = staff_api_client.post_graphql(
+        VOID_QUERY, variables, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    data = content['data']['paymentMethodCapture']
+    assert data['errors']
+    assert data['errors'][0]['field'] is None
+    assert data['errors'][0]['message'] == (
+        'Only pre-authorized transactions can be void.')
+    payment_method_dummy.refresh_from_db()
+    assert payment_method_dummy.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment_method_dummy.is_active == True
+    assert payment_method_dummy.transactions.count() == 1
+    txn = payment_method_dummy.transactions.first()
+    assert txn.transaction_type == TransactionType.VOID
+    assert not txn.is_success
 
 CREATE_QUERY = """
     mutation CheckoutPaymentMethodCreate($input: PaymentMethodInput!) {
