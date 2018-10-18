@@ -32,7 +32,9 @@ const CategoryCreate: React.StatelessComponent<
 > = ({ match }) => {
   return (
     <CategoryCreateView
-      parentId={match.params.id ? decodeURIComponent(match.params.id) : null}
+      parentId={
+        match.params.id ? decodeURIComponent(match.params.id) : undefined
+      }
     />
   );
 };
@@ -54,6 +56,9 @@ export const categoryAddUrl = (parentId?: string) => {
   return `/categories/add/`;
 };
 export const categoryUrl = (id?: string) => {
-  return `/categories/${id ? `${id}/` : ""}`;
+  if (id) {
+    return `/categories/${id}/`;
+  }
+  return "/categories/";
 };
 export default Component;
