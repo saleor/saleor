@@ -40,8 +40,22 @@ def validate_payment_method(view):
     def func(payment_method: PaymentMethod, *args, **kwargs):
         if not payment_method.is_active:
             raise PaymentError('This payment method is no longer active.')
-        return view(payment_method, *args, **kwargs)
+        return view(payment_method=payment_method, *args, **kwargs)
     return func
+
+
+def validate_positive_amount(view):
+    """Decorate a view to check if payment method is active, so any actions
+    can be performed on it.
+    """
+    @wraps(view)
+    def func(amount: Decimal, *args, **kwargs):
+        if amount <= 0:
+            raise PaymentError('Amount should be a positive number.')
+        amount = Money(amount, currency=settings.DEFAULT_CURRENCY)
+        return view(*args, amount=amount, **kwargs)
+    return func
+
 
 
 def create_payment_method(**payment_data):
@@ -91,12 +105,10 @@ def gateway_authorize(
 
 
 @validate_payment_method
+@validate_positive_amount
 def gateway_capture(
         payment_method: PaymentMethod,
         amount: Decimal) -> Transaction:
-    if amount <= 0:
-        raise PaymentError('Amount should be a positive number.')
-    amount = Money(amount, currency=settings.DEFAULT_CURRENCY)
     if payment_method.charge_status not in {
             ChargeStatus.CHARGED,
             ChargeStatus.NOT_CHARGED}:
@@ -139,12 +151,10 @@ def gateway_void(payment_method) -> Transaction:
 
 
 @validate_payment_method
+@validate_positive_amount
 def gateway_refund(
         payment_method,
         amount: Decimal) -> Transaction:
-    if amount <= 0:
-        raise PaymentError('Amount should be a positive number.')
-    amount = Money(amount, currency=settings.DEFAULT_CURRENCY)
     if amount > payment_method.captured_amount:
         raise PaymentError('Cannot refund more than captured')
     if not payment_method.charge_status == ChargeStatus.CHARGED:
