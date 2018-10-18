@@ -211,9 +211,6 @@ def test_nested_order_events_query(
 
 
 def test_non_staff_user_can_only_see_his_order(user_api_client, order):
-    # FIXME: Remove client.login() when JWT authentication is re-enabled.
-    user_api_client.login(username=order.user.email, password='password')
-
     query = """
     query OrderQuery($id: ID!) {
         order(id: $id) {
