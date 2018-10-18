@@ -102,7 +102,7 @@ class PaymentMethod(models.Model):
 
 class Transaction(models.Model):
     """Transactions represent attempts to transfer money between your store
-    and your customers, with a choosen payment method.
+    and your customers, with a chosen payment method.
     """
     created = models.DateTimeField(auto_now_add=True, editable=False)
     payment_method = models.ForeignKey(
