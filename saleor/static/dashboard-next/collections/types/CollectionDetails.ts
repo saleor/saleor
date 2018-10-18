@@ -56,8 +56,19 @@ export interface CollectionDetails_collection {
   products: CollectionDetails_collection_products | null;
 }
 
+export interface CollectionDetails_shop_homepageCollection {
+  __typename: "Collection";
+  id: string;
+}
+
+export interface CollectionDetails_shop {
+  __typename: "Shop";
+  homepageCollection: CollectionDetails_shop_homepageCollection | null;
+}
+
 export interface CollectionDetails {
   collection: CollectionDetails_collection | null;
+  shop: CollectionDetails_shop | null;
 }
 
 export interface CollectionDetailsVariables {
