@@ -5,6 +5,7 @@ import dj_database_url
 import dj_email_url
 import django_cache_url
 from django.contrib.messages import constants as messages
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as _, pgettext_lazy
 from django_prices.templatetags.prices_i18n import get_currency_fraction
 
@@ -556,10 +557,22 @@ PAYMENT_PROVIDERS = {
     'braintree': {
         'module': 'saleor.payment.providers.braintree',
         'connection_params': {
-            'sandbox_mode': ast.literal_eval(os.environ.get('BRAINTREE_SANDBOX_MODE', 'True')),
+            'sandbox_mode': get_bool_from_env('BRAINTREE_SANDBOX_MODE', True),
             'merchant_id': os.environ.get('BRAINTREE_MERCHANT_ID'),
             'public_key': os.environ.get('BRAINTREE_PUBLIC_KEY'),
             'private_key': os.environ.get('BRAINTREE_PRIVATE_KEY')
         }
     }
 }
+if not DEBUG:
+    PROVIDER_PATH = '%(module)s/__init__.py'
+    for provider, data in PAYMENT_PROVIDERS.items():
+        if 'module' not in data or 'connection_params' not in data:
+            raise ImproperlyConfigured('Payment provider misconfigured.')
+
+        module_path = {'module': data['module'].replace('.', '/')}
+        payment_provider_file_exists = os.path.isfile(
+            PROVIDER_PATH % {'module': module_path})
+        if not payment_provider_file_exists:
+            raise ImproperlyConfigured(
+                'No configuration files for %s payment provider.' % provider)
