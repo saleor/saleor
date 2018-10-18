@@ -62,6 +62,7 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
         seoTitle: maybe(() => collection.seoTitle)
       }}
       onSubmit={onSubmit}
+      key={JSON.stringify(collection) + isFeatured}
     >
       {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container width="md">

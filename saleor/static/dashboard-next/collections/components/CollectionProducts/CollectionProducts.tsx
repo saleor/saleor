@@ -83,9 +83,9 @@ const CollectionProducts = decorate<CollectionProductsProps>(
           <TableRow>
             <TablePagination
               colSpan={4}
-              hasNextPage={pageInfo.hasNextPage}
+              hasNextPage={maybe(() => pageInfo.hasNextPage)}
               onNextPage={onNextPage}
-              hasPreviousPage={pageInfo.hasPreviousPage}
+              hasPreviousPage={maybe(() => pageInfo.hasPreviousPage)}
               onPreviousPage={onPreviousPage}
             />
           </TableRow>
