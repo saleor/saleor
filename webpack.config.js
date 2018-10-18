@@ -16,8 +16,8 @@ var reactDomPath;
 if (process.env.NODE_ENV === 'production') {
   const baseStaticPath = process.env.STATIC_URL || '/static/';
   const publicPath = url.resolve(baseStaticPath, 'assets/');
-  reactPath = 'node_modules/react/umd/react.production.min.js';
-  reactDomPath = 'node_modules/react-dom/umd/react-dom.production.min.js';
+  reactPath = 'node_modules/react/cjs/react.production.min.js';
+  reactDomPath = 'node_modules/react-dom/cjs/react-dom.production.min.js';
   output = {
     path: resolve('saleor/static/assets/'),
     filename: '[name].[chunkhash].js',
@@ -30,8 +30,8 @@ if (process.env.NODE_ENV === 'production') {
     chunkFilename: '[id].[chunkhash].css'
   });
 } else {
-  reactPath = 'node_modules/react/umd/react.development.js';
-  reactDomPath = 'node_modules/react-dom/umd/react-dom.development.js';
+  reactPath = 'node_modules/react/cjs/react.development.js';
+  reactDomPath = 'node_modules/react-dom/cjs/react-dom.development.js';
   output = {
     path: resolve('saleor/static/assets/'),
     filename: '[name].js',
