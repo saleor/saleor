@@ -1,13 +1,13 @@
 dependencies:
 - name: postgresql
-  version: "0.15.0"
+  version: "1.0.0"
   repository: "https://kubernetes-charts.storage.googleapis.com"
   condition: postgresql.enabled,global.postgresql.enabled
 - name: redis
-  version: "3.7.6"
+  version: "4.2.1"
   repository: "https://kubernetes-charts.storage.googleapis.com"
   condition: redis.enabled,global.redis.enabled
 - name: elasticsearch
-  version: "1.4.3"
-  repository: "http://storage.googleapis.com/kubernetes-charts-incubator"
+  version: "1.11.1"
+  repository: "https://kubernetes-charts.storage.googleapis.com"
   condition: elasticsearch.enabled,global.elasticsearch.enabled
