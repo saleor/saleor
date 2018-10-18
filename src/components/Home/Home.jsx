@@ -30,6 +30,10 @@ import pgShowCase from '../../images/pg-showcase.png';
 import pgShowCaseX2 from '../../images/pg-showcase-2x.png';
 import pgShowCaseX3 from '../../images/pg-showcase-3x.png';
 
+import roomLab from '../../images/implementation1.png';
+import patchGarden from '../../images/implementation2.png';
+import timKalic from '../../images/pg-quote.png';
+
 class Home extends Component {
   constructor(props) {
     super(props);
@@ -55,17 +59,17 @@ class Home extends Component {
               <div className="news">
                 <div className="label"><span>NEW</span></div>
                 <div className="content">
-                  <a href="">October release is out. Check out what's new!</a>
+                  <a href="" target="_blank" rel="noopener">October release is out. Check out what's new!</a>
                   <div className="close-icon" onClick={this.toggleNewsBar}></div>
                 </div>
               </div>
               }
               <h1>A graphql-first ecommerce <span className="primaryColor">platform for perfectionists</span></h1>
               <div className="button-wrapper">
-                <a href="https://demo.getsaleor.com/pl/" target="_blank" className="btn btn-primary">
+                <a href="https://demo.getsaleor.com/pl/" target="_blank" rel="noopener" className="btn btn-primary">
                   <span>See demo</span>
                 </a>
-                <a href="https://mirumee.com/hire-us/" target="_blank" className="btn btn-secondary">
+                <a href="https://mirumee.com/hire-us/" target="_blank" rel="noopener" className="btn btn-secondary">
                   <span>Brief us</span>
                 </a>
               </div>
@@ -144,7 +148,7 @@ class Home extends Component {
                 </div>
                 <div className="col-xs-12 col-sm-6 col-md-6 storefront">
                   <Fade bottom when={true} appear={!isMobileOnly} duration={1300}>
-                    <img src={storefrontIcon} srcSet={`${storefrontIcon} 1x, ${storefrontIconX2} 2x, ${storefrontIconX3} 3x`} />
+                    <img src={storefrontIcon} srcSet={`${storefrontIcon} 1x, ${storefrontIconX2} 2x, ${storefrontIconX3} 3x`} alt="storefont screen" />
                   </Fade>
                   <h2>Storefront</h2>
                   <p>Saleor takes advantage of PWA standards to optimize mobile experiences of the rapidly growing group of people shopping on the run.</p>
@@ -153,7 +157,7 @@ class Home extends Component {
                 </div>
                 <div className="col-xs-12 col-sm-6 col-md-6 dashboard">
                   <Fade bottom when={true} appear={!isMobileOnly} duration={1600}>
-                    <img src={dashboardIcon} srcSet={`${dashboardIcon} 1x, ${dashboardIconX2} 2x, ${dashboardIconX3} 3x`} />
+                    <img src={dashboardIcon} srcSet={`${dashboardIcon} 1x, ${dashboardIconX2} 2x, ${dashboardIconX3} 3x`} alt="dashboard screen" />
                   </Fade>
                   <h2>Dashboard</h2>
                   <p>Easy-to-use dashboard makes managing your store a pleasant experience whether you’re using the latest Macbook or a two-year-old smartphone.</p>
@@ -243,16 +247,16 @@ class Home extends Component {
                   <div className="grid">
                     <div className="col-xs-12 col-sm-12 col-md-6">
                       <ReactSVG className="pg-logo" path="images/pg-logo.svg" />
-                      <img src={pgShowCase} srcSet={`${pgShowCase} 1x, ${pgShowCaseX2} 2x, ${pgShowCaseX3} 3x`} />
+                      <img src={pgShowCase} srcSet={`${pgShowCase} 1x, ${pgShowCaseX2} 2x, ${pgShowCaseX3} 3x`} alt="Pretty Green showcase" />
                     </div>
                     <div className="col-xs-12 col-sm-12 col-md-6">
                       <div className="pg-quote">
                         <p>“The response time of the website has improved dramatically. We’re down below the 1-second mark whereas previously we were 3.5-4 seconds on average. We've also been able to maintain that response time during extreme high-traffic.”</p>
                         <div className="author">
-                          <img src="../../images/pg-quote.png" />
+                          <img src={timKalic} alt="Tim Kalic" />
                           <h5>Tim Kalic, <br/>Head of Digital, Pretty Green</h5>
                         </div>
-                        <a className="btn btn-secondary" href="https://www.prettygreen.com/" target="_blank"><span>Visit website</span></a>
+                        <a className="btn btn-secondary" href="https://www.prettygreen.com/" target="_blank" rel="noopener"><span>Visit website</span></a>
                       </div>
                     </div>
                   </div>
@@ -260,15 +264,15 @@ class Home extends Component {
                 <TabPanel className="implementation">
                   <div className="grid">
                     <div className="col-xs-12 col-sm-12 col-md-6">
-                      <img src="../../images/implementation1.png" />
+                      <img src={roomLab} alt="RoomLab" />
                       <div className="text-center">
-                        <a className="btn btn-secondary" href="https://roomlab.co.uk" target="_blank"><span>Visit website</span></a>
+                        <a className="btn btn-secondary" href="https://roomlab.co.uk" target="_blank" rel="noopener"><span>Visit website</span></a>
                       </div>
                     </div>
                     <div className="col-xs-12 col-sm-12 col-md-6">
-                      <img src="../../images/implementation2.png" />
+                      <img src={patchGarden} alt="Patch Garden" />
                       <div className="text-center">
-                      <a className="btn btn-secondary" href="https://patch.garden/" target="_blank"><span>Visit website</span></a>
+                      <a className="btn btn-secondary" href="https://patch.garden/" target="_blank" rel="noopener"><span>Visit website</span></a>
                       </div>
                     </div>
                   </div>
@@ -297,7 +301,7 @@ class Home extends Component {
                 </div>
               </div>
               <div className="btn-container">
-                <a className="btn btn-primary" href="https://mirumee.com/hire-us/" target="_blank"><span>Estimate your project</span></a>
+                <a className="btn btn-primary" href="https://mirumee.com/hire-us/" target="_blank" rel="noopener"><span>Estimate your project</span></a>
               </div>
             </div>
           </section>

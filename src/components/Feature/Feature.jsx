@@ -242,7 +242,7 @@ const Feature = () => (
           <h4 className="description">Check our comprehensive documentation which can guide
           you through the installation process or customizations that you may want to carry out.</h4>
           <div className="position">
-            <a className="btn btn-secondary" href="https://saleor.readthedocs.io/en/latest/" target="_blank"><span>Read the docs</span></a>
+            <a className="btn btn-secondary" href="https://saleor.readthedocs.io/en/latest/" target="_blank" rel="noopener"><span>Read the docs</span></a>
           </div>
         </div>
       </section>
