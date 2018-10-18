@@ -23,9 +23,18 @@ export interface CollectionList_collections_edges {
   node: CollectionList_collections_edges_node;
 }
 
+export interface CollectionList_collections_pageInfo {
+  __typename: "PageInfo";
+  endCursor: string | null;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  startCursor: string | null;
+}
+
 export interface CollectionList_collections {
   __typename: "CollectionCountableConnection";
   edges: CollectionList_collections_edges[];
+  pageInfo: CollectionList_collections_pageInfo;
 }
 
 export interface CollectionList {
