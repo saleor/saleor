@@ -1,7 +1,6 @@
 const path = require('path');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const WebappWebpackPlugin = require('webapp-webpack-plugin');
 const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
@@ -9,7 +8,7 @@ const PostcssPresetEnv = require('postcss-preset-env');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-const WebpackPwaManifest = require('webpack-pwa-manifest');
+const AppManifestWebpackPlugin = require('app-manifest-webpack-plugin');
 
 const sourceDir = path.join(__dirname, './src/');
 const distDir = path.join(__dirname, './dist/');
@@ -124,68 +123,42 @@ module.exports = (env, argv) => {
       new CopyWebpackPlugin(
         [{ from: `${sourceDir}images/`, to: `${distDir}images/` }]
       ),
-      // PWA plugins
-      /*new WebappWebpackPlugin({
-        logo: `${sourceDir}images/logo.svg`,
-        prefix: 'images/favicons/',
-        favicons: {
-          appName: 'Get Saleor',
-          appDescription: 'Informations about the Saloer ecommerce',
-          display: 'standalone',
-          developerURL: null, // prevent retrieving from the nearest package.json
-          background: '#ddd',
-          theme_color: '#333',
-          icons: {
-            coast: false,
-            yandex: false
-          }
-        }
-      }),*/
       new SWPrecacheWebpackPlugin({
         cacheId: 'get-saleor',
         filename: 'service-worker.js',
         staticFileGlobsIgnorePatterns: [/\.map$/, /asset-manifest\.json$/],
       }),
-      new WebpackPwaManifest({
-        name: 'Get Saleor Web App',
-        short_name: 'GetSaleor',
-        description: 'Informations about the Saloer ecommerce',
-        display: "standalone",
-        background_color: '#ffffff',
-        start_url: "/",
-        ios: true,
+      new AppManifestWebpackPlugin({
+        logo: `${sourceDir}images/favicon.png`,
+        prefix: 'images/favicons/',
+        output: 'images/favicons/', 
+        emitStats: false,
+        statsEncodeHtml: false,
+        persistentCache: true,
         inject: true,
-        crossorigin: 'use-credentials',
-        includeDirectory: true,
-        icons: [
-          {
-            src: `${sourceDir}images/favicon.png`,
-            sizes: [96, 128, 192, 256, 384, 512],
-            destination: path.join('images/icons')
+        config: {
+          appName: 'Get Saleor', 
+          appDescription: 'A GraphQL-first eCommerce platform for perfectionists. It is open sourced, PWA ready and stunningly beautiful. Find out why developers love it.',
+          developerName: 'Mirumee Labs', 
+          developerURL: 'https://mirumee.com/', 
+          background: '#fff', 
+          theme_color: '#fff', 
+          display: 'standalone', 
+          orientation: 'portrait', 
+          start_url: '/', 
+          version: '1.0', 
+          logging: false, 
+          icons: {
+            android: true, 
+            appleIcon: true, 
+            appleStartup: true, 
+            coast: { offset: 25 },
+            favicons: true, 
+            firefox: true, 
+            windows: true, 
+            yandex: false, 
           },
-          {
-            src: `${sourceDir}images/favicon.png`,
-            size: '1024x1024',
-            destination: path.join('images/icons'),
-          },
-          {
-            src: `${sourceDir}images/favicon.png`,
-            sizes: [120, 152, 167, 180, 1024],
-            destination: path.join('images/icons', 'ios'),
-            ios: true
-          },
-          {
-            src: `${sourceDir}images/favicon.png`,
-            size: 1024,
-            destination: path.join('images/icons', 'ios'),
-            ios: 'startup'
-          },
-          {
-            src: `${sourceDir}images/favicon.png`,
-            sizes: [36, 48, 72, 96, 144, 192, 512],
-            destination: path.join('images/icons', 'android')
-          }
-        ]
+        }
       })
     ]
   }

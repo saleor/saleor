@@ -22,6 +22,7 @@
         "reset-css": "^4.0.1"
     },
     "devDependencies": {
+        "app-manifest-webpack-plugin": "^1.1.3",
         "babel-core": "^6.26.3",
         "babel-loader": "^7.1.5",
         "babel-preset-env": "^1.7.0",
@@ -40,11 +41,9 @@
         "style-loader": "^0.21.0",
         "sw-precache-webpack-plugin": "^0.11.5",
         "uglifyjs-webpack-plugin": "^2.0.1",
-        "webapp-webpack-plugin": "^2.2.0",
         "webpack": "^4.16.2",
         "webpack-cli": "^3.1.0",
-        "webpack-dev-server": "^3.1.5",
-        "webpack-pwa-manifest": "^3.7.1"
+        "webpack-dev-server": "^3.1.5"
     },
     "engines": {
         "node": ">=10.0.0 <11"
