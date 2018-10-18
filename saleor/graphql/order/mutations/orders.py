@@ -317,8 +317,11 @@ class OrderCapture(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, amount):
-        # FIXME we should validate if amount is positive number
         errors = []
+        if amount <= 0:
+            cls.add_error('Amount should be a positive number.')
+            return OrderCapture(errors=errors)
+
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
         payment = order.get_last_payment()
         clean_order_capture(payment, amount, errors)
@@ -375,8 +378,11 @@ class OrderRefund(BaseMutation):
     @classmethod
     @permission_required('order.manage_orders')
     def mutate(cls, root, info, id, amount):
-        # FIXME we should validate if amount is positive number
         errors = []
+        if amount <= 0:
+            cls.add_error('Amount should be a positive number.')
+            return OrderRefund(errors=errors)
+
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
         if order:
             payment = order.get_last_payment()
