@@ -112,12 +112,11 @@ def get_money_from_params(amount):
 
     Can be safely removed after migrating to Dashboard 2.0
     """
-    money_amount = amount
-    money_currency = settings.DEFAULT_CURRENCY
+    if isinstance(amount, Money):
+        return amount
     if isinstance(amount, dict):
-        money_amount = amount['amount']
-        money_currency = amount['currency']
-    return Money(amount=money_amount, currency=money_currency)
+        return Money(amount=amount['amount'], currency=amount['currency'])
+    return Money(amount, settings.DEFAULT_CURRENCY)
 
 
 def display_order_event(order_event):
