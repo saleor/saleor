@@ -8,7 +8,7 @@ image:
   pullPolicy: IfNotPresent
   #  pullSecret:
 
-# If using the standard saleor-secrets file, then leave this empty
+# If using the standard secrets.yaml file, then leave this empty
 # The value of 'existingSecret' is the name of the alternative secrets file to use
 # existingSecret:
 
@@ -16,19 +16,19 @@ service:
   type: ClusterIP
   port: 80
 
-# Original values before applying project specific changes
+## Documentation on ingress resources
+## https://kubernetes.io/docs/concepts/services-networking/ingress/#the-ingress-resource
+
 #ingress:
 #  enabled: false
 #  annotations: {}
 #    # kubernetes.io/ingress.class: nginx
 #    # kubernetes.io/tls-acme: "true"
 #  path: /
-#  hosts:
-#    - chart-example.local
+#  hosts: []
 #  tls: []
-#  #  - secretName: chart-example-tls
-#  #    hosts:
-#  #      - chart-example.local
+#  #  - secretName:
+#  #    hosts: []
 
 livenessProbeSettings:
   initialDelaySeconds: 90
@@ -218,7 +218,7 @@ celery:
 
 postgresql:
   enabled: true
-  # If using an external postgresql instance, set useExternalUrl: true and see `templates/saleor-secrets.yaml`
+  # If using an external postgresql instance, set useExternalUrl: true and see `templates/secrets.yaml`
   useExternalUrl: false
 
   ## postgres image repository
@@ -396,7 +396,7 @@ postgresql:
 
 elasticsearch:
   enabled: true
-  # If using an external postgresql instance, set useExternalUrl: true and see `templates/saleor-secrets.yaml`
+  # If using an external postgresql instance, set useExternalUrl: true and see `templates/secrets.yaml`
   useExternalUrl: false
 
   # Default values for elasticsearch.
@@ -541,7 +541,7 @@ elasticsearch:
 
 redis:
   enabled: true
-  # If using an external redis instance, set useExternalUrl: true and see `templates/saleor-secrets.yaml`
+  # If using an external redis instance, set useExternalUrl: true and see `templates/secrets.yaml`
   useExternalUrl: false
 
   ## Global Docker image registry
