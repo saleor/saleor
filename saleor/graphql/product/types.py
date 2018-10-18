@@ -23,11 +23,21 @@ COLOR_PATTERN = r'^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+
 color_pattern = re.compile(COLOR_PATTERN)
 
 
+class AttributeTypeEnum(graphene.Enum):
+    PRODUCT = 'PRODUCT'
+    VARIANT = 'VARIANT'
+
+
 class AttributeValueType(graphene.Enum):
     COLOR = 'COLOR'
     GRADIENT = 'GRADIENT'
     URL = 'URL'
     STRING = 'STRING'
+
+
+class ReportingPeriod(graphene.Enum):
+    DAY = 'DAY'
+    MONTH = 'MONTH'
 
 
 def resolve_attribute_list(attributes):
@@ -92,11 +102,6 @@ class Attribute(CountableDjangoObjectType):
         return self.values.all()
 
 
-class AttributeTypeEnum(graphene.Enum):
-    PRODUCT = 'PRODUCT'
-    VARIANT = 'VARIANT'
-
-
 class Margin(graphene.ObjectType):
     start = graphene.Int()
     stop = graphene.Int()
@@ -153,6 +158,23 @@ class ProductVariant(CountableDjangoObjectType):
     @permission_required('product.manage_products')
     def resolve_price_override(self, info):
         return self.price_override
+
+
+class ProductSales(ProductVariant):
+    quantity_ordered = graphene.Int(description='Total quantity ordered.')
+
+    class Meta:
+        description = """Provides information about sales of a product, such
+        as total quantity ordered or product's revenue."""
+        exclude_fields = ['variant_images']
+        interfaces = [relay.Node]
+        model = models.ProductVariant
+        filter_fields = ['id']
+
+    def resolve_quantity_ordered(self, info):
+        # This field is added through annotation when using the
+        # `resolve_top_products` resolver.
+        return getattr(self, 'quantity_ordered', None)
 
 
 class ProductAvailability(graphene.ObjectType):

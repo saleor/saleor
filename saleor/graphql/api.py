@@ -1,7 +1,8 @@
 import graphene
 import graphql_jwt
 from graphene_django.filter import DjangoFilterConnectionField
-from graphql_jwt.decorators import login_required, permission_required
+from graphql_jwt.decorators import (
+    login_required, permission_required, staff_member_required)
 
 from .account.mutations import (
     CustomerCreate, CustomerUpdate, CustomerPasswordReset, CustomerRegister,
@@ -54,10 +55,11 @@ from .product.mutations.products import (
     ProductVariantUpdate, VariantImageAssign, VariantImageUnassign)
 from .product.resolvers import (
     resolve_attributes, resolve_categories, resolve_collections,
-    resolve_products, resolve_product_types, resolve_product_variants)
+    resolve_products, resolve_product_types, resolve_product_variants,
+    resolve_report_product_sales)
 from .product.types import (
-    Category, Collection, Product, Attribute, ProductType,
-    ProductVariant)
+    ReportingPeriod, Category, Collection, Product, Attribute, ProductType,
+    ProductVariant, ProductSales)
 from .shipping.resolvers import resolve_shipping_zones
 from .shipping.types import ShippingZone
 from .shipping.mutations import (
@@ -146,6 +148,10 @@ class Query(graphene.ObjectType):
         Sale, query=graphene.String(description=DESCRIPTIONS['sale']),
         description="List of the shop\'s sales.")
     shop = graphene.Field(Shop, description='Represents a shop resources.')
+    report_product_sales = DjangoFilterConnectionField(
+        ProductSales,
+        period=graphene.Argument(ReportingPeriod, required=True),
+        description='List of top selling products.')
     voucher = graphene.Field(
         Voucher, id=graphene.Argument(graphene.ID),
         description='Lookup a voucher by ID.')
@@ -250,6 +256,10 @@ class Query(graphene.ObjectType):
 
     def resolve_product_variants(self, info, ids=None, **kwargs):
         return resolve_product_variants(info, ids)
+
+    @staff_member_required
+    def resolve_report_product_sales(self, info, period, **kwargs):
+        return resolve_report_product_sales(info, period)
 
     @permission_required('discount.manage_discounts')
     def resolve_voucher(self, info, id):

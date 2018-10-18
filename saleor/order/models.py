@@ -196,8 +196,8 @@ class OrderLine(models.Model):
     order = models.ForeignKey(
         Order, related_name='lines', editable=False, on_delete=models.CASCADE)
     variant = models.ForeignKey(
-        'product.ProductVariant', related_name='+', on_delete=models.SET_NULL,
-        blank=True, null=True)
+        'product.ProductVariant', related_name='order_lines',
+        on_delete=models.SET_NULL, blank=True, null=True)
     # max_length is as produced by ProductVariant's display_product method
     product_name = models.CharField(max_length=386)
     translated_product_name = models.CharField(
