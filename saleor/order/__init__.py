@@ -106,6 +106,20 @@ EMAIL_CHOICES = {
         'Email type', 'Order confirmation')}
 
 
+def get_money_from_params(amount):
+    """Money serialization changed at one point, as for now it's serialized
+    as a dict. But we keep those settings for the legacy data.
+
+    Can be safely removed after migrating to Dashboard 2.0
+    """
+    money_amount = amount
+    money_currency = settings.DEFAULT_CURRENCY
+    if isinstance(amount, dict):
+        money_amount = amount['amount']
+        money_currency = amount['currency']
+    return Money(amount=money_amount, currency=money_currency)
+
+
 def display_order_event(order_event):
     """This function is used to keep the  backwards compatibility
     with the old dashboard and new type of order events
@@ -124,15 +138,13 @@ def display_order_event(order_event):
             'Payment was released by %(user_name)s' % {
                 'user_name': order_event.user})
     if event_type == OrderEvents.PAYMENT_REFUNDED.value:
-        amount = Money(
-            amount=params['amount'], currency=settings.DEFAULT_CURRENCY)
+        amount = get_money_from_params(params['amount'])
         return pgettext_lazy(
             'Dashboard message related to an order',
             'Successfully refunded: %(amount)s' % {
                 'amount': prices_i18n.amount(amount)})
     if event_type == OrderEvents.PAYMENT_CAPTURED.value:
-        amount = Money(
-            amount=params['amount'], currency=settings.DEFAULT_CURRENCY)
+        amount = get_money_from_params(params['amount'])
         return pgettext_lazy(
             'Dashboard message related to an order',
             'Successfully captured: %(amount)s' % {

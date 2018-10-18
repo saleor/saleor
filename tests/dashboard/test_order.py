@@ -1232,7 +1232,7 @@ def test_order_event_display(admin_user, type, order):
         'quantity': 12,
         'email_type': OrderEventsEmails.PAYMENT.value,
         'email': 'example@example.com',
-        'amount': '80.00',
+        'amount': json.dumps(Money(80, 'USD')),
         'composed_id': 12,
         'tracking_number': '5421AB',
         'oversold_items': ['Blue Shirt', 'Red Shirt']}
