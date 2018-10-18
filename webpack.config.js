@@ -133,7 +133,15 @@ module.exports = (env, argv) => {
         ],
         verbose: true,
         navigateFallback: '/index.html',
+        minify: true,
         staticFileGlobsIgnorePatterns: [/\.map$/, /asset-manifest\.json$/],
+        runtimeCaching: [{
+          handler: ‘fastest’,
+          urlPattern: /[.](png|jpg|svg|css)/
+        },{
+          handler: ‘networkFirst’,
+          urlPattern: /^http.*/
+        }]
       }),
       new AppManifestWebpackPlugin({
         logo: `${sourceDir}images/favicon.png`,
