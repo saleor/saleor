@@ -466,7 +466,9 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                     })
                                   }
                                   onProductClick={id => () =>
-                                    navigate(productUrl(id))}
+                                    navigate(
+                                      productUrl(encodeURIComponent(id))
+                                    )}
                                   onBillingAddressEdit={variables =>
                                     orderUpdate.mutate({
                                       id,
@@ -558,7 +560,9 @@ export const OrderDetails: React.StatelessComponent<OrderDetailsProps> = ({
                                     label: country.country
                                   }))}
                                   onProductClick={id => () =>
-                                    navigate(productUrl(id))}
+                                    navigate(
+                                      productUrl(encodeURIComponent(id))
+                                    )}
                                   onBillingAddressEdit={variables =>
                                     orderUpdate.mutate({
                                       id,

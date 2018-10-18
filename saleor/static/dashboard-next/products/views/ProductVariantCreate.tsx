@@ -55,8 +55,10 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                   pushMessage({ text: i18n.t("Product created") });
                   navigate(
                     productVariantEditUrl(
-                      productId,
-                      data.productVariantCreate.productVariant.id
+                      encodeURIComponent(productId),
+                      encodeURIComponent(
+                        data.productVariantCreate.productVariant.id
+                      )
                     )
                   );
                 }
@@ -73,7 +75,8 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                       );
                     }
 
-                    const handleBack = () => navigate(productUrl(productId));
+                    const handleBack = () =>
+                      navigate(productUrl(encodeURIComponent(productId)));
                     const handleSubmit = (formData: FormData) =>
                       variantCreate({
                         variables: {
@@ -87,7 +90,12 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
                         }
                       });
                     const handleVariantClick = (id: string) =>
-                      navigate(productVariantEditUrl(productId, id));
+                      navigate(
+                        productVariantEditUrl(
+                          encodeURIComponent(productId),
+                          encodeURIComponent(id)
+                        )
+                      );
 
                     const loading =
                       productLoading || variantCreateResult.loading;

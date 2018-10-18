@@ -30,7 +30,9 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
             pushMessage({
               text: i18n.t("Order draft succesfully created")
             });
-            navigate(orderUrl(data.draftOrderCreate.order.id));
+            navigate(
+              orderUrl(encodeURIComponent(data.draftOrderCreate.order.id))
+            );
           };
           return (
             <TypedOrderDraftCreateMutation
@@ -65,7 +67,8 @@ export const OrderList: React.StatelessComponent<OrderListProps> = ({
                           onAdd={createOrder}
                           onNextPage={loadNextPage}
                           onPreviousPage={loadPreviousPage}
-                          onRowClick={id => () => navigate(orderUrl(id))}
+                          onRowClick={id => () =>
+                            navigate(orderUrl(encodeURIComponent(id)))}
                         />
                       );
                     }}

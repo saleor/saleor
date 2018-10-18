@@ -25,7 +25,8 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
     {pushMessage => (
       <Navigator>
         {navigate => {
-          const handleBack = () => navigate(productUrl(productId));
+          const handleBack = () =>
+            navigate(productUrl(encodeURIComponent(productId)));
           const handleUpdateSuccess = (data: ProductImageUpdate) => {
             if (
               data.productImageUpdate &&
@@ -54,7 +55,12 @@ export const ProductImage: React.StatelessComponent<ProductImageProps> = ({
                           const handleDelete = () =>
                             deleteImage({ variables: { id: imageId } });
                           const handleImageClick = (id: string) => () =>
-                            navigate(productImageUrl(productId, id));
+                            navigate(
+                              productImageUrl(
+                                encodeURIComponent(productId),
+                                encodeURIComponent(id)
+                              )
+                            );
                           const handleUpdate = (formData: {
                             description: string;
                           }) => {
