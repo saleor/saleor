@@ -1,5 +1,6 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
+import { PageListProps } from "../../..";
 import { CardSpacer } from "../../../components/CardSpacer";
 import { Container } from "../../../components/Container";
 import Form from "../../../components/Form";
@@ -8,6 +9,7 @@ import SaveButtonBar from "../../../components/SaveButtonBar";
 import { maybe } from "../../../misc";
 import { CollectionDetails_collection } from "../../types/CollectionDetails";
 import CollectionDetails from "../CollectionDetails/CollectionDetails";
+import CollectionProducts from "../CollectionProducts/CollectionProducts";
 
 export interface CollectionDetailsPageFormData {
   name: string;
@@ -16,9 +18,8 @@ export interface CollectionDetailsPageFormData {
   isPublished: boolean;
 }
 
-export interface CollectionDetailsPageProps {
+export interface CollectionDetailsPageProps extends PageListProps {
   collection: CollectionDetails_collection;
-  disabled: boolean;
   onBack: () => void;
   onCollectionRemove: () => void;
   onImageUpload: () => void;
@@ -33,7 +34,15 @@ const decorate = withStyles(theme => ({
   }
 }));
 const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
-  ({ classes, collection, disabled, onBack, onCollectionRemove, onSubmit }) => (
+  ({
+    classes,
+    collection,
+    disabled,
+    onBack,
+    onCollectionRemove,
+    onSubmit,
+    ...pageListProps
+  }) => (
     <Form
       initial={{
         isPublished: maybe(() => collection.isPublished),
@@ -56,9 +65,9 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
               />
               <CardSpacer />
               <CollectionProducts
-                products={maybe(() =>
-                  collection.products.edges.map(edge => edge.node)
-                )}
+                disabled={disabled}
+                collection={collection}
+                {...pageListProps}
               />
             </div>
             <div />
