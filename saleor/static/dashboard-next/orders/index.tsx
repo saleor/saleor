@@ -22,7 +22,7 @@ const OrderList: React.StatelessComponent<RouteComponentProps<any>> = ({
 const OrderDetails: React.StatelessComponent<RouteComponentProps<any>> = ({
   match
 }) => {
-  return <OrderDetailsComponent id={match.params.id} />;
+  return <OrderDetailsComponent id={decodeURIComponent(match.params.id)} />;
 };
 
 const Component = ({ match }) => (

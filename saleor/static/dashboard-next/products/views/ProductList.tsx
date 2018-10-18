@@ -55,7 +55,8 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
                 onNextPage={loadNextPage}
                 onPreviousPage={loadPreviousPage}
                 pageInfo={pageInfo}
-                onRowClick={id => () => navigate(productUrl(id))}
+                onRowClick={id => () =>
+                  navigate(productUrl(encodeURIComponent(id)))}
               />
             );
           }}
