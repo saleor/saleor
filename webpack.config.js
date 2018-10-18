@@ -136,10 +136,10 @@ module.exports = (env, argv) => {
         minify: true,
         staticFileGlobsIgnorePatterns: [/\.map$/, /asset-manifest\.json$/],
         runtimeCaching: [{
-          handler: ‘fastest’,
+          handler: 'fastest',
           urlPattern: /[.](png|jpg|svg|css)/
         },{
-          handler: ‘networkFirst’,
+          handler: 'networkFirst',
           urlPattern: /^http.*/
         }]
       }),
