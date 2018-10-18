@@ -12,8 +12,10 @@ export interface CollectionDetailsFragment_backgroundImage {
 
 export interface CollectionDetailsFragment {
   __typename: "Collection";
+  id: string;
+  isPublished: boolean;
+  name: string;
   backgroundImage: CollectionDetailsFragment_backgroundImage | null;
   seoDescription: string | null;
   seoTitle: string | null;
-  isPublished: boolean;
 }

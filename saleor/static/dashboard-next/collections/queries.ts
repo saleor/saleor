@@ -15,15 +15,13 @@ export const collectionFragment = gql`
     id
     isPublished
     name
-    products {
-      totalCount
-    }
   }
 `;
 
 export const collectionDetailsFragment = gql`
   ${collectionFragment}
   fragment CollectionDetailsFragment on Collection {
+    ...CollectionFragment
     backgroundImage {
       url
     }
@@ -45,6 +43,9 @@ export const collectionList = gql`
       edges {
         node {
           ...CollectionFragment
+          products {
+            totalCount
+          }
         }
       }
     }
