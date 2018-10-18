@@ -53,6 +53,9 @@ class ProductQueries(graphene.ObjectType):
     products = DjangoFilterConnectionField(
         Product, filterset_class=ProductFilterSet,
         query=graphene.String(description=DESCRIPTIONS['product']),
+        stock_availability=graphene.Argument(
+            StockAvailability,
+            description='Filter products by the stock availability'),
         description='List of the shop\'s products.')
     product_type = graphene.Field(
         ProductType, id=graphene.Argument(graphene.ID),
@@ -89,8 +92,9 @@ class ProductQueries(graphene.ObjectType):
         return graphene.Node.get_node_from_global_id(info, id, Product)
 
     def resolve_products(
-            self, info, category_id=None, query=None, **kwargs):
-        return resolve_products(info, category_id, query)
+            self, info, category_id=None, stock_availability=None, query=None,
+            **kwargs):
+        return resolve_products(info, category_id, stock_availability, query)
 
     def resolve_product_type(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ProductType)
