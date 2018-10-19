@@ -93,6 +93,7 @@
             & .comment {
               font-size: calc(var(--font-size-base) * 1.5);
               margin-bottom: calc(var(--spacer) * 2);
+              font-style: normal;
             }
             & .testimonial-author {
               text-transform: uppercase;
@@ -146,6 +147,9 @@
             }
             & .icon-card {
               position: relative;
+              @media (max-width: 450px) {
+                padding-bottom: calc(var(--spacer) * 2);
+              }
               & .loved-by-search {
                 & svg {
                   @media (max-width: 450px) {
@@ -162,6 +166,7 @@
                 text-transform: initial;
                 @media (max-width: 450px) {
                   width: 100%;
+                  font-size: calc(var(--font-size-base) * 2.3);
                 }
               }
               & p {
@@ -211,6 +216,10 @@
               margin-bottom: var(--spacer);
               text-transform: initial;
               font-size: calc(var(--font-size-base) * 2);
+              @media (max-width: 450px) {
+                font-size: calc(var(--font-size-base) * 2.5);
+                padding-top: calc(var(--spacer) * 2)
+              }
             }
             & .sub-description {
               max-width: 360px;
@@ -270,7 +279,10 @@
             font-size: var(--font-size-base);
           }
           & .description {
-            width: 80%;
+            width: 60%;
+            @media (max-width: 1440px) {
+              width: 80%;
+            }
             @media (max-width: 1024px) {
               width: 100%;
             }
@@ -278,7 +290,7 @@
             margin-bottom: calc(var(--spacer) * 3);
             line-height: var(--headings-line-height);
             text-transform: initial;
-            font-size: calc(var(--font-size-base) * 2);
+            font-size: calc(var(--font-size-base) * 2.5);
           }
           & .btn {
             margin-left: calc(var(--spacer) * 2);
@@ -298,7 +310,7 @@
             margin: 0;
             & .description {
               margin-top: calc(var(--spacer) * 0.5);
-              font-size: calc(var(--font-size-base) * 1.2);
+              font-size: calc(var(--font-size-base) * 3);
             }
             & .position {
               text-align: center;
