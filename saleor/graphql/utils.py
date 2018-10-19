@@ -1,10 +1,11 @@
+import datetime
 import graphene
 from django.db.models import Q
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
 from graphql_relay import from_global_id
 
-from .core.types.common import PermissionDisplay, PermissionEnum
+from .core.types import PermissionDisplay, PermissionEnum, ReportingPeriod
 
 registry = get_global_registry()
 
@@ -77,6 +78,18 @@ def filter_by_query_param(queryset, query, search_fields):
             query_objects |= Q(**{q: query_by[q]})
         return queryset.filter(query_objects).distinct()
     return queryset
+
+
+def filter_by_period(queryset, period, field_name):
+    if (period == ReportingPeriod.TODAY):
+        start_date = datetime.datetime.now().replace(
+            hour=0, minute=0, second=0, microsecond=0)
+    elif (period == ReportingPeriod.THIS_MONTH):
+        start_date = datetime.datetime.now().replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0)
+    else:
+        raise ValueError('Unknown period: %s' % period)
+    return queryset.filter(**{'%s__gte' % field_name: start_date})
 
 
 def generate_query_argument_description(search_fields):

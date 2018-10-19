@@ -2,7 +2,8 @@ import graphene
 import graphql_jwt
 from graphene_django import DjangoConnectionField
 from graphene_django.filter import DjangoFilterConnectionField
-from graphql_jwt.decorators import login_required, permission_required
+from graphql_jwt.decorators import (
+    login_required, permission_required, staff_member_required)
 
 from .account.mutations import (
     CustomerCreate, CustomerUpdate, CustomerPasswordReset, CustomerRegister,
@@ -11,6 +12,7 @@ from .account.mutations import (
 from .account.types import AddressValidationData, AddressValidationInput, User
 from .account.resolvers import (
     resolve_address_validator, resolve_customers, resolve_staff_users)
+from .core.types import TaxedMoney, ReportingPeriod
 from .menu.resolvers import resolve_menu, resolve_menus, resolve_menu_items
 from .menu.types import Menu, MenuItem
 # FIXME: sorting import by putting below line at the beginning breaks app
@@ -24,7 +26,8 @@ from .discount.mutations import (
     SaleCreate, SaleDelete, SaleUpdate, VoucherCreate, VoucherDelete,
     VoucherUpdate)
 from .core.mutations import CreateToken, VerifyToken
-from .order.resolvers import resolve_order, resolve_orders
+from .order.resolvers import (
+    resolve_order, resolve_orders, resolve_orders_total)
 from .order.types import Order, OrderStatusFilter
 from .order.mutations.draft_orders import (
     DraftOrderComplete, DraftOrderCreate, DraftOrderDelete,
@@ -70,9 +73,17 @@ class Query(ProductQueries):
     order = graphene.Field(
         Order, description='Lookup an order by ID.',
         id=graphene.Argument(graphene.ID))
+    orders_total = graphene.Field(
+        TaxedMoney, description='Total sales.',
+        period=graphene.Argument(
+            ReportingPeriod,
+            description='Get total sales for selected span of time.'))
     orders = DjangoConnectionField(
         Order,
         query=graphene.String(description=DESCRIPTIONS['order']),
+        created=graphene.Argument(
+            ReportingPeriod,
+            description='Filter orders from a selected timespan.'),
         status=graphene.Argument(
             OrderStatusFilter, description='Filter order by status'),
         description='List of the shop\'s orders.')
@@ -147,9 +158,14 @@ class Query(ProductQueries):
     def resolve_order(self, info, id):
         return resolve_order(info, id)
 
+    @staff_member_required
+    def resolve_orders_total(self, info, period, **kwargs):
+        return resolve_orders_total(info, period)
+
     @login_required
-    def resolve_orders(self, info, status=None, query=None, **kwargs):
-        return resolve_orders(info, status, query)
+    def resolve_orders(
+            self, info, created=None, status=None, query=None, **kwargs):
+        return resolve_orders(info, created, status, query)
 
     def resolve_shop(self, info):
         return Shop()

@@ -35,11 +35,6 @@ class AttributeValueType(graphene.Enum):
     STRING = 'STRING'
 
 
-class ReportingPeriod(graphene.Enum):
-    DAY = 'DAY'
-    MONTH = 'MONTH'
-
-
 class StockAvailability(graphene.Enum):
     IN_STOCK = 'AVAILABLE'
     OUT_OF_STOCK = 'OUT_OF_STOCK'

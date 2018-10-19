@@ -3,6 +3,7 @@ from graphene_django.filter import DjangoFilterConnectionField
 from graphql_jwt.decorators import staff_member_required
 
 from ..descriptions import DESCRIPTIONS
+from ..core.types import ReportingPeriod
 from .filters import ProductFilterSet
 from .mutations.attributes import (
     AttributeValueCreate, AttributeValueDelete,
@@ -22,7 +23,7 @@ from .resolvers import (
     resolve_products, resolve_product_types, resolve_product_variants,
     resolve_report_product_sales)
 from .types import (
-    ReportingPeriod, Category, Collection, Product, Attribute, ProductType,
+    Category, Collection, Product, Attribute, ProductType,
     ProductVariant, StockAvailability)
 
 
@@ -70,7 +71,8 @@ class ProductQueries(graphene.ObjectType):
         description='Lookup multiple variants by ID')
     report_product_sales = DjangoFilterConnectionField(
         ProductVariant,
-        period=graphene.Argument(ReportingPeriod, required=True),
+        period=graphene.Argument(
+            ReportingPeriod, required=True, description='Span of time.'),
         description='List of top selling products.')
 
     def resolve_attributes(self, info, in_category=None, query=None, **kwargs):

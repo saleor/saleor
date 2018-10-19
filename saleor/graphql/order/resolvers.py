@@ -1,8 +1,9 @@
 import graphene
 
-from ...order import models
+from ...order import models, OrderStatus
+from ...order.utils import sum_order_totals
 from ...shipping import models as shipping_models
-from ..utils import filter_by_query_param
+from ..utils import filter_by_query_param, filter_by_period
 from .types import Order, OrderStatusFilter
 
 
@@ -10,7 +11,7 @@ ORDER_SEARCH_FIELDS = (
     'id', 'discount_name', 'token', 'user_email', 'user__email')
 
 
-def resolve_orders(info, status, query):
+def resolve_orders(info, created, status, query):
     user = info.context.user
     if user.has_perm('order.manage_orders'):
         qs = models.Order.objects.all()
@@ -24,7 +25,18 @@ def resolve_orders(info, status, query):
             qs = qs.ready_to_fulfill()
         elif status == OrderStatusFilter.READY_TO_CAPTURE:
             qs = qs.ready_to_capture()
+
+    # filter orders by creation date
+    if created is not None:
+        qs = filter_by_period(qs, created, 'created')
+
     return qs.prefetch_related('lines').distinct()
+
+
+def resolve_orders_total(info, period):
+    qs = models.Order.objects.confirmed().exclude(status=OrderStatus.CANCELED)
+    qs = filter_by_period(qs, period, 'created')
+    return sum_order_totals(qs)
 
 
 def resolve_order(info, id):
