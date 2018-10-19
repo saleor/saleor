@@ -292,7 +292,7 @@ class Home extends Component {
                     <li><span>if you’re outgrowing your existing solution</span></li>
                   </ul>
                 </div>
-                <div className="col-xs-12 col-sm-6 col-md-6 col-lg-7">
+                <div className="col-xs-12 col-sm-6 col-md-6 col-lg-7 list-item">
                   <ul>
                     <li><span>if you need unlimited integration possibilities</span></li>
                     <li><span>if you’re a high-volume business</span></li>

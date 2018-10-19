@@ -304,7 +304,7 @@
           padding: calc(var(--spacer) * 3) 0;
         }
         @media (max-width: 450px) {
-          padding: 0 0 calc(var(--spacer) * 2) 0;
+          padding: calc(var(--spacer) * 3) 0 calc(var(--spacer) * 2) 0;
         }
         position: relative;
         & .text {
@@ -313,7 +313,7 @@
             padding: 0;
           }
           @media (max-width: 450px) {
-            z-index: 2;
+            z-index: 22;
             @media (max-width: 450px) {
               padding: 0 var(--spacer);
             }
@@ -331,6 +331,7 @@
             }
             @media (max-width: 570px) {
               font-size: calc(var(--font-size-base));
+              font-weight: var(--font-weight-normal);
               & span {
                 font-size: calc(var(--font-size-base));
               }
@@ -355,6 +356,9 @@
               }
               @media (max-width: 768px) {
                 width: 100%;
+              }
+              @media (max-width: 450px) {
+                font-size: calc(var(--font-size-base) * 3);
               }
             }
             &.text-light {
@@ -394,8 +398,8 @@
             }
             @media (max-width: 450px) {
               background-image: url('../../images/modern-stack.svg');
-              background-position: -50% 100%;
-              background-size: cover;
+              background-position: 30% 60%;
+              background-size: 170%;
               position: absolute;
               top: calc(var(--spacer) * -3);
             }
@@ -478,9 +482,6 @@
         &.user-experience {
           padding: calc(var(--spacer) * 3) 0 calc(var(--spacer) * 2) 0;
           height: auto;
-          @media (max-width: 450px) {
-            padding-top: 0;
-          }
           & .text {
             width: 65%;
             padding: 0;
@@ -657,13 +658,13 @@
         display: none;
         @media (max-width: 450px) {
           width: 100%;
-          height: 100vh;
+          height: 150vh;
           display: block;
           position: absolute;
           background-image: url('../../images/open-source-bg-mobile.svg');
           background-repeat: no-repeat;
           background-size: 400%;
-          background-position: 57% 45%;
+          background-position: 57% -210%;
           opacity: 0.3;
         }
       }
@@ -693,6 +694,10 @@
           line-height: var(--headings-line-height);
           @media (max-width: 1440px) {
             font-size: calc(var(--font-size-base) * 2);
+          }
+          @media (max-width: 450px) {
+            font-size: calc(var(--font-size-base) * 3);
+            line-height: 1.4;
           }
         }
         & .text-light {
@@ -818,6 +823,9 @@
             height: 30px !important;
             fill: var(--background-color);
             color: var(--background-color);
+            & path {
+              fill: var(--background-color);
+            }
           }
         }
       }
@@ -856,6 +864,7 @@
             color: var(--primaryColor);
             line-height: 60px;
             letter-spacing: 0.6px;
+            font-weight: var(--font-weight-ligher);
             @media (max-width: 1440px) {
               line-height: var(--headings-line-height);
               padding-top: calc(var(--spacer) * 1.2);
@@ -1130,6 +1139,7 @@
         }
         @media (max-width: 450px) {
           width: 100%;
+          font-size: calc(var(--font-size-base) * 3);
         }
       }
       & .list {
@@ -1139,6 +1149,10 @@
         }
         @media (max-width: 450px) {
           padding: calc(var(--spacer) * 2) 0;
+          & .list-item {
+            position: relative;
+            top: calc(var(--spacer) * -1);
+          }
         }
         & ul {
           margin-left: calc(var(--spacer) * 3);

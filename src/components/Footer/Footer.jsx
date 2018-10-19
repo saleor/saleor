@@ -44,7 +44,7 @@ const Footer = () => (
                   <ul>
                     <li><h4>About</h4></li>
                     <li><Link to="/privacy-policy">Privacy policy</Link></li>
-                    <li><a href="">Terms of service</a></li>
+                    {/* <li><a href="">Terms of service</a></li> */}
                   </ul>
                 </div>
               </div>
