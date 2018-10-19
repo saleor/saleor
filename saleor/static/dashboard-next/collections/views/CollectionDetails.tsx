@@ -28,7 +28,7 @@ interface CollectionListProps {
   };
 }
 
-const PAGINATE_BY = 2;
+const PAGINATE_BY = 20;
 
 export const CollectionDetails: React.StatelessComponent<
   CollectionListProps
