@@ -56,13 +56,9 @@ export enum OrderStatus {
 }
 
 export enum PaymentStatusEnum {
-  CONFIRMED = "CONFIRMED",
-  ERROR = "ERROR",
-  INPUT = "INPUT",
-  PREAUTH = "PREAUTH",
-  REFUNDED = "REFUNDED",
-  REJECTED = "REJECTED",
-  WAITING = "WAITING",
+  CHARGED = "CHARGED",
+  FULLY_REFUNDED = "FULLY_REFUNDED",
+  NOT_CHARGED = "NOT_CHARGED",
 }
 
 export enum PermissionEnum {
@@ -121,7 +117,7 @@ export interface AddressInput {
   city?: string | null;
   cityArea?: string | null;
   postalCode?: string | null;
-  country?: string | null;
+  country: string;
   countryArea?: string | null;
   phone?: string | null;
 }

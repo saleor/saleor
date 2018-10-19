@@ -43,7 +43,7 @@ input AddressCreateInput {
   city: String
   cityArea: String
   postalCode: String
-  country: String
+  country: String!
   countryArea: String
   phone: String
   userId: ID!
@@ -63,7 +63,7 @@ input AddressInput {
   city: String
   cityArea: String
   postalCode: String
-  country: String
+  country: String!
   countryArea: String
   phone: String
 }
@@ -303,6 +303,11 @@ type Checkout implements Node {
   availableShippingMethods: [ShippingMethod]
 }
 
+type CheckoutBillingAddressUpdate {
+  errors: [Error]
+  checkout: Checkout
+}
+
 type CheckoutComplete {
   errors: [Error]
   order: Order
@@ -390,6 +395,11 @@ type CheckoutPaymentMethodCreate {
 }
 
 type CheckoutShippingAddressUpdate {
+  errors: [Error]
+  checkout: Checkout
+}
+
+type CheckoutShippingMethodUpdate {
   errors: [Error]
   checkout: Checkout
 }
@@ -858,7 +868,9 @@ type Mutations {
   checkoutLineDelete(checkoutId: ID!, lineId: ID): CheckoutLineDelete
   checkoutCustomerAttach(checkoutId: ID!, customerId: ID!): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID!): CheckoutCustomerDetach
+  checkoutBillingAddressUpdate(billingAddress: AddressInput, checkoutId: ID): CheckoutBillingAddressUpdate
   checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput): CheckoutShippingAddressUpdate
+  checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
   checkoutEmailUpdate(checkoutId: ID, email: String!): CheckoutEmailUpdate
   checkoutPaymentMethodCreate(input: PaymentMethodInput!): CheckoutPaymentMethodCreate
   checkoutComplete(checkoutId: ID): CheckoutComplete
@@ -889,6 +901,9 @@ type Mutations {
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
+  attributeCreate(id: ID!, input: AttributeCreateInput!, type: AttributeTypeEnum!): AttributeCreate
+  attributeDelete(id: ID!): AttributeDelete
+  attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
   paymentMethodCapture(amount: Decimal, paymentMethodId: ID!): PaymentMethodCapture
   paymentMethodRefund(amount: Decimal, paymentMethodId: ID!): PaymentMethodRefund
   paymentMethodVoid(paymentMethodId: ID!): PaymentMethodVoid
@@ -1189,23 +1204,23 @@ type PaymentMethod implements Node {
   isActive: Boolean!
   created: DateTime!
   modified: DateTime!
-  chargeStatus: ChargeStatus!
+  chargeStatus: PaymentMethodChargeStatus!
   billingFirstName: String!
   billingLastName: String!
   billingAddress1: String!
   billingAddress2: String!
   billingCity: String!
-  billingPostcode: String!
+  billingPostalCode: String!
   billingCountryCode: String!
   billingCountryArea: String!
   billingEmail: String!
   customerIpAddress: String
   extraData: String!
   token: String!
-  total: Float!
-  currency: String!
-  capturedAmount: Float!
-  tax: Float!
+  totalNet: Money
+  totalGross: Money
+  total: TaxedMoney
+  capturedAmount: Money
   checkout: Checkout
   order: Order
   transactions(before: String, after: String, first: Int, last: Int, id: ID): TransactionCountableConnection
@@ -1216,7 +1231,7 @@ type PaymentMethodCapture {
   paymentMethod: PaymentMethod
 }
 
-enum ChargeStatus {
+enum PaymentMethodChargeStatus {
   CHARGED
   NOT_CHARGED
   FULLY_REFUNDED
@@ -1237,6 +1252,7 @@ input PaymentMethodInput {
   gateway: ProvidersEnum
   checkoutId: ID
   transactionToken: String!
+  tax: Decimal!
   amount: Decimal!
   billingAddress: AddressInput
   storePaymentMethod: Boolean = false
@@ -1253,13 +1269,9 @@ type PaymentMethodVoid {
 }
 
 enum PaymentStatusEnum {
-  WAITING
-  PREAUTH
-  CONFIRMED
-  REJECTED
-  REFUNDED
-  ERROR
-  INPUT
+  CHARGED
+  NOT_CHARGED
+  FULLY_REFUNDED
 }
 
 type PermissionDisplay {
@@ -1885,8 +1897,7 @@ type Transaction implements Node {
   token: String!
   transactionType: TransactionTransactionType!
   isSuccess: Boolean!
-  amount: Float!
-  currency: String!
+  amount: Money
   gatewayResponse: JSONString!
 }
 
@@ -1903,8 +1914,9 @@ type TransactionCountableEdge {
 
 enum TransactionTransactionType {
   AUTH
-  CHARGE
+  CAPTURE
   REFUND
+  CAPTURE_3
   VOID
 }
 
@@ -1924,8 +1936,8 @@ type User implements Node {
   dateJoined: DateTime!
   defaultShippingAddress: Address
   defaultBillingAddress: Address
-  orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
   carts(before: String, after: String, first: Int, last: Int, token: UUID): CheckoutCountableConnection
+  orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
   permissions: [PermissionDisplay]
 }
 
