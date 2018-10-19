@@ -28,6 +28,8 @@ def search_orders(phrase):
         pass
 
     sv = (
+        SearchVector('user__first_name', weight='B') +
+        SearchVector('user__last_name', weight='B') +
         SearchVector(
             'user__default_shipping_address__first_name', weight='B') +
         SearchVector('user__default_shipping_address__last_name', weight='B') +
