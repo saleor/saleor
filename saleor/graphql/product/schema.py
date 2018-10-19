@@ -23,7 +23,7 @@ from .resolvers import (
     resolve_report_product_sales)
 from .types import (
     ReportingPeriod, Category, Collection, Product, Attribute, ProductType,
-    ProductVariant, ProductSales, StockAvailability)
+    ProductVariant, StockAvailability)
 
 
 class ProductQueries(graphene.ObjectType):
@@ -69,7 +69,7 @@ class ProductQueries(graphene.ObjectType):
         ProductVariant, ids=graphene.List(graphene.ID),
         description='Lookup multiple variants by ID')
     report_product_sales = DjangoFilterConnectionField(
-        ProductSales,
+        ProductVariant,
         period=graphene.Argument(ReportingPeriod, required=True),
         description='List of top selling products.')
 
