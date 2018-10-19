@@ -101,14 +101,16 @@ def address(db):  # pylint: disable=W0613
 @pytest.fixture
 def graphql_address_data():
     return {
-        'firstName': 'John',
-        'lastName': 'Doe',
-        'streetAddress1': 'Wall st.',
+        'firstName': 'John Saleor',
+        'lastName': 'Doe Mirumee',
+        'companyName': 'Mirumee Software',
+        'streetAddress1': 'Tęczowa 7',
         'streetAddress2': '',
-        'postalCode': '902010',
-        'country': 'US',
-        'city': 'New York',
-        'countryArea': ''}
+        'postalCode': '53-601',
+        'country': 'PL',
+        'city': 'Wrocław',
+        'countryArea': '',
+        'phone': '+48321321888'}
 
 
 @pytest.fixture

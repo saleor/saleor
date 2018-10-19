@@ -10,7 +10,7 @@ from saleor.order.models import Order
 from saleor.payment import TransactionType
 
 
-def test_checkout_create(user_api_client, variant):
+def test_checkout_create(user_api_client, variant, graphql_address_data):
     """Create checkout object using GraphQL API."""
     query = """
     mutation createCheckout($checkoutInput: CheckoutCreateInput!) {
@@ -24,15 +24,7 @@ def test_checkout_create(user_api_client, variant):
     """
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.id)
     test_email = 'test@example.com'
-    shipping_address = {
-        'firstName': "John",
-        'lastName': 'Doe',
-        'streetAddress1': 'Wall st.',
-        'streetAddress2': '',
-        'postalCode': '902010',
-        'country': 'US',
-        'city': 'New York'}
-
+    shipping_address = graphql_address_data
     variables = {
         'checkoutInput': {
             'lines': [{
@@ -254,7 +246,8 @@ def test_checkout_customer_detach(
     assert cart.user is None
 
 
-def test_checkout_shipping_address_update(user_api_client, cart_with_item):
+def test_checkout_shipping_address_update(
+        user_api_client, cart_with_item, graphql_address_data):
     cart = cart_with_item
     assert cart.shipping_address is None
     checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
@@ -273,15 +266,7 @@ def test_checkout_shipping_address_update(user_api_client, cart_with_item):
         }
     }
     """
-    shipping_address = {
-        'firstName': "John",
-        'lastName': 'Doe',
-        'streetAddress1': 'Wall st.',
-        'streetAddress2': '',
-        'postalCode': '902010',
-        'country': 'US',
-        'city': 'New York'}
-
+    shipping_address = graphql_address_data
     variables = {
         'checkoutId': checkout_id, 'shippingAddress': shipping_address}
 
@@ -302,7 +287,8 @@ def test_checkout_shipping_address_update(user_api_client, cart_with_item):
     assert cart.shipping_address.city == shipping_address['city']
 
 
-def test_checkout_billing_address_update(user_api_client, cart_with_item):
+def test_checkout_billing_address_update(
+        user_api_client, cart_with_item, graphql_address_data):
     cart = cart_with_item
     assert cart.shipping_address is None
     checkout_id = graphene.Node.to_global_id('Checkout', cart.pk)
@@ -321,14 +307,7 @@ def test_checkout_billing_address_update(user_api_client, cart_with_item):
         }
     }
     """
-    billing_address = {
-        'firstName': "John",
-        'lastName': 'Doe',
-        'streetAddress1': 'Wall st.',
-        'streetAddress2': '',
-        'postalCode': '902010',
-        'country': 'US',
-        'city': 'New York'}
+    billing_address = graphql_address_data
 
     variables = {'checkoutId': checkout_id, 'billingAddress': billing_address}
 

@@ -20,7 +20,7 @@ class AddressInput(graphene.InputObjectType):
     city = graphene.String(description='City.')
     city_area = graphene.String(description='District.')
     postal_code = graphene.String(description='Postal code.')
-    country = graphene.String(description='Country.')
+    country = graphene.String(required=True, description='Country.')
     country_area = graphene.String(description='State or province.')
     phone = graphene.String(description='Phone number.')
 

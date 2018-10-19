@@ -120,6 +120,28 @@ class BaseMutation(graphene.Mutation):
                     cls.add_error(errors, field, message)
         return errors
 
+    @classmethod
+    def construct_instance(cls, instance, cleaned_data):
+        """Fill instance fields with cleaned data.
+
+        The `instance` argument is either an empty instance of a already
+        existing one which was fetched from the database. `cleaned_data` is
+        data to be set in instance fields. Returns `instance` with filled
+        fields, but not saved to the database.
+        """
+        from django.db import models
+        opts = instance._meta
+
+        for f in opts.fields:
+            if any([not f.editable, isinstance(f, models.AutoField),
+                    f.name not in cleaned_data]):
+                continue
+            data = cleaned_data[f.name]
+            if not f.null and data is None:
+                data = f._get_default()
+            f.save_form_data(instance, data)
+        return instance
+
 
 class ModelMutation(BaseMutation):
     class Meta:
@@ -209,28 +231,6 @@ class ModelMutation(BaseMutation):
                 else:
                     cleaned_input[field_name] = value
         return cleaned_input
-
-    @classmethod
-    def construct_instance(cls, instance, cleaned_data):
-        """Fill instance fields with cleaned data.
-
-        The `instance` argument is either an empty instance of a already
-        existing one which was fetched from the database. `cleaned_data` is
-        data to be set in instance fields. Returns `instance` with filled
-        fields, but not saved to the database.
-        """
-        from django.db import models
-        opts = instance._meta
-
-        for f in opts.fields:
-            if any([not f.editable, isinstance(f, models.AutoField),
-                    f.name not in cleaned_data]):
-                continue
-            data = cleaned_data[f.name]
-            if not f.null and data is None:
-                data = f._get_default()
-            f.save_form_data(instance, data)
-        return instance
 
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):

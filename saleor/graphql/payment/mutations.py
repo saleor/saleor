@@ -7,6 +7,7 @@ from ...payment import PaymentError
 from ...payment.utils import (
     create_payment_method, gateway_authorize, gateway_capture, gateway_refund,
     gateway_void)
+from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..checkout.types import Checkout
 from ..core.mutations import BaseMutation
@@ -33,7 +34,7 @@ class PaymentMethodInput(graphene.InputObjectType):
         description='Store card for further usage.')
 
 
-class CheckoutPaymentMethodCreate(BaseMutation):
+class CheckoutPaymentMethodCreate(BaseMutation, I18nMixin):
     payment_method = graphene.Field(
         PaymentMethod, description='Updated payment method')
 
@@ -53,14 +54,15 @@ class CheckoutPaymentMethodCreate(BaseMutation):
             only_type=Checkout)
         if not checkout:
             return CheckoutPaymentMethodCreate(errors=errors)
-
         billing_data = {}
-        extra_data = cls.get_extra_info(info)
         if input['billing_address']:
-            billing_data = cls.clean_billing_address(input['billing_address'])
+            billing_address, errors = cls.validate_address(
+                input['billing_address'], errors, 'billing_address')
+            if not billing_address:
+                return CheckoutPaymentMethodCreate(errors=errors)
+            billing_data = cls.clean_billing_address(billing_address)
 
-        # create payment method
-        # FIXME should take amount and tax into the consideration
+        extra_data = cls.get_extra_info(info)
         gross = Money(input['amount'], currency=settings.DEFAULT_CURRENCY)
         tax = Money(input['amount'], currency=settings.DEFAULT_CURRENCY)
         net = (gross - tax) or gross

@@ -10,6 +10,7 @@ from graphql_jwt.exceptions import PermissionDenied
 from ...account import emails, models
 from ...core.permissions import MODELS_PERMISSIONS, get_permissions
 from ...dashboard.staff.utils import remove_staff_member
+from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import Error
@@ -84,7 +85,7 @@ class StaffCreateInput(StaffInput):
         description='Send an email with a link to set a password')
 
 
-class CustomerCreate(ModelMutation):
+class CustomerCreate(ModelMutation, I18nMixin):
     class Arguments:
         input = UserCreateInput(
             description='Fields required to create a customer.', required=True)
@@ -99,36 +100,21 @@ class CustomerCreate(ModelMutation):
         return user.has_perm('account.manage_users')
 
     @classmethod
-    def construct_address(
-            cls, address_field_name, address_input, user_instance, errors):
-        if address_field_name not in [
-                BILLING_ADDRESS_FIELD, SHIPPING_ADDRESS_FIELD]:
-            raise AssertionError(
-                'Wrong address_field_name: %s' % address_field_name)
-
-        address_instance = getattr(user_instance, address_field_name)
-        if not address_instance:
-            address_instance = models.Address()
-
-        cls.construct_instance(address_instance, address_input)
-        cls.clean_instance(address_instance, errors)
-        return address_instance
-
-    @classmethod
     def clean_input(cls, info, instance, input, errors):
-        shipping_address_input = input.pop(SHIPPING_ADDRESS_FIELD, None)
-        billing_address_input = input.pop(BILLING_ADDRESS_FIELD, None)
+        shipping_address_data = input.pop(SHIPPING_ADDRESS_FIELD, None)
+        billing_address_data= input.pop(BILLING_ADDRESS_FIELD, None)
         cleaned_input = super().clean_input(info, instance, input, errors)
 
-        if shipping_address_input:
-            shipping_address = cls.construct_address(
-                SHIPPING_ADDRESS_FIELD, shipping_address_input, instance,
-                errors)
+        if shipping_address_data:
+            shipping_address, errors = cls.validate_address(
+                shipping_address_data, errors, SHIPPING_ADDRESS_FIELD,
+                instance=getattr(instance, SHIPPING_ADDRESS_FIELD))
             cleaned_input[SHIPPING_ADDRESS_FIELD] = shipping_address
 
-        if billing_address_input:
-            billing_address = cls.construct_address(
-                BILLING_ADDRESS_FIELD, billing_address_input, instance, errors)
+        if billing_address_data:
+            billing_address, errors = cls.validate_address(
+                billing_address_data, errors, BILLING_ADDRESS_FIELD,
+                instance=getattr(instance, BILLING_ADDRESS_FIELD))
             cleaned_input[BILLING_ADDRESS_FIELD] = billing_address
         return cleaned_input
 
