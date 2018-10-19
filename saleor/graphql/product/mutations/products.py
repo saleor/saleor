@@ -79,17 +79,20 @@ class CollectionInput(graphene.InputObjectType):
         description='Informs whether a collection is published.')
     name = graphene.String(description='Name of the collection.')
     slug = graphene.String(description='Slug of the collection.')
-    products = graphene.List(
-        graphene.ID,
-        description='List of products to be added to the collection.',
-        name='products')
     background_image = Upload(description='Background image file.')
     seo = SeoInput(description='Search engine optimization fields.')
 
 
+class CollectionCreateInput(CollectionInput):
+    products = graphene.List(
+        graphene.ID,
+        description='List of products to be added to the collection.',
+        name='products')
+
+
 class CollectionCreate(ModelMutation):
     class Arguments:
-        input = CollectionInput(
+        input = CollectionCreateInput(
             required=True,
             description='Fields required to create a collection.')
 
