@@ -36,7 +36,7 @@ const Footer = () => (
                   <ul>
                     <li><h4>Community</h4></li>
                     <li><a href="https://github.com/mirumee/saleor">Contribute</a></li>
-                    <li><a href="">Case studies</a></li>
+                    {/* <li><a href="">Case studies</a></li> */}
                     <li><a href="mailto:hello@mirumee.com">Become a partner</a></li>
                   </ul>
                 </div>
