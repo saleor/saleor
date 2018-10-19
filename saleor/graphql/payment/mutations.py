@@ -128,7 +128,7 @@ class PaymentMethodCapture(BaseMutation):
             return PaymentMethodCapture(errors=errors)
 
         try:
-            gateway_capture(payment_method, amount=amount)
+            gateway_capture(payment_method, amount)
         except PaymentError as exc:
             msg = str(exc)
             cls.add_error(field=None, message=msg, errors=errors)
