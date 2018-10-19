@@ -362,7 +362,6 @@ class CheckoutEmailUpdate(BaseMutation):
 
 
 class CheckoutShippingMethodUpdate(BaseMutation):
-    # FIXME test this mutations
     checkout = graphene.Field(Checkout, description='An updated checkout')
 
     class Arguments:

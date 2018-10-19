@@ -1,12 +1,13 @@
 import uuid
-
-import pytest
+from unittest.mock import patch, ANY
 
 import graphene
+import pytest
+from tests.api.utils import get_graphql_content
+
 from saleor.checkout.models import Cart
 from saleor.order.models import Order
 from saleor.payment import TransactionType
-from tests.api.utils import get_graphql_content
 
 
 def test_checkout_create(user_api_client, variant):
@@ -512,3 +513,38 @@ def test_checkout_prices(user_api_client, cart_with_item):
         cart_with_item.get_total().gross.amount)
     assert data['subtotalPrice']['gross']['amount'] == (
         cart_with_item.get_subtotal().gross.amount)
+
+
+@patch('saleor.graphql.checkout.mutations.clean_shipping_method')
+def test_checkout_shipping_method_update(
+        mock_clean_shipping, staff_api_client, shipping_method,
+        cart_with_item, sale, vatlayer):
+    query = """
+    mutation checkoutShippingMethodUpdate($checkoutId:ID!, $shippingMethodId:ID!){
+        checkoutShippingMethodUpdate(
+            checkoutId:$checkoutId, shippingMethodId:$shippingMethodId) {
+            errors {
+                field
+                message
+            }
+            checkout {
+                id
+            }
+        }
+    }
+    """
+    checkout = cart_with_item
+    checkout_id = graphene.Node.to_global_id('Checkout', checkout.pk)
+    method_id = graphene.Node.to_global_id(
+        'ShippingMethod', shipping_method.id)
+    variables = {'checkoutId': checkout_id, 'shippingMethodId': method_id}
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['checkoutShippingMethodUpdate']
+    assert not data['errors']
+    assert data['checkout']['id'] == checkout_id
+
+    checkout.refresh_from_db()
+    assert checkout.shipping_method == shipping_method
+    mock_clean_shipping.assert_called_once_with(
+        checkout, shipping_method, [], ANY, ANY)
