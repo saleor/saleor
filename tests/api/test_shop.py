@@ -242,6 +242,32 @@ def test_homepage_collection_update(
     assert site.settings.homepage_collection == collection
 
 
+def test_homepage_collection_update_set_null(
+        staff_api_client, collection, site_settings,
+        permission_manage_settings):
+    query = """
+        mutation homepageCollectionUpdate($collection: ID) {
+            homepageCollectionUpdate(collection: $collection) {
+                shop {
+                    homepageCollection {
+                        id
+                    }
+                }
+            }
+        }
+    """
+    site_settings.homepage_collection = collection
+    site_settings.save()
+    variables = {'collection': None}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings])
+    content = get_graphql_content(response)
+    data = content['data']['homepageCollectionUpdate']['shop']
+    assert data['homepageCollection'] is None
+    site_settings.refresh_from_db()
+    assert site_settings.homepage_collection is None
+
+
 def test_query_default_country(user_api_client, settings):
     settings.DEFAULT_COUNTRY = 'US'
     query = """
