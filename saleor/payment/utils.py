@@ -16,6 +16,21 @@ from .models import PaymentMethod, Transaction
 logger = logging.getLogger(__name__)
 
 
+def get_billing_data(order):
+    data = {}
+    if order.billing_address:
+        data = {
+            'billing_first_name': order.billing_address.first_name,
+            'billing_last_name': order.billing_address.last_name,
+            'billing_address_1': order.billing_address.street_address_1,
+            'billing_address_2': order.billing_address.street_address_2,
+            'billing_city': order.billing_address.city,
+            'billing_postal_code': order.billing_address.postal_code,
+            'billing_country_code': order.billing_address.country,
+            'billing_country_area': order.billing_address.country_area}
+    return data
+
+
 def handle_fully_paid_order(order):
     order.events.create(type=OrderEvents.ORDER_FULLY_PAID.value)
     if order.get_user_current_email():
