@@ -3,7 +3,10 @@ import * as React from "react";
 import Navigator from "../../components/Navigator";
 import { createPaginationData, createPaginationState, maybe } from "../../misc";
 import { productUrl } from "../../products";
-import CollectionDetailsPage from "../components/CollectionDetailsPage/CollectionDetailsPage";
+import CollectionDetailsPage, {
+  CollectionDetailsPageFormData
+} from "../components/CollectionDetailsPage/CollectionDetailsPage";
+import CollectionOperations from "../containers/CollectionOperations";
 import { TypedCollectionDetailsQuery } from "../queries";
 import {
   collectionAddUrl,
@@ -44,29 +47,72 @@ export const CollectionDetails: React.StatelessComponent<
               loading
             );
             return (
-              <CollectionDetailsPage
-                onAdd={() => navigate(collectionAddUrl)}
-                onBack={() => navigate(collectionListUrl)}
-                disabled={loading}
-                collection={maybe(() => data.collection)}
-                isFeatured={maybe(
-                  () => data.shop.homepageCollection.id === data.collection.id,
-                  false
-                )}
-                onCollectionRemove={() =>
-                  navigate(collectionRemoveUrl(encodeURIComponent(id)))
-                }
-                onImageDelete={() =>
-                  navigate(collectionImageRemoveUrl(encodeURIComponent(id)))
-                }
-                onImageUpload={() => undefined}
-                onSubmit={() => undefined}
-                onNextPage={loadNextPage}
-                onPreviousPage={loadPreviousPage}
-                pageInfo={pageInfo}
-                onRowClick={id => () =>
-                  navigate(productUrl(encodeURIComponent(id)))}
-              />
+              <CollectionOperations
+                onHomepageCollectionAssign={() => undefined}
+                onUpdate={() => undefined}
+              >
+                {({ updateCollection, assignHomepageCollection }) => {
+                  const handleSubmit = (
+                    formData: CollectionDetailsPageFormData
+                  ) => {
+                    updateCollection.mutate({
+                      id,
+                      input: {
+                        isPublished: formData.isPublished,
+                        name: formData.name,
+                        seo: {
+                          description: formData.seoDescription,
+                          title: formData.seoTitle
+                        }
+                      }
+                    });
+                    if (
+                      formData.isFeatured !==
+                      (data.shop.homepageCollection.id === data.collection.id)
+                    ) {
+                      assignHomepageCollection.mutate({
+                        id: formData.isFeatured ? id : null
+                      });
+                    }
+                  };
+                  return (
+                    <CollectionDetailsPage
+                      onAdd={() => navigate(collectionAddUrl)}
+                      onBack={() => navigate(collectionListUrl)}
+                      disabled={loading}
+                      collection={maybe(() => data.collection)}
+                      isFeatured={maybe(
+                        () =>
+                          data.shop.homepageCollection.id ===
+                          data.collection.id,
+                        false
+                      )}
+                      onCollectionRemove={() =>
+                        navigate(collectionRemoveUrl(encodeURIComponent(id)))
+                      }
+                      onImageDelete={() =>
+                        navigate(
+                          collectionImageRemoveUrl(encodeURIComponent(id))
+                        )
+                      }
+                      onImageUpload={event =>
+                        updateCollection.mutate({
+                          id,
+                          input: {
+                            backgroundImage: event.target.files[0]
+                          }
+                        })
+                      }
+                      onSubmit={handleSubmit}
+                      onNextPage={loadNextPage}
+                      onPreviousPage={loadPreviousPage}
+                      pageInfo={pageInfo}
+                      onRowClick={id => () =>
+                        navigate(productUrl(encodeURIComponent(id)))}
+                    />
+                  );
+                }}
+              </CollectionOperations>
             );
           }}
         </TypedCollectionDetailsQuery>

@@ -29,7 +29,7 @@ export interface CollectionDetailsPageProps extends PageListProps {
   onBack: () => void;
   onCollectionRemove: () => void;
   onImageDelete: () => void;
-  onImageUpload: () => void;
+  onImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (data: CollectionDetailsPageFormData) => void;
 }
 

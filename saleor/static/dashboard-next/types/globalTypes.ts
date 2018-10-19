@@ -160,6 +160,15 @@ export interface CategoryInput {
   seo?: SeoInput | null;
 }
 
+export interface CollectionInput {
+  isPublished?: boolean | null;
+  name?: string | null;
+  slug?: string | null;
+  products?: (string | null)[] | null;
+  backgroundImage?: any | null;
+  seo?: SeoInput | null;
+}
+
 export interface DraftOrderInput {
   billingAddress?: AddressInput | null;
   user?: string | null;
