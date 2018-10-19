@@ -2,6 +2,7 @@ import * as React from "react";
 
 import Navigator from "../../components/Navigator";
 import { createPaginationData, createPaginationState, maybe } from "../../misc";
+import { productUrl } from "../../products";
 import CollectionDetailsPage from "../components/CollectionDetailsPage/CollectionDetailsPage";
 import { TypedCollectionDetailsQuery } from "../queries";
 import {
@@ -64,7 +65,7 @@ export const CollectionDetails: React.StatelessComponent<
                 onPreviousPage={loadPreviousPage}
                 pageInfo={pageInfo}
                 onRowClick={id => () =>
-                  navigate(collectionUrl(encodeURIComponent(id)))}
+                  navigate(productUrl(encodeURIComponent(id)))}
               />
             );
           }}
