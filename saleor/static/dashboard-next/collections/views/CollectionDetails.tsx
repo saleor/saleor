@@ -9,6 +9,7 @@ import CollectionDetailsPage, {
 import CollectionOperations from "../containers/CollectionOperations";
 import { TypedCollectionDetailsQuery } from "../queries";
 import {
+  collectionAddProductUrl,
   collectionAddUrl,
   collectionImageRemoveUrl,
   collectionListUrl,
@@ -77,7 +78,11 @@ export const CollectionDetails: React.StatelessComponent<
                   };
                   return (
                     <CollectionDetailsPage
-                      onAdd={() => navigate(collectionAddUrl)}
+                      onAdd={() =>
+                        navigate(
+                          collectionAddProductUrl(encodeURIComponent(id))
+                        )
+                      }
                       onBack={() => navigate(collectionListUrl)}
                       disabled={loading}
                       collection={maybe(() => data.collection)}
