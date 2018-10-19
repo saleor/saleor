@@ -18,6 +18,10 @@ import {
   CreateCollection,
   CreateCollectionVariables
 } from "./types/CreateCollection";
+import {
+  RemoveCollection,
+  RemoveCollectionVariables
+} from "./types/RemoveCollection";
 
 const collectionUpdate = gql`
   ${collectionDetailsFragment}
@@ -91,3 +95,18 @@ export const TypedCollectionCreateMutation = TypedMutation<
   CreateCollection,
   CreateCollectionVariables
 >(createCollection);
+
+const removeCollection = gql`
+  mutation RemoveCollection($id: ID!) {
+    collectionDelete(id: $id) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedCollectionRemoveMutation = TypedMutation<
+  RemoveCollection,
+  RemoveCollectionVariables
+>(removeCollection);
