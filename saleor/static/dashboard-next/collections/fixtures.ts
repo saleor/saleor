@@ -105,7 +105,14 @@ export const collection: (
           thumbnailUrl: placeholderImage
         }
       }
-    ]
+    ],
+    pageInfo: {
+      __typename: "PageInfo",
+      endCursor: "",
+      hasNextPage: false,
+      hasPreviousPage: false,
+      startCursor: ""
+    }
   },
   seoDescription: "",
   seoTitle: ""
