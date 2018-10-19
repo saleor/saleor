@@ -1018,6 +1018,30 @@ def test_delete_collection(
         collection.refresh_from_db()
 
 
+def test_auto_create_slug_on_collection(
+        staff_api_client, product_list, permission_manage_products):
+    query = """
+        mutation createCollection(
+            $name: String!, $isPublished: Boolean!) {
+            collectionCreate(
+                input: {name: $name, isPublished: $isPublished}) {
+                collection {
+                    name
+                    slug
+                }
+            }
+        }
+    """
+    name = 'test name123'
+    variables = {'name': name, 'isPublished': True}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    data = content['data']['collectionCreate']['collection']
+    assert data['name'] == name
+    assert data['slug'] == slugify(name)
+
+
 def test_add_products_to_collection(
         staff_api_client, collection, product_list,
         permission_manage_products):
