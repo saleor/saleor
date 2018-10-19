@@ -23,6 +23,7 @@ import * as saleorLogo from "../images/logo.svg";
 import { UserContext } from "./auth";
 import { User } from "./auth/types/User";
 import { categoryListUrl } from "./categories";
+import { collectionListUrl } from "./collections/urls";
 import MenuToggle from "./components/MenuToggle";
 import Navigator from "./components/Navigator";
 import Toggle from "./components/Toggle";
@@ -34,7 +35,7 @@ import Shop from "./icons/Shop";
 import Truck from "./icons/Truck";
 import { removeDoubleSlashes } from "./misc";
 import { productListUrl } from "./products";
-import { PermissionEnum } from './types/globalTypes';
+import { PermissionEnum } from "./types/globalTypes";
 
 const drawerWidth = 256;
 const navigationBarHeight = 64;
@@ -60,6 +61,12 @@ const menuStructure: IMenuItem[] = [
         icon: <Shop />,
         label: i18n.t("Categories", { context: "Menu label" }),
         url: categoryListUrl
+      },
+      {
+        ariaLabel: "collections",
+        icon: <Shop />,
+        label: i18n.t("Collections", { context: "Menu label" }),
+        url: collectionListUrl
       }
     ],
     icon: <Shop />,
