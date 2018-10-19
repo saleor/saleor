@@ -1,5 +1,6 @@
 import graphene
 import graphql_jwt
+from graphene_django import DjangoConnectionField
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql_jwt.decorators import login_required, permission_required
 
@@ -23,9 +24,8 @@ from .discount.mutations import (
     SaleCreate, SaleDelete, SaleUpdate, VoucherCreate, VoucherDelete,
     VoucherUpdate)
 from .core.mutations import CreateToken, VerifyToken
-from .order.filters import OrderFilter
 from .order.resolvers import resolve_order, resolve_orders
-from .order.types import Order
+from .order.types import Order, OrderStatusFilter
 from .order.mutations.draft_orders import (
     DraftOrderComplete, DraftOrderCreate, DraftOrderDelete,
     DraftOrderLineCreate, DraftOrderLineDelete, DraftOrderLineUpdate,
@@ -70,9 +70,11 @@ class Query(ProductQueries):
     order = graphene.Field(
         Order, description='Lookup an order by ID.',
         id=graphene.Argument(graphene.ID))
-    orders = DjangoFilterConnectionField(
-        Order, filterset_class=OrderFilter, query=graphene.String(
-            description=DESCRIPTIONS['order']),
+    orders = DjangoConnectionField(
+        Order,
+        query=graphene.String(description=DESCRIPTIONS['order']),
+        status=graphene.Argument(
+            OrderStatusFilter, description='Filter order by status'),
         description='List of the shop\'s orders.')
     page = graphene.Field(
         Page, id=graphene.Argument(graphene.ID), slug=graphene.String(),
@@ -146,8 +148,8 @@ class Query(ProductQueries):
         return resolve_order(info, id)
 
     @login_required
-    def resolve_orders(self, info, query=None, **kwargs):
-        return resolve_orders(info, query)
+    def resolve_orders(self, info, status=None, query=None, **kwargs):
+        return resolve_orders(info, status, query)
 
     def resolve_shop(self, info):
         return Shop()
