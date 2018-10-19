@@ -93,10 +93,12 @@ class HomepageCollectionUpdate(BaseMutation):
 
     @classmethod
     @permission_required('site.manage_settings')
-    def mutate(cls, root, info, collection):
+    def mutate(cls, root, info, collection=None):
         errors = []
-        new_collection = cls.get_node_or_error(
-            info, collection, errors, 'collection', Collection)
+        new_collection = None
+        if collection:
+            new_collection = cls.get_node_or_error(
+                info, collection, errors, 'collection', Collection)
         if errors:
             return HomepageCollectionUpdate(errors=errors)
         site_settings = info.context.site.settings
