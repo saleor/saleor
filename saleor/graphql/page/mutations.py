@@ -1,4 +1,5 @@
 import graphene
+from django.utils.text import slugify
 
 from ...page import models
 from ..core.mutations import ModelDeleteMutation, ModelMutation
