@@ -325,6 +325,14 @@ input CollectionInput {
   isPublished: Boolean
   name: String
   slug: String
+  backgroundImage: Upload
+  seo: SeoInput
+}
+
+input CollectionCreateInput {
+  isPublished: Boolean
+  name: String
+  slug: String
   products: [ID]
   backgroundImage: Upload
   seo: SeoInput
@@ -696,7 +704,7 @@ type Mutations {
   addressCreate(input: AddressCreateInput!): AddressCreate
   addressUpdate(id: ID!, input: AddressInput!): AddressUpdate
   addressDelete(id: ID!): AddressDelete
-  collectionCreate(input: CollectionInput!): CollectionCreate
+  collectionCreate(input: CollectionCreateInput!): CollectionCreate
   collectionUpdate(id: ID!, input: CollectionInput!): CollectionUpdate
   collectionDelete(id: ID!): CollectionDelete
   collectionAddProducts(collectionId: ID!, products: [ID]!): CollectionAddProducts
