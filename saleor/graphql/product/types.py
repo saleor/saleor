@@ -137,6 +137,7 @@ class ProductVariant(CountableDjangoObjectType):
     cost_price = graphene.Field(
         Money, description='Cost price of the variant.')
     margin = graphene.Int(description='Gross margin percentage value.')
+    quantity_ordered = graphene.Int(description='Total quantity ordered.')
 
     class Meta:
         description = """Represents a version of a product such as different
@@ -163,18 +164,6 @@ class ProductVariant(CountableDjangoObjectType):
     @permission_required('product.manage_products')
     def resolve_price_override(self, info):
         return self.price_override
-
-
-class ProductSales(ProductVariant):
-    quantity_ordered = graphene.Int(description='Total quantity ordered.')
-
-    class Meta:
-        description = """Provides information about sales of a product, such
-        as total quantity ordered or product's revenue."""
-        exclude_fields = ['variant_images']
-        interfaces = [relay.Node]
-        model = models.ProductVariant
-        filter_fields = ['id']
 
     def resolve_quantity_ordered(self, info):
         # This field is added through annotation when using the
