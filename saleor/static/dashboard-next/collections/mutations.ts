@@ -14,6 +14,10 @@ import {
   CollectionUpdate,
   CollectionUpdateVariables
 } from "./types/CollectionUpdate";
+import {
+  CreateCollection,
+  CreateCollectionVariables
+} from "./types/CreateCollection";
 
 const collectionUpdate = gql`
   ${collectionDetailsFragment}
@@ -68,3 +72,22 @@ export const TypedCollectionAssignProductMutation = TypedMutation<
   CollectionAssignProduct,
   CollectionAssignProductVariables
 >(assignCollectionProduct);
+
+const createCollection = gql`
+  ${collectionDetailsFragment}
+  mutation CreateCollection($input: CollectionInput!) {
+    collectionCreate(input: $input) {
+      errors {
+        field
+        message
+      }
+      collection {
+        ...CollectionDetailsFragment
+      }
+    }
+  }
+`;
+export const TypedCollectionCreateMutation = TypedMutation<
+  CreateCollection,
+  CreateCollectionVariables
+>(createCollection);

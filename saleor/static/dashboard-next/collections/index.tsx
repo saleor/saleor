@@ -2,7 +2,8 @@ import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
-import { collectionListUrl, collectionUrl } from "./urls";
+import { collectionAddUrl, collectionListUrl, collectionUrl } from "./urls";
+import CollectionCreate from "./views/CollectionCreate";
 import CollectionDetailsView from "./views/CollectionDetails";
 import CollectionListView from "./views/CollectionList";
 
@@ -39,7 +40,7 @@ const CollectionDetails: React.StatelessComponent<
 const Component = () => (
   <Switch>
     <Route exact path={collectionListUrl} component={CollectionList} />
-    {/* <Route exact path={`${match.url}/add/`} component={CategoryCreate} /> */}
+    <Route exact path={collectionAddUrl} component={CollectionCreate} />
     <Route path={collectionUrl(":id")} component={CollectionDetails} />
   </Switch>
 );
