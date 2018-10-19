@@ -14,8 +14,13 @@ import SaveButtonBar from "../../../components/SaveButtonBar";
 import SeoForm from "../../../components/SeoForm";
 import i18n from "../../../i18n";
 import CollectionDetails from "../CollectionDetails/CollectionDetails";
+import { CollectionImage } from "../CollectionImage/CollectionImage";
 
 export interface CollectionCreatePageFormData {
+  backgroundImage: {
+    url: string;
+    value: string;
+  };
   name: string;
   isPublished: boolean;
   seoDescription: string;
@@ -30,6 +35,10 @@ export interface CollectionCreatePageProps {
 }
 
 const initialForm: CollectionCreatePageFormData = {
+  backgroundImage: {
+    url: null,
+    value: null
+  },
   isPublished: false,
   name: "",
   seoDescription: "",
@@ -61,6 +70,36 @@ const CollectionCreatePage = decorate<CollectionCreatePageProps>(
                 disabled={disabled}
                 errors={formErrors}
                 onChange={change}
+              />
+              <CardSpacer />
+              <CollectionImage
+                image={
+                  data.backgroundImage.url
+                    ? { __typename: "Image", url: data.backgroundImage.url }
+                    : null
+                }
+                onImageDelete={() =>
+                  change({
+                    target: {
+                      name: "backgroundImage",
+                      value: {
+                        url: null,
+                        value: null
+                      }
+                    }
+                  } as any)
+                }
+                onImageUpload={event =>
+                  change({
+                    target: {
+                      name: "backgroundImage",
+                      value: {
+                        url: URL.createObjectURL(event.target.files[0]),
+                        value: event.target.files[0]
+                      }
+                    }
+                  } as any)
+                }
               />
               <CardSpacer />
               <SeoForm
