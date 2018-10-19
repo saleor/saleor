@@ -355,7 +355,8 @@ class OrderMarkAsPaidForm(forms.Form):
         # FIXME add more fields to the payment method
         defaults = {
             'total': self.order.total,
-            'captured_amount': self.order.total.gross}
+            'captured_amount': self.order.total.gross,
+            **get_billing_data(self.order)}
         PaymentMethod.objects.get_or_create(
             variant=CustomPaymentChoices.MANUAL,
             charge_status=ChargeStatus.CHARGED, order=self.order,
