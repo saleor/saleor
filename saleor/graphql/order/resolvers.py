@@ -1,6 +1,6 @@
 import graphene
 
-from ...order import models, OrderStatus
+from ...order import models, OrderStatus, OrderEvents
 from ...order.utils import sum_order_totals
 from ...shipping import models as shipping_models
 from ..utils import filter_by_query_param, filter_by_period
@@ -58,3 +58,11 @@ def resolve_shipping_methods(obj, info):
     return qs.applicable_shipping_methods(
         price=obj.get_subtotal().gross.amount, weight=obj.get_total_weight(),
         country_code=obj.shipping_address.country.code)
+
+
+def resolve_order_events(info):
+    # Filter only selected events to be displayed on homepage.
+    types = [
+        OrderEvents.PLACED.value, OrderEvents.PLACED_FROM_DRAFT.value,
+        OrderEvents.ORDER_FULLY_PAID.value]
+    return models.OrderEvent.objects.filter(type__in=types)

@@ -1,6 +1,6 @@
 import graphene
 from graphene_django.filter import DjangoFilterConnectionField
-from graphql_jwt.decorators import staff_member_required
+from graphql_jwt.decorators import permission_required
 
 from ..descriptions import DESCRIPTIONS
 from ..core.types import ReportingPeriod
@@ -110,7 +110,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product_variants(self, info, ids=None, **kwargs):
         return resolve_product_variants(info, ids)
 
-    @staff_member_required
+    @permission_required(['order.manage_orders', 'product.manage_products'])
     def resolve_report_product_sales(self, info, period, **kwargs):
         return resolve_report_product_sales(info, period)
 
