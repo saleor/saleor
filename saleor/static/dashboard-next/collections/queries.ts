@@ -9,6 +9,10 @@ import {
   CollectionList,
   CollectionListVariables
 } from "./types/CollectionList";
+import {
+  SearchProducts,
+  SearchProductsVariables
+} from "./types/SearchProducts";
 
 export const collectionFragment = gql`
   fragment CollectionFragment on Collection {
@@ -75,7 +79,6 @@ export const collectionDetails = gql`
       ...CollectionDetailsFragment
       products(first: $first, after: $after, before: $before, last: $last) {
         edges {
-          cursor
           node {
             id
             isPublished
@@ -106,3 +109,20 @@ export const TypedCollectionDetailsQuery = TypedQuery<
   CollectionDetails,
   CollectionDetailsVariables
 >(collectionDetails);
+
+export const searchProducts = gql`
+  query SearchProducts($query: String!) {
+    products(first: 5, query: $query) {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+export const TypedSearchProductsQuery = TypedQuery<
+  SearchProducts,
+  SearchProductsVariables
+>(searchProducts);

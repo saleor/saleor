@@ -27,7 +27,6 @@ export interface CollectionDetails_collection_products_edges_node {
 
 export interface CollectionDetails_collection_products_edges {
   __typename: "ProductCountableEdge";
-  cursor: string;
   node: CollectionDetails_collection_products_edges_node;
 }
 

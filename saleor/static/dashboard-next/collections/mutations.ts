@@ -7,6 +7,10 @@ import {
   AssignHomepageCollectionVariables
 } from "./types/AssignHomepageCollection";
 import {
+  CollectionAssignProduct,
+  CollectionAssignProductVariables
+} from "./types/CollectionAssignProduct";
+import {
   CollectionUpdate,
   CollectionUpdateVariables
 } from "./types/CollectionUpdate";
@@ -49,3 +53,18 @@ export const TypedAssignHomepageCollectionMutation = TypedMutation<
   AssignHomepageCollection,
   AssignHomepageCollectionVariables
 >(assignHomepageCollection);
+
+const assignCollectionProduct = gql`
+  mutation CollectionAssignProduct($collectionId: ID!, $productId: ID!) {
+    collectionAddProducts(collectionId: $collectionId, products: [$productId]) {
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+export const TypedCollectionAssignProductMutation = TypedMutation<
+  CollectionAssignProduct,
+  CollectionAssignProductVariables
+>(assignCollectionProduct);
