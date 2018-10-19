@@ -1,13 +1,11 @@
-import datetime
 import graphene
 from django.db.models import Sum, Q
 
 from ...order import OrderStatus
 from ...product import models
 from ...product.utils import products_with_details
-from ..utils import filter_by_query_param, get_database_id
-from .types import (
-    Category, ProductVariant, ReportingPeriod, StockAvailability)
+from ..utils import filter_by_query_param, filter_by_period, get_database_id
+from .types import Category, ProductVariant, StockAvailability
 
 PRODUCT_SEARCH_FIELDS = ('name', 'description', 'category__name')
 CATEGORY_SEARCH_FIELDS = ('name', 'slug', 'description', 'parent__name')
@@ -98,17 +96,7 @@ def resolve_report_product_sales(info, period):
     qs = qs.exclude(order_lines__order__status__in=exclude_status)
 
     # filter by period
-    if (period == ReportingPeriod.DAY):
-        start_date = datetime.datetime.now().replace(
-            hour=0, minute=0, second=0, microsecond=0)
-    elif (period == ReportingPeriod.MONTH):
-        start_date = datetime.datetime.now().replace(
-            day=1, hour=0, minute=0, second=0, microsecond=0)
-    else:
-        start_date = None
-
-    if start_date:
-        qs = qs.filter(order_lines__order__created__gte=start_date)
+    qs = filter_by_period(qs, period, 'order_lines__order__created')
 
     qs = qs.annotate(quantity_ordered=Sum('order_lines__quantity'))
     qs = qs.filter(quantity_ordered__isnull=False)

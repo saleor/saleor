@@ -8,6 +8,7 @@ from prices import Money
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
+from saleor.graphql.core.types import ReportingPeriod
 from saleor.graphql.product.types import StockAvailability
 from saleor.graphql.product.utils import update_variants_names
 from saleor.product.models import (
@@ -1463,3 +1464,31 @@ def test_stock_availability_filter(user_api_client, product):
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content['data']['products']['totalCount'] == 0
+
+
+def test_product_sales(staff_api_client, order_with_lines):
+    query = """
+    query TopProducts($period: ReportingPeriod!) {
+        reportProductSales(period: $period) {
+            edges {
+                node {
+                    quantityOrdered
+                    sku
+                }
+            }
+        }
+    }
+    """
+    # TODO: add tests for different periods
+    variables = {'period': ReportingPeriod.TODAY.name}
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    edges = content['data']['reportProductSales']['edges']
+
+    line_a = order_with_lines.lines.all()[1]
+    assert edges[0]['node']['sku'] == line_a.product_sku
+    assert edges[0]['node']['quantityOrdered'] == line_a.quantity
+
+    line_b = order_with_lines.lines.all()[0]
+    assert edges[1]['node']['sku'] == line_b.product_sku
+    assert edges[1]['node']['quantityOrdered'] == line_b.quantity
