@@ -222,5 +222,5 @@ export interface MutationProviderProps {
   onError?: (error: ApolloError) => void;
 }
 export type MutationProviderRenderProps<T> = (
-  props: T & { errors: UserError[] }
+  props: T & { errors?: UserError[] }
 ) => React.ReactElement<any>;
