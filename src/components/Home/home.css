@@ -723,11 +723,12 @@
       }
       & .stars-bg {
         width: 100%;
-        height: 768px;
+        height: 1100px;
         background-image: url('../../images/open-source-bg.svg');
-        background-position: 50%;
+        background-position: 50% 20%;
+        background-repeat: no-repeat;
         position: absolute;
-        top: -6%;
+        top: -23%;
         right: -30%;
         opacity: 1;
         z-index: 1;
@@ -753,7 +754,7 @@
         padding-top: 200px;
         position: absolute;
         right: 43.5%;
-        top: 21.5%;
+        top: 31.5%;
         z-index: 2;
         @media (max-width: 1440px) {
           right: 41%;
@@ -766,7 +767,7 @@
         }
         @media (max-width: 768px) {
           right: 31.5%;
-          top: 28%;
+          top: 22%;
         }
         @media (max-width: 450px) {
           top: -1%;
