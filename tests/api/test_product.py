@@ -8,6 +8,7 @@ from prices import Money
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
+from saleor.graphql.product.types import StockAvailability
 from saleor.graphql.product.utils import update_variants_names
 from saleor.product.models import (
     Category, Collection, Product, ProductImage, ProductType, ProductVariant)
@@ -1426,3 +1427,39 @@ def test_product_variant_price(
     data = content['data']['product']
     variant_price = data['variants']['edges'][0]['node']['price']
     assert variant_price['amount'] == api_variant_price
+
+
+def test_stock_availability_filter(user_api_client, product):
+    query = """
+    query Products($stockAvailability: StockAvailability) {
+        products(stockAvailability: $stockAvailability) {
+            totalCount
+            edges {
+                node {
+                    id
+                }
+            }
+        }
+    }
+    """
+
+    # fetch products in stock
+    variables = {'stockAvailability': StockAvailability.IN_STOCK.name}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content['data']['products']['totalCount'] == 1
+
+    # fetch out of stock
+    variables = {'stockAvailability': StockAvailability.OUT_OF_STOCK.name}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content['data']['products']['totalCount'] == 0
+
+    # Change product stock availability and test again
+    product.variants.update(quantity=0)
+
+    # There should be no products in stock
+    variables = {'stockAvailability': StockAvailability.IN_STOCK.name}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content['data']['products']['totalCount'] == 0
