@@ -1,9 +1,16 @@
 import React, { Component } from 'react';
+import MetaTags from 'react-meta-tags';
 import { ScrollLink, GitHubBanner } from '..';
 import css from './privacypolicy.css';
 
 const PrivacyPolicy = () => (
 	<div id="privacy-policy" className="container">
+		<MetaTags>
+			<title>Get Saleor - Privacy Policy</title>
+			<meta name="description" content="A GraphQL-first eCommerce platform for perfectionists. It is open sourced, PWA ready and stunningly beautiful. Find out why developers love it" />
+			<meta property="og:title" content="Get Saleor - Privacy Policy" />
+			<meta property="og:image" content="" />
+		</MetaTags>
 		<section className="hero">
 			<div className="bg-container"></div>
 			<div className="plane">

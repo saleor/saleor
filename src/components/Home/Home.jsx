@@ -4,6 +4,7 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { Link } from 'react-router-dom';
 import { GitHubLink } from '..';
 import { isMobileOnly } from 'react-device-detect';
+import MetaTags from 'react-meta-tags';
 
 import Fade from 'react-reveal/Fade';
 
@@ -52,6 +53,12 @@ class Home extends Component {
   render() {
     return (
         <div id="home" className="container">
+          <MetaTags>
+            <title>Get Saleor - Homepage</title>
+            <meta name="description" content="A GraphQL-first eCommerce platform for perfectionists. It is open sourced, PWA ready and stunningly beautiful. Find out why developers love it" />
+            <meta property="og:title" content="Get Saleor - Homepage" />
+            <meta property="og:image" content="" />
+          </MetaTags>
           <section className="hero">
             <div className="bg-container"></div>
             <div className="plane">
