@@ -435,7 +435,7 @@ class Collection(SeoModel):
     background_image = VersatileImageField(
         upload_to='collection-backgrounds', blank=True, null=True)
     is_published = models.BooleanField(default=False)
-
+    description = models.TextField(blank=True,null=True)
     objects = CollectionQuerySet.as_manager()
     translated = TranslationProxy()
 
