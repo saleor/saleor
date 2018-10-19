@@ -273,6 +273,26 @@ def test_update_attribute_remove_and_add_values(
     assert attribute.values.filter(name=attribute_value_name).exists()
 
 
+def test_update_empty_attribute_and_add_values(
+        staff_api_client, color_attribute_without_values,
+        permission_manage_products):
+    query = UPDATE_ATTRIBUTE_QUERY
+    attribute = color_attribute_without_values
+    name = 'Wings name'
+    attribute_value_name = 'Yellow Color'
+    id = graphene.Node.to_global_id('Attribute', attribute.id)
+    variables = {
+        'name': name, 'id': id,
+        'addValues': [{'name': attribute_value_name, 'value': '#1231'}],
+        'removeValues': []}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products])
+    content = get_graphql_content(response)
+    attribute.refresh_from_db()
+    assert attribute.values.count() == 1
+    assert attribute.values.filter(name=attribute_value_name).exists()
+
+
 @pytest.mark.parametrize(
     'name_1, name_2, error_msg', (
         (
