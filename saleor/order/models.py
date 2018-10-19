@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import F, Max, Sum
+from django.db.models import ExpressionWrapper, F, Max, Sum
 from django.urls import reverse
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
@@ -29,17 +29,33 @@ from ..shipping.models import ShippingMethod
 
 class OrderQueryset(models.QuerySet):
     def confirmed(self):
+        """Return draft orders."""
         return self.exclude(status=OrderStatus.DRAFT)
 
     def drafts(self):
+        """Return draft orders."""
         return self.filter(status=OrderStatus.DRAFT)
 
-    def to_ship(self):
-        """Fully paid but unfulfilled (or partially fulfilled) orders."""
+    def ready_to_fulfill(self):
+        """Return orders that can be fulfilled.
+
+        Orders ready to fulfill are fully paid but unfulfilled (or partially
+        fulfilled).
+        """
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
         return self.filter(status__in=statuses).annotate(
             amount_paid=Sum('payments__captured_amount')).filter(
                 total_gross__lte=F('amount_paid'))
+
+    def ready_to_capture(self):
+        """Return orders with payments to capture.
+
+        Orders ready to capture are those which are not draft or canceled and
+        have a preauthorized payment.
+        """
+        qs = self.filter(payments__status=PaymentStatus.PREAUTH)
+        qs = qs.exclude(status={OrderStatus.DRAFT, OrderStatus.CANCELED})
+        return qs.distinct()
 
 
 class Order(models.Model):
@@ -192,6 +208,21 @@ class Order(models.Model):
         return weights
 
 
+class OrderLineQueryset(models.QuerySet):
+
+    def annotate_line_total(self):
+        output_field = MoneyField(currency=settings.DEFAULT_CURRENCY)
+        qs = self.annotate(
+            total_gross=ExpressionWrapper(
+                F('unit_price_gross') * F('quantity'),
+                output_field=output_field))
+        qs = qs.annotate(
+            total_net=ExpressionWrapper(
+                F('unit_price_net') * F('quantity'),
+                output_field=output_field))
+        return qs
+
+
 class OrderLine(models.Model):
     order = models.ForeignKey(
         Order, related_name='lines', editable=False, on_delete=models.CASCADE)
@@ -217,6 +248,8 @@ class OrderLine(models.Model):
         net_field='unit_price_net', gross_field='unit_price_gross')
     tax_rate = models.DecimalField(
         max_digits=5, decimal_places=2, default='0.0')
+
+    objects = OrderLineQueryset.as_manager()
 
     def __str__(self):
         return self.product_name

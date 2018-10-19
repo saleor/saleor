@@ -11,7 +11,8 @@ from saleor.graphql.order.mutations.draft_orders import (
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel, clean_order_capture, clean_order_mark_as_paid,
     clean_refund_payment, clean_release_payment)
-from saleor.graphql.order.types import OrderEventsEmailsEnum, PaymentStatusEnum
+from saleor.graphql.order.types import (
+    OrderEventsEmailsEnum, PaymentStatusEnum, OrderStatusFilter)
 from saleor.order import (
     CustomPaymentChoices, OrderEvents, OrderEventsEmails, OrderStatus)
 from saleor.order.models import Order, OrderEvent, Payment
@@ -135,6 +136,26 @@ def test_order_query(
     assert float(expected_method.minimum_order_price.amount) == (
         method['minimumOrderPrice']['amount'])
     assert expected_method.type.upper() == method['type']
+
+
+def test_order_status_filter_param(user_api_client):
+    query = """
+    query OrdersQuery($status: OrderStatusFilter) {
+        orders(status: $status) {
+            totalCount
+        }
+    }
+    """
+
+    # Check that both calls return a succesful response (underlying logic
+    # is tested separately in querysets' tests).
+    variables = {'status': OrderStatusFilter.READY_TO_CAPTURE.name}
+    response = user_api_client.post_graphql(query, variables)
+    get_graphql_content(response)
+
+    variables = {'status': OrderStatusFilter.READY_TO_FULFILL.name}
+    response = user_api_client.post_graphql(query, variables)
+    get_graphql_content(response)
 
 
 def test_order_events_query(
@@ -713,7 +734,7 @@ def test_order_update_anonymous_user_no_user_email(
     order.save()
     query = """
             mutation orderUpdate(
-            $id: ID!, $first_name: String, $last_name: String, 
+            $id: ID!, $first_name: String, $last_name: String,
             $country_code: String) {
                 orderUpdate(
                     id: $id, input: {

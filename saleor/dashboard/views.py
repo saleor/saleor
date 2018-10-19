@@ -33,7 +33,7 @@ def superuser_required(
 @staff_member_required
 def index(request):
     paginate_by = 10
-    orders_to_ship = Order.objects.to_ship().select_related(
+    orders_to_ship = Order.objects.ready_to_fulfill().select_related(
         'user').prefetch_related('lines', 'payments')
     payments = Payment.objects.filter(
         status=PaymentStatus.PREAUTH).order_by('-created')
