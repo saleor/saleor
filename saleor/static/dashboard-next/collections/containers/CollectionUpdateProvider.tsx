@@ -11,7 +11,7 @@ import {
   PartialMutationProviderRenderProps
 } from "../..";
 
-interface CollectionUUpdateProviderProps
+interface CollectionUpdateProviderProps
   extends PartialMutationProviderProps<CollectionUpdate> {
   children: PartialMutationProviderRenderProps<
     CollectionUpdate,
@@ -20,7 +20,7 @@ interface CollectionUUpdateProviderProps
 }
 
 const CollectionUUpdateProvider: React.StatelessComponent<
-  CollectionUUpdateProviderProps
+  CollectionUpdateProviderProps
 > = ({ children, onError, onSuccess }) => (
   <TypedCollectionUpdateMutation onCompleted={onSuccess} onError={onError}>
     {(mutate, { data, error, loading }) =>
