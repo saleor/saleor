@@ -55,7 +55,7 @@ def validate_payment_method(view):
     def func(payment_method, *args, **kwargs):
         if not payment_method.is_active:
             raise PaymentError('This payment method is no longer active.')
-        return view(*args, payment_method, **kwargs)
+        return view(payment_method, *args, **kwargs)
     return func
 
 

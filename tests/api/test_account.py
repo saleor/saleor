@@ -718,10 +718,11 @@ def test_create_address_mutation(
 
 
 def test_address_update_mutation(
-        staff_api_client, customer_user, permission_manage_users):
+        staff_api_client, customer_user, permission_manage_users,
+        graphql_address_data):
     query = """
-    mutation updateUserAddress($addressId: ID!, $city: String!) {
-        addressUpdate(id: $addressId, input: {city: $city}) {
+    mutation updateUserAddress($addressId: ID!, $address: AddressInput!) {
+        addressUpdate(id: $addressId, input: $address) {
             address {
                 city
             }
@@ -729,17 +730,16 @@ def test_address_update_mutation(
     }
     """
     address_obj = customer_user.addresses.first()
-    new_city = 'Dummy'
     variables = {
         'addressId': graphene.Node.to_global_id('Address', address_obj.id),
-        'city': new_city}
+        'address': graphql_address_data}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_users])
     content = get_graphql_content(response)
     data = content['data']['addressUpdate']
-    assert data['address']['city'] == new_city
+    assert data['address']['city'] == graphql_address_data['city']
     address_obj.refresh_from_db()
-    assert address_obj.city == new_city
+    assert address_obj.city == graphql_address_data['city']
 
 
 def test_address_delete_mutation(
