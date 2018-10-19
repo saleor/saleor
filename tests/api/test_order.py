@@ -159,7 +159,7 @@ def test_order_status_filter_param(user_api_client):
     get_graphql_content(response)
 
 
-def test_order_events_query(
+def test_nested_order_events_query(
         staff_api_client, permission_manage_orders, fulfilled_order,
         staff_user):
     query = """
@@ -206,6 +206,24 @@ def test_order_events_query(
     assert data['user']['email'] == staff_user.email
     assert data['type'] == OrderEvents.OTHER.value.upper()
     assert data['date'] == event.date.isoformat()
+
+
+def test_order_events_query(staff_api_client, permission_manage_orders):
+    query = """
+    {
+        orderEvents {
+            edges {
+                node {
+                    date
+                    type
+                }
+            }
+        }
+    }
+    """
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_orders])
+    get_graphql_content(response)
 
 
 def test_non_staff_user_can_only_see_his_order(user_api_client, order):
@@ -1256,8 +1274,11 @@ def test_orders_total(
     }
     """
     variables = {'period': ReportingPeriod.TODAY.name}
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
     assert (
         content['data']['ordersTotal']['gross']['amount'] ==
         order_with_lines.total.gross.amount)
+
+

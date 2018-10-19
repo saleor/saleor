@@ -2,8 +2,7 @@ import graphene
 import graphql_jwt
 from graphene_django import DjangoConnectionField
 from graphene_django.filter import DjangoFilterConnectionField
-from graphql_jwt.decorators import (
-    login_required, permission_required, staff_member_required)
+from graphql_jwt.decorators import login_required, permission_required
 
 from .account.mutations import (
     CustomerCreate, CustomerUpdate, CustomerPasswordReset, CustomerRegister,
@@ -27,8 +26,8 @@ from .discount.mutations import (
     VoucherUpdate)
 from .core.mutations import CreateToken, VerifyToken
 from .order.resolvers import (
-    resolve_order, resolve_orders, resolve_orders_total)
-from .order.types import Order, OrderStatusFilter
+    resolve_order, resolve_orders, resolve_orders_total, resolve_order_events)
+from .order.types import Order, OrderStatusFilter, OrderEvent
 from .order.mutations.draft_orders import (
     DraftOrderComplete, DraftOrderCreate, DraftOrderDelete,
     DraftOrderLineCreate, DraftOrderLineDelete, DraftOrderLineUpdate,
@@ -87,6 +86,8 @@ class Query(ProductQueries):
         status=graphene.Argument(
             OrderStatusFilter, description='Filter order by status'),
         description='List of the shop\'s orders.')
+    order_events = DjangoConnectionField(
+        OrderEvent, description='List of order events.')
     page = graphene.Field(
         Page, id=graphene.Argument(graphene.ID), slug=graphene.String(),
         description='Lookup a page by ID or by slug.')
@@ -158,7 +159,7 @@ class Query(ProductQueries):
     def resolve_order(self, info, id):
         return resolve_order(info, id)
 
-    @staff_member_required
+    @permission_required('order.manage_orders')
     def resolve_orders_total(self, info, period, **kwargs):
         return resolve_orders_total(info, period)
 
@@ -166,6 +167,10 @@ class Query(ProductQueries):
     def resolve_orders(
             self, info, created=None, status=None, query=None, **kwargs):
         return resolve_orders(info, created, status, query)
+
+    @permission_required('order.manage_orders')
+    def resolve_order_events(self, info, **kwargs):
+        return resolve_order_events(info)
 
     def resolve_shop(self, info):
         return Shop()

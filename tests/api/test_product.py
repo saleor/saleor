@@ -1466,7 +1466,9 @@ def test_stock_availability_filter(user_api_client, product):
     assert content['data']['products']['totalCount'] == 0
 
 
-def test_product_sales(staff_api_client, order_with_lines):
+def test_product_sales(
+        staff_api_client, order_with_lines, permission_manage_products,
+        permission_manage_orders):
     query = """
     query TopProducts($period: ReportingPeriod!) {
         reportProductSales(period: $period) {
@@ -1479,9 +1481,9 @@ def test_product_sales(staff_api_client, order_with_lines):
         }
     }
     """
-    # TODO: add tests for different periods
     variables = {'period': ReportingPeriod.TODAY.name}
-    response = staff_api_client.post_graphql(query, variables)
+    permissions = [permission_manage_orders, permission_manage_products]
+    response = staff_api_client.post_graphql(query, variables, permissions)
     content = get_graphql_content(response)
     edges = content['data']['reportProductSales']['edges']
 
