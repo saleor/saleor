@@ -20,7 +20,7 @@ import {
   collectionUrl
 } from "../urls";
 
-interface CollectionListProps {
+interface CollectionDetailsProps {
   id: string;
   params: {
     after?: string;
@@ -31,7 +31,7 @@ interface CollectionListProps {
 const PAGINATE_BY = 20;
 
 export const CollectionDetails: React.StatelessComponent<
-  CollectionListProps
+  CollectionDetailsProps
 > = ({ id, params }) => (
   <Navigator>
     {navigate => {
