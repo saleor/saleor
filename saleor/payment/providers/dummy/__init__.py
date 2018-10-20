@@ -12,43 +12,43 @@ def get_client_token(**client_kwargs):
     return str(uuid.uuid4())
 
 
-def authorize(payment_method, transaction_token, **client_kwargs):
+def authorize(payment, transaction_token, **client_kwargs):
     success = dummy_success()
     error = None
     if not success:
         error = 'Unable to authorize transaction'
     txn = create_transaction(
-        payment_method=payment_method,
+        payment=payment,
         transaction_type=TransactionType.AUTH,
-        amount=payment_method.total,
+        amount=payment.total,
         gateway_response={},
         token=str(uuid.uuid4()),
         is_success=success)
     return txn, error
 
 
-def void(payment_method, **client_kwargs):
+def void(payment, **client_kwargs):
     error = None
     success = dummy_success()
     if not success:
         error = 'Unable to void transaction'
     txn = create_transaction(
-        payment_method=payment_method,
+        payment=payment,
         transaction_type=TransactionType.VOID,
-        amount=payment_method.total,
+        amount=payment.total,
         gateway_response={},
         token=str(uuid.uuid4()),
         is_success=success)
     return txn, error
 
 
-def capture(payment_method, amount=None):
+def capture(payment, amount=None):
     error = None
     success = dummy_success()
     if not success:
         error = 'Unable to process capture'
     txn = create_transaction(
-        payment_method=payment_method,
+        payment=payment,
         transaction_type=TransactionType.CAPTURE,
         amount=amount,
         token=str(uuid.uuid4()),
@@ -56,13 +56,13 @@ def capture(payment_method, amount=None):
     return txn, error
 
 
-def refund(payment_method, amount=None):
+def refund(payment, amount=None):
     error = None
     success = dummy_success()
     if not success:
         error = 'Unable to process refund'
     txn = create_transaction(
-        payment_method=payment_method,
+        payment=payment,
         transaction_type=TransactionType.REFUND,
         amount=amount,
         token=str(uuid.uuid4()),

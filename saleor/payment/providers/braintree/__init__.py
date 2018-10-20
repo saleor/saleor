@@ -16,6 +16,7 @@ THREE_D_SECURE_REQUIRED = False
 
 
 def get_customer_data(payment):
+    # FIXME: TESTME
     return {
         'billing': {
             'first_name': payment.billing_first_name,
@@ -28,8 +29,7 @@ def get_customer_data(payment):
             'region': payment.billing_country_area,
             'country_code_alpha2': payment.billing_country_code},
         'risk_data': {
-            'customer_ip': payment.customer_ip_address or ''
-        },
+            'customer_ip': payment.customer_ip_address or ''},
         'customer': {
             'email': payment.billing_email}}
 
@@ -38,6 +38,7 @@ def get_error_for_client(errors):
     """Filters all error messages and decides which one is visible for the
     client side.
     """
+    # FIXME: TESTME
     if not errors:
         return ''
 
@@ -55,12 +56,14 @@ def get_error_for_client(errors):
 
 
 def extract_gateway_response(braintree_result) -> Dict:
+    # FIXME: TESTME
     """Extract data from Braintree response that will be stored locally."""
     errors = []
     if not braintree_result.is_success:
-        errors = [
-            {'code': error.code, 'message': error.message}
-            for error in braintree_result.errors.deep_errors]
+        errors = [{
+            'code': error.code,
+            'message': error.message}
+                  for error in braintree_result.errors.deep_errors]
     bt_transaction = braintree_result.transaction
     if not bt_transaction:
         return {'errors': errors}
@@ -79,6 +82,7 @@ def extract_gateway_response(braintree_result) -> Dict:
 
 
 def get_gateway(sandbox_mode, merchant_id, public_key, private_key):
+    # FIXME: TESTME
     if not all([merchant_id, private_key, public_key]):
         raise ImproperlyConfigured('Incorrectly configured Braintree gateway.')
     environment = braintree_sdk.Environment.Sandbox
@@ -95,47 +99,51 @@ def get_gateway(sandbox_mode, merchant_id, public_key, private_key):
 
 
 def get_client_token(**client_kwargs):
+    # FIXME: TESTME
     gateway = get_gateway(**client_kwargs)
     client_token = gateway.client_token.generate()
     return client_token
 
 
-def authorize(payment_method, transaction_token, **client_kwargs):
+def authorize(payment, transaction_token, **client_kwargs):
+    # FIXME: TESTME
     gateway = get_gateway(**client_kwargs)
     result = gateway.transaction.sale({
-        'amount': str(payment_method.total.amount),
+        'amount': str(payment.total.amount),
         'payment_method_nonce': transaction_token,
         'options': {
             'submit_for_settlement': CONFIRM_MANUALLY,
-            'three_d_secure': {'required': THREE_D_SECURE_REQUIRED}},
-        **get_customer_data(payment_method)})
+            'three_d_secure': {
+                'required': THREE_D_SECURE_REQUIRED}},
+        **get_customer_data(payment)})
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
     txn = create_transaction(
-        payment_method=payment_method,
+        payment=payment,
         transaction_type=TransactionType.AUTH,
-        amount=payment_method.total.amount,
+        amount=payment.total.amount,
         gateway_response=gateway_response,
         token=getattr(result.transaction, 'id', ''),
         is_success=result.is_success)
     return txn, error
 
 
-def capture(payment_method, amount=None, **client_kwargs):
+def capture(payment, amount=None, **client_kwargs):
     gateway = get_gateway(**client_kwargs)
     # FIXME we are assuming that appropriate transaction exists without
     # forcing the flow
-    auth_transaction = payment_method.transactions.filter(
+    # FIXME: TESTME
+    auth_transaction = payment.transactions.filter(
         transaction_type=TransactionType.AUTH).first()
     if not amount:
-        amount = payment_method.total.amount
+        amount = payment.total.amount
     result = gateway.transaction.submit_for_settlement(
         transaction_id=auth_transaction.token, amount=amount)
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
 
     txn = create_transaction(
-        payment_method=payment_method,
+        payment=payment,
         transaction_type=TransactionType.CAPTURE,
         amount=amount,
         token=result.transaction.id,
@@ -144,37 +152,39 @@ def capture(payment_method, amount=None, **client_kwargs):
     return txn, error
 
 
-def void(payment_method, **client_kwargs):
+def void(payment, **client_kwargs):
     gateway = get_gateway(**client_kwargs)
     # FIXME we are assuming that appropriate transaction exists without
     # forcing the flow
-    auth_transaction = payment_method.transactions.filter(
+    # FIXME: TESTME
+    auth_transaction = payment.transactions.filter(
         transaction_type=TransactionType.AUTH).first()
     result = gateway.transaction.void(transaction_id=auth_transaction.token)
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
     txn = create_transaction(
-        payment_method=payment_method,
+        payment=payment,
         transaction_type=TransactionType.VOID,
-        amount=payment_method.total.amount,
+        amount=payment.total.amount,
         gateway_response=gateway_response,
         token=result.transaction.id,
         is_success=result.is_success)
     return txn, error
 
 
-def refund(payment_method, amount=None, **client_kwargs):
+def refund(payment, amount=None, **client_kwargs):
     gateway = get_gateway(**client_kwargs)
     # FIXME we are assuming that appropriate transaction exists without
     # forcing the flow
-    auth_transaction = payment_method.transactions.filter(
+    # FIXME: TESTME
+    auth_transaction = payment.transactions.filter(
         transaction_type=TransactionType.CAPTURE).first()
     result = gateway.transaction.refund(
         transaction_id=auth_transaction.token, amount=amount)
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
     txn = create_transaction(
-        payment_method=payment_method,
+        payment=payment,
         transaction_type=TransactionType.REFUND,
         amount=amount,
         token=result.transaction.id,

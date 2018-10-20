@@ -17,7 +17,7 @@ from saleor.graphql.payment.types import PaymentChargeStatusEnum
 from saleor.order import (
     CustomPaymentChoices, OrderEvents, OrderEventsEmails, OrderStatus)
 from saleor.order.models import Order, OrderEvent
-from saleor.payment.models import PaymentMethod
+from saleor.payment.models import Payment
 from saleor.shipping.models import ShippingMethod
 
 from .utils import assert_no_permission
@@ -895,8 +895,8 @@ def test_order_cancel(
 
 def test_order_capture(
         staff_api_client, permission_manage_orders,
-        payment_method_txn_preauth, staff_user):
-    order = payment_method_txn_preauth.order
+        payment_txn_preauth, staff_user):
+    order = payment_txn_preauth.order
     query = """
         mutation captureOrder($id: ID!, $amount: Decimal!) {
             orderCapture(id: $id, amount: $amount) {
@@ -911,7 +911,7 @@ def test_order_capture(
         }
     """
     order_id = graphene.Node.to_global_id('Order', order.id)
-    amount = float(payment_method_txn_preauth.total.amount)
+    amount = float(payment_txn_preauth.total.amount)
     variables = {'id': order_id, 'amount': amount}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
@@ -938,8 +938,8 @@ def test_order_capture(
 
 def test_paid_order_mark_as_paid(
         staff_api_client, permission_manage_orders,
-        payment_method_txn_preauth):
-    order = payment_method_txn_preauth.order
+        payment_txn_preauth):
+    order = payment_txn_preauth.order
     query = """
             mutation markPaid($id: ID!) {
                 orderMarkAsPaid(id: $id) {
@@ -997,9 +997,9 @@ def test_order_mark_as_paid(
 
 
 def test_order_release(
-        staff_api_client, permission_manage_orders, payment_method_txn_preauth,
+        staff_api_client, permission_manage_orders, payment_txn_preauth,
         staff_user):
-    order = payment_method_txn_preauth.order
+    order = payment_txn_preauth.order
     query = """
             mutation releaseOrder($id: ID!) {
                 orderRelease(id: $id) {
@@ -1023,8 +1023,8 @@ def test_order_release(
 
 def test_order_refund(
         staff_api_client, permission_manage_orders,
-        payment_method_txn_captured):
-    order = order = payment_method_txn_captured.order
+        payment_txn_captured):
+    order = order = payment_txn_captured.order
     query = """
         mutation refundOrder($id: ID!, $amount: Decimal!) {
             orderRefund(id: $id, amount: $amount) {
@@ -1037,7 +1037,7 @@ def test_order_refund(
         }
     """
     order_id = graphene.Node.to_global_id('Order', order.id)
-    amount = float(payment_method_txn_captured.total.amount)
+    amount = float(payment_txn_captured.total.amount)
     variables = {'id': order_id, 'amount': amount}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
@@ -1054,7 +1054,7 @@ def test_order_refund(
 
 
 def test_clean_order_release_payment():
-    payment = MagicMock(spec=PaymentMethod)
+    payment = MagicMock(spec=Payment)
     payment.is_active = False
     errors = clean_release_payment(payment, [])
     assert errors[0].field == 'payment'
@@ -1069,7 +1069,7 @@ def test_clean_order_release_payment():
 
 
 def test_clean_order_refund_payment():
-    payment = MagicMock(spec=PaymentMethod)
+    payment = MagicMock(spec=Payment)
     payment.variant = CustomPaymentChoices.MANUAL
     amount = Mock(spec='string')
     errors = clean_refund_payment(payment, amount, [])
@@ -1085,8 +1085,8 @@ def test_clean_order_capture():
         'There\'s no payment associated with the order.')
 
 
-def test_clean_order_mark_as_paid(payment_method_txn_preauth):
-    order = payment_method_txn_preauth.order
+def test_clean_order_mark_as_paid(payment_txn_preauth):
+    order = payment_txn_preauth.order
     errors = clean_order_mark_as_paid(order, [])
     assert errors[0].field == 'payment'
     assert errors[0].message == (

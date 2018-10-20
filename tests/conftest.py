@@ -29,7 +29,7 @@ from saleor.order.models import Order, OrderEvent
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.payment import ChargeStatus, TransactionType
-from saleor.payment.models import PaymentMethod
+from saleor.payment.models import Payment
 from saleor.product.models import (
     Attribute, AttributeTranslation, AttributeValue, Category, Collection,
     Product, ProductImage, ProductTranslation, ProductType, ProductVariant)
@@ -468,9 +468,9 @@ def draft_order(order_with_lines):
 
 
 @pytest.fixture()
-def payment_method_txn_preauth(order_with_lines, payment_method_dummy):
+def payment_txn_preauth(order_with_lines, payment_dummy):
     order = order_with_lines
-    payment = payment_method_dummy
+    payment = payment_dummy
     payment.order = order
     payment.save()
 
@@ -483,9 +483,9 @@ def payment_method_txn_preauth(order_with_lines, payment_method_dummy):
 
 
 @pytest.fixture()
-def payment_method_txn_captured(order_with_lines, payment_method_dummy):
+def payment_txn_captured(order_with_lines, payment_dummy):
     order = order_with_lines
-    payment = payment_method_dummy
+    payment = payment_dummy
     payment.order = order
     payment.charge_status = ChargeStatus.CHARGED
     payment.captured_amount = payment.total
@@ -500,9 +500,9 @@ def payment_method_txn_captured(order_with_lines, payment_method_dummy):
 
 
 @pytest.fixture()
-def payment_method_txn_refunded(order_with_lines, payment_method_dummy):
+def payment_txn_refunded(order_with_lines, payment_dummy):
     order = order_with_lines
-    payment = payment_method_dummy
+    payment = payment_dummy
     payment.order = order
     payment.charge_status = ChargeStatus.FULLY_REFUNDED
     payment.is_active = False
@@ -517,10 +517,10 @@ def payment_method_txn_refunded(order_with_lines, payment_method_dummy):
 
 
 @pytest.fixture()
-def payment_method_not_authorized(payment_method_dummy):
-    payment_method_dummy.is_active = False
-    payment_method_dummy.save()
-    return payment_method_dummy
+def payment_not_authorized(payment_dummy):
+    payment_dummy.is_active = False
+    payment_dummy.save()
+    return payment_dummy
 
 
 @pytest.fixture()
@@ -728,8 +728,8 @@ def product_translation_fr(product):
 
 
 @pytest.fixture
-def payment_method_dummy(db, order_with_lines):
-    return PaymentMethod.objects.create(
+def payment_dummy(db, order_with_lines):
+    return Payment.objects.create(
         variant='dummy',
         order=order_with_lines,
         is_active=True,

@@ -44,7 +44,7 @@ from .utils import (
 @staff_member_required
 @permission_required('order.manage_orders')
 def order_list(request):
-    orders = Order.objects.prefetch_related('payment_methods', 'lines', 'user')
+    orders = Order.objects.prefetch_related('payments', 'lines', 'user')
     order_filter = OrderFilter(request.GET, queryset=orders)
     orders = get_paginator_items(
         order_filter.qs, settings.DASHBOARD_PAGINATE_BY,
@@ -119,10 +119,10 @@ def remove_draft_order(request, order_pk):
 def order_details(request, order_pk):
     qs = Order.objects.select_related(
         'user', 'shipping_address', 'billing_address').prefetch_related(
-        'payment_methods', 'events__user', 'lines__variant__product',
+        'payments', 'events__user', 'lines__variant__product',
         'fulfillments__lines__order_line')
     order = get_object_or_404(qs, pk=order_pk)
-    all_payments = order.payment_methods.all()
+    all_payments = order.payments.all()
     payment = order.get_last_payment()
     preauthorized = ZERO_TAXED_MONEY
     captured = ZERO_MONEY
@@ -145,7 +145,7 @@ def order_details(request, order_pk):
             balance = captured - order.total.gross
     else:
         can_capture = can_release = can_refund = False
-    can_mark_as_paid = not order.payment_methods.exists()
+    can_mark_as_paid = not order.payments.exists()
     ctx = {
         'order': order, 'all_payments': all_payments, 'payment': payment,
         'notes': order.events.filter(type=OrderEvents.NOTE_ADDED.value),
@@ -184,9 +184,9 @@ def order_add_note(request, order_pk):
 @staff_member_required
 @permission_required('order.manage_orders')
 def capture_payment(request, order_pk, payment_pk):
-    orders = Order.objects.confirmed().prefetch_related('payment_methods')
+    orders = Order.objects.confirmed().prefetch_related('payments')
     order = get_object_or_404(orders, pk=order_pk)
-    payment = get_object_or_404(order.payment_methods, pk=payment_pk)
+    payment = get_object_or_404(order.payments, pk=payment_pk)
     amount = order.total.quantize('0.01').gross
     form = CapturePaymentForm(
         request.POST or None, payment=payment, initial={'amount': amount})
@@ -214,9 +214,9 @@ def capture_payment(request, order_pk, payment_pk):
 @staff_member_required
 @permission_required('order.manage_orders')
 def refund_payment(request, order_pk, payment_pk):
-    orders = Order.objects.confirmed().prefetch_related('payment_methods')
+    orders = Order.objects.confirmed().prefetch_related('payments')
     order = get_object_or_404(orders, pk=order_pk)
-    payment = get_object_or_404(order.payment_methods, pk=payment_pk)
+    payment = get_object_or_404(order.payments, pk=payment_pk)
     amount = payment.captured_amount
     form = RefundPaymentForm(
         request.POST or None, payment=payment, initial={'amount': amount})
@@ -244,9 +244,9 @@ def refund_payment(request, order_pk, payment_pk):
 @staff_member_required
 @permission_required('order.manage_orders')
 def release_payment(request, order_pk, payment_pk):
-    orders = Order.objects.confirmed().prefetch_related('payment_methods')
+    orders = Order.objects.confirmed().prefetch_related('payments')
     order = get_object_or_404(orders, pk=order_pk)
-    payment = get_object_or_404(order.payment_methods, pk=payment_pk)
+    payment = get_object_or_404(order.payments, pk=payment_pk)
     form = ReleasePaymentForm(request.POST or None, payment=payment)
     if form.is_valid() and form.release():
         msg = pgettext_lazy('Dashboard message', 'Released payment')

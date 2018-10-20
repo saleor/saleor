@@ -9,7 +9,7 @@ from ..core import zero_money
 from ..order.models import Order
 
 
-class PaymentMethod(models.Model):
+class Payment(models.Model):
     """Represents transactable payment information
     such as credit card details, gift card information or a customer's
     authorization to charge their PayPal account.
@@ -18,8 +18,7 @@ class PaymentMethod(models.Model):
     at the gateway level, we are operating on the reusable token
     which is a unique identifier of the customer for given gateway.
 
-    Payment methods belong to a customer, one can use several payments method
-    within a single order.
+    Several payment methods can be used within a single order.
     """
     #FIXME we should provide an option to store the card for later usage
     variant = models.CharField(max_length=255)
@@ -51,20 +50,20 @@ class PaymentMethod(models.Model):
     token = models.CharField(max_length=36, blank=True, default='')
 
     total = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=zero_money)
     captured_amount = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=zero_money)
 
     checkout = models.ForeignKey(
-        Cart, null=True, related_name='payment_methods',
-        on_delete=models.SET_NULL)
+        Cart, null=True, related_name='payments', on_delete=models.SET_NULL)
     order = models.ForeignKey(
-        Order, null=True, related_name='payment_methods',
-        on_delete=models.PROTECT)
+        Order, null=True, related_name='payments', on_delete=models.PROTECT)
 
     def get_auth_transaction(self):
         txn = self.transactions.get(
@@ -76,25 +75,25 @@ class PaymentMethod(models.Model):
         # dashboard 2.0
         from . import utils
         return utils.gateway_authorize(
-            payment_method=self, transaction_token=client_token)
+            payment=self, transaction_token=client_token)
 
     def void(self):
         # FIXME Used for backwards compatibility, remove after moving to
         # dashboard 2.0
         from . import utils
-        return utils.gateway_void(payment_method=self)
+        return utils.gateway_void(payment=self)
 
     def capture(self, amount=None):
         # FIXME Used for backwards compatibility, remove after moving to
         # dashboard 2.0
         from . import utils
-        return utils.gateway_capture(payment_method=self, amount=amount)
+        return utils.gateway_capture(payment=self, amount=amount)
 
     def refund(self, amount=None):
         # FIXME Used for backwards compatibility, remove after moving to
         # dashboard 2.0
         from . import utils
-        return utils.gateway_refund(payment_method=self, amount=amount)
+        return utils.gateway_refund(payment=self, amount=amount)
 
 
 class Transaction(models.Model):
@@ -102,8 +101,8 @@ class Transaction(models.Model):
     and your customers, with a chosen payment method.
     """
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    payment_method = models.ForeignKey(
-        PaymentMethod, related_name='transactions', on_delete=models.PROTECT)
+    payment = models.ForeignKey(
+        Payment, related_name='transactions', on_delete=models.PROTECT)
     token = models.CharField(max_length=64, blank=True, default='')
     transaction_type = models.CharField(
         max_length=10, choices=TransactionType.CHOICES)
@@ -111,7 +110,8 @@ class Transaction(models.Model):
     # a bool, eg for payments with 3d secure
     is_success = models.BooleanField(default=False)
     amount = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=zero_money)
 

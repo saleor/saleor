@@ -366,7 +366,7 @@ def test_order_queryset_to_ship():
             status=OrderStatus.PARTIALLY_FULFILLED, total=total)
     ]
     for order in orders_to_ship:
-        order.payment_methods.create(
+        order.payments.create(
             variant='default', charge_status=ChargeStatus.CHARGED,
             total=order.total.gross, captured_amount=order.total_gross)
 
@@ -441,7 +441,7 @@ def test_order_payment_flow(
     order = create_order(
         request_cart_with_item, 'tracking_code', discounts=None, taxes=None)
 
-    # Select payment method
+    # Select payment
     url = reverse('order:payment', kwargs={'token': order.token})
     data = {'method': 'default'}
     response = client.post(url, data, follow=True)
@@ -466,7 +466,7 @@ def test_order_payment_flow(
     assert get_redirect_location(response) == redirect_url
 
     # Assert that payment object was created and contains correct data
-    payment = order.payment_methods.all()[0]
+    payment = order.payments.all()[0]
     assert payment.total == order.total_gross
     assert payment.transactions.count() == 1
     assert payment.transactions.first().transaction_type == 'auth'

@@ -9,7 +9,7 @@
   {% bootstrap_form form layout="horizontal" %}
   {% if form.errors %}
     <a class="btn" href="{% url "order:details" token=payment.order.token %}">
-      {% trans "Change payment method" context "Payment form (Stripe) secondary action" %}
+      {% trans "Change payment" context "Payment form (Stripe) secondary action" %}
     </a>
   {% endif %}
   {% if not form.autosubmit %}

@@ -46,8 +46,8 @@ from .product.schema import ProductMutations, ProductQueries
 from .payment.types import Payment, PaymentGatewayEnum
 from .payment.resolvers import resolve_payments, resolve_payment_client_token
 from .payment.mutations import (
-    CheckoutPaymentMethodCreate, PaymentMethodCapture, PaymentMethodRefund,
-    PaymentMethodVoid)
+    CheckoutPaymentCreate, PaymentCapture, PaymentRefund,
+    PaymentVoid)
 from .shipping.resolvers import resolve_shipping_zones
 from .shipping.types import ShippingZone
 from .shipping.mutations import (
@@ -122,7 +122,7 @@ class Query(ProductQueries):
         Page, query=graphene.String(
             description=DESCRIPTIONS['page']),
         description='List of the shop\'s pages.')
-    payment = graphene.Field(PaymentMethod, id=graphene.Argument(graphene.ID))
+    payment = graphene.Field(Payment, id=graphene.Argument(graphene.ID))
     payment_client_token = graphene.Field(
         graphene.String, args={'gateway': PaymentGatewayEnum()})
     payments = DjangoFilterConnectionField(
@@ -214,15 +214,15 @@ class Query(ProductQueries):
     def resolve_orders(self, info, query=None, **kwargs):
         return resolve_orders(info, query)
 
-    def resolve_payment_method(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, PaymentMethod)
+    def resolve_payment(self, info, id):
+        return graphene.Node.get_node_from_global_id(info, id, Payment)
 
     def resolve_payment_client_token(self, info, gateway=None):
         return resolve_payment_client_token(gateway)
 
     @permission_required('order.manage_orders')
     def resolve_payments(self, info, query=None, **kwargs):
-        return resolve_payment_methods(info, query)
+        return resolve_payments(info, query)
 
     @login_required
     def resolve_orders(
@@ -301,7 +301,7 @@ class Mutations(ProductMutations):
     checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
     checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field()
     checkout_email_update = CheckoutEmailUpdate.Field()
-    checkout_payment_method_create = CheckoutPaymentMethodCreate.Field()
+    checkout_payment_create = CheckoutPaymentCreate.Field()
     checkout_complete = CheckoutComplete.Field()
 
     menu_create = MenuCreate.Field()

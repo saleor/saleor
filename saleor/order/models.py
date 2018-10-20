@@ -43,8 +43,8 @@ class OrderQueryset(models.QuerySet):
         fulfilled).
         """
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
-        qs = self.filter(status__in=statuses, payment_methods__is_active=True)
-        qs = qs.annotate(amount_paid=Sum('payment_methods__captured_amount'))
+        qs = self.filter(status__in=statuses, payments__is_active=True)
+        qs = qs.annotate(amount_paid=Sum('payments__captured_amount'))
         return qs.filter(total_gross__lte=F('amount_paid'))
 
     def ready_to_capture(self):
@@ -132,7 +132,7 @@ class Order(models.Model):
         return super().save(*args, **kwargs)
 
     def is_fully_paid(self):
-        payments = self.payment_methods.filter(
+        payments = self.payments.filter(
             charge_status=ChargeStatus.CHARGED)
         total_captured = [payment.captured_amount for payment in payments]
         total_paid = sum(total_captured, ZERO_TAXED_MONEY)
@@ -160,7 +160,7 @@ class Order(models.Model):
         return reverse('order:details', kwargs={'token': self.token})
 
     def get_last_payment(self):
-        return max(self.payment_methods.all(), default=None, key=attrgetter('pk'))
+        return max(self.payments.all(), default=None, key=attrgetter('pk'))
 
     def get_last_payment_status(self):
         last_payment = self.get_last_payment()
@@ -170,7 +170,7 @@ class Order(models.Model):
 
     def get_last_payment_status_display(self):
         last_payment = max(
-            self.payment_methods.all(), default=None, key=attrgetter('pk'))
+            self.payments.all(), default=None, key=attrgetter('pk'))
         if last_payment:
             return last_payment.get_charge_status_display()
         return None
@@ -179,7 +179,7 @@ class Order(models.Model):
         # FIXME for Braintree, payment is preauthorized if it was added
         # properly and set to active. This might need to be adjusted for other
         # payment gateways in the future.
-        return self.payment_methods.filter(is_active=True).exists()
+        return self.payments.filter(is_active=True).exists()
 
     @property
     def quantity_fulfilled(self):

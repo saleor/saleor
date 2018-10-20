@@ -11,7 +11,7 @@ from . import ChargeStatus, PaymentError, can_be_voided, get_provider
 from ..core import analytics
 from ..order import OrderEvents, OrderEventsEmails
 from ..order.emails import send_payment_confirmation
-from .models import PaymentMethod, Transaction
+from .models import Payment, Transaction
 
 logger = logging.getLogger(__name__)
 
@@ -49,34 +49,42 @@ def handle_fully_paid_order(order):
         logger.exception('Recording order in analytics failed')
 
 
-def validate_payment_method(view):
-    """Decorate a view to check if payment method is active, so any actions
+def validate_payment(view):
+    """Decorate a view to check if payment is authorized, so any actions
     can be performed on it.
     """
+
     @wraps(view)
-    def func(payment_method, *args, **kwargs):
-        if not payment_method.is_active:
-            raise PaymentError('This payment method is no longer active.')
-        return view(payment_method, *args, **kwargs)
+    def func(payment, *args, **kwargs):
+        if not payment.is_active:
+            raise PaymentError('This payment is no longer authorized.')
+        return view(payment, *args, **kwargs)
+
     return func
 
 
-def create_payment_method(**payment_data):
-    payment_method, _ = PaymentMethod.objects.get_or_create(**payment_data)
-    return payment_method
+def create_payment(**payment_data):
+    payment, _ = Payment.objects.get_or_create(**payment_data)
+    return payment
 
 
 def create_transaction(
-        payment_method: PaymentMethod, token: str, transaction_type: str,
-        is_success: bool, amount: Decimal,
+        payment: Payment,
+        token: str,
+        transaction_type: str,
+        is_success: bool,
+        amount: Decimal,
         gateway_response: Optional[Dict] = None) -> Transaction:
     if not gateway_response:
         gateway_response = {}
 
     txn, _ = Transaction.objects.get_or_create(
-        payment_method=payment_method, token=token,
-        transaction_type=transaction_type, is_success=is_success,
-        amount=amount, gateway_response=gateway_response)
+        payment=payment,
+        token=token,
+        transaction_type=transaction_type,
+        is_success=is_success,
+        amount=amount,
+        gateway_response=gateway_response)
     return txn
 
 
@@ -87,52 +95,45 @@ def gateway_get_client_token(provider_name: str):
     return provider.get_client_token(**provider_params)
 
 
-@validate_payment_method
-def gateway_authorize(
-        payment_method: PaymentMethod,
-        transaction_token: str) -> Transaction:
-    if not payment_method.charge_status == ChargeStatus.NOT_CHARGED:
+@validate_payment
+def gateway_authorize(payment: Payment, transaction_token: str) -> Transaction:
+    if not payment.charge_status == ChargeStatus.NOT_CHARGED:
         raise PaymentError('Charged transactions cannot be authorized again.')
 
-    provider, provider_params = get_provider(payment_method.variant)
+    provider, provider_params = get_provider(payment.variant)
     with transaction.atomic():
         txn, error = provider.authorize(
-            payment_method, transaction_token, **provider_params)
+            payment, transaction_token, **provider_params)
         if txn.is_success:
-            payment_method.charge_status = ChargeStatus.NOT_CHARGED
-            payment_method.save(update_fields=['charge_status'])
+            payment.charge_status = ChargeStatus.NOT_CHARGED
+            payment.save(update_fields=['charge_status'])
     if not txn.is_success:
         # TODO: Handle gateway response here somehow
         raise PaymentError(error)
     return txn
 
 
-@validate_payment_method
-def gateway_capture(
-        payment_method: PaymentMethod,
-        amount: Decimal) -> Transaction:
+@validate_payment
+def gateway_capture(payment: Payment, amount: Decimal) -> Transaction:
     if amount <= 0:
         raise PaymentError('Amount should be a positive number.')
-    if payment_method.charge_status not in {
-            ChargeStatus.CHARGED,
-            ChargeStatus.NOT_CHARGED}:
-        raise PaymentError('This payment method cannot be captured.')
-    if amount > payment_method.total.amount or amount > (
-            payment_method.total.amount -
-            payment_method.captured_amount.amount):
+    if payment.charge_status not in {ChargeStatus.CHARGED,
+                                     ChargeStatus.NOT_CHARGED}:
+        raise PaymentError('This payment cannot be captured.')
+    if amount > payment.total.amount or amount > (
+            payment.total.amount - payment.captured_amount.amount):
         raise PaymentError('Unable to capture more than authorized amount.')
 
-    provider, provider_params = get_provider(payment_method.variant)
+    provider, provider_params = get_provider(payment.variant)
     with transaction.atomic():
         txn, error = provider.capture(
-            payment_method, amount=amount, **provider_params)
+            payment, amount=amount, **provider_params)
         if txn.is_success:
-            payment_method.charge_status = ChargeStatus.CHARGED
-            payment_method.captured_amount += Money(
+            payment.charge_status = ChargeStatus.CHARGED
+            payment.captured_amount += Money(
                 txn.amount, settings.DEFAULT_CURRENCY)
-            payment_method.save(
-                update_fields=['charge_status', 'captured_amount'])
-            order = payment_method.order
+            payment.save(update_fields=['charge_status', 'captured_amount'])
+            order = payment.order
             if order and order.is_fully_paid():
                 handle_fully_paid_order(order)
     if not txn.is_success:
@@ -141,45 +142,43 @@ def gateway_capture(
     return txn
 
 
-@validate_payment_method
-def gateway_void(payment_method) -> Transaction:
-    if not can_be_voided(payment_method):
+@validate_payment
+def gateway_void(payment) -> Transaction:
+    if not can_be_voided(payment):
         raise PaymentError('Only pre-authorized transactions can be void.')
-    provider, provider_params = get_provider(payment_method.variant)
+    provider, provider_params = get_provider(payment.variant)
     with transaction.atomic():
-        txn, error = provider.void(payment_method, **provider_params)
+        txn, error = provider.void(payment, **provider_params)
         if txn.is_success:
-            payment_method.is_active = False
-            payment_method.save(update_fields=['is_active'])
+            payment.is_active = False
+            payment.save(update_fields=['is_active'])
     if not txn.is_success:
         raise PaymentError(error)
     return txn
 
 
-@validate_payment_method
-def gateway_refund(
-        payment_method,
-        amount: Decimal) -> Transaction:
+@validate_payment
+def gateway_refund(payment, amount: Decimal) -> Transaction:
     if amount <= 0:
         raise PaymentError('Amount should be a positive number.')
-    if amount > payment_method.captured_amount.amount:
+    if amount > payment.captured_amount.amount:
         raise PaymentError('Cannot refund more than captured')
-    if not payment_method.charge_status == ChargeStatus.CHARGED:
+    if not payment.charge_status == ChargeStatus.CHARGED:
         raise PaymentError(
             'Refund is possible only when transaction is captured.')
 
-    provider, provider_params = get_provider(payment_method.variant)
+    provider, provider_params = get_provider(payment.variant)
     with transaction.atomic():
-        txn, error = provider.refund(payment_method, amount, **provider_params)
+        txn, error = provider.refund(payment, amount, **provider_params)
         if txn.is_success:
             changed_fields = ['captured_amount']
-            if txn.amount == payment_method.total.amount:
-                payment_method.charge_status = ChargeStatus.FULLY_REFUNDED
-                payment_method.is_active = False
+            if txn.amount == payment.total.amount:
+                payment.charge_status = ChargeStatus.FULLY_REFUNDED
+                payment.is_active = False
                 changed_fields += ['charge_status', 'is_active']
-            payment_method.captured_amount -= Money(
+            payment.captured_amount -= Money(
                 txn.amount, settings.DEFAULT_CURRENCY)
-            payment_method.save(update_fields=changed_fields)
+            payment.save(update_fields=changed_fields)
     if not txn.is_success:
         raise PaymentError(error)
     return txn

@@ -5,17 +5,17 @@ from prices import Money, TaxedMoney
 
 from ...payment import PaymentError
 from ...payment.utils import (
-    create_payment_method, gateway_authorize, gateway_capture, gateway_refund,
+    create_payment, gateway_authorize, gateway_capture, gateway_refund,
     gateway_void)
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..checkout.types import Checkout
 from ..core.mutations import BaseMutation
 from ..core.types.common import Decimal
-from .types import PaymentGatewayEnum, PaymentMethod
+from .types import Payment, PaymentGatewayEnum
 
 
-class PaymentMethodInput(graphene.InputObjectType):
+class PaymentInput(graphene.InputObjectType):
     gateway = PaymentGatewayEnum()
     checkout_id = graphene.ID(description='Checkout ID.')
     transaction_token = graphene.String(
@@ -28,13 +28,11 @@ class PaymentMethodInput(graphene.InputObjectType):
     billing_address = AddressInput(description='Billing address')
 
 
-class CheckoutPaymentMethodCreate(BaseMutation, I18nMixin):
-    payment_method = graphene.Field(
-        PaymentMethod, description='Updated payment method')
+class CheckoutPaymentCreate(BaseMutation, I18nMixin):
+    payment = graphene.Field(Payment, description='Updated payment')
 
     class Arguments:
-        input = PaymentMethodInput(
-            required=True, description='Payment method details')
+        input = PaymentInput(required=True, description='Payment details')
 
     class Meta:
         description = 'Creates credit card transaction.'
@@ -44,35 +42,39 @@ class CheckoutPaymentMethodCreate(BaseMutation, I18nMixin):
         # FIXME: improve error handling
         errors = []
         checkout = cls.get_node_or_error(
-            info, input['checkout_id'], errors, 'checkout_id',
+            info,
+            input['checkout_id'],
+            errors,
+            'checkout_id',
             only_type=Checkout)
         if not checkout:
-            return CheckoutPaymentMethodCreate(errors=errors)
+            return CheckoutPaymentCreate(errors=errors)
         billing_data = {}
         if input['billing_address']:
             billing_address, errors = cls.validate_address(
                 input['billing_address'], errors, 'billing_address')
             if not billing_address:
-                return CheckoutPaymentMethodCreate(errors=errors)
+                return CheckoutPaymentCreate(errors=errors)
             billing_data = cls.clean_billing_address(billing_address)
 
         extra_data = cls.get_extra_info(info)
         gross = Money(input['amount'], currency=settings.DEFAULT_CURRENCY)
-        payment_method = create_payment_method(
+        payment = create_payment(
             total=gross,
-            variant=input['gateway'], billing_email=checkout.email,
-            extra_data=extra_data, checkout=checkout,
+            variant=input['gateway'],
+            billing_email=checkout.email,
+            extra_data=extra_data,
+            checkout=checkout,
             **billing_data)
 
         # authorize payment
         try:
-            gateway_authorize(payment_method, input['transaction_token'])
+            gateway_authorize(payment, input['transaction_token'])
         except PaymentError as exc:
             msg = str(exc)
             cls.add_error(field=None, message=msg, errors=errors)
 
-        return CheckoutPaymentMethodCreate(
-            payment_method=payment_method, errors=errors)
+        return CheckoutPaymentCreate(payment=payment, errors=errors)
 
     @classmethod
     def clean_billing_address(cls, billing_address):
@@ -99,13 +101,11 @@ class CheckoutPaymentMethodCreate(BaseMutation, I18nMixin):
             'customer_user_agent': user_agent}
 
 
-class PaymentMethodCapture(BaseMutation):
-    payment_method = graphene.Field(
-        PaymentMethod, description='Updated payment method')
+class PaymentCapture(BaseMutation):
+    payment = graphene.Field(Payment, description='Updated payment')
 
     class Arguments:
-        payment_method_id = graphene.ID(
-            required=True, description='Payment method ID')
+        payment_id = graphene.ID(required=True, description='Payment ID')
         amount = Decimal(description='Transaction amount')
 
     class Meta:
@@ -113,73 +113,66 @@ class PaymentMethodCapture(BaseMutation):
 
     @classmethod
     @permission_required('order.manage_orders')
-    def mutate(cls, root, info, payment_method_id, amount=None):
+    def mutate(cls, root, info, payment_id, amount=None):
         errors = []
-        payment_method = cls.get_node_or_error(
-            info, payment_method_id, errors, 'payment_method_id',
-            only_type=PaymentMethod)
+        payment = cls.get_node_or_error(
+            info, payment_id, errors, 'payment_id', only_type=Payment)
 
-        if not payment_method:
-            return PaymentMethodCapture(errors=errors)
+        if not payment:
+            return PaymentCapture(errors=errors)
 
         try:
-            gateway_capture(payment_method, amount)
+            gateway_capture(payment, amount)
         except PaymentError as exc:
             msg = str(exc)
             cls.add_error(field=None, message=msg, errors=errors)
-        return PaymentMethodCapture(
-            payment_method=payment_method, errors=errors)
+        return PaymentCapture(payment=payment, errors=errors)
 
 
-class PaymentMethodRefund(PaymentMethodCapture):
+class PaymentRefund(PaymentCapture):
     @classmethod
     @permission_required('order.manage_orders')
-    def mutate(cls, root, info, payment_method_id, amount=None):
+    def mutate(cls, root, info, payment_id, amount=None):
         errors = []
-        payment_method = cls.get_node_or_error(
-            info, payment_method_id, errors, 'payment_method_id',
-            only_type=PaymentMethod)
+        payment = cls.get_node_or_error(
+            info, payment_id, errors, 'payment_id', only_type=Payment)
 
-        if not payment_method:
-            return PaymentMethodRefund(errors=errors)
+        if not payment:
+            return PaymentRefund(errors=errors)
 
         try:
-            gateway_refund(payment_method, amount=amount)
+            gateway_refund(payment, amount=amount)
         except PaymentError as exc:
             msg = str(exc)
             cls.add_error(field=None, message=msg, errors=errors)
-        return PaymentMethodRefund(
-            payment_method=payment_method, errors=errors)
+        return PaymentRefund(payment=payment, errors=errors)
 
     class Meta:
         description = 'Refunds the captured payment amount'
 
 
-class PaymentMethodVoid(BaseMutation):
-    payment_method = graphene.Field(
-        PaymentMethod, description='Updated payment method')
+class PaymentVoid(BaseMutation):
+    payment = graphene.Field(Payment, description='Updated payment')
 
     class Arguments:
-        payment_method_id = graphene.ID(
-            required=True, description='Payment method ID')
+        payment_id = graphene.ID(required=True, description='Payment ID')
 
     class Meta:
         description = 'Voids the authorized payment'
 
     @classmethod
     @permission_required('order.manage_orders')
-    def mutate(cls, root, info, payment_method_id, amount=None):
+    def mutate(cls, root, info, payment_id, amount=None):
         errors = []
-        payment_method = cls.get_node_or_error(
-            info, payment_method_id, errors, 'payment_method_id',
-            only_type=PaymentMethod)
+        payment = cls.get_node_or_error(
+            info, payment_id, errors, 'payment_id', only_type=Payment)
 
-        if not payment_method:
-            return PaymentMethodVoid(errors=errors)
+        if not payment:
+            return PaymentVoid(errors=errors)
 
         try:
-            gateway_void(payment_method)
+            gateway_void(payment)
         except PaymentError as exc:
             msg = str(exc)
             cls.add_error(field=None, message=msg, errors=errors)
-        return PaymentMethodVoid(payment_method=payment_method, errors=errors)
+        return PaymentVoid(payment=payment, errors=errors)

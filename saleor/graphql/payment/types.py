@@ -11,15 +11,17 @@ PaymentChargeStatusEnum = graphene.Enum(
     [(str_to_enum(code.upper()), code) for code, name in ChargeStatus.CHOICES])
 
 
-class PaymentMethod(CountableDjangoObjectType):
+class Payment(CountableDjangoObjectType):
     #FIXME gateway_response field should be resolved into query-readable format
+    # if we want to use it on the frontend
+    # otherwise it should be removed from this type
     charge_status = PaymentChargeStatusEnum(
         description='Internal payment status.', required=True)
 
     class Meta:
-        description = 'Represents a payment method of a given type.'
+        description = 'Represents a payment of a given type.'
         interfaces = [relay.Node]
-        model = models.PaymentMethod
+        model = models.Payment
         filter_fields = ['id']
 
 

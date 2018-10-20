@@ -295,7 +295,7 @@ type Checkout implements Node {
   translatedDiscountName: String
   voucherCode: String
   lines: [CheckoutLine]
-  paymentMethods(before: String, after: String, first: Int, last: Int, id: ID): PaymentMethodCountableConnection
+  payments(before: String, after: String, first: Int, last: Int, id: ID): PaymentCountableConnection
   id: ID!
   totalPrice: TaxedMoney
   subtotalPrice: TaxedMoney
@@ -389,9 +389,9 @@ type CheckoutLinesUpdate {
   checkout: Checkout
 }
 
-type CheckoutPaymentMethodCreate {
+type CheckoutPaymentCreate {
   errors: [Error]
-  paymentMethod: PaymentMethod
+  payment: Payment
 }
 
 type CheckoutShippingAddressUpdate {
@@ -872,7 +872,7 @@ type Mutations {
   checkoutShippingAddressUpdate(checkoutId: ID, shippingAddress: AddressInput): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
   checkoutEmailUpdate(checkoutId: ID, email: String!): CheckoutEmailUpdate
-  checkoutPaymentMethodCreate(input: PaymentMethodInput!): CheckoutPaymentMethodCreate
+  checkoutPaymentCreate(input: PaymentInput!): CheckoutPaymentCreate
   checkoutComplete(checkoutId: ID): CheckoutComplete
   menuCreate(input: MenuCreateInput!): MenuCreate
   menuDelete(id: ID!): MenuDelete
@@ -904,9 +904,10 @@ type Mutations {
   attributeCreate(id: ID!, input: AttributeCreateInput!, type: AttributeTypeEnum!): AttributeCreate
   attributeDelete(id: ID!): AttributeDelete
   attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
-  paymentMethodCapture(amount: Decimal, paymentMethodId: ID!): PaymentMethodCapture
-  paymentMethodRefund(amount: Decimal, paymentMethodId: ID!): PaymentMethodRefund
-  paymentMethodVoid(paymentMethodId: ID!): PaymentMethodVoid
+  paymentCapture(amount: Decimal, paymentId: ID!): PaymentCapture
+  paymentRefund(amount: Decitmal, paymentId: ID!): PaymentRefund
+  paymentVoid(paymentId: ID!): PaymentVoid
+>>>>>>> Rename PaymentMethod to Payment
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleUpdate(id: ID!, input: SaleInput!): SaleUpdate
@@ -915,7 +916,6 @@ type Mutations {
   homepageCollectionUpdate(collection: ID): HomepageCollectionUpdate
   voucherCreate(input: VoucherInput!): VoucherCreate
   voucherDelete(id: ID!): VoucherDelete
-  voucherUpdate(id: ID!, input: VoucherInput!): VoucherUpdate
   shippingZoneCreate(input: ShippingZoneInput!): ShippingZoneCreate
   shippingZoneDelete(id: ID!): ShippingZoneDelete
   shippingZoneUpdate(id: ID!, input: ShippingZoneInput!): ShippingZoneUpdate
@@ -963,7 +963,7 @@ type Order implements Node {
   lines: [OrderLine]!
   fulfillments: [Fulfillment]!
   events: [OrderEvent]
-  paymentMethods(before: String, after: String, first: Int, last: Int, id: ID): PaymentMethodCountableConnection
+  payments(before: String, after: String, first: Int, last: Int, id: ID): PaymentCountableConnection
   isPaid: Boolean
   number: String
   paymentStatus: PaymentChargeStatusEnum
@@ -1204,7 +1204,7 @@ enum PaymentChargeStatusEnum {
   FULLY_REFUNDED
 }
 
-type PaymentMethod implements Node {
+type Payment implements Node {
   id: ID!
   variant: String!
   isActive: Boolean!
@@ -1232,23 +1232,23 @@ type PaymentMethod implements Node {
   transactions(before: String, after: String, first: Int, last: Int, id: ID): TransactionCountableConnection
 }
 
-type PaymentMethodCapture {
+type PaymentCapture {
   errors: [Error]
-  paymentMethod: PaymentMethod
+  payment: Payment
 }
 
-type PaymentMethodCountableConnection {
+type PaymentCountableConnection {
   pageInfo: PageInfo!
-  edges: [PaymentMethodCountableEdge!]!
+  edges: [PaymentCountableEdge!]!
   totalCount: Int
 }
 
-type PaymentMethodCountableEdge {
-  node: PaymentMethod!
+type PaymentCountableEdge {
+  node: Payment!
   cursor: String!
 }
 
-input PaymentMethodInput {
+input PaymentInput {
   gateway: ProvidersEnum
   checkoutId: ID
   transactionToken: String!
@@ -1257,14 +1257,14 @@ input PaymentMethodInput {
   billingAddress: AddressInput
 }
 
-type PaymentMethodRefund {
+type PaymentRefund {
   errors: [Error]
-  paymentMethod: PaymentMethod
+  payment: Payment
 }
 
-type PaymentMethodVoid {
+type PaymentVoid {
   errors: [Error]
-  paymentMethod: PaymentMethod
+  payment: Payment
 }
 
 type PermissionDisplay {
@@ -1886,7 +1886,7 @@ type TaxedMoneyRange {
 type Transaction implements Node {
   id: ID!
   created: DateTime!
-  paymentMethod: PaymentMethod!
+  payment: Payment!
   token: String!
   transactionType: TransactionTransactionType!
   isSuccess: Boolean!
