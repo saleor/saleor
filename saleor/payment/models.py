@@ -21,6 +21,7 @@ class PaymentMethod(models.Model):
     Payment methods belong to a customer, one can use several payments method
     within a single order.
     """
+    #FIXME we should provide an option to store the card for later usage
     variant = models.CharField(max_length=255)
     # FIXME probably we should have error/pending/active status instead of
     # a bool
