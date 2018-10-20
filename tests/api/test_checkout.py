@@ -369,7 +369,7 @@ def test_checkout_complete(
     payment_method = payment_method_dummy
     payment_method.is_active = True
     payment_method.order = None
-    payment_method.total = total
+    payment_method.total = total.gross
     payment_method.captured_amount = total.gross
     payment_method.checkout = checkout
     payment_method.save()

@@ -475,7 +475,7 @@ def payment_method_txn_preauth(order_with_lines, payment_method_dummy):
     payment.save()
 
     payment.transactions.create(
-        amount=payment.total.gross,
+        amount=payment.total,
         transaction_type=TransactionType.AUTH,
         gateway_response={},
         is_success=True)
@@ -488,11 +488,11 @@ def payment_method_txn_captured(order_with_lines, payment_method_dummy):
     payment = payment_method_dummy
     payment.order = order
     payment.charge_status = ChargeStatus.CHARGED
-    payment.captured_amount = payment.total.gross
+    payment.captured_amount = payment.total
     payment.save()
 
     payment.transactions.create(
-        amount=payment.total.gross,
+        amount=payment.total,
         transaction_type=TransactionType.CAPTURE,
         gateway_response={},
         is_success=True)
@@ -509,7 +509,7 @@ def payment_method_txn_refunded(order_with_lines, payment_method_dummy):
     payment.save()
 
     payment.transactions.create(
-        amount=payment.total.gross,
+        amount=payment.total,
         transaction_type=TransactionType.REFUND,
         gateway_response={},
         is_success=True)
@@ -733,7 +733,7 @@ def payment_method_dummy(db, order_with_lines):
         variant='dummy',
         order=order_with_lines,
         is_active=True,
-        total=order_with_lines.total,
+        total=order_with_lines.total.gross,
         billing_first_name=order_with_lines.billing_address.first_name,
         billing_last_name=order_with_lines.billing_address.last_name,
         billing_company_name=order_with_lines.billing_address.company_name,

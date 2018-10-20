@@ -117,8 +117,8 @@ def gateway_capture(
             ChargeStatus.CHARGED,
             ChargeStatus.NOT_CHARGED}:
         raise PaymentError('This payment method cannot be captured.')
-    if amount > payment_method.total.gross.amount or amount > (
-            payment_method.total.gross.amount -
+    if amount > payment_method.total.amount or amount > (
+            payment_method.total.amount -
             payment_method.captured_amount.amount):
         raise PaymentError('Unable to capture more than authorized amount.')
 
@@ -173,11 +173,12 @@ def gateway_refund(
         txn, error = provider.refund(payment_method, amount, **provider_params)
         if txn.is_success:
             changed_fields = ['captured_amount']
-            if txn.amount == payment_method.total.gross.amount:
+            if txn.amount == payment_method.total.amount:
                 payment_method.charge_status = ChargeStatus.FULLY_REFUNDED
                 payment_method.is_active = False
                 changed_fields += ['charge_status', 'is_active']
-            payment_method.captured_amount -= amount
+            payment_method.captured_amount -= Money(
+                txn.amount, settings.DEFAULT_CURRENCY)
             payment_method.save(update_fields=changed_fields)
     if not txn.is_success:
         raise PaymentError(error)
