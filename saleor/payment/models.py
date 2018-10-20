@@ -65,6 +65,14 @@ class Payment(models.Model):
     order = models.ForeignKey(
         Order, null=True, related_name='payments', on_delete=models.PROTECT)
 
+    def __repr__(self):
+        return """
+            Payment(variant=%s, is_active=%s, created=%s, charge_status=%s)
+        """ % (self.variant, self.is_active, self.created, self.charge_status)
+
+    def __iter__(self):
+        return iter(self.transactions.all())
+
     def get_auth_transaction(self):
         txn = self.transactions.get(
             transaction_type=TransactionType.AUTH, is_success=True)
@@ -116,3 +124,7 @@ class Transaction(models.Model):
         default=zero_money)
 
     gateway_response = JSONField()
+
+    def __repr__(self):
+        return 'Transaction(created=%s, type=%s, is_success=%s)' % (
+            self.created, self.transaction_type, self.is_success)
