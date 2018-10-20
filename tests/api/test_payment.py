@@ -100,8 +100,7 @@ def test_checkout_add_payment_method(
             'transactionToken': 'sample-token',
             'amount': str(cart.get_total().gross.amount),
             'tax': str(cart.get_total().tax.amount),
-            'billingAddress': graphql_address_data,
-            'storePaymentMethod': False}}
+            'billingAddress': graphql_address_data}}
     response = user_api_client.post_graphql(CREATE_QUERY, variables)
     content = get_graphql_content(response)
     data = content['data']['checkoutPaymentMethodCreate']

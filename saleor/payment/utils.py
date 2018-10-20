@@ -111,13 +111,13 @@ def gateway_capture(
         amount: Decimal) -> Transaction:
     if amount <= 0:
         raise PaymentError('Amount should be a positive number.')
-    amount = Money(amount, currency=settings.DEFAULT_CURRENCY)
     if payment_method.charge_status not in {
             ChargeStatus.CHARGED,
             ChargeStatus.NOT_CHARGED}:
         raise PaymentError('This payment method cannot be captured.')
-    if amount > payment_method.total.gross or amount > (
-            payment_method.total.gross - payment_method.captured_amount):
+    if amount > payment_method.total.gross.amount or amount > (
+            payment_method.total.gross.amount -
+            payment_method.captured_amount.amount):
         raise PaymentError('Unable to capture more than authorized amount.')
 
     provider, provider_params = get_provider(payment_method.variant)
@@ -126,7 +126,8 @@ def gateway_capture(
             payment_method, amount=amount, **provider_params)
         if txn.is_success:
             payment_method.charge_status = ChargeStatus.CHARGED
-            payment_method.captured_amount += txn.amount
+            payment_method.captured_amount += Money(
+                txn.amount, settings.DEFAULT_CURRENCY)
             payment_method.save(
                 update_fields=['charge_status', 'captured_amount'])
             order = payment_method.order
@@ -159,8 +160,7 @@ def gateway_refund(
         amount: Decimal) -> Transaction:
     if amount <= 0:
         raise PaymentError('Amount should be a positive number.')
-    amount = Money(amount, currency=settings.DEFAULT_CURRENCY)
-    if amount > payment_method.captured_amount:
+    if amount > payment_method.captured_amount.amount:
         raise PaymentError('Cannot refund more than captured')
     if not payment_method.charge_status == ChargeStatus.CHARGED:
         raise PaymentError(
@@ -171,7 +171,7 @@ def gateway_refund(
         txn, error = provider.refund(payment_method, amount, **provider_params)
         if txn.is_success:
             changed_fields = ['captured_amount']
-            if txn.amount == payment_method.total.gross:
+            if txn.amount == payment_method.total.gross.amount:
                 payment_method.charge_status = ChargeStatus.FULLY_REFUNDED
                 payment_method.is_active = False
                 changed_fields += ['charge_status', 'is_active']

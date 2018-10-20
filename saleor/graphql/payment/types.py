@@ -12,6 +12,7 @@ PaymentChargeStatusEnum = graphene.Enum(
 
 
 class PaymentMethod(CountableDjangoObjectType):
+    #FIXME gateway_response field should be resolved into query-readable format
     charge_status = PaymentChargeStatusEnum(
         description='Internal payment status.', required=True)
 

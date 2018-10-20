@@ -9,8 +9,28 @@ from ...utils import create_transaction
 
 # FIXME: Move to SiteSettings
 
-AUTO_CHARGE = False
+# If this option is checked, then one needs to authorize the amount paid
+# manually via the Braintree Dashboard
+CONFIRM_MANUALLY = False
 THREE_D_SECURE_REQUIRED = False
+
+
+def get_customer_data(payment):
+    return {
+        'billing': {
+            'first_name': payment.billing_first_name,
+            'last_name': payment.billing_last_name,
+            'postal_code': payment.billing_postal_code,
+            'street_address': payment.billing_address_1[:255],
+            'extended_address': payment.billing_address_2[:255],
+            "locality": payment.billing_city,
+            'region': payment.billing_country_area,
+            'country_code_alpha2': payment.billing_country_code},
+        'risk_data': {
+            'customer_ip': payment.customer_ip_address or ''
+        },
+        'customer': {
+            'email': payment.billing_email}}
 
 
 def get_error_for_client(errors):
@@ -24,6 +44,8 @@ def get_error_for_client(errors):
         'payment error',
         'Unable to process transaction. Please try again in a moment')
     # FIXME: Provide list of visible errors and messages translations
+    # FIXME: We should also store universal visible errors for all payment
+    # gateways, and parse gateway-specific errors to this unified version
     error_codes_whitelist = []
     for error in errors:
         if error['code'] in error_codes_whitelist:
@@ -38,8 +60,9 @@ def extract_gateway_response(braintree_result) -> Dict:
         errors = [
             {'code': error.code, 'message': error.message}
             for error in braintree_result.errors.deep_errors]
-
     bt_transaction = braintree_result.transaction
+    if not bt_transaction:
+        return {'errors': errors}
     gateway_response = {
         'credit_card': bt_transaction.credit_card,
         'additional_processor_response': bt_transaction.additional_processor_response,  # noqa
@@ -56,16 +79,7 @@ def extract_gateway_response(braintree_result) -> Dict:
 
 def get_gateway(sandbox_mode, merchant_id, public_key, private_key):
     if not all([merchant_id, private_key, public_key]):
-        missing = []
-        if not merchant_id:
-            missing.append('Merchant ID')
-        if not public_key:
-            missing.append('Public Key')
-        if not private_key:
-            missing.append('Private Key')
-        raise ImproperlyConfigured(
-            'Incorrectly configured Braintree gateway.'
-            ' Missing: %s' % ', '.join(missing))
+        raise ImproperlyConfigured('Incorrectly configured Braintree gateway.')
     environment = braintree_sdk.Environment.Sandbox
     if not sandbox_mode:
         environment = braintree_sdk.Environment.Production
@@ -91,8 +105,9 @@ def authorize(payment_method, transaction_token, **client_kwargs):
         'amount': str(payment_method.total.gross.amount),
         'payment_method_nonce': transaction_token,
         'options': {
-            'submit_for_settlement': AUTO_CHARGE,
-            'three_d_secure': {'required': THREE_D_SECURE_REQUIRED}}})
+            'submit_for_settlement': CONFIRM_MANUALLY,
+            'three_d_secure': {'required': THREE_D_SECURE_REQUIRED}},
+        **get_customer_data(payment_method)})
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response['errors'])
     txn = create_transaction(
@@ -100,7 +115,7 @@ def authorize(payment_method, transaction_token, **client_kwargs):
         transaction_type=TransactionType.AUTH,
         amount=payment_method.total.gross.amount,
         gateway_response=gateway_response,
-        token=result.transaction.id,
+        token=getattr(result.transaction, 'id', ''),
         is_success=result.is_success)
     return txn, error
 

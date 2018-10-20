@@ -20,18 +20,12 @@ class PaymentMethodInput(graphene.InputObjectType):
     checkout_id = graphene.ID(description='Checkout ID.')
     transaction_token = graphene.String(
         required=True, description='One time transaction token.')
-    tax = Decimal(
-        required=True,
-        description='Tax included in the transaction\'s total amount.')
     amount = Decimal(
         required=True,
         description=(
             'Total amount of the transaction, including '
             'all taxes and discounts.'))
     billing_address = AddressInput(description='Billing address')
-    store_payment_method = graphene.Boolean(
-        default_value=False,
-        description='Store card for further usage.')
 
 
 class CheckoutPaymentMethodCreate(BaseMutation, I18nMixin):
@@ -64,10 +58,8 @@ class CheckoutPaymentMethodCreate(BaseMutation, I18nMixin):
 
         extra_data = cls.get_extra_info(info)
         gross = Money(input['amount'], currency=settings.DEFAULT_CURRENCY)
-        tax = Money(input['amount'], currency=settings.DEFAULT_CURRENCY)
-        net = (gross - tax) or gross
         payment_method = create_payment_method(
-            total_net=net, total_gross=gross,
+            total_gross=gross,
             variant=input['gateway'], billing_email=checkout.email,
             extra_data=extra_data, checkout=checkout,
             **billing_data)

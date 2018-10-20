@@ -25,7 +25,9 @@ class TransactionType:
     CAPTURE = 'capture'
     VOID = 'void'
     REFUND = 'refund'
-
+    # FIXME we could use another status like WAITING_FOR_AUTH for transactions
+    # Which were authorized, ubt needs to be confirmed manually by staff
+    # eg. Braintree with submit_for_settlement's enabled
     CHOICES = [(AUTH, pgettext_lazy('transaction type', 'Authorization')),
                (CHARGE, pgettext_lazy('transaction type', 'Charge')),
                (REFUND, pgettext_lazy('transaction type', 'Refund')),
