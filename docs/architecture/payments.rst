@@ -1,7 +1,7 @@
 Payments
 ========
 
-Saleor uses the concept of Payment Methods and Transactions to fulfill the payment process.
+Saleor uses the concept of Payments and Transactions to fulfill the payment process.
 
 Payment Methods
 ---------------

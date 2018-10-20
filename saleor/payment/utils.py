@@ -27,7 +27,7 @@ def get_billing_data(order):
             'billing_address_2': order.billing_address.street_address_2,
             'billing_city': order.billing_address.city,
             'billing_postal_code': order.billing_address.postal_code,
-            'billing_country_code': order.billing_address.country,
+            'billing_country_code': order.billing_address.country.code,
             'billing_email': order.user_email,
             'billing_country_area': order.billing_address.country_area}
     return data
@@ -57,7 +57,7 @@ def validate_payment(view):
     @wraps(view)
     def func(payment, *args, **kwargs):
         if not payment.is_active:
-            raise PaymentError('This payment is no longer authorized.')
+            raise PaymentError('This payment is no longer active.')
         return view(payment, *args, **kwargs)
 
     return func
@@ -107,6 +107,7 @@ def gateway_authorize(payment: Payment, transaction_token: str) -> Transaction:
         if txn.is_success:
             payment.charge_status = ChargeStatus.NOT_CHARGED
             payment.save(update_fields=['charge_status'])
+            # FIXME Create an order event ?
     if not txn.is_success:
         # TODO: Handle gateway response here somehow
         raise PaymentError(error)
@@ -136,6 +137,7 @@ def gateway_capture(payment: Payment, amount: Decimal) -> Transaction:
             order = payment.order
             if order and order.is_fully_paid():
                 handle_fully_paid_order(order)
+            # FIXME Create an order event ?
     if not txn.is_success:
         # TODO: Handle gateway response here somehow
         raise PaymentError(error)
@@ -152,6 +154,7 @@ def gateway_void(payment) -> Transaction:
         if txn.is_success:
             payment.is_active = False
             payment.save(update_fields=['is_active'])
+            # FIXME Create an order event ?
     if not txn.is_success:
         raise PaymentError(error)
     return txn
@@ -179,6 +182,7 @@ def gateway_refund(payment, amount: Decimal) -> Transaction:
             payment.captured_amount -= Money(
                 txn.amount, settings.DEFAULT_CURRENCY)
             payment.save(update_fields=changed_fields)
+        # FIXME Create an order event ?
     if not txn.is_success:
         raise PaymentError(error)
     return txn
