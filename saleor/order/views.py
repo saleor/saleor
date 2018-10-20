@@ -18,6 +18,7 @@ from ..core.utils import get_client_ip
 from ..payment import ChargeStatus
 from ..payment.forms import PaymentMethodForm
 from ..payment.models import PaymentMethod
+from ..payment.utils import get_billing_data
 from .forms import (
     CustomerNoteForm, PasswordForm, PaymentDeleteForm, PaymentMethodsForm)
 from .models import Order
@@ -86,20 +87,11 @@ def payment(request, token):
 
 @check_order_status
 def start_payment(request, order, variant):
-    billing = order.billing_address
     total = order.total
     defaults = {
         'total': total,
-        'billing_first_name': billing.first_name,
-        'billing_last_name': billing.last_name,
-        'billing_address_1': billing.street_address_1,
-        'billing_address_2': billing.street_address_2,
-        'billing_city': billing.city,
-        'billing_postal_code': billing.postal_code,
-        'billing_country_code': billing.country.code,
-        'billing_email': order.user_email,
-        'billing_country_area': billing.country_area,
-        'customer_ip_address': get_client_ip(request)}
+        'customer_ip_address': get_client_ip(request),
+        **get_billing_data(order)}
     variant_choices = settings.CHECKOUT_PAYMENT_CHOICES
     if variant not in [code for code, dummy_name in variant_choices]:
         raise Http404('%r is not a valid payment variant' % (variant,))
