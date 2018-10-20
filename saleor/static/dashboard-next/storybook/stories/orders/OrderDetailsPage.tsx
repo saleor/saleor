@@ -9,7 +9,7 @@ import { countries, order as orderFixture } from "../../../orders/fixtures";
 import {
   FulfillmentStatus,
   OrderStatus,
-  PaymentStatusEnum
+  PaymentChargeStatusEnum
 } from "../../../types/globalTypes";
 import Decorator from "../../Decorator";
 
@@ -43,7 +43,7 @@ storiesOf("Views / Orders / Order details", module)
       {...props}
       order={{
         ...props.order,
-        paymentStatus: PaymentStatusEnum.PREAUTH
+        paymentStatus: PaymentChargeStatusEnum.PREAUTH
       }}
     />
   ))
@@ -52,7 +52,7 @@ storiesOf("Views / Orders / Order details", module)
       {...props}
       order={{
         ...props.order,
-        paymentStatus: PaymentStatusEnum.ERROR
+        paymentStatus: PaymentChargeStatusEnum.ERROR
       }}
     />
   ))
@@ -61,7 +61,7 @@ storiesOf("Views / Orders / Order details", module)
       {...props}
       order={{
         ...props.order,
-        paymentStatus: PaymentStatusEnum.CONFIRMED
+        paymentStatus: PaymentChargeStatusEnum.CONFIRMED
       }}
     />
   ))
@@ -79,7 +79,7 @@ storiesOf("Views / Orders / Order details", module)
       {...props}
       order={{
         ...props.order,
-        paymentStatus: PaymentStatusEnum.REFUNDED
+        paymentStatus: PaymentChargeStatusEnum.REFUNDED
       }}
     />
   ))
@@ -88,7 +88,7 @@ storiesOf("Views / Orders / Order details", module)
       {...props}
       order={{
         ...props.order,
-        paymentStatus: PaymentStatusEnum.REJECTED
+        paymentStatus: PaymentChargeStatusEnum.REJECTED
       }}
     />
   ))

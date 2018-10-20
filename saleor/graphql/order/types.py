@@ -11,15 +11,11 @@ from ..core.fields import PrefetchingConnectionField
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
 from ..core.utils import str_to_enum
+from ..payment.types import PaymentChargeStatusEnum
 from ..shipping.types import ShippingMethod
 
 OrderEventsEnum = graphene.Enum.from_enum(OrderEvents)
 OrderEventsEmailsEnum = graphene.Enum.from_enum(OrderEventsEmails)
-PaymentStatusEnum = graphene.Enum(
-    'PaymentStatusEnum',
-    [
-        (str_to_enum(code.upper()), code)
-        for code, name in ChargeStatus.CHOICES])
 
 
 class OrderStatusFilter(graphene.Enum):
@@ -159,7 +155,8 @@ class Order(CountableDjangoObjectType):
     is_paid = graphene.Boolean(
         description='Informs if an order is fully paid.')
     number = graphene.String(description='User-friendly number of an order.')
-    payment_status = PaymentStatusEnum(description='Internal payment status.')
+    payment_status = PaymentChargeStatusEnum(
+        description='Internal payment status.')
     payment_status_display = graphene.String(
         description='User-friendly payment status.')
     total = graphene.Field(

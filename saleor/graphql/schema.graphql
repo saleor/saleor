@@ -966,7 +966,7 @@ type Order implements Node {
   paymentMethods(before: String, after: String, first: Int, last: Int, id: ID): PaymentMethodCountableConnection
   isPaid: Boolean
   number: String
-  paymentStatus: PaymentStatusEnum
+  paymentStatus: PaymentChargeStatusEnum
   paymentStatusDisplay: String
   subtotal: TaxedMoney
   statusDisplay: String
@@ -1198,13 +1198,19 @@ type PasswordReset {
   errors: [Error]
 }
 
+enum PaymentChargeStatusEnum {
+  CHARGED
+  NOT_CHARGED
+  FULLY_REFUNDED
+}
+
 type PaymentMethod implements Node {
   id: ID!
   variant: String!
   isActive: Boolean!
   created: DateTime!
   modified: DateTime!
-  chargeStatus: PaymentMethodChargeStatus!
+  chargeStatus: PaymentChargeStatusEnum!
   billingFirstName: String!
   billingLastName: String!
   billingAddress1: String!
@@ -1229,12 +1235,6 @@ type PaymentMethod implements Node {
 type PaymentMethodCapture {
   errors: [Error]
   paymentMethod: PaymentMethod
-}
-
-enum PaymentMethodChargeStatus {
-  CHARGED
-  NOT_CHARGED
-  FULLY_REFUNDED
 }
 
 type PaymentMethodCountableConnection {
@@ -1266,12 +1266,6 @@ type PaymentMethodRefund {
 type PaymentMethodVoid {
   errors: [Error]
   paymentMethod: PaymentMethod
-}
-
-enum PaymentStatusEnum {
-  CHARGED
-  NOT_CHARGED
-  FULLY_REFUNDED
 }
 
 type PermissionDisplay {

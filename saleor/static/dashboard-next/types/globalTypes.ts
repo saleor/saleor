@@ -55,7 +55,7 @@ export enum OrderStatus {
   UNFULFILLED = "UNFULFILLED",
 }
 
-export enum PaymentStatusEnum {
+export enum PaymentChargeStatusEnum {
   CHARGED = "CHARGED",
   FULLY_REFUNDED = "FULLY_REFUNDED",
   NOT_CHARGED = "NOT_CHARGED",

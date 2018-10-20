@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { DraftOrderInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { DraftOrderInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderDraftUpdate
@@ -244,7 +244,7 @@ export interface OrderDraftUpdate_draftOrderUpdate_order {
   fulfillments: (OrderDraftUpdate_draftOrderUpdate_order_fulfillments | null)[];
   lines: (OrderDraftUpdate_draftOrderUpdate_order_lines | null)[];
   number: string | null;
-  paymentStatus: PaymentStatusEnum | null;
+  paymentStatus: PaymentChargeStatusEnum | null;
   shippingAddress: OrderDraftUpdate_draftOrderUpdate_order_shippingAddress | null;
   shippingMethod: OrderDraftUpdate_draftOrderUpdate_order_shippingMethod | null;
   shippingMethodName: string | null;

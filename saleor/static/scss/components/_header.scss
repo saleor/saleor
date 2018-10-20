@@ -215,7 +215,7 @@
     }
   }
   &__brand {
-    background-color: $light-gray;
+    background-color: red;
     @include media-breakpoint-down(sm) {
       position: fixed;
       top: 0;
