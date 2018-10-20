@@ -178,7 +178,7 @@ class Image(graphene.ObjectType):
         description = 'Represents an image.'
 
     def resolve_url(self, info, size=None):
-        if size:
+        if size or not self:
             return get_thumbnail(self, size, method='thumbnail')
         return self.url
 
