@@ -16,11 +16,11 @@ from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
 from ..payment import ChargeStatus
-from ..payment.forms import PaymentMethodForm
-from ..payment.models import PaymentMethod
+from ..payment.forms import PaymentForm
+from ..payment.models import Payment
 from ..payment.utils import get_billing_data
 from .forms import (
-    CustomerNoteForm, PasswordForm, PaymentDeleteForm, PaymentMethodsForm)
+    CustomerNoteForm, PasswordForm, PaymentDeleteForm, PaymentsForm)
 from .models import Order
 from .utils import attach_order_to_user, check_order_status
 
@@ -55,13 +55,13 @@ def payment(request, token):
     orders = orders.select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)
-    payments = order.payment_methods.all()
+    payments = order.payments.all()
     form_data = request.POST or None
     try:
         waiting_payment = payments.filter(
             is_active=True,
             charge_status=ChargeStatus.NOT_CHARGED).get()
-    except PaymentMethod.DoesNotExist:
+    except Payment.DoesNotExist:
         waiting_payment = None
         waiting_payment_form = None
     else:
@@ -72,12 +72,12 @@ def payment(request, token):
         form_data = None
     payment_form = None
     if not order.is_pre_authorized():
-        payment_form = PaymentMethodsForm(form_data)
-        # FIXME: redirect if there is only one payment method
+        payment_form = PaymentsForm(form_data)
+        # FIXME: redirect if there is only one payment
         if payment_form.is_valid():
-            payment_method = payment_form.cleaned_data['method']
+            payment = payment_form.cleaned_data['method']
             return redirect(
-                'order:payment', token=order.token, variant=payment_method)
+                'order:payment', token=order.token, variant=payment)
     ctx = {
         'order': order, 'payment_form': payment_form, 'payments': payments,
         'waiting_payment': waiting_payment,
@@ -96,17 +96,17 @@ def start_payment(request, order, variant):
         raise Http404('%r is not a valid payment variant' % (variant,))
     with transaction.atomic():
         # FIXME: temporary solution, should be adapted to new API
-        payment_method, _ = PaymentMethod.objects.get_or_create(
+        payment, _ = Payment.objects.get_or_create(
             variant=variant, is_active=True, order=order, defaults=defaults)
-        form = PaymentMethodForm(
-            data=request.POST or None, instance=payment_method)
+        form = PaymentForm(
+            data=request.POST or None, instance=payment)
         form.method = "POST"
         if form.is_valid():
             form.save()
             form.authorize_payment()
             return redirect(order.get_absolute_url())
     template = 'order/payment/%s.html' % variant
-    ctx = {'form': form, 'payment': payment_method}
+    ctx = {'form': form, 'payment': payment}
     return TemplateResponse(
         request, [template, 'order/payment/default.html'], ctx)
 

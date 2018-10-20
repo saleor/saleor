@@ -13,9 +13,9 @@ All payment process related pieces of information are stored at the gateway leve
 we are operating on the reusable token which is a unique identifier
 of the customer for given gateway.
 
-Payment methods belong to a customer, one can use several payments method within a single order.
+Several payment methods can be used within a single order.
 
-Payment method has 3 possible charge statuses:
+Payment has 3 possible charge statuses:
 
 +----------------+-------------------+------------------------------------------------------------------------------------------------------+
 | Code           | GraphQL API value | Description                                                                                          |

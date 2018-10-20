@@ -51,11 +51,9 @@ class ChargeStatus:
     # partially refunded
 
     CHOICES = [
-        (CHARGED, pgettext_lazy('payment method status', 'Charged')),
-        (NOT_CHARGED, pgettext_lazy('payment method status', 'Not charged')),
-        (
-            FULLY_REFUNDED,
-            pgettext_lazy('payment method status', 'Fully refunded'))]
+        (CHARGED, pgettext_lazy('payment status', 'Charged')),
+        (NOT_CHARGED, pgettext_lazy('payment status', 'Not charged')),
+        (FULLY_REFUNDED, pgettext_lazy('payment status', 'Fully refunded'))]
 
 
 PROVIDERS_ENUM = Enum(

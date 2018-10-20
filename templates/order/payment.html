@@ -73,7 +73,7 @@
                 Pay for order {{ order }}
               {% endblocktrans %}
             </h1>
-            <form method="post" action="{% url "order:payment" token=order.token %}" class="payment-method-form radio">
+            <form method="post" action="{% url "order:payment" token=order.token %}" class="payment-form radio">
               {% csrf_token %}
               {{ payment_form }}
               {% block form_submit %}

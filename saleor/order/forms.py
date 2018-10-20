@@ -4,13 +4,13 @@ from django.utils.translation import pgettext_lazy
 
 from ..account.forms import SignupForm
 from ..payment import can_be_voided
-from ..payment.models import PaymentMethod
+from ..payment.models import Payment
 from .models import Order
 
 
-class PaymentMethodsForm(forms.Form):
+class PaymentsForm(forms.Form):
     method = forms.ChoiceField(
-        label=pgettext_lazy('Payment methods form label', 'Method'),
+        label=pgettext_lazy('Payments form label', 'Method'),
         choices=settings.CHECKOUT_PAYMENT_CHOICES, widget=forms.RadioSelect,
         initial=settings.CHECKOUT_PAYMENT_CHOICES[0][0])
 
@@ -25,7 +25,7 @@ class PaymentDeleteForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
         payment_id = cleaned_data.get('payment_id')
-        payment = PaymentMethod.objects.filter(is_active=True).first(
+        payment = Payment.objects.filter(is_active=True).first(
             id=payment_id)
         if not payment:
             self._errors['number'] = self.error_class([

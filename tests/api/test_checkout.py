@@ -359,21 +359,21 @@ def test_checkout_email_update(user_api_client, cart_with_item):
 
 @pytest.mark.integration
 def test_checkout_complete(
-        user_api_client, cart_with_item, payment_method_dummy, address,
+        user_api_client, cart_with_item, payment_dummy, address,
         shipping_method):
     checkout = cart_with_item
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.save()
     total = checkout.get_total()
-    payment_method = payment_method_dummy
-    payment_method.is_active = True
-    payment_method.order = None
-    payment_method.total = total.gross
-    payment_method.captured_amount = total.gross
-    payment_method.checkout = checkout
-    payment_method.save()
-    payment_method.transactions.create(
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross
+    payment.captured_amount = total.gross
+    payment.checkout = checkout
+    payment.save()
+    payment.transactions.create(
         transaction_type=TransactionType.AUTH,
         is_success=True,
         gateway_response={},
@@ -411,9 +411,9 @@ def test_checkout_complete(
     assert checkout_line.variant == order_line.variant
     assert order.shipping_address == address
     assert order.shipping_method == checkout.shipping_method
-    assert order.payment_methods.exists()
-    order_payment_method = order.payment_methods.first()
-    assert order_payment_method == payment_method
+    assert order.payments.exists()
+    order_payment = order.payments.first()
+    assert order_payment == payment
 
 
 def test_fetch_checkout_by_token(user_api_client, cart_with_item):

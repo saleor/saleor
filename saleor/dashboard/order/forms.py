@@ -19,7 +19,8 @@ from ...order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
     change_order_line_quantity, recalculate_order)
 from ...payment import ChargeStatus, PaymentError
-from ...payment.models import PaymentMethod
+from ...payment.models import Payment
+from ...payment.utils import get_billing_data
 from ...product.models import Product, ProductVariant
 from ...product.utils import allocate_stock, deallocate_stock
 from ...shipping.models import ShippingMethod
@@ -345,7 +346,7 @@ class OrderMarkAsPaidForm(forms.Form):
 
     def clean(self):
         super().clean()
-        if self.order.payment_methods.exists():
+        if self.order.payments.exists():
             raise forms.ValidationError(
                 pgettext_lazy(
                     'Mark order as paid form error',
@@ -357,7 +358,7 @@ class OrderMarkAsPaidForm(forms.Form):
             'total': self.order.total.gross,
             'captured_amount': self.order.total.gross,
             **get_billing_data(self.order)}
-        PaymentMethod.objects.get_or_create(
+        Payment.objects.get_or_create(
             variant=CustomPaymentChoices.MANUAL,
             charge_status=ChargeStatus.CHARGED, order=self.order,
             defaults=defaults)

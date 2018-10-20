@@ -6,7 +6,8 @@ from ....core.utils.taxes import ZERO_TAXED_MONEY
 from ....order import CustomPaymentChoices, OrderEvents, models
 from ....order.utils import cancel_order
 from ....payment import ChargeStatus, PaymentError
-from ....payment.models import PaymentMethod
+from ....payment.models import Payment
+from ....payment.utils import get_billing_data
 from ....shipping.models import ShippingMethod as ShippingMethodModel
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation
@@ -58,7 +59,7 @@ def clean_order_cancel(order, errors):
 
 
 def clean_order_mark_as_paid(order, errors):
-    if order and order.payment_methods.exists():
+    if order and order.payments.exists():
         errors.append(
             Error(
                 field='payment',
@@ -292,7 +293,7 @@ class OrderMarkAsPaid(BaseMutation):
         defaults = {
             'total': order.total.gross, 'captured_amount': order.total.gross,
             **get_billing_data(order)}
-        PaymentMethod.objects.get_or_create(
+        Payment.objects.get_or_create(
             variant=CustomPaymentChoices.MANUAL,
             charge_status=ChargeStatus.CHARGED, order=order,
             defaults=defaults)

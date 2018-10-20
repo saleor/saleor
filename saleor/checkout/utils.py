@@ -846,7 +846,7 @@ def _fill_order_with_cart_data(order, cart, discounts, taxes):
         add_variant_to_order(
             order, line.variant, line.quantity, discounts, taxes)
 
-    cart.payment_methods.update(order=order)
+    cart.payments.update(order=order)
 
     if cart.note:
         order.customer_note = cart.note
@@ -886,9 +886,9 @@ def create_order(cart, tracking_code, discounts, taxes):
 
 
 def is_fully_paid(cart: Cart):
-    payment_methods = cart.payment_methods.filter(is_active=True)
+    payments = cart.payments.filter(is_active=True)
     total_paid = sum(
-        [p.captured_amount.amount for p in payment_methods])
+        [p.captured_amount.amount for p in payments])
     return total_paid >= cart.get_total().gross.amount
 
 
