@@ -28,6 +28,7 @@ class Migration(migrations.Migration):
                 ('charge_status', models.CharField(choices=[('charged', 'Charged'), ('not-charged', 'Not charged'), ('fully-refunded', 'Fully refunded')], default='not-charged', max_length=15)),
                 ('billing_first_name', models.CharField(blank=True, max_length=256)),
                 ('billing_last_name', models.CharField(blank=True, max_length=256)),
+                ('billing_company_name', models.CharField(blank=True, max_length=256)),
                 ('billing_address_1', models.CharField(blank=True, max_length=256)),
                 ('billing_address_2', models.CharField(blank=True, max_length=256)),
                 ('billing_city', models.CharField(blank=True, max_length=256)),

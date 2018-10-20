@@ -736,6 +736,7 @@ def payment_method_dummy(db, order_with_lines):
         total=order_with_lines.total,
         billing_first_name=order_with_lines.billing_address.first_name,
         billing_last_name=order_with_lines.billing_address.last_name,
+        billing_company_name=order_with_lines.billing_address.company_name,
         billing_address_1=order_with_lines.billing_address.street_address_1,
         billing_address_2=order_with_lines.billing_address.street_address_2,
         billing_city=order_with_lines.billing_address.city,

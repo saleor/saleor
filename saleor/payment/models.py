@@ -35,9 +35,10 @@ class PaymentMethod(models.Model):
         choices=ChargeStatus.CHOICES,
         default=ChargeStatus.NOT_CHARGED)
 
-    # FIXME assign it as a separate Address instance?
+    # FIXME maybe assign it as a separate Address instance?
     billing_first_name = models.CharField(max_length=256, blank=True)
     billing_last_name = models.CharField(max_length=256, blank=True)
+    billing_company_name = models.CharField(max_length=256, blank=True)
     billing_address_1 = models.CharField(max_length=256, blank=True)
     billing_address_2 = models.CharField(max_length=256, blank=True)
     billing_city = models.CharField(max_length=256, blank=True)

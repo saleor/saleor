@@ -20,6 +20,7 @@ def get_customer_data(payment):
         'billing': {
             'first_name': payment.billing_first_name,
             'last_name': payment.billing_last_name,
+            'company': payment.billing_company_name,
             'postal_code': payment.billing_postal_code,
             'street_address': payment.billing_address_1[:255],
             'extended_address': payment.billing_address_2[:255],
