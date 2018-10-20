@@ -59,7 +59,7 @@ class CheckoutPaymentMethodCreate(BaseMutation, I18nMixin):
         extra_data = cls.get_extra_info(info)
         gross = Money(input['amount'], currency=settings.DEFAULT_CURRENCY)
         payment_method = create_payment_method(
-            total_gross=gross,
+            total=gross,
             variant=input['gateway'], billing_email=checkout.email,
             extra_data=extra_data, checkout=checkout,
             **billing_data)

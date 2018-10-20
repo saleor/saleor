@@ -103,7 +103,7 @@ def get_client_token(**client_kwargs):
 def authorize(payment_method, transaction_token, **client_kwargs):
     gateway = get_gateway(**client_kwargs)
     result = gateway.transaction.sale({
-        'amount': str(payment_method.total.gross.amount),
+        'amount': str(payment_method.total.amount),
         'payment_method_nonce': transaction_token,
         'options': {
             'submit_for_settlement': CONFIRM_MANUALLY,
@@ -114,7 +114,7 @@ def authorize(payment_method, transaction_token, **client_kwargs):
     txn = create_transaction(
         payment_method=payment_method,
         transaction_type=TransactionType.AUTH,
-        amount=payment_method.total.gross.amount,
+        amount=payment_method.total.amount,
         gateway_response=gateway_response,
         token=getattr(result.transaction, 'id', ''),
         is_success=result.is_success)
@@ -128,7 +128,7 @@ def capture(payment_method, amount=None, **client_kwargs):
     auth_transaction = payment_method.transactions.filter(
         transaction_type=TransactionType.AUTH).first()
     if not amount:
-        amount = payment_method.total.gross.amount
+        amount = payment_method.total.amount
     result = gateway.transaction.submit_for_settlement(
         transaction_id=auth_transaction.token, amount=amount)
     gateway_response = extract_gateway_response(result)
@@ -156,7 +156,7 @@ def void(payment_method, **client_kwargs):
     txn = create_transaction(
         payment_method=payment_method,
         transaction_type=TransactionType.VOID,
-        amount=payment_method.total.gross.amount,
+        amount=payment_method.total.amount,
         gateway_response=gateway_response,
         token=result.transaction.id,
         is_success=result.is_success)

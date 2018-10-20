@@ -87,9 +87,8 @@ def payment(request, token):
 
 @check_order_status
 def start_payment(request, order, variant):
-    total = order.total
     defaults = {
-        'total': total,
+        'total': order.total.gross,
         'customer_ip_address': get_client_ip(request),
         **get_billing_data(order)}
     variant_choices = settings.CHECKOUT_PAYMENT_CHOICES

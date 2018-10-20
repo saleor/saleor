@@ -50,15 +50,10 @@ class PaymentMethod(models.Model):
     extra_data = models.TextField(blank=True, default='')
     token = models.CharField(max_length=36, blank=True, default='')
 
-    total_net = MoneyField(
+    total = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=zero_money)
-    total_gross = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=zero_money)
-    total = TaxedMoneyField(net_field='total_net', gross_field='total_gross')
     captured_amount = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,

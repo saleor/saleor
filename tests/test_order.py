@@ -368,7 +368,7 @@ def test_order_queryset_to_ship():
     for order in orders_to_ship:
         order.payment_methods.create(
             variant='default', charge_status=ChargeStatus.CHARGED,
-            total=order.total, captured_amount=order.total_gross)
+            total=order.total.gross, captured_amount=order.total_gross)
 
     orders_not_to_ship = [
         Order.objects.create(status=OrderStatus.DRAFT, total=total),
@@ -456,7 +456,7 @@ def test_order_payment_flow(
     data = {
         'variant': 'dummy',
         'is_active': True,
-        'total': order.total,
+        'total': order.total.gross,
         'charge_status': 'not-charged'}
     response = client.post(redirect_url, data)
 
@@ -467,7 +467,7 @@ def test_order_payment_flow(
 
     # Assert that payment object was created and contains correct data
     payment = order.payment_methods.all()[0]
-    assert payment.total == order.total
+    assert payment.total == order.total_gross
     assert payment.transactions.count() == 1
     assert payment.transactions.first().transaction_type == 'auth'
 

@@ -208,7 +208,7 @@ class Order(CountableDjangoObjectType):
         # FIXME adjust to multiple payments in the future
         payment = obj.get_last_payment()
         if payment:
-            return payment.total.gross
+            return payment.total
 
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related='payments')
