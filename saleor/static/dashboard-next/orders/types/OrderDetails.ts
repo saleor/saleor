@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentStatusEnum, OrderStatus, WeightUnitsEnum } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, WeightUnitsEnum } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL query operation: OrderDetails
@@ -238,7 +238,7 @@ export interface OrderDetails_order {
   fulfillments: (OrderDetails_order_fulfillments | null)[];
   lines: (OrderDetails_order_lines | null)[];
   number: string | null;
-  paymentStatus: PaymentStatusEnum | null;
+  paymentStatus: PaymentChargeStatusEnum | null;
   shippingAddress: OrderDetails_order_shippingAddress | null;
   shippingMethod: OrderDetails_order_shippingMethod | null;
   shippingMethodName: string | null;

@@ -1,13 +1,20 @@
 import graphene
 from graphene import relay
 
-from ...payment import PROVIDERS_ENUM, models
+from ...payment import PROVIDERS_ENUM, ChargeStatus, models
 from ..core.types.common import CountableDjangoObjectType
+from ..core.utils import str_to_enum
 
 PaymentGatewayEnum = graphene.Enum.from_enum(PROVIDERS_ENUM)
+PaymentChargeStatusEnum = graphene.Enum(
+    'PaymentChargeStatusEnum',
+    [(str_to_enum(code.upper()), code) for code, name in ChargeStatus.CHOICES])
 
 
 class PaymentMethod(CountableDjangoObjectType):
+    charge_status = PaymentChargeStatusEnum(
+        description='Internal payment status.', required=True)
+
     class Meta:
         description = 'Represents a payment method of a given type.'
         interfaces = [relay.Node]
