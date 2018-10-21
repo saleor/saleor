@@ -268,6 +268,7 @@ class OrderCancel(BaseMutation):
         else:
             order.events.create(
                 type=OrderEvents.CANCELED.value, user=info.context.user)
+        # FIXME all payments should be voided/refunded at this point
         return OrderCancel(order=order)
 
 
@@ -325,6 +326,7 @@ class OrderCapture(BaseMutation):
             return OrderCapture(errors=errors)
 
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
+        # FIXME adjust to multiple payments in the future
         payment = order.get_last_payment()
         clean_order_capture(payment, amount, errors)
         try_payment_action(payment.capture, amount, errors)
