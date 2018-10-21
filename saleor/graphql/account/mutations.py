@@ -102,7 +102,7 @@ class CustomerCreate(ModelMutation, I18nMixin):
     @classmethod
     def clean_input(cls, info, instance, input, errors):
         shipping_address_data = input.pop(SHIPPING_ADDRESS_FIELD, None)
-        billing_address_data= input.pop(BILLING_ADDRESS_FIELD, None)
+        billing_address_data = input.pop(BILLING_ADDRESS_FIELD, None)
         cleaned_input = super().clean_input(info, instance, input, errors)
 
         if shipping_address_data:

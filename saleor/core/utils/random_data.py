@@ -29,11 +29,16 @@ from ...order.utils import update_order_status
 from ...page.models import Page
 from ...payment import ChargeStatus, TransactionType
 <<<<<<< HEAD
+<<<<<<< HEAD
 from ...payment.models import PaymentMethod
 =======
 from ...payment.utils import get_billing_data
 from ...payment.models import Payment
 >>>>>>> Rename PaymentMethod to Payment
+=======
+from ...payment.models import Payment
+from ...payment.utils import get_billing_data
+>>>>>>> Add documentation on adding new payment gateway, fix style and inconsistencies in naming
 from ...product.models import (
     Attribute, AttributeValue, Category, Collection, Product, ProductImage,
     ProductType, ProductVariant)

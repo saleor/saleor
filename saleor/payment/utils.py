@@ -88,11 +88,10 @@ def create_transaction(
     return txn
 
 
-def gateway_get_client_token(provider_name: str):
+def gateway_get_transaction_token(provider_name: str):
     # FIXME Add tests
-
     provider, provider_params = get_provider(provider_name)
-    return provider.get_client_token(**provider_params)
+    return provider.get_transaction_token(**provider_params)
 
 
 @validate_payment

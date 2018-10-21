@@ -104,9 +104,9 @@ def test_checkout_add_payment(
     content = get_graphql_content(response)
     data = content['data']['checkoutPaymentCreate']
     assert not data['errors']
-    transaction_id = data['payment']['transactions']['edges'][0]['node'][
+    transaction_token = data['payment']['transactions']['edges'][0]['node'][
         'token']
-    txn = Transaction.objects.filter(token=transaction_id).first()
+    txn = Transaction.objects.filter(token=transaction_token).first()
     assert txn.transaction_type == TransactionType.AUTH
     assert txn is not None
     payment = txn.payment

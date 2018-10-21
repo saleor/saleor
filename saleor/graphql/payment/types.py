@@ -12,7 +12,7 @@ PaymentChargeStatusEnum = graphene.Enum(
 
 
 class Payment(CountableDjangoObjectType):
-    #FIXME gateway_response field should be resolved into query-readable format
+    # FIXME gateway_response field should be resolved into query-readable format
     # if we want to use it on the frontend
     # otherwise it should be removed from this type
     charge_status = PaymentChargeStatusEnum(
