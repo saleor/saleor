@@ -44,7 +44,7 @@ from .page.resolvers import resolve_page, resolve_pages
 from .page.types import Page
 from .product.schema import ProductMutations, ProductQueries
 from .payment.types import Payment, PaymentGatewayEnum
-from .payment.resolvers import resolve_payments, resolve_payment_client_token
+from .payment.resolvers import resolve_payments, resolve_payment_transaction_token
 from .payment.mutations import (
     CheckoutPaymentCreate, PaymentCapture, PaymentRefund,
     PaymentVoid)
@@ -123,7 +123,7 @@ class Query(ProductQueries):
             description=DESCRIPTIONS['page']),
         description='List of the shop\'s pages.')
     payment = graphene.Field(Payment, id=graphene.Argument(graphene.ID))
-    payment_client_token = graphene.Field(
+    payment_transaction_token = graphene.Field(
         graphene.String, args={'gateway': PaymentGatewayEnum()})
     payments = DjangoFilterConnectionField(
         Payment,
@@ -217,8 +217,8 @@ class Query(ProductQueries):
     def resolve_payment(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, Payment)
 
-    def resolve_payment_client_token(self, info, gateway=None):
-        return resolve_payment_client_token(gateway)
+    def resolve_payment_transaction_token(self, info, gateway=None):
+        return resolve_payment_transaction_token(gateway)
 
     @permission_required('order.manage_orders')
     def resolve_payments(self, info, query=None, **kwargs):

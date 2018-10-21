@@ -78,12 +78,12 @@ class Payment(models.Model):
             transaction_type=TransactionType.AUTH, is_success=True)
         return txn
 
-    def authorize(self, client_token):
+    def authorize(self, transaction_token):
         # FIXME Used for backwards compatibility, remove after moving to
         # dashboard 2.0
         from . import utils
         return utils.gateway_authorize(
-            payment=self, transaction_token=client_token)
+            payment=self, transaction_token=transaction_token)
 
     def void(self):
         # FIXME Used for backwards compatibility, remove after moving to
@@ -95,12 +95,16 @@ class Payment(models.Model):
         # FIXME Used for backwards compatibility, remove after moving to
         # dashboard 2.0
         from . import utils
+        if amount is None:
+            amount = self.total.amount
         return utils.gateway_capture(payment=self, amount=amount)
 
     def refund(self, amount=None):
         # FIXME Used for backwards compatibility, remove after moving to
         # dashboard 2.0
         from . import utils
+        if amount is None:
+            amount = self.total.amount
         return utils.gateway_refund(payment=self, amount=amount)
 
 

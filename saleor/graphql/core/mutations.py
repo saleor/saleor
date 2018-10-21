@@ -30,7 +30,8 @@ def get_output_fields(model, return_field_name):
     model_type = registry.get_type_for_model(model)
     if not model_type:
         raise ImproperlyConfigured(
-            'Unable to find type for model %s in graphene registry' % model.__name__)
+            'Unable to find type for model %s in graphene registry' %
+            model.__name__)
     fields = {return_field_name: graphene.Field(model_type)}
     return fields
 
@@ -106,7 +107,7 @@ class BaseMutation(graphene.Mutation):
 
         Once a instance is created, this method runs `full_clean()` to perform
         model fields' validation. Returns errors ready to be returned by
-        the GraphQL response (if any occured).
+        the GraphQL response (if any occurred).
         """
         try:
             instance.full_clean()

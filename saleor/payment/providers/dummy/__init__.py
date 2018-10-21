@@ -8,11 +8,11 @@ def dummy_success():
     return True
 
 
-def get_client_token(**client_kwargs):
+def get_transaction_token(**connection_params):
     return str(uuid.uuid4())
 
 
-def authorize(payment, transaction_token, **client_kwargs):
+def authorize(payment, transaction_token, **connection_params):
     success = dummy_success()
     error = None
     if not success:
@@ -27,7 +27,7 @@ def authorize(payment, transaction_token, **client_kwargs):
     return txn, error
 
 
-def void(payment, **client_kwargs):
+def void(payment, **connection_params):
     error = None
     success = dummy_success()
     if not success:
@@ -42,7 +42,7 @@ def void(payment, **client_kwargs):
     return txn, error
 
 
-def capture(payment, amount=None):
+def capture(payment, amount):
     error = None
     success = dummy_success()
     if not success:
@@ -56,7 +56,7 @@ def capture(payment, amount=None):
     return txn, error
 
 
-def refund(payment, amount=None):
+def refund(payment, amount):
     error = None
     success = dummy_success()
     if not success:

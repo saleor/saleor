@@ -1,5 +1,6 @@
 import logging
-from typing import Dict
+from decimal import Decimal
+from typing import Dict, List, Tuple
 
 import braintree as braintree_sdk
 from django.conf import settings
@@ -7,10 +8,10 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import pgettext_lazy
 
 from ... import TransactionType
+from ...models import Payment, Transaction
 from ...utils import create_transaction
 
 logger = logging.getLogger(__name__)
-
 # FIXME: Move to SiteSettings
 
 # If this option is checked, then one needs to authorize the amount paid
@@ -24,7 +25,7 @@ THREE_D_SECURE_REQUIRED = False
 ERROR_CODES_WHITELIST = []
 
 
-def get_customer_data(payment):
+def get_customer_data(payment: Payment) -> Dict:
     return {
         'billing': {
             'first_name': payment.billing_first_name,
@@ -42,7 +43,7 @@ def get_customer_data(payment):
             'email': payment.billing_email}}
 
 
-def get_error_for_client(errors):
+def get_error_for_client(errors: List) -> str:
     """Filters all error messages and decides which one is visible for the
     client side.
     """
@@ -58,7 +59,11 @@ def get_error_for_client(errors):
     return default_msg
 
 
-def transaction_and_incorrect_token_error(payment, token, type, amount=None):
+def transaction_and_incorrect_token_error(
+        payment: Payment,
+        token: str,
+        type: TransactionType,
+        amount: Decimal = None) -> Tuple[Transaction, str]:
     amount = payment.total.amount if amount is None else amount
     txn = create_transaction(
         payment=payment,
@@ -121,14 +126,17 @@ def get_gateway(sandbox_mode, merchant_id, public_key, private_key):
     return gateway
 
 
-def get_client_token(**client_kwargs):
-    gateway = get_gateway(**client_kwargs)
-    client_token = gateway.client_token.generate()
-    return client_token
+def get_transaction_token(**connection_params: Dict) -> str:
+    gateway = get_gateway(**connection_params)
+    transaction_token = gateway.client_token.generate()
+    return transaction_token
 
 
-def authorize(payment, transaction_token, **client_kwargs):
-    gateway = get_gateway(**client_kwargs)
+def authorize(
+        payment: Payment,
+        transaction_token: str,
+        **connection_params: Dict) -> Tuple[Transaction, str]:
+    gateway = get_gateway(**connection_params)
     try:
         result = gateway.transaction.sale({
             'amount': str(payment.total.amount),
@@ -154,16 +162,16 @@ def authorize(payment, transaction_token, **client_kwargs):
     return txn, error
 
 
-def capture(payment, amount=None, **client_kwargs):
-    gateway = get_gateway(**client_kwargs)
+def capture(
+        payment: Payment,
+        amount: Decimal,
+        **connection_params: Dict) -> Tuple[Transaction, str]:
+    gateway = get_gateway(**connection_params)
     auth_transaction = payment.transactions.filter(
         transaction_type=TransactionType.AUTH).first()
-    if not amount:
-        amount = payment.total.amount
-
     try:
         result = gateway.transaction.submit_for_settlement(
-            transaction_id=auth_transaction.token, amount=str(amount))
+            transaction_token=auth_transaction.token, amount=str(amount))
     except braintree_sdk.exceptions.NotFoundError:
         return transaction_and_incorrect_token_error(
             payment,
@@ -184,13 +192,15 @@ def capture(payment, amount=None, **client_kwargs):
     return txn, error
 
 
-def void(payment, **client_kwargs):
-    gateway = get_gateway(**client_kwargs)
+def void(
+        payment: Payment,
+        **connection_params: Dict) -> Tuple[Transaction, str]:
+    gateway = get_gateway(**connection_params)
     auth_transaction = payment.transactions.filter(
         transaction_type=TransactionType.AUTH).first()
     try:
         result = gateway.transaction.void(
-            transaction_id=auth_transaction.token)
+            transaction_token=auth_transaction.token)
     except braintree_sdk.exceptions.NotFoundError:
         return transaction_and_incorrect_token_error(
             payment, type=TransactionType.VOID, token=auth_transaction.token)
@@ -207,20 +217,20 @@ def void(payment, **client_kwargs):
     return txn, error
 
 
-def refund(payment, amount=None, **client_kwargs):
-    gateway = get_gateway(**client_kwargs)
-    auth_transaction = payment.transactions.filter(
+def refund(
+        payment: Payment,
+        amount: Decimal,
+        **connection_params: Dict) -> Tuple[Transaction, str]:
+    gateway = get_gateway(**connection_params)
+    capture_txn = payment.transactions.filter(
         transaction_type=TransactionType.CAPTURE).first()
-    if not amount:
-        amount = payment.total.amount
-
     try:
         result = gateway.transaction.refund(
-            transaction_id=auth_transaction.token, 
+            transaction_token=capture_txn.token,
             amount_or_options=str(amount))
     except braintree_sdk.exceptions.NotFoundError:
         return transaction_and_incorrect_token_error(
-            payment, type=TransactionType.REFUND, token=auth_transaction.token,
+            payment, type=TransactionType.REFUND, token=capture_txn.token,
             amount=amount)
 
     gateway_response = extract_gateway_response(result)

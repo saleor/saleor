@@ -6,7 +6,7 @@ from .utils import money
 
 
 def test_authorize(payment_dummy):
-    txn = payment_dummy.authorize(client_token='Fake')
+    txn = payment_dummy.authorize(transaction_token='Fake')
     assert txn.is_success
     assert txn.transaction_type == TransactionType.AUTH
     assert txn.payment == payment_dummy
@@ -18,7 +18,7 @@ def test_authorize_gateway_error(payment_dummy, monkeypatch):
     monkeypatch.setattr(
         'saleor.payment.providers.dummy.dummy_success', lambda: False)
     with pytest.raises(PaymentError):
-        txn = payment_dummy.authorize(client_token='Fake')
+        txn = payment_dummy.authorize(transaction_token='Fake')
         assert txn.transaction_type == TransactionType.AUTH
         assert not txn.is_success
         assert txn.payment == payment_dummy

@@ -9,11 +9,10 @@ from braintree.exceptions import NotFoundError
 from braintree.validation_error import ValidationError
 from django.core.exceptions import ImproperlyConfigured
 
-import saleor.payment.providers.braintree as payment_module
 from saleor.payment import TransactionType
 from saleor.payment.providers.braintree import (
     CONFIRM_MANUALLY, THREE_D_SECURE_REQUIRED, authorize, capture,
-    extract_gateway_response, get_client_token, get_customer_data,
+    extract_gateway_response, get_transaction_token, get_customer_data,
     get_error_for_client, get_gateway, refund,
     transaction_and_incorrect_token_error, void)
 
@@ -106,16 +105,21 @@ def test_get_customer_data(payment_dummy):
     assert result == expected_result
 
 
-def test_get_error_for_client(braintree_error):
+
+def test_get_error_for_client(braintree_error, monkeypatch):
     # no error
     assert get_error_for_client([]) == ''
 
-    # error not whitelisted
-    payment_module.ERROR_CODES_WHITELIST = []
     error = {'code': braintree_error.code, 'message': braintree_error.message}
+
+    # error not whitelisted
+    monkeypatch.setattr(
+        'saleor.payment.providers.braintree.ERROR_CODES_WHITELIST', [])
     assert get_error_for_client([error]) == DEFAULT_ERROR
 
-    payment_module.ERROR_CODES_WHITELIST = [braintree_error.code]
+    monkeypatch.setattr(
+        'saleor.payment.providers.braintree.ERROR_CODES_WHITELIST',
+        [braintree_error.code])
     assert get_error_for_client([error]) == braintree_error.message
 
 
@@ -173,14 +177,14 @@ def test_get_gateway_inproperly_configured(gateway_config):
 
 
 @patch('saleor.payment.providers.braintree.get_gateway')
-def test_get_client_token(mock_gateway, gateway_config):
-    client_token = 'client-token'
-    mock_generate = Mock(return_value='client-token')
+def test_get_transaction_token(mock_gateway, gateway_config):
+    transaction_token = 'transaction-token'
+    mock_generate = Mock(return_value='transaction-token')
     mock_gateway.return_value = Mock(client_token=Mock(generate=mock_generate))
-    result = get_client_token(**gateway_config)
+    result = get_transaction_token(**gateway_config)
     mock_gateway.assert_called_once_with(**gateway_config)
     mock_generate.assert_called_once()
-    assert result == client_token
+    assert result == transaction_token
 
 
 @pytest.mark.integration
@@ -268,7 +272,7 @@ def test_refund(
     capture_txn = payment.transactions.filter(
         transaction_type=TransactionType.CAPTURE).first()
     mock_response.assert_called_once_with(
-        amount_or_options=str(amount), transaction_id=capture_txn.token)
+        amount_or_options=str(amount), transaction_token=capture_txn.token)
 
 
 @pytest.mark.integration
@@ -332,7 +336,7 @@ def test_capture(
     auth_txn = payment.transactions.filter(
         transaction_type=TransactionType.AUTH).first()
     mock_response.assert_called_once_with(
-        amount=str(amount), transaction_id=auth_txn.token)
+        amount=str(amount), transaction_token=auth_txn.token)
 
 
 @pytest.mark.integration
@@ -396,7 +400,7 @@ def test_void(
 
     auth_txn = payment.transactions.filter(
         transaction_type=TransactionType.AUTH).first()
-    mock_response.assert_called_once_with(transaction_id=auth_txn.token)
+    mock_response.assert_called_once_with(transaction_token=auth_txn.token)
 
 
 @pytest.mark.integration
