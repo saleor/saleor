@@ -92,7 +92,8 @@ def extract_gateway_response(braintree_result) -> Dict:
     if bt_transaction.currency_iso_code != settings.DEFAULT_CURRENCY:
         logger.error(
             'Braintree\'s currency is different than shop\'s currency')
-
+    # FIXME we should have a predefined list of fields that will be supported
+    # in the API
     gateway_response = {
         'currency_iso_code': bt_transaction.currency_iso_code,
         'amount': bt_transaction.amount,

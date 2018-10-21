@@ -3,19 +3,19 @@
 Payments
 ========
 
-Integrating new Payment Gateway into Saleor
+Integrating a new Payment Gateway into Saleor
 -------------------------------------------
 
 We are using a universal flow, that each provider should fulfill, there are
 several methods that should be implemented.
 
 Your changes should live under the
-``saleor.payment.providers.<provider name>``.
+``saleor.payment.providers.<provider name>`` module.
 
 .. note::
 
-    After completing those changes your new payment gateway will be available
-    only from the API level. You also need to integrate it into your
+    After completing those steps your new payment gateway will only be
+    available from the API level. You will also need to integrate it into your
     Frontend's workflow.
 
 get_transaction_token(**connection_params)
