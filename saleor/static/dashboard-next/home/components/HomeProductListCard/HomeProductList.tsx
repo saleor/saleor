@@ -31,6 +31,10 @@ interface HomeProductListProps {
 }
 
 const decorate = withStyles(theme => ({
+  avatarSize: {
+    height: "64px",
+    width: "64px"
+  },
   tableRowPointer: {
     cursor: "pointer" as "pointer"
   },
@@ -58,6 +62,7 @@ export const HomeProductList = decorate<HomeProductListProps>(
               <TableCellAvatar
                 className={classes.tableRowSize}
                 thumbnail={product && product.thumbnailUrl}
+                avatarSize={classes.avatarSize}
               />
               {product ? (
                 <TableCell>
