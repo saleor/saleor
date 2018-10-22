@@ -39,7 +39,11 @@ RUN \
 FROM python:3.6-slim
 
 ARG STATIC_URL
-ENV STATIC_URL ${STATIC_URL:-/static/}
+
+ENV STATIC_URL=${STATIC_URL:-/static/} \
+    UWSGI_PORT=8000 \
+    UWSGI_PROCESSES=4 \
+    PYTHONUNBUFFERED=1
 
 RUN \
   apt-get update && \
@@ -66,10 +70,6 @@ RUN useradd --system saleor && \
 
 USER saleor
 
-
 EXPOSE 8000
-ENV PORT 8000
 
-ENV PYTHONUNBUFFERED 1
-ENV PROCESSES 4
 CMD ["uwsgi", "/app/saleor/wsgi/uwsgi.ini"]
