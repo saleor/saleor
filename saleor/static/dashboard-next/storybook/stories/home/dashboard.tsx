@@ -8,11 +8,12 @@ import Decorator from "../../Decorator";
 const shop = shopFixture(placeholderImage);
 
 const dashboardProps: DashboardProps = {
+  daily: shop.daily,
   ownerName: shop.ownerName
 };
 
 storiesOf("Views / Home / Dashboard", module)
   .addDecorator(Decorator)
   .add("default", () => <Dashbaord {...dashboardProps} />)
-  .add("loading", () => <Dashbaord {...dashboardProps} />)
+  .add("loading", () => <Dashbaord {...dashboardProps} daily={undefined} />)
   .add("no data", () => <Dashbaord {...dashboardProps} />);

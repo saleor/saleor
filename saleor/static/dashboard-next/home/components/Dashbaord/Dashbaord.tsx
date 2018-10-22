@@ -6,8 +6,16 @@ import CardSpacer from "../../../components/CardSpacer";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
+import HomeSalesCard from "../HomeSalesCard";
 
+interface MoneyType {
+  amount: number;
+  currency: string;
+}
 export interface DashboardProps {
+  daily?: {
+    sales?: MoneyType;
+  };
   ownerName: string;
 }
 
@@ -31,7 +39,7 @@ const decorate = withStyles(theme => ({
     }
   }
 }));
-const Dashboard = decorate<DashboardProps>(({ ownerName, classes }) => {
+const Dashboard = decorate<DashboardProps>(({ ownerName, classes, daily }) => {
   return (
     <Container width="md">
       <PageHeader
@@ -46,7 +54,7 @@ const Dashboard = decorate<DashboardProps>(({ ownerName, classes }) => {
       <div className={classes.root}>
         <div>
           <div className={classes.flexbox}>
-            <Card>Sales</Card>
+            <HomeSalesCard disabled={false} title={"Sales"} daily={daily} />
             <Card>Orders</Card>
           </div>
 
