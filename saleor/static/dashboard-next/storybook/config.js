@@ -99,6 +99,9 @@ function loadStories() {
   // Site settings
   require("./stories/siteSettings/SiteSettingsKeyDialog");
   require("./stories/siteSettings/SiteSettingsPage");
+
+  // Homepage
+  require("./stories/home/dashboard");
 }
 
 configure(loadStories, module);

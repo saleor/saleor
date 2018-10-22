@@ -6,10 +6,6 @@ import CardSpacer from "../../../components/CardSpacer";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
-interface MoneyType {
-  amount: number;
-  currency: string;
-}
 
 export interface DashboardProps {
   ownerName: string;
