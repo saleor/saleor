@@ -12,17 +12,16 @@ import i18n from "../../../i18n";
 
 interface HomeNotificationTableProps {
   disabled: boolean;
-  notifications?: {
-    id?: number;
-    orders?: number;
-    payments?: number;
-    problems?: number;
-    productsOut?: number;
+  notifications: {
+    orders: number;
+    payments: number;
+    problems: number;
+    productsOut: number;
   };
-  toOrders?();
-  toPayments?();
-  toProblems?();
-  toProductsOut?();
+  toOrders();
+  toPayments();
+  toProblems();
+  toProductsOut();
 }
 
 const decorate = withStyles(theme => ({

@@ -14,7 +14,7 @@ interface MoneyType {
 }
 interface HomeProductListCardProps {
   disabled: boolean;
-  topProducts?: Array<{
+  topProducts: Array<{
     id: string;
     name: string;
     orders: number;

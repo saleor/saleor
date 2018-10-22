@@ -18,8 +18,8 @@ interface MoneyType {
 interface HomeSalesCardProps {
   disabled: boolean;
   title: string;
-  daily?: {
-    sales?: MoneyType;
+  daily: {
+    sales: MoneyType;
   };
 }
 

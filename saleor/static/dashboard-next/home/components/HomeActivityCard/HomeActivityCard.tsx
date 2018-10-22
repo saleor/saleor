@@ -13,13 +13,13 @@ import { renderCollection } from "../../../misc";
 
 interface HomeProductListCardProps {
   activities?: Array<{
-    action?: string;
-    admin?: boolean;
-    date?: string;
+    action: string;
+    admin: boolean;
+    date: string;
     elementName?: string;
-    id?: string;
-    newElement?: string;
-    user?: string;
+    id: string;
+    newElement: string;
+    user: string;
   }>;
   disabled: boolean;
 }

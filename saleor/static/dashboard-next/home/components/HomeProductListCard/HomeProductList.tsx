@@ -18,7 +18,7 @@ interface MoneyType {
   currency: string;
 }
 interface HomeProductListProps {
-  topProducts?: Array<{
+  topProducts: Array<{
     id: string;
     name: string;
     orders: number;
