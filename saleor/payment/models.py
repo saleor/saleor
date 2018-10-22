@@ -1,3 +1,5 @@
+from operator import attrgetter
+
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
@@ -72,6 +74,9 @@ class Payment(models.Model):
 
     def __iter__(self):
         return iter(self.transactions.all())
+
+    def get_last_transaction(self):
+        return max(self.transactions.all(), default=None, key=attrgetter('pk'))
 
     def get_auth_transaction(self):
         txn = self.transactions.get(
