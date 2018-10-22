@@ -17,13 +17,13 @@ interface MoneyType {
 }
 export interface DashboardProps {
   activities?: Array<{
-    action?: string;
-    admin?: boolean;
-    date?: string;
+    action: string;
+    admin: boolean;
+    date: string;
     elementName?: string;
     id: string;
-    newElement?: string;
-    user?: string;
+    newElement: string;
+    user: string;
   }>;
   daily: {
     orders: {
