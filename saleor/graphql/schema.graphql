@@ -316,6 +316,15 @@ type CollectionCreate {
   collection: Collection
 }
 
+input CollectionCreateInput {
+  isPublished: Boolean
+  name: String
+  slug: String
+  backgroundImage: Upload
+  seo: SeoInput
+  products: [ID]
+}
+
 type CollectionDelete {
   errors: [Error]
   collection: Collection
@@ -325,15 +334,6 @@ input CollectionInput {
   isPublished: Boolean
   name: String
   slug: String
-  backgroundImage: Upload
-  seo: SeoInput
-}
-
-input CollectionCreateInput {
-  isPublished: Boolean
-  name: String
-  slug: String
-  products: [ID]
   backgroundImage: Upload
   seo: SeoInput
 }

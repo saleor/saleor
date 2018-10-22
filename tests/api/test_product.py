@@ -1319,6 +1319,28 @@ def test_category_image_query(user_api_client, non_default_category):
     assert data['backgroundImage']['url'] == thumbnail_url
 
 
+def test_category_image_query_without_associated_file(
+        user_api_client, non_default_category):
+    category = non_default_category
+    category_id = graphene.Node.to_global_id('Category', category.pk)
+    query = """
+        query fetchCategory($id: ID!){
+            category(id: $id) {
+                name
+                backgroundImage {
+                   url
+                }
+            }
+        }
+    """
+    variables = {'id': category_id}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['category']
+    assert data['name'] == category.name
+    assert data['backgroundImage'] is None
+
+
 def test_collection_image_query(user_api_client, collection):
     image_file, image_name = create_image()
     collection.background_image = image_file
@@ -1339,6 +1361,27 @@ def test_collection_image_query(user_api_client, collection):
     data = content['data']['collection']
     thumbnail_url = collection.background_image.thumbnail['120x120'].url
     assert data['backgroundImage']['url'] == thumbnail_url
+
+
+def test_collection_image_query_without_associated_file(
+        user_api_client, collection):
+    collection_id = graphene.Node.to_global_id('Collection', collection.pk)
+    query = """
+        query fetchCollection($id: ID!){
+            collection(id: $id) {
+                name
+                backgroundImage {
+                   url
+                }
+            }
+        }
+    """
+    variables = {'id': collection_id}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content['data']['collection']
+    assert data['name'] == collection.name
+    assert data['backgroundImage'] is None
 
 
 @pytest.mark.parametrize('product_price, variant_override, api_variant_price', [

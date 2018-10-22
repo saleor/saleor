@@ -296,6 +296,9 @@ class Collection(CountableDjangoObjectType):
         interfaces = [relay.Node]
         model = models.Collection
 
+    def resolve_background_image(self, info, **kwargs):
+        return self.background_image or None
+
     def resolve_products(self, info, **kwargs):
         user = info.context.user
         return products_with_details(
@@ -330,6 +333,9 @@ class Category(CountableDjangoObjectType):
 
     def resolve_ancestors(self, info, **kwargs):
         return self.get_ancestors().distinct()
+
+    def resolve_background_image(self, info, **kwargs):
+        return self.background_image or None
 
     def resolve_children(self, info, **kwargs):
         return self.children.distinct()
