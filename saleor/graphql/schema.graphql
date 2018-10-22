@@ -272,6 +272,7 @@ input CategoryInput {
   parent: ID
   slug: String
   seo: SeoInput
+  backgroundImage: Upload
 }
 
 type CategoryUpdate {
