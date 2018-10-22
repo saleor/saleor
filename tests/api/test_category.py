@@ -3,7 +3,8 @@ import pytest
 import graphene
 from django.template.defaultfilters import slugify
 from saleor.product.models import Category
-from tests.api.utils import get_graphql_content
+from tests.utils import create_image
+from tests.api.utils import get_graphql_content, get_multipart_request_body
 
 
 def test_category_query(user_api_client, product):
@@ -46,12 +47,13 @@ def test_category_query(user_api_client, product):
 def test_category_create_mutation(
         staff_api_client, permission_manage_products):
     query = """
-        mutation($name: String, $slug: String, $description: String, $parentId: ID) {
+        mutation($name: String, $slug: String, $description: String, $backgroundImage: Upload, $parentId: ID) {
             categoryCreate(
                 input: {
                     name: $name
                     slug: $slug
                     description: $description
+                    backgroundImage: $backgroundImage
                     parent: $parentId
                 }
             ) {
@@ -76,19 +78,23 @@ def test_category_create_mutation(
     category_name = 'Test category'
     category_slug = slugify(category_name)
     category_description = 'Test description'
+    image_file, image_name = create_image()
 
     # test creating root category
     variables = {
         'name': category_name, 'description': category_description,
-        'slug': category_slug}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        'backgroundImage': image_name, 'slug': category_slug}
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     data = content['data']['categoryCreate']
     assert data['errors'] == []
     assert data['category']['name'] == category_name
     assert data['category']['description'] == category_description
     assert not data['category']['parent']
+    category = Category.objects.get(name=category_name)
+    assert category.background_image.file
 
     # test creating subcategory
     parent_id = data['category']['id']
@@ -105,12 +111,13 @@ def test_category_create_mutation(
 def test_category_update_mutation(
         staff_api_client, category, permission_manage_products):
     query = """
-        mutation($id: ID!, $name: String, $slug: String, $description: String) {
+        mutation($id: ID!, $name: String, $slug: String, $backgroundImage: Upload, $description: String) {
             categoryUpdate(
                 id: $id
                 input: {
                     name: $name
                     description: $description
+                    backgroundImage: $backgroundImage
                     slug: $slug
                 }
             ) {
@@ -136,13 +143,16 @@ def test_category_update_mutation(
     category_name = 'Updated name'
     category_slug = slugify(category_name)
     category_description = 'Updated description'
+    image_file, image_name = create_image()
 
     category_id = graphene.Node.to_global_id('Category', child_category.pk)
     variables = {
         'name': category_name, 'description': category_description,
-        'id': category_id, 'slug': category_slug}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products])
+        'backgroundImage': image_name, 'id': category_id,
+        'slug': category_slug}
+    body = get_multipart_request_body(query, variables, image_file, image_name)
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products])
     content = get_graphql_content(response)
     data = content['data']['categoryUpdate']
     assert data['errors'] == []
@@ -152,6 +162,8 @@ def test_category_update_mutation(
 
     parent_id = graphene.Node.to_global_id('Category', category.pk)
     assert data['category']['parent']['id'] == parent_id
+    category = Category.objects.get(name=category_name)
+    assert category.background_image.file
 
 
 def test_category_delete_mutation(

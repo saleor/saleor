@@ -24,6 +24,7 @@ class CategoryInput(graphene.InputObjectType):
         category.''', name='parent')
     slug = graphene.String(description='Category slug')
     seo = SeoInput(description='Search engine optimization fields.')
+    background_image = Upload(description='Background image file.')
 
 
 class CategoryCreate(ModelMutation):
