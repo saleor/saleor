@@ -11,8 +11,8 @@ const dashboardProps: DashboardProps = {
   activities: shop.activities,
   daily: shop.daily,
   onRowClick: () => undefined,
-  ownerName: shop.ownerName,
-  topProducts: shop.topProducts
+  topProducts: shop.topProducts,
+  userName: shop.userName
 };
 
 storiesOf("Views / Home / Dashboard", module)
@@ -24,6 +24,7 @@ storiesOf("Views / Home / Dashboard", module)
       topProducts={undefined}
       daily={undefined}
       activities={undefined}
+      userName={undefined}
     />
   ))
   .add("no data", () => (

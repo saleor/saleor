@@ -45,13 +45,13 @@ export const shop = (placeholderImage: string) => ({
       currency: "PLN"
     }
   },
+
   notifications: {
     orders: 12,
     payments: 10,
     problems: 69,
     productsOut: 2
   },
-  ownerName: "Zbyszko z Bogdańca",
   topProducts: [
     {
       id: "1",
@@ -97,5 +97,6 @@ export const shop = (placeholderImage: string) => ({
       thumbnailUrl: placeholderImage,
       variant: "Hardcover"
     }
-  ]
+  ],
+  userName: "Zbyszko z Bogdańca"
 });
