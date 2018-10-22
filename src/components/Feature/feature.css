@@ -232,6 +232,12 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, 45%);
             grid-gap: calc(var(--spacer) * 2) calc(var(--spacer) * 4);
+            @media (max-width: 1368px) {
+              grid-template-columns: repeat(auto-fit, 43%);
+            }
+            @media (max-width: 1200px) {
+              grid-template-columns: repeat(auto-fit, 100%);
+            }
             @media (max-width: 1024px) {
               grid-template-columns: repeat(auto-fit, 100%);
             }

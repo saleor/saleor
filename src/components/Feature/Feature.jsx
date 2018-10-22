@@ -195,15 +195,15 @@ const Feature = () => (
             </div>
             <div className="icon-card">
               <ReactSVG path={automaticTaxes} />
-              <h5 className="title">Automatic taxes</h5>
+              <h5 className="title">EU taxes</h5>
               <p>Automatically show gross prices to your European customers with Vatlayer.
-                 Apply US sales tax during checkout when serving your American clientele with Avalara.</p>
-            </div>
-            <div className="icon-card">
+                 {/* Apply US sales tax during checkout when serving your American clientele with Avalara. */}</p>
+           </div>
+            {/* <div className="icon-card">
               <ReactSVG path={paymentRequests} />
               <h5 className="title">Payment requests</h5>
               <p>Allow for seamless mobile checkout with the Payment Request API. Provide customers with Google Pay or Apple Pay options.</p>
-            </div>
+            </div> */}
             <div className="icon-card">
               <ReactSVG path={discountAndPromotions} />
               <h5 className="title">Discounts & Promotions</h5>
