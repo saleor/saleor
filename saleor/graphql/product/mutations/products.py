@@ -42,7 +42,7 @@ class CategoryCreate(ModelMutation):
         cleaned_input = super().clean_input(info, instance, input, errors)
         if 'slug' not in cleaned_input:
             cleaned_input['slug'] = slugify(cleaned_input['name'])
-        parent_id = input['parent']
+        parent_id = input['parent_id']
         if parent_id:
             parent = cls.get_node_or_error(
                 info, parent_id, errors, field='parent', only_type=Category)
@@ -57,7 +57,7 @@ class CategoryCreate(ModelMutation):
     @classmethod
     def mutate(cls, root, info, **data):
         parent_id = data.pop('parent_id', None)
-        data['input']['parent'] = parent_id
+        data['input']['parent_id'] = parent_id
         return super().mutate(root, info, **data)
 
 
