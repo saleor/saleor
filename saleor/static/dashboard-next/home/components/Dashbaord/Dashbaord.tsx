@@ -1,4 +1,3 @@
-import Card from "@material-ui/core/Card";
 import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
@@ -6,6 +5,7 @@ import CardSpacer from "../../../components/CardSpacer";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
+import HomeActivityCard from "../HomeActivityCard";
 import HomeNotificationTable from "../HomeNotificationTable";
 import HomeOrdersCard from "../HomeOrdersCard";
 import HomeProductListCard from "../HomeProductListCard";
@@ -16,6 +16,15 @@ interface MoneyType {
   currency: string;
 }
 export interface DashboardProps {
+  activities?: Array<{
+    action?: string;
+    admin?: boolean;
+    date?: string;
+    elementName?: string;
+    id: string;
+    newElement?: string;
+    user?: string;
+  }>;
   daily: {
     orders: {
       amount: number;
@@ -30,7 +39,7 @@ export interface DashboardProps {
   };
   onRowClick: () => undefined;
   ownerName: string;
-  topProducts?: Array<{
+  topProducts: Array<{
     id: string;
     name: string;
     orders: number;
@@ -75,7 +84,8 @@ const Dashboard = decorate<DashboardProps>(
     toProblems,
     toProductsOut,
     topProducts,
-    onRowClick
+    onRowClick,
+    activities
   }) => {
     return (
       <Container width="md">
@@ -113,7 +123,7 @@ const Dashboard = decorate<DashboardProps>(
             <CardSpacer />
           </div>
           <div>
-            <Card>HomeActivityCard</Card>
+            <HomeActivityCard disabled={false} activities={activities} />
           </div>
         </div>
       </Container>

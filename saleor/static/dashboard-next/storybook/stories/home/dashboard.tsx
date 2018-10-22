@@ -8,6 +8,7 @@ import Decorator from "../../Decorator";
 const shop = shopFixture(placeholderImage);
 
 const dashboardProps: DashboardProps = {
+  activities: shop.activities,
   daily: shop.daily,
   notifications: shop.notifications,
   onRowClick: () => undefined,
@@ -28,6 +29,7 @@ storiesOf("Views / Home / Dashboard", module)
       topProducts={undefined}
       daily={undefined}
       notifications={undefined}
+      activities={undefined}
     />
   ))
   .add("no data", () => (
@@ -40,5 +42,6 @@ storiesOf("Views / Home / Dashboard", module)
         problems: 0,
         productsOut: 0
       }}
+      activities={[]}
     />
   ));
