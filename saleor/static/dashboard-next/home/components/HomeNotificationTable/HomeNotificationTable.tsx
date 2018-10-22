@@ -10,6 +10,18 @@ import * as React from "react";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 
+// component implementation
+{
+  /* <HomeNotificationTable
+disabled={false}
+notifications={notifications}
+toOrders={toOrders}
+toPayments={toPayments}
+toProblems={toProblems}
+toProductsOut={toProductsOut}
+/> */
+}
+
 interface HomeNotificationTableProps {
   disabled: boolean;
   notifications: {

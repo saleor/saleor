@@ -6,7 +6,6 @@ import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
 import HomeActivityCard from "../HomeActivityCard";
-import HomeNotificationTable from "../HomeNotificationTable";
 import HomeOrdersCard from "../HomeOrdersCard";
 import HomeProductListCard from "../HomeProductListCard";
 import HomeSalesCard from "../HomeSalesCard";
@@ -31,12 +30,6 @@ export interface DashboardProps {
     };
     sales: MoneyType;
   };
-  notifications: {
-    orders: number;
-    payments: number;
-    problems: number;
-    productsOut: number;
-  };
   onRowClick: () => undefined;
   ownerName: string;
   topProducts: Array<{
@@ -47,10 +40,6 @@ export interface DashboardProps {
     thumbnailUrl: string;
     variant: string;
   }>;
-  toOrders: () => void;
-  toPayments: () => void;
-  toProblems: () => void;
-  toProductsOut: () => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -74,19 +63,7 @@ const decorate = withStyles(theme => ({
   }
 }));
 const Dashboard = decorate<DashboardProps>(
-  ({
-    ownerName,
-    classes,
-    daily,
-    notifications,
-    toOrders,
-    toPayments,
-    toProblems,
-    toProductsOut,
-    topProducts,
-    onRowClick,
-    activities
-  }) => {
+  ({ ownerName, classes, daily, topProducts, onRowClick, activities }) => {
     return (
       <Container width="md">
         <PageHeader
@@ -105,15 +82,6 @@ const Dashboard = decorate<DashboardProps>(
               <HomeOrdersCard disabled={false} title={"Orders"} daily={daily} />
             </div>
 
-            <CardSpacer />
-            <HomeNotificationTable
-              disabled={false}
-              notifications={notifications}
-              toOrders={toOrders}
-              toPayments={toPayments}
-              toProblems={toProblems}
-              toProductsOut={toProductsOut}
-            />
             <CardSpacer />
             <HomeProductListCard
               onRowClick={onRowClick}
