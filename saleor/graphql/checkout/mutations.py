@@ -405,7 +405,9 @@ class CheckoutComplete(BaseMutation):
             info, checkout_id, errors, 'checkout_id', only_type=Checkout)
         if not checkout:
             return CheckoutComplete(errors=errors)
-        ready, checkout_error = ready_to_place_order(checkout)
+        taxes = get_taxes_for_cart(checkout, info.context.taxes)
+        ready, checkout_error = ready_to_place_order(
+            checkout, taxes, info.context.discounts)
         if not ready:
             cls.add_error(field=None, message=checkout_error, errors=errors)
             return CheckoutComplete(errors=errors)
@@ -415,7 +417,7 @@ class CheckoutComplete(BaseMutation):
                 cart=checkout,
                 tracking_code=analytics.get_client_id(info.context),
                 discounts=info.context.discounts,
-                taxes=get_taxes_for_cart(checkout, info.context.taxes))
+                taxes=taxes)
         except InsufficientStock:
             order = None
             cls.add_error(

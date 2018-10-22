@@ -892,7 +892,8 @@ def is_fully_paid(cart: Cart):
     return total_paid >= cart.get_total().gross.amount
 
 
-def ready_to_place_order(cart: Cart):
+def ready_to_place_order(cart: Cart, taxes, discounts):
+    #FIXME test me
     if cart.is_shipping_required():
         if not cart.shipping_method:
             return False, pgettext_lazy(
@@ -900,7 +901,10 @@ def ready_to_place_order(cart: Cart):
         if not cart.shipping_address:
             return False, pgettext_lazy(
                 'order placement error', 'Shipping address is not set')
-        # FIXME Check if shipping method is valid for the shipping address
+        if not is_valid_shipping_method(cart, taxes, discounts):
+            return False, pgettext_lazy(
+                'order placement error',
+                'Shipping method is not valid for your shipping address')
     if not is_fully_paid(cart):
         return False, pgettext_lazy(
             'order placement error', 'Checkout is not fully paid')
