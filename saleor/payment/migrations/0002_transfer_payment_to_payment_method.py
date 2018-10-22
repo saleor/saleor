@@ -30,11 +30,10 @@ def get_charge_status(payment):
     return ChargeStatus.NOT_CHARGED
 
 
-def get_is_active(status):
-    non_active_statuses = [
-        PaymentStatus.WAITING, PaymentStatus.REFUNDED, PaymentStatus.INPUT,
-        PaymentStatus.REJECTED]
-    if status in non_active_statuses:
+def get_is_active(status, payment):
+    if status == PaymentStatus.INPUT:
+        return False
+    if status == PaymentStatus.REFUNDED and is_fully_refunded(payment):
         return False
     return True
 
@@ -50,10 +49,7 @@ def create_transaction(method, transaction_type, created, amount, is_success):
 
 def create_transactions(method, payment):
     # Those payments are inactive and need no transactions
-    if payment.status in [
-            PaymentStatus.INPUT, PaymentStatus.WAITING, PaymentStatus.PREAUTH]:
-        method.is_active = False
-        method.save()
+    if payment.status == PaymentStatus.INPUT:
         return
 
     # Other payments needed to be authorized first
@@ -79,9 +75,6 @@ def create_transactions(method, payment):
         create_transaction(
             method=method, transaction_type=TransactionType.REFUND,
             created=created, amount=amount, is_success=True)
-        if is_fully_refunded(payment):
-            method.is_active = False
-            method.save()
 
 
 def transfer_payments_to_payment_methods(apps, schema_editor):
@@ -116,7 +109,7 @@ def transfer_payments_to_payment_methods(apps, schema_editor):
             token=pay.token,
             captured_amount=Money(pay.captured_amount, pay.currency),
             total=Money(pay.total, pay.currency),
-            is_active=get_is_active(pay.status),
+            is_active=get_is_active(pay.status, pay),
             charge_status=get_charge_status(pay))
         create_transactions(payment_method, pay)
 

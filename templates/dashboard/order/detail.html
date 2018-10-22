@@ -137,8 +137,8 @@
                   {% trans "Preauthorized amount" context "Order summary card header" %}
                 </td>
                 <td class="right-align">
-                  {% if preauthorized.gross %}
-                    {% price preauthorized.gross %}
+                  {% if preauthorized %}
+                    {% price preauthorized %}
                   {% else %}
                     {% trans "N/A" context "Preauthorized amount not available" %}
                   {% endif %}
