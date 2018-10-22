@@ -8,6 +8,7 @@ import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
 import HomeNotificationTable from "../HomeNotificationTable";
 import HomeOrdersCard from "../HomeOrdersCard";
+import HomeProductListCard from "../HomeProductListCard";
 import HomeSalesCard from "../HomeSalesCard";
 
 interface MoneyType {
@@ -27,7 +28,16 @@ export interface DashboardProps {
     problems: number;
     productsOut: number;
   };
+  onRowClick: () => undefined;
   ownerName: string;
+  topProducts?: Array<{
+    id: string;
+    name: string;
+    orders: number;
+    price: MoneyType;
+    thumbnailUrl: string;
+    variant: string;
+  }>;
   toOrders: () => void;
   toPayments: () => void;
   toProblems: () => void;
@@ -63,7 +73,9 @@ const Dashboard = decorate<DashboardProps>(
     toOrders,
     toPayments,
     toProblems,
-    toProductsOut
+    toProductsOut,
+    topProducts,
+    onRowClick
   }) => {
     return (
       <Container width="md">
@@ -93,7 +105,11 @@ const Dashboard = decorate<DashboardProps>(
               toProductsOut={toProductsOut}
             />
             <CardSpacer />
-            <Card>ProductListCard</Card>
+            <HomeProductListCard
+              onRowClick={onRowClick}
+              disabled={false}
+              topProducts={topProducts}
+            />
             <CardSpacer />
           </div>
           <div>
