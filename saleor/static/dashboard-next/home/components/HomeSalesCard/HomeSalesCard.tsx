@@ -43,11 +43,6 @@ const decorate = withStyles(theme => ({
     fontWeight: "bold" as "bold"
   },
   fullWidth: {
-    marginRight: `${theme.spacing.unit * 1.5}px`,
-    [theme.breakpoints.down("sm")]: {
-      marginRight: `${theme.spacing.unit * 0.5}px`
-    },
-    overflow: "initial" as "initial",
     width: "100%"
   },
   icon: {

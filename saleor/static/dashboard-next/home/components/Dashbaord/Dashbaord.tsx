@@ -42,21 +42,26 @@ export interface DashboardProps {
 }
 
 const decorate = withStyles(theme => ({
-  displayBlock: {
-    display: "block"
-  },
-  flexbox: {
-    display: "flex"
+  cardContainer: {
+    display: "grid",
+    gridColumnGap: `${theme.spacing.unit * 3}px`,
+    gridTemplateColumns: "1fr 1fr",
+    [theme.breakpoints.down("md")]: {
+      gridColumnGap: `${theme.spacing.unit}px`
+    },
+    [theme.breakpoints.down("sm")]: {
+      gridTemplateColumns: "1fr"
+    }
   },
 
   root: {
     display: "grid" as "grid",
     gridColumnGap: `${theme.spacing.unit * 3}px`,
     gridTemplateColumns: "2fr 1fr",
-    [theme.breakpoints.down("sm")]: {
+    [theme.breakpoints.down("md")]: {
       gridColumnGap: `${theme.spacing.unit}px`
     },
-    [theme.breakpoints.down("xs")]: {
+    [theme.breakpoints.down("sm")]: {
       gridTemplateColumns: "1fr"
     }
   }
@@ -69,7 +74,7 @@ const Dashboard = decorate<DashboardProps>(
         <CardSpacer />
         <div className={classes.root}>
           <div>
-            <div className={classes.flexbox}>
+            <div className={classes.cardContainer}>
               <HomeSalesCard disabled={false} title={"Sales"} daily={daily} />
               <HomeOrdersCard disabled={false} title={"Orders"} daily={daily} />
             </div>
