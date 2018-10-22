@@ -18,6 +18,7 @@ import { TypedCollectionDetailsQuery } from "../queries";
 import { CollectionAssignProduct } from "../types/CollectionAssignProduct";
 import { CollectionUpdate } from "../types/CollectionUpdate";
 import { RemoveCollection } from "../types/RemoveCollection";
+import { UnassignCollectionProduct } from "../types/UnassignCollectionProduct";
 import {
   collectionAddProductUrl,
   collectionImageRemoveUrl,
@@ -92,6 +93,22 @@ export const CollectionDetails: React.StatelessComponent<
                       }
                     };
 
+                    const handleProductUnassign = (
+                      data: UnassignCollectionProduct
+                    ) => {
+                      if (
+                        data.collectionRemoveProducts.errors === null ||
+                        data.collectionRemoveProducts.errors.length === 0
+                      ) {
+                        pushMessage({
+                          text: i18n.t("Removed product from collection", {
+                            context: "notification"
+                          })
+                        });
+                        navigate(collectionUrl(id), true);
+                      }
+                    };
+
                     const handleCollectionRemove = (data: RemoveCollection) => {
                       if (
                         data.collectionDelete.errors === null ||
@@ -110,12 +127,14 @@ export const CollectionDetails: React.StatelessComponent<
                         onHomepageCollectionAssign={() => undefined}
                         onUpdate={handleCollectionUpdate}
                         onProductAssign={handleProductAssign}
+                        onProductUnassign={handleProductUnassign}
                         onRemove={handleCollectionRemove}
                       >
                         {({
                           updateCollection,
                           assignHomepageCollection,
                           assignProduct,
+                          unassignProduct,
                           removeCollection
                         }) => {
                           const handleSubmit = (
@@ -191,6 +210,14 @@ export const CollectionDetails: React.StatelessComponent<
                                 onNextPage={loadNextPage}
                                 onPreviousPage={loadPreviousPage}
                                 pageInfo={pageInfo}
+                                onProductUnassign={(productId, event) => {
+                                  event.stopPropagation();
+                                  unassignProduct.mutate({
+                                    collectionId: id,
+                                    productId,
+                                    ...paginationState
+                                  });
+                                }}
                                 onRowClick={id => () =>
                                   navigate(productUrl(encodeURIComponent(id)))}
                               />
@@ -213,7 +240,8 @@ export const CollectionDetails: React.StatelessComponent<
                                     onSubmit={product =>
                                       assignProduct.mutate({
                                         collectionId: id,
-                                        productId: product.product.value
+                                        productId: product.product.value,
+                                        first: PAGINATE_BY
                                       })
                                     }
                                     products={maybe(() =>

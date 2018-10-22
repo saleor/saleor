@@ -5,6 +5,7 @@ import {
   MutationProviderRenderProps,
   PartialMutationProviderOutput
 } from "../..";
+import { TypedUnassignCollectionProductMutation } from "../mutations";
 import {
   AssignHomepageCollection,
   AssignHomepageCollectionVariables
@@ -21,6 +22,10 @@ import {
   RemoveCollection,
   RemoveCollectionVariables
 } from "../types/RemoveCollection";
+import {
+  UnassignCollectionProduct,
+  UnassignCollectionProductVariables
+} from "../types/UnassignCollectionProduct";
 import CollectionAssignProductProvider from "./CollectionAssignProductProvider";
 import CollectionRemoveProvider from "./CollectionRemove";
 import CollectionUpdateProvider from "./CollectionUpdateProvider";
@@ -36,6 +41,10 @@ interface CollectionUpdateOperationsProps extends MutationProviderProps {
       CollectionAssignProduct,
       CollectionAssignProductVariables
     >;
+    unassignProduct: PartialMutationProviderOutput<
+      UnassignCollectionProduct,
+      UnassignCollectionProductVariables
+    >;
     updateCollection: PartialMutationProviderOutput<
       CollectionUpdate,
       CollectionUpdateVariables
@@ -48,6 +57,7 @@ interface CollectionUpdateOperationsProps extends MutationProviderProps {
   onHomepageCollectionAssign: (data: AssignHomepageCollection) => void;
   onUpdate: (data: CollectionUpdate) => void;
   onProductAssign: (data: CollectionAssignProduct) => void;
+  onProductUnassign: (data: UnassignCollectionProduct) => void;
   onRemove: (data: RemoveCollection) => void;
 }
 
@@ -58,6 +68,7 @@ const CollectionOperations: React.StatelessComponent<
   onHomepageCollectionAssign,
   onUpdate,
   onProductAssign,
+  onProductUnassign,
   onRemove
 }) => (
   <CollectionUpdateProvider onSuccess={onUpdate}>
@@ -69,33 +80,45 @@ const CollectionOperations: React.StatelessComponent<
               <HomepageCollectionAssignProvider
                 onSuccess={onHomepageCollectionAssign}
               >
-                {assignHomepageCollection =>
-                  children({
-                    assignHomepageCollection: {
-                      data: assignHomepageCollection.data,
-                      loading: assignHomepageCollection.loading,
-                      mutate: variables =>
-                        assignHomepageCollection.mutate({ variables })
-                    },
-                    assignProduct: {
-                      data: assignProduct.data,
-                      loading: assignProduct.loading,
-                      mutate: variables => assignProduct.mutate({ variables })
-                    },
-                    removeCollection: {
-                      data: removeCollection.data,
-                      loading: removeCollection.loading,
-                      mutate: variables =>
-                        removeCollection.mutate({ variables })
-                    },
-                    updateCollection: {
-                      data: updateCollection.data,
-                      loading: updateCollection.loading,
-                      mutate: variables =>
-                        updateCollection.mutate({ variables })
+                {assignHomepageCollection => (
+                  <TypedUnassignCollectionProductMutation
+                    onCompleted={onProductUnassign}
+                  >
+                    {(unassignProduct, unassignProductOpts) =>
+                      children({
+                        assignHomepageCollection: {
+                          data: assignHomepageCollection.data,
+                          loading: assignHomepageCollection.loading,
+                          mutate: variables =>
+                            assignHomepageCollection.mutate({ variables })
+                        },
+                        assignProduct: {
+                          data: assignProduct.data,
+                          loading: assignProduct.loading,
+                          mutate: variables =>
+                            assignProduct.mutate({ variables })
+                        },
+                        removeCollection: {
+                          data: removeCollection.data,
+                          loading: removeCollection.loading,
+                          mutate: variables =>
+                            removeCollection.mutate({ variables })
+                        },
+                        unassignProduct: {
+                          data: unassignProductOpts.data,
+                          loading: unassignProductOpts.loading,
+                          mutate: variables => unassignProduct({ variables })
+                        },
+                        updateCollection: {
+                          data: updateCollection.data,
+                          loading: updateCollection.loading,
+                          mutate: variables =>
+                            updateCollection.mutate({ variables })
+                        }
+                      })
                     }
-                  })
-                }
+                  </TypedUnassignCollectionProductMutation>
+                )}
               </HomepageCollectionAssignProvider>
             )}
           </CollectionAssignProductProvider>

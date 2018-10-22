@@ -1,5 +1,6 @@
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
+import IconButton from "@material-ui/core/IconButton";
 import { withStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
@@ -7,6 +8,7 @@ import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
+import DeleteIcon from "@material-ui/icons/Delete";
 import * as React from "react";
 
 import { PageListProps } from "../../..";
@@ -21,16 +23,23 @@ import { CollectionDetails_collection } from "../../types/CollectionDetails";
 
 export interface CollectionProductsProps extends PageListProps {
   collection: CollectionDetails_collection;
+  onProductUnassign: (id: string, event: React.MouseEvent<any>) => void;
 }
 
-const decorate = withStyles({
+const decorate = withStyles(theme => ({
+  iconCell: {
+    "&:last-child": {
+      paddingRight: 0
+    },
+    width: 48 + theme.spacing.unit / 2
+  },
   tableRow: {
     cursor: "pointer" as "pointer"
   },
   textCenter: {
     textAlign: "center" as "center"
   }
-});
+}));
 const CollectionProducts = decorate<CollectionProductsProps>(
   ({
     classes,
@@ -39,6 +48,7 @@ const CollectionProducts = decorate<CollectionProductsProps>(
     onAdd,
     onNextPage,
     onPreviousPage,
+    onProductUnassign,
     onRowClick,
     pageInfo
   }) => (
@@ -77,6 +87,7 @@ const CollectionProducts = decorate<CollectionProductsProps>(
             <TableCell>
               {i18n.t("Published", { context: "table header" })}
             </TableCell>
+            <TableCell />
           </TableRow>
         </TableHead>
         <TableFooter>
@@ -127,12 +138,19 @@ const CollectionProducts = decorate<CollectionProductsProps>(
                     <Skeleton />
                   )}
                 </TableCell>
+                <TableCell className={classes.iconCell}>
+                  <IconButton
+                    onClick={event => onProductUnassign(product.id, event)}
+                  >
+                    <DeleteIcon color="secondary" />
+                  </IconButton>
+                </TableCell>
               </TableRow>
             ),
             () => (
               <TableRow>
                 <TableCell />
-                <TableCell colSpan={3}>{i18n.t("No products found")}</TableCell>
+                <TableCell colSpan={4}>{i18n.t("No products found")}</TableCell>
               </TableRow>
             )
           )}
