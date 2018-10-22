@@ -6,7 +6,7 @@ from django.utils.translation import pgettext_lazy
 from django_filters import MultipleChoiceFilter, OrderingFilter, RangeFilter
 
 from ..core.filters import SortedFilterSet
-from .models import Product, ProductAttribute
+from .models import Attribute, Product
 
 SORT_BY_FIELDS = OrderedDict([
     ('name', pgettext_lazy('Product list sorting option', 'name')),
@@ -39,12 +39,12 @@ class ProductFilter(SortedFilterSet):
         q_product_attributes = self._get_product_attributes_lookup()
         q_variant_attributes = self._get_variant_attributes_lookup()
         product_attributes = (
-            ProductAttribute.objects.all()
+            Attribute.objects.all()
             .prefetch_related('translations', 'values__translations')
             .filter(q_product_attributes)
             .distinct())
         variant_attributes = (
-            ProductAttribute.objects.all()
+            Attribute.objects.all()
             .prefetch_related('translations', 'values__translations')
             .filter(q_variant_attributes)
             .distinct())
@@ -83,16 +83,17 @@ class ProductFilter(SortedFilterSet):
 
 
 class ProductCategoryFilter(ProductFilter):
-    categories = self.category.get_descendants(include_self=True)
     def __init__(self, *args, **kwargs):
         self.category = kwargs.pop('category')
         super().__init__(*args, **kwargs)
 
     def _get_product_attributes_lookup(self):
-        return Q(product_types__products__category__in=categories)
+        categories = self.category.get_descendants(include_self=True)
+        return Q(product_type__products__category__in=categories)
 
     def _get_variant_attributes_lookup(self):
-        return Q(product_variant_types__products__category__in=categories)
+        categories = self.category.get_descendants(include_self=True)
+        return Q(product_variant_type__products__category__in=categories)
 
 
 class ProductCollectionFilter(ProductFilter):
@@ -101,7 +102,7 @@ class ProductCollectionFilter(ProductFilter):
         super().__init__(*args, **kwargs)
 
     def _get_product_attributes_lookup(self):
-        return Q(product_types__products__collections=self.collection)
+        return Q(product_type__products__collections=self.collection)
 
     def _get_variant_attributes_lookup(self):
-        return Q(product_variant_types__products__collections=self.collection)
+        return Q(product_variant_type__products__collections=self.collection)
