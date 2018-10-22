@@ -132,10 +132,13 @@ NON_EXISTING_EMAIL = 'john.doe@foo.bar'
 USER_WITH_ORDER = 'jennifer.green@example.com'
 EXISTING_NAME = 'Rhonda'
 EXISTING_NAME_FULL = 'rhonda.ayala@example.com'
+EXISTING_NAME_WITHOUT_ADDRESS = 'Brett'
+EXISTING_NAME_FULL_WITHOUT_ADDRESS = 'brett.hendrix@example.com'
 USERS = {EXISTING_EMAIL: 9,
          NON_EXISTING_EMAIL: 870,
          USER_WITH_ORDER: 666,
-         EXISTING_NAME_FULL: 6}
+         EXISTING_NAME_FULL: 6,
+         EXISTING_NAME_FULL_WITHOUT_ADDRESS: 22}
 ORDERS = {USER_WITH_ORDER: {18, 19}}
 
 
@@ -157,6 +160,15 @@ def test_dashboard_search_user_by_email(db, admin_client, customers):
 def test_dashboard_search_user_name(db, admin_client, customers):
     _, users, _ = execute_dashboard_search(admin_client, EXISTING_NAME)
     assert USERS[EXISTING_NAME_FULL] in users
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
+def test_dashboard_search_user_name_without_address(db, admin_client,
+                                                    customers):
+    _, users, _ = execute_dashboard_search(
+        admin_client, EXISTING_NAME_WITHOUT_ADDRESS)
+    assert USERS[EXISTING_NAME_FULL_WITHOUT_ADDRESS] in users
 
 
 @pytest.fixture
