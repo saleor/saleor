@@ -3,7 +3,7 @@ export const shop = (placeholderImage: string) => ({
     {
       action: "published",
       admin: false,
-      date: "2018-09-17T13:22:24.376193+00:00",
+      date: "2018-09-10T13:22:24.376193+00:00",
       elementName: "Tępa Podkowa",
       id: "1",
       newElement: "collection",
@@ -12,7 +12,7 @@ export const shop = (placeholderImage: string) => ({
     {
       action: "published",
       admin: false,
-      date: "2018-09-18T13:22:24.376193+00:00",
+      date: "2018-10-18T13:22:24.376193+00:00",
       elementName: "Porwania",
       id: "2",
       newElement: "category",
