@@ -25,9 +25,13 @@ interface HomeProductListCardProps {
 }
 
 const decorate = withStyles({
+  loadingProducts: {
+    paddingBottom: "8px",
+    paddingTop: "7px"
+  },
   noProducts: {
-    paddingBottom: "18px",
-    paddingTop: "18px"
+    paddingBottom: "14px",
+    paddingTop: "14px"
   }
 });
 
@@ -64,8 +68,10 @@ const HomeProductListCard = decorate<HomeProductListCardProps>(
                     }
                   />
                 ) : (
-                  <ListItemText>
-                    <Skeleton />
+                  <ListItemText className={classes.loadingProducts}>
+                    <Typography>
+                      <Skeleton />
+                    </Typography>
                   </ListItemText>
                 )}
               </ListItem>

@@ -41,7 +41,7 @@ export const shop = (placeholderImage: string) => ({
       amount: 1223
     },
     sales: {
-      amount: 125,
+      amount: 12325,
       currency: "PLN"
     }
   },
