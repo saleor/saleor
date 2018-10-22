@@ -115,8 +115,7 @@ def transfer_payments_to_payment_methods(apps, schema_editor):
             extra_data=extra_data,
             token=pay.token,
             captured_amount=Money(pay.captured_amount, pay.currency),
-            total_gross=Money(pay.total, pay.currency),
-            total_net=Money(pay.total - pay.tax, pay.currency),
+            total=Money(pay.total, pay.currency),
             is_active=get_is_active(pay.status),
             charge_status=get_charge_status(pay))
         create_transactions(payment_method, pay)
