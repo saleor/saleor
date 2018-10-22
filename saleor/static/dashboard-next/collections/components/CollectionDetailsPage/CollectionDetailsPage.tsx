@@ -31,6 +31,7 @@ export interface CollectionDetailsPageProps extends PageListProps {
   onCollectionRemove: () => void;
   onImageDelete: () => void;
   onImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onProductUnassign: (id: string, event: React.MouseEvent<any>) => void;
   onSubmit: (data: CollectionDetailsPageFormData) => void;
 }
 
@@ -52,7 +53,7 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
     onImageDelete,
     onImageUpload,
     onSubmit,
-    ...pageListProps
+    ...collectionProductsProps
   }) => (
     <Form
       initial={{
@@ -86,7 +87,7 @@ const CollectionDetailsPage = decorate<CollectionDetailsPageProps>(
               <CollectionProducts
                 disabled={disabled}
                 collection={collection}
-                {...pageListProps}
+                {...collectionProductsProps}
               />
               <CardSpacer />
               <SeoForm

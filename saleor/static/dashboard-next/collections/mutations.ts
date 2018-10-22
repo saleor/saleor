@@ -22,6 +22,10 @@ import {
   RemoveCollection,
   RemoveCollectionVariables
 } from "./types/RemoveCollection";
+import {
+  UnassignCollectionProduct,
+  UnassignCollectionProductVariables
+} from "./types/UnassignCollectionProduct";
 
 const collectionUpdate = gql`
   ${collectionDetailsFragment}
@@ -63,11 +67,38 @@ export const TypedAssignHomepageCollectionMutation = TypedMutation<
 >(assignHomepageCollection);
 
 const assignCollectionProduct = gql`
-  mutation CollectionAssignProduct($collectionId: ID!, $productId: ID!) {
+  mutation CollectionAssignProduct(
+    $collectionId: ID!
+    $productId: ID!
+    $first: Int!
+  ) {
     collectionAddProducts(collectionId: $collectionId, products: [$productId]) {
       errors {
         field
         message
+      }
+      collection {
+        id
+        products(first: $first) {
+          edges {
+            node {
+              id
+              isPublished
+              name
+              productType {
+                id
+                name
+              }
+              thumbnailUrl
+            }
+          }
+          pageInfo {
+            endCursor
+            hasNextPage
+            hasPreviousPage
+            startCursor
+          }
+        }
       }
     }
   }
@@ -110,3 +141,51 @@ export const TypedCollectionRemoveMutation = TypedMutation<
   RemoveCollection,
   RemoveCollectionVariables
 >(removeCollection);
+
+const unassignCollectionProduct = gql`
+  mutation UnassignCollectionProduct(
+    $collectionId: ID!
+    $productId: ID!
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
+  ) {
+    collectionRemoveProducts(
+      collectionId: $collectionId
+      products: [$productId]
+    ) {
+      errors {
+        field
+        message
+      }
+      collection {
+        id
+        products(first: $first, after: $after, before: $before, last: $last) {
+          edges {
+            node {
+              id
+              isPublished
+              name
+              productType {
+                id
+                name
+              }
+              thumbnailUrl
+            }
+          }
+          pageInfo {
+            endCursor
+            hasNextPage
+            hasPreviousPage
+            startCursor
+          }
+        }
+      }
+    }
+  }
+`;
+export const TypedUnassignCollectionProductMutation = TypedMutation<
+  UnassignCollectionProduct,
+  UnassignCollectionProductVariables
+>(unassignCollectionProduct);
