@@ -6,6 +6,8 @@ import CardSpacer from "../../../components/CardSpacer";
 import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
+import HomeNotificationTable from "../HomeNotificationTable";
+import HomeOrdersCard from "../HomeOrdersCard";
 import HomeSalesCard from "../HomeSalesCard";
 
 interface MoneyType {
@@ -13,10 +15,23 @@ interface MoneyType {
   currency: string;
 }
 export interface DashboardProps {
-  daily?: {
-    sales?: MoneyType;
+  daily: {
+    orders: {
+      amount: number;
+    };
+    sales: MoneyType;
+  };
+  notifications: {
+    orders: number;
+    payments: number;
+    problems: number;
+    productsOut: number;
   };
   ownerName: string;
+  toOrders: () => void;
+  toPayments: () => void;
+  toProblems: () => void;
+  toProductsOut: () => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -39,36 +54,54 @@ const decorate = withStyles(theme => ({
     }
   }
 }));
-const Dashboard = decorate<DashboardProps>(({ ownerName, classes, daily }) => {
-  return (
-    <Container width="md">
-      <PageHeader
-        className={classes.displayBlock}
-        title={i18n.t("Hello there, {{userName}}", { userName: ownerName })}
-      >
-        <Typography component="span">
-          {i18n.t("Here are some information we gathered about your store")}
-        </Typography>
-      </PageHeader>
+const Dashboard = decorate<DashboardProps>(
+  ({
+    ownerName,
+    classes,
+    daily,
+    notifications,
+    toOrders,
+    toPayments,
+    toProblems,
+    toProductsOut
+  }) => {
+    return (
+      <Container width="md">
+        <PageHeader
+          className={classes.displayBlock}
+          title={i18n.t("Hello there, {{userName}}", { userName: ownerName })}
+        >
+          <Typography component="span">
+            {i18n.t("Here are some information we gathered about your store")}
+          </Typography>
+        </PageHeader>
 
-      <div className={classes.root}>
-        <div>
-          <div className={classes.flexbox}>
-            <HomeSalesCard disabled={false} title={"Sales"} daily={daily} />
-            <Card>Orders</Card>
+        <div className={classes.root}>
+          <div>
+            <div className={classes.flexbox}>
+              <HomeSalesCard disabled={false} title={"Sales"} daily={daily} />
+              <HomeOrdersCard disabled={false} title={"Orders"} daily={daily} />
+            </div>
+
+            <CardSpacer />
+            <HomeNotificationTable
+              disabled={false}
+              notifications={notifications}
+              toOrders={toOrders}
+              toPayments={toPayments}
+              toProblems={toProblems}
+              toProductsOut={toProductsOut}
+            />
+            <CardSpacer />
+            <Card>ProductListCard</Card>
+            <CardSpacer />
           </div>
-
-          <CardSpacer />
-          <Card>Notification</Card>
-          <CardSpacer />
-          <Card>ProductListCard</Card>
-          <CardSpacer />
+          <div>
+            <Card>HomeActivityCard</Card>
+          </div>
         </div>
-        <div>
-          <Card>HomeActivityCard</Card>
-        </div>
-      </div>
-    </Container>
-  );
-});
+      </Container>
+    );
+  }
+);
 export default Dashboard;
