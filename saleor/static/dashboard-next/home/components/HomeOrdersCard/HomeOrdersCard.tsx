@@ -40,6 +40,7 @@ const decorate = withStyles(theme => ({
     [theme.breakpoints.down("sm")]: {
       marginLeft: `${theme.spacing.unit * 0.5}px`
     },
+    overflow: "initial" as "initial",
     width: "100%"
   },
   icon: {
@@ -70,7 +71,7 @@ const HomeOrdersCard = decorate<HomeOrdersCardProps>(
             >
               {i18n.t("Today")}
             </Typography>
-            <Typography color={"textPrimary"} variant="display1">
+            <Typography color={"textPrimary"} variant="headline">
               {daily && daily.orders ? daily.orders.amount : <Skeleton />}
             </Typography>
           </div>

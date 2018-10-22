@@ -30,9 +30,7 @@ const decorate = withStyles(theme => ({
     },
     display: "grid" as "grid",
     gridColumnGap: theme.spacing.unit * 1 + "px",
-    gridTemplateColumns: "minmax(min-content, 5fr) 70px",
-    minHeight: "0",
-    minWidth: "0"
+    gridTemplateColumns: "minmax(min-content, 5fr) 70px"
   },
 
   cardSubtitle: {
@@ -49,6 +47,7 @@ const decorate = withStyles(theme => ({
     [theme.breakpoints.down("sm")]: {
       marginRight: `${theme.spacing.unit * 0.5}px`
     },
+    overflow: "initial" as "initial",
     width: "100%"
   },
   icon: {
@@ -75,7 +74,7 @@ const HomeSalesCard = decorate<HomeSalesCardProps>(
             <Typography className={classes.cardSubtitle} variant="caption">
               {i18n.t("Today")}
             </Typography>
-            <Typography color={"textPrimary"} variant="display1">
+            <Typography color={"textPrimary"} variant="headline">
               {daily &&
               daily.sales &&
               daily.sales.amount !== undefined &&
