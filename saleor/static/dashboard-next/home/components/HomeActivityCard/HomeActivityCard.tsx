@@ -5,8 +5,8 @@ import ListItemText from "@material-ui/core/ListItemText";
 import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
-import Moment from "react-moment";
 import CardTitle from "../../../components/CardTitle";
+import DateFormatter from "../../../components/DateFormatter";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 import { renderCollection } from "../../../misc";
@@ -61,11 +61,7 @@ const HomeProductListCard = decorate<HomeProductListCardProps>(
                         }}
                       />
                     }
-                    secondary={
-                      <Moment format="MMM D, YYYY [at] HH:mm ">
-                        {activity.date}
-                      </Moment>
-                    }
+                    secondary={<DateFormatter date={activity.date} />}
                   />
                 ) : (
                   <ListItemText className={classes.loadingProducts}>
