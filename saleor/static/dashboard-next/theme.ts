@@ -1,4 +1,5 @@
 import { createMuiTheme } from "@material-ui/core/styles";
+import spacing from "@material-ui/core/styles/spacing";
 
 const createShadow = (pv, pb, ps, uv, ub, us, av, ab, as) =>
   [
@@ -16,6 +17,17 @@ export const ICONBUTTON_SIZE = 48;
 
 export default createMuiTheme({
   overrides: {
+    MuiAvatar: {
+      colorDefault: {
+        backgroundColor: "none",
+        color: "#bdbdbd"
+      },
+      root: {
+        border: "1px solid #eaeaea",
+        borderRadius: 2,
+        padding: spacing.unit / 2
+      }
+    },
     MuiButton: {
       label: {
         fontWeight: 600
