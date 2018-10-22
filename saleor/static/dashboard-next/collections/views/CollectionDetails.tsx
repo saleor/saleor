@@ -152,9 +152,10 @@ export const CollectionDetails: React.StatelessComponent<
                               }
                             });
                             if (
+                              data.shop.homepageCollection !== null &&
                               formData.isFeatured !==
-                              (data.shop.homepageCollection.id ===
-                                data.collection.id)
+                                (data.shop.homepageCollection.id ===
+                                  data.collection.id)
                             ) {
                               assignHomepageCollection.mutate({
                                 id: formData.isFeatured ? id : null
