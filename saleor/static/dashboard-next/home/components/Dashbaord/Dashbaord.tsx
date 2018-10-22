@@ -1,11 +1,10 @@
 import { withStyles } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
 import * as React from "react";
+
 import CardSpacer from "../../../components/CardSpacer";
 import Container from "../../../components/Container";
-import PageHeader from "../../../components/PageHeader";
-import i18n from "../../../i18n";
 import HomeActivityCard from "../HomeActivityCard";
+import HomeHeader from "../HomeHeader";
 import HomeOrdersCard from "../HomeOrdersCard";
 import HomeProductListCard from "../HomeProductListCard";
 import HomeSalesCard from "../HomeSalesCard";
@@ -31,7 +30,7 @@ export interface DashboardProps {
     sales: MoneyType;
   };
   onRowClick: () => undefined;
-  ownerName: string;
+  userName: string;
   topProducts: Array<{
     id: string;
     name: string;
@@ -63,18 +62,11 @@ const decorate = withStyles(theme => ({
   }
 }));
 const Dashboard = decorate<DashboardProps>(
-  ({ ownerName, classes, daily, topProducts, onRowClick, activities }) => {
+  ({ userName, classes, daily, topProducts, onRowClick, activities }) => {
     return (
       <Container width="md">
-        <PageHeader
-          className={classes.displayBlock}
-          title={i18n.t("Hello there, {{userName}}", { userName: ownerName })}
-        >
-          <Typography component="span">
-            {i18n.t("Here are some information we gathered about your store")}
-          </Typography>
-        </PageHeader>
-
+        <HomeHeader userName={userName} />
+        <CardSpacer />
         <div className={classes.root}>
           <div>
             <div className={classes.flexbox}>
