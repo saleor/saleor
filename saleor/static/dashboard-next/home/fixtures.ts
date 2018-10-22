@@ -4,28 +4,28 @@ export const shop = (placeholderImage: string) => ({
       action: "published",
       admin: false,
       date: "2018-09-10T13:22:24.376193+00:00",
-      elementName: "Tępa Podkowa",
+      elementName: "Cool socks",
       id: "1",
       newElement: "collection",
-      user: "Maćko z Bogdańca"
+      user: "user1234"
     },
     {
       action: "published",
       admin: false,
       date: "2018-10-18T13:22:24.376193+00:00",
-      elementName: "Porwania",
+      elementName: "books",
       id: "2",
       newElement: "category",
-      user: "Danusia Jurandówna"
+      user: "user4321"
     },
     {
       action: "created",
       admin: false,
       date: "2018-09-19T13:22:24.376193+00:00",
-      elementName: "Legiony polskie",
+      elementName: "Smooth jazz",
       id: "3",
       newElement: "collection",
-      user: "Ksiądz Robak"
+      user: "user1432"
     },
     {
       action: "added",
@@ -33,7 +33,7 @@ export const shop = (placeholderImage: string) => ({
       date: "2018-09-20T13:22:24.376193+00:00",
       id: "4",
       newElement: "user",
-      user: "Tadeusz Soplica"
+      user: "user9977"
     }
   ],
   daily: {
@@ -98,5 +98,5 @@ export const shop = (placeholderImage: string) => ({
       variant: "Hardcover"
     }
   ],
-  userName: "Zbyszko z Bogdańca"
+  userName: "John Smith"
 });
