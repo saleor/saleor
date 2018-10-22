@@ -8900,29 +8900,39 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
       <div
         class="Component-root-id"
       >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
         <h2
           class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
         >
-          Music
+          Summer collection
         </h2>
         <div
           class="Component-action-id"
-        >
-          <button
-            class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
-            tabindex="0"
-            type="button"
-          >
-            <span
-              class="MuiButton-label-id"
-            >
-              Show on storefront
-            </span>
-            <span
-              class="MuiTouchRipple-root-id"
-            />
-          </button>
-        </div>
+        />
       </div>
       <div
         class="Component-root-id"
@@ -8932,10 +8942,28 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
             class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                General information
+              </span>
+              <div
+                class="Component-toolbar-id"
+              />
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
               class="MuiCardContent-root-id"
             >
               <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                class="MuiFormControl-root-id Component-name-id"
               >
                 <label
                   class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
@@ -8944,74 +8972,24 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                   Name
                 </label>
                 <div
-                  class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+                  class="MuiInput-root-id MuiInput-formControl-id MuiInput-underline-id"
                 >
                   <input
                     aria-invalid="false"
                     class="MuiInput-input-id"
                     name="name"
                     type="text"
-                    value="Music"
+                    value="Summer collection"
                   />
                 </div>
-              </div>
-              <div
-                class="Component-spacer-id"
-              />
-              <img
-                class="Component-image-id"
-                src="summer.jpg"
-              />
-              <span
-                class="MuiTypography-root-id MuiTypography-caption-id Component-link-id"
-              >
-                Remove
-              </span>
-              <div
-                class="Component-spacer-id"
-              />
-              <div
-                class="Component-root-id"
-              >
-                <input
-                  class="Component-fileUploadField-id"
-                  name="backgroundImage"
-                  type="file"
-                  value=""
-                />
-                <div
-                  class="MuiFormControl-root-id Component-textField-id"
-                >
-                  <div
-                    class="MuiInput-root-id MuiInput-formControl-id MuiInput-underline-id"
-                  >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInput-input-id"
-                      type="text"
-                      value=""
-                    />
-                  </div>
-                </div>
-                <button
-                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id"
-                  tabindex="0"
-                  type="button"
-                >
-                  <span
-                    class="MuiButton-label-id"
-                  >
-                    Upload
-                  </span>
-                  <span
-                    class="MuiTouchRipple-root-id"
-                  />
-                </button>
               </div>
             </div>
           </div>
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-root-id"
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="Component-root-id"
@@ -9019,7 +8997,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
               >
-                Products
+                Background image (optional)
               </span>
               <div
                 class="Component-toolbar-id"
@@ -9032,7 +9010,97 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                   <span
                     class="MuiButton-label-id"
                   >
-                    Add product
+                    Upload image
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </button>
+                <input
+                  class="CollectionImageComponent-fileField-id"
+                  id="fileUpload"
+                  type="file"
+                />
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="Component-imageContainer-id"
+              >
+                <div
+                  class="Component-imageOverlay-id"
+                >
+                  <div
+                    class="Component-imageOverlayToolbar-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          viewBox="0 0 24 24"
+                        >
+                          <g>
+                            <path
+                              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                            />
+                          </g>
+                        </svg>
+                      </span>
+                      <span
+                        class="MuiTouchRipple-root-id"
+                      />
+                    </button>
+                  </div>
+                </div>
+                <img
+                  class="Component-image-id"
+                  src="block1.jpg"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Products in Summer collection
+              </span>
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Assign product
                   </span>
                   <span
                     class="MuiTouchRipple-root-id"
@@ -9059,21 +9127,29 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id"
                     scope="col"
+                  />
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
                   >
                     Name
                   </th>
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    class="MuiTableCell-root-id MuiTableCell-head-id Component-textCenter-id"
                     scope="col"
                   >
-                    SKU
+                    Type
                   </th>
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id"
                     scope="col"
                   >
-                    Status
+                    Published
                   </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  />
                 </tr>
               </thead>
               <tfoot
@@ -9084,7 +9160,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                 >
                   <td
                     class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
-                    colspan="3"
+                    colspan="4"
                   >
                     <div
                       class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
@@ -9117,9 +9193,8 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                           </span>
                         </button>
                         <button
-                          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
-                          disabled=""
-                          tabindex="-1"
+                          class="MuiButtonBase-root-id MuiIconButton-root-id"
+                          tabindex="0"
                           type="button"
                         >
                           <span
@@ -9136,6 +9211,9 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                               />
                             </svg>
                           </span>
+                          <span
+                            class="MuiTouchRipple-root-id"
+                          />
                         </button>
                       </div>
                     </div>
@@ -9146,17 +9224,29 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                 class="MuiTableBody-root-id"
               >
                 <tr
-                  class="MuiTableRow-root-id"
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                   >
-                    Incredible Frozen Cheese
+                    <div
+                      class="MuiAvatar-root-id Component-avatar-id"
+                    >
+                      <img
+                        class="MuiAvatar-img-id"
+                        src="placeholder60x60.png"
+                      />
+                    </div>
                   </td>
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
-                    88720
+                    Murray Inc
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-textCenter-id"
+                  >
+                    Mugs
                   </td>
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -9167,65 +9257,60 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                       Published
                     </div>
                   </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-iconCell-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSvgIcon-colorSecondary-id"
+                          focusable="false"
+                          viewBox="0 0 24 24"
+                        >
+                          <g>
+                            <path
+                              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                            />
+                          </g>
+                        </svg>
+                      </span>
+                      <span
+                        class="MuiTouchRipple-root-id"
+                      />
+                    </button>
+                  </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root-id"
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                  >
-                    Unbranded Granite Mouse
-                  </td>
-                  <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
-                  >
-                    40275
-                  </td>
-                  <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                   >
                     <div
-                      class="Component-root-id undefined Component-errorDot-id"
+                      class="MuiAvatar-root-id Component-avatar-id"
                     >
-                      Not published
+                      <img
+                        class="MuiAvatar-img-id"
+                        src="placeholder60x60.png"
+                      />
                     </div>
                   </td>
-                </tr>
-                <tr
-                  class="MuiTableRow-root-id"
-                >
-                  <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                  >
-                    Tasty Fresh Cheese
-                  </td>
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
-                    22544
+                    Williams-Taylor
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-textCenter-id"
                   >
-                    <div
-                      class="Component-root-id undefined Component-successDot-id"
-                    >
-                      Published
-                    </div>
-                  </td>
-                </tr>
-                <tr
-                  class="MuiTableRow-root-id"
-                >
-                  <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-                  >
-                    Sleek Fresh Table
-                  </td>
-                  <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
-                  >
-                    12875
+                    Coffee
                   </td>
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -9236,19 +9321,60 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                       Published
                     </div>
                   </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-iconCell-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSvgIcon-colorSecondary-id"
+                          focusable="false"
+                          viewBox="0 0 24 24"
+                        >
+                          <g>
+                            <path
+                              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                            />
+                          </g>
+                        </svg>
+                      </span>
+                      <span
+                        class="MuiTouchRipple-root-id"
+                      />
+                    </button>
+                  </td>
                 </tr>
                 <tr
-                  class="MuiTableRow-root-id"
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
                   >
-                    Licensed Frozen Salad
+                    <div
+                      class="MuiAvatar-root-id Component-avatar-id"
+                    >
+                      <img
+                        class="MuiAvatar-img-id"
+                        src="placeholder60x60.png"
+                      />
+                    </div>
                   </td>
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
                   >
-                    11442
+                    Hebert-Sherman
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-textCenter-id"
+                  >
+                    Coffee
                   </td>
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -9258,13 +9384,106 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
                     >
                       Published
                     </div>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-iconCell-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSvgIcon-colorSecondary-id"
+                          focusable="false"
+                          viewBox="0 0 24 24"
+                        >
+                          <g>
+                            <path
+                              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                            />
+                          </g>
+                        </svg>
+                      </span>
+                      <span
+                        class="MuiTouchRipple-root-id"
+                      />
+                    </button>
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+                  >
+                    <div
+                      class="MuiAvatar-root-id Component-avatar-id"
+                    >
+                      <img
+                        class="MuiAvatar-img-id"
+                        src="placeholder60x60.png"
+                      />
+                    </div>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    Estes, Johnson and Graham
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-textCenter-id"
+                  >
+                    Books
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    <div
+                      class="Component-root-id undefined Component-successDot-id"
+                    >
+                      Published
+                    </div>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-iconCell-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSvgIcon-colorSecondary-id"
+                          focusable="false"
+                          viewBox="0 0 24 24"
+                        >
+                          <g>
+                            <path
+                              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                            />
+                          </g>
+                        </svg>
+                      </span>
+                      <span
+                        class="MuiTouchRipple-root-id"
+                      />
+                    </button>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
           <div
-            class="Component-cardSpacer-id"
+            class="Component-spacer-id"
           />
           <div
             class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
@@ -9314,95 +9533,114 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
           </div>
         </div>
         <div>
-          <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-root-id"
-          >
+          <div>
             <div
-              class="Component-root-id"
+              class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
             >
-              <span
-                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
-              >
-                Properties
-              </span>
               <div
-                class="Component-toolbar-id"
-              />
-            </div>
-            <div
-              class="Component-children-id"
-            />
-            <hr
-              class="Component-hr-id"
-            />
-            <div
-              class="MuiCardContent-root-id"
-            >
-              <label
-                class="MuiFormControlLabel-root-id"
+                class="Component-root-id"
               >
                 <span
-                  class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiSwitchBase-checked-id MuiCheckbox-checked-id"
+                  class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+                >
+                  Availability
+                </span>
+                <div
+                  class="Component-toolbar-id"
+                />
+              </div>
+              <div
+                class="Component-children-id"
+              />
+              <hr
+                class="Component-hr-id"
+              />
+              <div
+                class="MuiCardContent-root-id"
+              >
+                <label
+                  class="MuiFormControlLabel-root-id"
                 >
                   <span
-                    class="MuiIconButton-label-id"
+                    class="MuiSwitch-root-id"
                   >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      viewBox="0 0 24 24"
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiSwitchBase-checked-id MuiSwitch-checked-id"
                     >
-                      <path
-                        d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <span
+                          class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
+                        />
+                        <input
+                          checked=""
+                          class="MuiSwitchBase-input-id"
+                          name="isPublished"
+                          type="checkbox"
+                        />
+                      </span>
+                      <span
+                        class="MuiTouchRipple-root-id"
                       />
-                    </svg>
-                    <input
-                      checked=""
-                      class="MuiSwitchBase-input-id"
-                      name="isPublished"
-                      type="checkbox"
+                    </span>
+                    <span
+                      class="MuiSwitch-bar-id"
                     />
                   </span>
                   <span
-                    class="MuiTouchRipple-root-id"
-                  />
-                </span>
-                <span
-                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
-                >
-                  Published
-                </span>
-              </label>
-              <div
-                class="Component-spacer-id"
-              />
-              <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
-              >
-                <label
-                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
-                  data-shrink="true"
-                >
-                  Slug
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                  >
+                    <div
+                      class="Component-label-id"
+                    >
+                      Publish on storefront
+                    </div>
+                  </span>
                 </label>
                 <div
-                  class="MuiInput-root-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+                  class="Component-spacer-id"
+                />
+                <label
+                  class="MuiFormControlLabel-root-id"
                 >
-                  <input
-                    aria-invalid="false"
-                    class="MuiInput-input-id"
-                    name="slug"
-                    placeholder="Music"
-                    type="text"
-                    value="Music"
-                  />
-                </div>
-                <p
-                  class="MuiFormHelperText-root-id MuiFormHelperText-filled-id"
-                >
-                  Slugs are used to create nice URLs for collection pages
-                </p>
+                  <span
+                    class="MuiSwitch-root-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiSwitchBase-checked-id MuiSwitch-checked-id"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <span
+                          class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
+                        />
+                        <input
+                          checked=""
+                          class="MuiSwitchBase-input-id"
+                          name="isFeatured"
+                          type="checkbox"
+                        />
+                      </span>
+                      <span
+                        class="MuiTouchRipple-root-id"
+                      />
+                    </span>
+                    <span
+                      class="MuiSwitch-bar-id"
+                    />
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                  >
+                    <div
+                      class="Component-label-id"
+                    >
+                      Feature on Homepage
+                    </div>
+                  </span>
+                </label>
               </div>
             </div>
           </div>
@@ -9460,7 +9698,7 @@ exports[`Storyshots Views / Collections / Collection details default 1`] = `
 </div>
 `;
 
-exports[`Storyshots Views / Collections / Collection details when loading 1`] = `
+exports[`Storyshots Views / Collections / Collection details loading 1`] = `
 <div>
   <form>
     <div
@@ -9469,6 +9707,31 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
       <div
         class="Component-root-id"
       >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
         <h2
           class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
         >
@@ -9481,20 +9744,7 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
         </h2>
         <div
           class="Component-action-id"
-        >
-          <button
-            class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id"
-            disabled=""
-            tabindex="-1"
-            type="button"
-          >
-            <span
-              class="MuiButton-label-id"
-            >
-              Show on storefront
-            </span>
-          </button>
-        </div>
+        />
       </div>
       <div
         class="Component-root-id"
@@ -9504,10 +9754,28 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
             class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                General information
+              </span>
+              <div
+                class="Component-toolbar-id"
+              />
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
               class="MuiCardContent-root-id"
             >
               <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                class="MuiFormControl-root-id Component-name-id"
               >
                 <label
                   class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
@@ -9516,7 +9784,7 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
                   Name
                 </label>
                 <div
-                  class="MuiInput-root-id MuiInput-disabled-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+                  class="MuiInput-root-id MuiInput-disabled-id MuiInput-formControl-id MuiInput-underline-id"
                 >
                   <input
                     aria-invalid="false"
@@ -9524,63 +9792,16 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
                     disabled=""
                     name="name"
                     type="text"
-                    value=""
                   />
                 </div>
-              </div>
-              <div
-                class="Component-spacer-id"
-              />
-              <span
-                class="Skeleton-skeleton-id"
-              >
-                ‌
-              </span>
-              <div
-                class="Component-spacer-id"
-              />
-              <div
-                class="Component-root-id"
-              >
-                <input
-                  class="Component-fileUploadField-id"
-                  disabled=""
-                  name="backgroundImage"
-                  type="file"
-                  value=""
-                />
-                <div
-                  class="MuiFormControl-root-id Component-textField-id"
-                >
-                  <div
-                    class="MuiInput-root-id MuiInput-disabled-id MuiInput-formControl-id MuiInput-underline-id"
-                  >
-                    <input
-                      aria-invalid="false"
-                      class="MuiInput-input-id MuiInput-disabled-id"
-                      disabled=""
-                      type="text"
-                      value=""
-                    />
-                  </div>
-                </div>
-                <button
-                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id MuiButton-disabled-id"
-                  disabled=""
-                  tabindex="-1"
-                  type="button"
-                >
-                  <span
-                    class="MuiButton-label-id"
-                  >
-                    Upload
-                  </span>
-                </button>
               </div>
             </div>
           </div>
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-root-id"
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="Component-root-id"
@@ -9588,7 +9809,71 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
               >
-                Products
+                Background image (optional)
+              </span>
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Upload image
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </button>
+                <input
+                  class="CollectionImageComponent-fileField-id"
+                  id="fileUpload"
+                  type="file"
+                />
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div>
+                <div
+                  class="CollectionImageComponent-imageContainer-id"
+                >
+                  <span
+                    class="Skeleton-skeleton-id"
+                  >
+                    ‌
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                <span
+                  class="Skeleton-skeleton-id"
+                >
+                  ‌
+                </span>
               </span>
               <div
                 class="Component-toolbar-id"
@@ -9602,7 +9887,7 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
                   <span
                     class="MuiButton-label-id"
                   >
-                    Add product
+                    Assign product
                   </span>
                 </button>
               </div>
@@ -9626,21 +9911,29 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id"
                     scope="col"
+                  />
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
                   >
                     Name
                   </th>
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    class="MuiTableCell-root-id MuiTableCell-head-id Component-textCenter-id"
                     scope="col"
                   >
-                    SKU
+                    Type
                   </th>
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id"
                     scope="col"
                   >
-                    Status
+                    Published
                   </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  />
                 </tr>
               </thead>
               <tfoot
@@ -9651,7 +9944,7 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
                 >
                   <td
                     class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
-                    colspan="3"
+                    colspan="4"
                   >
                     <div
                       class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
@@ -9684,9 +9977,8 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
                           </span>
                         </button>
                         <button
-                          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
-                          disabled=""
-                          tabindex="-1"
+                          class="MuiButtonBase-root-id MuiIconButton-root-id"
+                          tabindex="0"
                           type="button"
                         >
                           <span
@@ -9703,6 +9995,9 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
                               />
                             </svg>
                           </span>
+                          <span
+                            class="MuiTouchRipple-root-id"
+                          />
                         </button>
                       </div>
                     </div>
@@ -9713,10 +10008,39 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
                 class="MuiTableBody-root-id"
               >
                 <tr
-                  class="MuiTableRow-root-id"
+                  class="MuiTableRow-root-id Component-tableRow-id"
                 >
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-root-id"
+                  >
+                    <div
+                      class="MuiAvatar-root-id MuiAvatar-colorDefault-id Component-avatar-id"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root-id"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <g>
+                          <path
+                            d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
+                          />
+                        </g>
+                      </svg>
+                    </div>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  >
+                    <span
+                      class="Skeleton-skeleton-id"
+                    >
+                      ‌
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-textCenter-id"
                   >
                     <span
                       class="Skeleton-skeleton-id"
@@ -9734,20 +10058,40 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
                     </span>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id Component-iconCell-id"
                   >
-                    <span
-                      class="Skeleton-skeleton-id"
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id"
+                      tabindex="0"
+                      type="button"
                     >
-                      ‌
-                    </span>
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSvgIcon-colorSecondary-id"
+                          focusable="false"
+                          viewBox="0 0 24 24"
+                        >
+                          <g>
+                            <path
+                              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                            />
+                          </g>
+                        </svg>
+                      </span>
+                      <span
+                        class="MuiTouchRipple-root-id"
+                      />
+                    </button>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
           <div
-            class="Component-cardSpacer-id"
+            class="Component-spacer-id"
           />
           <div
             class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
@@ -9797,8 +10141,217 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
           </div>
         </div>
         <div>
+          <div>
+            <div
+              class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+            >
+              <div
+                class="Component-root-id"
+              >
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+                >
+                  Availability
+                </span>
+                <div
+                  class="Component-toolbar-id"
+                />
+              </div>
+              <div
+                class="Component-children-id"
+              />
+              <hr
+                class="Component-hr-id"
+              />
+              <div
+                class="MuiCardContent-root-id"
+              >
+                <label
+                  class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+                >
+                  <span
+                    class="MuiSwitch-root-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiSwitchBase-disabled-id MuiSwitch-disabled-id"
+                      tabindex="-1"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <span
+                          class="MuiSwitch-icon-id"
+                        />
+                        <input
+                          class="MuiSwitchBase-input-id"
+                          disabled=""
+                          name="isPublished"
+                          type="checkbox"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiSwitch-bar-id"
+                    />
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                  >
+                    <div
+                      class="Component-label-id"
+                    >
+                      Publish on storefront
+                    </div>
+                  </span>
+                </label>
+                <div
+                  class="Component-spacer-id"
+                />
+                <label
+                  class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+                >
+                  <span
+                    class="MuiSwitch-root-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiSwitchBase-checked-id MuiSwitch-checked-id MuiSwitchBase-disabled-id MuiSwitch-disabled-id"
+                      tabindex="-1"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <span
+                          class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
+                        />
+                        <input
+                          checked=""
+                          class="MuiSwitchBase-input-id"
+                          disabled=""
+                          name="isFeatured"
+                          type="checkbox"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiSwitch-bar-id"
+                    />
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                  >
+                    <div
+                      class="Component-label-id"
+                    >
+                      Feature on Homepage
+                    </div>
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-contained-id MuiButton-raised-id Component-deleteButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Remove
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <div
+          class="Component-spacer-id"
+        />
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id Component-cancelButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Cancel
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Save
+          </span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Collections / Collection details no products 1`] = `
+<div>
+  <form>
+    <div
+      class="Component-md-id"
+    >
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
+        >
+          Summer collection
+        </h2>
+        <div
+          class="Component-action-id"
+        />
+      </div>
+      <div
+        class="Component-root-id"
+      >
+        <div>
           <div
-            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id Component-root-id"
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
           >
             <div
               class="Component-root-id"
@@ -9806,7 +10359,7 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
               <span
                 class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
               >
-                Properties
+                General information
               </span>
               <div
                 class="Component-toolbar-id"
@@ -9821,70 +10374,439 @@ exports[`Storyshots Views / Collections / Collection details when loading 1`] = 
             <div
               class="MuiCardContent-root-id"
             >
-              <label
-                class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
-              >
-                <span
-                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiSwitchBase-root-id MuiCheckbox-root-id MuiCheckbox-colorPrimary-id MuiSwitchBase-disabled-id MuiCheckbox-disabled-id"
-                  tabindex="-1"
-                >
-                  <span
-                    class="MuiIconButton-label-id"
-                  >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root-id"
-                      focusable="false"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
-                      />
-                    </svg>
-                    <input
-                      class="MuiSwitchBase-input-id"
-                      disabled=""
-                      name="isPublished"
-                      type="checkbox"
-                    />
-                  </span>
-                </span>
-                <span
-                  class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
-                >
-                  Published
-                </span>
-              </label>
               <div
-                class="Component-spacer-id"
-              />
-              <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                class="MuiFormControl-root-id Component-name-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
-                  data-shrink="false"
+                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id"
+                  data-shrink="true"
                 >
-                  Slug
+                  Name
                 </label>
                 <div
-                  class="MuiInput-root-id MuiInput-disabled-id MuiInput-fullWidth-id MuiInput-formControl-id MuiInput-underline-id"
+                  class="MuiInput-root-id MuiInput-disabled-id MuiInput-formControl-id MuiInput-underline-id"
                 >
                   <input
                     aria-invalid="false"
                     class="MuiInput-input-id MuiInput-disabled-id"
                     disabled=""
-                    name="slug"
-                    placeholder=""
+                    name="name"
                     type="text"
-                    value=""
+                    value="Summer collection"
                   />
                 </div>
-                <p
-                  class="MuiFormHelperText-root-id"
+              </div>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Background image (optional)
+              </span>
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
                 >
-                  Slugs are used to create nice URLs for collection pages
-                </p>
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Upload image
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </button>
+                <input
+                  class="CollectionImageComponent-fileField-id"
+                  id="fileUpload"
+                  type="file"
+                />
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="Component-imageContainer-id"
+              >
+                <div
+                  class="Component-imageOverlay-id"
+                >
+                  <div
+                    class="Component-imageOverlayToolbar-id"
+                  >
+                    <button
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          viewBox="0 0 24 24"
+                        >
+                          <g>
+                            <path
+                              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                            />
+                          </g>
+                        </svg>
+                      </span>
+                      <span
+                        class="MuiTouchRipple-root-id"
+                      />
+                    </button>
+                  </div>
+                </div>
+                <img
+                  class="Component-image-id"
+                  src="block1.jpg"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Products in Summer collection
+              </span>
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiButton-disabled-id"
+                  disabled=""
+                  tabindex="-1"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Assign product
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <table
+              class="MuiTable-root-id"
+              padding="default"
+            >
+              <thead
+                class="MuiTableHead-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-head-id"
+                >
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  />
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  >
+                    Name
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id Component-textCenter-id"
+                    scope="col"
+                  >
+                    Type
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  >
+                    Published
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    scope="col"
+                  />
+                </tr>
+              </thead>
+              <tfoot
+                class="MuiTableFooter-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id MuiTableRow-footer-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
+                    colspan="4"
+                  >
+                    <div
+                      class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
+                    >
+                      <div
+                        class="TablePagination-spacer-id"
+                      />
+                      <div
+                        class="TablePaginationActions-root-id"
+                      >
+                        <button
+                          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id"
+                          disabled=""
+                          tabindex="-1"
+                          type="button"
+                        >
+                          <span
+                            class="MuiIconButton-label-id"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root-id"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                              />
+                            </svg>
+                          </span>
+                        </button>
+                        <button
+                          class="MuiButtonBase-root-id MuiIconButton-root-id"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiIconButton-label-id"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root-id"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="MuiTouchRipple-root-id"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tfoot>
+              <tbody
+                class="MuiTableBody-root-id"
+              >
+                <tr
+                  class="MuiTableRow-root-id"
+                >
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                  />
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    colspan="4"
+                  >
+                    No products found
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Search Engine Preview
+              </span>
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Edit website SEO
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </button>
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Add search engine title and description to make this collection easier to find
+              </p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div>
+            <div
+              class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+            >
+              <div
+                class="Component-root-id"
+              >
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+                >
+                  Availability
+                </span>
+                <div
+                  class="Component-toolbar-id"
+                />
+              </div>
+              <div
+                class="Component-children-id"
+              />
+              <hr
+                class="Component-hr-id"
+              />
+              <div
+                class="MuiCardContent-root-id"
+              >
+                <label
+                  class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+                >
+                  <span
+                    class="MuiSwitch-root-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiSwitchBase-checked-id MuiSwitch-checked-id MuiSwitchBase-disabled-id MuiSwitch-disabled-id"
+                      tabindex="-1"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <span
+                          class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
+                        />
+                        <input
+                          checked=""
+                          class="MuiSwitchBase-input-id"
+                          disabled=""
+                          name="isPublished"
+                          type="checkbox"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiSwitch-bar-id"
+                    />
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                  >
+                    <div
+                      class="Component-label-id"
+                    >
+                      Publish on storefront
+                    </div>
+                  </span>
+                </label>
+                <div
+                  class="Component-spacer-id"
+                />
+                <label
+                  class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+                >
+                  <span
+                    class="MuiSwitch-root-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiSwitchBase-checked-id MuiSwitch-checked-id MuiSwitchBase-disabled-id MuiSwitch-disabled-id"
+                      tabindex="-1"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <span
+                          class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
+                        />
+                        <input
+                          checked=""
+                          class="MuiSwitchBase-input-id"
+                          disabled=""
+                          name="isFeatured"
+                          type="checkbox"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiSwitch-bar-id"
+                    />
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                  >
+                    <div
+                      class="Component-label-id"
+                    >
+                      Feature on Homepage
+                    </div>
+                  </span>
+                </label>
               </div>
             </div>
           </div>
@@ -9966,7 +10888,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Add collection 
+            Add collections
             <svg
               aria-hidden="true"
               class="MuiSvgIcon-root-id"
@@ -10000,22 +10922,22 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-name-id"
               scope="col"
             >
-              Name
+              Category Name
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-textCenter-id"
               scope="col"
             >
-              Visibility
+              No. Products
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Component-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-textLeft-id"
               scope="col"
             >
-              Products
+              Availability
             </th>
           </tr>
         </thead>
@@ -10027,7 +10949,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
-              colspan="3"
+              colspan="5"
             >
               <div
                 class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
@@ -10091,222 +11013,20 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
           class="MuiTableBody-root-id"
         >
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
           >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-            >
-              Music
-            </td>
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
             >
-              <div
-                class="Component-root-id undefined Component-successDot-id"
-              >
-                Published
-              </div>
+              Summer collection
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              5
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-            >
-              Outdoors
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id undefined Component-errorDot-id"
-              >
-                Not published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              1
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-            >
-              Electronics
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id undefined Component-errorDot-id"
-              >
-                Not published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              9
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-            >
-              Automotive
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id undefined Component-successDot-id"
-              >
-                Published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              5
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-            >
-              Baby
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id undefined Component-successDot-id"
-              >
-                Published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              6
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-            >
-              Home
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id undefined Component-errorDot-id"
-              >
-                Not published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              0
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-            >
-              Shoes
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id undefined Component-successDot-id"
-              >
-                Published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              8
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-            >
-              Shoes
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id undefined Component-errorDot-id"
-              >
-                Not published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
-            >
-              2
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-            >
-              Electronics
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
-            >
-              <div
-                class="Component-root-id undefined Component-successDot-id"
-              >
-                Published
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textCenter-id"
             >
               4
             </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root-id"
-          >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-link-id"
-            >
-              Jewelery
-            </td>
-            <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
             >
               <div
                 class="Component-root-id undefined Component-successDot-id"
@@ -10314,10 +11034,28 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
                 Published
               </div>
             </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root-id MuiTableRow-hover-id Component-tableRow-id"
+          >
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id"
+            >
+              Winter sale
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textCenter-id"
             >
               4
+            </td>
+            <td
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
+            >
+              <div
+                class="Component-root-id undefined Component-successDot-id"
+              >
+                Published
+              </div>
             </td>
           </tr>
         </tbody>
@@ -10327,7 +11065,7 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
 </div>
 `;
 
-exports[`Storyshots Views / Collections / Collection list when loading 1`] = `
+exports[`Storyshots Views / Collections / Collection list loading 1`] = `
 <div>
   <div
     class="Component-md-id"
@@ -10352,7 +11090,7 @@ exports[`Storyshots Views / Collections / Collection list when loading 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Add collection 
+            Add collections
             <svg
               aria-hidden="true"
               class="MuiSvgIcon-root-id"
@@ -10383,22 +11121,22 @@ exports[`Storyshots Views / Collections / Collection list when loading 1`] = `
             class="MuiTableRow-root-id MuiTableRow-head-id"
           >
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-name-id"
               scope="col"
             >
-              Name
+              Category Name
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-textCenter-id"
               scope="col"
             >
-              Visibility
+              No. Products
             </th>
             <th
-              class="MuiTableCell-root-id MuiTableCell-head-id Component-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-head-id Component-textLeft-id"
               scope="col"
             >
-              Products
+              Availability
             </th>
           </tr>
         </thead>
@@ -10410,7 +11148,7 @@ exports[`Storyshots Views / Collections / Collection list when loading 1`] = `
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-footer-id TablePagination-root-id"
-              colspan="3"
+              colspan="5"
             >
               <div
                 class="MuiToolbar-root-id MuiToolbar-regular-id MuiToolbar-gutters-id TablePagination-toolbar-id"
@@ -10472,7 +11210,7 @@ exports[`Storyshots Views / Collections / Collection list when loading 1`] = `
           class="MuiTableBody-root-id"
         >
           <tr
-            class="MuiTableRow-root-id"
+            class="MuiTableRow-root-id Component-tableRow-id"
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
@@ -10484,7 +11222,7 @@ exports[`Storyshots Views / Collections / Collection list when loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textCenter-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -10493,7 +11231,7 @@ exports[`Storyshots Views / Collections / Collection list when loading 1`] = `
               </span>
             </td>
             <td
-              class="MuiTableCell-root-id MuiTableCell-body-id Component-textRight-id"
+              class="MuiTableCell-root-id MuiTableCell-body-id Component-textLeft-id"
             >
               <span
                 class="Skeleton-skeleton-id"
@@ -10506,6 +11244,640 @@ exports[`Storyshots Views / Collections / Collection list when loading 1`] = `
       </table>
     </div>
   </div>
+</div>
+`;
+
+exports[`Storyshots Views / Collections / Create collection default 1`] = `
+<div>
+  <form>
+    <div
+      class="Component-md-id"
+    >
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
+        >
+          Add collection
+        </h2>
+        <div
+          class="Component-action-id"
+        />
+      </div>
+      <div
+        class="Component-root-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                General information
+              </span>
+              <div
+                class="Component-toolbar-id"
+              />
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="MuiFormControl-root-id Component-name-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
+                >
+                  Name
+                </label>
+                <div
+                  class="MuiInput-root-id MuiInput-formControl-id MuiInput-underline-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInput-input-id"
+                    name="name"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Background image (optional)
+              </span>
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Upload image
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </button>
+                <input
+                  class="CollectionImageComponent-fileField-id"
+                  id="fileUpload"
+                  type="file"
+                />
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="CollectionImageComponent-PhotosIconContainer-id"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-id CollectionImageComponent-PhotosIcon-id"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <g>
+                    <path
+                      d="M3 4V1h2v3h3v2H5v3H3V6H0V4h3zm3 6V7h3V4h7l1.83 2H21c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V10h3zm7 9c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-3.2-5c0 1.77 1.43 3.2 3.2 3.2s3.2-1.43 3.2-3.2-1.43-3.2-3.2-3.2-3.2 1.43-3.2 3.2z"
+                    />
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Search Engine Preview
+              </span>
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Edit website SEO
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </button>
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Add search engine title and description to make this collection easier to find
+              </p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div>
+            <div
+              class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+            >
+              <div
+                class="Component-root-id"
+              >
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+                >
+                  Availability
+                </span>
+                <div
+                  class="Component-toolbar-id"
+                />
+              </div>
+              <div
+                class="Component-children-id"
+              />
+              <hr
+                class="Component-hr-id"
+              />
+              <div
+                class="MuiCardContent-root-id"
+              >
+                <label
+                  class="MuiFormControlLabel-root-id"
+                >
+                  <span
+                    class="MuiSwitch-root-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <span
+                          class="MuiSwitch-icon-id"
+                        />
+                        <input
+                          class="MuiSwitchBase-input-id"
+                          name="isPublished"
+                          type="checkbox"
+                        />
+                      </span>
+                      <span
+                        class="MuiTouchRipple-root-id"
+                      />
+                    </span>
+                    <span
+                      class="MuiSwitch-bar-id"
+                    />
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id"
+                  >
+                    <div
+                      class="Component-label-id"
+                    >
+                      Publish on storefront
+                    </div>
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="Component-root-id"
+      >
+        <div
+          class="Component-spacer-id"
+        />
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id Component-cancelButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Cancel
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Save
+          </span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`Storyshots Views / Collections / Create collection loading 1`] = `
+<div>
+  <form>
+    <div
+      class="Component-md-id"
+    >
+      <div
+        class="Component-root-id"
+      >
+        <button
+          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorInherit-id Component-menuButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label-id"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root-id"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <g>
+                <path
+                  d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                />
+              </g>
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <h2
+          class="MuiTypography-root-id MuiTypography-title-id PageHeader-title-id"
+        >
+          Add collection
+        </h2>
+        <div
+          class="Component-action-id"
+        />
+      </div>
+      <div
+        class="Component-root-id"
+      >
+        <div>
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                General information
+              </span>
+              <div
+                class="Component-toolbar-id"
+              />
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="MuiFormControl-root-id Component-name-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id"
+                  data-shrink="false"
+                >
+                  Name
+                </label>
+                <div
+                  class="MuiInput-root-id MuiInput-disabled-id MuiInput-formControl-id MuiInput-underline-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInput-input-id MuiInput-disabled-id"
+                    disabled=""
+                    name="name"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Background image (optional)
+              </span>
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Upload image
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </button>
+                <input
+                  class="CollectionImageComponent-fileField-id"
+                  id="fileUpload"
+                  type="file"
+                />
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <div
+                class="CollectionImageComponent-PhotosIconContainer-id"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root-id CollectionImageComponent-PhotosIcon-id"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <g>
+                    <path
+                      d="M3 4V1h2v3h3v2H5v3H3V6H0V4h3zm3 6V7h3V4h7l1.83 2H21c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V10h3zm7 9c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-3.2-5c0 1.77 1.43 3.2 3.2 3.2s3.2-1.43 3.2-3.2-1.43-3.2-3.2-3.2-3.2 1.43-3.2 3.2z"
+                    />
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div
+            class="Component-spacer-id"
+          />
+          <div
+            class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+          >
+            <div
+              class="Component-root-id"
+            >
+              <span
+                class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+              >
+                Search Engine Preview
+              </span>
+              <div
+                class="Component-toolbar-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label-id"
+                  >
+                    Edit website SEO
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root-id"
+                  />
+                </button>
+              </div>
+            </div>
+            <div
+              class="Component-children-id"
+            />
+            <hr
+              class="Component-hr-id"
+            />
+            <div
+              class="MuiCardContent-root-id"
+            >
+              <p
+                class="MuiTypography-root-id MuiTypography-body1-id"
+              >
+                Add search engine title and description to make this collection easier to find
+              </p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div>
+            <div
+              class="MuiPaper-root-id MuiPaper-elevation1-id MuiPaper-rounded-id MuiCard-root-id"
+            >
+              <div
+                class="Component-root-id"
+              >
+                <span
+                  class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
+                >
+                  Availability
+                </span>
+                <div
+                  class="Component-toolbar-id"
+                />
+              </div>
+              <div
+                class="Component-children-id"
+              />
+              <hr
+                class="Component-hr-id"
+              />
+              <div
+                class="MuiCardContent-root-id"
+              >
+                <label
+                  class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id"
+                >
+                  <span
+                    class="MuiSwitch-root-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiSwitchBase-disabled-id MuiSwitch-disabled-id"
+                      tabindex="-1"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <span
+                          class="MuiSwitch-icon-id"
+                        />
+                        <input
+                          class="MuiSwitchBase-input-id"
+                          disabled=""
+                          name="isPublished"
+                          type="checkbox"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiSwitch-bar-id"
+                    />
+                  </span>
+                  <span
+                    class="MuiTypography-root-id MuiTypography-body1-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                  >
+                    <div
+                      class="Component-label-id"
+                    >
+                      Publish on storefront
+                    </div>
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="Component-root-id"
+      >
+        <div
+          class="Component-spacer-id"
+        />
+        <button
+          class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-flat-id Component-cancelButton-id"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Cancel
+          </span>
+          <span
+            class="MuiTouchRipple-root-id"
+          />
+        </button>
+        <button
+          class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiButton-root-id MuiButton-contained-id MuiButton-containedSecondary-id MuiButton-raised-id MuiButton-raisedSecondary-id MuiButton-disabled-id"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiButton-label-id"
+          >
+            Save
+          </span>
+        </button>
+      </div>
+    </div>
+  </form>
 </div>
 `;
 
@@ -34117,58 +35489,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                     >
                       <div
                         class="Component-imageOverlayToolbar-id"
-                      >
-                        <button
-                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
-                          tabindex="0"
-                          type="button"
-                        >
-                          <span
-                            class="MuiIconButton-label-id"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root-id"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <g>
-                                <path
-                                  d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-                                />
-                              </g>
-                            </svg>
-                          </span>
-                          <span
-                            class="MuiTouchRipple-root-id"
-                          />
-                        </button>
-                        <button
-                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
-                          tabindex="0"
-                          type="button"
-                        >
-                          <span
-                            class="MuiIconButton-label-id"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root-id"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <g>
-                                <path
-                                  d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-                                />
-                              </g>
-                            </svg>
-                          </span>
-                          <span
-                            class="MuiTouchRipple-root-id"
-                          />
-                        </button>
-                      </div>
+                      />
                     </div>
                     <img
                       alt="Id sit dolores adipisci"
@@ -34184,58 +35505,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                     >
                       <div
                         class="Component-imageOverlayToolbar-id"
-                      >
-                        <button
-                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
-                          tabindex="0"
-                          type="button"
-                        >
-                          <span
-                            class="MuiIconButton-label-id"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root-id"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <g>
-                                <path
-                                  d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-                                />
-                              </g>
-                            </svg>
-                          </span>
-                          <span
-                            class="MuiTouchRipple-root-id"
-                          />
-                        </button>
-                        <button
-                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
-                          tabindex="0"
-                          type="button"
-                        >
-                          <span
-                            class="MuiIconButton-label-id"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root-id"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <g>
-                                <path
-                                  d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-                                />
-                              </g>
-                            </svg>
-                          </span>
-                          <span
-                            class="MuiTouchRipple-root-id"
-                          />
-                        </button>
-                      </div>
+                      />
                     </div>
                     <img
                       alt="Id sit dolores adipisci"
@@ -34251,58 +35521,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                     >
                       <div
                         class="Component-imageOverlayToolbar-id"
-                      >
-                        <button
-                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
-                          tabindex="0"
-                          type="button"
-                        >
-                          <span
-                            class="MuiIconButton-label-id"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root-id"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <g>
-                                <path
-                                  d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-                                />
-                              </g>
-                            </svg>
-                          </span>
-                          <span
-                            class="MuiTouchRipple-root-id"
-                          />
-                        </button>
-                        <button
-                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
-                          tabindex="0"
-                          type="button"
-                        >
-                          <span
-                            class="MuiIconButton-label-id"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root-id"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <g>
-                                <path
-                                  d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-                                />
-                              </g>
-                            </svg>
-                          </span>
-                          <span
-                            class="MuiTouchRipple-root-id"
-                          />
-                        </button>
-                      </div>
+                      />
                     </div>
                     <img
                       alt="Id sit dolores adipisci"
@@ -34318,58 +35537,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                     >
                       <div
                         class="Component-imageOverlayToolbar-id"
-                      >
-                        <button
-                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
-                          tabindex="0"
-                          type="button"
-                        >
-                          <span
-                            class="MuiIconButton-label-id"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root-id"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <g>
-                                <path
-                                  d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-                                />
-                              </g>
-                            </svg>
-                          </span>
-                          <span
-                            class="MuiTouchRipple-root-id"
-                          />
-                        </button>
-                        <button
-                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
-                          tabindex="0"
-                          type="button"
-                        >
-                          <span
-                            class="MuiIconButton-label-id"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root-id"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <g>
-                                <path
-                                  d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-                                />
-                              </g>
-                            </svg>
-                          </span>
-                          <span
-                            class="MuiTouchRipple-root-id"
-                          />
-                        </button>
-                      </div>
+                      />
                     </div>
                     <img
                       alt="Id sit dolores adipisci"
@@ -34385,58 +35553,7 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
                     >
                       <div
                         class="Component-imageOverlayToolbar-id"
-                      >
-                        <button
-                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
-                          tabindex="0"
-                          type="button"
-                        >
-                          <span
-                            class="MuiIconButton-label-id"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root-id"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <g>
-                                <path
-                                  d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-                                />
-                              </g>
-                            </svg>
-                          </span>
-                          <span
-                            class="MuiTouchRipple-root-id"
-                          />
-                        </button>
-                        <button
-                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
-                          tabindex="0"
-                          type="button"
-                        >
-                          <span
-                            class="MuiIconButton-label-id"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root-id"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <g>
-                                <path
-                                  d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-                                />
-                              </g>
-                            </svg>
-                          </span>
-                          <span
-                            class="MuiTouchRipple-root-id"
-                          />
-                        </button>
-                      </div>
+                      />
                     </div>
                     <img
                       alt="Id sit dolores adipisci"
@@ -37196,58 +38313,7 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                     >
                       <div
                         class="Component-imageOverlayToolbar-id"
-                      >
-                        <button
-                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
-                          tabindex="0"
-                          type="button"
-                        >
-                          <span
-                            class="MuiIconButton-label-id"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root-id"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <g>
-                                <path
-                                  d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-                                />
-                              </g>
-                            </svg>
-                          </span>
-                          <span
-                            class="MuiTouchRipple-root-id"
-                          />
-                        </button>
-                        <button
-                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
-                          tabindex="0"
-                          type="button"
-                        >
-                          <span
-                            class="MuiIconButton-label-id"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root-id"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <g>
-                                <path
-                                  d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-                                />
-                              </g>
-                            </svg>
-                          </span>
-                          <span
-                            class="MuiTouchRipple-root-id"
-                          />
-                        </button>
-                      </div>
+                      />
                     </div>
                     <img
                       alt="Id sit dolores adipisci"
@@ -37263,58 +38329,7 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                     >
                       <div
                         class="Component-imageOverlayToolbar-id"
-                      >
-                        <button
-                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
-                          tabindex="0"
-                          type="button"
-                        >
-                          <span
-                            class="MuiIconButton-label-id"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root-id"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <g>
-                                <path
-                                  d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-                                />
-                              </g>
-                            </svg>
-                          </span>
-                          <span
-                            class="MuiTouchRipple-root-id"
-                          />
-                        </button>
-                        <button
-                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
-                          tabindex="0"
-                          type="button"
-                        >
-                          <span
-                            class="MuiIconButton-label-id"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root-id"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <g>
-                                <path
-                                  d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-                                />
-                              </g>
-                            </svg>
-                          </span>
-                          <span
-                            class="MuiTouchRipple-root-id"
-                          />
-                        </button>
-                      </div>
+                      />
                     </div>
                     <img
                       alt="Id sit dolores adipisci"
@@ -37330,58 +38345,7 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                     >
                       <div
                         class="Component-imageOverlayToolbar-id"
-                      >
-                        <button
-                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
-                          tabindex="0"
-                          type="button"
-                        >
-                          <span
-                            class="MuiIconButton-label-id"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root-id"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <g>
-                                <path
-                                  d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-                                />
-                              </g>
-                            </svg>
-                          </span>
-                          <span
-                            class="MuiTouchRipple-root-id"
-                          />
-                        </button>
-                        <button
-                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
-                          tabindex="0"
-                          type="button"
-                        >
-                          <span
-                            class="MuiIconButton-label-id"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root-id"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <g>
-                                <path
-                                  d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-                                />
-                              </g>
-                            </svg>
-                          </span>
-                          <span
-                            class="MuiTouchRipple-root-id"
-                          />
-                        </button>
-                      </div>
+                      />
                     </div>
                     <img
                       alt="Id sit dolores adipisci"
@@ -37397,58 +38361,7 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                     >
                       <div
                         class="Component-imageOverlayToolbar-id"
-                      >
-                        <button
-                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
-                          tabindex="0"
-                          type="button"
-                        >
-                          <span
-                            class="MuiIconButton-label-id"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root-id"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <g>
-                                <path
-                                  d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-                                />
-                              </g>
-                            </svg>
-                          </span>
-                          <span
-                            class="MuiTouchRipple-root-id"
-                          />
-                        </button>
-                        <button
-                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
-                          tabindex="0"
-                          type="button"
-                        >
-                          <span
-                            class="MuiIconButton-label-id"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root-id"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <g>
-                                <path
-                                  d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-                                />
-                              </g>
-                            </svg>
-                          </span>
-                          <span
-                            class="MuiTouchRipple-root-id"
-                          />
-                        </button>
-                      </div>
+                      />
                     </div>
                     <img
                       alt="Id sit dolores adipisci"
@@ -37464,58 +38377,7 @@ exports[`Storyshots Views / Products / Product edit when product has no variants
                     >
                       <div
                         class="Component-imageOverlayToolbar-id"
-                      >
-                        <button
-                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
-                          tabindex="0"
-                          type="button"
-                        >
-                          <span
-                            class="MuiIconButton-label-id"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root-id"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <g>
-                                <path
-                                  d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-                                />
-                              </g>
-                            </svg>
-                          </span>
-                          <span
-                            class="MuiTouchRipple-root-id"
-                          />
-                        </button>
-                        <button
-                          class="MuiButtonBase-root-id MuiIconButton-root-id MuiIconButton-colorSecondary-id"
-                          tabindex="0"
-                          type="button"
-                        >
-                          <span
-                            class="MuiIconButton-label-id"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root-id"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <g>
-                                <path
-                                  d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-                                />
-                              </g>
-                            </svg>
-                          </span>
-                          <span
-                            class="MuiTouchRipple-root-id"
-                          />
-                        </button>
-                      </div>
+                      />
                     </div>
                     <img
                       alt="Id sit dolores adipisci"
