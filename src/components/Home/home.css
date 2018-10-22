@@ -358,7 +358,7 @@
                 width: 100%;
               }
               @media (max-width: 450px) {
-                font-size: calc(var(--font-size-base) * 3);
+                font-size: calc(var(--font-size-base) * 2.5);
               }
             }
             &.text-light {
@@ -664,7 +664,7 @@
           background-image: url('../../images/open-source-bg-mobile.svg');
           background-repeat: no-repeat;
           background-size: 400%;
-          background-position: 57% -210%;
+          background-position: 57% -30%;
           opacity: 0.3;
         }
       }
@@ -696,7 +696,7 @@
             font-size: calc(var(--font-size-base) * 2);
           }
           @media (max-width: 450px) {
-            font-size: calc(var(--font-size-base) * 3);
+            font-size: calc(var(--font-size-base) * 2.5);
             line-height: 1.4;
           }
         }
@@ -1140,7 +1140,7 @@
         }
         @media (max-width: 450px) {
           width: 100%;
-          font-size: calc(var(--font-size-base) * 3);
+          font-size: calc(var(--font-size-base) * 2.5);
         }
       }
       & .list {

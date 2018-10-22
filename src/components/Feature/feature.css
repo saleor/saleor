@@ -316,7 +316,7 @@
             margin: 0;
             & .description {
               margin-top: calc(var(--spacer) * 0.5);
-              font-size: calc(var(--font-size-base) * 3);
+              font-size: calc(var(--font-size-base) * 2.5);
             }
             & .position {
               text-align: center;
