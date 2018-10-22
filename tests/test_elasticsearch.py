@@ -129,17 +129,22 @@ def test_dashboard_search_with_product_result(
 # data below must be aligned with recorded communication every time
 EXISTING_EMAIL = 'nancy.mccoy@example.com'
 NON_EXISTING_EMAIL = 'john.doe@foo.bar'
-USER_WITH_ORDER = 'jennifer.green@example.com'
+USER_EMAIL_WITH_ORDER = 'martin.montgomery@example.com'
+USER_NAME_WITH_ORDER = 'Martin'
+USER_EMAIL_WITH_ORDER_WITHOUT_ADDRES = 'rachel.banks@example.com'
+USER_NAME_WITH_ORDER_WITHOUT_ADDRES = 'Rachel'
 EXISTING_NAME = 'Rhonda'
 EXISTING_NAME_FULL = 'rhonda.ayala@example.com'
 EXISTING_NAME_WITHOUT_ADDRESS = 'Brett'
 EXISTING_NAME_FULL_WITHOUT_ADDRESS = 'brett.hendrix@example.com'
 USERS = {EXISTING_EMAIL: 9,
          NON_EXISTING_EMAIL: 870,
-         USER_WITH_ORDER: 666,
+         USER_EMAIL_WITH_ORDER: 2,
+         USER_EMAIL_WITH_ORDER_WITHOUT_ADDRES: 17,
          EXISTING_NAME_FULL: 6,
          EXISTING_NAME_FULL_WITHOUT_ADDRESS: 22}
-ORDERS = {USER_WITH_ORDER: {18, 19}}
+ORDERS = {USER_EMAIL_WITH_ORDER: {11, 17},
+          USER_EMAIL_WITH_ORDER_WITHOUT_ADDRES: {15}}
 
 
 @pytest.fixture
@@ -184,6 +189,27 @@ def orders(db, address):
 
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
-def test_dashboard_search_orders_by_user(db, admin_client, customers, orders):
-    _, _, orders = execute_dashboard_search(admin_client, USER_WITH_ORDER)
-    assert ORDERS[USER_WITH_ORDER] == orders
+def test_dashboard_search_orders_by_user_email(db, admin_client,
+                                               customers, orders):
+    _, _, orders = execute_dashboard_search(
+        admin_client, USER_EMAIL_WITH_ORDER)
+    assert ORDERS[USER_EMAIL_WITH_ORDER] == orders
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
+def test_dashboard_search_orders_by_user_name(db, admin_client,
+                                              customers, orders):
+    _, _, orders = execute_dashboard_search(
+        admin_client, USER_NAME_WITH_ORDER)
+    assert ORDERS[USER_EMAIL_WITH_ORDER] == orders
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
+def test_dashboard_search_orders_by_user_name_without_address(db, admin_client,
+                                                              customers,
+                                                              orders):
+    _, _, orders = execute_dashboard_search(
+        admin_client, USER_NAME_WITH_ORDER_WITHOUT_ADDRES)
+    assert ORDERS[USER_EMAIL_WITH_ORDER_WITHOUT_ADDRES] == orders
