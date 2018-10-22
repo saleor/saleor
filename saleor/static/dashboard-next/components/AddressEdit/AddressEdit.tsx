@@ -2,7 +2,7 @@ import { withStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import { AddressTypeInput } from "../../customers/";
+import { AddressTypeInput } from "../../customers/types";
 import i18n from "../../i18n";
 import FormSpacer from "../FormSpacer";
 import SingleSelectField from "../SingleSelectField";

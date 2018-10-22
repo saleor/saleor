@@ -13,7 +13,7 @@ import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import Skeleton from "../../../components/Skeleton";
-import { AddressTypeInput } from "../../../customers";
+import { AddressTypeInput } from "../../../customers/types";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { DraftOrderInput } from "../../../types/globalTypes";

@@ -14,7 +14,7 @@ import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
 import Toggle from "../../../components/Toggle";
-import { AddressTypeInput } from "../../../customers";
+import { AddressTypeInput } from "../../../customers/types";
 import i18n from "../../../i18n";
 import { maybe, renderCollection } from "../../../misc";
 import { OrderStatus } from "../../../types/globalTypes";
