@@ -67,7 +67,7 @@ const Feature = () => (
             <h3 className="title">
               Loved by search<br/> engines
             </h3>
-            <p>Saleor is packed with everything you need, from sitemaps and schema.org structured data to Open Graph that kick-starts your e-commerce SEO. Integrate with Google Merchant Center and present your products to a wider audience.</p>
+            <p>Saleor is packed with everything you need, from sitemaps and schema.org structured data to Open Graph that kick-starts your ecommerce SEO. Integrate with Google Merchant Center and present your products to a wider audience.</p>
           </div>
           <div className="icon-card">
             <ReactSVG className="graphql" path={graphQLIcon} />

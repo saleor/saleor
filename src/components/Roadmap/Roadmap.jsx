@@ -16,7 +16,7 @@ const Roadmap = (props) => (
       <div className="bg-container"></div>
       <div className="plane">
         <h1>Roadmap</h1>
-        <p>To keep you informed about the Implementation of the most important features, You will find our Roadmap for 2018, below.</p>
+        <p>Keep up to date with our latest Python, Django, React and GraphQL implementations. See what is coming in 2019.</p>
       </div>
       <ScrollLink to="#roadmap-section"> Learn more </ScrollLink>
     </section>

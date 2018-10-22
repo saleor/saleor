@@ -120,7 +120,7 @@ class Home extends Component {
               <div id="software-stack" className="grid feature-item software-stack">
                 <div className="col-xs-12 col-sm-6 col-md-6 text">
                   <h2>01. State of the art software stack</h2>
-                  <p>Saleor is powered by a GraphQL server running on top of Python 3 and Django 2.</p>
+                  <p>Saleor is powered by a GraphQL server running on top of Python 3 and a Django 2 framework</p>
                   <p className="text-light">Both the storefront and the dashboard are React applications written in TypeScript and use Apollo GraphQL. Strict quality checks and reviews make the code easy to read and understand. High test coverage ensures it’s also safe to deploy in a continuous manner.</p>
                 </div>
                 <Fade bottom when={true} appear={!isMobileOnly} duration={1500}>
@@ -134,15 +134,15 @@ class Home extends Component {
                 </Fade>
                 <div className="col-xs-12 col-sm-6 col-md-6 text">
                   <h2>02. Build to scale</h2>
-                  <p>Serve millions of products and thousands of customers without breaking a sweat.</p>
+                  <p>Serve millions of products and thousands of customers without breaking a sweat</p>
                   <p className="text-light">Saleor is optimized for cloud deployments using Docker. Horizontal scalability allows Saleor to take advantage of platforms such as AWS and Google Cloud and adapt to your traffic. Multi-container deployments allow your software to scale without downtime. Persistent GraphQL Queries take advantage of CDN to ensure snappy performance under even the heaviest of loads.</p>
                 </div>
               </div>
               <div id="easy-to-customize" className="grid feature-item easy-to-customize">
                 <div className="col-xs-12 col-sm-6 col-md-6 text">
                   <h2>03. Easy to customize</h2>
-                  <p>Saleor delivers even when you need more than an out-of-the-box solution.</p>
-                  <p className="text-light">Take it even further to automate any process like ordering, shipping or payment. Whether you’re a local florist or a government agency, Saleor is a solid foundation to build and deliver bespoke solutions to your specific problems. Build the store that you want instead of trying to bend your requirements around enterprise platforms.</p>
+                  <p>Saleor delivers ecommerce even when you need more than an out-of-the-box solution</p>
+                  <p className="text-light">Take it even further to automate any process like ordering, shipping or payment. Whether you’re a local florist or a government agency, Saleor is a solid Django based foundation to build and deliver bespoke solutions to your specific problems. Build the store that you want instead of trying to bend your requirements around enterprise platforms.</p>
                 </div>
                 <Fade bottom when={true} appear={!isMobileOnly} duration={1500}>
                 <div className="col-xs-12 col-sm-6 col-md-6 image"></div>
@@ -183,7 +183,7 @@ class Home extends Component {
               <div className="text">
                 <h2>Open source</h2>
                 <p>While built and maintained by Mirumee Software, Saleor’s community is among the fastest growing open source ecommerce platforms.</p>
-                <p className="text-light">What started in 2010 as a humble solution to a local problem has become a vital working platform for our great contributors and supporters.</p>
+                <p className="text-light">What started in 2010 as a humble solution to a local problem has become a vital working platform for our great Python and Django contributors and supporters.</p>
                 <div className="grid icons">
                   <div className="icon col-xs-12 col-sm-12 col-md-6">
                     <a className="grid" href="https://github.com/mirumee/saleor">
