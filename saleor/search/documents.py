@@ -71,11 +71,33 @@ orders.settings(number_of_shards=1, number_of_replicas=0)
 @orders.doc_type
 class OrderDocument(DocType):
     user = fields.StringField(analyzer=email_analyzer)
+    first_name = fields.StringField()
+    last_name = fields.StringField()
 
     def prepare_user(self, instance):
         if instance.user:
             return instance.user.email
         return instance.user_email
+
+    def prepare_first_name(self, instance):
+        user = instance.user
+        if user:
+            if user.first_name:
+                return user.first_name
+            address = user.default_billing_address
+            if address:
+                return address.first_name
+            return None
+
+    def prepare_last_name(self, instance):
+        user = instance.user
+        if user:
+            if user.last_name:
+                return user.last_name
+            address = user.default_billing_address
+            if address:
+                return address.last_name
+            return None
 
     class Meta:
         model = Order
