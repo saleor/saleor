@@ -9,12 +9,14 @@ const shop = shopFixture(placeholderImage);
 
 const dashboardProps: DashboardProps = {
   daily: shop.daily,
-  ownerName: shop.ownerName,
   notifications: shop.notifications,
+  onRowClick: () => undefined,
+  ownerName: shop.ownerName,
   toOrders: () => undefined,
   toPayments: () => undefined,
   toProblems: () => undefined,
-  toProductsOut: () => undefined
+  toProductsOut: () => undefined,
+  topProducts: shop.topProducts
 };
 
 storiesOf("Views / Home / Dashboard", module)
@@ -23,6 +25,7 @@ storiesOf("Views / Home / Dashboard", module)
   .add("loading", () => (
     <Dashbaord
       {...dashboardProps}
+      topProducts={undefined}
       daily={undefined}
       notifications={undefined}
     />
@@ -30,6 +33,7 @@ storiesOf("Views / Home / Dashboard", module)
   .add("no data", () => (
     <Dashbaord
       {...dashboardProps}
+      topProducts={[]}
       notifications={{
         orders: 0,
         payments: 0,
