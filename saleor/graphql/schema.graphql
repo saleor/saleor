@@ -896,7 +896,7 @@ type Mutations {
   orderMarkAsPaid(id: ID!): OrderMarkAsPaid
   orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput): OrderUpdateShipping
   orderRefund(amount: Decimal!, id: ID!): OrderRefund
-  orderRelease(id: ID!): OrderRelease
+  orderVoid(id: ID!): OrderVoid
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
@@ -1043,7 +1043,7 @@ enum OrderEvents {
   EMAIL_SENT
   PAYMENT_CAPTURED
   PAYMENT_REFUNDED
-  PAYMENT_RELEASED
+  PAYMENT_VOIDED
   FULFILLMENT_CANCELED
   FULFILLMENT_RESTOCKED_ITEMS
   FULFILLMENT_FULFILLED_ITEMS
@@ -1102,11 +1102,6 @@ type OrderRefund {
   order: Order
 }
 
-type OrderRelease {
-  errors: [Error]
-  order: Order
-}
-
 enum OrderStatus {
   DRAFT
   UNFULFILLED
@@ -1138,6 +1133,11 @@ type OrderUpdateShipping {
 
 input OrderUpdateShippingInput {
   shippingMethod: ID
+}
+
+type OrderVoid {
+  errors: [Error]
+  order: Order
 }
 
 type Page implements Node {
@@ -1198,12 +1198,6 @@ type PasswordReset {
   errors: [Error]
 }
 
-enum PaymentChargeStatusEnum {
-  CHARGED
-  NOT_CHARGED
-  FULLY_REFUNDED
-}
-
 type Payment implements Node {
   id: ID!
   variant: String!
@@ -1213,6 +1207,7 @@ type Payment implements Node {
   chargeStatus: PaymentChargeStatusEnum!
   billingFirstName: String!
   billingLastName: String!
+  billingCompanyName: String!
   billingAddress1: String!
   billingAddress2: String!
   billingCity: String!
@@ -1223,9 +1218,7 @@ type Payment implements Node {
   customerIpAddress: String
   extraData: String!
   token: String!
-  totalNet: Money
-  totalGross: Money
-  total: TaxedMoney
+  total: Money
   capturedAmount: Money
   checkout: Checkout
   order: Order
@@ -1235,6 +1228,12 @@ type Payment implements Node {
 type PaymentCapture {
   errors: [Error]
   payment: Payment
+}
+
+enum PaymentChargeStatusEnum {
+  CHARGED
+  NOT_CHARGED
+  FULLY_REFUNDED
 }
 
 type PaymentCountableConnection {
@@ -1252,7 +1251,6 @@ input PaymentInput {
   gateway: ProvidersEnum
   checkoutId: ID
   transactionToken: String!
-  tax: Decimal!
   amount: Decimal!
   billingAddress: AddressInput
 }

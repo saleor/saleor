@@ -7,17 +7,17 @@
 
 export enum AttributeTypeEnum {
   PRODUCT = "PRODUCT",
-  VARIANT = "VARIANT",
+  VARIANT = "VARIANT"
 }
 
 export enum AuthorizationKeyType {
   FACEBOOK = "FACEBOOK",
-  GOOGLE_OAUTH2 = "GOOGLE_OAUTH2",
+  GOOGLE_OAUTH2 = "GOOGLE_OAUTH2"
 }
 
 export enum FulfillmentStatus {
   CANCELED = "CANCELED",
-  FULFILLED = "FULFILLED",
+  FULFILLED = "FULFILLED"
 }
 
 export enum OrderEvents {
@@ -33,18 +33,18 @@ export enum OrderEvents {
   OVERSOLD_ITEMS = "OVERSOLD_ITEMS",
   PAYMENT_CAPTURED = "PAYMENT_CAPTURED",
   PAYMENT_REFUNDED = "PAYMENT_REFUNDED",
-  PAYMENT_RELEASED = "PAYMENT_RELEASED",
+  PAYMENT_VOIDED = "PAYMENT_VOIDED",
   PLACED = "PLACED",
   PLACED_FROM_DRAFT = "PLACED_FROM_DRAFT",
   TRACKING_UPDATED = "TRACKING_UPDATED",
-  UPDATED = "UPDATED",
+  UPDATED = "UPDATED"
 }
 
 export enum OrderEventsEmails {
   FULFILLMENT = "FULFILLMENT",
   ORDER = "ORDER",
   PAYMENT = "PAYMENT",
-  SHIPPING = "SHIPPING",
+  SHIPPING = "SHIPPING"
 }
 
 export enum OrderStatus {
@@ -52,13 +52,13 @@ export enum OrderStatus {
   DRAFT = "DRAFT",
   FULFILLED = "FULFILLED",
   PARTIALLY_FULFILLED = "PARTIALLY_FULFILLED",
-  UNFULFILLED = "UNFULFILLED",
+  UNFULFILLED = "UNFULFILLED"
 }
 
 export enum PaymentChargeStatusEnum {
   CHARGED = "CHARGED",
   FULLY_REFUNDED = "FULLY_REFUNDED",
-  NOT_CHARGED = "NOT_CHARGED",
+  NOT_CHARGED = "NOT_CHARGED"
 }
 
 export enum PermissionEnum {
@@ -71,7 +71,7 @@ export enum PermissionEnum {
   MANAGE_SETTINGS = "MANAGE_SETTINGS",
   MANAGE_SHIPPING = "MANAGE_SHIPPING",
   MANAGE_STAFF = "MANAGE_STAFF",
-  MANAGE_USERS = "MANAGE_USERS",
+  MANAGE_USERS = "MANAGE_USERS"
 }
 
 export enum TaxRateType {
@@ -98,14 +98,14 @@ export enum TaxRateType {
   RESTAURANTS = "RESTAURANTS",
   SOCIAL_HOUSING = "SOCIAL_HOUSING",
   STANDARD = "STANDARD",
-  WATER = "WATER",
+  WATER = "WATER"
 }
 
 export enum WeightUnitsEnum {
   g = "g",
   kg = "kg",
   lb = "lb",
-  oz = "oz",
+  oz = "oz"
 }
 
 export interface AddressInput {

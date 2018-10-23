@@ -21,7 +21,7 @@ interface OrderPaymentProps {
   onCapture: () => void;
   onMarkAsPaid: () => void;
   onRefund: () => void;
-  onRelease: () => void;
+  onVoid: () => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -38,12 +38,12 @@ const decorate = withStyles(theme => ({
   }
 }));
 const OrderPayment = decorate<OrderPaymentProps>(
-  ({ classes, order, onCapture, onMarkAsPaid, onRefund, onRelease }) => {
+  ({ classes, order, onCapture, onMarkAsPaid, onRefund, onVoid }) => {
     const canCapture = maybe(() => order.paymentStatus)
       ? order.paymentStatus === PaymentChargeStatusEnum.PREAUTH &&
         order.status !== OrderStatus.CANCELED
       : false;
-    const canRelease = maybe(() => order.paymentStatus)
+    const canVoid = maybe(() => order.paymentStatus)
       ? order.paymentStatus === PaymentChargeStatusEnum.PREAUTH
       : false;
     const canRefund = maybe(() => order.paymentStatus)
@@ -146,7 +146,7 @@ const OrderPayment = decorate<OrderPaymentProps>(
           </table>
         </CardContent>
         {maybe(() => order.status) !== OrderStatus.CANCELED &&
-          (canCapture || canRefund || canRelease || canMarkAsPaid) && (
+          (canCapture || canRefund || canVoid || canMarkAsPaid) && (
             <>
               <Hr />
               <CardActions>
@@ -160,9 +160,9 @@ const OrderPayment = decorate<OrderPaymentProps>(
                     {i18n.t("Refund", { context: "button" })}
                   </Button>
                 )}
-                {canRelease && (
-                  <Button color="secondary" variant="flat" onClick={onRelease}>
-                    {i18n.t("Release", { context: "button" })}
+                {canVoid && (
+                  <Button color="secondary" variant="flat" onClick={onVoid}>
+                    {i18n.t("Void", { context: "button" })}
                   </Button>
                 )}
                 {canMarkAsPaid && (
