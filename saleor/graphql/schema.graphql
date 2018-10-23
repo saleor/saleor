@@ -1285,6 +1285,7 @@ type ProductVariant implements Node {
   price: Money
   margin: Int
   quantityOrdered: Int
+  revenue(period: ReportingPeriod): TaxedMoney
 }
 
 type ProductVariantCountableConnection {
