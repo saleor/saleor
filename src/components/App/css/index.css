@@ -249,10 +249,10 @@ ul {
     font-weight: 500;
   }
   &.btn-primary {
-    border-top: solid calc(var(--border-width) * 2) var(--primaryColor);
-    border-bottom: solid calc(var(--border-width) * 2) var(--primaryColor);
-    border-left: solid calc(var(--border-width) * 3) var(--primaryColor);
-    border-right: solid calc(var(--border-width) * 3) var(--primaryColor);
+    border-top: solid 2px var(--primaryColor);
+    border-bottom: solid 2px var(--primaryColor);
+    border-left: solid 3px var(--primaryColor);
+    border-right: solid 3px var(--primaryColor);
     background: var(--primaryColor);
     color: var(--mobile-background);
     &:hover {
@@ -262,10 +262,10 @@ ul {
     }
   }
   &.btn-secondary {
-    border-top: solid calc(var(--border-width) * 2) var(--body-color);
-    border-bottom: solid calc(var(--border-width) * 2) var(--body-color);
-    border-left: solid calc(var(--border-width) * 3) var(--body-color);
-    border-right: solid calc(var(--border-width) * 3) var(--body-color);
+    border-top: solid 2px var(--body-color);
+    border-bottom: solid 2px var(--body-color);
+    border-left: solid 3px var(--body-color);
+    border-right: solid 3px var(--body-color);
     background-color: transparent;
     color: var(--body-color);
     &:hover {
