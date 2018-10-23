@@ -208,24 +208,6 @@ def test_nested_order_events_query(
     assert data['date'] == event.date.isoformat()
 
 
-def test_order_events_query(staff_api_client, permission_manage_orders):
-    query = """
-    {
-        orderEvents {
-            edges {
-                node {
-                    date
-                    type
-                }
-            }
-        }
-    }
-    """
-    response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_orders])
-    get_graphql_content(response)
-
-
 def test_non_staff_user_can_only_see_his_order(user_api_client, order):
     # FIXME: Remove client.login() when JWT authentication is re-enabled.
     user_api_client.login(username=order.user.email, password='password')
