@@ -201,6 +201,11 @@ def color_attribute(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def color_attribute_without_values(db):  # pylint: disable=W0613
+    return Attribute.objects.create(slug='color', name='Color')
+
+
+@pytest.fixture
 def pink_attribute_value(color_attribute):  # pylint: disable=W0613
     value = AttributeValue.objects.create(
         slug='pink', name='Pink', attribute=color_attribute, value='#FF69B4')
