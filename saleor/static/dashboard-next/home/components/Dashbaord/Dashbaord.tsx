@@ -1,13 +1,15 @@
 import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
+import AttachMoney from "@material-ui/icons/AttachMoney";
+import LocalShipping from "@material-ui/icons/LocalShipping";
 import CardSpacer from "../../../components/CardSpacer";
 import Container from "../../../components/Container";
+import Money from "../../../components/Money";
 import HomeActivityCard from "../HomeActivityCard";
+import HomeAnalyticsCard from "../HomeAnalyticsCard";
 import HomeHeader from "../HomeHeader";
-import HomeOrdersCard from "../HomeOrdersCard";
 import HomeProductListCard from "../HomeProductListCard";
-import HomeSalesCard from "../HomeSalesCard";
 
 interface MoneyType {
   amount: number;
@@ -46,10 +48,10 @@ const decorate = withStyles(theme => ({
     display: "grid",
     gridColumnGap: `${theme.spacing.unit * 3}px`,
     gridTemplateColumns: "1fr 1fr",
-    [theme.breakpoints.down("md")]: {
+    [theme.breakpoints.down("sm")]: {
       gridColumnGap: `${theme.spacing.unit}px`
     },
-    [theme.breakpoints.down("sm")]: {
+    [theme.breakpoints.down("xs")]: {
       gridTemplateColumns: "1fr"
     }
   },
@@ -58,7 +60,7 @@ const decorate = withStyles(theme => ({
     display: "grid" as "grid",
     gridColumnGap: `${theme.spacing.unit * 3}px`,
     gridTemplateColumns: "2fr 1fr",
-    [theme.breakpoints.down("md")]: {
+    [theme.breakpoints.down("sm")]: {
       gridColumnGap: `${theme.spacing.unit}px`
     },
     [theme.breakpoints.down("sm")]: {
@@ -75,11 +77,27 @@ const Dashboard = decorate<DashboardProps>(
         <div className={classes.root}>
           <div>
             <div className={classes.cardContainer}>
-              <HomeSalesCard disabled={false} title={"Sales"} daily={daily} />
-              <HomeOrdersCard disabled={false} title={"Orders"} daily={daily} />
+              <HomeAnalyticsCard
+                title={"Sales"}
+                icon={<AttachMoney fontSize={"inherit"} />}
+              >
+                {daily && daily.sales ? (
+                  <Money
+                    amount={daily.sales.amount}
+                    currency={daily.sales.currency}
+                  />
+                ) : (
+                  undefined
+                )}
+              </HomeAnalyticsCard>
+              <HomeAnalyticsCard
+                title={"Orders"}
+                icon={<LocalShipping fontSize={"inherit"} />}
+              >
+                {daily && daily.orders ? daily.orders.amount : undefined}
+              </HomeAnalyticsCard>
             </div>
 
-            <CardSpacer />
             <HomeProductListCard
               onRowClick={onRowClick}
               disabled={false}
