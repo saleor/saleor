@@ -29,7 +29,6 @@ interface HomeProductListProps {
     variant: string;
   }>;
   onRowClick: (id: string) => () => void;
-  disabled: boolean;
 }
 
 const decorate = withStyles(theme => ({

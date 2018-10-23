@@ -55,7 +55,7 @@ export const shop: (placeholderImage: string) => HomePageProps = (
     problems: 69,
     productsOut: 2
   },
-  onRowClick: () => undefined,
+  onProductClick: () => undefined,
   topProducts: [
     {
       id: "1",

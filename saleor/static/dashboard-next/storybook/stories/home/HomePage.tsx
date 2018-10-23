@@ -10,7 +10,7 @@ const shop = shopFixture(placeholderImage);
 const HomePageProps: HomePageProps = {
   activities: shop.activities,
   daily: shop.daily,
-  onRowClick: () => undefined,
+  onProductClick: () => undefined,
   topProducts: shop.topProducts,
   userName: shop.userName
 };
