@@ -60,7 +60,7 @@ def resolve_shipping_methods(obj, info):
         country_code=obj.shipping_address.country.code)
 
 
-def resolve_order_events(info):
+def resolve_homepage_events(info):
     # Filter only selected events to be displayed on homepage.
     types = [
         OrderEvents.PLACED.value, OrderEvents.PLACED_FROM_DRAFT.value,

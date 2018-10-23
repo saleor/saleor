@@ -26,7 +26,8 @@ from .discount.mutations import (
     VoucherUpdate)
 from .core.mutations import CreateToken, VerifyToken
 from .order.resolvers import (
-    resolve_order, resolve_orders, resolve_orders_total, resolve_order_events)
+    resolve_order, resolve_orders, resolve_orders_total,
+    resolve_homepage_events)
 from .order.types import Order, OrderStatusFilter, OrderEvent
 from .order.mutations.draft_orders import (
     DraftOrderComplete, DraftOrderCreate, DraftOrderDelete,
@@ -86,8 +87,9 @@ class Query(ProductQueries):
         status=graphene.Argument(
             OrderStatusFilter, description='Filter order by status'),
         description='List of the shop\'s orders.')
-    order_events = DjangoConnectionField(
-        OrderEvent, description='List of order events.')
+    homepage_events = DjangoConnectionField(
+        OrderEvent, description='''List of activity events to display on
+        homepage (at the moment it only contains order-events).''')
     page = graphene.Field(
         Page, id=graphene.Argument(graphene.ID), slug=graphene.String(),
         description='Lookup a page by ID or by slug.')
@@ -169,8 +171,8 @@ class Query(ProductQueries):
         return resolve_orders(info, created, status, query)
 
     @permission_required('order.manage_orders')
-    def resolve_order_events(self, info, **kwargs):
-        return resolve_order_events(info)
+    def resolve_homepage_events(self, info, **kwargs):
+        return resolve_homepage_events(info)
 
     def resolve_shop(self, info):
         return Shop()
