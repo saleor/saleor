@@ -33,7 +33,7 @@ interface HomeProductListProps {
 }
 
 const decorate = withStyles(theme => ({
-  avatarSize: {
+  avatarProps: {
     height: "64px",
     width: "64px"
   },
@@ -66,7 +66,7 @@ export const HomeProductList = decorate<HomeProductListProps>(
                 <TableCellAvatar
                   className={classes.avatarSpacing}
                   thumbnail={product && product.thumbnailUrl}
-                  avatarSize={classes.avatarSize}
+                  avatarProps={classes.avatarProps}
                 />
 
                 <TableCell>
