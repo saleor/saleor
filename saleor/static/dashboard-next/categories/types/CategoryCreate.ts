@@ -25,7 +25,6 @@ export interface CategoryCreate_categoryCreate_category {
   description: string;
   seoDescription: string | null;
   seoTitle: string | null;
-  parent: CategoryCreate_categoryCreate_category_parent | null;
 }
 
 export interface CategoryCreate_categoryCreate {
@@ -39,5 +38,6 @@ export interface CategoryCreate {
 }
 
 export interface CategoryCreateVariables {
+  parent?: string | null;
   input: CategoryInput;
 }
