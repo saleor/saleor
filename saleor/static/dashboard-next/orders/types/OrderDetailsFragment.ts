@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL fragment: OrderDetailsFragment
@@ -198,13 +198,13 @@ export interface OrderDetailsFragment_total {
   tax: OrderDetailsFragment_total_tax;
 }
 
-export interface OrderDetailsFragment_totalAuthorized {
+export interface OrderDetailsFragment_authorizedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderDetailsFragment_totalCaptured {
+export interface OrderDetailsFragment_capturedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -246,8 +246,9 @@ export interface OrderDetailsFragment {
   status: OrderStatus;
   subtotal: OrderDetailsFragment_subtotal | null;
   total: OrderDetailsFragment_total | null;
-  totalAuthorized: OrderDetailsFragment_totalAuthorized | null;
-  totalCaptured: OrderDetailsFragment_totalCaptured | null;
+  actions: (OrderAction | null)[];
+  authorizedAmount: OrderDetailsFragment_authorizedAmount;
+  capturedAmount: OrderDetailsFragment_capturedAmount;
   user: OrderDetailsFragment_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderDetailsFragment_availableShippingMethods | null)[] | null;

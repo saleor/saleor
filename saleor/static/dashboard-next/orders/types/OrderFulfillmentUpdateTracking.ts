@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { FulfillmentUpdateTrackingInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { FulfillmentUpdateTrackingInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderFulfillmentUpdateTracking
@@ -204,13 +204,13 @@ export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_o
   tax: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_total_tax;
 }
 
-export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_totalAuthorized {
+export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_authorizedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_totalCaptured {
+export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_capturedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -252,8 +252,9 @@ export interface OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_o
   status: OrderStatus;
   subtotal: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_subtotal | null;
   total: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_total | null;
-  totalAuthorized: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_totalAuthorized | null;
-  totalCaptured: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_totalCaptured | null;
+  actions: (OrderAction | null)[];
+  authorizedAmount: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_authorizedAmount;
+  capturedAmount: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_capturedAmount;
   user: OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderFulfillmentUpdateTracking_orderFulfillmentUpdateTracking_order_availableShippingMethods | null)[] | null;

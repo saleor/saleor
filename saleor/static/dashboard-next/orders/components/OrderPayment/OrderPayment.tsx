@@ -13,7 +13,7 @@ import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
-import { OrderStatus, PaymentChargeStatusEnum } from "../../../types/globalTypes";
+import { OrderAction, OrderStatus } from "../../../types/globalTypes";
 import { OrderDetails_order } from "../../types/OrderDetails";
 
 interface OrderPaymentProps {
@@ -39,23 +39,18 @@ const decorate = withStyles(theme => ({
 }));
 const OrderPayment = decorate<OrderPaymentProps>(
   ({ classes, order, onCapture, onMarkAsPaid, onRefund, onVoid }) => {
-    const canCapture = maybe(() => order.paymentStatus)
-      ? order.paymentStatus === PaymentChargeStatusEnum.PREAUTH &&
-        order.status !== OrderStatus.CANCELED
+    const canCapture = maybe(() => order.actions)
+      ? order.actions.includes(OrderAction.CAPTURE)
       : false;
-    const canVoid = maybe(() => order.paymentStatus)
-      ? order.paymentStatus === PaymentChargeStatusEnum.PREAUTH
+    const canVoid = maybe(() => order.actions)
+      ? order.actions.includes(OrderAction.VOID)
       : false;
-    const canRefund = maybe(() => order.paymentStatus)
-      ? order.paymentStatus === PaymentChargeStatusEnum.CONFIRMED &&
-        order.status !== OrderStatus.CANCELED
+    const canRefund = maybe(() => order.actions)
+      ? order.actions.includes(OrderAction.REFUND)
       : false;
-    const canMarkAsPaid =
-      maybe(() => order.paymentStatus) !== undefined
-        ? [null, PaymentChargeStatusEnum.ERROR, PaymentChargeStatusEnum.REJECTED].includes(
-            order.paymentStatus
-          )
-        : false;
+    const canMarkAsPaid = maybe(() => order.actions)
+      ? order.actions.includes(OrderAction.MARK_AS_PAID)
+      : false;
     const payment = transformPaymentStatus(maybe(() => order.paymentStatus));
     return (
       <Card>

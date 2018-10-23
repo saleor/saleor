@@ -1,4 +1,3 @@
-from decimal import Decimal
 from operator import attrgetter
 from uuid import uuid4
 
@@ -13,12 +12,12 @@ from django.utils.translation import pgettext_lazy
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
 from measurement.measures import Weight
-from prices import Money, TaxedMoney
 
-from . import FulfillmentStatus, OrderEvents, OrderStatus, display_order_event
+from . import (
+    CustomPaymentChoices, FulfillmentStatus, OrderEvents, OrderStatus,
+    display_order_event)
 from ..account.models import Address
 from ..core import zero_money
-from ..core.utils import build_absolute_uri
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.taxes import ZERO_TAXED_MONEY
 from ..core.weight import WeightUnits, zero_weight
@@ -178,7 +177,10 @@ class Order(models.Model):
         # FIXME for Braintree, payment is preauthorized if it was added
         # properly and set to active. This might need to be adjusted for other
         # payment gateways in the future.
-        return self.payments.filter(is_active=True).exists()
+        for payment in self.payments.all():
+            if payment.is_active:
+                return True
+        return False
 
     @property
     def quantity_fulfilled(self):
@@ -203,6 +205,58 @@ class Order(models.Model):
 
     def can_cancel(self):
         return self.status not in {OrderStatus.CANCELED, OrderStatus.DRAFT}
+
+    def can_capture(self, payment=None):
+        if not payment:
+            payment = self.get_last_payment()
+        if not payment:
+            return False
+        order_status_ok = self.status not in {
+            OrderStatus.DRAFT, OrderStatus.CANCELED}
+        return (
+            payment.is_active and
+            payment.charge_status == ChargeStatus.NOT_CHARGED and
+            order_status_ok)
+
+    def can_void(self, payment=None):
+        if not payment:
+            payment = self.get_last_payment()
+        if not payment:
+            return False
+        return (
+            payment.is_active and
+            payment.charge_status == ChargeStatus.NOT_CHARGED)
+
+    def can_refund(self, payment=None):
+        if not payment:
+            payment = self.get_last_payment()
+        if not payment:
+            return False
+        return (
+            payment.is_active and
+            payment.charge_status == ChargeStatus.CHARGED and
+            payment.variant != CustomPaymentChoices.MANUAL)
+
+    def can_mark_as_paid(self):
+        return len(self.payments.all()) == 0
+
+    @property
+    def authorized_amount(self):
+        payment = self.get_last_payment()
+        if payment:
+            return payment.total
+        return zero_money()
+
+    @property
+    def captured_amount(self):
+        payment = self.get_last_payment()
+        if payment and payment.charge_status == ChargeStatus.CHARGED:
+            return payment.captured_amount
+        return zero_money()
+
+    @property
+    def balance_amount(self):
+        return self.captured_amount - self.total.gross
 
     def get_total_weight(self):
         # Cannot use `sum` as it parses an empty Weight to an int

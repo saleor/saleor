@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderDraftFinalize
@@ -204,13 +204,13 @@ export interface OrderDraftFinalize_draftOrderComplete_order_total {
   tax: OrderDraftFinalize_draftOrderComplete_order_total_tax;
 }
 
-export interface OrderDraftFinalize_draftOrderComplete_order_totalAuthorized {
+export interface OrderDraftFinalize_draftOrderComplete_order_authorizedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderDraftFinalize_draftOrderComplete_order_totalCaptured {
+export interface OrderDraftFinalize_draftOrderComplete_order_capturedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -252,8 +252,9 @@ export interface OrderDraftFinalize_draftOrderComplete_order {
   status: OrderStatus;
   subtotal: OrderDraftFinalize_draftOrderComplete_order_subtotal | null;
   total: OrderDraftFinalize_draftOrderComplete_order_total | null;
-  totalAuthorized: OrderDraftFinalize_draftOrderComplete_order_totalAuthorized | null;
-  totalCaptured: OrderDraftFinalize_draftOrderComplete_order_totalCaptured | null;
+  actions: (OrderAction | null)[];
+  authorizedAmount: OrderDraftFinalize_draftOrderComplete_order_authorizedAmount;
+  capturedAmount: OrderDraftFinalize_draftOrderComplete_order_capturedAmount;
   user: OrderDraftFinalize_draftOrderComplete_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderDraftFinalize_draftOrderComplete_order_availableShippingMethods | null)[] | null;

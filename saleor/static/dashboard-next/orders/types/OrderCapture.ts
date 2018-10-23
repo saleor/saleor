@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderCapture
@@ -204,13 +204,13 @@ export interface OrderCapture_orderCapture_order_total {
   tax: OrderCapture_orderCapture_order_total_tax;
 }
 
-export interface OrderCapture_orderCapture_order_totalAuthorized {
+export interface OrderCapture_orderCapture_order_authorizedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderCapture_orderCapture_order_totalCaptured {
+export interface OrderCapture_orderCapture_order_capturedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -252,8 +252,9 @@ export interface OrderCapture_orderCapture_order {
   status: OrderStatus;
   subtotal: OrderCapture_orderCapture_order_subtotal | null;
   total: OrderCapture_orderCapture_order_total | null;
-  totalAuthorized: OrderCapture_orderCapture_order_totalAuthorized | null;
-  totalCaptured: OrderCapture_orderCapture_order_totalCaptured | null;
+  actions: (OrderAction | null)[];
+  authorizedAmount: OrderCapture_orderCapture_order_authorizedAmount;
+  capturedAmount: OrderCapture_orderCapture_order_capturedAmount;
   user: OrderCapture_orderCapture_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderCapture_orderCapture_order_availableShippingMethods | null)[] | null;

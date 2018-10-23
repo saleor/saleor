@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderVoid
@@ -198,13 +198,13 @@ export interface OrderVoid_orderVoid_order_total {
   tax: OrderVoid_orderVoid_order_total_tax;
 }
 
-export interface OrderVoid_orderVoid_order_totalAuthorized {
+export interface OrderVoid_orderVoid_order_authorizedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderVoid_orderVoid_order_totalCaptured {
+export interface OrderVoid_orderVoid_order_capturedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -246,8 +246,9 @@ export interface OrderVoid_orderVoid_order {
   status: OrderStatus;
   subtotal: OrderVoid_orderVoid_order_subtotal | null;
   total: OrderVoid_orderVoid_order_total | null;
-  totalAuthorized: OrderVoid_orderVoid_order_totalAuthorized | null;
-  totalCaptured: OrderVoid_orderVoid_order_totalCaptured | null;
+  actions: (OrderAction | null)[];
+  authorizedAmount: OrderVoid_orderVoid_order_authorizedAmount;
+  capturedAmount: OrderVoid_orderVoid_order_capturedAmount;
   user: OrderVoid_orderVoid_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderVoid_orderVoid_order_availableShippingMethods | null)[] | null;

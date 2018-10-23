@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { FulfillmentCreateInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { FulfillmentCreateInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderCreateFulfillment
@@ -204,13 +204,13 @@ export interface OrderCreateFulfillment_orderFulfillmentCreate_order_total {
   tax: OrderCreateFulfillment_orderFulfillmentCreate_order_total_tax;
 }
 
-export interface OrderCreateFulfillment_orderFulfillmentCreate_order_totalAuthorized {
+export interface OrderCreateFulfillment_orderFulfillmentCreate_order_authorizedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderCreateFulfillment_orderFulfillmentCreate_order_totalCaptured {
+export interface OrderCreateFulfillment_orderFulfillmentCreate_order_capturedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -252,8 +252,9 @@ export interface OrderCreateFulfillment_orderFulfillmentCreate_order {
   status: OrderStatus;
   subtotal: OrderCreateFulfillment_orderFulfillmentCreate_order_subtotal | null;
   total: OrderCreateFulfillment_orderFulfillmentCreate_order_total | null;
-  totalAuthorized: OrderCreateFulfillment_orderFulfillmentCreate_order_totalAuthorized | null;
-  totalCaptured: OrderCreateFulfillment_orderFulfillmentCreate_order_totalCaptured | null;
+  actions: (OrderAction | null)[];
+  authorizedAmount: OrderCreateFulfillment_orderFulfillmentCreate_order_authorizedAmount;
+  capturedAmount: OrderCreateFulfillment_orderFulfillmentCreate_order_capturedAmount;
   user: OrderCreateFulfillment_orderFulfillmentCreate_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderCreateFulfillment_orderFulfillmentCreate_order_availableShippingMethods | null)[] | null;
