@@ -50,6 +50,9 @@ function loadStories() {
   require("./stories/customers/CustomerEditPage");
   require("./stories/customers/CustomerListPage");
 
+  // Homepage
+  require("./stories/home/HomePage");
+
   // Staff
   require("./stories/staff/StaffListPage");
   require("./stories/staff/StaffDetailsPage");
@@ -99,9 +102,6 @@ function loadStories() {
   // Site settings
   require("./stories/siteSettings/SiteSettingsKeyDialog");
   require("./stories/siteSettings/SiteSettingsPage");
-
-  // Homepage
-  require("./stories/home/dashboard");
 }
 
 configure(loadStories, module);
