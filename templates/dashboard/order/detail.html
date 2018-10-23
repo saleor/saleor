@@ -156,7 +156,7 @@
           </table>
         </div>
         {% if not order.is_draft %}
-          {% if can_capture or can_refund or can_release or can_mark_as_paid %}
+          {% if can_capture or can_refund or can_void or can_mark_as_paid %}
             <div class="data-table-action">
               {% if can_capture %}
                 <a href="#base-modal" data-href="{% url 'dashboard:capture-payment' order_pk=order.pk payment_pk=payment.pk %}" class="btn-flat modal-trigger-custom waves-effect">
@@ -167,9 +167,9 @@
                   {% trans "Refund" context "Order summary card action" %}
                 </a>
               {% endif %}
-              {% if can_release %}
-                <a href="#base-modal" data-href="{% url 'dashboard:release-payment' order_pk=order.pk payment_pk=payment.pk %}" class="btn-flat modal-trigger-custom waves-effect">
-                  {% trans "Release" context "Order summary card action" %}
+              {% if can_void %}
+                <a href="#base-modal" data-href="{% url 'dashboard:void-payment' order_pk=order.pk payment_pk=payment.pk %}" class="btn-flat modal-trigger-custom waves-effect">
+                  {% trans "Void" context "Order summary card action" %}
                 </a>
               {% endif %}
               {% if can_mark_as_paid %}

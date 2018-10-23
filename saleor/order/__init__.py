@@ -66,7 +66,7 @@ class OrderEvents(Enum):
 
     PAYMENT_CAPTURED = 'captured'
     PAYMENT_REFUNDED = 'refunded'
-    PAYMENT_RELEASED = 'released'
+    PAYMENT_VOIDED = 'voided'
 
     FULFILLMENT_CANCELED = 'fulfillment_canceled'
     FULFILLMENT_RESTOCKED_ITEMS = 'restocked_items'
@@ -121,10 +121,10 @@ def display_order_event(order_event):
             'Dashboard message related to an order',
             'Order created from draft order by %(user_name)s' % {
                 'user_name': order_event.user})
-    if event_type == OrderEvents.PAYMENT_RELEASED.value:
+    if event_type == OrderEvents.PAYMENT_VOIDED.value:
         return pgettext_lazy(
             'Dashboard message related to an order',
-            'Payment was released by %(user_name)s' % {
+            'Payment was voided by %(user_name)s' % {
                 'user_name': order_event.user})
     if event_type == OrderEvents.PAYMENT_REFUNDED.value:
         amount = get_money_from_params(params['amount'])

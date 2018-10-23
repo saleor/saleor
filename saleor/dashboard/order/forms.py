@@ -254,7 +254,7 @@ class OrderNoteForm(forms.Form):
 class ManagePaymentForm(forms.Form):
     amount = MoneyField(
         label=pgettext_lazy(
-            'Payment management form (capture, refund, release)', 'Amount'),
+            'Payment management form (capture, refund, void)', 'Amount'),
         max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         currency=settings.DEFAULT_CURRENCY)
@@ -310,7 +310,7 @@ class RefundPaymentForm(ManagePaymentForm):
         return self.try_payment_action(self.payment.refund)
 
 
-class ReleasePaymentForm(forms.Form):
+class VoidPaymentForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.payment = kwargs.pop('payment')
@@ -321,14 +321,14 @@ class ReleasePaymentForm(forms.Form):
             raise forms.ValidationError(
                 pgettext_lazy(
                     'Payment form error',
-                    'Only pre-authorized payments can be released'))
+                    'Only pre-authorized payments can be voided'))
 
     def payment_error(self, message):
         self.add_error(
             None, pgettext_lazy(
                 'Payment form error', 'Payment gateway error: %s') % message)
 
-    def release(self):
+    def void(self):
         try:
             self.payment.void()
         except (PaymentError, ValueError) as e:

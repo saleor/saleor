@@ -35,7 +35,7 @@ This is very useful when an exact price cannot be determined until after the ord
 or we want to capture the money as soon as we ship the order.
 It is also useful if your business prefers to manually screen orders for fraud attempts.
 
-When viewing orders with pre-authorized payments Saleor will offer options to either capture or release the funds.
+When viewing orders with pre-authorized payments Saleor will offer options to either capture or void the funds.
 
 
 Refunds
