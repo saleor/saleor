@@ -50,7 +50,7 @@ def test_add_customer_form():
     assert User.objects.count() == user_count + 1
 
 
-def test_add_names_to_customer(customer_user):
+def test_edit_customer_names(customer_user):
     customer = customer_user
     customer_form = CustomerForm(
         {'first_name': 'Jan', 'last_name': 'Nowak', 'email': customer.email},

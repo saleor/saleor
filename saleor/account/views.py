@@ -103,7 +103,7 @@ def get_or_process_name_form(request):
     if form.is_valid():
         form.save()
         messages.success(request, pgettext(
-            'Storefront message', 'Data successfully changed.'))
+            'Storefront message', 'Account successfully updated.'))
     return form
 
 

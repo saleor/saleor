@@ -3,14 +3,8 @@ from django.utils.translation import pgettext_lazy
 
 from ...account.models import User
 from ...core.permissions import get_permissions
+from ..customer.forms import get_name_placeholder
 from ..forms import PermissionMultipleChoiceField
-
-
-def get_name_placeholder(name):
-    return pgettext_lazy(
-        'Customer form: Name field placeholder',
-        '%(name)s (Inherit from default biling address)') % {
-            'name': name}
 
 
 class StaffForm(forms.ModelForm):
