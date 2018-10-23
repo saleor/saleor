@@ -7,20 +7,12 @@ import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import KeyboardArrowRight from "@material-ui/icons/KeyboardArrowRight";
 import * as React from "react";
+
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
 
-// component implementation
-{
-  /* <HomeNotificationTable
-disabled={false}
-notifications={notifications}
-toOrders={toOrders}
-toPayments={toPayments}
-toProblems={toProblems}
-toProductsOut={toProductsOut}
-/> */
-}
+// There is no API for this component right now,
+// but maybe it will come in handy in the future
 
 interface HomeNotificationTableProps {
   disabled: boolean;
@@ -30,17 +22,17 @@ interface HomeNotificationTableProps {
     problems: number;
     productsOut: number;
   };
-  toOrders();
-  toPayments();
-  toProblems();
-  toProductsOut();
+  toOrders: () => void;
+  toPayments: () => void;
+  toProblems: () => void;
+  toProductsOut: () => void;
 }
 
 const decorate = withStyles(theme => ({
   arrowIcon: {
     width: theme.spacing.unit * 4
   },
-  tableRowPointer: {
+  tableRow: {
     cursor: "pointer" as "pointer"
   }
 }));
@@ -56,10 +48,10 @@ const HomeNotificationTable = decorate<HomeNotificationTableProps>(
     return (
       <Card>
         <Table>
-          <TableBody className={classes.tableRowPointer}>
+          <TableBody className={classes.tableRow}>
             <TableRow
               hover={true}
-              onClick={!!notifications ? toOrders() : undefined}
+              onClick={!!notifications ? toOrders : undefined}
             >
               <TableCell>
                 {notifications === undefined ? (
@@ -83,7 +75,7 @@ const HomeNotificationTable = decorate<HomeNotificationTableProps>(
             </TableRow>
             <TableRow
               hover={true}
-              onClick={!!notifications ? toPayments() : undefined}
+              onClick={!!notifications ? toPayments : undefined}
             >
               <TableCell>
                 {notifications === undefined ? (
@@ -109,7 +101,7 @@ const HomeNotificationTable = decorate<HomeNotificationTableProps>(
             </TableRow>
             <TableRow
               hover={true}
-              onClick={!!notifications ? toProblems() : undefined}
+              onClick={!!notifications ? toProblems : undefined}
             >
               <TableCell>
                 {notifications === undefined ? (
@@ -133,7 +125,7 @@ const HomeNotificationTable = decorate<HomeNotificationTableProps>(
             </TableRow>
             <TableRow
               hover={true}
-              onClick={!!notifications ? toProductsOut() : undefined}
+              onClick={!!notifications ? toProductsOut : undefined}
             >
               <TableCell>
                 {notifications === undefined ? (
