@@ -11,12 +11,13 @@ from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import (
     DEFAULT_TAX_RATE_NAME, get_tax_rate_by_name, get_taxes_for_country)
 from saleor.order import FulfillmentStatus, OrderStatus, models
-from saleor.order.models import Order, Payment
+from saleor.order.models import Order
 from saleor.order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order, recalculate_order,
     restock_fulfillment_lines, restock_order_lines, update_order_prices,
     update_order_status)
 from saleor.payment import ChargeStatus
+from saleor.payment.models import Payment
 from tests.utils import get_redirect_location
 
 
@@ -390,7 +391,9 @@ def test_queryset_ready_to_capture():
 
     preauth_order = Order.objects.create(
         status=OrderStatus.UNFULFILLED, total=total)
-    Payment.objects.create(order=preauth_order, status=PaymentStatus.PREAUTH)
+    Payment.objects.create(
+        order=preauth_order,
+        charge_status=ChargeStatus.NOT_CHARGED, is_active=True)
 
     orders = [
         Order.objects.create(status=OrderStatus.DRAFT, total=total),

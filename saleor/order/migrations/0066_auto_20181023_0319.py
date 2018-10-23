@@ -13,7 +13,7 @@ def change_released_to_voided_in_order_events(apps, schema):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('order', '0066_auto_20181023_0317'),
+        ('order', '0065_auto_20181017_1346'),
     ]
 
     operations = [

@@ -335,6 +335,10 @@ class Mutations(ProductMutations):
     page_delete = PageDelete.Field()
     page_update = PageUpdate.Field()
 
+    payment_capture = PaymentCapture.Field()
+    payment_refund = PaymentRefund.Field()
+    payment_void = PaymentVoid.Field()
+
     sale_create = SaleCreate.Field()
     sale_delete = SaleDelete.Field()
     sale_update = SaleUpdate.Field()
@@ -354,9 +358,6 @@ class Mutations(ProductMutations):
     shipping_price_create = ShippingPriceCreate.Field()
     shipping_price_delete = ShippingPriceDelete.Field()
     shipping_price_update = ShippingPriceUpdate.Field()
-
-    variant_image_assign = VariantImageAssign.Field()
-    variant_image_unassign = VariantImageUnassign.Field()
 
 
 schema = graphene.Schema(Query, Mutations)
