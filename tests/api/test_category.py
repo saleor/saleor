@@ -54,8 +54,8 @@ def test_category_create_mutation(
                     slug: $slug
                     description: $description
                     backgroundImage: $backgroundImage
-                    parent: $parentId
-                }
+                },
+                parent: $parentId
             ) {
                 category {
                     id
