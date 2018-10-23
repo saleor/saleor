@@ -6,12 +6,14 @@ import graphene
 from payments import PaymentStatus
 from saleor.account.models import Address
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
+from saleor.graphql.core.types import ReportingPeriod
 from saleor.graphql.order.mutations.draft_orders import (
     check_for_draft_order_errors)
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel, clean_order_capture, clean_order_mark_as_paid,
     clean_refund_payment, clean_release_payment)
-from saleor.graphql.order.types import OrderEventsEmailsEnum, PaymentStatusEnum
+from saleor.graphql.order.types import (
+    OrderEventsEmailsEnum, PaymentStatusEnum, OrderStatusFilter)
 from saleor.order import (
     CustomPaymentChoices, OrderEvents, OrderEventsEmails, OrderStatus)
 from saleor.order.models import Order, OrderEvent, Payment
@@ -137,7 +139,27 @@ def test_order_query(
     assert expected_method.type.upper() == method['type']
 
 
-def test_order_events_query(
+def test_order_status_filter_param(user_api_client):
+    query = """
+    query OrdersQuery($status: OrderStatusFilter) {
+        orders(status: $status) {
+            totalCount
+        }
+    }
+    """
+
+    # Check that both calls return a succesful response (underlying logic
+    # is tested separately in querysets' tests).
+    variables = {'status': OrderStatusFilter.READY_TO_CAPTURE.name}
+    response = user_api_client.post_graphql(query, variables)
+    get_graphql_content(response)
+
+    variables = {'status': OrderStatusFilter.READY_TO_FULFILL.name}
+    response = user_api_client.post_graphql(query, variables)
+    get_graphql_content(response)
+
+
+def test_nested_order_events_query(
         staff_api_client, permission_manage_orders, fulfilled_order,
         staff_user):
     query = """
@@ -713,7 +735,7 @@ def test_order_update_anonymous_user_no_user_email(
     order.save()
     query = """
             mutation orderUpdate(
-            $id: ID!, $first_name: String, $last_name: String, 
+            $id: ID!, $first_name: String, $last_name: String,
             $country_code: String) {
                 orderUpdate(
                     id: $id, input: {
@@ -1215,3 +1237,30 @@ def test_order_update_shipping_incorrect_shipping_method(
     assert data['errors'][0]['field'] == 'shippingMethod'
     assert data['errors'][0]['message'] == (
         'Shipping method cannot be used with this order.')
+
+
+def test_orders_total(
+        staff_api_client, permission_manage_orders, order_with_lines):
+    query = """
+    query Orders($period: ReportingPeriod) {
+        ordersTotal(period: $period) {
+            gross {
+                amount
+                currency
+            }
+            net {
+                currency
+                amount
+            }
+        }
+    }
+    """
+    variables = {'period': ReportingPeriod.TODAY.name}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders])
+    content = get_graphql_content(response)
+    assert (
+        content['data']['ordersTotal']['gross']['amount'] ==
+        order_with_lines.total.gross.amount)
+
+

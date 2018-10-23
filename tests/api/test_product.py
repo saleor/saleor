@@ -8,6 +8,8 @@ from prices import Money
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
+from saleor.graphql.core.types import ReportingPeriod
+from saleor.graphql.product.types import StockAvailability
 from saleor.graphql.product.utils import update_variants_names
 from saleor.product.models import (
     Category, Collection, Product, ProductImage, ProductType, ProductVariant)
@@ -1426,3 +1428,80 @@ def test_product_variant_price(
     data = content['data']['product']
     variant_price = data['variants']['edges'][0]['node']['price']
     assert variant_price['amount'] == api_variant_price
+
+
+def test_stock_availability_filter(user_api_client, product):
+    query = """
+    query Products($stockAvailability: StockAvailability) {
+        products(stockAvailability: $stockAvailability) {
+            totalCount
+            edges {
+                node {
+                    id
+                }
+            }
+        }
+    }
+    """
+
+    # fetch products in stock
+    variables = {'stockAvailability': StockAvailability.IN_STOCK.name}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content['data']['products']['totalCount'] == 1
+
+    # fetch out of stock
+    variables = {'stockAvailability': StockAvailability.OUT_OF_STOCK.name}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content['data']['products']['totalCount'] == 0
+
+    # Change product stock availability and test again
+    product.variants.update(quantity=0)
+
+    # There should be no products in stock
+    variables = {'stockAvailability': StockAvailability.IN_STOCK.name}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content['data']['products']['totalCount'] == 0
+
+
+def test_product_sales(
+        staff_api_client, order_with_lines, permission_manage_products,
+        permission_manage_orders):
+    query = """
+    query TopProducts($period: ReportingPeriod!) {
+        reportProductSales(period: $period) {
+            edges {
+                node {
+                    revenue(period: $period) {
+                        gross {
+                            amount
+                        }
+                    }
+                    quantityOrdered
+                    sku
+                }
+            }
+        }
+    }
+    """
+    variables = {'period': ReportingPeriod.TODAY.name}
+    permissions = [permission_manage_orders, permission_manage_products]
+    response = staff_api_client.post_graphql(query, variables, permissions)
+    content = get_graphql_content(response)
+    edges = content['data']['reportProductSales']['edges']
+
+    node_a = edges[0]['node']
+    line_a = order_with_lines.lines.get(product_sku=node_a['sku'])
+    assert node_a['quantityOrdered'] == line_a.quantity
+    assert (
+        node_a['revenue']['gross']['amount'] ==
+        line_a.quantity * line_a.unit_price_gross.amount)
+
+    node_b = edges[1]['node']
+    line_b = order_with_lines.lines.get(product_sku=node_b['sku'])
+    assert node_b['quantityOrdered'] == line_b.quantity
+    assert (
+        node_b['revenue']['gross']['amount'] ==
+        line_b.quantity * line_b.unit_price_gross.amount)

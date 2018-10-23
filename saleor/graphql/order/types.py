@@ -16,6 +16,11 @@ PaymentStatusEnum = graphene.Enum(
     [(code.upper(), code) for code, name in PaymentStatus.CHOICES])
 
 
+class OrderStatusFilter(graphene.Enum):
+    READY_TO_FULFILL = 'READY_TO_FULFILL'
+    READY_TO_CAPTURE = 'READY_TO_CAPTURE'
+
+
 class OrderEvent(CountableDjangoObjectType):
     date = graphene.types.datetime.DateTime(
         description='Date when event happened at in ISO 8601 format.')
