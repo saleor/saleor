@@ -6,7 +6,10 @@ from django.utils.translation import pgettext_lazy
 
 
 class PaymentError(Exception):
-    pass
+
+    def __init__(self, message):
+        super(PaymentError, self).__init__(message)
+        self.message = message
 
 
 class TransactionType:

@@ -73,7 +73,7 @@ def create_transaction(
         token: str,
         transaction_type: str,
         is_success: bool,
-        amount: Decimal,
+        amount: Money,
         gateway_response: Optional[Dict] = None) -> Transaction:
     if not gateway_response:
         gateway_response = {}
@@ -103,12 +103,8 @@ def gateway_authorize(payment: Payment, transaction_token: str) -> Transaction:
     with transaction.atomic():
         txn, error = provider.authorize(
             payment, transaction_token, **provider_params)
-        if txn.is_success:
-            payment.charge_status = ChargeStatus.NOT_CHARGED
-            payment.save(update_fields=['charge_status'])
             # FIXME Create an order event ?
     if not txn.is_success:
-        # TODO: Handle gateway response here somehow
         raise PaymentError(error)
     return txn
 
@@ -130,15 +126,13 @@ def gateway_capture(payment: Payment, amount: Decimal) -> Transaction:
             payment, amount=amount, **provider_params)
         if txn.is_success:
             payment.charge_status = ChargeStatus.CHARGED
-            payment.captured_amount += Money(
-                txn.amount, settings.DEFAULT_CURRENCY)
+            payment.captured_amount += txn.amount
             payment.save(update_fields=['charge_status', 'captured_amount'])
             order = payment.order
             if order and order.is_fully_paid():
                 handle_fully_paid_order(order)
             # FIXME Create an order event ?
     if not txn.is_success:
-        # TODO: Handle gateway response here somehow
         raise PaymentError(error)
     return txn
 
@@ -146,7 +140,7 @@ def gateway_capture(payment: Payment, amount: Decimal) -> Transaction:
 @validate_payment
 def gateway_void(payment) -> Transaction:
     if not can_be_voided(payment):
-        raise PaymentError('Only pre-authorized transactions can be void.')
+        raise PaymentError('Only pre-authorized transactions can be voided.')
     provider, provider_params = get_provider(payment.variant)
     with transaction.atomic():
         txn, error = provider.void(payment, **provider_params)
@@ -174,12 +168,11 @@ def gateway_refund(payment, amount: Decimal) -> Transaction:
         txn, error = provider.refund(payment, amount, **provider_params)
         if txn.is_success:
             changed_fields = ['captured_amount']
-            if txn.amount == payment.total.amount:
+            if txn.amount == payment.total:
                 payment.charge_status = ChargeStatus.FULLY_REFUNDED
                 payment.is_active = False
                 changed_fields += ['charge_status', 'is_active']
-            payment.captured_amount -= Money(
-                txn.amount, settings.DEFAULT_CURRENCY)
+            payment.captured_amount -= txn.amount
             payment.save(update_fields=changed_fields)
         # FIXME Create an order event ?
     if not txn.is_success:
