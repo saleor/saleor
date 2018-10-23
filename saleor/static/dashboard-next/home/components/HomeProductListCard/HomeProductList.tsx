@@ -35,7 +35,7 @@ const decorate = withStyles(theme => ({
     height: "64px",
     width: "64px"
   },
-  tableRowPointer: {
+  tableRow: {
     cursor: "pointer" as "pointer"
   },
   tableRowSize: {
@@ -55,7 +55,7 @@ export const HomeProductList = decorate<HomeProductListProps>(
               key={product ? product.id : "skeleton"}
               hover={!!product}
               className={classNames({
-                [classes.tableRowPointer]: !!product
+                [classes.tableRow]: !!product
               })}
               onClick={!!product ? onRowClick(product.id) : undefined}
             >

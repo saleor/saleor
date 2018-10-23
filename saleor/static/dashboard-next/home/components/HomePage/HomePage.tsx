@@ -15,7 +15,7 @@ interface MoneyType {
   amount: number;
   currency: string;
 }
-export interface DashboardProps {
+export interface HomePageProps {
   activities?: Array<{
     action: string;
     admin: boolean;
@@ -68,7 +68,7 @@ const decorate = withStyles(theme => ({
     }
   }
 }));
-const Dashboard = decorate<DashboardProps>(
+const HomePage = decorate<HomePageProps>(
   ({ userName, classes, daily, topProducts, onRowClick, activities }) => {
     return (
       <Container width="md">
@@ -113,4 +113,4 @@ const Dashboard = decorate<DashboardProps>(
     );
   }
 );
-export default Dashboard;
+export default HomePage;
