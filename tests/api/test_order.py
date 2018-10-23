@@ -11,7 +11,7 @@ from saleor.graphql.order.mutations.draft_orders import (
     check_for_draft_order_errors)
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel, clean_order_capture, clean_order_mark_as_paid,
-    clean_refund_payment, clean_release_payment)
+    clean_refund_payment, clean_void_payment)
 from saleor.graphql.order.types import OrderEventsEmailsEnum, OrderStatusFilter
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
 from saleor.order import (
@@ -996,13 +996,13 @@ def test_order_mark_as_paid(
     assert event_order_paid.user == staff_user
 
 
-def test_order_release(
+def test_order_void(
         staff_api_client, permission_manage_orders, payment_txn_preauth,
         staff_user):
     order = payment_txn_preauth.order
     query = """
-            mutation releaseOrder($id: ID!) {
-                orderRelease(id: $id) {
+            mutation voidOrder($id: ID!) {
+                orderVoid(id: $id) {
                     order {
                         paymentStatus
                     }
@@ -1014,11 +1014,11 @@ def test_order_release(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders])
     content = get_graphql_content(response)
-    data = content['data']['orderRelease']['order']
+    data = content['data']['orderVoid']['order']
     assert data['paymentStatus'] == PaymentChargeStatusEnum.NOT_CHARGED.name
-    event_payment_released = order.events.last()
-    assert event_payment_released.type == OrderEvents.PAYMENT_RELEASED.value
-    assert event_payment_released.user == staff_user
+    event_payment_voided = order.events.last()
+    assert event_payment_voided.type == OrderEvents.PAYMENT_VOIDED.value
+    assert event_payment_voided.user == staff_user
 
 
 def test_order_refund(
@@ -1053,17 +1053,17 @@ def test_order_refund(
     assert order_event.type == OrderEvents.PAYMENT_REFUNDED.value
 
 
-def test_clean_order_release_payment():
+def test_clean_order_void_payment():
     payment = MagicMock(spec=Payment)
     payment.is_active = False
-    errors = clean_release_payment(payment, [])
+    errors = clean_void_payment(payment, [])
     assert errors[0].field == 'payment'
-    assert errors[0].message == 'Only pre-authorized payments can be released'
+    assert errors[0].message == 'Only pre-authorized payments can be voided'
 
     payment.is_active = True
     error_msg = 'error has happened.'
     payment.void = Mock(side_effect=ValueError(error_msg))
-    errors = clean_release_payment(payment, [])
+    errors = clean_void_payment(payment, [])
     assert errors[0].field == 'payment'
     assert errors[0].message == error_msg
 

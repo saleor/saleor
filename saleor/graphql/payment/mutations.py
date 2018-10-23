@@ -56,7 +56,6 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             if not billing_address:
                 return CheckoutPaymentCreate(errors=errors)
             billing_data = cls.clean_billing_address(billing_address)
-
         extra_data = cls.get_extra_info(info)
         gross = Money(input['amount'], currency=settings.DEFAULT_CURRENCY)
         payment = create_payment(

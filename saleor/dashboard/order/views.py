@@ -35,7 +35,7 @@ from .forms import (
     OrderCustomerForm, OrderEditDiscountForm, OrderEditVoucherForm,
     OrderMarkAsPaidForm, OrderNoteForm, OrderRemoveCustomerForm,
     OrderRemoveShippingForm, OrderRemoveVoucherForm, OrderShippingForm,
-    RefundPaymentForm, ReleasePaymentForm)
+    RefundPaymentForm, VoidPaymentForm)
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url,
     save_address_in_order)
@@ -132,7 +132,7 @@ def order_details(request, order_pk):
             payment.is_active and
             payment.charge_status == ChargeStatus.NOT_CHARGED and
             order.status not in {OrderStatus.DRAFT, OrderStatus.CANCELED})
-        can_release = (
+        can_void = (
             payment.is_active and
             payment.charge_status == ChargeStatus.NOT_CHARGED)
         can_refund = (
@@ -144,7 +144,7 @@ def order_details(request, order_pk):
             captured = payment.captured_amount
             balance = captured - order.total.gross
     else:
-        can_capture = can_release = can_refund = False
+        can_capture = can_void = can_refund = False
     can_mark_as_paid = not order.payments.exists()
     ctx = {
         'order': order, 'all_payments': all_payments, 'payment': payment,
@@ -152,7 +152,7 @@ def order_details(request, order_pk):
         'events': order.events.all(),
         'captured': captured, 'balance': balance,
         'preauthorized': preauthorized,
-        'can_capture': can_capture, 'can_release': can_release,
+        'can_capture': can_capture, 'can_void': can_void,
         'can_refund': can_refund, 'can_mark_as_paid': can_mark_as_paid,
         'order_fulfillments': order.fulfillments.all()}
     return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
@@ -243,23 +243,23 @@ def refund_payment(request, order_pk, payment_pk):
 
 @staff_member_required
 @permission_required('order.manage_orders')
-def release_payment(request, order_pk, payment_pk):
+def void_payment(request, order_pk, payment_pk):
     orders = Order.objects.confirmed().prefetch_related('payments')
     order = get_object_or_404(orders, pk=order_pk)
     payment = get_object_or_404(order.payments, pk=payment_pk)
-    form = ReleasePaymentForm(request.POST or None, payment=payment)
-    if form.is_valid() and form.release():
-        msg = pgettext_lazy('Dashboard message', 'Released payment')
+    form = VoidPaymentForm(request.POST or None, payment=payment)
+    if form.is_valid() and form.void():
+        msg = pgettext_lazy('Dashboard message', 'Voided payment')
         order.events.create(
             user=request.user,
-            type=OrderEvents.PAYMENT_RELEASED.value)
+            type=OrderEvents.PAYMENT_VOIDED.value)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     status = 400 if form.errors else 200
     ctx = {
         'captured': payment.captured_amount, 'form': form, 'order': order,
         'payment': payment}
-    return TemplateResponse(request, 'dashboard/order/modal/release.html', ctx,
+    return TemplateResponse(request, 'dashboard/order/modal/void.html', ctx,
                             status=status)
 
 

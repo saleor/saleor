@@ -83,12 +83,12 @@ def clean_order_capture(payment, amount, errors):
     return errors
 
 
-def clean_release_payment(payment, errors):
+def clean_void_payment(payment, errors):
     """Check for payment errors."""
     if not payment.is_active:
         errors.append(
             Error(field='payment',
-                  message='Only pre-authorized payments can be released'))
+                  message='Only pre-authorized payments can be voided'))
     try:
         payment.void()
     except (PaymentError, ValueError) as e:
@@ -340,15 +340,15 @@ class OrderCapture(BaseMutation):
         return OrderCapture(order=order)
 
 
-class OrderRelease(BaseMutation):
-    order = graphene.Field(Order, description='A released order.')
+class OrderVoid(BaseMutation):
+    order = graphene.Field(Order, description='A voided order.')
 
     class Arguments:
         id = graphene.ID(
-            required=True, description='ID of the order to release.')
+            required=True, description='ID of the order to void.')
 
     class Meta:
-        description = 'Release an order.'
+        description = 'Void an order.'
 
     @classmethod
     @permission_required('order.manage_orders')
@@ -357,14 +357,14 @@ class OrderRelease(BaseMutation):
         order = cls.get_node_or_error(info, id, errors, 'id', Order)
         if order:
             payment = order.get_last_payment()
-            clean_release_payment(payment, errors)
+            clean_void_payment(payment, errors)
 
         if errors:
-            return OrderRelease(errors=errors)
+            return OrderVoid(errors=errors)
         order.events.create(
-            type=OrderEvents.PAYMENT_RELEASED.value,
+            type=OrderEvents.PAYMENT_VOIDED.value,
             user=info.context.user)
-        return OrderRelease(order=order)
+        return OrderVoid(order=order)
 
 
 class OrderRefund(BaseMutation):
