@@ -9,6 +9,11 @@ from ....core import weight
 from ..connection import CountableConnection
 
 
+class ReportingPeriod(graphene.Enum):
+    TODAY = 'TODAY'
+    THIS_MONTH = 'THIS_MONTH'
+
+
 class Decimal(graphene.Float):
     """Custom Decimal implementation.
     Returns Decimal as a float in the API,

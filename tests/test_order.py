@@ -13,7 +13,7 @@ from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import (
     DEFAULT_TAX_RATE_NAME, get_tax_rate_by_name, get_taxes_for_country)
 from saleor.order import FulfillmentStatus, OrderStatus, models
-from saleor.order.models import Order
+from saleor.order.models import Order, Payment
 from saleor.order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order, recalculate_order,
     restock_fulfillment_lines, restock_order_lines, update_order_prices,
@@ -380,10 +380,30 @@ def test_order_queryset_to_ship():
         Order.objects.create(status=OrderStatus.CANCELED, total=total)
     ]
 
-    orders = Order.objects.to_ship()
+    orders = Order.objects.ready_to_fulfill()
 
     assert all([order in orders for order in orders_to_ship])
     assert all([order not in orders for order in orders_not_to_ship])
+
+
+def test_queryset_ready_to_capture():
+    total = TaxedMoney(net=Money(10, 'USD'), gross=Money(15, 'USD'))
+
+    preauth_order = Order.objects.create(
+        status=OrderStatus.UNFULFILLED, total=total)
+    Payment.objects.create(order=preauth_order, status=PaymentStatus.PREAUTH)
+
+    orders = [
+        Order.objects.create(status=OrderStatus.DRAFT, total=total),
+        Order.objects.create(status=OrderStatus.UNFULFILLED, total=total),
+        preauth_order,
+        Order.objects.create(status=OrderStatus.CANCELED, total=total)]
+
+    qs = Order.objects.ready_to_capture()
+    assert preauth_order in qs
+    statuses = [o.status for o in qs]
+    assert OrderStatus.DRAFT not in statuses
+    assert OrderStatus.CANCELED not in statuses
 
 
 def test_update_order_prices(order_with_lines):

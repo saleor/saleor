@@ -680,6 +680,35 @@ type MoneyRange {
 }
 
 type Mutations {
+  attributeCreate(id: ID!, input: AttributeCreateInput!, type: AttributeTypeEnum!): AttributeCreate
+  attributeDelete(id: ID!): AttributeDelete
+  attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
+  attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
+  attributeValueDelete(id: ID!): AttributeValueDelete
+  attributeValueUpdate(id: ID!, input: AttributeValueCreateInput!): AttributeValueUpdate
+  categoryCreate(input: CategoryInput!, parent: ID): CategoryCreate
+  categoryDelete(id: ID!): CategoryDelete
+  categoryUpdate(id: ID!, input: CategoryInput!): CategoryUpdate
+  collectionCreate(input: CollectionCreateInput!): CollectionCreate
+  collectionUpdate(id: ID!, input: CollectionInput!): CollectionUpdate
+  collectionDelete(id: ID!): CollectionDelete
+  collectionAddProducts(collectionId: ID!, products: [ID]!): CollectionAddProducts
+  collectionRemoveProducts(collectionId: ID!, products: [ID]!): CollectionRemoveProducts
+  productCreate(input: ProductCreateInput!): ProductCreate
+  productDelete(id: ID!): ProductDelete
+  productUpdate(id: ID!, input: ProductInput!): ProductUpdate
+  productImageCreate(input: ProductImageCreateInput!): ProductImageCreate
+  productImageReorder(imagesIds: [ID]!, productId: ID!): ProductImageReorder
+  productImageDelete(id: ID!): ProductImageDelete
+  productImageUpdate(id: ID!, input: ProductImageUpdateInput!): ProductImageUpdate
+  productTypeCreate(input: ProductTypeInput!): ProductTypeCreate
+  productTypeUpdate(id: ID!, input: ProductTypeInput!): ProductTypeUpdate
+  productTypeDelete(id: ID!): ProductTypeDelete
+  productVariantCreate(input: ProductVariantCreateInput!): ProductVariantCreate
+  productVariantDelete(id: ID!): ProductVariantDelete
+  productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
+  variantImageAssign(imageId: ID!, variantId: ID!): VariantImageAssign
+  variantImageUnassign(imageId: ID!, variantId: ID!): VariantImageUnassign
   authorizationKeyAdd(input: AuthorizationKeyInput!, keyType: AuthorizationKeyType!): AuthorizationKeyAdd
   authorizationKeyDelete(keyType: AuthorizationKeyType!): AuthorizationKeyDelete
   assignNavigation(menu: ID, navigationType: NavigationType!): AssignNavigation
@@ -688,12 +717,6 @@ type Mutations {
   tokenVerify(token: String): VerifyToken
   setPassword(id: ID!, input: SetPasswordInput!): SetPassword
   passwordReset(email: String!): PasswordReset
-  attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
-  attributeValueDelete(id: ID!): AttributeValueDelete
-  attributeValueUpdate(id: ID!, input: AttributeValueCreateInput!): AttributeValueUpdate
-  categoryCreate(input: CategoryInput!, parent: ID): CategoryCreate
-  categoryDelete(id: ID!): CategoryDelete
-  categoryUpdate(id: ID!, input: CategoryInput!): CategoryUpdate
   customerCreate(input: UserCreateInput!): CustomerCreate
   customerUpdate(id: ID!, input: CustomerInput!): CustomerUpdate
   customerPasswordReset(input: CustomerPasswordResetInput!): CustomerPasswordReset
@@ -704,11 +727,6 @@ type Mutations {
   addressCreate(input: AddressCreateInput!): AddressCreate
   addressUpdate(id: ID!, input: AddressInput!): AddressUpdate
   addressDelete(id: ID!): AddressDelete
-  collectionCreate(input: CollectionCreateInput!): CollectionCreate
-  collectionUpdate(id: ID!, input: CollectionInput!): CollectionUpdate
-  collectionDelete(id: ID!): CollectionDelete
-  collectionAddProducts(collectionId: ID!, products: [ID]!): CollectionAddProducts
-  collectionRemoveProducts(collectionId: ID!, products: [ID]!): CollectionRemoveProducts
   menuCreate(input: MenuCreateInput!): MenuCreate
   menuDelete(id: ID!): MenuDelete
   menuUpdate(id: ID!, input: MenuInput!): MenuUpdate
@@ -736,22 +754,6 @@ type Mutations {
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
-  attributeCreate(id: ID!, input: AttributeCreateInput!, type: AttributeTypeEnum!): AttributeCreate
-  attributeDelete(id: ID!): AttributeDelete
-  attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
-  productCreate(input: ProductCreateInput!): ProductCreate
-  productDelete(id: ID!): ProductDelete
-  productUpdate(id: ID!, input: ProductInput!): ProductUpdate
-  productImageCreate(input: ProductImageCreateInput!): ProductImageCreate
-  productImageReorder(imagesIds: [ID]!, productId: ID!): ProductImageReorder
-  productImageDelete(id: ID!): ProductImageDelete
-  productImageUpdate(id: ID!, input: ProductImageUpdateInput!): ProductImageUpdate
-  productTypeCreate(input: ProductTypeInput!): ProductTypeCreate
-  productTypeUpdate(id: ID!, input: ProductTypeInput!): ProductTypeUpdate
-  productTypeDelete(id: ID!): ProductTypeDelete
-  productVariantCreate(input: ProductVariantCreateInput!): ProductVariantCreate
-  productVariantDelete(id: ID!): ProductVariantDelete
-  productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleUpdate(id: ID!, input: SaleInput!): SaleUpdate
@@ -767,8 +769,6 @@ type Mutations {
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceUpdate(id: ID!, input: ShippingPriceInput!): ShippingPriceUpdate
-  variantImageAssign(imageId: ID!, variantId: ID!): VariantImageAssign
-  variantImageUnassign(imageId: ID!, variantId: ID!): VariantImageUnassign
 }
 
 type Navigation {
@@ -866,6 +866,17 @@ type OrderEvent implements Node {
   oversoldItems: [String]
 }
 
+type OrderEventCountableConnection {
+  pageInfo: PageInfo!
+  edges: [OrderEventCountableEdge!]!
+  totalCount: Int
+}
+
+type OrderEventCountableEdge {
+  node: OrderEvent!
+  cursor: String!
+}
+
 enum OrderEvents {
   PLACED
   PLACED_FROM_DRAFT
@@ -906,6 +917,17 @@ type OrderLine implements Node {
   thumbnailUrl(size: Int): String
 }
 
+type OrderLineCountableConnection {
+  pageInfo: PageInfo!
+  edges: [OrderLineCountableEdge!]!
+  totalCount: Int
+}
+
+type OrderLineCountableEdge {
+  node: OrderLine!
+  cursor: String!
+}
+
 input OrderLineCreateInput {
   quantity: Int!
   variantId: ID!
@@ -936,6 +958,11 @@ enum OrderStatus {
   PARTIALLY_FULFILLED
   FULFILLED
   CANCELED
+}
+
+enum OrderStatusFilter {
+  READY_TO_FULFILL
+  READY_TO_CAPTURE
 }
 
 type OrderUpdate {
@@ -1253,9 +1280,12 @@ type ProductVariant implements Node {
   quantityAllocated: Int!
   costPrice: Money
   weight: Weight
+  orderLines(before: String, after: String, first: Int, last: Int): OrderLineCountableConnection
   stockQuantity: Int!
   price: Money
   margin: Int
+  quantityOrdered: Int
+  revenue(period: ReportingPeriod): TaxedMoney
 }
 
 type ProductVariantCountableConnection {
@@ -1306,26 +1336,29 @@ type ProductVariantUpdate {
 }
 
 type Query {
-  addressValidator(input: AddressValidationInput!): AddressValidationData
   attributes(query: String, inCategory: ID, before: String, after: String, first: Int, last: Int, id: ID, slug: String): AttributeCountableConnection
   categories(query: String, level: Int, before: String, after: String, first: Int, last: Int, id: ID, name: String): CategoryCountableConnection
   category(id: ID): Category
   collection(id: ID): Collection
   collections(query: String, before: String, after: String, first: Int, last: Int, name: String, name_Icontains: String, name_Istartswith: String): CollectionCountableConnection
+  product(id: ID): Product
+  products(query: String, stockAvailability: StockAvailability, before: String, after: String, first: Int, last: Int, category: ID, price: Float, price_Range: Float, price_Lte: Float, price_Gte: Float, attributes: [AttributeScalar], name: String, name_Icontains: String, productType_Name: String, isPublished: Boolean, sortBy: String): ProductCountableConnection
+  productType(id: ID): ProductType
+  productTypes(before: String, after: String, first: Int, last: Int, id: ID): ProductTypeCountableConnection
+  productVariant(id: ID): ProductVariant
+  productVariants(ids: [ID], before: String, after: String, first: Int, last: Int, id: ID): ProductVariantCountableConnection
+  reportProductSales(period: ReportingPeriod!, before: String, after: String, first: Int, last: Int, id: ID): ProductVariantCountableConnection
+  addressValidator(input: AddressValidationInput!): AddressValidationData
   menu(id: ID, name: String): Menu
   menus(query: String, before: String, after: String, first: Int, last: Int): MenuCountableConnection
   menuItem(id: ID): MenuItem
   menuItems(query: String, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
   order(id: ID): Order
-  orders(query: String, before: String, after: String, first: Int, last: Int, status: String, totalNet: Float, totalNet_Lte: Float, totalNet_Gte: Float, id: [ID], orderId: Float, created_Gte: String, created_Lte: String, user: String): OrderCountableConnection
+  ordersTotal(period: ReportingPeriod): TaxedMoney
+  orders(query: String, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
   page(id: ID, slug: String): Page
   pages(query: String, before: String, after: String, first: Int, last: Int, id: ID, title: String): PageCountableConnection
-  product(id: ID): Product
-  products(query: String, before: String, after: String, first: Int, last: Int, category: ID, price: Float, price_Range: Float, price_Lte: Float, price_Gte: Float, attributes: [AttributeScalar], name: String, name_Icontains: String, productType_Name: String, isPublished: Boolean, sortBy: String): ProductCountableConnection
-  productType(id: ID): ProductType
-  productTypes(before: String, after: String, first: Int, last: Int, id: ID): ProductTypeCountableConnection
-  productVariant(id: ID): ProductVariant
-  productVariants(ids: [ID], before: String, after: String, first: Int, last: Int, id: ID): ProductVariantCountableConnection
   sale(id: ID): Sale
   sales(query: String, before: String, after: String, first: Int, last: Int, name_Icontains: String, type_Icontains: String, value_Gte: Float, value_Lte: Float, startDate: Date, endDate: Date): SaleCountableConnection
   shop: Shop
@@ -1342,6 +1375,11 @@ type Query {
 type Refresh {
   token: String
   payload: GenericScalar
+}
+
+enum ReportingPeriod {
+  TODAY
+  THIS_MONTH
 }
 
 type Sale implements Node {
@@ -1575,6 +1613,11 @@ input StaffInput {
 type StaffUpdate {
   errors: [Error]
   user: User
+}
+
+enum StockAvailability {
+  IN_STOCK
+  OUT_OF_STOCK
 }
 
 enum TaxRateType {

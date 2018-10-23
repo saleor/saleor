@@ -1,6 +1,8 @@
 from functools import wraps
 
+from django.conf import settings
 from django.shortcuts import get_object_or_404, redirect
+from prices import Money, TaxedMoney
 
 from ..account.utils import store_user_address
 from ..checkout import AddressType
@@ -212,3 +214,9 @@ def restock_fulfillment_lines(fulfillment):
         if line.order_line.variant and line.order_line.variant.track_inventory:
             increase_stock(
                 line.order_line.variant, line.quantity, allocate=True)
+
+
+def sum_order_totals(qs):
+    zero = Money(0, currency=settings.DEFAULT_CURRENCY)
+    taxed_zero = TaxedMoney(zero, zero)
+    return sum([order.total for order in qs], taxed_zero)

@@ -1,10 +1,11 @@
 import graphene
-from django.db.models import Q
+from django.db.models import Sum, Q
 
+from ...order import OrderStatus
 from ...product import models
 from ...product.utils import products_with_details
-from ..utils import filter_by_query_param, get_database_id
-from .types import Category, ProductVariant
+from ..utils import filter_by_query_param, filter_by_period, get_database_id
+from .types import Category, ProductVariant, StockAvailability
 
 PRODUCT_SEARCH_FIELDS = ('name', 'description', 'category__name')
 CATEGORY_SEARCH_FIELDS = ('name', 'slug', 'description', 'parent__name')
@@ -50,17 +51,26 @@ def resolve_collections(info, query):
     return filter_by_query_param(qs, query, COLLECTION_SEARCH_FIELDS)
 
 
-def resolve_products(info, category_id, query):
+def resolve_products(info, category_id, stock_availability, query):
     user = info.context.user
-    queryset = products_with_details(user=user).distinct()
-    queryset = filter_by_query_param(queryset, query, PRODUCT_SEARCH_FIELDS)
+    qs = products_with_details(user=user)
+    qs = filter_by_query_param(qs, query, PRODUCT_SEARCH_FIELDS)
+
     if category_id is not None:
         category = graphene.Node.get_node_from_global_id(
             info, category_id, Category)
         if not category:
-            return queryset.none()
-        return queryset.filter(category=category).distinct()
-    return queryset
+            return qs.none()
+        qs = qs.filter(category=category)
+
+    if stock_availability:
+        qs = qs.annotate(total_quantity=Sum('variants__quantity'))
+        if stock_availability == StockAvailability.IN_STOCK:
+            qs = qs.filter(total_quantity__gt=0)
+        elif stock_availability == StockAvailability.OUT_OF_STOCK:
+            qs = qs.filter(total_quantity__lte=0)
+
+    return qs.distinct()
 
 
 def resolve_product_types():
@@ -75,3 +85,19 @@ def resolve_product_variants(info, ids=None):
             for node_id in ids]
         queryset = queryset.filter(pk__in=db_ids)
     return queryset
+
+
+def resolve_report_product_sales(info, period):
+    qs = models.ProductVariant.objects.prefetch_related(
+        'product', 'product__images', 'order_lines__order').all()
+
+    # exclude draft and canceled orders
+    exclude_status = [OrderStatus.DRAFT, OrderStatus.CANCELED]
+    qs = qs.exclude(order_lines__order__status__in=exclude_status)
+
+    # filter by period
+    qs = filter_by_period(qs, period, 'order_lines__order__created')
+
+    qs = qs.annotate(quantity_ordered=Sum('order_lines__quantity'))
+    qs = qs.filter(quantity_ordered__isnull=False)
+    return qs.order_by('-quantity_ordered')
