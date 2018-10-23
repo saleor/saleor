@@ -80,8 +80,8 @@ const getEventMessage = (event: OrderDetails_order_events) => {
       return i18n.t("Payment has been refunded", {
         context: "order history message"
       });
-    case OrderEvents.PAYMENT_RELEASED:
-      return i18n.t("Payment has been released", {
+    case OrderEvents.PAYMENT_VOIDED:
+      return i18n.t("Payment has been voided", {
         context: "order history message"
       });
     case OrderEvents.PLACED:

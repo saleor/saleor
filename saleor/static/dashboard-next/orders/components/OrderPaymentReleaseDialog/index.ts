@@ -1,2 +1,2 @@
-export { default } from "./OrderPaymentReleaseDialog";
-export * from "./OrderPaymentReleaseDialog";
+export { default } from "./OrderPaymentVoidDialog";
+export * from "./OrderPaymentVoidDialog";

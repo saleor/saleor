@@ -43,7 +43,7 @@ import {
   OrderLineUpdateVariables
 } from "../types/OrderLineUpdate";
 import { OrderRefund, OrderRefundVariables } from "../types/OrderRefund";
-import { OrderRelease, OrderReleaseVariables } from "../types/OrderRelease";
+import { OrderVoid, OrderVoidVariables } from "../types/OrderVoid";
 import {
   OrderShippingMethodUpdate,
   OrderShippingMethodUpdateVariables
@@ -62,7 +62,7 @@ import OrderLineUpdateProvider from "./OrderLineUpdate";
 import OrderNoteAddProvider from "./OrderNoteAdd";
 import OrderPaymentCaptureProvider from "./OrderPaymentCapture";
 import OrderPaymentRefundProvider from "./OrderPaymentRefund";
-import OrderReleaseMutationProvider from "./OrderRelease";
+import OrderVoidMutationProvider from "./OrderVoid";
 import OrderShippingMethodUpdateProvider from "./OrderShippingUpdate";
 import OrderUpdateProvider from "./OrderUpdate";
 import {
@@ -106,9 +106,9 @@ interface OrderOperationsProps extends MutationProviderProps {
       OrderMarkAsPaid,
       OrderMarkAsPaidVariables
     >;
-    orderRelease: PartialMutationProviderOutput<
-      OrderRelease,
-      OrderReleaseVariables
+    orderVoid: PartialMutationProviderOutput<
+      OrderVoid,
+      OrderVoidVariables
     >;
     orderUpdate: PartialMutationProviderOutput<
       OrderUpdate,
@@ -147,7 +147,7 @@ interface OrderOperationsProps extends MutationProviderProps {
   onOrderFulfillmentCreate: (data: OrderCreateFulfillment) => void;
   onOrderFulfillmentUpdate: (data: OrderFulfillmentUpdateTracking) => void;
   onOrderCancel: (data: OrderCancel) => void;
-  onOrderRelease: (data: OrderRelease) => void;
+  onOrderVoid: (data: OrderVoid) => void;
   onOrderMarkAsPaid: (data: OrderMarkAsPaid) => void;
   onNoteAdd: (data: OrderAddNote) => void;
   onPaymentCapture: (data: OrderCapture) => void;
@@ -173,7 +173,7 @@ const OrderOperations: React.StatelessComponent<OrderOperationsProps> = ({
   onOrderLineAdd,
   onOrderLineDelete,
   onOrderLineUpdate,
-  onOrderRelease,
+  onOrderVoid,
   onPaymentCapture,
   onPaymentRefund,
   onShippingMethodUpdate,
@@ -184,8 +184,8 @@ const OrderOperations: React.StatelessComponent<OrderOperationsProps> = ({
   onOrderFulfillmentUpdate,
   onOrderMarkAsPaid
 }) => (
-  <OrderReleaseMutationProvider onError={onError} onSuccess={onOrderRelease}>
-    {orderRelease => (
+  <OrderVoidMutationProvider onError={onError} onSuccess={onOrderVoid}>
+    {orderVoid => (
       <OrderCancelMutationProvider onError={onError} onSuccess={onOrderCancel}>
         {orderCancel => (
           <OrderPaymentCaptureProvider
@@ -554,13 +554,13 @@ const OrderOperations: React.StatelessComponent<OrderOperationsProps> = ({
                                                                               }
                                                                             )
                                                                         },
-                                                                        orderRelease: {
+                                                                        orderVoid: {
                                                                           data:
-                                                                            orderRelease.data,
+                                                                            orderVoid.data,
                                                                           loading:
-                                                                            orderRelease.loading,
+                                                                            orderVoid.loading,
                                                                           mutate: variables =>
-                                                                            orderRelease.mutate(
+                                                                            orderVoid.mutate(
                                                                               {
                                                                                 variables
                                                                               }
@@ -624,6 +624,6 @@ const OrderOperations: React.StatelessComponent<OrderOperationsProps> = ({
         )}
       </OrderCancelMutationProvider>
     )}
-  </OrderReleaseMutationProvider>
+  </OrderVoidMutationProvider>
 );
 export default OrderOperations;
