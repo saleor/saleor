@@ -5,6 +5,7 @@ import ListItemText from "@material-ui/core/ListItemText";
 import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import * as React from "react";
+
 import CardTitle from "../../../components/CardTitle";
 import DateFormatter from "../../../components/DateFormatter";
 import Skeleton from "../../../components/Skeleton";
