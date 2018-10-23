@@ -6,6 +6,7 @@ import braintree as braintree_sdk
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import pgettext_lazy
+from prices import Money
 
 from ... import TransactionType
 from ...models import Payment, Transaction
@@ -64,7 +65,9 @@ def transaction_and_incorrect_token_error(
         token: str,
         type: TransactionType,
         amount: Decimal = None) -> Tuple[Transaction, str]:
-    amount = payment.total.amount if amount is None else amount
+    amount = (
+        payment.total
+        if amount is None else Money(amount, settings.DEFAULT_CURRENCY))
     txn = create_transaction(
         payment=payment,
         transaction_type=type,
@@ -156,7 +159,7 @@ def authorize(
     txn = create_transaction(
         payment=payment,
         transaction_type=TransactionType.AUTH,
-        amount=payment.total.amount,
+        amount=payment.total,
         gateway_response=gateway_response,
         token=getattr(result.transaction, 'id', ''),
         is_success=result.is_success)
@@ -186,7 +189,7 @@ def capture(
     txn = create_transaction(
         payment=payment,
         transaction_type=TransactionType.CAPTURE,
-        amount=amount,
+        amount=Money(amount, settings.DEFAULT_CURRENCY),
         token=getattr(result.transaction, 'id', ''),
         is_success=result.is_success,
         gateway_response=gateway_response)
@@ -211,7 +214,7 @@ def void(
     txn = create_transaction(
         payment=payment,
         transaction_type=TransactionType.VOID,
-        amount=payment.total.amount,
+        amount=payment.total,
         gateway_response=gateway_response,
         token=getattr(result.transaction, 'id', ''),
         is_success=result.is_success)
@@ -239,7 +242,7 @@ def refund(
     txn = create_transaction(
         payment=payment,
         transaction_type=TransactionType.REFUND,
-        amount=amount,
+        amount=Money(amount, settings.DEFAULT_CURRENCY),
         token=getattr(result.transaction, 'id', ''),
         is_success=result.is_success,
         gateway_response=gateway_response)

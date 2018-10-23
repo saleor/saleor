@@ -1,6 +1,12 @@
 import uuid
+from decimal import Decimal
+from typing import Dict
+
+from django.conf import settings
+from prices import Money
 
 from ... import TransactionType
+from ...models import Payment
 from ...utils import create_transaction
 
 
@@ -12,7 +18,7 @@ def get_transaction_token(**connection_params):
     return str(uuid.uuid4())
 
 
-def authorize(payment, transaction_token, **connection_params):
+def authorize(payment: Payment, transaction_token: str, **connection_params):
     success = dummy_success()
     error = None
     if not success:
@@ -27,7 +33,7 @@ def authorize(payment, transaction_token, **connection_params):
     return txn, error
 
 
-def void(payment, **connection_params):
+def void(payment: Payment, **connection_params: Dict):
     error = None
     success = dummy_success()
     if not success:
@@ -42,7 +48,7 @@ def void(payment, **connection_params):
     return txn, error
 
 
-def capture(payment, amount):
+def capture(payment: Payment, amount: Decimal):
     error = None
     success = dummy_success()
     if not success:
@@ -50,13 +56,13 @@ def capture(payment, amount):
     txn = create_transaction(
         payment=payment,
         transaction_type=TransactionType.CAPTURE,
-        amount=amount,
+        amount=Money(amount, settings.DEFAULT_CURRENCY),
         token=str(uuid.uuid4()),
         is_success=success)
     return txn, error
 
 
-def refund(payment, amount):
+def refund(payment: Payment, amount: Decimal):
     error = None
     success = dummy_success()
     if not success:
@@ -64,7 +70,7 @@ def refund(payment, amount):
     txn = create_transaction(
         payment=payment,
         transaction_type=TransactionType.REFUND,
-        amount=amount,
+        amount=Money(amount, settings.DEFAULT_CURRENCY),
         token=str(uuid.uuid4()),
         is_success=success)
     return txn, error
