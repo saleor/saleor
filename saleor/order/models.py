@@ -208,21 +208,6 @@ class Order(models.Model):
         return weights
 
 
-class OrderLineQueryset(models.QuerySet):
-
-    def annotate_line_total(self):
-        output_field = MoneyField(currency=settings.DEFAULT_CURRENCY)
-        qs = self.annotate(
-            total_gross=ExpressionWrapper(
-                F('unit_price_gross') * F('quantity'),
-                output_field=output_field))
-        qs = qs.annotate(
-            total_net=ExpressionWrapper(
-                F('unit_price_net') * F('quantity'),
-                output_field=output_field))
-        return qs
-
-
 class OrderLine(models.Model):
     order = models.ForeignKey(
         Order, related_name='lines', editable=False, on_delete=models.CASCADE)
@@ -248,8 +233,6 @@ class OrderLine(models.Model):
         net_field='unit_price_net', gross_field='unit_price_gross')
     tax_rate = models.DecimalField(
         max_digits=5, decimal_places=2, default='0.0')
-
-    objects = OrderLineQueryset.as_manager()
 
     def __str__(self):
         return self.product_name
