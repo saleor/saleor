@@ -35,7 +35,7 @@ def test_customer_create(admin_client):
     assert response.status_code == 200
 
 
-def test_customer_create_post(admin_client):
+def test_view_customer_create(admin_client):
     url = reverse('dashboard:customer-create')
     response = admin_client.post(url, data={'email': 'customer01@example.com'})
     assert response.status_code == 302
@@ -50,16 +50,16 @@ def test_add_customer_form():
     assert User.objects.count() == user_count + 1
 
 
-def test_edit_customer_names(customer_user):
+def test_edit_customer_form(customer_user):
     customer = customer_user
     customer_form = CustomerForm(
         {'first_name': 'Jan', 'last_name': 'Nowak', 'email': customer.email},
         instance=customer)
     customer_form.is_valid()
     customer_form.save()
-    updated_user = User.objects.get(pk=customer_user.pk)
-    assert updated_user.first_name == 'Jan'
-    assert updated_user.last_name == 'Nowak'
+    customer.refresh_from_db()
+    assert customer.first_name == 'Jan'
+    assert customer.last_name == 'Nowak'
 
 
 def test_add_note_to_customer(admin_user, customer_user):
