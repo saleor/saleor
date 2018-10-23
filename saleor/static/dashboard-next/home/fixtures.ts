@@ -1,4 +1,8 @@
-export const shop = (placeholderImage: string) => ({
+import { HomePageProps } from "./components/HomePage";
+
+export const shop: (placeholderImage: string) => HomePageProps = (
+  placeholderImage: string
+) => ({
   activities: [
     {
       action: "published",
@@ -98,5 +102,6 @@ export const shop = (placeholderImage: string) => ({
       variant: "Hardcover"
     }
   ],
-  userName: "John Smith"
+  userName: "John Smith",
+  onRowClick: () => undefined
 });
