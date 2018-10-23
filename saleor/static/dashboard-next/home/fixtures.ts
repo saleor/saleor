@@ -49,13 +49,13 @@ export const shop: (placeholderImage: string) => HomePageProps = (
       currency: "PLN"
     }
   },
-
   notifications: {
     orders: 12,
     payments: 10,
     problems: 69,
     productsOut: 2
   },
+  onRowClick: () => undefined,
   topProducts: [
     {
       id: "1",
@@ -102,6 +102,5 @@ export const shop: (placeholderImage: string) => HomePageProps = (
       variant: "Hardcover"
     }
   ],
-  userName: "John Smith",
-  onRowClick: () => undefined
+  userName: "John Smith"
 });
