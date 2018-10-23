@@ -1,10 +1,13 @@
 from unittest.mock import Mock
 
 import graphene
+from django.utils import timezone
+from tests.api.utils import get_graphql_content
+
+from saleor.graphql.core.types import ReportingPeriod
 from saleor.graphql.core.utils import clean_seo_fields, snake_to_camel_case
 from saleor.graphql.product import types as product_types
-from saleor.graphql.utils import get_database_id
-from tests.api.utils import get_graphql_content
+from saleor.graphql.utils import get_database_id, reporting_period_to_date
 
 
 def test_clean_seo_fields():
@@ -83,3 +86,21 @@ def test_mutation_returns_error_field_in_camel_case(
     content = get_graphql_content(response)
     error = content['data']['productVariantUpdate']['errors'][0]
     assert error['field'] == 'costPrice'
+
+
+def test_reporting_period_to_date():
+    now = timezone.now()
+    start_date = reporting_period_to_date(ReportingPeriod.TODAY)
+    assert start_date.day == now.day
+    assert start_date.hour == 0
+    assert start_date.minute == 0
+    assert start_date.second == 0
+    assert start_date.microsecond == 0
+
+    start_date = reporting_period_to_date(ReportingPeriod.THIS_MONTH)
+    assert start_date.month == now.month
+    assert start_date.day == 1
+    assert start_date.hour == 0
+    assert start_date.minute == 0
+    assert start_date.second == 0
+    assert start_date.microsecond == 0
