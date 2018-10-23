@@ -287,7 +287,7 @@ def test_view_account_delete_confirm(customer_user, authorized_client):
     assert customer_user is None
 
 
-def test_add_names_to_user(customer_user):
+def test_form_add_names_to_user(customer_user):
     name_form = NameForm(
         {'first_name': 'Jan', 'last_name': 'Nowak'},
         instance=customer_user)
@@ -298,7 +298,7 @@ def test_add_names_to_user(customer_user):
     assert updated_user.last_name == 'Nowak'
 
 
-def test_add_names_to_user_post(customer_user, authorized_client):
+def test_view_add_names_to_user(customer_user, authorized_client):
     url = reverse('account:details')
     response = authorized_client.post(
         url, data={'first_name': 'Jan', 'last_name': 'Nowak'})

@@ -142,14 +142,12 @@ class User(PermissionsMixin, AbstractBaseUser):
 
     def get_full_name(self):
         if self.first_name or self.last_name:
-            not_empty_names = filter(None, [self.first_name, self.last_name])
-            return ' '.join(not_empty_names)
+            return ('%s %s' % (self.first_name, self.last_name)).strip()
         if self.default_billing_address:
-            not_empty_names = list(filter(None, [
-                self.default_billing_address.first_name,
-                self.default_billing_address.last_name]))
-            if not_empty_names:
-                return ' '.join(not_empty_names)
+            first_name = self.default_billing_address.first_name
+            last_name = self.default_billing_address.last_name
+            if first_name or last_name:
+                return ('%s %s' % (first_name, last_name)).strip()
         return self.email
 
     def get_short_name(self):
