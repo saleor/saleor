@@ -29,7 +29,7 @@ from ..shipping.models import ShippingMethod
 
 class OrderQueryset(models.QuerySet):
     def confirmed(self):
-        """Return draft orders."""
+        """Return non-draft orders."""
         return self.exclude(status=OrderStatus.DRAFT)
 
     def drafts(self):
