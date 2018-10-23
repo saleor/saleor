@@ -14,16 +14,13 @@ from django_prices.templatetags import prices_i18n
 
 from ...core.exceptions import InsufficientStock
 from ...core.utils import get_paginator_items
-from ...core.utils.taxes import (
-    ZERO_MONEY, ZERO_TAXED_MONEY, get_taxes_for_address)
-from ...order import (
-    CustomPaymentChoices, OrderEvents, OrderEventsEmails, OrderStatus)
+from ...core.utils.taxes import get_taxes_for_address
+from ...order import OrderEvents, OrderEventsEmails, OrderStatus
 from ...order.emails import (
     send_fulfillment_confirmation, send_fulfillment_update,
     send_order_confirmation)
 from ...order.models import Fulfillment, FulfillmentLine, Order
 from ...order.utils import update_order_prices, update_order_status
-from ...payment import ChargeStatus
 from ...shipping.models import ShippingMethod
 from ..views import staff_member_required
 from .filters import OrderFilter
@@ -124,36 +121,10 @@ def order_details(request, order_pk):
     order = get_object_or_404(qs, pk=order_pk)
     all_payments = order.payments.all()
     payment = order.get_last_payment()
-    preauthorized = ZERO_TAXED_MONEY
-    captured = ZERO_MONEY
-    balance = captured - order.total.gross
-    if payment:
-        can_capture = (
-            payment.is_active and
-            payment.charge_status == ChargeStatus.NOT_CHARGED and
-            order.status not in {OrderStatus.DRAFT, OrderStatus.CANCELED})
-        can_void = (
-            payment.is_active and
-            payment.charge_status == ChargeStatus.NOT_CHARGED)
-        can_refund = (
-            payment.is_active and
-            payment.charge_status == ChargeStatus.CHARGED and
-            payment.variant != CustomPaymentChoices.MANUAL)
-        preauthorized = payment.total
-        if payment.charge_status == ChargeStatus.CHARGED:
-            captured = payment.captured_amount
-            balance = captured - order.total.gross
-    else:
-        can_capture = can_void = can_refund = False
-    can_mark_as_paid = not order.payments.exists()
     ctx = {
         'order': order, 'all_payments': all_payments, 'payment': payment,
         'notes': order.events.filter(type=OrderEvents.NOTE_ADDED.value),
         'events': order.events.all(),
-        'captured': captured, 'balance': balance,
-        'preauthorized': preauthorized,
-        'can_capture': can_capture, 'can_void': can_void,
-        'can_refund': can_refund, 'can_mark_as_paid': can_mark_as_paid,
         'order_fulfillments': order.fulfillments.all()}
     return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
 

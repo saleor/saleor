@@ -964,15 +964,24 @@ type Order implements Node {
   fulfillments: [Fulfillment]!
   events: [OrderEvent]
   payments(before: String, after: String, first: Int, last: Int, id: ID): PaymentCountableConnection
-  isPaid: Boolean
+  actions: [OrderAction]!
+  availableShippingMethods: [ShippingMethod]
   number: String
+  isPaid: Boolean
   paymentStatus: PaymentChargeStatusEnum
   paymentStatusDisplay: String
   subtotal: TaxedMoney
   statusDisplay: String
-  totalAuthorized: Money
-  totalCaptured: Money
-  availableShippingMethods: [ShippingMethod]
+  authorizedAmount: Money!
+  balanceAmount: Money!
+  capturedAmount: Money!
+}
+
+enum OrderAction {
+  CAPTURE
+  MARK_AS_PAID
+  REFUND
+  VOID
 }
 
 type OrderAddNote {

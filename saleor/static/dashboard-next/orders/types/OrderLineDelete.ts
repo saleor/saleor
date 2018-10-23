@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderLineDelete
@@ -204,13 +204,13 @@ export interface OrderLineDelete_draftOrderLineDelete_order_total {
   tax: OrderLineDelete_draftOrderLineDelete_order_total_tax;
 }
 
-export interface OrderLineDelete_draftOrderLineDelete_order_totalAuthorized {
+export interface OrderLineDelete_draftOrderLineDelete_order_authorizedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderLineDelete_draftOrderLineDelete_order_totalCaptured {
+export interface OrderLineDelete_draftOrderLineDelete_order_capturedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -252,8 +252,9 @@ export interface OrderLineDelete_draftOrderLineDelete_order {
   status: OrderStatus;
   subtotal: OrderLineDelete_draftOrderLineDelete_order_subtotal | null;
   total: OrderLineDelete_draftOrderLineDelete_order_total | null;
-  totalAuthorized: OrderLineDelete_draftOrderLineDelete_order_totalAuthorized | null;
-  totalCaptured: OrderLineDelete_draftOrderLineDelete_order_totalCaptured | null;
+  actions: (OrderAction | null)[];
+  authorizedAmount: OrderLineDelete_draftOrderLineDelete_order_authorizedAmount;
+  capturedAmount: OrderLineDelete_draftOrderLineDelete_order_capturedAmount;
   user: OrderLineDelete_draftOrderLineDelete_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderLineDelete_draftOrderLineDelete_order_availableShippingMethods | null)[] | null;

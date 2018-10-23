@@ -43,7 +43,7 @@ storiesOf("Views / Orders / Order details", module)
       {...props}
       order={{
         ...props.order,
-        paymentStatus: PaymentChargeStatusEnum.PREAUTH
+        paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED
       }}
     />
   ))
@@ -52,7 +52,7 @@ storiesOf("Views / Orders / Order details", module)
       {...props}
       order={{
         ...props.order,
-        paymentStatus: PaymentChargeStatusEnum.ERROR
+        paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED
       }}
     />
   ))
@@ -61,7 +61,7 @@ storiesOf("Views / Orders / Order details", module)
       {...props}
       order={{
         ...props.order,
-        paymentStatus: PaymentChargeStatusEnum.CONFIRMED
+        paymentStatus: PaymentChargeStatusEnum.CHARGED
       }}
     />
   ))
@@ -79,7 +79,7 @@ storiesOf("Views / Orders / Order details", module)
       {...props}
       order={{
         ...props.order,
-        paymentStatus: PaymentChargeStatusEnum.REFUNDED
+        paymentStatus: PaymentChargeStatusEnum.FULLY_REFUNDED
       }}
     />
   ))
@@ -88,7 +88,7 @@ storiesOf("Views / Orders / Order details", module)
       {...props}
       order={{
         ...props.order,
-        paymentStatus: PaymentChargeStatusEnum.REJECTED
+        paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED
       }}
     />
   ))

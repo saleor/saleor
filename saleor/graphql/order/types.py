@@ -3,14 +3,12 @@ import graphene_django_optimizer as gql_optimizer
 from graphene import relay
 
 from ...order import OrderEvents, OrderEventsEmails, models
-from ...payment import ChargeStatus
 from ...product.templatetags.product_images import get_thumbnail
 from ...shipping import models as shipping_models
 from ..account.types import User
 from ..core.fields import PrefetchingConnectionField
 from ..core.types.common import CountableDjangoObjectType
 from ..core.types.money import Money, TaxedMoney
-from ..core.utils import str_to_enum
 from ..payment.types import PaymentChargeStatusEnum
 from ..shipping.types import ShippingMethod
 
@@ -141,6 +139,24 @@ class OrderLine(CountableDjangoObjectType):
         return obj.unit_price
 
 
+class OrderAction(graphene.Enum):
+    CAPTURE = 'CAPTURE'
+    MARK_AS_PAID = 'MARK_AS_PAID'
+    REFUND = 'REFUND'
+    VOID = 'VOID'
+
+    @property
+    def description(self):
+        if self == OrderAction.CAPTURE:
+            return 'Represents the capture action.'
+        if self == OrderAction.MARK_AS_PAID:
+            return 'Represents a mark-as-paid action.'
+        if self == OrderAction.REFUND:
+            return 'Represents a refund action.'
+        if self == OrderAction.VOID:
+            return 'Represents a void action.'
+
+
 class Order(CountableDjangoObjectType):
     fulfillments = gql_optimizer.field(
         graphene.List(
@@ -152,9 +168,15 @@ class Order(CountableDjangoObjectType):
             lambda: OrderLine, required=True,
             description='List of order lines.'),
         model_field='lines')
+    actions = graphene.List(
+        OrderAction, description='''List of actions that can be performed in
+        the current state of an order.''', required=True)
+    available_shipping_methods = graphene.List(
+        ShippingMethod, required=False,
+        description='Shipping methods that can be used with this order.')
+    number = graphene.String(description='User-friendly number of an order.')
     is_paid = graphene.Boolean(
         description='Informs if an order is fully paid.')
-    number = graphene.String(description='User-friendly number of an order.')
     payment_status = PaymentChargeStatusEnum(
         description='Internal payment status.')
     payment_status_display = graphene.String(
@@ -176,11 +198,12 @@ class Order(CountableDjangoObjectType):
             OrderEvent,
             description='List of events associated with the order.'),
         model_field='events')
+    balance_amount = graphene.Field(
+        Money,
+        description='''The difference between the paid and the order total
+        amount.''', required=True)
     user_email = graphene.String(
         required=False, description='Email address of the customer.')
-    available_shipping_methods = graphene.List(
-        ShippingMethod, required=False,
-        description='Shipping methods that can be used with this order.')
 
     class Meta:
         description = 'Represents an order in the shop.'
@@ -193,6 +216,19 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_shipping_price(obj, info):
         return obj.shipping_price
+
+    def resolve_actions(obj, info):
+        actions = []
+        payment = obj.get_last_payment()
+        if obj.can_capture(payment):
+            actions.append(OrderAction.CAPTURE)
+        if obj.can_mark_as_paid():
+            actions.append(OrderAction.MARK_AS_PAID)
+        if obj.can_refund(payment):
+            actions.append(OrderAction.REFUND)
+        if obj.can_void(payment):
+            actions.append(OrderAction.VOID)
+        return actions
 
     @staticmethod
     def resolve_subtotal(obj, info):
@@ -217,6 +253,10 @@ class Order(CountableDjangoObjectType):
         payment = obj.get_last_payment()
         if payment:
             return payment.captured_amount
+    @staticmethod
+    def resolve_balance_amount(obj, info):
+        return obj.balance_amount
+
 
     @staticmethod
     def resolve_fulfillments(obj, info):

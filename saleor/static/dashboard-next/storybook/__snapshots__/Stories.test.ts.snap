@@ -5341,7 +5341,7 @@ exports[`Storyshots Orders / OrderPaymentDialog capture payment 1`] = `<div />`;
 
 exports[`Storyshots Orders / OrderPaymentDialog refund payment 1`] = `<div />`;
 
-exports[`Storyshots Orders / OrderPaymentReleaseDialog default 1`] = `<div />`;
+exports[`Storyshots Orders / OrderPaymentVoidDialog default 1`] = `<div />`;
 
 exports[`Storyshots Orders / OrderProductAddDialog default 1`] = `<div />`;
 
@@ -19547,9 +19547,9 @@ exports[`Storyshots Views / Orders / Order details cancelled 1`] = `
               class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                Pending
+                Unpaid
               </div>
             </span>
             <div
@@ -20426,9 +20426,9 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
               class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                Pending
+                Unpaid
               </div>
             </span>
             <div
@@ -20531,7 +20531,35 @@ exports[`Storyshots Views / Orders / Order details default 1`] = `
               <span
                 class="MuiButton-label-id"
               >
-                Release
+                Refund
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Void
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Mark as paid
               </span>
               <span
                 class="MuiTouchRipple-root-id"
@@ -21195,7 +21223,49 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
               <span
                 class="MuiButton-label-id"
               >
+                Capture
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
                 Add tracking
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Void
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Mark as paid
               </span>
               <span
                 class="MuiTouchRipple-root-id"
@@ -21376,9 +21446,9 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
               class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                Pending
+                Unpaid
               </div>
             </span>
             <div
@@ -21481,7 +21551,77 @@ exports[`Storyshots Views / Orders / Order details fulfilled 1`] = `
               <span
                 class="MuiButton-label-id"
               >
-                Release
+                Refund
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Void
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Capture
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Refund
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Void
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Mark as paid
               </span>
               <span
                 class="MuiTouchRipple-root-id"
@@ -22479,6 +22619,48 @@ exports[`Storyshots Views / Orders / Order details no payment 1`] = `
           <div
             class="MuiCardActions-root-id"
           >
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Capture
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Refund
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Void
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
             <button
               class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
               tabindex="0"
@@ -23764,9 +23946,9 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
               class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                Pending
+                Unpaid
               </div>
             </span>
             <div
@@ -23869,7 +24051,35 @@ exports[`Storyshots Views / Orders / Order details no shipping address 1`] = `
               <span
                 class="MuiButton-label-id"
               >
-                Release
+                Refund
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Void
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Mark as paid
               </span>
               <span
                 class="MuiTouchRipple-root-id"
@@ -24714,9 +24924,9 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
               class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                Pending
+                Unpaid
               </div>
             </span>
             <div
@@ -24819,7 +25029,77 @@ exports[`Storyshots Views / Orders / Order details partially fulfilled 1`] = `
               <span
                 class="MuiButton-label-id"
               >
-                Release
+                Refund
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Void
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Capture
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Refund
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Void
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Mark as paid
               </span>
               <span
                 class="MuiTouchRipple-root-id"
@@ -27536,9 +27816,9 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
               class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                Pending
+                Unpaid
               </div>
             </span>
             <div
@@ -27641,7 +27921,35 @@ exports[`Storyshots Views / Orders / Order details pending payment 1`] = `
               <span
                 class="MuiButton-label-id"
               >
-                Release
+                Refund
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Void
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Mark as paid
               </span>
               <span
                 class="MuiTouchRipple-root-id"
@@ -28562,6 +28870,69 @@ exports[`Storyshots Views / Orders / Order details refunded payment 1`] = `
                 </tr>
               </tbody>
             </table>
+          </div>
+          <hr
+            class="Component-root-id"
+          />
+          <div
+            class="MuiCardActions-root-id"
+          >
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Capture
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Refund
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Void
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Mark as paid
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
           </div>
         </div>
         <div
@@ -30337,9 +30708,9 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
               class="MuiTypography-root-id MuiTypography-body1-id Component-title-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                Pending
+                Unpaid
               </div>
             </span>
             <div
@@ -30442,7 +30813,35 @@ exports[`Storyshots Views / Orders / Order details unfulfilled 1`] = `
               <span
                 class="MuiButton-label-id"
               >
-                Release
+                Refund
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Void
+              </span>
+              <span
+                class="MuiTouchRipple-root-id"
+              />
+            </button>
+            <button
+              class="MuiButtonBase-root-id MuiButton-root-id MuiButton-text-id MuiButton-textSecondary-id MuiButton-flat-id MuiButton-flatSecondary-id MuiCardActions-action-id"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label-id"
+              >
+                Mark as paid
               </span>
               <span
                 class="MuiTouchRipple-root-id"
@@ -32651,9 +33050,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                Pending
+                Unpaid
               </div>
             </td>
             <td
@@ -32698,9 +33097,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                Pending
+                Unpaid
               </div>
             </td>
             <td
@@ -32745,9 +33144,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                Pending
+                Unpaid
               </div>
             </td>
             <td
@@ -32839,9 +33238,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                Pending
+                Unpaid
               </div>
             </td>
             <td
@@ -32886,9 +33285,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                Pending
+                Unpaid
               </div>
             </td>
             <td
@@ -32933,9 +33332,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                Pending
+                Unpaid
               </div>
             </td>
             <td
@@ -33027,9 +33426,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                Pending
+                Unpaid
               </div>
             </td>
             <td
@@ -33074,9 +33473,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                Pending
+                Unpaid
               </div>
             </td>
             <td
@@ -33121,9 +33520,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                Pending
+                Unpaid
               </div>
             </td>
             <td
@@ -33215,9 +33614,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                Pending
+                Unpaid
               </div>
             </td>
             <td
@@ -33262,9 +33661,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                Pending
+                Unpaid
               </div>
             </td>
             <td
@@ -33309,9 +33708,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                Pending
+                Unpaid
               </div>
             </td>
             <td
@@ -33356,9 +33755,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-errorDot-id"
               >
-                Pending
+                Unpaid
               </div>
             </td>
             <td
@@ -33450,9 +33849,9 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               class="MuiTableCell-root-id MuiTableCell-body-id MuiTableCell-paddingDense-id"
             >
               <div
-                class="Component-root-id undefined Component-neutralDot-id"
+                class="Component-root-id undefined Component-successDot-id"
               >
-                Pending
+                Paid
               </div>
             </td>
             <td

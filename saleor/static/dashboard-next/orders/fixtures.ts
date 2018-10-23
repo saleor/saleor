@@ -2,7 +2,8 @@ import {
   FulfillmentStatus,
   OrderEvents,
   OrderStatus,
-  PaymentChargeStatusEnum
+  PaymentChargeStatusEnum,
+  OrderAction
 } from "../types/globalTypes";
 import { transformOrderStatus, transformPaymentStatus } from "./";
 import { OrderDetails_order } from "./types/OrderDetails";
@@ -56,7 +57,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:30.376876+00:00",
     id: "T3JkZXI6MjA=",
     number: "20",
-    paymentStatus: PaymentChargeStatusEnum.CONFIRMED,
+    paymentStatus: PaymentChargeStatusEnum.CHARGED,
     status: OrderStatus.CANCELED,
     total: {
       __typename: "TaxedMoney",
@@ -92,7 +93,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:30.124154+00:00",
     id: "T3JkZXI6MTk=",
     number: "19",
-    paymentStatus: PaymentChargeStatusEnum.CONFIRMED,
+    paymentStatus: PaymentChargeStatusEnum.CHARGED,
     status: OrderStatus.CANCELED,
     total: {
       __typename: "TaxedMoney",
@@ -110,7 +111,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:30.019749+00:00",
     id: "T3JkZXI6MTg=",
     number: "18",
-    paymentStatus: PaymentChargeStatusEnum.PREAUTH,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.DRAFT,
     total: {
       __typename: "TaxedMoney",
@@ -146,7 +147,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:29.864391+00:00",
     id: "T3JkZXI6MTc=",
     number: "17",
-    paymentStatus: PaymentChargeStatusEnum.PREAUTH,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.CANCELED,
     total: {
       __typename: "TaxedMoney",
@@ -182,7 +183,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:29.610339+00:00",
     id: "T3JkZXI6MTY=",
     number: "16",
-    paymentStatus: PaymentChargeStatusEnum.PREAUTH,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.CANCELED,
     total: {
       __typename: "TaxedMoney",
@@ -218,7 +219,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:29.336209+00:00",
     id: "T3JkZXI6MTU=",
     number: "15",
-    paymentStatus: PaymentChargeStatusEnum.REJECTED,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.CANCELED,
     total: {
       __typename: "TaxedMoney",
@@ -254,7 +255,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:29.103651+00:00",
     id: "T3JkZXI6MTQ=",
     number: "14",
-    paymentStatus: PaymentChargeStatusEnum.WAITING,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.CANCELED,
     total: {
       __typename: "TaxedMoney",
@@ -290,7 +291,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:28.921956+00:00",
     id: "T3JkZXI6MTM=",
     number: "13",
-    paymentStatus: PaymentChargeStatusEnum.WAITING,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.CANCELED,
     total: {
       __typename: "TaxedMoney",
@@ -326,7 +327,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:28.750718+00:00",
     id: "T3JkZXI6MTI=",
     number: "12",
-    paymentStatus: PaymentChargeStatusEnum.PREAUTH,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.CANCELED,
     total: {
       __typename: "TaxedMoney",
@@ -362,7 +363,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:28.598246+00:00",
     id: "T3JkZXI6MTE=",
     number: "11",
-    paymentStatus: PaymentChargeStatusEnum.CONFIRMED,
+    paymentStatus: PaymentChargeStatusEnum.CHARGED,
     status: OrderStatus.UNFULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -398,7 +399,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:28.409836+00:00",
     id: "T3JkZXI6MTA=",
     number: "10",
-    paymentStatus: PaymentChargeStatusEnum.PREAUTH,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.CANCELED,
     total: {
       __typename: "TaxedMoney",
@@ -434,7 +435,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:28.185874+00:00",
     id: "T3JkZXI6OQ==",
     number: "9",
-    paymentStatus: PaymentChargeStatusEnum.PREAUTH,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.PARTIALLY_FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -470,7 +471,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:27.953588+00:00",
     id: "T3JkZXI6OA==",
     number: "8",
-    paymentStatus: PaymentChargeStatusEnum.WAITING,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.PARTIALLY_FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -506,7 +507,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:27.828033+00:00",
     id: "T3JkZXI6Nw==",
     number: "7",
-    paymentStatus: PaymentChargeStatusEnum.CONFIRMED,
+    paymentStatus: PaymentChargeStatusEnum.CHARGED,
     status: OrderStatus.PARTIALLY_FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -542,7 +543,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:27.636741+00:00",
     id: "T3JkZXI6Ng==",
     number: "6",
-    paymentStatus: PaymentChargeStatusEnum.WAITING,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -578,7 +579,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:27.420590+00:00",
     id: "T3JkZXI6NQ==",
     number: "5",
-    paymentStatus: PaymentChargeStatusEnum.WAITING,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.PARTIALLY_FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -614,7 +615,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:27.230990+00:00",
     id: "T3JkZXI6NA==",
     number: "4",
-    paymentStatus: PaymentChargeStatusEnum.WAITING,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.PARTIALLY_FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -650,7 +651,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:26.972507+00:00",
     id: "T3JkZXI6Mw==",
     number: "3",
-    paymentStatus: PaymentChargeStatusEnum.WAITING,
+    paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
     status: OrderStatus.PARTIALLY_FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -686,7 +687,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:26.751359+00:00",
     id: "T3JkZXI6Mg==",
     number: "2",
-    paymentStatus: PaymentChargeStatusEnum.CONFIRMED,
+    paymentStatus: PaymentChargeStatusEnum.CHARGED,
     status: OrderStatus.PARTIALLY_FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -722,7 +723,7 @@ export const orders: OrderList_orders_edges_node[] = [
     created: "2018-09-11T09:37:26.314968+00:00",
     id: "T3JkZXI6MQ==",
     number: "1",
-    paymentStatus: PaymentChargeStatusEnum.WAITING,
+    paymentStatus: PaymentChargeStatusEnum.CHARGED,
     status: OrderStatus.PARTIALLY_FULFILLED,
     total: {
       __typename: "TaxedMoney",
@@ -737,6 +738,17 @@ export const orders: OrderList_orders_edges_node[] = [
 ];
 export const order = (placeholder: string): OrderDetails_order => ({
   __typename: "Order",
+  actions: [
+    OrderAction.CAPTURE,
+    OrderAction.MARK_AS_PAID,
+    OrderAction.REFUND,
+    OrderAction.VOID
+  ],
+  authorizedAmount: {
+    __typename: "Money",
+    amount: 234.93,
+    currency: "USD"
+  },
   availableShippingMethods: [
     {
       __typename: "ShippingMethod",
@@ -787,6 +799,11 @@ export const order = (placeholder: string): OrderDetails_order => ({
     postalCode: "66272",
     streetAddress1: "487 Roberto Shores",
     streetAddress2: ""
+  },
+  capturedAmount: {
+    __typename: "Money",
+    amount: 0,
+    currency: "USD"
   },
   created: "2018-09-11T09:37:28.185874+00:00",
   events: [
@@ -940,7 +957,7 @@ export const order = (placeholder: string): OrderDetails_order => ({
     }
   ],
   number: "9",
-  paymentStatus: PaymentChargeStatusEnum.PREAUTH,
+  paymentStatus: PaymentChargeStatusEnum.NOT_CHARGED,
   shippingAddress: {
     __typename: "Address",
     city: "West Patriciastad",
@@ -992,23 +1009,15 @@ export const order = (placeholder: string): OrderDetails_order => ({
       currency: "USD"
     }
   },
-  totalAuthorized: {
-    __typename: "Money",
-    amount: 234.93,
-    currency: "USD"
-  },
-  totalCaptured: {
-    __typename: "Money",
-    amount: 0,
-    currency: "USD"
-  },
   user: null,
   userEmail: "melissa.simon@example.com"
 });
 export const draftOrder = (placeholder: string) => ({
   __typename: "Order" as "Order",
+  authorizedAmount: null,
   availableShippingMethods: null,
   billingAddress: null,
+  capturedAmount: null,
   created: "2018-09-20T23:23:39.811428+00:00",
   events: [],
   fulfillments: [],
@@ -1094,8 +1103,6 @@ export const draftOrder = (placeholder: string) => ({
       currency: "USD"
     }
   },
-  totalAuthorized: null,
-  totalCaptured: null,
   user: null,
   userEmail: null
 });

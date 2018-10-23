@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderLineCreateInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderLineCreateInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderLineAdd
@@ -204,13 +204,13 @@ export interface OrderLineAdd_draftOrderLineCreate_order_total {
   tax: OrderLineAdd_draftOrderLineCreate_order_total_tax;
 }
 
-export interface OrderLineAdd_draftOrderLineCreate_order_totalAuthorized {
+export interface OrderLineAdd_draftOrderLineCreate_order_authorizedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderLineAdd_draftOrderLineCreate_order_totalCaptured {
+export interface OrderLineAdd_draftOrderLineCreate_order_capturedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -252,8 +252,9 @@ export interface OrderLineAdd_draftOrderLineCreate_order {
   status: OrderStatus;
   subtotal: OrderLineAdd_draftOrderLineCreate_order_subtotal | null;
   total: OrderLineAdd_draftOrderLineCreate_order_total | null;
-  totalAuthorized: OrderLineAdd_draftOrderLineCreate_order_totalAuthorized | null;
-  totalCaptured: OrderLineAdd_draftOrderLineCreate_order_totalCaptured | null;
+  actions: (OrderAction | null)[];
+  authorizedAmount: OrderLineAdd_draftOrderLineCreate_order_authorizedAmount;
+  capturedAmount: OrderLineAdd_draftOrderLineCreate_order_capturedAmount;
   user: OrderLineAdd_draftOrderLineCreate_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderLineAdd_draftOrderLineCreate_order_availableShippingMethods | null)[] | null;

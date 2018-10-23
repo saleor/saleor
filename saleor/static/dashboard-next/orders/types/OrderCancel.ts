@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderCancel
@@ -198,13 +198,13 @@ export interface OrderCancel_orderCancel_order_total {
   tax: OrderCancel_orderCancel_order_total_tax;
 }
 
-export interface OrderCancel_orderCancel_order_totalAuthorized {
+export interface OrderCancel_orderCancel_order_authorizedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderCancel_orderCancel_order_totalCaptured {
+export interface OrderCancel_orderCancel_order_capturedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -246,8 +246,9 @@ export interface OrderCancel_orderCancel_order {
   status: OrderStatus;
   subtotal: OrderCancel_orderCancel_order_subtotal | null;
   total: OrderCancel_orderCancel_order_total | null;
-  totalAuthorized: OrderCancel_orderCancel_order_totalAuthorized | null;
-  totalCaptured: OrderCancel_orderCancel_order_totalCaptured | null;
+  actions: (OrderAction | null)[];
+  authorizedAmount: OrderCancel_orderCancel_order_authorizedAmount;
+  capturedAmount: OrderCancel_orderCancel_order_capturedAmount;
   user: OrderCancel_orderCancel_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderCancel_orderCancel_order_availableShippingMethods | null)[] | null;

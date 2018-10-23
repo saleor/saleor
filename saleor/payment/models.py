@@ -3,7 +3,7 @@ from operator import attrgetter
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
-from django_prices.models import MoneyField, TaxedMoneyField
+from django_prices.models import MoneyField
 
 from . import ChargeStatus, TransactionType
 from ..checkout.models import Cart
@@ -68,9 +68,8 @@ class Payment(models.Model):
         Order, null=True, related_name='payments', on_delete=models.PROTECT)
 
     def __repr__(self):
-        return """
-            Payment(variant=%s, is_active=%s, created=%s, charge_status=%s)
-        """ % (self.variant, self.is_active, self.created, self.charge_status)
+        return 'Payment(variant=%s, is_active=%s, created=%s, charge_status=%s)' % (
+            self.variant, self.is_active, self.created, self.charge_status)
 
     def __iter__(self):
         return iter(self.transactions.all())

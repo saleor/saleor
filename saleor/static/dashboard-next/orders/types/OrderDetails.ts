@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, WeightUnitsEnum } from "./../../types/globalTypes";
+import { OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction, WeightUnitsEnum } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL query operation: OrderDetails
@@ -198,13 +198,13 @@ export interface OrderDetails_order_total {
   tax: OrderDetails_order_total_tax;
 }
 
-export interface OrderDetails_order_totalAuthorized {
+export interface OrderDetails_order_authorizedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderDetails_order_totalCaptured {
+export interface OrderDetails_order_capturedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -246,8 +246,9 @@ export interface OrderDetails_order {
   status: OrderStatus;
   subtotal: OrderDetails_order_subtotal | null;
   total: OrderDetails_order_total | null;
-  totalAuthorized: OrderDetails_order_totalAuthorized | null;
-  totalCaptured: OrderDetails_order_totalCaptured | null;
+  actions: (OrderAction | null)[];
+  authorizedAmount: OrderDetails_order_authorizedAmount;
+  capturedAmount: OrderDetails_order_capturedAmount;
   user: OrderDetails_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderDetails_order_availableShippingMethods | null)[] | null;

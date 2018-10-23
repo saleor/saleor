@@ -1,7 +1,7 @@
 /* tslint:disable */
 // This file was automatically generated and should not be edited.
 
-import { FulfillmentCancelInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus } from "./../../types/globalTypes";
+import { FulfillmentCancelInput, OrderEventsEmails, OrderEvents, FulfillmentStatus, PaymentChargeStatusEnum, OrderStatus, OrderAction } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: OrderFulfillmentCancel
@@ -204,13 +204,13 @@ export interface OrderFulfillmentCancel_orderFulfillmentCancel_order_total {
   tax: OrderFulfillmentCancel_orderFulfillmentCancel_order_total_tax;
 }
 
-export interface OrderFulfillmentCancel_orderFulfillmentCancel_order_totalAuthorized {
+export interface OrderFulfillmentCancel_orderFulfillmentCancel_order_authorizedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
 }
 
-export interface OrderFulfillmentCancel_orderFulfillmentCancel_order_totalCaptured {
+export interface OrderFulfillmentCancel_orderFulfillmentCancel_order_capturedAmount {
   __typename: "Money";
   amount: number;
   currency: string;
@@ -252,8 +252,9 @@ export interface OrderFulfillmentCancel_orderFulfillmentCancel_order {
   status: OrderStatus;
   subtotal: OrderFulfillmentCancel_orderFulfillmentCancel_order_subtotal | null;
   total: OrderFulfillmentCancel_orderFulfillmentCancel_order_total | null;
-  totalAuthorized: OrderFulfillmentCancel_orderFulfillmentCancel_order_totalAuthorized | null;
-  totalCaptured: OrderFulfillmentCancel_orderFulfillmentCancel_order_totalCaptured | null;
+  actions: (OrderAction | null)[];
+  authorizedAmount: OrderFulfillmentCancel_orderFulfillmentCancel_order_authorizedAmount;
+  capturedAmount: OrderFulfillmentCancel_orderFulfillmentCancel_order_capturedAmount;
   user: OrderFulfillmentCancel_orderFulfillmentCancel_order_user | null;
   userEmail: string | null;
   availableShippingMethods: (OrderFulfillmentCancel_orderFulfillmentCancel_order_availableShippingMethods | null)[] | null;
