@@ -1492,17 +1492,15 @@ def test_product_sales(
     content = get_graphql_content(response)
     edges = content['data']['reportProductSales']['edges']
 
-    line_a = order_with_lines.lines.all()[1]
     node_a = edges[0]['node']
-    assert node_a['sku'] == line_a.product_sku
+    line_a = order_with_lines.lines.get(product_sku=node_a['sku'])
     assert node_a['quantityOrdered'] == line_a.quantity
     assert (
         node_a['revenue']['gross']['amount'] ==
         line_a.quantity * line_a.unit_price_gross.amount)
 
-    line_b = order_with_lines.lines.all()[0]
     node_b = edges[1]['node']
-    assert node_b['sku'] == line_b.product_sku
+    line_b = order_with_lines.lines.get(product_sku=node_b['sku'])
     assert node_b['quantityOrdered'] == line_b.quantity
     assert (
         node_b['revenue']['gross']['amount'] ==
