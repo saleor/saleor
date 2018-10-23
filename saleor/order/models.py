@@ -52,7 +52,9 @@ class OrderQueryset(models.QuerySet):
         Orders ready to capture are those which are not draft or canceled and
         have a preauthorized payment.
         """
-        qs = self.filter(payments__status=PaymentStatus.PREAUTH)
+        qs = self.filter(
+            payments__is_active=True, payments__charge_status__in=[
+                ChargeStatus.NOT_CHARGED, ChargeStatus.CHARGED])
         qs = qs.exclude(status={OrderStatus.DRAFT, OrderStatus.CANCELED})
         return qs.distinct()
 

@@ -901,13 +901,9 @@ type Mutations {
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
-  attributeCreate(id: ID!, input: AttributeCreateInput!, type: AttributeTypeEnum!): AttributeCreate
-  attributeDelete(id: ID!): AttributeDelete
-  attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
   paymentCapture(amount: Decimal, paymentId: ID!): PaymentCapture
-  paymentRefund(amount: Decitmal, paymentId: ID!): PaymentRefund
+  paymentRefund(amount: Decimal, paymentId: ID!): PaymentRefund
   paymentVoid(paymentId: ID!): PaymentVoid
->>>>>>> Rename PaymentMethod to Payment
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleUpdate(id: ID!, input: SaleInput!): SaleUpdate
@@ -916,6 +912,7 @@ type Mutations {
   homepageCollectionUpdate(collection: ID): HomepageCollectionUpdate
   voucherCreate(input: VoucherInput!): VoucherCreate
   voucherDelete(id: ID!): VoucherDelete
+  voucherUpdate(id: ID!, input: VoucherInput!): VoucherUpdate
   shippingZoneCreate(input: ShippingZoneInput!): ShippingZoneCreate
   shippingZoneDelete(id: ID!): ShippingZoneDelete
   shippingZoneUpdate(id: ID!, input: ShippingZoneInput!): ShippingZoneUpdate
@@ -1588,9 +1585,12 @@ type Query {
   orders(query: String, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
   page(id: ID, slug: String): Page
-  pages(query: String, before: String, after: String, first: Int, last: Int): PageCountableConnection
-  sale(id: ID!): Sale
-  sales(query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
+  pages(query: String, before: String, after: String, first: Int, last: Int, id: ID, title: String): PageCountableConnection
+  payment(id: ID): Payment
+  paymentTransactionToken(gateway: ProvidersEnum): String
+  payments(before: String, after: String, first: Int, last: Int, id: ID): PaymentCountableConnection
+  sale(id: ID): Sale
+  sales(query: String, before: String, after: String, first: Int, last: Int, name_Icontains: String, type_Icontains: String, value_Gte: Float, value_Lte: Float, startDate: Date, endDate: Date): SaleCountableConnection
   shop: Shop
   voucher(id: ID!): Voucher
   vouchers(query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
