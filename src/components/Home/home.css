@@ -2,7 +2,6 @@
   & section {
     &.hero {
       position: relative;
-      height: 100vh;
       margin-bottom: calc(var(--spacer) * 6);
       & .bg-container {
         background-image: url('../../images/parrot-bg.png');
@@ -101,6 +100,10 @@
         & .btn {
           margin: 0 calc(var(--spacer) * 1.5);
           font-size: calc(var(--font-size-base) * 1.2);
+          padding: calc(var(--spacer) / 1.5) calc(var(--spacer) * 5.5);
+          @media (max-width: 1220px) {
+            padding: calc(var(--spacer) / 1.5) calc(var(--spacer) * 3);
+          }
           @media (max-width: 570px) {
             font-size: var(--font-size-base);
           }
@@ -110,7 +113,6 @@
             text-align: center;
           }
           &.btn-primary {
-            padding: calc(var(--spacer) / 1.5) calc(var(--spacer) * 3);
             @media (max-width: 450px) {
               padding: calc(var(--spacer) / 1.5) 0;
             }
@@ -119,7 +121,6 @@
             }
           }
           &.btn-secondary {
-            padding: calc(var(--spacer) / 2) calc(var(--spacer) * 4); 
             @media (max-width: 450px) {
               padding: calc(var(--spacer) / 1.5) 0;
             }
@@ -147,15 +148,6 @@
         @media (max-width: 320px) {
           bottom: calc(var(--spacer) * -3);
         }
-      }
-      @media (max-width: 768px) {
-        height: 70vh;
-      }
-      @media (max-width: 700px) {
-        height: 180vh;
-      }
-      @media (max-width: 450px) {
-        height: 80vh;
       }
     }
     &.features {
@@ -196,7 +188,7 @@
         }
         & .image {
           width: 60%;
-          height: 43vh;
+          height: 470px;
           background-size: 100%;
           background-repeat: no-repeat;
           position: relative;
@@ -206,13 +198,16 @@
             top: 0;
           }
           @media (min-width: 2500px) {
-            height: 35vh;
+            height: 500px;
+          }
+          @media (max-width: 1440px) {
+            height: 350px;
           }
           @media (max-width: 1024px) {
-            height: 25vh;
+            height: 250px;
           }
           @media (max-width: 768px) {
-            height: 30vh;
+            height: 340px;
           }
           & h3 {
             position: absolute;

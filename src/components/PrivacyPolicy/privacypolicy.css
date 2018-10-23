@@ -25,7 +25,6 @@
       }
     }
 		&.hero {
-      height: 100vh;
       padding: 0;
       position: relative;
       margin-bottom: calc(var(--spacer) * 4);
@@ -68,13 +67,6 @@
           bottom: -5%;
         }
       }
-      @media (max-width: 700px) {
-        height: 180vh;
-      }
-      @media (max-width: 450px) {
-        height: 80vh;
-      }
-
 		}
     &.section-container {
       padding: calc(var(--spacer) * 2) calc(var(--spacer) * 10);

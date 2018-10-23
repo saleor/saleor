@@ -297,3 +297,25 @@ ul {
     opacity: 0.5;
   }
 }
+
+section.hero {
+  height: 1440px;
+  @media (max-width: 1920px) {
+    height: 1080px;
+  }
+  @media (max-width: 1440px) {
+    height: 768px;
+  }
+  @media (max-width: 768px) {
+    height: 650px;
+  }
+  @media (max-width: 700px) {
+    height: 180vh;
+  }
+  @media (max-width: 450px) {
+    height: 550px;
+  }
+  @media (max-width: 320px) {
+    height: 450px;
+  }
+}

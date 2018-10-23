@@ -2,7 +2,6 @@
   position: relative;
   & section {
     &.hero {
-      height: 90vh;
       @media (max-width: 1024px) {
         padding-bottom: 0;
       }

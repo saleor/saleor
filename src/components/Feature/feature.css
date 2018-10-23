@@ -28,7 +28,6 @@
         }
         &.hero {
           position: relative;
-          height: 100vh;
           padding: 0;
           & .plane {
             width: 55%;
@@ -72,12 +71,6 @@
             @media (max-width: 320px) {
               bottom: calc(var(--spacer) * 2);
             }
-          }
-          @media (max-width: 700px) {
-            height: 160vh;
-          }
-          @media (max-width: 450px) {
-            height: 80vh;
           }
         }
         &.testimonial {
