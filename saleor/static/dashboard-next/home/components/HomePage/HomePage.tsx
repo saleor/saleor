@@ -31,7 +31,6 @@ export interface HomePageProps {
     };
     sales: MoneyType;
   };
-  onRowClick: () => undefined;
   userName: string;
   topProducts: Array<{
     id: string;
@@ -41,6 +40,7 @@ export interface HomePageProps {
     thumbnailUrl: string;
     variant: string;
   }>;
+  onProductClick?(id: string): () => void;
 }
 
 const decorate = withStyles(theme => ({
@@ -69,7 +69,7 @@ const decorate = withStyles(theme => ({
   }
 }));
 const HomePage = decorate<HomePageProps>(
-  ({ userName, classes, daily, topProducts, onRowClick, activities }) => {
+  ({ userName, classes, daily, topProducts, onProductClick, activities }) => {
     return (
       <Container width="md">
         <HomeHeader userName={userName} />
@@ -99,14 +99,13 @@ const HomePage = decorate<HomePageProps>(
             </div>
 
             <HomeProductListCard
-              onRowClick={onRowClick}
-              disabled={false}
+              onRowClick={onProductClick}
               topProducts={topProducts}
             />
             <CardSpacer />
           </div>
           <div>
-            <HomeActivityCard disabled={false} activities={activities} />
+            <HomeActivityCard activities={activities} />
           </div>
         </div>
       </Container>

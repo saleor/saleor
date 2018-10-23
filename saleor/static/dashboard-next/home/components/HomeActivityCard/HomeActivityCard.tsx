@@ -22,7 +22,6 @@ interface HomeProductListCardProps {
     newElement: string;
     user: string;
   }>;
-  disabled: boolean;
 }
 
 const decorate = withStyles({
