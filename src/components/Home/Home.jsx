@@ -18,21 +18,21 @@ import easyToCustomizeIcon from '../../images/easy-to-customize.svg';
 import greatExperienceIcon from '../../images/great-experience.svg';
 import starsBg from '../../images/open-source-bg.svg';
 import background from '../../images/background.svg';
-
 import dashboardIcon from '../../images/dashboard-icon.png';
 import dashboardIconX2 from '../../images/dashboard-icon-2x.png';
 import dashboardIconX3 from '../../images/dashboard-icon-3x.png';
-
 import storefrontIcon from '../../images/storefront-icon.png';
 import storefrontIconX2 from '../../images/storefront-icon-2x.png';
 import storefrontIconX3 from '../../images/storefront-icon-3x.png';
-
 import pgShowCase from '../../images/pg-showcase.png';
 import pgShowCaseX2 from '../../images/pg-showcase-2x.png';
 import pgShowCaseX3 from '../../images/pg-showcase-3x.png';
-
-import roomLab from '../../images/implementation1.png';
-import patchGarden from '../../images/implementation2.png';
+import roomLab from '../../images/implementation-roomLab.jpg';
+import roomLabX2 from '../../images/implementation-roomLab-2x.jpg';
+import roomLabX3 from '../../images/implementation-roomLab-3x.jpg';
+import patchGarden from '../../images/implementation-patchGarden.jpg';
+import patchGardenX2 from '../../images/implementation-patchGarden-2x.jpg';
+import patchGardenX3 from '../../images/implementation-patchGarden-3x.jpg';
 import timKalic from '../../images/pg-quote.png';
 
 class Home extends Component {
@@ -271,13 +271,13 @@ class Home extends Component {
                 <TabPanel className="implementation">
                   <div className="grid">
                     <div className="col-xs-12 col-sm-12 col-md-6">
-                      <img src={roomLab} alt="RoomLab" />
+                      <img src={roomLab} srcSet={`${roomLab} 1x, ${roomLabX2} 2x, ${roomLabX3} 3x`} alt="RoomLab" />
                       <div className="text-center">
                         <a className="btn btn-secondary" href="https://roomlab.co.uk" target="_blank" rel="noopener"><span>Visit website</span></a>
                       </div>
                     </div>
                     <div className="col-xs-12 col-sm-12 col-md-6">
-                      <img src={patchGarden} alt="Patch Garden" />
+                      <img src={patchGarden} srcSet={`${patchGarden} 1x, ${patchGardenX2} 2x, ${patchGardenX3} 3x`} alt="RoomLab" alt="Patch Garden" />
                       <div className="text-center">
                       <a className="btn btn-secondary" href="https://patch.garden/" target="_blank" rel="noopener"><span>Visit website</span></a>
                       </div>

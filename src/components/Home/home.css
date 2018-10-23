@@ -205,6 +205,9 @@
             opacity: 1;
             top: 0;
           }
+          @media (min-width: 2500px) {
+            height: 35vh;
+          }
           @media (max-width: 1024px) {
             height: 25vh;
           }
