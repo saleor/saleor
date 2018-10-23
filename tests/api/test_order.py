@@ -716,6 +716,8 @@ def test_order_update(
     assert data['userEmail'] == email
 
     order.refresh_from_db()
+    order.shipping_address.refresh_from_db()
+    order.billing_address.refresh_from_db()
     assert order.shipping_address.first_name == graphql_address_data['firstName']
     assert order.billing_address.last_name == graphql_address_data['lastName']
     assert order.user_email == email
@@ -758,7 +760,8 @@ def test_order_update_anonymous_user_no_user_email(
         'message': 'User_email field is null while order was created by '
                    'anonymous user'}
 
-    order.refresh_from_db()
+    order.shipping_address.refresh_from_db()
+    order.billing_address.refresh_from_db()
     assert order.shipping_address.first_name != first_name
     assert order.billing_address.last_name != last_name
 
@@ -798,6 +801,8 @@ def test_order_update_user_email_existing_user(
     assert data['userEmail'] == email
 
     order.refresh_from_db()
+    order.shipping_address.refresh_from_db()
+    order.billing_address.refresh_from_db()
     assert order.shipping_address.first_name == graphql_address_data['firstName']
     assert order.billing_address.last_name == graphql_address_data['lastName']
     assert order.user_email == email
