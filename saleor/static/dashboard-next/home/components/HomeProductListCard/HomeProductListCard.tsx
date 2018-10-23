@@ -40,6 +40,10 @@ const decorate = withStyles(theme => ({
     paddingBottom: theme.spacing.unit * 2,
     paddingTop: theme.spacing.unit * 2
   },
+  noProducts: {
+    paddingBottom: "20px",
+    paddingTop: "20px"
+  },
   tableRow: {
     cursor: "pointer" as "pointer"
   }
@@ -105,7 +109,7 @@ export const HomeProductList = decorate<HomeProductListProps>(
             ),
             () => (
               <TableRow>
-                <TableCell>
+                <TableCell className={classes.noProducts}>
                   <Typography>{i18n.t("No products found")}</Typography>
                 </TableCell>
               </TableRow>
