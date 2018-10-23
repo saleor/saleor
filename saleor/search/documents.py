@@ -87,7 +87,7 @@ class OrderDocument(DocType):
             address = user.default_billing_address
             if address:
                 return address.first_name
-            return None
+        return None
 
     def prepare_last_name(self, instance):
         user = instance.user
@@ -97,7 +97,7 @@ class OrderDocument(DocType):
             address = user.default_billing_address
             if address:
                 return address.last_name
-            return None
+        return None
 
     class Meta:
         model = Order
