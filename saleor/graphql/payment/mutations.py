@@ -86,7 +86,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             'billing_address_2': billing_address.street_address_2,
             'billing_city': billing_address.city,
             'billing_postal_code': billing_address.postal_code,
-            'billing_country_code': billing_address.country,
+            'billing_country_code': billing_address.country.code,
             'billing_country_area': billing_address.country_area}
         return billing_data
 
