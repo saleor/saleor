@@ -269,7 +269,6 @@ type CategoryDelete {
 input CategoryInput {
   description: String
   name: String
-  parent: ID
   slug: String
   seo: SeoInput
   backgroundImage: Upload
@@ -692,7 +691,7 @@ type Mutations {
   attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
   attributeValueDelete(id: ID!): AttributeValueDelete
   attributeValueUpdate(id: ID!, input: AttributeValueCreateInput!): AttributeValueUpdate
-  categoryCreate(input: CategoryInput!): CategoryCreate
+  categoryCreate(input: CategoryInput!, parent: ID): CategoryCreate
   categoryDelete(id: ID!): CategoryDelete
   categoryUpdate(id: ID!, input: CategoryInput!): CategoryUpdate
   customerCreate(input: UserCreateInput!): CustomerCreate

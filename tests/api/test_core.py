@@ -22,7 +22,7 @@ def test_user_error_field_name_for_related_object(
         staff_api_client, permission_manage_products):
     query = """
     mutation {
-        categoryCreate(input: {name: "Test", parent: "123456"}) {
+        categoryCreate(input: {name: "Test"}, parent: "123456") {
             errors {
                 field
                 message
